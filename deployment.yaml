@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: ambassador
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ambassador
+        # service: ambassador-admin
+    spec:
+      containers:
+      - name: ambassador
+        image: dwflynn/ambassador:step3
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        - containerPort: 8001
+          protocol: TCP
+        resources: {}
+      restartPolicy: Always
+status: {}

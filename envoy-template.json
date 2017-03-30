@@ -1,0 +1,54 @@
+{
+  "listeners": [
+    {
+      "port": 80,
+      "filters": [
+        {
+          "type": "read",
+          "name": "http_connection_manager",
+          "config": {
+            "codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "name": "backend",
+                  "domains": ["*"],
+                  "routes": []
+                }
+              ]
+            },
+            "filters": [
+              {
+                "type": "decoder",
+                "name": "router",
+                "config": {}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "admin": {
+    "access_log_path": "/dev/null",
+    "port": 8001
+  },
+  "cluster_manager": {
+    "sds": {
+      "cluster": {
+        "name": "envoy-sds",
+        "connect_timeout_ms": 250,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://envoy-sds:5000"
+          }
+        ]
+      },
+      "refresh_delay_ms": 15000      
+    },
+    "clusters": []
+  }
+}
