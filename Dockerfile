@@ -37,6 +37,6 @@ COPY envoy-template.json /etc/envoy.json
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
+RUN chmod 755 entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]

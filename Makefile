@@ -14,4 +14,6 @@ DOCKER_SOURCES = \
     envoy-wrapper.sh
 
 docker-image: $(DOCKER_SOURCES)
-	docker build -t datawire/ambassador:0.1.0 .
+	docker build -t dwflynn/ambassador:0.1.1 .
+	docker push dwflynn/ambassador:0.1.1
+	
