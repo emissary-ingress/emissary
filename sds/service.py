@@ -44,25 +44,24 @@ def handle_endpoint(service_name):
     endpoints = r.json()
 
     hostdicts = []
-    sofar = None
+    ports = []
 
-    if "subsets" in endpoints:
-        sofar = endpoints["subsets"]
+    subsets = endpoints.get("subsets", [])
 
-    if sofar:
-        sofar = sofar[0] 
+    for subset in subsets:
+        for portdef in subset.get("ports", []):
+            if ((portdef["name"] == service_name) and
+                (portdef['protocol'] == 'TCP')):
+                ports.append(portdef['port'])
 
-        if "addresses" in sofar:
-            sofar = sofar["addresses"]
-
-    if sofar:
-        for x in sofar:
-            if "ip" in x:
-                hostdicts.append({
-                    "ip_address": x["ip"],
-                    "port": 80,
-                    "tags": {}
-                })
+        for addrdef in subset.get("addresses", []):
+            if "ip" in addrdef:
+                for port in ports:
+                    hostdicts.append({
+                        "ip_address": addrdef["ip"],
+                        "port": port,
+                        "tags": {}
+                    })
 
     return jsonify({ "hosts": hostdicts })
 
