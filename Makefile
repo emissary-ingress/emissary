@@ -7,6 +7,6 @@ ambassador: .ALWAYS
 	docker push dwflynn/ambassador:0.1.2
 
 sds: .ALWAYS
-	docker build -t dwflynn/sds:0.1.2 sds
-	docker push dwflynn/sds:0.1.2
+	docker build -t dwflynn/ambassador-sds:0.1.2 sds
+	docker push dwflynn/ambassador-sds:0.1.2
 	
