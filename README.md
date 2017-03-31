@@ -75,7 +75,7 @@ curl -XPOST -H "Content-Type: application/json" \
       http://$AMBASSADORIP/ambassador/service/$servicename
 ```
 
-will create a new service;
+will create a new service (*note well* that the `$servicename` must match the name of a service defined in Kubernetes!);
 
 ```
 curl -XDELETE http://$AMBASSADORIP/ambassador/service/$servicename
