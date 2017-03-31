@@ -325,7 +325,7 @@ def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
 
     rc = fetch_all_services()
 
-    if rc:
+    if rc and rc.services:
         for service in rc.services:
             config.add_service(service['name'], service['prefix'], service['port'])
 
