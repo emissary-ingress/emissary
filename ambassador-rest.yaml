@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.1.3
+        image: dwflynn/ambassador:0.1.4
         ports:
         - containerPort: 80
           protocol: TCP
