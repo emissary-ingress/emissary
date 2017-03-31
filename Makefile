@@ -1,19 +1,8 @@
 all: ambassador
 
-ambassador: docker-image
+.ALWAYS:
 
-DOCKER_SOURCES = \
-    Dockerfile \
-    \
-    ambassador.py \
-    envoy-template.json \
-    requirements.txt \
-    \
-    entrypoint.sh \
-    envoy-restarter.py \
-    envoy-wrapper.sh
+ambassador: .ALWAYS
+	docker build -t dwflynn/ambassador:0.1.2 ambassador
+	docker push dwflynn/ambassador:0.1.2
 
-docker-image: $(DOCKER_SOURCES)
-	docker build -t dwflynn/ambassador:0.1.1 .
-	docker push dwflynn/ambassador:0.1.1
-	
