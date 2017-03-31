@@ -184,7 +184,7 @@ class EnvoyConfig (object):
         output_file.close()
 
 def get_db(database):
-    db_host = "postgres"
+    db_host = "ambassador-store"
     db_port = 5432
 
     if "AMBASSADOR_DB_HOST" in os.environ:

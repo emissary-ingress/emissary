@@ -3,7 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   creationTimestamp: null
-  name: postgres
+  name: ambassador-store
 spec:
   replicas: 1
   strategy: {}
@@ -11,10 +11,10 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        service: postgres
+        service: ambassador-store
     spec:
       containers:
-      - name: postgres
+      - name: ambassador-store
         image: postgres:9.6
         resources: {}
       restartPolicy: Always
@@ -25,13 +25,12 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    service: postgres
-  name: postgres
+    service: ambassador-store
+  name: ambassador-store
 spec:
   type: ClusterIP
   ports:
-  - name: postgres
+  - name: ambassador-store
     port: 5432
   selector:
-    service: postgres
-
+    service: ambassador-store

@@ -1,12 +1,17 @@
-all: ambassador
+all: docker-images ambassador.yaml
 
 .ALWAYS:
 
-ambassador: .ALWAYS
-	docker build -t dwflynn/ambassador:0.1.2 ambassador
-	docker push dwflynn/ambassador:0.1.2
+ambassador.yaml: ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml
+	cat ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml > ambassador.yaml
 
-sds: .ALWAYS
-	docker build -t dwflynn/ambassador-sds:0.1.2 sds
-	docker push dwflynn/ambassador-sds:0.1.2
+docker-images: ambassador-image sds-image
+
+ambassador-image: .ALWAYS
+	docker build -t dwflynn/ambassador:0.1.3 ambassador
+	docker push dwflynn/ambassador:0.1.3
+
+sds-image: .ALWAYS
+	docker build -t dwflynn/ambassador-sds:0.1.3 sds
+	docker push dwflynn/ambassador-sds:0.1.3
 	

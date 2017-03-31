@@ -8,34 +8,54 @@ Ambassador is ALPHA SOFTWARE. In particular, at present it does not include an a
 Running Ambassador
 ==================
 
-If you clone this repository, you'll have access to the Kubernetes resource files `postgres.yaml`, `sds.yaml`, and `ambassador.yaml`.
+If you clone this repository, you'll have access to multiple Kubernetes resource files:
 
-Postgres
---------
+- `ambassador-rest.yaml` defines the REST service that is how you'll primarily interact with Ambassador;
+- `ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running;
+- `ambassador-sds.yaml` defines the Envoy Service Discovery Service that Ambassador relies on; and finally,
+- `ambassador.yaml` wraps up all of the above.
 
-Ambassador uses Postgres as its backing store. If you're already using Postgres in your cluster, great -- Ambassador assumes it can connect to `postgres:5432` as user `postgres`. It will create a database called `ambassador` for its use.
+You can get Ambassador running the easy way, or the less easy way.
 
-If you don't already have Postgres running, then
+The Easy Way
+------------
 
-```
-kubectl apply -f postgres.yaml
-```
-
-will create a Postgres deployment and service for you.
-
-Ambassador-SDS and Ambassador
------------------------------
-
-Ambassador is the API gateway built atop Envoy; Ambassador-SDS is the Service Discovery Service that Ambassador relies on. Both are required. The easy way to start them is
+The simplest way to get everything running is simply to use `ambassador.yaml` to crank everything up at once:
 
 ```
-kubectl apply -f sds.yaml,ambassador.yaml
+kubectl apply -f ambassador.yaml
 ```
+
+This is what we recommend.
+
+The Less Easy Way
+-----------------
+
+If necessary for some reason, you can instead use the individual resources above and do things by hand. In this case, we recommend the following order:
+
+```
+kubectl apply -f ambassador-store.yaml
+kubectl apply -f ambassador-sds.yaml
+kubectl apply -f ambassador-rest.yaml
+```
+
+Once Running
+------------
+
+However you started Ambassador, once it's running you'll see pods and services called `ambassador`, `ambassador-sds`, and `ambassador-store`. All of these are necessary, and at present only one replica of each should be run.
+
+*ALSO NOTE*: The very first time you start Ambassador, it can take a very long time - like 15 minutes - to get the images pulled down and running. You can use `kubectl get pods` to see when the pods are actually running.
 
 Using Ambassador
 ================
 
-Once running, use `kubectl get services` to find the IP address of the Ambassador. Call that `$AMBASSADORIP`. Then
+Once running, it will take another minute or two for the Ambassador's load balancer to be established. Use the following to get its externally-visible IP address:
+
+```
+AMBASSADORIP=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}') || echo "No IP address yet"
+```
+
+If it reports "No IP address yet", wait a minute and try again. Once `AMBASSADORIP` is assigned, then
 
 ```
 curl http://$AMBASSADORIP/ambassador/health

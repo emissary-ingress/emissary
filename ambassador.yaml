@@ -3,6 +3,79 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   creationTimestamp: null
+  name: ambassador-store
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ambassador-store
+    spec:
+      containers:
+      - name: ambassador-store
+        image: postgres:9.6
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador-store
+  name: ambassador-store
+spec:
+  type: ClusterIP
+  ports:
+  - name: ambassador-store
+    port: 5432
+  selector:
+    service: ambassador-store
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: ambassador-sds
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ambassador-sds
+    spec:
+      containers:
+      - name: ambassador-sds
+        image: dwflynn/ambassador-sds:0.1.3
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador-sds
+  name: ambassador-sds
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-sds
+    port: 5000
+    targetPort: 5000
+  selector:
+    service: ambassador-sds
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
   name: ambassador
 spec:
   replicas: 1
@@ -16,7 +89,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.1.2
+        image: dwflynn/ambassador:0.1.3
         ports:
         - containerPort: 80
           protocol: TCP
