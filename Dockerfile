@@ -9,7 +9,7 @@ FROM lyft/envoy:latest
 # We need curl, pip, and dnsutils (for nslookup).
 RUN apt-get update && apt-get -q install -y \
     curl \
-    python-pip \
+    python3-pip \
     dnsutils
 
 # Set WORKDIR to /application which is the root of all our apps then COPY 
@@ -20,15 +20,20 @@ WORKDIR /application
 COPY requirements.txt .
 
 # Install application dependencies
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
-COPY hot-restarter.py .
+
+COPY envoy-restarter.py .
 COPY envoy-wrapper.sh .
 RUN chmod 755 envoy-wrapper.sh
 COPY ambassador.py .
-COPY envoy.json .
+
+COPY envoy-template.json .
+
+# NOT A BUG! this is for bootstrapping.
+COPY envoy-template.json /etc/envoy.json
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .

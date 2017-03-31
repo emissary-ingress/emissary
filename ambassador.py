@@ -6,6 +6,7 @@ import copy
 import json
 import logging
 import os
+import signal
 import socket
 import time
 import uuid
@@ -84,22 +85,22 @@ class RichStatus (object):
 
 class EnvoyConfig (object):
     route_template = '''
-    {
+    {{
         "timeout_ms": 0,
         "prefix": "{url_prefix}",
         "cluster": "{cluster_name}"
-    }
+    }}
     '''
 
     # We may append the 'features' element to the cluster definition, too.
     cluster_template = '''
-    {
+    {{
         "name": "{cluster_name}",
         "connect_timeout_ms": 250,
         "type": "sds",
         "service_name": "{service_name}",
         "lb_type": "round_robin"
-    }
+    }}
     '''
 
     self_route = {
@@ -143,17 +144,17 @@ class EnvoyConfig (object):
             service = self.services[service_name]
 
             service_def = {
-                'name': service_name,
+                'service_name': service_name,
                 'url_prefix': service['prefix'],
                 'cluster_name': '%s_cluster' % service_name
             }
 
-            route_json = EnvoyConfig.route_template.format(service_def)
+            route_json = EnvoyConfig.route_template.format(**service_def)
             route = json.loads(route_json)
             logging.info("add route %s" % route)
             routes.append(route)
 
-            cluster_json = EnvoyConfig.cluster_template.format(service_def)
+            cluster_json = EnvoyConfig.cluster_template.format(**service_def)
             cluster = json.loads(cluster_json)
             logging.info("add cluster %s" % cluster)
             clusters.append(cluster)
@@ -319,34 +320,42 @@ def health():
 
     return jsonify(rc.toDict())
 
-def new_config(envoy_base_config, envoy_config_path):
-    rc = fetch_all_services()
-
+def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
     config = EnvoyConfig(envoy_base_config)
 
-    for service in rc.services:
-        config.add_service(service.name, service.prefix, service.port)
+    rc = fetch_all_services()
+
+    if rc:
+        for service in rc.services:
+            config.add_service(service['name'], service['prefix'], service['port'])
 
     config.write_config(envoy_config_path)
+
+    if envoy_restarter_pid > 0:
+        os.kill(envoy_restarter_pid, signal.SIGHUP)
 
     return RichStatus.OK(count=len(rc.services))
 
 @app.route('/ambassador/services', methods=[ 'GET', 'PUT' ])
 def root():
     rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_service %s: method %s" % (name, request.method))
+    logging.debug("handle_services: method %s" % request.method)
     
     try:
         rc = setup()
 
         if rc:
             if request.method == 'PUT':
-                rc = new_config(request)
+                rc = new_config(
+                    app.envoy_base_config,      # base config we read earlier
+                    app.envoy_config_path,      # where to write full config
+                    app.envoy_restarter_pid     # PID to signal for reload
+                )
             else:
                 rc = handle_service_list(request)
     except Exception as e:
         logging.exception(e)
-        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
+        rc = RichStatus.fromError("handle_services: %s failed: %s" % (request.method, e))
 
     return jsonify(rc.toDict())
 
@@ -374,11 +383,43 @@ def handle_service(name):
 def main():
     app.envoy_template_path = sys.argv[1]
     app.envoy_config_path = sys.argv[2]
+    app.envoy_restarter_pid_path = sys.argv[3]
+    app.envoy_restarter_pid = None
+
+    # Load the base config.
     app.envoy_base_config = json.load(open(app.envoy_template_path, "r"))
 
-    new_config(app.envoy_base_config, app.envoy_config_path)
+    # Learn the PID of the restarter.
 
-    app.run(host='0.0.0.0', port=80, debug=True)
+    while app.envoy_restarter_pid is None:
+        try:
+            pid_file = open(app.envoy_restarter_pid_path, "r")
+
+            app.envoy_restarter_pid = int(pid_file.read().strip())
+        except FileNotFoundError:
+            logging.info("ambassador found no restarter PID")
+            time.sleep(1)
+        except IOError:
+            logging.info("ambassador found unreadable restarter PID")
+            time.sleep(1)
+        except ValueError:
+            logging.info("ambassador found invalid restarter PID")
+            time.sleep(1)
+
+    logging.info("ambassador found restarter PID %d" % app.envoy_restarter_pid)
+
+    new_config(
+        app.envoy_base_config,      # base config we read earlier
+        app.envoy_config_path,      # where to write full config
+        -1                          # don't signal automagically here
+    )
+
+    time.sleep(2)
+
+    logging.info("ambassador asking restarter for initial reread")
+    os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
+
+    app.run(host='127.0.0.1', port=5000, debug=True)
 
 if __name__ == '__main__':
     setup()
