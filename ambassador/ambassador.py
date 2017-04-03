@@ -23,12 +23,12 @@ MyHostName = socket.gethostname()
 MyResolvedName = socket.gethostbyname(socket.gethostname())
 
 # Don't change this line without also changing .bumpversion.cfg
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 
 logging.basicConfig(
     # filename=logPath,
     level=logging.DEBUG, # if appDebug else logging.INFO,
-    format="%(asctime)s ambassador 0.1.8 %(levelname)s: %(message)s",
+    format="%(asctime)s ambassador 0.1.9 %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
