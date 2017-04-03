@@ -11,9 +11,13 @@ docker-images: ambassador-image sds-image
 
 ambassador-image: .ALWAYS
 	docker build -t dwflynn/ambassador:$(VERSION) ambassador
-#	docker push dwflynn/ambassador:$(VERSION)
+	if [ -n "$(DOCKER_REGISTRY)" ]; then \
+		docker push $(DOCKER_REGISTRY)/ambassador:$(VERSION); \
+	fi
 
 sds-image: .ALWAYS
 	docker build -t dwflynn/ambassador-sds:$(VERSION) sds
-#	docker push dwflynn/ambassador-sds:$(VERSION)
+	if [ -n "$(DOCKER_REGISTRY)" ]; then \
+		docker push $(DOCKER_REGISTRY)/ambassador-sds:$(VERSION); \
+	fi
 	
