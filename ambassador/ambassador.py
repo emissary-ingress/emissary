@@ -22,7 +22,8 @@ logPath = "/tmp/flasklog"
 MyHostName = socket.gethostname()
 MyResolvedName = socket.gethostbyname(socket.gethostname())
 
-VERSION="0.1.6"
+# Don't change this line without also changing .bumpversion.cfg
+__version__ = "0.1.6"
 
 logging.basicConfig(
     # filename=logPath,
@@ -49,7 +50,7 @@ class RichStatus (object):
         self.info = kwargs
         self.info['hostname'] = MyHostName
         self.info['resolvedname'] = MyResolvedName
-        self.info['version'] = VERSION
+        self.info['version'] = __version__
 
     # Remember that __getattr__ is called only as a last resort if the key
     # isn't a normal attr.
