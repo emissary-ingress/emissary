@@ -22,10 +22,12 @@ logPath = "/tmp/flasklog"
 MyHostName = socket.gethostname()
 MyResolvedName = socket.gethostbyname(socket.gethostname())
 
+VERSION="0.1.6"
+
 logging.basicConfig(
     # filename=logPath,
     level=logging.DEBUG, # if appDebug else logging.INFO,
-    format="%(asctime)s ambassador 0.1.0 %(levelname)s: %(message)s",
+    format="%(asctime)s ambassador 0.1.6 %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
@@ -47,6 +49,7 @@ class RichStatus (object):
         self.info = kwargs
         self.info['hostname'] = MyHostName
         self.info['resolvedname'] = MyResolvedName
+        self.info['version'] = VERSION
 
     # Remember that __getattr__ is called only as a last resort if the key
     # isn't a normal attr.

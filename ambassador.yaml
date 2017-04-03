@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: dwflynn/ambassador-sds:0.1.5
+        image: dwflynn/ambassador-sds:0.1.6
         resources: {}
       restartPolicy: Always
 status: {}
@@ -89,7 +89,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.1.5
+        image: dwflynn/ambassador:0.1.6
         ports:
         - containerPort: 80
           protocol: TCP
