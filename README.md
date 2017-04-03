@@ -49,22 +49,32 @@ However you started Ambassador, once it's running you'll see pods and services c
 Using Ambassador
 ================
 
-Once running, it will take another minute or two for the Ambassador's load balancer to be established. Use the following to get its externally-visible IP address:
+Once running, it will take another minute or two for the Ambassador's load balancer to be established. 
+
+As long as you're *not* using Minikube, you can use the following to get the IP address for Ambassador's externally-visible IP address:
 
 ```
-AMBASSADORIP=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}') || echo "No IP address yet"
+AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}') || echo "No IP address yet"
 ```
 
-If it reports "No IP address yet", wait a minute and try again. Once `AMBASSADORIP` is assigned, then
+If it reports "No IP address yet", wait a minute and try again. 
+
+If you *are* using Minikube, what you want is
 
 ```
-curl http://$AMBASSADORIP/ambassador/health
+AMBASSADORURL=$(minikube service --url ambassador)
+```
+
+Once `AMBASSADORURL` is assigned, then
+
+```
+curl $AMBASSADORURL/ambassador/health
 ```
 
 will do a health check;
 
 ```
-curl http://$AMBASSADORIP/ambassador/services
+curl $AMBASSADORURL/ambassador/services
 ```
 
 will get a list of all user-defined services Ambassador knows about;
@@ -72,19 +82,19 @@ will get a list of all user-defined services Ambassador knows about;
 ```
 curl -XPOST -H "Content-Type: application/json" \
       -d '{ "prefix": "/url/prefix/here", "port": 80 }' \
-      http://$AMBASSADORIP/ambassador/service/$servicename
+      $AMBASSADORURL/ambassador/service/$servicename
 ```
 
 will create a new service (*note well* that the `$servicename` must match the name of a service defined in Kubernetes!);
 
 ```
-curl -XDELETE http://$AMBASSADORIP/ambassador/service/$servicename
+curl -XDELETE $AMBASSADORURL/ambassador/service/$servicename
 ```
 
 will delete a service; and
 
 ```
-curl -XPUT http://$AMBASSADORIP/ambassador/services
+curl -XPUT $AMBASSADORURL/ambassador/services
 ```
 
 will update Envoy's configuration to match the currently-defined set of services.
