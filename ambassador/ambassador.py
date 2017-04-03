@@ -349,8 +349,11 @@ def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
     config = EnvoyConfig(envoy_base_config)
 
     rc = fetch_all_services()
+    num_services = 0
 
     if rc and rc.services:
+        num_services = len(rc.services)
+
         for service in rc.services:
             config.add_service(service['name'], service['prefix'], service['port'])
 
@@ -359,7 +362,7 @@ def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
     if envoy_restarter_pid > 0:
         os.kill(envoy_restarter_pid, signal.SIGHUP)
 
-    return RichStatus.OK(count=len(rc.services))
+    return RichStatus.OK(count=num_services)
 
 @app.route('/ambassador/services', methods=[ 'GET', 'PUT' ])
 def root():
