@@ -103,23 +103,44 @@ class EnvoyConfig (object):
     }}
     '''
 
-    self_route = {
-        "timeout_ms": 0,
-        "prefix": "/ambassador",
-        "cluster": "ambassador_cluster"
-    }
+    self_routes = [
+        {
+            "timeout_ms": 0,
+            "prefix": "/ambassador/",
+            "cluster": "ambassador_cluster"
+        },
+        {
+            "timeout_ms": 0,
+            "prefix": "/ambassador-config/",
+            "prefix_rewrite": "/",
+            "cluster": "ambassador_config_cluster"
+        }
+    ]
 
-    self_cluster = {
-        "name": "ambassador_cluster",
-        "connect_timeout_ms": 250,
-        "type": "static",
-        "lb_type": "round_robin",
-        "hosts": [
-            {
-                "url": "tcp://127.0.0.1:5000"
-            }
-        ]
-    }
+    self_clusters = [
+        {
+            "name": "ambassador_cluster",
+            "connect_timeout_ms": 250,
+            "type": "static",
+            "lb_type": "round_robin",
+            "hosts": [
+                {
+                    "url": "tcp://127.0.0.1:5000"
+                }
+            ]
+        },
+        {
+            "name": "ambassador_config_cluster",
+            "connect_timeout_ms": 250,
+            "type": "static",
+            "lb_type": "round_robin",
+            "hosts": [
+                {
+                    "url": "tcp://127.0.0.1:8001"
+                }
+            ]
+        }
+    ]
 
     def __init__(self, base_config):
         self.services = {}
@@ -133,8 +154,8 @@ class EnvoyConfig (object):
 
     def write_config(self, path):
         # Generate routes and clusters.
-        routes = [ EnvoyConfig.self_route ]
-        clusters = [ EnvoyConfig.self_cluster ]
+        routes = copy.deepcopy(EnvoyConfig.self_routes)
+        clusters = copy.deepcopy(EnvoyConfig.self_clusters)
 
         logging.info("writing Envoy config to %s" % path)
         logging.info("initial routes: %s" % routes)

@@ -20,8 +20,6 @@ spec:
         ports:
         - containerPort: 80
           protocol: TCP
-        - containerPort: 8001
-          protocol: TCP
         resources: {}
       restartPolicy: Always
 status: {}
@@ -39,8 +37,5 @@ spec:
   - name: ambassador
     port: 80
     targetPort: 80
-  - name: ambassador-admin
-    port: 8001
-    targetPort: 8001
   selector:
     service: ambassador
