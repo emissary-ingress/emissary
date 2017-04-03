@@ -1,4 +1,4 @@
-FROM lyft/envoy:latest
+FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
 
 # This Dockerfile is set up to install all the application-specific stuff into
 # /application.
