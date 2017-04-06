@@ -210,6 +210,12 @@ class EnvoyConfig (object):
         output_file.close()
 
 
+def percentage(x, y):
+    if y == 0:
+        return 0
+    else:
+        return int(((x * 100) / y) + 0.5)
+
 class EnvoyStats (object):
     def __init__(self):
         self.update_errors = 0
@@ -219,7 +225,7 @@ class EnvoyStats (object):
             "update_errors": 0,
         }
 
-    def update(self):
+    def update(self, active_service_names):
         self.stats['last_attempt'] = time.time()
 
         r = requests.get("http://127.0.0.1:8001/stats")
@@ -254,6 +260,54 @@ class EnvoyStats (object):
         new_dict['last_update'] = time.time()
 
         self.stats = new_dict
+
+        active_services = {}
+
+        # Now dig into clusters a bit more.
+        if "cluster" in self.stats:
+            active_service_map = {
+                x + '_cluster': x
+                for x in active_service_names
+            }
+
+            for cluster_name in self.stats['cluster']:
+                cluster = self.stats['cluster'][cluster_name]
+
+                if cluster_name in active_service_map:
+                    service_name = active_service_map[cluster_name]
+                    active_services[service_name] = {}
+
+                    logging.info("SVC %s => CLUSTER %s" % (service_name, json.dumps(cluster)))
+
+                    healthy_members = cluster['membership_healthy']
+                    total_members = cluster['membership_total']
+                    healthy_percent = percentage(healthy_members, total_members)
+
+                    update_attempts = cluster['update_attempt']
+                    update_successes = cluster['update_success']
+                    update_percent = percentage(update_successes, update_attempts)
+
+                    upstream_ok = cluster.get('upstream_rq_2xx', 0)
+                    upstream_4xx = cluster.get('upstream_rq_4xx', 0)
+                    upstream_5xx = cluster.get('upstream_rq_5xx', 0)
+                    upstream_bad = upstream_4xx + upstream_5xx
+
+                    active_services[service_name] = {
+                        'healthy_members': healthy_members,
+                        'total_members': total_members,
+                        'healthy_percent': healthy_percent,
+
+                        'update_attempts': update_attempts,
+                        'update_successes': update_successes,
+                        'update_percent': update_percent,
+
+                        'upstream_ok': upstream_ok,
+                        'upstream_4xx': upstream_4xx,
+                        'upstream_5xx': upstream_5xx,
+                        'upstream_bad': upstream_bad
+                    }
+
+        self.stats['services'] = active_services
 
 def get_db(database):
     db_host = "ambassador-store"
@@ -394,7 +448,14 @@ def health():
 
 @app.route('/ambassador/stats', methods=[ 'GET' ])
 def ambassador_stats():
-    app.stats.update()
+    rc = fetch_all_services()
+
+    active_service_names = []
+
+    if rc and rc.services:
+        active_service_names = [ x['name'] for x in rc.services ]
+
+    app.stats.update(active_service_names)
 
     return jsonify(app.stats.stats)
 
