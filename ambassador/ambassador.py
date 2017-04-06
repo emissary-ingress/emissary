@@ -6,6 +6,7 @@ import copy
 import json
 import logging
 import os
+import requests
 import signal
 import socket
 import time
@@ -208,6 +209,52 @@ class EnvoyConfig (object):
         output_file.write('\n')
         output_file.close()
 
+
+class EnvoyStats (object):
+    def __init__(self):
+        self.update_errors = 0
+        self.stats = {
+            "last_update": 0,
+            "last_attempt": 0,
+            "update_errors": 0,
+        }
+
+    def update(self):
+        self.stats['last_attempt'] = time.time()
+
+        r = requests.get("http://127.0.0.1:8001/stats")
+
+        if r.status_code != 200:
+            logging.warning("EnvoyStats.update failed: %s" % r.text)
+            self.stats['update_errors'] += 1
+            return
+
+        new_dict = {}
+
+        for line in r.text.split("\n"):
+            if not line:
+                continue
+
+            # logging.info('line: %s' % line)
+            key, value = line.split(":")
+            keypath = key.split('.')
+
+            node = new_dict
+
+            for key in keypath[:-1]:
+                if key not in node:
+                    node[key] = {}
+
+                node = node[key]
+
+            node[keypath[-1]] = int(value.strip())
+
+        new_dict['last_attempt'] = self.stats['last_attempt']
+        new_dict['update_errors'] = self.stats['update_errors']
+        new_dict['last_update'] = time.time()
+
+        self.stats = new_dict
+
 def get_db(database):
     db_host = "ambassador-store"
     db_port = 5432
@@ -345,6 +392,12 @@ def health():
 
     return jsonify(rc.toDict())
 
+@app.route('/ambassador/stats', methods=[ 'GET' ])
+def ambassador_stats():
+    app.stats.update()
+
+    return jsonify(app.stats.stats)
+
 def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
     config = EnvoyConfig(envoy_base_config)
 
@@ -416,6 +469,7 @@ def main():
 
     # Load the base config.
     app.envoy_base_config = json.load(open(app.envoy_template_path, "r"))
+    app.stats = EnvoyStats()
 
     # Learn the PID of the restarter.
 
