@@ -1,4 +1,5 @@
-FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
+#FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
+FROM dwflynn/envoy-debug:latest
 
 # This Dockerfile is set up to install all the application-specific stuff into
 # /application.
@@ -28,7 +29,7 @@ RUN pip3 install -r requirements.txt
 COPY envoy-restarter.py .
 COPY envoy-wrapper.sh .
 RUN chmod 755 envoy-wrapper.sh
-COPY ambassador.py .
+COPY ambassador.py envoy.py utils.py VERSION.py ./
 
 COPY envoy-template.json .
 
