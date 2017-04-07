@@ -1,0 +1,28 @@
+---
+sudo: false
+dist: trusty
+language: python
+
+addons:
+  apt:
+    packages:
+      - python3
+
+python:
+  - "3.6"
+
+install:
+  - pip install -r dev-requirements.txt
+
+services:
+  - docker
+
+env:
+  global:
+    - DOCKER_REGISTRY=datawire
+    - COMMIT=${TRAVIS_COMMIT::8}
+
+script:
+  - set -e
+  - bump2version $(scripts/bumptype)
+  - make
