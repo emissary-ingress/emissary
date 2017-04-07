@@ -143,10 +143,16 @@ class EnvoyStats (object):
             "last_update": 0,
             "last_attempt": 0,
             "update_errors": 0,
+            "services": {},
+            "envoy": {}
         }
 
     def update(self, active_service_names):
-        self.stats['last_attempt'] = time.time()
+        # Remember how many update errors we had before...
+        update_errors = self.stats['update_errors']
+
+        # ...and remember when we started.
+        last_attempt = time.time()
 
         r = requests.get("http://127.0.0.1:8001/stats")
 
@@ -155,7 +161,9 @@ class EnvoyStats (object):
             self.stats['update_errors'] += 1
             return
 
-        new_dict = {}
+        # Parse stats into a hierarchy.
+
+        envoy_stats = {}
 
         for line in r.text.split("\n"):
             if not line:
@@ -165,7 +173,7 @@ class EnvoyStats (object):
             key, value = line.split(":")
             keypath = key.split('.')
 
-            node = new_dict
+            node = envoy_stats
 
             for key in keypath[:-1]:
                 if key not in node:
@@ -175,23 +183,18 @@ class EnvoyStats (object):
 
             node[keypath[-1]] = int(value.strip())
 
-        new_dict['last_attempt'] = self.stats['last_attempt']
-        new_dict['update_errors'] = self.stats['update_errors']
-        new_dict['last_update'] = time.time()
-
-        self.stats = new_dict
+        # Now dig into clusters a bit more.
 
         active_services = {}
 
-        # Now dig into clusters a bit more.
-        if "cluster" in self.stats:
+        if "cluster" in envoy_stats:
             active_service_map = {
                 x + '_cluster': x
                 for x in active_service_names
             }
 
-            for cluster_name in self.stats['cluster']:
-                cluster = self.stats['cluster'][cluster_name]
+            for cluster_name in envoy_stats['cluster']:
+                cluster = envoy_stats['cluster'][cluster_name]
 
                 if cluster_name in active_service_map:
                     service_name = active_service_map[cluster_name]
@@ -227,4 +230,13 @@ class EnvoyStats (object):
                         'upstream_bad': upstream_bad
                     }
 
-        self.stats['services'] = active_services
+        # OK, we're now officially finished with all the hard stuff.
+        last_update = time.time()
+
+        self.stats = {
+            "last_update": last_update,
+            "last_attempt": last_attempt,
+            "update_errors": update_errors,
+            "services": active_services,
+            "envoy": envoy_stats
+        }
