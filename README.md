@@ -12,7 +12,6 @@ Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1:
 
 - There is no authentication mechanism, so anyone can bring services up or down.
 - There is no SSL support.
-- Ambassador updates Envoy's configuration only with a specific request to do so.
 
 Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
 
@@ -105,14 +104,6 @@ curl -XDELETE $AMBASSADORURL/ambassador/service/$servicename
 will delete a service; and
 
 ```
-curl -XPUT $AMBASSADORURL/ambassador/services
-```
-
-will update Envoy's configuration to match the currently-defined set of services.
-
-Finally:
-
-```
 curl $AMBASSADOR/ambassador/stats
 ```
 
@@ -122,5 +113,11 @@ will return a JSON dictionary of statistics about resources that Ambassador pres
 - `services.$service.upstream_ok` is the number of requests to the service that have succeeded; and
 - `services.$service.upstream_bad` is the number of requests to the service that have failed.
 
+Ambassador will normally update Envoy's configuration five seconds after a `POST` or `DELETE` changes its mapping. Another change arriving during that five-second wait will restart the five-second timer. If you think you need to force an update without a `POST` or `DELETE`, you can use
 
+```
+curl -XPUT $AMBASSADORURL/ambassador/services
+```
+
+to do so (note that the five-second delay still applies).
 
