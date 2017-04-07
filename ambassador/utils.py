@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
+import sys
+
 import socket
+import threading
 
 import VERSION
 
@@ -49,3 +52,35 @@ class RichStatus (object):
     @classmethod
     def OK(self, **kwargs):
         return RichStatus(True, **kwargs)
+
+class DelayTrigger (threading.Thread):
+    def __init__(self, onfired, timeout=5, name=None):
+        super().__init__()
+
+        if name:
+            self.name = name
+
+        self.trigger_source, self.trigger_dest = socket.socketpair()
+
+        self.onfired = onfired
+        self.timeout = timeout
+
+        self.setDaemon(True)
+        self.start()
+
+    def trigger(self):
+        self.trigger_source.sendall(b'X')
+
+    def run(self):
+        while True:
+            self.trigger_dest.settimeout(None)
+            x = self.trigger_dest.recv(128)
+
+            self.trigger_dest.settimeout(self.timeout)
+
+            while True:
+                try:
+                    x = self.trigger_dest.recv(128)
+                except socket.timeout:
+                    self.onfired()
+                    break

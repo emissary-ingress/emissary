@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request
 import VERSION
 
 from envoy import EnvoyStats, EnvoyConfig
-from utils import RichStatus, SystemInfo
+from utils import RichStatus, SystemInfo, DelayTrigger
 
 __version__ = VERSION.Version
 
@@ -146,6 +146,8 @@ def handle_service_del(req, name):
         cursor.execute("DELETE FROM services WHERE name = :name", locals())
         conn.commit()
 
+        app.reconfigurator.trigger()
+
         return RichStatus.OK(name=name)
     except pg8000.Error as e:
         return RichStatus.fromError("%s: could not delete service: %s" % (name, e))
@@ -168,6 +170,8 @@ def handle_service_post(req, name):
 
         cursor.execute('INSERT INTO services VALUES(:name, :prefix, 0)', locals())
         conn.commit()
+
+        app.reconfigurator.trigger()
 
         return RichStatus.OK(name=name)
     except pg8000.Error as e:
@@ -192,7 +196,16 @@ def ambassador_stats():
 
     return jsonify(app.stats.stats)
 
-def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
+def new_config(envoy_base_config=None, envoy_config_path=None, envoy_restarter_pid=None):
+    if not envoy_base_config:
+        envoy_base_config = app.envoy_base_config
+
+    if not envoy_config_path:
+        envoy_config_path = app.envoy_config_path
+
+    if not envoy_restarter_pid:
+        envoy_restarter_pid = app.envoy_restarter_pid
+
     config = EnvoyConfig(envoy_base_config)
 
     rc = fetch_all_services()
@@ -221,11 +234,8 @@ def root():
 
         if rc:
             if request.method == 'PUT':
-                rc = new_config(
-                    app.envoy_base_config,      # base config we read earlier
-                    app.envoy_config_path,      # where to write full config
-                    app.envoy_restarter_pid     # PID to signal for reload
-                )
+                app.reconfigurator.trigger()
+                rc = RichStatus.OK(message="reconfigure requested")
             else:
                 rc = handle_service_list(request)
     except Exception as e:
@@ -284,16 +294,15 @@ def main():
 
     logging.info("ambassador found restarter PID %d" % app.envoy_restarter_pid)
 
-    new_config(
-        app.envoy_base_config,      # base config we read earlier
-        app.envoy_config_path,      # where to write full config
-        -1                          # don't signal automagically here
-    )
+    new_config(envoy_restarter_pid = -1)    # Don't automagically signal here.
 
     time.sleep(2)
 
     logging.info("ambassador asking restarter for initial reread")
     os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
+
+    # Set up the trigger for future restarts.
+    app.reconfigurator = DelayTrigger(new_config)
 
     app.run(host='127.0.0.1', port=5000, debug=True)
 
