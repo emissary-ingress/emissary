@@ -50,8 +50,9 @@ def handle_endpoint(service_name):
 
     for subset in subsets:
         for portdef in subset.get("ports", []):
-            if ((portdef["name"] == service_name) and
-                (portdef['protocol'] == 'TCP')):
+            if ((portdef['protocol'] == 'TCP') and
+                (('name' not in portdef) or
+                 (portdef['name'] == service_name))):
                 ports.append(portdef['port'])
 
         for addrdef in subset.get("addresses", []):
