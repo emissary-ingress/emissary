@@ -235,7 +235,7 @@ def root():
         if rc:
             if request.method == 'PUT':
                 app.reconfigurator.trigger()
-                rc = RichStatus.OK(message="reconfigure requested")
+                rc = RichStatus.OK(msg="reconfigure requested")
             else:
                 rc = handle_service_list(request)
     except Exception as e:
