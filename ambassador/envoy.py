@@ -77,10 +77,9 @@ class EnvoyConfig (object):
         self.services = {}
         self.base_config = base_config
 
-    def add_service(self, name, prefix, port):
+    def add_service(self, name, prefix):
         self.services[name] = {
             'prefix': prefix,
-            'port': port
         }
 
     def write_config(self, path):

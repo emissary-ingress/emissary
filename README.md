@@ -92,7 +92,7 @@ will get a list of all the  Ambassador knows how to map;
 
 ```
 curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "/url/prefix/here", "port": 80 }' \
+      -d '{ "prefix": "/url/prefix/here/" }' \
       $AMBASSADORURL/ambassador/service/$servicename
 ```
 
