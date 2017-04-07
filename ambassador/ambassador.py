@@ -112,12 +112,12 @@ def fetch_all_services():
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT name, prefix, port FROM services ORDER BY name, prefix")
+        cursor.execute("SELECT name, prefix FROM services ORDER BY name, prefix")
 
         services = []
 
-        for name, prefix, port in cursor:
-            services.append({ 'name': name, 'prefix': prefix, 'port': port })
+        for name, prefix in cursor:
+            services.append({ 'name': name, 'prefix': prefix })
 
         return RichStatus.OK(services=services, count=len(services))
     except pg8000.Error as e:
@@ -131,10 +131,10 @@ def handle_service_get(req, name):
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT prefix, port FROM services WHERE name = :name", locals())
-        [ prefix, port ] = cursor.fetchone()
+        cursor.execute("SELECT prefix FROM services WHERE name = :name", locals())
+        [ prefix ] = cursor.fetchone()
 
-        return RichStatus.OK(name=name, prefix=prefix, port=port)
+        return RichStatus.OK(name=name, prefix=prefix)
     except pg8000.Error as e:
         return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
 
@@ -152,7 +152,7 @@ def handle_service_del(req, name):
 
 def handle_service_post(req, name):
     try:
-        rc = getIncomingJSON(req, 'prefix', 'port')
+        rc = getIncomingJSON(req, 'prefix')
 
         logging.debug("handle_service_post %s: got args %s" % (name, rc.toDict()))
 
@@ -160,14 +160,13 @@ def handle_service_post(req, name):
             return rc
 
         prefix = rc.prefix
-        port = int(rc.port)
 
-        logging.debug("handle_service_post %s: prefix %s port %d" % (name, prefix, port))
+        logging.debug("handle_service_post %s: prefix %s" % (name, prefix))
 
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO services VALUES(:name, :prefix, :port)', locals())
+        cursor.execute('INSERT INTO services VALUES(:name, :prefix, 0)', locals())
         conn.commit()
 
         return RichStatus.OK(name=name)
@@ -203,7 +202,7 @@ def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
         num_services = len(rc.services)
 
         for service in rc.services:
-            config.add_service(service['name'], service['prefix'], service['port'])
+            config.add_service(service['name'], service['prefix'])
 
     config.write_config(envoy_config_path)
 

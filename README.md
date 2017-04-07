@@ -1,9 +1,20 @@
 Ambassador
 ==========
 
-Ambassador is an overseer for Envoy in Kubernetes deployments. You can tell it about new services you're creating and deleting, and it will update Envoy's configuration to match.
+Ambassador is a tool for easily and flexibly mapping public URLs to services running inside a Kubernetes cluster. Think of it as a simple way to spin up an API gateway for Kubernetes.
 
-Ambassador is ALPHA SOFTWARE. In particular, at present it does not include an authentication mechanism, and it updates Envoy's configuration only with a specific request to do so -- be aware!
+Under the hood, Ambassador uses [Envoy](https://lyft.github.io/envoy/) for the heavy lifting. You needn't understand anything about how Envoy works to use Ambassador, however.
+
+CAVEATS
+-------
+
+Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1:
+
+- There is no authentication mechanism, so anyone can bring services up or down.
+- There is no SSL support.
+- Ambassador updates Envoy's configuration only with a specific request to do so.
+
+Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
 
 Running Ambassador
 ==================
@@ -77,11 +88,11 @@ will do a health check;
 curl $AMBASSADORURL/ambassador/services
 ```
 
-will get a list of all user-defined services Ambassador knows about;
+will get a list of all the  Ambassador knows how to map;
 
 ```
 curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "/url/prefix/here", "port": 80 }' \
+      -d '{ "prefix": "/url/prefix/here/" }' \
       $AMBASSADORURL/ambassador/service/$servicename
 ```
 
@@ -98,4 +109,18 @@ curl -XPUT $AMBASSADORURL/ambassador/services
 ```
 
 will update Envoy's configuration to match the currently-defined set of services.
+
+Finally:
+
+```
+curl $AMBASSADOR/ambassador/stats
+```
+
+will return a JSON dictionary of statistics about resources that Ambassador presently has mapped. Most notably, the `services` dictionary lets you know basic health information about the services to which Ambassador is providing access:
+
+- `services.$service.healthy_members` is the number of healthy back-end systems providing the service;
+- `services.$service.upstream_ok` is the number of requests to the service that have succeeded; and
+- `services.$service.upstream_bad` is the number of requests to the service that have failed.
+
+
 
