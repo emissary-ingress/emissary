@@ -1,6 +1,13 @@
 #FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
 FROM dwflynn/envoy-debug:latest
 
+MAINTAINER Datawire <flynn@datawire.io>
+LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
+      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador \
+      DESCRIPTION              = "Ambassador REST Service" \
+      VENDOR                   = "Datawire" \
+      VENDOR_URL               = "https://datawire.io/"
+
 # This Dockerfile is set up to install all the application-specific stuff into
 # /application.
 #
