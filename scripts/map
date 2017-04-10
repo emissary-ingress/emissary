@@ -1,0 +1,18 @@
+#!/bin/sh
+
+PREFIX="$1"
+SERVICE="$2"
+
+if [ -z "$PREFIX" -o -z "$SERVICE" ]; then
+    echo "Usage: $(basename $0) prefix service" >&2
+    exit 1
+fi
+
+if [ -z "$AMBASSADORURL" ]; then
+    path=$(dirname $0)
+    eval $("$SHELL" "$path/geturl")
+fi
+
+curl -XPOST -H "Content-Type: application/json" \
+      -d "{ \"prefix\": \"/$PREFIX/\" }" \
+      "$AMBASSADORURL/ambassador/service/$SERVICE"

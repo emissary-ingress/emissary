@@ -1,0 +1,20 @@
+#!/bin/sh
+
+kubetype=$(kubectl get pods -o jsonpath="{.items[0].spec.nodeName}")
+
+if [ "$kubetype" == "minikube" ]; then
+    AMBASSADORURL=$(minikube service --url ambassador 2>/dev/null)
+else
+    while true; do
+        AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+
+        if [ $? -eq 0 ]; then
+            break
+        fi
+
+        sleep 1
+    done
+fi
+
+echo "export AMBASSADORURL=$AMBASSADORURL"
+

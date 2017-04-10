@@ -1,19 +1,52 @@
 Ambassador
 ==========
 
-Ambassador is a tool for easily and flexibly mapping public URLs to services running inside a Kubernetes cluster. Think of it as a simple way to spin up an API gateway for Kubernetes.
+Ambassador is a tool for easily and flexibly mapping public URLs to services running inside a Kubernetes cluster. Under the hood, Ambassador uses [Envoy](https://lyft.github.io/envoy/) for the heavy lifting. You needn't understand anything about how Envoy works to use Ambassador, however.
 
-Under the hood, Ambassador uses [Envoy](https://lyft.github.io/envoy/) for the heavy lifting. You needn't understand anything about how Envoy works to use Ambassador, however.
+Ambassador is most effective, at this point, as an API gateway for microservices that's easy to configure and operate. It is under active development; check frequently for updates, and please file issues for things you'd like to see!
 
 CAVEATS
 -------
 
 Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1:
 
-- There is no authentication mechanism, so anyone can bring services up or down.
+- There is no authentication mechanism, so anyone can map or unmap resources.
 - There is no SSL support.
 
 Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
+
+I Don't Read Docs, Just Show Me An Example
+==========================================
+
+OK, here we go. Let's assume you have a microservice running in your Kubernetes cluster called `awesomeness-service`. There is a Kubernetes service for it already, and you can do a `GET` on its `/awesome/health` resource to do a health check.
+
+To get Ambassador running in the first place, clone this repo, then:
+
+```
+kubectl apply -f ambassador.yaml
+```
+
+This spins up the Ambassador in your Kubernetes cluster. Next you need the URL for Ambassador:
+
+```eval $(sh scripts/geturl)```
+
+and then you can check the health of Ambassador:
+
+```curl $AMBASSADORIP/ambassador/health```
+
+You can map the `awesome` resource to your `awesomeness-service` with the `map` script:
+
+```sh scripts/map awesome awesomeness-service```
+
+and then you'll see an awesome health check with
+
+```curl $AMBASSADORIP/awesome/health```
+
+To get rid of the mapping, use
+
+```sh scripts/unmap awesomeness-service```
+
+Read on for more details.
 
 Running Ambassador
 ==================
@@ -59,7 +92,15 @@ However you started Ambassador, once it's running you'll see pods and services c
 Using Ambassador
 ================
 
-Once running, it will take another minute or two for the Ambassador's load balancer to be established. 
+As part of its startup, Ambassador will request that the Kubernetes cluster establish a load balancer to connect it to the outside world, which will take another minute or two. To actually talk to Ambassador from outside, you'll need its IP address (or you'll need to associate the load balancer with a DNS name, which is outside the scope of this README).
+
+The Easy Way to Get Ambassador's IP Address
+-------------------------------------------
+
+In `scripts/geturl` you'll find a shell script that will do the right thing to get the IP address of Ambassador's load balancer. Just `eval $(sh scripts/geturl).
+
+The Less Easy Way
+-----------------
 
 As long as you're *not* using Minikube, you can use the following to get the IP address for Ambassador's externally-visible IP address:
 
@@ -75,6 +116,9 @@ If you *are* using Minikube, what you want is
 AMBASSADORURL=$(minikube service --url ambassador)
 ```
 
+Health Checks and Stats
+-----------------------
+
 Once `AMBASSADORURL` is assigned, then
 
 ```
@@ -87,21 +131,7 @@ will do a health check;
 curl $AMBASSADORURL/ambassador/services
 ```
 
-will get a list of all the  Ambassador knows how to map;
-
-```
-curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "/url/prefix/here/" }' \
-      $AMBASSADORURL/ambassador/service/$servicename
-```
-
-will create a new service (*note well* that the `$servicename` must match the name of a service defined in Kubernetes!);
-
-```
-curl -XDELETE $AMBASSADORURL/ambassador/service/$servicename
-```
-
-will delete a service; and
+will get a list of all the resources that Ambassador has mapped; and
 
 ```
 curl $AMBASSADOR/ambassador/stats
@@ -113,11 +143,51 @@ will return a JSON dictionary of statistics about resources that Ambassador pres
 - `services.$service.upstream_ok` is the number of requests to the service that have succeeded; and
 - `services.$service.upstream_bad` is the number of requests to the service that have failed.
 
-Ambassador will normally update Envoy's configuration five seconds after a `POST` or `DELETE` changes its mapping. Another change arriving during that five-second wait will restart the five-second timer. If you think you need to force an update without a `POST` or `DELETE`, you can use
+Mappings
+--------
+
+You can use `scripts/map` to map a resource to a service:
 
 ```
-curl -XPUT $AMBASSADORURL/ambassador/services
+sh scripts/map $prefix $service
 ```
 
-to do so (note that the five-second delay still applies).
+e.g.
 
+```
+sh scripts/map v1/user usersvc
+```
+
+to cause requests for any resource with a URL starting with `/v1/user/` to be sent to the `usersvc` Kubernetes service.
+
+*Note well* that `$service` must match the name of a service that is defined in Kubernetes. Also, in this example, the service will receive the entire URL: no rewriting happens (yet).
+
+You can do the same thing with a `POST` request:
+
+```
+curl -XPOST -H "Content-Type: application/json" \
+      -d '{ "prefix": "/$prefix/" }' \
+      $AMBASSADORURL/ambassador/service/$service
+```
+
+To remove a mapping, use `scripts/unmap`:
+
+```
+sh scripts/unmap $service
+```
+
+e.g., to undo the `usersvc` mapping from above:
+
+```
+sh scripts/unmap usersvc
+```
+
+(Remember to use the `service` name, not the `prefix`.)
+
+To check whether a mapping exists, you can
+
+```
+curl $AMBASSADORURL/ambassador/service/$servicename
+```
+
+Ambassador update Envoy's configuration five seconds after a `POST` or `DELETE` changes its mapping. If another change arrives during that time, the timer is restarted.
