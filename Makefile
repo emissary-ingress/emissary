@@ -7,7 +7,7 @@ VERSION=0.4.0
 ambassador.yaml: ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml
 	cat ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml > ambassador.yaml
 
-docker-images: ambassador-image sds-image
+docker-images: ambassador-image sds-image statsd-image
 
 ambassador-image: .ALWAYS
 	docker build -t dwflynn/ambassador:$(VERSION) ambassador
@@ -20,4 +20,6 @@ sds-image: .ALWAYS
 	if [ -n "$(DOCKER_REGISTRY)" ]; then \
 		docker push $(DOCKER_REGISTRY)/ambassador-sds:$(VERSION); \
 	fi
-	
+
+statsd-image: .ALWAYS
+	docker build -t ark3/statsd:$(VERSION) statsd

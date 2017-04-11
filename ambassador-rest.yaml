@@ -21,6 +21,9 @@ spec:
         - containerPort: 80
           protocol: TCP
         resources: {}
+      - name: statsd
+        image: ark3/statsd:0.4.0
+        resources: {}
       restartPolicy: Always
 status: {}
 ---
