@@ -72,6 +72,14 @@ spec:
   selector:
     service: ambassador-sds
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ambassador-certs
+  namespace: default
+type: Opaque
+data: {}
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -90,25 +98,16 @@ spec:
       containers:
       - name: ambassador
         image: dwflynn/ambassador:0.4.0
-        ports:
-        - containerPort: 80
-          protocol: TCP
+        # ports:
+        # - containerPort: 80
+        #   protocol: TCP
         resources: {}
+        volumeMounts:
+        - mountPath: /etc/certs
+          name: cert-data
+      volumes:
+      - name: cert-data
+        secret:
+          secretName: ambassador-certs
       restartPolicy: Always
 status: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  creationTimestamp: null
-  labels:
-    service: ambassador
-  name: ambassador
-spec:
-  type: LoadBalancer
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 80
-  selector:
-    service: ambassador
