@@ -1,6 +1,7 @@
 import copy
 import json
 import logging
+import os
 import time
 
 import dpath
@@ -12,6 +13,33 @@ def percentage(x, y):
         return 0
     else:
         return int(((x * 100) / y) + 0.5)
+
+
+class TLSConfig (object):
+    def __init__(self, chain_env, chain_default_path, privkey_env, privkey_default_path):
+        self.chain_path = os.environ.get(chain_env, chain_default_path)
+        self.privkey_path = os.environ.get(privkey_env, privkey_default_path)
+
+    def check_file(self, path):
+        found = False
+
+        try:
+            statinfo = os.stat(path)
+            found = True
+        except FileNotFoundError:
+            pass
+
+        return found
+
+    def config_block(self):
+        if (self.check_file(self.chain_path) and
+            self.check_file(self.privkey_path)):
+            return {
+                "cert_chain_file": self.chain_path,
+                "private_key_file": self.privkey_path
+            }
+        else:
+            return {}
 
 
 class EnvoyConfig (object):
@@ -73,9 +101,10 @@ class EnvoyConfig (object):
         }
     ]
 
-    def __init__(self, base_config):
+    def __init__(self, base_config, tls_config):
         self.services = {}
         self.base_config = base_config
+        self.tls_config = tls_config
 
     def add_service(self, name, prefix):
         self.services[name] = {
@@ -126,6 +155,21 @@ class EnvoyConfig (object):
             "/cluster_manager/clusters",
             clusters
         )
+
+        ssl_context = self.tls_config.config_block()
+
+        if ssl_context:
+            dpath.util.new(
+                config,
+                "/listeners/0/ssl_context",
+                ssl_context
+            )
+
+            dpath.util.set(
+                config,
+                "/listeners/0/address",
+                "tcp://0.0.0.0:443"
+            )
 
         output_file = open(path, "w")
 
