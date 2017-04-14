@@ -72,14 +72,6 @@ spec:
   selector:
     service: ambassador-sds
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ambassador-certs
-  namespace: default
-type: Opaque
-data: {}
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
