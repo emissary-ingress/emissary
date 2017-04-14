@@ -134,7 +134,11 @@ Without TLS, if you have a domain name, great, do the above. If not, the easy wa
 eval $(sh scripts/geturl)
 ```
 
-will set `AMBASSADORURL` for you. If you don't trust `geturl`, you can use `kubectl describe service ambassador` or, on Minikube, `minikube service --url ambassador` and set things from that information.
+will set `AMBASSADORURL` for you.
+
+*NOTE WELL* that if you use `geturl` when you have TLS configured, you'll get a URL that will work -- but you'll all but certainly see a lot of complaints about certificate validation, because the DNS name in the URL is not likely to be the name that you requested for the certificate.
+
+ If you don't trust `geturl`, you can use `kubectl describe service ambassador` or, on Minikube, `minikube service --url ambassador` and set things from that information.
 
 Health Checks and Stats
 -----------------------
