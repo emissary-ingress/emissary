@@ -8,10 +8,7 @@ Ambassador is most effective, at this point, as an API gateway for microservices
 CAVEATS
 -------
 
-Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1:
-
-- There is no authentication mechanism, so anyone can map or unmap resources.
-- There is no SSL support.
+Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1, there is no authentication mechanism, so anyone can map or unmap resources. (This is great for self service, of course, but we'll be putting a few controls in place later anyway.)
 
 Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
 
@@ -20,7 +17,7 @@ I Don't Read Docs, Just Show Me An Example
 
 OK, here we go. Let's assume you have a microservice running in your Kubernetes cluster called `awesomeness-service`. There is a Kubernetes service for it already, and you can do a `GET` on its `/awesome/health` resource to do a health check.
 
-To get Ambassador running in the first place, clone this repo, then:
+To get an HTTP-only Ambassador running in the first place, clone this repo, then:
 
 ```
 kubectl apply -f ambassador.yaml
@@ -75,7 +72,7 @@ You need to choose up front whether you want to use TLS or not. It's possible to
 kubectl apply -f ambassador-https.yaml
 ```
 
-This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert.
+This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this README -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin and are just hunting a CA recommendation, check out [Let's Encrypt](https://letsencrypt.org/).)
 
 Once you have the cert, you can run
 
@@ -123,7 +120,7 @@ However you started Ambassador, once it's running you'll see pods and services c
 Using Ambassador
 ================
 
-We'll use `$AMBASSADORURL` as shorthand for the base URL of Ambassador. If you're using TLS, you can set it as follows:
+We'll use `$AMBASSADORURL` as shorthand for the base URL of Ambassador. If you're using TLS, you can set it by hand with something like
 
 ```
 export AMBASSADORURL=https://your-domain-name
@@ -131,13 +128,13 @@ export AMBASSADORURL=https://your-domain-name
 
 where `your-domain-name` is the name you set up when you requested your certs.
 
-Without TLS, if you have a domain name, great. If not, the easy way is to use the supplied `geturl` script:
+Without TLS, if you have a domain name, great, do the above. If not, the easy way is to use the supplied `geturl` script:
 
 ```
 eval $(sh scripts/geturl)
 ```
 
-will set `AMBASSADORURL` for you.
+will set `AMBASSADORURL` for you. If you don't trust `geturl`, you can use `kubectl describe service ambassador` or, on Minikube, `minikube service --url ambassador` and set things from that information.
 
 Health Checks and Stats
 -----------------------
