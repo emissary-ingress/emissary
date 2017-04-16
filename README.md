@@ -24,25 +24,31 @@ kubectl apply -f ambassador.yaml
 kubectl apply -f ambassador-http.yaml
 ```
 
-This spins up Ambassador, configured without inbound TLS, in your Kubernetes cluster. Next you need the URL for Ambassador:
+This spins up Ambassador - configured without inbound TLS **even though we do not recommend this** - in your Kubernetes cluster. Next you need the URL for Ambassador:
 
 ```eval $(sh scripts/geturl)```
 
 and then you can check the health of Ambassador:
 
-```curl $AMBASSADORIP/ambassador/health```
+```curl $AMBASSADORURL/ambassador/health```
 
-You can map the `awesome` resource to your `awesomeness-service` with the `map` script:
+You can fire up a demo service called `usersvc` with
 
-```sh scripts/map awesome awesomeness-service```
+```
+kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-usersvc.yaml
+```
 
-and then you'll see an awesome health check with
+and then you can map the `/user/` resource to your `usersvc` with the `map` script:
 
-```curl $AMBASSADORIP/awesome/health```
+```sh scripts/map user usersvc```
+
+Once that's done, you can go through Ambassador to do a `usersvc` health check:
+
+```curl $AMBASSADORURL/user/health```
 
 To get rid of the mapping, use
 
-```sh scripts/unmap awesomeness-service```
+```sh scripts/unmap usersvc```
 
 Read on for more details.
 
@@ -207,6 +213,12 @@ sh scripts/unmap usersvc
 ```
 
 (Remember to use the `service` name, not the `prefix`.)
+
+You can also use a `DELETE` request to delete the mapping:
+
+```
+curl -XDELETE $AMBASSADORURL/ambassador/service/$service
+```
 
 To check whether a mapping exists, you can
 
