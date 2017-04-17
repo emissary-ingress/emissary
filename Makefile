@@ -1,6 +1,6 @@
 all: docker-images ambassador.yaml
 
-VERSION=0.4.0
+VERSION=0.5.0
 
 .ALWAYS:
 

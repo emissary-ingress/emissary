@@ -16,7 +16,7 @@ import statsd
 
 import VERSION
 
-from envoy import EnvoyStats, EnvoyConfig
+from envoy import EnvoyStats, EnvoyConfig, TLSConfig
 from utils import RichStatus, SystemInfo, DelayTrigger
 
 __version__ = VERSION.Version
@@ -207,9 +207,13 @@ def ambassador_stats():
 
     return jsonify(app.stats.stats)
 
-def new_config(envoy_base_config=None, envoy_config_path=None, envoy_restarter_pid=None):
+def new_config(envoy_base_config=None, envoy_tls_config=None,
+               envoy_config_path=None, envoy_restarter_pid=None):
     if not envoy_base_config:
         envoy_base_config = app.envoy_base_config
+
+    if not envoy_tls_config:
+        envoy_tls_config = app.envoy_tls_config
 
     if not envoy_config_path:
         envoy_config_path = app.envoy_config_path
@@ -217,7 +221,7 @@ def new_config(envoy_base_config=None, envoy_config_path=None, envoy_restarter_p
     if not envoy_restarter_pid:
         envoy_restarter_pid = app.envoy_restarter_pid
 
-    config = EnvoyConfig(envoy_base_config)
+    config = EnvoyConfig(envoy_base_config, envoy_tls_config)
 
     rc = fetch_all_services()
     num_services = 0
@@ -286,6 +290,13 @@ def main():
 
     # Load the base config.
     app.envoy_base_config = json.load(open(app.envoy_template_path, "r"))
+
+    # Set up the TLS config stuff.
+    app.envoy_tls_config = TLSConfig(
+        "AMBASSADOR_CHAIN_PATH", "/etc/certs/fullchain.pem",
+        "AMBASSADOR_PRIVKEY_PATH", "/etc/certs/privkey.pem"
+    )
+
     app.stats = EnvoyStats()
 
     # Learn the PID of the restarter.

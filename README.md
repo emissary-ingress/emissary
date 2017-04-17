@@ -8,10 +8,7 @@ Ambassador is most effective, at this point, as an API gateway for microservices
 CAVEATS
 -------
 
-Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1:
-
-- There is no authentication mechanism, so anyone can map or unmap resources.
-- There is no SSL support.
+Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1, there is no authentication mechanism, so anyone can map or unmap resources. (This is great for self service, of course, but we'll be putting a few controls in place later anyway.)
 
 Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
 
@@ -20,31 +17,38 @@ I Don't Read Docs, Just Show Me An Example
 
 OK, here we go. Let's assume you have a microservice running in your Kubernetes cluster called `awesomeness-service`. There is a Kubernetes service for it already, and you can do a `GET` on its `/awesome/health` resource to do a health check.
 
-To get Ambassador running in the first place, clone this repo, then:
+To get an HTTP-only Ambassador running in the first place, clone this repo, then:
 
 ```
 kubectl apply -f ambassador.yaml
+kubectl apply -f ambassador-http.yaml
 ```
 
-This spins up the Ambassador in your Kubernetes cluster. Next you need the URL for Ambassador:
+This spins up Ambassador - configured without inbound TLS **even though we do not recommend this** - in your Kubernetes cluster. Next you need the URL for Ambassador:
 
 ```eval $(sh scripts/geturl)```
 
 and then you can check the health of Ambassador:
 
-```curl $AMBASSADORIP/ambassador/health```
+```curl $AMBASSADORURL/ambassador/health```
 
-You can map the `awesome` resource to your `awesomeness-service` with the `map` script:
+You can fire up a demo service called `usersvc` with
 
-```sh scripts/map awesome awesomeness-service```
+```
+kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-usersvc.yaml
+```
 
-and then you'll see an awesome health check with
+and then you can map the `/user/` resource to your `usersvc` with the `map` script:
 
-```curl $AMBASSADORIP/awesome/health```
+```sh scripts/map user usersvc```
+
+Once that's done, you can go through Ambassador to do a `usersvc` health check:
+
+```curl $AMBASSADORURL/user/health```
 
 To get rid of the mapping, use
 
-```sh scripts/unmap awesomeness-service```
+```sh scripts/unmap usersvc```
 
 Read on for more details.
 
@@ -53,28 +57,58 @@ Running Ambassador
 
 If you clone this repository, you'll have access to multiple Kubernetes resource files:
 
-- `ambassador-rest.yaml` defines the REST service that is how you'll primarily interact with Ambassador;
+- `ambassador-rest.yaml` defines the main Ambassador server itself;
 - `ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running;
 - `ambassador-sds.yaml` defines the Envoy Service Discovery Service that Ambassador relies on; and finally,
 - `ambassador.yaml` wraps up all of the above.
 
-You can get Ambassador running the easy way, or the less easy way.
+Additionally, you can choose either
 
-The Easy Way
-------------
+- `ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
+- `ambassador-http.yaml', which defines an HTTP-only mechanism to access Ambassador.
 
-The simplest way to get everything running is simply to use `ambassador.yaml` to crank everything up at once:
+The Ambassador Service and TLS
+------------------------------
+
+You need to choose up front whether you want to use TLS or not. It's possible to switch this later, but you'll likely need to muck about with your DNS and such to do it, so it's a pain.
+
+*We recommend using TLS: speaking to Ambassador only over HTTPS.* To do this, you need a TLS certificate, which means you'll need the DNS set up correctly. So start by creating the Ambassador's kubernetes service:
+
+```
+kubectl apply -f ambassador-https.yaml
+```
+
+This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this README -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin and are just hunting a CA recommendation, check out [Let's Encrypt](https://letsencrypt.org/).)
+
+Once you have the cert, you can run
+
+```
+sh scripts/push-cert $FULLCHAIN_PATH $PRIVKEY_PATH
+```
+
+where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key. `push-cert` will push the cert into Kubernetes secret storage, for Ambassador's later use.
+
+Without TLS
+-----------
+
+If you really, really cannot use TLS, you can do
+
+```
+kubectl apply -f ambassador-http.yaml
+```
+
+for HTTP-only access.
+
+After the Service
+-----------------
+
+The easy way to get Ambassador fully running once its service is created is
 
 ```
 kubectl apply -f ambassador.yaml
 ```
 
-This is what we recommend.
-
-The Less Easy Way
------------------
-
-If necessary for some reason, you can instead use the individual resources above and do things by hand. In this case, we recommend the following order:
+This is what we recommend, but if you really need to, you can do it piecemeal:
 
 ```
 kubectl apply -f ambassador-store.yaml
@@ -92,29 +126,25 @@ However you started Ambassador, once it's running you'll see pods and services c
 Using Ambassador
 ================
 
-As part of its startup, Ambassador will request that the Kubernetes cluster establish a load balancer to connect it to the outside world, which will take another minute or two. To actually talk to Ambassador from outside, you'll need its IP address (or you'll need to associate the load balancer with a DNS name, which is outside the scope of this README).
-
-The Easy Way to Get Ambassador's IP Address
--------------------------------------------
-
-In `scripts/geturl` you'll find a shell script that will do the right thing to get the IP address of Ambassador's load balancer. Just `eval $(sh scripts/geturl).
-
-The Less Easy Way
------------------
-
-As long as you're *not* using Minikube, you can use the following to get the IP address for Ambassador's externally-visible IP address:
+We'll use `$AMBASSADORURL` as shorthand for the base URL of Ambassador. If you're using TLS, you can set it by hand with something like
 
 ```
-AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}') || echo "No IP address yet"
+export AMBASSADORURL=https://your-domain-name
 ```
 
-If it reports "No IP address yet", wait a minute and try again. 
+where `your-domain-name` is the name you set up when you requested your certs.
 
-If you *are* using Minikube, what you want is
+Without TLS, if you have a domain name, great, do the above. If not, the easy way is to use the supplied `geturl` script:
 
 ```
-AMBASSADORURL=$(minikube service --url ambassador)
+eval $(sh scripts/geturl)
 ```
+
+will set `AMBASSADORURL` for you.
+
+*NOTE WELL* that if you use `geturl` when you have TLS configured, you'll get a URL that will work -- but you'll all but certainly see a lot of complaints about certificate validation, because the DNS name in the URL is not likely to be the name that you requested for the certificate.
+
+ If you don't trust `geturl`, you can use `kubectl describe service ambassador` or, on Minikube, `minikube service --url ambassador` and set things from that information.
 
 Health Checks and Stats
 -----------------------
@@ -183,6 +213,12 @@ sh scripts/unmap usersvc
 ```
 
 (Remember to use the `service` name, not the `prefix`.)
+
+You can also use a `DELETE` request to delete the mapping:
+
+```
+curl -XDELETE $AMBASSADORURL/ambassador/service/$service
+```
 
 To check whether a mapping exists, you can
 

@@ -1,14 +1,34 @@
 #!/bin/sh
 
-kubetype=$(kubectl get pods -o jsonpath="{.items[0].spec.nodeName}")
+kubecontext=$(kubectl config current-context)
 
-if [ "$kubetype" == "minikube" ]; then
+if [ "$kubecontext" == "minikube" ]; then
     AMBASSADORURL=$(minikube service --url ambassador 2>/dev/null)
 else
     while true; do
-        AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+        errors=0
 
-        if [ $? -eq 0 ]; then
+        IP=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].hostname}') 2>/dev/null
+
+        if [ $? != 0 ]; then
+            errors=1
+        fi
+
+        PORT=$(kubectl get service ambassador --output jsonpath='{.spec.ports[0].port}') 2>/dev/null
+
+        if [ $? != 0 ]; then
+            errors=1
+        fi
+
+        if [ $errors -eq 0 ]; then
+            PROTOCOL='http'
+
+            if [ $PORT == '443' ]; then
+                PROTOCOL='https'
+            fi
+
+            AMBASSADORURL="${PROTOCOL}://${IP}"
+
             break
         fi
 

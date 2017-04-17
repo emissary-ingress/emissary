@@ -16,29 +16,20 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.4.0
-        ports:
-        - containerPort: 80
-          protocol: TCP
+        image: dwflynn/ambassador:0.5.0
+        # ports:
+        # - containerPort: 80
+        #   protocol: TCP
         resources: {}
+        volumeMounts:
+        - mountPath: /etc/certs
+          name: cert-data
       - name: statsd
         image: ark3/statsd:0.4.0
         resources: {}
+      volumes:
+      - name: cert-data
+        secret:
+          secretName: ambassador-certs
       restartPolicy: Always
 status: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  creationTimestamp: null
-  labels:
-    service: ambassador
-  name: ambassador
-spec:
-  type: LoadBalancer
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 80
-  selector:
-    service: ambassador
