@@ -7,7 +7,7 @@ VERSION=0.4.0
 ambassador.yaml: ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml
 	cat ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml > ambassador.yaml
 
-docker-images: ambassador-image sds-image statsd-image
+docker-images: ambassador-image sds-image statsd-image prom-statsd-exporter
 
 ambassador-image: .ALWAYS
 	docker build -t dwflynn/ambassador:$(VERSION) ambassador
@@ -23,3 +23,6 @@ sds-image: .ALWAYS
 
 statsd-image: .ALWAYS
 	docker build -t ark3/statsd:$(VERSION) statsd
+
+prom-statsd-exporter: .ALWAYS
+	docker build -t ark3/prom-statsd-exporter:$(VERSION) prom-statsd-exporter
