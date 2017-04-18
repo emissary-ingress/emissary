@@ -1,28 +1,31 @@
-all: docker-images ambassador.yaml
+all: docker-images ambassador.yaml statsd-sink.yaml
 
 VERSION=0.5.0
 
 .ALWAYS:
 
+ambassador-sds.yaml: .ALWAYS
+	sh templates/ambassador-sds.yaml.sh > ambassador-sds.yaml
+
+ambassador-rest.yaml: .ALWAYS
+	sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
+
 ambassador.yaml: ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml
 	cat ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml > ambassador.yaml
+
+statsd-sink.yaml: .ALWAYS
+	sh templates/statsd-sink.yaml.sh > statsd-sink.yaml
 
 docker-images: ambassador-image sds-image statsd-image prom-statsd-exporter
 
 ambassador-image: .ALWAYS
-	docker build -t dwflynn/ambassador:$(VERSION) ambassador
-	if [ -n "$(DOCKER_REGISTRY)" ]; then \
-		docker push $(DOCKER_REGISTRY)/ambassador:$(VERSION); \
-	fi
+	scripts/docker_build_maybe_push dwflynn ambassador $(VERSION) ambassador
 
 sds-image: .ALWAYS
-	docker build -t dwflynn/ambassador-sds:$(VERSION) sds
-	if [ -n "$(DOCKER_REGISTRY)" ]; then \
-		docker push $(DOCKER_REGISTRY)/ambassador-sds:$(VERSION); \
-	fi
+	scripts/docker_build_maybe_push dwflynn ambassador-sds $(VERSION) sds
 
 statsd-image: .ALWAYS
-	docker build -t ark3/statsd:$(VERSION) statsd
+	scripts/docker_build_maybe_push ark3 statsd $(VERSION) statsd
 
 prom-statsd-exporter: .ALWAYS
-	docker build -t ark3/prom-statsd-exporter:$(VERSION) prom-statsd-exporter
+	scripts/docker_build_maybe_push ark3 prom-statsd-exporter $(VERSION) prom-statsd-exporter
