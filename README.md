@@ -1,9 +1,12 @@
 Ambassador
 ==========
 
-Ambassador is a tool for easily and flexibly mapping public URLs to services running inside a Kubernetes cluster. Under the hood, Ambassador uses [Envoy](https://lyft.github.io/envoy/) for the heavy lifting. You needn't understand anything about how Envoy works to use Ambassador, however.
+Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). Key features in Ambassador include:
 
-Ambassador is most effective, at this point, as an API gateway for microservices that's easy to configure and operate. It is under active development; check frequently for updates, and please file issues for things you'd like to see!
+* Ability to flexibly map public URLs to services running inside a Kubernetes cluster
+* Simple setup and configuration
+* Integrated monitoring
+* Access all the features of Envoy, so your service mesh can easily extend to your perimeter
 
 CAVEATS
 -------
@@ -15,7 +18,7 @@ Ambassador is under active development; check frequently for updates, and please
 I Don't Read Docs, Just Show Me An Example
 ==========================================
 
-OK, here we go. Let's assume you have a microservice running in your Kubernetes cluster called `awesomeness-service`. There is a Kubernetes service for it already, and you can do a `GET` on its `/awesome/health` resource to do a health check.
+Let's assume you have a microservice running in your Kubernetes cluster called `awesomeness-service`. There is a Kubernetes service for it already, and you can do a `GET` on its `/awesome/health` resource to do a health check.
 
 To get an HTTP-only Ambassador running in the first place, clone this repo, then:
 
