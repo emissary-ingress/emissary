@@ -18,7 +18,7 @@ Ambassador is under active development; check frequently for updates, and please
 I Don't Read Docs, Just Show Me An Example
 ==========================================
 
-Let's assume you have a microservice running in your Kubernetes cluster called `awesomeness-service`. There is a Kubernetes service for it already, and you can do a `GET` on its `/awesome/health` resource to do a health check.
+Let's assume you have a microservice running in your Kubernetes cluster called `usersvc`. There is a Kubernetes service for it already, and you can do a `GET` on its `/user/health` resource to do a health check.
 
 To get an HTTP-only Ambassador running in the first place, clone this repo, then:
 
