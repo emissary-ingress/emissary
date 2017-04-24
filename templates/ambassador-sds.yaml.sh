@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: ${DOCKER_REGISTRY}/ambassador-sds:0.5.0
+        image: ${DOCKER_REGISTRY}/ambassador-sds:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}

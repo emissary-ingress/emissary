@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: ${AMREG}/ambassador:0.5.0
+        image: ${AMREG}/ambassador:0.5.1
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -33,7 +33,7 @@ spec:
         - mountPath: /etc/certs
           name: cert-data
       - name: statsd
-        image: ${STREG}/statsd:0.5.0
+        image: ${STREG}/statsd:0.5.1
         resources: {}
       volumes:
       - name: cert-data
