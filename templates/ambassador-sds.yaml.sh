@@ -1,3 +1,7 @@
+if [ -z "${DOCKER_REGISTRY}" ]; then
+    DOCKER_REGISTRY=dwflynn
+fi
+cat <<EOF
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -15,7 +19,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: dwflynn/ambassador-sds:0.5.1
+        image: ${DOCKER_REGISTRY}/ambassador-sds:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}
@@ -35,3 +39,4 @@ spec:
     targetPort: 5000
   selector:
     service: ambassador-sds
+EOF

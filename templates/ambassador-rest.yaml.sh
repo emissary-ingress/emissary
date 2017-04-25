@@ -1,3 +1,11 @@
+if [ -z "${DOCKER_REGISTRY}" ]; then
+    AMREG=dwflynn
+    STREG=ark3
+else
+    AMREG="${DOCKER_REGISTRY}"
+    STREG="${DOCKER_REGISTRY}"
+fi
+cat <<EOF
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -16,7 +24,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: ark3/ambassador:0.5.1
+        image: ${AMREG}/ambassador:0.5.1
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -25,7 +33,7 @@ spec:
         - mountPath: /etc/certs
           name: cert-data
       - name: statsd
-        image: ark3/statsd:0.5.1
+        image: ${STREG}/statsd:0.5.1
         resources: {}
       volumes:
       - name: cert-data
@@ -33,3 +41,4 @@ spec:
           secretName: ambassador-certs
       restartPolicy: Always
 status: {}
+EOF

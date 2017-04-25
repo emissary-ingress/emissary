@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# If DOCKER_REGISTRY is set, use that as the namespace for the build,
+# then push to Docker Hub. Otherwise use the specified namespace to
+# build, don't push.
+
+DEFAULT_NAMESPACE="$1"
+NAME="$2"
+VERSION="$3"
+TARGET="$4"
+
+if [ -n "${DOCKER_REGISTRY}" ]; then
+    docker build -t "${DOCKER_REGISTRY}/${NAME}:${VERSION}" "${TARGET}"
+    docker push "${DOCKER_REGISTRY}/${NAME}:${VERSION}"
+else
+    docker build -t "${DEFAULT_NAMESPACE}/${NAME}:${VERSION}" "${TARGET}"
+fi

@@ -3,7 +3,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   creationTimestamp: null
-  name: ambassador-sds
+  name: statsd-sink
 spec:
   replicas: 1
   strategy: {}
@@ -11,11 +11,11 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        service: ambassador-sds
+        service: statsd-sink
     spec:
       containers:
-      - name: ambassador-sds
-        image: dwflynn/ambassador-sds:0.5.1
+      - name: statsd-sink
+        image: ark3/prom-statsd-exporter:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}
@@ -25,13 +25,15 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    service: ambassador-sds
-  name: ambassador-sds
+    service: statsd-sink
+  name: statsd-sink
 spec:
-  type: NodePort
   ports:
-  - name: ambassador-sds
-    port: 5000
-    targetPort: 5000
+  - protocol: UDP
+    port: 8125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 9102
+    name: prometheus-metrics
   selector:
-    service: ambassador-sds
+    service: statsd-sink

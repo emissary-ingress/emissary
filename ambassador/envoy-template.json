@@ -52,8 +52,10 @@
           }
         ]
       },
-      "refresh_delay_ms": 15000      
+      "refresh_delay_ms": 15000
     },
     "clusters": []
-  }
+  },
+  "statsd_local_udp_port": 8125,
+  "stats_flush_interval_ms": 1000
 }

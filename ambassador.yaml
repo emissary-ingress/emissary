@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: dwflynn/ambassador-sds:0.5.0
+        image: dwflynn/ambassador-sds:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}
@@ -89,7 +89,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.5.0
+        image: ark3/ambassador:0.5.1
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -97,6 +97,9 @@ spec:
         volumeMounts:
         - mountPath: /etc/certs
           name: cert-data
+      - name: statsd
+        image: ark3/statsd:0.5.1
+        resources: {}
       volumes:
       - name: cert-data
         secret:
