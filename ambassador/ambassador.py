@@ -12,7 +12,6 @@ import dpath
 import pg8000
 
 from flask import Flask, jsonify, request
-import statsd
 
 import VERSION
 
@@ -26,7 +25,7 @@ pg8000.paramstyle = 'named'
 logging.basicConfig(
     # filename=logPath,
     level=logging.DEBUG, # if appDebug else logging.INFO,
-    format="%%(asctime)s ambassador %s %%(name)s %%(levelname)s: %%(message)s" % __version__,
+    format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
@@ -42,14 +41,6 @@ CREATE TABLE IF NOT EXISTS services (
     port INTEGER NOT NULL
 )
 '''
-
-logging.info("Before statsd init")
-StatsdConnection = statsd.Connection()
-HealthReqCounter = statsd.Counter("ambassador.health", connection=StatsdConnection)
-StatsReqCounter = statsd.Counter("ambassador.stats", connection=StatsdConnection)
-ServicesReqCounter = statsd.Counter("ambassador.services", connection=StatsdConnection)
-ServiceNameReqCounter = statsd.Counter("ambassador.service_name", connection=StatsdConnection)
-logging.info("After statsd init")
 
 
 def get_db(database):
@@ -188,14 +179,12 @@ def handle_service_post(req, name):
 
 @app.route('/ambassador/health', methods=[ 'GET' ])
 def health():
-    HealthReqCounter.increment()
     rc = RichStatus.OK(msg="ambassador health check OK")
 
     return jsonify(rc.toDict())
 
 @app.route('/ambassador/stats', methods=[ 'GET' ])
 def ambassador_stats():
-    StatsReqCounter.increment()
     rc = fetch_all_services()
 
     active_service_names = []
@@ -241,10 +230,9 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
 
 @app.route('/ambassador/services', methods=[ 'GET', 'PUT' ])
 def root():
-    ServicesReqCounter.increment()
     rc = RichStatus.fromError("impossible error")
     logging.debug("handle_services: method %s" % request.method)
-
+    
     try:
         rc = setup()
 
@@ -262,10 +250,9 @@ def root():
 
 @app.route('/ambassador/service/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
 def handle_service(name):
-    ServiceNameReqCounter.increment()
     rc = RichStatus.fromError("impossible error")
     logging.debug("handle_service %s: method %s" % (name, request.method))
-
+    
     try:
         rc = setup()
 
@@ -323,7 +310,7 @@ def main():
     time.sleep(2)
 
     logging.info("ambassador asking restarter for initial reread")
-    os.kill(app.envoy_restarter_pid, signal.SIGHUP)
+    os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
 
     # Set up the trigger for future restarts.
     app.reconfigurator = DelayTrigger(new_config)
