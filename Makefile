@@ -4,7 +4,7 @@ VERSION=0.5.1
 
 .ALWAYS:
 
-default: docker-images ambassador.yaml statsd-sink.yaml
+artifacts: docker-images ambassador.yaml statsd-sink.yaml
 
 bump:
 	@if [ -z "$$LEVEL" ]; then \
@@ -21,13 +21,13 @@ bump:
 	bump2version --no-tag --no-commit "$$LEVEL"
 
 new-patch:
-	$(MAKE) bump default LEVEL=patch
+	$(MAKE) bump artifacts LEVEL=patch
 
 new-minor:
-	$(MAKE) bump default LEVEL=minor
+	$(MAKE) bump artifacts LEVEL=minor
 
 new-major:
-	$(MAKE) bump default LEVEL=major
+	$(MAKE) bump artifacts LEVEL=major
 
 ambassador-sds.yaml: .ALWAYS
 	sh templates/ambassador-sds.yaml.sh > ambassador-sds.yaml
