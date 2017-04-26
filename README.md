@@ -6,7 +6,6 @@ Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.git
 * Ability to flexibly map public URLs to services running inside a Kubernetes cluster
 * Simple setup and configuration
 * Integrated monitoring
-* Access all the features of Envoy, so your service mesh can easily extend to your perimeter
 
 CAVEATS
 -------
