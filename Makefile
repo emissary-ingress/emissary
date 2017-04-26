@@ -34,13 +34,16 @@ bump:
 	bump2version --no-tag --no-commit "$$LEVEL"
 
 new-patch:
-	$(MAKE) bump artifacts LEVEL=patch
+	$(MAKE) bump LEVEL=patch
+	$(MAKE) artifacts
 
 new-minor:
-	$(MAKE) bump artifacts LEVEL=minor
+	$(MAKE) bump LEVEL=minor
+	$(MAKE) artifacts
 
 new-major:
-	$(MAKE) bump artifacts LEVEL=major
+	$(MAKE) bump LEVEL=major
+	$(MAKE) artifacts
 
 tag:
 	git commit $(VERSIONED)
