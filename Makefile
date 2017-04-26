@@ -2,6 +2,19 @@ all: bump
 
 VERSION=0.5.1
 
+VERSIONED = \
+	.bumpversion.cfg \
+	BUILDING.md \
+	Makefile \
+	ambassador-rest.yaml \
+	ambassador-sds.yaml \
+	ambassador.yaml \
+	ambassador/VERSION.py \
+	statsd-sink.yaml \
+	templates/ambassador-rest.yaml.sh \
+	templates/ambassador-sds.yaml.sh \
+	templates/statsd-sink.yaml.sh
+
 .ALWAYS:
 
 artifacts: docker-images ambassador.yaml statsd-sink.yaml
@@ -28,6 +41,10 @@ new-minor:
 
 new-major:
 	$(MAKE) bump artifacts LEVEL=major
+
+tag:
+    git commit $(VERSIONED)
+    git tag -a v$(VERSION)
 
 ambassador-sds.yaml: .ALWAYS
 	sh templates/ambassador-sds.yaml.sh > ambassador-sds.yaml

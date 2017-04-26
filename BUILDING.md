@@ -45,7 +45,9 @@ Normal Workflow
 
 3. `make tag`
 
-   Do this once you're happy with everything. It will commit (if need be) and then create and push a Git tag for your version.
+   Do this once you're happy with everything. It will commit (if need be) and then create a Git tag for your version.
+
+   **IT WILL NOT PUSH YOUR COMMIT OR YOUR TAG.** Do that on your own.
 
 What if I Don't Want to Push My Images?
 ---------------------------------------
