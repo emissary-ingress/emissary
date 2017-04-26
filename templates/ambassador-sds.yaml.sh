@@ -1,6 +1,8 @@
-if [ -z "${DOCKER_REGISTRY}" ]; then
-    DOCKER_REGISTRY=dwflynn
-fi
+HERE=$(dirname $0)
+eval $(sh $HERE/../scripts/get_registries.sh)
+
+if [ -z "${DOCKER_REGISTRY}" ]; then exit 1; fi
+
 cat <<EOF
 ---
 apiVersion: extensions/v1beta1
@@ -19,7 +21,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: ${DOCKER_REGISTRY}/ambassador-sds:0.5.1
+        image: ${AMREG}ambassador-sds:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}

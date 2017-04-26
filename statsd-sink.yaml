@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: statsd-sink
-        image: ark3/prom-statsd-exporter:0.5.1
+        image: dwflynn/prom-statsd-exporter:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}

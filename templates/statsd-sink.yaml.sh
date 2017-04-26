@@ -1,6 +1,8 @@
-if [ -z "${DOCKER_REGISTRY}" ]; then
-    DOCKER_REGISTRY=ark3
-fi
+HERE=$(dirname $0)
+eval $(sh $HERE/../scripts/get_registries.sh)
+
+if [ -z "${DOCKER_REGISTRY}" ]; then exit 1; fi
+
 cat <<EOF
 ---
 apiVersion: extensions/v1beta1
@@ -19,7 +21,7 @@ spec:
     spec:
       containers:
       - name: statsd-sink
-        image: ${DOCKER_REGISTRY}/prom-statsd-exporter:0.5.1
+        image: ${STREG}prom-statsd-exporter:0.5.1
         resources: {}
       restartPolicy: Always
 status: {}
