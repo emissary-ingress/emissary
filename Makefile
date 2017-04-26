@@ -43,8 +43,8 @@ new-major:
 	$(MAKE) bump artifacts LEVEL=major
 
 tag:
-    git commit $(VERSIONED)
-    git tag -a v$(VERSION)
+	git commit $(VERSIONED)
+	git tag -a v$(VERSION)
 
 ambassador-sds.yaml: .ALWAYS
 	sh templates/ambassador-sds.yaml.sh > ambassador-sds.yaml
