@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # If DOCKER_REGISTRY is set, use that as the namespace for the build,
 # then push to Docker Hub. Otherwise use the specified namespace to
@@ -9,9 +9,10 @@ NAME="$2"
 VERSION="$3"
 TARGET="$4"
 
-if [ -n "${DOCKER_REGISTRY}" ]; then
-    docker build -t "${DOCKER_REGISTRY}/${NAME}:${VERSION}" "${TARGET}"
-    docker push "${DOCKER_REGISTRY}/${NAME}:${VERSION}"
-else
-    docker build -t "${DEFAULT_NAMESPACE}/${NAME}:${VERSION}" "${TARGET}"
-fi
+HERE=$(dirname $0)
+eval $(sh $HERE/get_registries.sh)
+
+if [ -z "${DOCKER_REGISTRY}" ]; then exit 1; fi
+
+docker build -t "${DOCKER_REGISTRY}${NAME}:${VERSION}" "${TARGET}"
+docker push "${DOCKER_REGISTRY}${NAME}:${VERSION}"

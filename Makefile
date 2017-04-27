@@ -1,8 +1,53 @@
-all: docker-images ambassador.yaml statsd-sink.yaml
+all: bump
 
 VERSION=0.5.1
 
+VERSIONED = \
+	.bumpversion.cfg \
+	BUILDING.md \
+	Makefile \
+	ambassador-rest.yaml \
+	ambassador-sds.yaml \
+	ambassador.yaml \
+	ambassador/VERSION.py \
+	statsd-sink.yaml \
+	templates/ambassador-rest.yaml.sh \
+	templates/ambassador-sds.yaml.sh \
+	templates/statsd-sink.yaml.sh
+
 .ALWAYS:
+
+artifacts: docker-images ambassador.yaml statsd-sink.yaml
+
+bump:
+	@if [ -z "$$LEVEL" ]; then \
+	    echo "LEVEL must be set" >&2 ;\
+	    exit 1 ;\
+	fi
+
+	@if [ -z "$$DOCKER_REGISTRY" ]; then \
+	    echo "DOCKER_REGISTRY must be set" >&2 ;\
+	    exit 1 ;\
+	fi
+
+	@echo "Bumping to new $$LEVEL version..."
+	bump2version --no-tag --no-commit "$$LEVEL"
+
+new-patch:
+	$(MAKE) bump LEVEL=patch
+	$(MAKE) artifacts
+
+new-minor:
+	$(MAKE) bump LEVEL=minor
+	$(MAKE) artifacts
+
+new-major:
+	$(MAKE) bump LEVEL=major
+	$(MAKE) artifacts
+
+tag:
+	git commit $(VERSIONED)
+	git tag -a v$(VERSION)
 
 ambassador-sds.yaml: .ALWAYS
 	sh templates/ambassador-sds.yaml.sh > ambassador-sds.yaml

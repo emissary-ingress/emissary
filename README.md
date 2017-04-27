@@ -54,6 +54,13 @@ To get rid of the mapping, use
 
 Read on for more details.
 
+Building Ambassador
+===================
+
+If you just want to **use** Ambassador, read on! You don't need to build anything.
+
+If you really want to customize Ambassador, though, check out [BUILDING.md](BUILDING.md) for the lowdown.
+
 Running Ambassador
 ==================
 
