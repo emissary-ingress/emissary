@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: dwflynn/ambassador-sds:0.5.1
+        image: dwflynn/ambassador-sds:0.5.2
         resources: {}
       restartPolicy: Always
 status: {}
