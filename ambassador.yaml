@@ -1,0 +1,71 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: ambassador-store
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ambassador-store
+    spec:
+      containers:
+      - name: ambassador-store
+        image: postgres:9.6
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador-store
+  name: ambassador-store
+spec:
+  type: ClusterIP
+  ports:
+  - name: ambassador-store
+    port: 5432
+  selector:
+    service: ambassador-store
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: ambassador
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: ambassador
+        # service: ambassador-admin
+    spec:
+      containers:
+      - name: ambassador
+        image: dwflynn/ambassador:0.6.0
+        # ports:
+        # - containerPort: 80
+        #   protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /etc/certs
+          name: cert-data
+      - name: statsd
+        image: dwflynn/statsd:0.6.0
+        resources: {}
+      volumes:
+      - name: cert-data
+        secret:
+          secretName: ambassador-certs
+      restartPolicy: Always
+status: {}
