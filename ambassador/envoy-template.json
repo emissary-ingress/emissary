@@ -40,20 +40,6 @@
     "address": "tcp://127.0.0.1:8001/"
   },
   "cluster_manager": {
-    "sds": {
-      "cluster": {
-        "name": "ambassador-sds",
-        "connect_timeout_ms": 250,
-        "type": "strict_dns",
-        "lb_type": "round_robin",
-        "hosts": [
-          {
-            "url": "tcp://ambassador-sds:5000"
-          }
-        ]
-      },
-      "refresh_delay_ms": 15000
-    },
     "clusters": []
   },
   "statsd_local_udp_port": 8125,
