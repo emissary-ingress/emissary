@@ -1,8 +1,6 @@
 HERE=$(dirname $0)
 eval $(sh $HERE/../scripts/get_registries.sh)
 
-if [ -z "${DOCKER_REGISTRY}" ]; then exit 1; fi
-
 cat <<EOF
 ---
 apiVersion: extensions/v1beta1
