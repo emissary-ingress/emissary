@@ -7,6 +7,8 @@ import time
 import dpath
 import requests
 
+TOKEN = open("/var/run/secrets/kubernetes.io/serviceaccount/token", "r").read()
+SERVICE_URL = "https://kubernetes/api/v1/namespaces/default/services"
 
 def percentage(x, y):
     if y == 0:
@@ -52,13 +54,41 @@ class EnvoyConfig (object):
     '''
 
     # We may append the 'features' element to the cluster definition, too.
+    #
+    # We can switch back to SDS later.
+    # "type": "sds",
+    # "service_name": "{service_name}",
+    #
+    # At that time we'll need to reinstate the SDS cluster in envoy-template.json:
+    #
+    # "sds": {
+    #   "cluster": {
+    #     "name": "ambassador-sds",
+    #     "connect_timeout_ms": 250,
+    #     "type": "strict_dns",
+    #     "lb_type": "round_robin",
+    #     "hosts": [
+    #       {
+    #         "url": "tcp://ambassador-sds:5000"
+    #       }
+    #     ]
+    #   },
+    #   "refresh_delay_ms": 15000
+    # },
+
     cluster_template = '''
     {{
         "name": "{cluster_name}",
         "connect_timeout_ms": 250,
-        "type": "sds",
-        "service_name": "{service_name}",
-        "lb_type": "round_robin"
+        "lb_type": "round_robin",
+        "type": "strict_dns",
+        "hosts": []
+    }}
+    '''
+
+    host_template = '''
+    {{
+        "url": "tcp://{service_name}:{port}"
     }}
     '''
 
@@ -120,24 +150,73 @@ class EnvoyConfig (object):
         logging.info("initial routes: %s" % routes)
         logging.info("initial clusters: %s" % clusters)
 
+        # Grab service info from Kubernetes.
+        r = requests.get(SERVICE_URL, headers={"Authorization": "Bearer " + TOKEN}, 
+                         verify=False)
+
+        if r.status_code != 200:
+            # This can't be good.
+            raise Exception("couldn't query Kubernetes for services! %s" % r)
+
+        services = r.json()
+
+        items = services.get('items', [])
+
+        service_info = {}
+
+        for item in items:
+            service_name = None
+            portspecs = []
+
+            try:
+                service_name = dpath.util.get(item, "/metadata/name")
+            except KeyError:
+                pass
+
+            try:
+                portspecs = dpath.util.get(item, "/spec/ports")
+            except KeyError:
+                pass
+
+            if service_name and portspecs:
+                service_info[service_name] = portspecs
+
         for service_name in self.services.keys():
             service = self.services[service_name]
 
-            service_def = {
-                'service_name': service_name,
-                'url_prefix': service['prefix'],
-                'cluster_name': '%s_cluster' % service_name
-            }
+            if service_name in service_info:
+                portspecs = service_info[service_name]
 
-            route_json = EnvoyConfig.route_template.format(**service_def)
-            route = json.loads(route_json)
-            logging.info("add route %s" % route)
-            routes.append(route)
+                print(portspecs)
+                host_defs = []
 
-            cluster_json = EnvoyConfig.cluster_template.format(**service_def)
-            cluster = json.loads(cluster_json)
-            logging.info("add cluster %s" % cluster)
-            clusters.append(cluster)
+                for portspec in portspecs:
+                    pspec = { "service_name": service_name }
+                    pspec.update(portspec)
+
+                    host_defs.append(EnvoyConfig.host_template.format(**pspec))
+
+                host_json = "[" + ",".join(host_defs) + "]"
+                cluster_hosts = json.loads(host_json)
+
+                service_def = {
+                    'service_name': service_name,
+                    'url_prefix': service['prefix'],
+                    'cluster_name': '%s_cluster' % service_name
+                }
+
+                route_json = EnvoyConfig.route_template.format(**service_def)
+                route = json.loads(route_json)
+                logging.info("add route %s" % route)
+                routes.append(route)
+
+                cluster_json = EnvoyConfig.cluster_template.format(**service_def)
+
+                cluster = json.loads(cluster_json)
+                cluster['hosts'] = cluster_hosts
+
+                logging.info("add cluster %s" % cluster)
+                clusters.append(cluster)
 
         config = copy.deepcopy(self.base_config)
 

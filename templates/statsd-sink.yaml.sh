@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: statsd-sink
-        image: ${STREG}prom-statsd-exporter:0.5.2
+        image: ${STREG}prom-statsd-exporter:0.6.0
         resources: {}
       restartPolicy: Always
 status: {}
