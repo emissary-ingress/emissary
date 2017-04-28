@@ -1,9 +1,3 @@
-HERE=$(dirname $0)
-eval $(sh $HERE/../scripts/get_registries.sh)
-
-if [ -z "${DOCKER_REGISTRY}" ]; then exit 1; fi
-
-cat <<EOF
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -21,8 +15,19 @@ spec:
     spec:
       containers:
       - name: statsd-sink
-        image: ${STREG}prom-statsd-exporter:0.6.0
+        image: datadog/docker-dd-agent:latest-dogstatsd
         resources: {}
+        ports:
+          - containerPort: 8125
+            name: dogstatsdport
+            protocol: UDP
+        env:
+          - name: API_KEY
+            value: 991c2b2c810f705439cc51ad6c93c509
+          - name: KUBERNETES
+            value: "yes"
+          - name: SD_BACKEND
+            value: docker
       restartPolicy: Always
 status: {}
 ---
@@ -37,10 +42,6 @@ spec:
   ports:
   - protocol: UDP
     port: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 9102
-    name: prometheus-metrics
+    name: dogstatsdport
   selector:
     service: statsd-sink
-EOF
