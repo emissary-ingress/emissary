@@ -35,10 +35,10 @@ logging.info("initializing on %s (resolved %s)" %
 app = Flask(__name__)
 
 AMBASSADOR_TABLE_SQL = '''
-CREATE TABLE IF NOT EXISTS services (
+CREATE TABLE IF NOT EXISTS mappings (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     prefix VARCHAR(2048) NOT NULL,
-    port INTEGER NOT NULL
+    service VARCHAR(2048) NOT NULL
 )
 '''
 
@@ -79,7 +79,7 @@ def setup():
         conn.commit()
         conn.close()
     except pg8000.Error as e:
-        return RichStatus.fromError("no services table in setup: %s" % e)
+        return RichStatus.fromError("no mappings table in setup: %s" % e)
 
     return RichStatus.OK()
 
@@ -107,68 +107,70 @@ def getIncomingJSON(req, *needed):
 
 ########
 
-def fetch_all_services():
+def fetch_all_mappings():
     try:
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT name, prefix FROM services ORDER BY name, prefix")
+        cursor.execute("SELECT name, prefix, service FROM mappings ORDER BY name, prefix")
 
-        services = []
+        mappings = []
 
-        for name, prefix in cursor:
-            services.append({ 'name': name, 'prefix': prefix })
+        for name, prefix, service in cursor:
+            mappings.append({ 'name': name, 'prefix': prefix, 'service': service })
 
-        return RichStatus.OK(services=services, count=len(services))
+        return RichStatus.OK(mappings=mappings, count=len(mappings))
     except pg8000.Error as e:
-        return RichStatus.fromError("services: could not fetch info: %s" % e)
+        return RichStatus.fromError("mappings: could not fetch info: %s" % e)
 
-def handle_service_list(req):
-    return fetch_all_services()
+def handle_mapping_list(req):
+    return fetch_all_mappings()
 
-def handle_service_get(req, name):
+def handle_mapping_get(req, name):
     try:
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT prefix FROM services WHERE name = :name", locals())
-        [ prefix ] = cursor.fetchone()
+        cursor.execute("SELECT prefix, service FROM mappings WHERE name = :name", locals())
+        [ prefix, service ] = cursor.fetchone()
 
-        return RichStatus.OK(name=name, prefix=prefix)
+        return RichStatus.OK(name=name, prefix=prefix, service=service)
     except pg8000.Error as e:
         return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
 
-def handle_service_del(req, name):
+def handle_mapping_del(req, name):
     try:
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM services WHERE name = :name", locals())
+        cursor.execute("DELETE FROM mappings WHERE name = :name", locals())
         conn.commit()
 
         app.reconfigurator.trigger()
 
         return RichStatus.OK(name=name)
     except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not delete service: %s" % (name, e))
+        return RichStatus.fromError("%s: could not delete mapping: %s" % (name, e))
 
-def handle_service_post(req, name):
+def handle_mapping_post(req, name):
     try:
-        rc = getIncomingJSON(req, 'prefix')
+        rc = getIncomingJSON(req, 'prefix', 'service')
 
-        logging.debug("handle_service_post %s: got args %s" % (name, rc.toDict()))
+        logging.debug("handle_mapping_post %s: got args %s" % (name, rc.toDict()))
 
         if not rc:
             return rc
 
         prefix = rc.prefix
-
-        logging.debug("handle_service_post %s: prefix %s" % (name, prefix))
+        service = rc.service
+        
+        logging.debug("handle_mapping_post %s: prefix %s => service %s" %
+                      (name, prefix, service))
 
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO services VALUES(:name, :prefix, 0)', locals())
+        cursor.execute('INSERT INTO mappings VALUES(:name, :prefix, :service)', locals())
         conn.commit()
 
         app.reconfigurator.trigger()
@@ -185,14 +187,14 @@ def health():
 
 @app.route('/ambassador/stats', methods=[ 'GET' ])
 def ambassador_stats():
-    rc = fetch_all_services()
+    rc = fetch_all_mappings()
 
-    active_service_names = []
+    active_mapping_names = []
 
-    if rc and rc.services:
-        active_service_names = [ x['name'] for x in rc.services ]
+    if rc and rc.mappings:
+        active_mapping_names = [ x['name'] for x in rc.mappings ]
 
-    app.stats.update(active_service_names)
+    app.stats.update(active_mapping_names)
 
     return jsonify(app.stats.stats)
 
@@ -212,26 +214,26 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
 
     config = EnvoyConfig(envoy_base_config, envoy_tls_config)
 
-    rc = fetch_all_services()
-    num_services = 0
+    rc = fetch_all_mappings()
+    num_mappings = 0
 
-    if rc and rc.services:
-        num_services = len(rc.services)
+    if rc and rc.mappings:
+        num_mappings = len(rc.mappings)
 
-        for service in rc.services:
-            config.add_service(service['name'], service['prefix'])
+        for mapping in rc.mappings:
+            config.add_mapping(mapping['name'], mapping['prefix'], mapping['service'])
 
     config.write_config(envoy_config_path)
 
     if envoy_restarter_pid > 0:
         os.kill(envoy_restarter_pid, signal.SIGHUP)
 
-    return RichStatus.OK(count=num_services)
+    return RichStatus.OK(count=num_mappings)
 
-@app.route('/ambassador/services', methods=[ 'GET', 'PUT' ])
-def root():
+@app.route('/ambassador/mappings', methods=[ 'GET', 'PUT' ])
+def handle_mappings():
     rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_services: method %s" % request.method)
+    logging.debug("handle_mappings: method %s" % request.method)
     
     try:
         rc = setup()
@@ -241,28 +243,28 @@ def root():
                 app.reconfigurator.trigger()
                 rc = RichStatus.OK(msg="reconfigure requested")
             else:
-                rc = handle_service_list(request)
+                rc = handle_mapping_list(request)
     except Exception as e:
         logging.exception(e)
-        rc = RichStatus.fromError("handle_services: %s failed: %s" % (request.method, e))
+        rc = RichStatus.fromError("handle_mappings: %s failed: %s" % (request.method, e))
 
     return jsonify(rc.toDict())
 
-@app.route('/ambassador/service/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
-def handle_service(name):
+@app.route('/ambassador/mapping/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+def handle_mapping(name):
     rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_service %s: method %s" % (name, request.method))
+    logging.debug("handle_mapping %s: method %s" % (name, request.method))
     
     try:
         rc = setup()
 
         if rc:
             if request.method == 'POST':
-                rc = handle_service_post(request, name)
+                rc = handle_mapping_post(request, name)
             elif request.method == 'DELETE':
-                rc = handle_service_del(request, name)
+                rc = handle_mapping_del(request, name)
             else:
-                rc = handle_service_get(request, name)
+                rc = handle_mapping_get(request, name)
     except Exception as e:
         logging.exception(e)
         rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
