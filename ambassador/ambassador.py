@@ -38,7 +38,8 @@ AMBASSADOR_TABLE_SQL = '''
 CREATE TABLE IF NOT EXISTS mappings (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     prefix VARCHAR(2048) NOT NULL,
-    service VARCHAR(2048) NOT NULL
+    service VARCHAR(2048) NOT NULL,
+    rewrite VARCHAR(2048) NOT NULL
 )
 '''
 
@@ -84,6 +85,16 @@ def setup():
     return RichStatus.OK()
 
 def getIncomingJSON(req, *needed):
+    """
+    Pull incoming arguments from JSON into a RichStatus. 'needed' specifies
+    keys that are mandatory, but _all keys are converted_, so for any optional
+    things, just check if the key is present in the returned RichStatus.
+
+    If any 'needed' keys are missing, returns a False RichStatus including error
+    text. If all 'needed' keys are present, returns a True RichStatus with elements
+    copied from the input.
+    """
+
     try:
         incoming = req.get_json()
     except Exception as e:
@@ -112,12 +123,13 @@ def fetch_all_mappings():
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT name, prefix, service FROM mappings ORDER BY name, prefix")
+        cursor.execute("SELECT name, prefix, service, rewrite FROM mappings ORDER BY name, prefix")
 
         mappings = []
 
-        for name, prefix, service in cursor:
-            mappings.append({ 'name': name, 'prefix': prefix, 'service': service })
+        for name, prefix, service, rewrite in cursor:
+            mappings.append({ 'name': name, 'prefix': prefix, 
+                              'service': service, 'rewrite': rewrite })
 
         return RichStatus.OK(mappings=mappings, count=len(mappings))
     except pg8000.Error as e:
@@ -131,10 +143,10 @@ def handle_mapping_get(req, name):
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT prefix, service FROM mappings WHERE name = :name", locals())
-        [ prefix, service ] = cursor.fetchone()
+        cursor.execute("SELECT prefix, service, rewrite FROM mappings WHERE name = :name", locals())
+        [ prefix, service, rewrite ] = cursor.fetchone()
 
-        return RichStatus.OK(name=name, prefix=prefix, service=service)
+        return RichStatus.OK(name=name, prefix=prefix, service=service, rewrite=rewrite)
     except pg8000.Error as e:
         return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
 
@@ -163,14 +175,19 @@ def handle_mapping_post(req, name):
 
         prefix = rc.prefix
         service = rc.service
-        
-        logging.debug("handle_mapping_post %s: prefix %s => service %s" %
-                      (name, prefix, service))
+        rewrite = '/'
+
+        if 'rewrite' in rc:
+            rewrite = rc.rewrite
+
+        logging.debug("handle_mapping_post %s: pfx %s => svc %s (rewrite %s)" %
+                      (name, prefix, service, rewrite))
 
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO mappings VALUES(:name, :prefix, :service)', locals())
+        cursor.execute('INSERT INTO mappings VALUES(:name, :prefix, :service, :rewrite)',
+                       locals())
         conn.commit()
 
         app.reconfigurator.trigger()
@@ -221,7 +238,8 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
         num_mappings = len(rc.mappings)
 
         for mapping in rc.mappings:
-            config.add_mapping(mapping['name'], mapping['prefix'], mapping['service'])
+            config.add_mapping(mapping['name'], mapping['prefix'],
+                               mapping['service'], mapping['rewrite'])
 
     config.write_config(envoy_config_path)
 

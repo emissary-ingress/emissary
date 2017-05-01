@@ -49,6 +49,7 @@ class EnvoyConfig (object):
     {{
         "timeout_ms": 0,
         "prefix": "{url_prefix}",
+        "prefix_rewrite": "{rewrite_prefix_as}",
         "cluster": "{cluster_name}"
     }}
     '''
@@ -136,10 +137,11 @@ class EnvoyConfig (object):
         self.base_config = base_config
         self.tls_config = tls_config
 
-    def add_mapping(self, name, prefix, service):
+    def add_mapping(self, name, prefix, service, rewrite):
         self.mappings[name] = {
             'prefix': prefix,
-            'service': service
+            'service': service,
+            'rewrite': rewrite
         }
 
     def write_config(self, path):
@@ -187,6 +189,7 @@ class EnvoyConfig (object):
             mapping = self.mappings[mapping_name]
             prefix = mapping['prefix']
             service_name = mapping['service']
+            rewrite = mapping['rewrite']
 
             if service_name in service_info:
                 portspecs = service_info[service_name]
@@ -209,6 +212,7 @@ class EnvoyConfig (object):
                 service_def = {
                     'service_name': service_name,
                     'url_prefix': prefix,
+                    'rewrite_prefix_as': rewrite,
                     'cluster_name': '%s_cluster' % mapping_name # NOT A TYPO, see above
                 }
 
