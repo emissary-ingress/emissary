@@ -1,9 +1,9 @@
 #!/bin/sh
 
-SERVICE="$1"
+MAPPING="$1"
 
-if [ -z "$SERVICE" ]; then
-    echo "Usage: $(basename $0) service" >&2
+if [ -z "$MAPPING" ]; then
+    echo "Usage: $(basename $0) mapping-name" >&2
     exit 1
 fi
 
@@ -12,5 +12,5 @@ if [ -z "$AMBASSADORURL" ]; then
     eval $("$SHELL" "$path/geturl")
 fi
 
-curl -XDELETE "$AMBASSADORURL/ambassador/service/$SERVICE"
+curl -XDELETE "$AMBASSADORURL/ambassador/mapping/$MAPPING"
 

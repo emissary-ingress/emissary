@@ -49,6 +49,7 @@ class EnvoyConfig (object):
     {{
         "timeout_ms": 0,
         "prefix": "{url_prefix}",
+        "prefix_rewrite": "{rewrite_prefix_as}",
         "cluster": "{cluster_name}"
     }}
     '''
@@ -132,13 +133,15 @@ class EnvoyConfig (object):
     ]
 
     def __init__(self, base_config, tls_config):
-        self.services = {}
+        self.mappings = {}
         self.base_config = base_config
         self.tls_config = tls_config
 
-    def add_service(self, name, prefix):
-        self.services[name] = {
+    def add_mapping(self, name, prefix, service, rewrite):
+        self.mappings[name] = {
             'prefix': prefix,
+            'service': service,
+            'rewrite': rewrite
         }
 
     def write_config(self, path):
@@ -181,13 +184,19 @@ class EnvoyConfig (object):
             if service_name and portspecs:
                 service_info[service_name] = portspecs
 
-        for service_name in self.services.keys():
-            service = self.services[service_name]
+        for mapping_name in self.mappings.keys():
+            # Does this mapping refer to a service that we know about?
+            mapping = self.mappings[mapping_name]
+            prefix = mapping['prefix']
+            service_name = mapping['service']
+            rewrite = mapping['rewrite']
 
             if service_name in service_info:
                 portspecs = service_info[service_name]
 
-                print(portspecs)
+                logging.info("mapping %s: pfx %s => svc %s, portspecs %s" % 
+                             (mapping_name, prefix, service_name, portspecs))
+
                 host_defs = []
 
                 for portspec in portspecs:
@@ -199,10 +208,12 @@ class EnvoyConfig (object):
                 host_json = "[" + ",".join(host_defs) + "]"
                 cluster_hosts = json.loads(host_json)
 
+                # NOTE WELL: the cluster is named after the MAPPING, for flexibility.
                 service_def = {
                     'service_name': service_name,
-                    'url_prefix': service['prefix'],
-                    'cluster_name': '%s_cluster' % service_name
+                    'url_prefix': prefix,
+                    'rewrite_prefix_as': rewrite,
+                    'cluster_name': '%s_cluster' % mapping_name # NOT A TYPO, see above
                 }
 
                 route_json = EnvoyConfig.route_template.format(**service_def)
@@ -269,7 +280,7 @@ class EnvoyStats (object):
             "envoy": {}
         }
 
-    def update(self, active_service_names):
+    def update(self, active_mapping_names):
         # Remember how many update errors we had before...
         update_errors = self.stats['update_errors']
 
@@ -307,22 +318,22 @@ class EnvoyStats (object):
 
         # Now dig into clusters a bit more.
 
-        active_services = {}
+        active_mappings = {}
 
         if "cluster" in envoy_stats:
-            active_service_map = {
+            active_cluster_map = {
                 x + '_cluster': x
-                for x in active_service_names
+                for x in active_mapping_names
             }
 
             for cluster_name in envoy_stats['cluster']:
                 cluster = envoy_stats['cluster'][cluster_name]
 
-                if cluster_name in active_service_map:
-                    service_name = active_service_map[cluster_name]
-                    active_services[service_name] = {}
+                if cluster_name in active_cluster_map:
+                    mapping_name = active_cluster_map[cluster_name]
+                    active_mappings[mapping_name] = {}
 
-                    logging.info("SVC %s => CLUSTER %s" % (service_name, json.dumps(cluster)))
+                    logging.info("SVC %s has cluster" % mapping_name)
 
                     healthy_members = cluster['membership_healthy']
                     total_members = cluster['membership_total']
@@ -337,7 +348,7 @@ class EnvoyStats (object):
                     upstream_5xx = cluster.get('upstream_rq_5xx', 0)
                     upstream_bad = upstream_4xx + upstream_5xx
 
-                    active_services[service_name] = {
+                    active_mappings[mapping_name] = {
                         'healthy_members': healthy_members,
                         'total_members': total_members,
                         'healthy_percent': healthy_percent,
@@ -359,6 +370,6 @@ class EnvoyStats (object):
             "last_update": last_update,
             "last_attempt": last_attempt,
             "update_errors": update_errors,
-            "services": active_services,
+            "mappings": active_mappings,
             "envoy": envoy_stats
         }

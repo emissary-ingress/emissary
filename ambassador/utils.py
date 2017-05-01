@@ -27,6 +27,9 @@ class RichStatus (object):
     def __nonzero__(self):
         return self.ok
 
+    def __contains__(self, key):
+        return key in self.info
+
     def __str__(self):
         attrs = ["%=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
         astr = " ".join(attrs)

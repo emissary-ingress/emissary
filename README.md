@@ -37,12 +37,12 @@ and then you can check the health of Ambassador:
 You can fire up a demo service called `usersvc` with
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-usersvc.yaml
+kubectl apply -f demo-usersvc.yaml
 ```
 
 and then you can map the `/user/` resource to your `usersvc` with the `map` script:
 
-```sh scripts/map user usersvc```
+```sh scripts/map user user usersvc```
 
 Once that's done, you can go through Ambassador to do a `usersvc` health check:
 
@@ -50,7 +50,7 @@ Once that's done, you can go through Ambassador to do a `usersvc` health check:
 
 To get rid of the mapping, use
 
-```sh scripts/unmap usersvc```
+```sh scripts/unmap user```
 
 Read on for more details.
 
@@ -188,51 +188,67 @@ Mappings
 You can use `scripts/map` to map a resource to a service:
 
 ```
-sh scripts/map $prefix $service
+sh scripts/map mapping-name url-prefix service-name [rewrite]
 ```
 
 e.g.
 
 ```
-sh scripts/map v1/user usersvc
+sh scripts/map user v1/user usersvc
 ```
 
-to cause requests for any resource with a URL starting with `/v1/user/` to be sent to the `usersvc` Kubernetes service.
+to create a mapping named "user" that will cause requests for any resource with a URL starting with `/v1/user/` to be sent to the `usersvc` Kubernetes service. 
 
-*Note well* that `$service` must match the name of a service that is defined in Kubernetes. Also, in this example, the service will receive the entire URL: no rewriting happens (yet).
+*Note well* that `service-name` must match the name of a service that is defined in Kubernetes.
 
-You can do the same thing with a `POST` request:
+In this example, when the request is forwarded, the `/v1/user/` part of the URL will be rewritten as `/`, so
+
+```
+/v1/user/alice
+```
+
+will appear to the `usersvc` as simply `/alice`.
+
+To change this, you can append a value other than `/` to the `map` command:
+
+```
+sh scripts/map user v1/user usersvc /v2/
+```
+
+would cause `/v1/user/alice` to be forwarded as `/v2/alice`.
+
+You can do all of this with a `POST` request:
 
 ```
 curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "/$prefix/" }' \
-      $AMBASSADORURL/ambassador/service/$service
+      -d '{ "prefix": "/v1/user/", "service": "usersvc", "rewrite": "/v2/" }' \
+      $AMBASSADORURL/ambassador/mapping/user
 ```
 
 To remove a mapping, use `scripts/unmap`:
 
 ```
-sh scripts/unmap $service
+sh scripts/unmap mapping-name
 ```
 
-e.g., to undo the `usersvc` mapping from above:
+e.g., to undo the `user` mapping from above:
 
 ```
-sh scripts/unmap usersvc
+sh scripts/unmap user
 ```
 
-(Remember to use the `service` name, not the `prefix`.)
+(Remember to use the mapping name -- not the prefix or service name.)
 
 You can also use a `DELETE` request to delete the mapping:
 
 ```
-curl -XDELETE $AMBASSADORURL/ambassador/service/$service
+curl -XDELETE $AMBASSADORURL/ambassador/mapping/user
 ```
 
-To check whether a mapping exists, you can
+To check whether the `user` mapping exists, you can simply
 
 ```
-curl $AMBASSADORURL/ambassador/service/$servicename
+curl $AMBASSADORURL/ambassador/mapping/user
 ```
 
-Ambassador update Envoy's configuration five seconds after a `POST` or `DELETE` changes its mapping. If another change arrives during that time, the timer is restarted.
+Ambassador updates Envoy's configuration five seconds after a `POST` or `DELETE` changes its mapping. If another change arrives during that time, the timer is restarted.
