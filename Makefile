@@ -1,6 +1,6 @@
 all: bump
 
-VERSION=0.6.0
+VERSION=0.7.0
 
 VERSIONED = \
 	.bumpversion.cfg \
@@ -42,8 +42,8 @@ new-major:
 	$(MAKE) artifacts
 
 tag:
-	git commit $(VERSIONED)
-	git tag -a v$(VERSION)
+	git commit $(VERSIONED) -m "v$(VERSION)"
+	git tag -a v$(VERSION) -m "v$(VERSION)"
 
 ambassador-rest.yaml: .ALWAYS
 	sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
