@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Ambassador - Ambassador</title>
+  <meta name="description" content="Ambassador, API Gateway built on Envoy">
+  <meta name="keywords" content="Ambassador, Envoy, Kubernetes, microservices">
+  <meta name="author" content="Datawire.io">
+  <meta name="generator" content="Doc42 0.1.0">
+
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,600,700' type='text/css' media='all' />
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+  <link rel="stylesheet" href="/css/kissui.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <link rel="stylesheet" href="/css/sticky.min.css">
+
+  <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-57322503-8', 'auto');ga('send', 'pageview');</script>
+  <link rel="canonical" href="http://localhost:4000/">
+  <link rel="alternate" type="application/rss+xml" title="Ambassador" href="http://localhost:4000/feed.xml">
+</head>
+
+
+  <body>
+      <div class="row">
+    <header id="main_header">
+        <nav class="basic border menu">
+            <div class="fluid">
+                <a class="header item" href="/">
+                    Ambassador
+                </a>
+
+                <a class="item" href="/user-guide/getting-started.html">
+                  <i class="fa fa-download"></i> Get Started
+                </a>
+                <a class="item" href="/about/why-telepresence.html">
+                  <i class="fa fa-book"></i> Documentation
+                </a>
+                <a class="item" href="https://github.com/datawire/telepresence/" target="_blank">
+                    <i class="fa fa-github"></i> GitHub
+                </a>
+                <a class="item" href="https://gitter.im/datawire/telepresence" target="_blank">
+                    <i class="fa fa-support"></i> Need help?
+                </a>
+            </div>
+        </nav>
+    </header>
+</div>
+
+
+      <div class="fluid">
+          <div class="wrapper">
+              <header class="hero">
+  <div class="logo">
+  <img src="/images/logo.png" style="width: 200px;">
+  <h3>Ambassador</h3>
+  <h4>API Gateway for Microservices</h4>
+  </div>
+</header>
+
+<div class="container">
+  <center><a class="button primary" href="/user-guide/getting-started.html"><span style="font-size: 200%;">Get started</span></a></center>
+  <br><br>
+</div>
+
+<div class="container">
+  <h5>
+    <ul class="fa-ul">
+      <li><i class="fa-li fa fa-fighter-jet"></i><strong>Designed for microservices</strong> Built on <a href="https://lyft.github.io/envoy/">Lyft Envoy L7 proxy</a>, Ambassador gives you advanced load balancing features (e.g., global rate limiting), first class HTTP/2 support, and robust TLS support.</li>
+      <li><i class="fa-li fa fa-external-link-square"></i><strong>Integrated monitoring:</strong> Automatically collect statistics and send the data to your metrics system of choice.</li>
+      <li><i class="fa-li fa fa-wrench"></i><strong>Authentication:</strong> Authenticate all requests before they are proxied to your back-end services using aone of Ambassador's authentication plug-ins.</li>
+    </ul></h5>
+</div>
+
+<div class="container">
+  <header class="section-header">
+  <h5><center><strong>Get started in 60 seconds:</strong></center></h5>
+  </header>
+  <div class="row">
+    <div class="one-half column">
+    <ol>
+      <li>After <a href="/user-guide/getting-started.html">installing on Kubernetes</a>, add a new API mapping using a REST API.</li>
+      <li>Request your new service through Ambassador.</li>
+    </ol>
+    </div>
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell">curl -XPOST -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+-d <span class="s1">'{ "prefix": "/v1/user/", "service": "usersvc", "rewrite": "/v2/" }'</span> <span class="se">\</span>
+<span class="nv">$AMBASSADORURL</span>/ambassador/mapping/user</code></pre></figure>
+  </div>
+  </h5>
+
+</div>
+
+
+<div class="container">
+  <p style="text-align: center;">Ambassador is sponsored by Project Blackbird, helping you <a href="https://wwwdatawire.io">deploy microservices on Kubernetes in AWS</a> <img src="/images/blackbird.png" style="width: 4em; vertical-align: middle; align: right;"></p>
+</div>
+
+          </div>
+      </div>
+
+      <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85887707-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+  </body>
+</html>
