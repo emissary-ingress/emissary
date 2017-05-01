@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Ambassador - Limitations and Workarounds</title>
+  <meta name="description" content="Ambassador, API Gateway built on Envoy">
+  <meta name="keywords" content="Ambassador, Envoy, Kubernetes, microservices">
+  <meta name="author" content="Datawire.io">
+  <meta name="generator" content="Doc42 0.1.0">
+
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,600,700' type='text/css' media='all' />
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+  <link rel="stylesheet" href="/css/kissui.css">
+  <link rel="stylesheet" href="/css/custom.css">
+  <link rel="stylesheet" href="/css/sticky.min.css">
+
+  <script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');  ga('create', 'UA-57322503-8', 'auto');ga('send', 'pageview');</script>
+  <link rel="canonical" href="http://localhost:4000/user-guide/limitations-and-workarounds.html">
+  <link rel="alternate" type="application/rss+xml" title="Ambassador" href="http://localhost:4000/feed.xml">
+</head>
+
+
+  <body>
+      <div class="row">
+    <header id="main_header">
+        <nav class="basic border menu">
+            <div class="fluid">
+                <a class="header item" href="/">
+                    Ambassador
+                </a>
+
+                <a class="item" href="/user-guide/getting-started.html">
+                  <i class="fa fa-download"></i> Get Started
+                </a>
+                <a class="item" href="/about/why-telepresence.html">
+                  <i class="fa fa-book"></i> Documentation
+                </a>
+                <a class="item" href="https://github.com/datawire/telepresence/" target="_blank">
+                    <i class="fa fa-github"></i> GitHub
+                </a>
+                <a class="item" href="https://gitter.im/datawire/telepresence" target="_blank">
+                    <i class="fa fa-support"></i> Need help?
+                </a>
+            </div>
+        </nav>
+    </header>
+</div>
+
+
+      <div class="fluid">
+          <div class="wrapper">
+              <div class="row">
+    <div class="two columns">
+        <nav class="basic border fluid vertical menu" data-kui-sticky>
+    
+
+    <div class="items">
+        <div class="icon item header">
+            <i class="fa fa-question-circle"></i>about
+        </div>
+        
+
+        
+            
+                      
+            
+                      
+            
+                      
+            
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                
+                      <a class="item" href="/about/why-telepresence.html">Why Telepresence?</a>
+                      
+                      
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                
+                      <a class="item" href="/about/how-it-works.html">How it works</a>
+                      
+                      
+                      
+                      
+            
+              
+                      
+                      
+    </div>
+
+    <div class="items">
+        <div class="icon item header">
+            <i class="fa fa-play"></i>getting started
+        </div>
+        
+
+        
+            
+                      
+            
+                      
+            
+                      
+            
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+    </div>
+
+    <div class="items">
+        <div class="icon item header">
+            <i class="fa fa-code"></i>user guide
+        </div>
+        
+
+        
+            
+                      
+            
+                      
+            
+                      
+            
+                      
+            
+              
+                      
+                      
+            
+              
+                
+                      <a class="item" href="/user-guide/getting-started.html">Getting Started</a>
+                      
+                      
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                
+                      <a class="item" href="/user-guide/features-and-functionality.html">Features and Functionality</a>
+                      
+                      
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                
+                      <a class="item" href="/user-guide/limitations-and-workarounds.html">Limitations and Workarounds</a>
+                      
+                      
+                      
+                      
+    </div>
+
+    <div class="items">
+        <div class="icon item header">
+            <i class="fa fa-expand"></i>additional information
+        </div>
+        
+
+        
+            
+                      
+            
+                      
+            
+                      
+            
+                      
+            
+              
+                
+                      <a class="item" href="/additional-information/changelog.html">Changelog</a>
+                      
+                      
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                
+                      <a class="item" href="/additional-information/developing.html">Development Info</a>
+                      
+                      
+                      
+                      
+            
+              
+                      
+                      
+            
+              
+                      
+                      
+    </div>
+    <div class="items">
+      <div class="icon item header">
+        <i class="fa fa-external-link"></i>EXTERNAL LINKS
+      </div>
+      <a class="item" href="https://cloud.google.com/community/tutorials/developing-services-with-k8s">Telepresence on GKE</a>
+      <a class="item" href="https://www.datawire.io/guide/deployment/development-environments-microservices/">Microservice development environments</a>
+    </div>
+</nav>
+
+    </div>
+
+    <div class="eight columns page-content">
+        <header class="post-header">
+            <h2 class="post-title">Limitations and Workarounds</h3>
+        </header>
+
+        <div class="post-content docs">
+          <h3 id="incompatible-programs">Incompatible programs</h3>
+
+<p>Because of the mechanism Telepresence uses to intercept networking calls:</p>
+
+<ul>
+  <li>suid binaries won’t work inside a Telepresence shell.</li>
+  <li>Statically linked binaries won’t work.</li>
+  <li>Custom DNS resolvers that parse <code class="highlighter-rouge">/etc/resolv.conf</code> and do DNS lookups themselves won’t work.</li>
+</ul>
+
+<p>However, this only impacts outgoing connections.
+Incoming proxying (from Kubernetes) will still work with these binaries.</p>
+
+<h3 id="golang">Golang</h3>
+
+<p>Programs written with the Go programming language will not work by default, because Go uses a custom system call implementation and has its own DNS resolver.
+Again, this only impacts outgoing connections, incoming connections will still work.</p>
+
+<p>To workaround these limitations you can do the following in your development environment (there is no need to change anything for production):</p>
+
+<ul>
+  <li>Use <code class="highlighter-rouge">gccgo</code> instead of <code class="highlighter-rouge">go build</code>.</li>
+  <li>Do <code class="highlighter-rouge">export GODEBUG=netdns=cgo</code> to <a href="https://golang.org/pkg/net/#hdr-Name_Resolution">force Go to use the standard DNS lookup mechanism</a> rather than its own internal one.</li>
+</ul>
+
+<h3 id="docker-containers">Docker containers</h3>
+
+<p>A container run via <code class="highlighter-rouge">docker run</code> will not inherit the outgoing functionality of the Telepresence shell.
+If you want to use Telepresence to proxy a containerized application you should install and run Telepresence inside the container itself.</p>
+
+<h3 id="what-telepresence-proxies">What Telepresence proxies</h3>
+
+<p>Telepresence currently proxies the following when using <code class="highlighter-rouge">--run-shell</code>:</p>
+
+<ul>
+  <li>The <a href="https://kubernetes.io/docs/user-guide/services/#environment-variables">special environment variables</a> that expose the addresses of <code class="highlighter-rouge">Service</code> instances.
+E.g. <code class="highlighter-rouge">REDIS_MASTER_SERVICE_HOST</code>.</li>
+  <li>The standard <a href="https://kubernetes.io/docs/user-guide/services/#dns">DNS entries for services</a>.
+E.g. <code class="highlighter-rouge">redis-master</code> and <code class="highlighter-rouge">redis-master.default.svc.cluster.local</code> will resolve to a working IP address.
+These will work regardless of whether they existed when the proxy started.</li>
+  <li>TCP connections to other <code class="highlighter-rouge">Service</code> instances, whether or not they existed when the proxy was started.</li>
+  <li>Any additional environment variables that the <code class="highlighter-rouge">Deployment</code> explicitly configured for the pod.</li>
+  <li>TCP connections to any hostname/port; all but <code class="highlighter-rouge">localhost</code> will be routed via Kubernetes.
+Typically this is useful for accessing cloud resources, e.g. a AWS RDS database.</li>
+  <li>TCP connections <em>from</em> Kubernetes to your local code, for ports specified on the command line.</li>
+  <li>Access to volumes, including those for <code class="highlighter-rouge">Secret</code> and <code class="highlighter-rouge">ConfigMap</code> Kubernetes objects.</li>
+  <li><code class="highlighter-rouge">/var/run/secrets/kubernetes.io</code> credentials (used to the <a href="https://kubernetes.io/docs/user-guide/accessing-the-cluster/#accessing-the-api-from-a-pod">access the Kubernetes( API</a>).</li>
+</ul>
+
+<p>Currently unsupported:</p>
+
+<ul>
+  <li>SRV DNS records matching <code class="highlighter-rouge">Services</code>, e.g. <code class="highlighter-rouge">_http._tcp.redis-master.default</code>.</li>
+  <li>UDP messages in any direction.</li>
+</ul>
+
+
+          <div><strong>Still have questions? Ask in our <a href="https://gitter.im/datawire/ambassador">Gitter chatroom</a> or <a href="https://github.com/datawire/ambassador/issues/new">file an issue on GitHub</a>.</strong></div>
+        </div>
+    </div>
+
+    <div id="contents" class="two columns">
+        <div data-kui-sticky></div>
+    </div>
+</div>
+
+          </div>
+      </div>
+
+      <div class="grid">
+  <div class="row">
+    <footer class="basic menu top border">
+      <div class="fluid">
+        <span class="right header item">Copyright &copy; 2017 <a href="https://datawire.io">Datawire.io</a></span>
+      </div>
+    </footer>
+  </div>
+</div>
+<script src="/js/sticky.min.js"></script>
+
+
+      <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85887707-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+  </body>
+</html>
