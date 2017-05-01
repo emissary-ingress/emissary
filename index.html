@@ -33,15 +33,20 @@ permalink: /
   <div class="row">
     <div class="one-half column">
     <ol>
-      <li>After <a href="/user-guide/getting-started.html">installing on Kubernetes</a>, add a new API mapping using the REST API.</li>
-      <li>Request your new service through Ambassador.</li>
+      <li><strong>Add your API to Ambassador.</strong>
+        <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador will route external requests to $AMBASSADOR/v1/user/ to usersvc/v2/.</li>
+      <li><strong>Send a request to your service.</strong>
+        Request your new service through Ambassador.</li>
     </ol>
     </div>
-{% highlight shell %}
-curl -XPOST -H "Content-Type: application/json" \
--d '{ "prefix": "/v1/user/", "service": "usersvc", "rewrite": "/v2/" }' \
-$AMBASSADORURL/ambassador/mapping/user
-{% endhighlight %}
+    <div class="one-half column">
+<pre><code>curl -XPOST -H "Content-Type: application/json" \
+    -d '{ "prefix": "/v1/user/",
+          "service": "usersvc",
+          "rewrite": "/v2/" }' \
+    $AMBASSADORURL/ambassador/mapping/user
+</code>
+</pre>
   </div>
   </h5>
 
