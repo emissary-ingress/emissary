@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ambassador</title>
+    <description>Ambassador, API Gateway built on Envoy</description>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Mon, 01 May 2017 15:57:11 -0400</pubDate>
+    <lastBuildDate>Mon, 01 May 2017 15:57:11 -0400</lastBuildDate>
+    <generator>Jekyll v3.4.3</generator>
+    
+  </channel>
+</rss>
