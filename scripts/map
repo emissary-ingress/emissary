@@ -1,11 +1,19 @@
 #!/bin/sh
 
-PREFIX="$1"
-SERVICE="$2"
+set -x
 
-if [ -z "$PREFIX" -o -z "$SERVICE" ]; then
-    echo "Usage: $(basename $0) prefix service" >&2
+MAPPING="$1"
+PREFIX="$2"
+SERVICE="$3"
+REWRITE="$4"
+
+if [ -z "$MAPPING" -o -z "$PREFIX" -o -z "$SERVICE" ]; then
+    echo "Usage: $(basename $0) mapping-name url-prefix service-name [rewrite]" >&2
     exit 1
+fi
+
+if [ -z "$REWRITE" ]; then
+    REWRITE="/"
 fi
 
 if [ -z "$AMBASSADORURL" ]; then
@@ -13,6 +21,6 @@ if [ -z "$AMBASSADORURL" ]; then
     eval $("$SHELL" "$path/geturl")
 fi
 
-curl -XPOST -H "Content-Type: application/json" \
-      -d "{ \"prefix\": \"/$PREFIX/\" }" \
-      "$AMBASSADORURL/ambassador/service/$SERVICE"
+curl -v -XPOST -H "Content-Type: application/json" \
+      -d "{ \"prefix\": \"/$PREFIX/\", \"service\": \"$SERVICE\", \"rewrite\": \"$REWRITE\" }" \
+      "$AMBASSADORURL/ambassador/mapping/$MAPPING"
