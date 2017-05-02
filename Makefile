@@ -13,7 +13,7 @@ VERSIONED = \
 
 .ALWAYS:
 
-artifacts: docker-images ambassador.yaml statsd-sink.yaml
+artifacts: docker-images ambassador.yaml
 
 bump:
 	@if [ -z "$$LEVEL" ]; then \
