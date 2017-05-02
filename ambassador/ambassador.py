@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request
 import VERSION
 
 from envoy import EnvoyStats, EnvoyConfig, TLSConfig
-from utils import RichStatus, SystemInfo, DelayTrigger
+from utils import RichStatus, SystemInfo, PeriodicTrigger
 
 __version__ = VERSION.Version
 
@@ -217,34 +217,38 @@ def ambassador_stats():
 
 def new_config(envoy_base_config=None, envoy_tls_config=None,
                envoy_config_path=None, envoy_restarter_pid=None):
-    if not envoy_base_config:
-        envoy_base_config = app.envoy_base_config
-
-    if not envoy_tls_config:
-        envoy_tls_config = app.envoy_tls_config
-
-    if not envoy_config_path:
-        envoy_config_path = app.envoy_config_path
-
-    if not envoy_restarter_pid:
-        envoy_restarter_pid = app.envoy_restarter_pid
-
-    config = EnvoyConfig(envoy_base_config, envoy_tls_config)
-
     rc = fetch_all_mappings()
-    num_mappings = 0
+    if not rc:
+        # Failed to fetch mappings from DB.
+        return rc
 
-    if rc and rc.mappings:
-        num_mappings = len(rc.mappings)
+    num_mappings = len(rc.mappings)
+    if rc.mappings != app.current_mappings:
+        # Mappings have changed. Really perform work for a new config.
+        if not envoy_base_config:
+            envoy_base_config = app.envoy_base_config
+
+        if not envoy_tls_config:
+            envoy_tls_config = app.envoy_tls_config
+
+        if not envoy_config_path:
+            envoy_config_path = app.envoy_config_path
+
+        if not envoy_restarter_pid:
+            envoy_restarter_pid = app.envoy_restarter_pid
+
+        config = EnvoyConfig(envoy_base_config, envoy_tls_config)
 
         for mapping in rc.mappings:
             config.add_mapping(mapping['name'], mapping['prefix'],
                                mapping['service'], mapping['rewrite'])
 
-    config.write_config(envoy_config_path)
+        config.write_config(envoy_config_path)
 
-    if envoy_restarter_pid > 0:
-        os.kill(envoy_restarter_pid, signal.SIGHUP)
+        if envoy_restarter_pid > 0:
+            os.kill(envoy_restarter_pid, signal.SIGHUP)
+
+        app.current_mappings = rc.mappings
 
     return RichStatus.OK(count=num_mappings)
 
@@ -333,7 +337,8 @@ def main():
     os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
 
     # Set up the trigger for future restarts.
-    app.reconfigurator = DelayTrigger(new_config)
+    app.current_mappings = None
+    app.reconfigurator = PeriodicTrigger(new_config)
 
     app.run(host='127.0.0.1', port=5000, debug=True)
 
