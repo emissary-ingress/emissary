@@ -329,6 +329,7 @@ def main():
 
     logging.info("ambassador found restarter PID %d" % app.envoy_restarter_pid)
 
+    app.current_mappings = None
     new_config(envoy_restarter_pid = -1)    # Don't automagically signal here.
 
     time.sleep(2)
@@ -337,7 +338,6 @@ def main():
     os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
 
     # Set up the trigger for future restarts.
-    app.current_mappings = None
     app.reconfigurator = PeriodicTrigger(new_config)
 
     app.run(host='127.0.0.1', port=5000, debug=True)
