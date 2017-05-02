@@ -18,9 +18,11 @@ def percentage(x, y):
 
 
 class TLSConfig (object):
-    def __init__(self, chain_env, chain_default_path, privkey_env, privkey_default_path):
+    def __init__(self, chain_env, chain_default_path, privkey_env, privkey_default_path,
+                       cacert_chain_env, cacert_chain_default_path):
         self.chain_path = os.environ.get(chain_env, chain_default_path)
         self.privkey_path = os.environ.get(privkey_env, privkey_default_path)
+        self.cacert_chain_path = os.environ.get(cacert_chain_env, cacert_chain_default_path)
 
     def check_file(self, path):
         found = False
@@ -34,15 +36,30 @@ class TLSConfig (object):
         return found
 
     def config_block(self):
+        config = {}
+
         if (self.check_file(self.chain_path) and
             self.check_file(self.privkey_path)):
+            config["cert_chain_file"] = self.chain_path
+            config["private_key_file"] = self.privkey_path
+
+        if self.check_file(self.cacert_chain_path):
+            config["ca_cert_file"] = self.cacert_chain_path
+
+        return config
+
+    def cacert_config_block(self):
+        if self.check_file(self.cacert_chain_path):
             return {
-                "cert_chain_file": self.chain_path,
-                "private_key_file": self.privkey_path
+              "type": "read",
+              "name": "client_ssl_auth",
+              "config": {
+                "auth_api_cluster": "ambassador_cluster",
+                "stat_prefix": "main_tls_auth"
+              }
             }
         else:
-            return {}
-
+            return None
 
 class EnvoyConfig (object):
     route_template = '''
@@ -267,6 +284,11 @@ class EnvoyConfig (object):
                 "/listeners/1/address",
                 "tcp://0.0.0.0:443"
             )
+
+            client_cert_config = self.tls_config.cacert_config_block()
+
+            if client_cert_config:
+                dpath.util.get(config, "/listeners/1/filters").append(client_cert_config)
 
         output_file = open(path, "w")
 
