@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: ${AMREG}ambassador:0.7.0
+        image: ${AMREG}ambassador:0.8.0
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -37,7 +37,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: ${STREG}statsd:0.7.0
+        image: ${STREG}statsd:0.8.0
         resources: {}
       volumes:
       - name: cert-data
