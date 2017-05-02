@@ -20,7 +20,13 @@ spec:
         # ports:
         # - containerPort: 80
         #   protocol: TCP
-        resources: {}
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
         volumeMounts:
         - mountPath: /etc/certs
           name: cert-data
