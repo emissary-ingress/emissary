@@ -446,7 +446,8 @@ def main():
     # Set up the TLS config stuff.
     app.envoy_tls_config = TLSConfig(
         "AMBASSADOR_CHAIN_PATH", "/etc/certs/fullchain.pem",
-        "AMBASSADOR_PRIVKEY_PATH", "/etc/certs/privkey.pem"
+        "AMBASSADOR_PRIVKEY_PATH", "/etc/certs/privkey.pem",
+        "AMBASSADOR_CACERT_PATH", "/etc/cacert/fullchain.pem"
     )
 
     app.stats = EnvoyStats()
