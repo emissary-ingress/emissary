@@ -30,28 +30,38 @@ permalink: /
   <header class="section-header">
   <h5><center><strong>Get started in 60 seconds:</strong></center></h5>
   </header>
+
   <div class="row">
     <div class="one-half column">
-    <ol>
-      <li><strong>Add your API to Ambassador.</strong>
-        <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador will route external requests to $AMBASSADOR/v1/user/ to usersvc/v2/.</li>
-      <li><strong>Send a request to your service.</strong>
-        Request your new service through Ambassador.</li>
-    </ol>
+      1. <strong>Add your API to Ambassador.</strong><br/>
+      <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador will route external requests to $AMBASSADOR/v1/user/ to usersvc/v2/.
     </div>
     <div class="one-half column">
-<pre><code>curl -XPOST -H "Content-Type: application/json" \
-    -d '{ "prefix": "/v1/user/",
-          "service": "usersvc",
-          "rewrite": "/v2/" }' \
-    $AMBASSADORURL/ambassador/mapping/user
-</code>
-</pre>
+      <pre><code>curl -XPOST -H "Content-Type: application/json" \
+      -d '{ "prefix": "/user/", "service": "usersvc" }' \
+      http://localhost:8888/ambassador/mapping/user</code></pre>
+    </div>
   </div>
-  </h5>
+
+  <div class="row">
+    <div class="one-half column">
+      2. <strong>Get your service URL.</strong>
+    </div>
+    <div class="one-half column">
+      <pre><code>eval $(sh scripts/geturl)</code></pre>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="one-half column">
+      3. <strong>Access your service.</strong>
+    </div>
+    <div class="one-half column">
+      <pre><code>curl $AMBASSADORURL/user/health</code></pre>
+    </div>
+  </div>
 
 </div>
-
 
 <div class="container">
   <p style="text-align: center;">Ambassador is sponsored by Project Blackbird, helping you <a href="https://wwwdatawire.io">deploy microservices on Kubernetes in AWS</a> <img src="{{site.baseurl}}/images/blackbird.png" style="width: 4em; vertical-align: middle; align: right;"></p>
