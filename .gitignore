@@ -1,2 +1,7 @@
+*~
+.python-version
+.DS_Store
+certs/
+
 docs/_site
 docs/Gemfile.lock
