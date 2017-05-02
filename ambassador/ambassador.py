@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS mappings (
 )
 '''
 
+PRINCIPAL_TABLE_SQL = '''
+CREATE TABLE IF NOT EXISTS principals (
+    name VARCHAR(64) NOT NULL PRIMARY KEY,
+    fingerprint VARCHAR(2048) NOT NULL
+)
+'''
+
 
 def get_db(database):
     db_host = "ambassador-store"
@@ -77,10 +84,11 @@ def setup():
         conn = get_db("ambassador")
         cursor = conn.cursor()
         cursor.execute(AMBASSADOR_TABLE_SQL)
+        cursor.execute(PRINCIPAL_TABLE_SQL)
         conn.commit()
         conn.close()
     except pg8000.Error as e:
-        return RichStatus.fromError("no mappings table in setup: %s" % e)
+        return RichStatus.fromError("no data tables in setup: %s" % e)
 
     return RichStatus.OK()
 
@@ -116,7 +124,7 @@ def getIncomingJSON(req, *needed):
     else:
         return RichStatus.OK(**incoming)
 
-########
+######## SERVICE UTILITIES
 
 def fetch_all_mappings():
     try:
@@ -191,6 +199,76 @@ def handle_mapping_post(req, name):
         conn.commit()
 
         app.reconfigurator.trigger()
+
+        return RichStatus.OK(name=name)
+    except pg8000.Error as e:
+        return RichStatus.fromError("%s: could not save info: %s" % (name, e))
+
+######## PRINCIPAL UTILITIES
+
+def fetch_all_principals():
+    try:
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT name, fingerprint FROM principals ORDER BY name, fingerprint")
+
+        principals = []
+
+        for name, fingerprint in cursor:
+            principals.append({ 'name': name, 'fingerprint': fingerprint })
+
+        return RichStatus.OK(principals=principals, count=len(principals))
+    except pg8000.Error as e:
+        return RichStatus.fromError("principals: could not fetch info: %s" % e)
+
+def handle_principal_list(req):
+    return fetch_all_principals()
+
+def handle_principal_get(req, name):
+    try:
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT fingerprint FROM principals WHERE name = :name", locals())
+        [ fingerprint ] = cursor.fetchone()
+
+        return RichStatus.OK(name=name, fingerprint=fingerprint)
+    except pg8000.Error as e:
+        return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
+
+def handle_principal_del(req, name):
+    try:
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM principals WHERE name = :name", locals())
+        conn.commit()
+
+        app.reconfigurator.trigger()
+
+        return RichStatus.OK(name=name)
+    except pg8000.Error as e:
+        return RichStatus.fromError("%s: could not delete principal: %s" % (name, e))
+
+def handle_principal_post(req, name):
+    try:
+        rc = getIncomingJSON(req, 'fingerprint')
+
+        logging.debug("handle_principal_post %s: got args %s" % (name, rc.toDict()))
+
+        if not rc:
+            return rc
+
+        fingerprint = rc.fingerprint
+
+        logging.debug("handle_principal_post %s: fingerprint %s" % (name, fingerprint))
+
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute('INSERT INTO principals VALUES(:name, :fingerprint)', locals())
+        conn.commit()
 
         return RichStatus.OK(name=name)
     except pg8000.Error as e:
@@ -283,6 +361,69 @@ def handle_mapping(name):
                 rc = handle_mapping_del(request, name)
             else:
                 rc = handle_mapping_get(request, name)
+    except Exception as e:
+        logging.exception(e)
+        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
+
+    return jsonify(rc.toDict())
+
+@app.route('/ambassador/principals', methods=[ 'GET', 'PUT' ])
+def handle_principals():
+    rc = RichStatus.fromError("impossible error")
+    logging.debug("handle_principals: method %s" % request.method)
+    
+    try:
+        rc = setup()
+
+        if rc:
+            if request.method == 'PUT':
+                app.reconfigurator.trigger()
+                rc = RichStatus.OK(msg="reconfigure requested")
+            else:
+                rc = handle_principal_list(request)
+    except Exception as e:
+        logging.exception(e)
+        rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
+
+    return jsonify(rc.toDict())
+
+@app.route('/v1/certs/list/approved', methods=[ 'GET', 'PUT' ])
+def handle_approved():
+    rc = RichStatus.fromError("impossible error")
+    logging.debug("handle_principals: method %s" % request.method)
+    
+    try:
+        rc = setup()
+
+        if rc:
+            rc = handle_principal_list(request)
+
+        if rc:
+            principals = [ { "fingerprint_sha256": x['fingerprint'] } for x in rc.principals ]
+
+            rc = RichStatus.OK(certificates=principals)
+
+    except Exception as e:
+        logging.exception(e)
+        rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
+
+    return jsonify(rc.toDict())
+
+@app.route('/ambassador/principal/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+def handle_principal(name):
+    rc = RichStatus.fromError("impossible error")
+    logging.debug("handle_principal %s: method %s" % (name, request.method))
+    
+    try:
+        rc = setup()
+
+        if rc:
+            if request.method == 'POST':
+                rc = handle_principal_post(request, name)
+            elif request.method == 'DELETE':
+                rc = handle_principal_del(request, name)
+            else:
+                rc = handle_principal_get(request, name)
     except Exception as e:
         logging.exception(e)
         rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
