@@ -1,6 +1,59 @@
 {
   "listeners": [
     {
+      "address": "tcp://0.0.0.0:8888",
+      "filters": [
+        {
+          "config": {
+            "access_log": [
+              {
+                "path": "/tmp/ambassador_log"
+              }
+            ],
+            "codec_type": "auto",
+            "filters": [
+              {
+                "config": {},
+                "name": "router",
+                "type": "decoder"
+              }
+            ],
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "domains": [
+                    "*"
+                  ],
+                  "name": "backend",
+                  "routes": [
+                    {
+                      "prefix": "/ambassador/",
+                      "cluster": "ambassador_cluster",
+                      "timeout_ms":0
+                    },
+                    {
+                      "prefix": "/v1/",
+                      "cluster": "ambassador_cluster",
+                      "timeout_ms":0
+                    },
+                    {
+                      "prefix": "/ambassador-config/",
+                      "prefix_rewrite": "/",
+                      "cluster": "ambassador_config_cluster",
+                      "timeout_ms":0
+                    }
+                  ]
+                }
+              ]
+            },
+            "stat_prefix": "admin_http"
+          },
+          "name": "http_connection_manager",
+          "type": "read"
+        }
+      ]
+    },
+    {
       "address": "tcp://0.0.0.0:80",
       "filters": [
         {
@@ -33,14 +86,37 @@
           }
         }
       ]
-    }
+    }    
   ],
   "admin": {
     "access_log_path": "/tmp/admin_access_log",
     "address": "tcp://127.0.0.1:8001/"
   },
   "cluster_manager": {
-    "clusters": []
+    "clusters": [
+      {
+        "name": "ambassador_cluster",
+        "connect_timeout_ms": 250,
+        "type": "static",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://127.0.0.1:5000"
+          }
+        ]
+      },
+      {
+        "name": "ambassador_config_cluster",
+        "connect_timeout_ms": 250,
+        "type": "static",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://127.0.0.1:8001"
+          }
+        ]
+      }
+    ]
   },
   "statsd_local_udp_port": 8125,
   "stats_flush_interval_ms": 1000

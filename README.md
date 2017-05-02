@@ -7,32 +7,39 @@ Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.git
 * Simple setup and configuration
 * Integrated monitoring
 
+Ambassador is built around the idea of mapping _resources_ (in the REST sense) to _services_ (in the Kubernetes sense). A `resource` is identified by a URL prefix -- for example, you might declare that any URL beginning with `/user/` identifies a "user" resource. A `service` is code running in Kubernetes that can handle the resource you want to map.
+
+At present, a resource can be mapped to only one service, but the same service can be used behind as many different resources as you want. There's no hard limit to the number of mappings Ambassador can handle (though eventually you'll run out of memory).
+
 CAVEATS
 -------
 
-Ambassador is ALPHA SOFTWARE. In particular, in version 0.3.1, there is no authentication mechanism, so anyone can map or unmap resources. (This is great for self service, of course, but we'll be putting a few controls in place later anyway.)
+Ambassador is ALPHA SOFTWARE. In particular, in version 0.7.0, there is no authentication mechanism, so anyone who can reach the administrative interface can map or unmap resources -- great for self service, of course, but possibly dangerous. For this reason, the administrative requires a Kubernetes port-forward.
 
 Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
 
 I Don't Read Docs, Just Show Me An Example
 ==========================================
 
-Let's assume you have a microservice running in your Kubernetes cluster called `usersvc`. There is a Kubernetes service for it already, and you can do a `GET` on its `/user/health` resource to do a health check.
+Let's assume you have a microservice running in your Kubernetes cluster called `usersvc`. There is a Kubernetes service for it already, and you can do a `GET` on its `/health` resource to do a health check.
 
 To get an HTTP-only Ambassador running in the first place, clone this repo, then:
 
 ```
-kubectl apply -f ambassador.yaml
 kubectl apply -f ambassador-http.yaml
+kubectl apply -f ambassador.yaml
 ```
 
-This spins up Ambassador - configured without inbound TLS **even though we do not recommend this** - in your Kubernetes cluster. Next you need the URL for Ambassador:
+This spins up Ambassador - configured without inbound TLS **even though we do not recommend this** - in your Kubernetes cluster. Next you need to set up access to Ambassador's admin port:
 
-```eval $(sh scripts/geturl)```
+```
+POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
+kubectl port-forward "$POD" 8888
+```
 
 and then you can check the health of Ambassador:
 
-```curl $AMBASSADORURL/ambassador/health```
+```curl http://localhost:8888/ambassador/health```
 
 You can fire up a demo service called `usersvc` with
 
@@ -40,17 +47,27 @@ You can fire up a demo service called `usersvc` with
 kubectl apply -f demo-usersvc.yaml
 ```
 
-and then you can map the `/user/` resource to your `usersvc` with the `map` script:
+and then you can map the `/user/` resource to your `usersvc` with a POST request:
 
-```sh scripts/map user user usersvc```
+```
+curl -XPOST -H "Content-Type: application/json" \
+      -d '{ "prefix": "/user/", "service": "usersvc" }' \
+      http://localhost:8888/ambassador/mapping/user
+```
 
-Once that's done, you can go through Ambassador to do a `usersvc` health check:
+Finally, get the URL for microservice access through Ambassador:
+
+```eval $(sh scripts/geturl)```
+
+and that will allow you to go through Ambassador to do a `usersvc` health check:
 
 ```curl $AMBASSADORURL/user/health```
 
-To get rid of the mapping, use
+To get rid of the mapping, use a DELETE request:
 
-```sh scripts/unmap user```
+```
+curl -XDELETE http://localhost:8888/ambassador/mapping/user
+```
 
 Read on for more details.
 
@@ -108,6 +125,19 @@ kubectl apply -f ambassador-http.yaml
 
 for HTTP-only access.
 
+Using TLS for Client Auth
+-------------------------
+
+If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and use `scripts/push-cacert` to push it into a Kubernetes secret:
+
+```
+sh scripts/push-cacert $CACERT_PATH
+```
+
+After starting Ambassador, you can tell Ambassador about which certificates are allowed (see below).
+
+**NOTE WELL** that the presence of the CA cert chain makes a valid client certificate **mandatory**. If you don't define some valid certificates, Ambassador won't allow any access.
+
 After the Service
 -----------------
 
@@ -117,31 +147,138 @@ The easy way to get Ambassador fully running once its service is created is
 kubectl apply -f ambassador.yaml
 ```
 
-This is what we recommend, but if you really need to, you can do it piecemeal:
-
-```
-kubectl apply -f ambassador-store.yaml
-kubectl apply -f ambassador-sds.yaml
-kubectl apply -f ambassador-rest.yaml
-```
-
 Once Running
 ------------
 
-However you started Ambassador, once it's running you'll see pods and services called `ambassador`, `ambassador-sds`, and `ambassador-store`. All of these are necessary, and at present only one replica of each should be run.
+However you started Ambassador, once it's running you'll see pods and services called `ambassador` and `ambassador-store`. Both of these are necessary, and at present only one replica of each should be run.
 
 *ALSO NOTE*: The very first time you start Ambassador, it can take a very long time - like 15 minutes - to get the images pulled down and running. You can use `kubectl get pods` to see when the pods are actually running.
 
-Using Ambassador
-================
+Administering Ambassador
+========================
 
-We'll use `$AMBASSADORURL` as shorthand for the base URL of Ambassador. If you're using TLS, you can set it by hand with something like
+Ambassador's admin interface is reachable over port 8888. This port is deliberately not exposed with a Kubernetes service; you'll need to use `kubectl port-forward` to reach it:
+
+```
+POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
+kubectl port-forward "$POD" 8888
+````
+
+Once that's done, you can use the admin interface for health checks, statistics, and mappings.
+
+Health Checks and Stats
+-----------------------
+
+```
+curl http://localhost:8888/ambassador/health
+```
+
+will do a health check;
+
+```
+curl http://localhost:8888/ambassador/mappings
+```
+
+will get a list of all the resources that Ambassador has mapped; and
+
+```
+curl http://localhost:8888/ambassador/stats
+```
+
+will return a JSON dictionary of statistics about resources that Ambassador presently has mapped. Most notably, the `mappings` dictionary lets you know basic health information about the mappings to which Ambassador is providing access:
+
+- `mappings.$mapping.healthy_members` is the number of healthy back-end systems providing the mapped service;
+- `mappings.$mapping.upstream_ok` is the number of requests to the mapped resource that have succeeded; and
+- `mappings.$mapping.upstream_bad` is the number of requests to the mapped resource that have failed.
+
+Mappings
+--------
+
+You use `POST` requests to the admin interface to map a resource to a service:
+
+```
+curl -XPOST -H "Content-Type: application/json" \
+      -d '{ "prefix": "<url-prefix>", "service": "<service-name>", "rewrite": "<rewrite-as>" }' \
+      http://localhost:8888/ambassador/mapping/<mapping-name>
+```
+
+where
+
+- `<mapping-name>` is a unique name that identifies this mapping
+- `<url-prefix>` is the URL prefix identifying your resource
+- `<service-name>` is the name of the service handling the resource
+- `<rewrite-as>` is what to replace the URL prefix with when talking to the service
+
+The `mapping-name` is used to delete mappings later, and to identify mappings in statistics and such.
+
+The `url-prefix` should probably begin and end with `/` to avoid confusion. An URL prefix of `man` would match the URL `https://getambassador.io/manifold`, which is probably not what you want -- using `/man/` is more clear.
+
+The `service-name` **must** match the name of a service defined in Kubernetes.
+
+The `rewrite-as` part is optional: if not given, it defaults to `/`. Whatever it's set to, the `url-prefix` gets replaced with `rewrite-as` when the request is forwarded:
+
+- If `url-prefix` is `/v1/user/` and `rewrite-as` is `/`, then `/v1/user/foo` will appear to the service as `/foo`.
+
+- If `url-prefix` is `/v1/user/` and `rewrite-as` is `/v2/`, then `/v1/user/foo` will appear to the service as `/v2/foo`.
+
+- If `url-prefix` is `/v1/` and `rewrite-as` is `/v2/`, then `/v1/user/foo` will appear to the service as `/v2/user/foo`.
+
+etc.
+
+Ambassador updates Envoy's configuration five seconds after any mapping change. If another change arrives during that time, the timer is restarted.
+
+### Creating a Mapping
+
+An example mapping:
+
+```
+curl -XPOST -H "Content-Type: application/json" \
+      -d '{ "prefix": "/v1/user/", "service": "usersvc" }' \
+      http://localhost:8888/ambassador/mapping/user
+```
+
+will create a mapping named `user` that will cause requests for any resource with a URL starting with `/v1/user/` to be sent to the `usersvc` Kubernetes service, with the `/v1/user/` part replaced with `/` -- `/v1/user/alice` would appear to the service as simply `/alice`.
+
+If instead you did
+
+```
+curl -XPOST -H "Content-Type: application/json" \
+      -d '{ "prefix": "/v1/user/", "service": "usersvc", "rewrite": "/v2/" }' \
+      http://localhost:8888/ambassador/mapping/user
+```
+
+then `/v1/user/alice` would appear to the service as `/v2/alice`.
+
+### Deleting a Mapping
+
+To remove a mapping, use a `DELETE` request:
+
+```
+curl -XDELETE http://localhost:8888/ambassador/mapping/user
+```
+
+will delete the mapping from above.
+
+### Checking for a Mapping
+
+To check whether the `user` mapping exists, you can simply
+
+```
+curl http://localhost:8888/ambassador/mapping/user
+```
+
+Ambassador Microservice Access
+------------------------------
+
+Access to your microservices through Ambassador is via port 443 (if you configured TLS) or port 80 (if not). This port _is_ exposed with a Kubernetes service; we'll use `$AMBASSADORURL` as shorthand for the base URL through this port.
+
+If you're using TLS, you can set it by hand with something like
 
 ```
 export AMBASSADORURL=https://your-domain-name
 ```
 
-where `your-domain-name` is the name you set up when you requested your certs.
+where `your-domain-name` is the name you set up when you requested your certs. **Do not include a trailing `/`**, or the examples in this document won't work.
 
 Without TLS, if you have a domain name, great, do the above. If not, the easy way is to use the supplied `geturl` script:
 
@@ -153,102 +290,14 @@ will set `AMBASSADORURL` for you.
 
 *NOTE WELL* that if you use `geturl` when you have TLS configured, you'll get a URL that will work -- but you'll all but certainly see a lot of complaints about certificate validation, because the DNS name in the URL is not likely to be the name that you requested for the certificate.
 
- If you don't trust `geturl`, you can use `kubectl describe service ambassador` or, on Minikube, `minikube service --url ambassador` and set things from that information.
+If you don't trust `geturl`, you can use `kubectl describe service ambassador` or, on Minikube, `minikube service --url ambassador` and set things from that information. Again, **do not include a trailing `/`**, or the examples in this document won't work.
 
-Health Checks and Stats
------------------------
-
-Once `AMBASSADORURL` is assigned, then
+After that, you can access your microservices by using URLs based on `$AMBASSADORURL` and the URL prefixes defined for your mappings. For example, with first the `user` mapping from above in effect:
 
 ```
-curl $AMBASSADORURL/ambassador/health
+curl $AMBASSADORURL/v1/user/health
 ```
 
-will do a health check;
+would be relayed to the `usersvc` as simply `/health`; 
 
-```
-curl $AMBASSADORURL/ambassador/services
-```
 
-will get a list of all the resources that Ambassador has mapped; and
-
-```
-curl $AMBASSADOR/ambassador/stats
-```
-
-will return a JSON dictionary of statistics about resources that Ambassador presently has mapped. Most notably, the `services` dictionary lets you know basic health information about the services to which Ambassador is providing access:
-
-- `services.$service.healthy_members` is the number of healthy back-end systems providing the service;
-- `services.$service.upstream_ok` is the number of requests to the service that have succeeded; and
-- `services.$service.upstream_bad` is the number of requests to the service that have failed.
-
-Mappings
---------
-
-You can use `scripts/map` to map a resource to a service:
-
-```
-sh scripts/map mapping-name url-prefix service-name [rewrite]
-```
-
-e.g.
-
-```
-sh scripts/map user v1/user usersvc
-```
-
-to create a mapping named "user" that will cause requests for any resource with a URL starting with `/v1/user/` to be sent to the `usersvc` Kubernetes service. 
-
-*Note well* that `service-name` must match the name of a service that is defined in Kubernetes.
-
-In this example, when the request is forwarded, the `/v1/user/` part of the URL will be rewritten as `/`, so
-
-```
-/v1/user/alice
-```
-
-will appear to the `usersvc` as simply `/alice`.
-
-To change this, you can append a value other than `/` to the `map` command:
-
-```
-sh scripts/map user v1/user usersvc /v2/
-```
-
-would cause `/v1/user/alice` to be forwarded as `/v2/alice`.
-
-You can do all of this with a `POST` request:
-
-```
-curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "/v1/user/", "service": "usersvc", "rewrite": "/v2/" }' \
-      $AMBASSADORURL/ambassador/mapping/user
-```
-
-To remove a mapping, use `scripts/unmap`:
-
-```
-sh scripts/unmap mapping-name
-```
-
-e.g., to undo the `user` mapping from above:
-
-```
-sh scripts/unmap user
-```
-
-(Remember to use the mapping name -- not the prefix or service name.)
-
-You can also use a `DELETE` request to delete the mapping:
-
-```
-curl -XDELETE $AMBASSADORURL/ambassador/mapping/user
-```
-
-To check whether the `user` mapping exists, you can simply
-
-```
-curl $AMBASSADORURL/ambassador/mapping/user
-```
-
-Ambassador updates Envoy's configuration five seconds after a `POST` or `DELETE` changes its mapping. If another change arrives during that time, the timer is restarted.
