@@ -94,17 +94,22 @@ class EnvoyConfig (object):
     '''
 
     self_routes = [
-        {
-            "timeout_ms": 0,
-            "prefix": "/ambassador/",
-            "cluster": "ambassador_cluster"
-        },
-        {
-            "timeout_ms": 0,
-            "prefix": "/ambassador-config/",
-            "prefix_rewrite": "/",
-            "cluster": "ambassador_config_cluster"
-        }
+        # {
+        #     "timeout_ms": 0,
+        #     "prefix": "/ambassador/",
+        #     "cluster": "ambassador_cluster"
+        # },
+        # {
+        #     "timeout_ms": 0,
+        #     "prefix": "/v1/",
+        #     "cluster": "ambassador_cluster"
+        # },
+        # {
+        #     "timeout_ms": 0,
+        #     "prefix": "/ambassador-config/",
+        #     "prefix_rewrite": "/",
+        #     "cluster": "ambassador_config_cluster"
+        # }
     ]
 
     self_clusters = [
@@ -234,9 +239,11 @@ class EnvoyConfig (object):
         logging.info("final routes: %s" % routes)
         logging.info("final clusters: %s" % clusters)
 
+        listeners = config.get("listeners", [])
+
         dpath.util.set(
             config,
-            "/listeners/0/filters/0/config/route_config/virtual_hosts/0/routes", 
+            "/listeners/1/filters/0/config/route_config/virtual_hosts/0/routes",
             routes
         )
 
@@ -251,13 +258,13 @@ class EnvoyConfig (object):
         if ssl_context:
             dpath.util.new(
                 config,
-                "/listeners/0/ssl_context",
+                "/listeners/1/ssl_context",
                 ssl_context
             )
 
             dpath.util.set(
                 config,
-                "/listeners/0/address",
+                "/listeners/1/address",
                 "tcp://0.0.0.0:443"
             )
 
