@@ -8,6 +8,14 @@ type: Opaque
 data: {}
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: ambassador-cacert
+  namespace: default
+type: Opaque
+data: {}
+---
+apiVersion: v1
 kind: Service
 metadata:
   creationTimestamp: null

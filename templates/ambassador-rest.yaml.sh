@@ -28,6 +28,8 @@ spec:
         volumeMounts:
         - mountPath: /etc/certs
           name: cert-data
+        - mountPath: /etc/cacert
+          name: cacert-data
       - name: statsd
         image: ${STREG}statsd:0.7.0
         resources: {}
@@ -35,6 +37,9 @@ spec:
       - name: cert-data
         secret:
           secretName: ambassador-certs
+      - name: cacert-data
+        secret:
+          secretName: ambassador-cacert
       restartPolicy: Always
 status: {}
 EOF
