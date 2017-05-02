@@ -4,6 +4,7 @@ import sys
 
 import socket
 import threading
+import time
 
 import VERSION
 
@@ -87,3 +88,25 @@ class DelayTrigger (threading.Thread):
                 except socket.timeout:
                     self.onfired()
                     break
+
+
+class PeriodicTrigger(threading.Thread):
+    def __init__(self, onfired, period=5, name=None):
+        super().__init__()
+
+        if name:
+            self.name = name
+
+        self.onfired = onfired
+        self.period = period
+
+        self.daemon = True
+        self.start()
+
+    def trigger(self):
+        pass
+
+    def run(self):
+        while True:
+            time.sleep(self.period)
+            self.onfired()
