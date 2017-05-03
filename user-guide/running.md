@@ -1,0 +1,73 @@
+---
+layout: doc
+weight: 2
+title: "Running Ambassador"
+categories: user-guide
+---
+If you clone this repository, you'll have access to multiple Kubernetes resource files:
+
+- `ambassador-rest.yaml` defines the main Ambassador server itself;
+- `ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running;
+- `ambassador-sds.yaml` defines the Envoy Service Discovery Service that Ambassador relies on; and finally,
+- `ambassador.yaml` wraps up all of the above.
+
+Additionally, you can choose either
+
+- `ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
+- `ambassador-http.yaml', which defines an HTTP-only mechanism to access Ambassador.
+
+### The Ambassador Service and TLS
+
+You need to choose up front whether you want to use TLS or not. It's possible to switch this later, but you'll likely need to muck about with your DNS and such to do it, so it's a pain.
+
+*We recommend using TLS: speaking to Ambassador only over HTTPS.* To do this, you need a TLS certificate, which means you'll need the DNS set up correctly. So start by creating the Ambassador's kubernetes service:
+
+```
+kubectl apply -f ambassador-https.yaml
+```
+
+This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this README -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin and are just hunting a CA recommendation, check out [Let's Encrypt](https://letsencrypt.org/).)
+
+Once you have the cert, you can run
+
+```
+sh scripts/push-cert $FULLCHAIN_PATH $PRIVKEY_PATH
+```
+
+where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key. `push-cert` will push the cert into Kubernetes secret storage, for Ambassador's later use.
+
+### Without TLS
+
+If you really, really cannot use TLS, you can do
+
+```
+kubectl apply -f ambassador-http.yaml
+```
+
+for HTTP-only access.
+
+### Using TLS for Client Auth
+
+If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and use `scripts/push-cacert` to push it into a Kubernetes secret:
+
+```
+sh scripts/push-cacert $CACERT_PATH
+```
+
+After starting Ambassador, you can tell Ambassador about which certificates are allowed (see below).
+
+**NOTE WELL** that the presence of the CA cert chain makes a valid client certificate **mandatory**. If you don't define some valid certificates, Ambassador won't allow any access.
+
+### After the Service
+
+The easy way to get Ambassador fully running once its service is created is
+
+```
+kubectl apply -f ambassador.yaml
+```
+
+### Once Running
+
+However you started Ambassador, once it's running you'll see pods and services called `ambassador` and `ambassador-store`. Both of these are necessary, and at present only one replica of each should be run.
+
+*ALSO NOTE*: The very first time you start Ambassador, it can take a very long time - like 15 minutes - to get the images pulled down and running. You can use `kubectl get pods` to see when the pods are actually running.
