@@ -21,7 +21,7 @@ permalink: /
   <h5>
     <ul class="fa-ul">
       <li><i class="fa-li fa fa-cogs"></i><strong>Designed for microservices</strong> Built on the <a href="https://lyft.github.io/envoy/">Lyft Envoy L7 proxy</a>, Ambassador gives you advanced load balancing features (e.g., global rate limiting), first class HTTP/2 support, and robust TLS support.</li>
-      <li><i class="fa-li fa fa-superpowers"></i><strong>Self-service.</strong> Use a REST API to dynamically add/remove/configure services, instead of editing the Envoy configuration by hand.</li>
+      <li><i class="fa-li fa fa-fighter-jet"></i><strong>Self-service.</strong> Use a REST API to dynamically add/remove/configure services, instead of editing the Envoy configuration by hand.</li>
       <li><i class="fa-li fa fa-tachometer"></i><strong>Integrated monitoring</strong> Automatically collect statistics and send the data to your metrics system of choice.</li>
       <li><i class="fa-li fa fa-user-secret"></i><strong>Authentication</strong> Authenticate all requests before they are proxied to your back-end services using one of Ambassador's authentication plug-ins.</li>
     </ul></h5>
@@ -33,23 +33,30 @@ permalink: /
   </header>
   <div class="row">
     <div class="one-half column">
-    <ol>
-      <li><strong>Add your API to Ambassador.</strong>
-        <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador will route external requests to $AMBASSADOR/v1/user/ to usersvc/v2/.</li>
-      <li><strong>Send a request to your service.</strong>
-        Request your new service through Ambassador.</li>
-    </ol>
+      1. <strong>Add your API to Ambassador.</strong>
+         <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador will route external requests to $AMBASSADOR/v1/user/ to usersvc/v2/.</li>
+      </div>
+      <div class="one-half column">
+<pre><code>curl -XPOST -H "Content-Type: application/json" \
+-d '{ "prefix": "/user/", "service": "usersvc", \
+http://localhost:8888/ambassador/mapping/user</code></pre>
+      </div>
+  <div class="row">
+    <div class="one-half column">
+      2. <strong>Get your service URL.</strong>
     </div>
     <div class="one-half column">
-<pre><code>curl -XPOST -H "Content-Type: application/json" \
-    -d '{ "prefix": "/v1/user/",
-          "service": "usersvc",
-          "rewrite": "/v2/" }' \
-    $AMBASSADORURL/ambassador/mapping/user
-</code>
-</pre>
+      <pre><code>eval $(sh scripts/geturl)</code></pre>
+    </div>
   </div>
-  </h5>
+  <div class="row">
+    <div class="one-half column">
+      3. <strong>Access your service.</strong> Make a request to Ambassador, and have it route the request directly to the backing service.
+    </div>
+    <div class="one-half column">
+      <pre><code>curl $AMBASSADORURL/user/health</code></pre>
+    </div>
+  </div>
 
 </div>
 
