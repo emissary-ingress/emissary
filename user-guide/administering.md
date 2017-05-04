@@ -124,7 +124,7 @@ export AMBASSADORURL=https://your-domain-name
 
 where `your-domain-name` is the name you set up when you requested your certs. **Do not include a trailing `/`**, or the examples in this document won't work.
 
-Without TLS, if you have a domain name, great, do the above. If not, you'll need to use `kubectl describe service ambassador` (or `minikube service --url ambassador` on Minikube) and set things from that information. Again, **do not include a trailing `/`**, or the examples in this document won't work.
+Without TLS, if you have a domain name, great, do the above. If not, look at the `LoadBalancer Ingress` line of `kubectl describe service ambassador` (or use `minikube service --url ambassador` on Minikube) and set `$AMBASSADORURL` based on that. Again, **do not include a trailing `/`**, or the examples in this document won't work.
 
 After that, you can access your microservices by using URLs based on `$AMBASSADORURL` and the URL prefixes defined for your mappings. For example, with first the `user` mapping from above in effect:
 
