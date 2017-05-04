@@ -4,23 +4,23 @@ weight: 2
 title: "Running Ambassador"
 categories: user-guide
 ---
-If you clone this repository, you'll have access to multiple Kubernetes resource files:
+
+If you clone the [Ambassador repository](https://github.com/datawire/ambassador), you'll have access to multiple Kubernetes resource files:
 
 - `ambassador-rest.yaml` defines the main Ambassador server itself;
-- `ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running;
-- `ambassador-sds.yaml` defines the Envoy Service Discovery Service that Ambassador relies on; and finally,
+- `ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running; and, finally,
 - `ambassador.yaml` wraps up all of the above.
 
 Additionally, you can choose either
 
 - `ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
-- `ambassador-http.yaml', which defines an HTTP-only mechanism to access Ambassador.
+- `ambassador-http.yaml`, which defines an HTTP-only mechanism to access Ambassador.
 
 ### The Ambassador Service and TLS
 
-You need to choose up front whether you want to use TLS or not. It's possible to switch this later, but you'll likely need to muck about with your DNS and such to do it, so it's a pain.
+You need to choose up front whether you want to use [TLS](tls-auth.md) or not. It's possible to switch this later, but you'll likely need to muck about with your DNS and such to do it, so it's a pain.
 
-*We recommend using TLS: speaking to Ambassador only over HTTPS.* To do this, you need a TLS certificate, which means you'll need the DNS set up correctly. So start by creating the Ambassador's kubernetes service:
+**We recommend using TLS**, which means speaking to Ambassador only over HTTPS. To do this, you need a TLS certificate, which means you'll need the DNS set up correctly. So start by creating the Ambassador's kubernetes service:
 
 ```
 kubectl apply -f ambassador-https.yaml
