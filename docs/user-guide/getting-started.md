@@ -61,7 +61,7 @@ and after that, you can read back and see that the mapping is there:
 curl http://localhost:8888/ambassador/mappings
 ```
 
-To actually _use_ the `usersvc`, we need the URL for microservice access through Ambassador. You can use `kubectl describe service ambassador` to work this out (or `minikube service --url ambassador` on Minikube), but **do not include a trailing `/`** on it, or our examples below won't work.
+To actually _use_ the `usersvc`, we need the URL for microservice access through Ambassador. Look at the `LoadBalancer Ingress` line of `kubectl describe service ambassador` (or use `minikube service --url ambassador` on Minikube) and set `$AMBASSADORURL` based on that. **Do not include a trailing `/`** on it, or our examples below won't work.
 
 Once `$AMBASSADORURL` is set, you'll be able to use that for a basic health check on the `usersvc`:
 
