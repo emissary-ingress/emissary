@@ -4,7 +4,10 @@ set -ex
 
 env | sort 
 
-TYPE=$(python scripts/bumptype.py)
+python --version
+python3 --version
+
+TYPE=$(python3 scripts/bumptype.py)
 
 echo "would make new-$TYPE"
 

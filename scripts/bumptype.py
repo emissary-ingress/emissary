@@ -6,6 +6,7 @@ import logging
 
 import subprocess, re, os
 
+from functools import total_ordering
 from git import Repo
 
 dry_run = True
@@ -95,25 +96,24 @@ class VersionedBranch (object):
 
         return rdelta.bump_type
 
+@total_ordering
 class VersionDelta(object):
     def __init__(self, kind, tag, ordinal):
         self.kind = kind
         self.tag = tag
         self.ordinal = ordinal
 
-    def __cmp__(self, other):
-        if self.ordinal < other.ordinal:
-            return -1
-        elif self.ordinal > other.ordinal:
-            return 1
-        else:
-            return 0
+    def __lt__(self, other):
+        return (self.ordinal < other.ordinal)
+
+    def __eq__(self, other):
+        return (self.ordinal < other.ordinal)
 
     def __unicode__(self):
         return "<VersionDelta %s>" % self.tag
 
     def __str__(self):
-        return unicode(self)
+        return "<VersionDelta %s>" % self.tag
 
 class ReleaseDelta(object):
     FIX   = VersionDelta( "patch", "[FIX]",   0)
