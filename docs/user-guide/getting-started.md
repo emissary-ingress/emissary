@@ -61,14 +61,9 @@ and after that, you can read back and see that the mapping is there:
 curl http://localhost:8888/ambassador/mappings
 ```
 
-To actually _use_ the `usersvc`, we need the URL for microservice access through Ambassador. You can use `kubectl describe service ambassador` to work this out, but it's much easier to use our `geturl` script:
+To actually _use_ the `usersvc`, we need the URL for microservice access through Ambassador. You can use `kubectl describe service ambassador` to work this out (or `minikube service --url ambassador` on Minikube), but **do not include a trailing `/`** on it, or our examples below won't work.
 
-```
-curl -O https://raw.githubusercontent.com/datawire/ambassador/master/scripts/geturl
-eval $(sh geturl)
-```
-
-That will set `$AMBASSADORURL` for you, and you'll be able to use that for a basic health check on the `usersvc`:
+Once `$AMBASSADORURL` is set, you'll be able to use that for a basic health check on the `usersvc`:
 
 ```
 curl $AMBASSADORURL/user/health
