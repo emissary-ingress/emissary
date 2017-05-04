@@ -4,11 +4,26 @@ set -ex
 
 env | sort 
 
-python --version
-python3 --version
+# Do we have any non-doc changes?
+change_count=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
 
-TYPE=$(python3 scripts/bumptype.py)
+if [ $change_count -eq 0 ]; then
+    echo "No non-doc changes"
+    exit 0
+fi
 
-echo "would make new-$TYPE"
+# Are we on master?
+if [ "$TRAVIS_BRANCH" == "master" ]; then
+    DOCKER_REGISTRY="datawire"
+else
+    DOCKER_REGISTRY=-
+fi
 
-exit 1
+TYPE=$(python scripts/bumptype.py)
+
+make new-$TYPE
+
+if [ "$TRAVIS_BRANCH" == "master" ]; then
+    echo "would make tag"
+fi
+
