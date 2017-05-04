@@ -3,6 +3,22 @@ eval $(sh $HERE/../scripts/get_registries.sh)
 
 cat <<EOF
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8888
+    targetPort: 8888
+  selector:
+    service: ambassador
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
