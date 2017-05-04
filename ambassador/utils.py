@@ -32,7 +32,7 @@ class RichStatus (object):
         return key in self.info
 
     def __str__(self):
-        attrs = ["%=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
+        attrs = ["%s=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
         astr = " ".join(attrs)
 
         if astr:

@@ -300,6 +300,11 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
         # Failed to fetch mappings from DB.
         return rc
 
+    # Suppose the fetch "succeeded" but we got no mappings?
+    if (not 'mappings' in rc) or (len(rc.mappings) <= 0):
+        # This shouldn't really happen. Weird.
+        return RichStatus.fromError("no mappings found? original rc %s" % str(rc))
+
     num_mappings = len(rc.mappings)
     if rc.mappings != app.current_mappings:
         # Mappings have changed. Really perform work for a new config.
