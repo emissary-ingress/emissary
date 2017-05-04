@@ -299,19 +299,19 @@ class VersionedRepo (object):
 if __name__ == '__main__':
     from docopt import docopt
 
-    __doc__ = """versioner.py
+    __doc__ = """bumptype.py
 
     Manipulate version tags
 
     Usage: 
-        versioner.py [-n] [--verbose] [options]
+        bumptype.py [-n] [--verbose] [options]
 
     Options:
         --branch=<branchname>      set which branch to work on
         --since=<since-tag>        override the tag of the last release
     """
 
-    args = docopt(__doc__, version="versioner {0}".format("0.1.0"))
+    args = docopt(__doc__, version="bumptype {0}".format("0.1.0"))
 
     dryrun = args["-n"]
 
@@ -327,15 +327,17 @@ if __name__ == '__main__':
 
     # print(vbr)
 
+    commit_map = None
+
     # commit_map = {
-    #     'e787009': '[MAJOR] OH GOD NO',
-    #     'a889b73': '[MINOR] Oh yeah!',
+    #     '3cfef29': '[MAJOR] OH GOD NO',
+    #     '9b6a492': '[MINOR] Oh yeah!',
     #     '2d0b5ec': '[MINOR] WTFO?'
     # }
 
     finalDelta, commits = vbr.bump_type(since_tag=args.get('--since', None),
-                                        reduced_zero=False)
-                                        # commit_map=commit_map)
+                                        reduced_zero=False,
+                                        commit_map=commit_map)
 
     if finalDelta:
         logging.debug("final commit list: %s" % 

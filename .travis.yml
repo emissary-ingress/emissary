@@ -23,6 +23,4 @@ env:
     - COMMIT=${TRAVIS_COMMIT::8}
 
 script:
-  - set -e
-  - bump2version $(scripts/bumptype)
-  - make
+  - sh scripts/travis-build.sh
