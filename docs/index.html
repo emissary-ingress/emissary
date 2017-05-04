@@ -29,32 +29,24 @@ permalink: /
 
 <div class="container">
   <header class="section-header">
-  <h5><center><strong>Get started in 60 seconds:</strong></center></h5>
+  <h5><center><strong>It's easy to get started:</strong></center></h5>
   </header>
   <div class="row">
     <div class="one-half column">
       1. <strong>Add your API to Ambassador.</strong>
-         <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador will route external requests to $AMBASSADOR/v1/user/ to usersvc/v2/.</li>
+         <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador creates a <a href="user-guide/mappings.html">mapping</a> called <code>user_map</code> that will route external requests from <code>/user/</code> to the <code>usersvc</code> running in Kubernetes.</li>
       </div>
       <div class="one-half column">
 <pre><code>curl -XPOST -H "Content-Type: application/json" \
 -d '{ "prefix": "/user/", "service": "usersvc", \
-http://localhost:8888/ambassador/mapping/user</code></pre>
+http://localhost:8888/ambassador/mapping/user_map</code></pre>
       </div>
   <div class="row">
     <div class="one-half column">
-      2. <strong>Get your service URL.</strong>
+      2. <strong>Access your service.</strong> Make a request to Ambassador, and have it route the request directly to the usersvc service.
     </div>
     <div class="one-half column">
-      <pre><code>eval $(sh scripts/geturl)</code></pre>
-    </div>
-  </div>
-  <div class="row">
-    <div class="one-half column">
-      3. <strong>Access your service.</strong> Make a request to Ambassador, and have it route the request directly to the backing service.
-    </div>
-    <div class="one-half column">
-      <pre><code>curl $AMBASSADORURL/user/health</code></pre>
+      <pre><code>curl http://localhost:8000/user/</code></pre>
     </div>
   </div>
 
@@ -62,5 +54,5 @@ http://localhost:8888/ambassador/mapping/user</code></pre>
 
 
 <div class="container">
-  <p style="text-align: center;">Ambassador is sponsored by Project Blackbird, helping you <a href="https://wwwdatawire.io">deploy microservices on Kubernetes in AWS</a> <img src="{{site.baseurl}}/images/blackbird.png" style="width: 4em; vertical-align: middle; align: right;"></p>
+  <p style="text-align: center;">Ambassador is sponsored by Project Blackbird, helping you <a href="https://www.datawire.io">deploy microservices on Kubernetes in AWS</a> <img src="{{site.baseurl}}/images/blackbird.png" style="width: 4em; vertical-align: middle; align: right;"></p>
 </div>
