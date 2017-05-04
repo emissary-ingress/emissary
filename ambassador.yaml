@@ -41,6 +41,22 @@ spec:
   selector:
     service: ambassador-store
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8888
+    targetPort: 8888
+  selector:
+    service: ambassador
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -58,7 +74,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.8.0
+        image: dwflynn/ambassador:0.8.1
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -75,7 +91,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: dwflynn/statsd:0.8.0
+        image: dwflynn/statsd:0.8.1
         resources: {}
       volumes:
       - name: cert-data
