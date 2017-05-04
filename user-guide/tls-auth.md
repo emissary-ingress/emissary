@@ -2,7 +2,7 @@
 layout: doc
 weight: 3
 title: "TLS and Auth"
-categories: about
+categories: user-guide
 ---
 
 [Transport Layer Security](https://en.wikipedia.org/wiki/Transport_Layer_Security) (TLS) is the most standard mechanism for encrypting data on the Web. We **strongly** recommend using it for Ambassador (and it's required to use TLS client certificate authentication)... but unfortunately, it can be a bit of a challenge to set up correctly.
@@ -48,7 +48,7 @@ C=US, ST=Massachusetts, L=Boston, O=Datawire, Inc., OU=Ambassador, CN=Flynn/emai
 * my Common Name (`CN`) is Flynn, and my email address is `flynn@datawire.io`
 * my Organization (`O`) is Datawire, Inc.
 * my Organizational Unit (`OU`) is Ambassador -- think "group" or "department" or "project", as appropriate for your situation
-* I'm in the United States (Country, `C`), state (`ST`) of Massachusetts, locality (`L`) Boston. 
+* I'm in the United States (Country, `C`), state (`ST`) of Massachusetts, locality (`L`) Boston.
    * It's not "City" because you might need to use something larger or smaller to be meaningful, depending on where you are. In the US, cities are common though.
 
 and here's a DN identifying a server in my Ambassador cluster:
@@ -95,6 +95,6 @@ Again: don't delete Ambassador's Kubernetes service unless you really want the L
 
 # Using TLS for Client Auth
 
-If you want to use TLS client-certificate authentication, you **must** enable TLS, since the client cert will be promoted only as part of the TLS handshake. 
+If you want to use TLS client-certificate authentication, you **must** enable TLS, since the client cert will be promoted only as part of the TLS handshake.
 
 **NOTE WELL** that once enabled, client certs are _mandatory_ for all Ambassador services. We'll be improving on this in a later release.

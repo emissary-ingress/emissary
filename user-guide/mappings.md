@@ -2,7 +2,7 @@
 layout: doc
 weight: 2
 title: "About Mappings"
-categories: about
+categories: user-guide
 ---
 
 At the heart of Ambassador is the idea of _mappings_, which associate _resources_ (in the REST sense) to _services_ (in the Kubernetes sense), applying a _rewrite rule_ in the process.
@@ -60,7 +60,7 @@ https://ambassador.example.com/resource4/baz/zung
 
 share only the prefix `/` -- you _could_ tell Ambassador to treat them as a single resource, but it's probably not terribly useful.
 
-Note that the length of the prefix doesn't matter: if you want to use prefixes like `/v1/this/is/my/very/long/resource/name/`, go right ahead, Ambassador can handle it. 
+Note that the length of the prefix doesn't matter: if you want to use prefixes like `/v1/this/is/my/very/long/resource/name/`, go right ahead, Ambassador can handle it.
 
 Also note that Ambassador does not actually require the prefix to start and end with `/` -- however, in practice, it's a good idea. Specifying a prefix of
 
