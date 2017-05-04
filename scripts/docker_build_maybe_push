@@ -1,0 +1,17 @@
+#!/bin/sh -e
+
+# DOCKER_REGISTRY controls the namespace we'll use for the build, and
+# whether we push.
+
+NAME="$1"
+VERSION="$2"
+TARGET="$3"
+
+HERE=$(dirname $0)
+eval $(sh $HERE/get_registries.sh)
+
+docker build -t "${DOCKER_REGISTRY}${NAME}:${VERSION}" "${TARGET}"
+
+if [ -n "$DOCKER_REGISTRY" ]; then
+    docker push "${DOCKER_REGISTRY}${NAME}:${VERSION}"
+fi

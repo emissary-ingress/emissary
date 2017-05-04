@@ -15,8 +15,8 @@ from flask import Flask, jsonify, request
 
 import VERSION
 
-from envoy import EnvoyStats, EnvoyConfig
-from utils import RichStatus, SystemInfo
+from envoy import EnvoyStats, EnvoyConfig, TLSConfig
+from utils import RichStatus, SystemInfo, PeriodicTrigger
 
 __version__ = VERSION.Version
 
@@ -35,10 +35,18 @@ logging.info("initializing on %s (resolved %s)" %
 app = Flask(__name__)
 
 AMBASSADOR_TABLE_SQL = '''
-CREATE TABLE IF NOT EXISTS services (
+CREATE TABLE IF NOT EXISTS mappings (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     prefix VARCHAR(2048) NOT NULL,
-    port INTEGER NOT NULL
+    service VARCHAR(2048) NOT NULL,
+    rewrite VARCHAR(2048) NOT NULL
+)
+'''
+
+PRINCIPAL_TABLE_SQL = '''
+CREATE TABLE IF NOT EXISTS principals (
+    name VARCHAR(64) NOT NULL PRIMARY KEY,
+    fingerprint VARCHAR(2048) NOT NULL
 )
 '''
 
@@ -76,14 +84,25 @@ def setup():
         conn = get_db("ambassador")
         cursor = conn.cursor()
         cursor.execute(AMBASSADOR_TABLE_SQL)
+        cursor.execute(PRINCIPAL_TABLE_SQL)
         conn.commit()
         conn.close()
     except pg8000.Error as e:
-        return RichStatus.fromError("no services table in setup: %s" % e)
+        return RichStatus.fromError("no data tables in setup: %s" % e)
 
     return RichStatus.OK()
 
 def getIncomingJSON(req, *needed):
+    """
+    Pull incoming arguments from JSON into a RichStatus. 'needed' specifies
+    keys that are mandatory, but _all keys are converted_, so for any optional
+    things, just check if the key is present in the returned RichStatus.
+
+    If any 'needed' keys are missing, returns a False RichStatus including error
+    text. If all 'needed' keys are present, returns a True RichStatus with elements
+    copied from the input.
+    """
+
     try:
         incoming = req.get_json()
     except Exception as e:
@@ -105,68 +124,150 @@ def getIncomingJSON(req, *needed):
     else:
         return RichStatus.OK(**incoming)
 
-########
+######## SERVICE UTILITIES
 
-def fetch_all_services():
+def fetch_all_mappings():
     try:
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT name, prefix FROM services ORDER BY name, prefix")
+        cursor.execute("SELECT name, prefix, service, rewrite FROM mappings ORDER BY name, prefix")
 
-        services = []
+        mappings = []
 
-        for name, prefix in cursor:
-            services.append({ 'name': name, 'prefix': prefix })
+        for name, prefix, service, rewrite in cursor:
+            mappings.append({ 'name': name, 'prefix': prefix, 
+                              'service': service, 'rewrite': rewrite })
 
-        return RichStatus.OK(services=services, count=len(services))
+        return RichStatus.OK(mappings=mappings, count=len(mappings))
     except pg8000.Error as e:
-        return RichStatus.fromError("services: could not fetch info: %s" % e)
+        return RichStatus.fromError("mappings: could not fetch info: %s" % e)
 
-def handle_service_list(req):
-    return fetch_all_services()
+def handle_mapping_list(req):
+    return fetch_all_mappings()
 
-def handle_service_get(req, name):
+def handle_mapping_get(req, name):
     try:
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT prefix FROM services WHERE name = :name", locals())
-        [ prefix ] = cursor.fetchone()
+        cursor.execute("SELECT prefix, service, rewrite FROM mappings WHERE name = :name", locals())
+        [ prefix, service, rewrite ] = cursor.fetchone()
 
-        return RichStatus.OK(name=name, prefix=prefix)
+        return RichStatus.OK(name=name, prefix=prefix, service=service, rewrite=rewrite)
     except pg8000.Error as e:
         return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
 
-def handle_service_del(req, name):
+def handle_mapping_del(req, name):
     try:
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM services WHERE name = :name", locals())
+        cursor.execute("DELETE FROM mappings WHERE name = :name", locals())
         conn.commit()
+
+        app.reconfigurator.trigger()
 
         return RichStatus.OK(name=name)
     except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not delete service: %s" % (name, e))
+        return RichStatus.fromError("%s: could not delete mapping: %s" % (name, e))
 
-def handle_service_post(req, name):
+def handle_mapping_post(req, name):
     try:
-        rc = getIncomingJSON(req, 'prefix')
+        rc = getIncomingJSON(req, 'prefix', 'service')
 
-        logging.debug("handle_service_post %s: got args %s" % (name, rc.toDict()))
+        logging.debug("handle_mapping_post %s: got args %s" % (name, rc.toDict()))
 
         if not rc:
             return rc
 
         prefix = rc.prefix
+        service = rc.service
+        rewrite = '/'
 
-        logging.debug("handle_service_post %s: prefix %s" % (name, prefix))
+        if 'rewrite' in rc:
+            rewrite = rc.rewrite
+
+        logging.debug("handle_mapping_post %s: pfx %s => svc %s (rewrite %s)" %
+                      (name, prefix, service, rewrite))
 
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO services VALUES(:name, :prefix, 0)', locals())
+        cursor.execute('INSERT INTO mappings VALUES(:name, :prefix, :service, :rewrite)',
+                       locals())
+        conn.commit()
+
+        app.reconfigurator.trigger()
+
+        return RichStatus.OK(name=name)
+    except pg8000.Error as e:
+        return RichStatus.fromError("%s: could not save info: %s" % (name, e))
+
+######## PRINCIPAL UTILITIES
+
+def fetch_all_principals():
+    try:
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT name, fingerprint FROM principals ORDER BY name, fingerprint")
+
+        principals = []
+
+        for name, fingerprint in cursor:
+            principals.append({ 'name': name, 'fingerprint': fingerprint })
+
+        return RichStatus.OK(principals=principals, count=len(principals))
+    except pg8000.Error as e:
+        return RichStatus.fromError("principals: could not fetch info: %s" % e)
+
+def handle_principal_list(req):
+    return fetch_all_principals()
+
+def handle_principal_get(req, name):
+    try:
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT fingerprint FROM principals WHERE name = :name", locals())
+        [ fingerprint ] = cursor.fetchone()
+
+        return RichStatus.OK(name=name, fingerprint=fingerprint)
+    except pg8000.Error as e:
+        return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
+
+def handle_principal_del(req, name):
+    try:
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM principals WHERE name = :name", locals())
+        conn.commit()
+
+        app.reconfigurator.trigger()
+
+        return RichStatus.OK(name=name)
+    except pg8000.Error as e:
+        return RichStatus.fromError("%s: could not delete principal: %s" % (name, e))
+
+def handle_principal_post(req, name):
+    try:
+        rc = getIncomingJSON(req, 'fingerprint')
+
+        logging.debug("handle_principal_post %s: got args %s" % (name, rc.toDict()))
+
+        if not rc:
+            return rc
+
+        fingerprint = rc.fingerprint
+
+        logging.debug("handle_principal_post %s: fingerprint %s" % (name, fingerprint))
+
+        conn = get_db("ambassador")
+        cursor = conn.cursor()
+
+        cursor.execute('INSERT INTO principals VALUES(:name, :fingerprint)', locals())
         conn.commit()
 
         return RichStatus.OK(name=name)
@@ -181,74 +282,157 @@ def health():
 
 @app.route('/ambassador/stats', methods=[ 'GET' ])
 def ambassador_stats():
-    rc = fetch_all_services()
+    rc = fetch_all_mappings()
 
-    active_service_names = []
+    active_mapping_names = []
 
-    if rc and rc.services:
-        active_service_names = [ x['name'] for x in rc.services ]
+    if rc and rc.mappings:
+        active_mapping_names = [ x['name'] for x in rc.mappings ]
 
-    app.stats.update(active_service_names)
+    app.stats.update(active_mapping_names)
 
     return jsonify(app.stats.stats)
 
-def new_config(envoy_base_config, envoy_config_path, envoy_restarter_pid):
-    config = EnvoyConfig(envoy_base_config)
+def new_config(envoy_base_config=None, envoy_tls_config=None,
+               envoy_config_path=None, envoy_restarter_pid=None):
+    rc = fetch_all_mappings()
+    if not rc:
+        # Failed to fetch mappings from DB.
+        return rc
 
-    rc = fetch_all_services()
-    num_services = 0
+    # Suppose the fetch "succeeded" but we got no mappings?
+    if (not 'mappings' in rc) or (len(rc.mappings) <= 0):
+        # This shouldn't really happen. Weird.
+        return RichStatus.fromError("no mappings found? original rc %s" % str(rc))
 
-    if rc and rc.services:
-        num_services = len(rc.services)
+    num_mappings = len(rc.mappings)
+    if rc.mappings != app.current_mappings:
+        # Mappings have changed. Really perform work for a new config.
+        if not envoy_base_config:
+            envoy_base_config = app.envoy_base_config
 
-        for service in rc.services:
-            config.add_service(service['name'], service['prefix'])
+        if not envoy_tls_config:
+            envoy_tls_config = app.envoy_tls_config
 
-    config.write_config(envoy_config_path)
+        if not envoy_config_path:
+            envoy_config_path = app.envoy_config_path
 
-    if envoy_restarter_pid > 0:
-        os.kill(envoy_restarter_pid, signal.SIGHUP)
+        if not envoy_restarter_pid:
+            envoy_restarter_pid = app.envoy_restarter_pid
 
-    return RichStatus.OK(count=num_services)
+        config = EnvoyConfig(envoy_base_config, envoy_tls_config)
 
-@app.route('/ambassador/services', methods=[ 'GET', 'PUT' ])
-def root():
+        for mapping in rc.mappings:
+            config.add_mapping(mapping['name'], mapping['prefix'],
+                               mapping['service'], mapping['rewrite'])
+
+        config.write_config(envoy_config_path)
+
+        if envoy_restarter_pid > 0:
+            os.kill(envoy_restarter_pid, signal.SIGHUP)
+
+        app.current_mappings = rc.mappings
+
+    return RichStatus.OK(count=num_mappings)
+
+@app.route('/ambassador/mappings', methods=[ 'GET', 'PUT' ])
+def handle_mappings():
     rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_services: method %s" % request.method)
+    logging.debug("handle_mappings: method %s" % request.method)
     
     try:
         rc = setup()
 
         if rc:
             if request.method == 'PUT':
-                rc = new_config(
-                    app.envoy_base_config,      # base config we read earlier
-                    app.envoy_config_path,      # where to write full config
-                    app.envoy_restarter_pid     # PID to signal for reload
-                )
+                app.reconfigurator.trigger()
+                rc = RichStatus.OK(msg="reconfigure requested")
             else:
-                rc = handle_service_list(request)
+                rc = handle_mapping_list(request)
     except Exception as e:
         logging.exception(e)
-        rc = RichStatus.fromError("handle_services: %s failed: %s" % (request.method, e))
+        rc = RichStatus.fromError("handle_mappings: %s failed: %s" % (request.method, e))
 
     return jsonify(rc.toDict())
 
-@app.route('/ambassador/service/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
-def handle_service(name):
+@app.route('/ambassador/mapping/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+def handle_mapping(name):
     rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_service %s: method %s" % (name, request.method))
+    logging.debug("handle_mapping %s: method %s" % (name, request.method))
     
     try:
         rc = setup()
 
         if rc:
             if request.method == 'POST':
-                rc = handle_service_post(request, name)
+                rc = handle_mapping_post(request, name)
             elif request.method == 'DELETE':
-                rc = handle_service_del(request, name)
+                rc = handle_mapping_del(request, name)
             else:
-                rc = handle_service_get(request, name)
+                rc = handle_mapping_get(request, name)
+    except Exception as e:
+        logging.exception(e)
+        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
+
+    return jsonify(rc.toDict())
+
+@app.route('/ambassador/principals', methods=[ 'GET', 'PUT' ])
+def handle_principals():
+    rc = RichStatus.fromError("impossible error")
+    logging.debug("handle_principals: method %s" % request.method)
+    
+    try:
+        rc = setup()
+
+        if rc:
+            if request.method == 'PUT':
+                app.reconfigurator.trigger()
+                rc = RichStatus.OK(msg="reconfigure requested")
+            else:
+                rc = handle_principal_list(request)
+    except Exception as e:
+        logging.exception(e)
+        rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
+
+    return jsonify(rc.toDict())
+
+@app.route('/v1/certs/list/approved', methods=[ 'GET', 'PUT' ])
+def handle_approved():
+    rc = RichStatus.fromError("impossible error")
+    logging.debug("handle_principals: method %s" % request.method)
+    
+    try:
+        rc = setup()
+
+        if rc:
+            rc = handle_principal_list(request)
+
+        if rc:
+            principals = [ { "fingerprint_sha256": x['fingerprint'] } for x in rc.principals ]
+
+            rc = RichStatus.OK(certificates=principals)
+
+    except Exception as e:
+        logging.exception(e)
+        rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
+
+    return jsonify(rc.toDict())
+
+@app.route('/ambassador/principal/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+def handle_principal(name):
+    rc = RichStatus.fromError("impossible error")
+    logging.debug("handle_principal %s: method %s" % (name, request.method))
+    
+    try:
+        rc = setup()
+
+        if rc:
+            if request.method == 'POST':
+                rc = handle_principal_post(request, name)
+            elif request.method == 'DELETE':
+                rc = handle_principal_del(request, name)
+            else:
+                rc = handle_principal_get(request, name)
     except Exception as e:
         logging.exception(e)
         rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
@@ -263,6 +447,14 @@ def main():
 
     # Load the base config.
     app.envoy_base_config = json.load(open(app.envoy_template_path, "r"))
+
+    # Set up the TLS config stuff.
+    app.envoy_tls_config = TLSConfig(
+        "AMBASSADOR_CHAIN_PATH", "/etc/certs/fullchain.pem",
+        "AMBASSADOR_PRIVKEY_PATH", "/etc/certs/privkey.pem",
+        "AMBASSADOR_CACERT_PATH", "/etc/cacert/fullchain.pem"
+    )
+
     app.stats = EnvoyStats()
 
     # Learn the PID of the restarter.
@@ -284,16 +476,16 @@ def main():
 
     logging.info("ambassador found restarter PID %d" % app.envoy_restarter_pid)
 
-    new_config(
-        app.envoy_base_config,      # base config we read earlier
-        app.envoy_config_path,      # where to write full config
-        -1                          # don't signal automagically here
-    )
+    app.current_mappings = None
+    new_config(envoy_restarter_pid = -1)    # Don't automagically signal here.
 
     time.sleep(2)
 
     logging.info("ambassador asking restarter for initial reread")
     os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
+
+    # Set up the trigger for future restarts.
+    app.reconfigurator = PeriodicTrigger(new_config)
 
     app.run(host='127.0.0.1', port=5000, debug=True)
 

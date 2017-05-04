@@ -1,0 +1,40 @@
+#!/bin/sh
+
+kubecontext=$(kubectl config current-context)
+
+if [ "$kubecontext" == "minikube" ]; then
+    AMBASSADORURL=$(minikube service --url ambassador 2>/dev/null)
+else
+    while true; do
+        errors=0
+
+        IP=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].hostname}') 2>/dev/null
+
+        if [ $? != 0 ]; then
+            errors=1
+        fi
+
+        PORT=$(kubectl get service ambassador --output jsonpath='{.spec.ports[0].port}') 2>/dev/null
+
+        if [ $? != 0 ]; then
+            errors=1
+        fi
+
+        if [ $errors -eq 0 ]; then
+            PROTOCOL='http'
+
+            if [ $PORT == '443' ]; then
+                PROTOCOL='https'
+            fi
+
+            AMBASSADORURL="${PROTOCOL}://${IP}"
+
+            break
+        fi
+
+        sleep 1
+    done
+fi
+
+echo "export AMBASSADORURL=$AMBASSADORURL"
+

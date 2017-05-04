@@ -1,0 +1,56 @@
+git clone https://github.com/datawire/ambassador.git
+git checkout ark3/statsd
+
+# Make sure kubectl is pointing to the right k8s cluster
+
+helm init
+helm install stable/prometheus --name prom -f helm-prom-config.yaml
+# You may find a prometheus-3.0.1.tgz file now. You can delete it.
+
+kubectl port-forward prom-prometheus-server-[TAB] 9090  # This will tie up the shell
+# Navigate to http://localhost:9090/ to see the Prometheus UI
+
+make  # Builds images
+# or DOCKER_REGISTRY=rhs make  # builds and pushes to Docker Hub
+
+kubectl apply -f statsd-sink.yaml
+kubectl apply -f ambassador-http.yaml
+kubectl apply -f ambassador.yaml
+kubectl apply -f demo-usersvc.yaml
+
+eval $(sh scripts/geturl)  # Sets AMBASSADORURL
+http $AMBASSADORURL/ambassador/health  # Or use curl
+sh scripts/map user usersvc
+http $AMBASSADORURL/user/health
+http $AMBASSADORURL/user/purple  # Fails, no such user
+http PUT $AMBASSADORURL/user/purple "fullname=Purple User" password=123456
+http $AMBASSADORURL/user/purple  # Succeeds
+
+# Make sure port forwarding is still active
+# Examine the User service's stats
+# - Request rate (requests per second):
+#   rate(envoy_cluster_usersvc_cluster_upstream_rq_total_counter[5m])
+#   stats.envoy.cluster.usersvc_cluster.upstream_rq_total
+# - Success rate (fraction of successful requests)
+#   envoy_cluster_usersvc_cluster_upstream_rq_2xx_counter / envoy_cluster_usersvc_cluster_upstream_rq_total_counter
+#   (or something like that)
+#   divideSeries(stats.envoy.cluster.usersvc_cluster.upstream_rq_2xx,stats.envoy.cluster.usersvc_cluster.upstream_rq_total)
+# - Average request latency
+#   - envoy_cluster_usersvc_cluster_upstream_rq_time_timer       (quantiles: 50%, 90%, 99%)
+#   - envoy_cluster_usersvc_cluster_upstream_rq_time_timer_sum   (total time spent)
+#   - envoy_cluster_usersvc_cluster_upstream_rq_time_timer_count (number of timer events)
+#   envoy_cluster_usersvc_cluster_upstream_rq_time_timer_sum / envoy_cluster_usersvc_cluster_upstream_rq_time_timer_count
+#   (or something like that)
+#   stats.timers.envoy.cluster.usersvc_cluster.upstream_rq_time.upper_90
+# Try something like
+#   for i in {1..10} ; do http $AMBASSADORURL/user/purple ; done
+# to affect the request rate.
+
+http://statsd-sink/render/?format=json&from=-10s&target=stats.envoy.cluster.${service_name}_cluster.upstream_rq_total
+--> requests per second, unix epoch timestamp
+
+http://statsd-sink/render/?format=json&from=-10s&target=divideSeries(stats.envoy.cluster.${service_name}_cluster.upstream_rq_2xx,stats.envoy.cluster.${service_name}_cluster.upstream_rq_total)
+--> fraction of requests that were successful (returned HTTP status 2xx), unix epoch timestamp
+
+http://statsd-sink/render/?format=json&from=-10s&target=stats.timers.envoy.cluster.${service_name}_cluster.upstream_rq_time.upper_90
+--> 90th percentile request-response latency in milliseconds, unix epoch timestamp

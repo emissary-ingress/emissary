@@ -1,4 +1,20 @@
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8888
+    targetPort: 8888
+  selector:
+    service: ambassador
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -16,26 +32,31 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.3.3
-        ports:
-        - containerPort: 80
-          protocol: TCP
+        image: datawire/ambassador:0.8.2
+        # ports:
+        # - containerPort: 80
+        #   protocol: TCP
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /etc/certs
+          name: cert-data
+        - mountPath: /etc/cacert
+          name: cacert-data
+      - name: statsd
+        image: datawire/statsd:0.8.2
         resources: {}
+      volumes:
+      - name: cert-data
+        secret:
+          secretName: ambassador-certs
+      - name: cacert-data
+        secret:
+          secretName: ambassador-cacert
       restartPolicy: Always
 status: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  creationTimestamp: null
-  labels:
-    service: ambassador
-  name: ambassador
-spec:
-  type: LoadBalancer
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 80
-  selector:
-    service: ambassador

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
+echo "Pod name is $POD"
+
+kubectl logs "$POD" -f -c ambassador

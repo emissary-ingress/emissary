@@ -1,45 +1,7 @@
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  creationTimestamp: null
-  name: ambassador-store
-spec:
-  replicas: 1
-  strategy: {}
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        service: ambassador-store
-    spec:
-      containers:
-      - name: ambassador-store
-        image: postgres:9.6
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
-      restartPolicy: Always
-status: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  creationTimestamp: null
-  labels:
-    service: ambassador-store
-  name: ambassador-store
-spec:
-  type: ClusterIP
-  ports:
-  - name: ambassador-store
-    port: 5432
-  selector:
-    service: ambassador-store
+HERE=$(dirname $0)
+eval $(sh $HERE/../scripts/get_registries.sh)
+
+cat <<EOF
 ---
 apiVersion: v1
 kind: Service
@@ -74,7 +36,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: datawire/ambassador:0.8.2
+        image: ${AMREG}ambassador:0.8.2
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -91,7 +53,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: datawire/statsd:0.8.2
+        image: ${STREG}statsd:0.8.2
         resources: {}
       volumes:
       - name: cert-data
@@ -102,3 +64,4 @@ spec:
           secretName: ambassador-cacert
       restartPolicy: Always
 status: {}
+EOF

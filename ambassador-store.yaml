@@ -16,7 +16,13 @@ spec:
       containers:
       - name: ambassador-store
         image: postgres:9.6
-        resources: {}
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
       restartPolicy: Always
 status: {}
 ---

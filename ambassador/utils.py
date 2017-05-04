@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+
 import socket
+import threading
+import time
 
 import VERSION
 
@@ -24,8 +28,11 @@ class RichStatus (object):
     def __nonzero__(self):
         return self.ok
 
+    def __contains__(self, key):
+        return key in self.info
+
     def __str__(self):
-        attrs = ["%=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
+        attrs = ["%s=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
         astr = " ".join(attrs)
 
         if astr:
@@ -49,3 +56,57 @@ class RichStatus (object):
     @classmethod
     def OK(self, **kwargs):
         return RichStatus(True, **kwargs)
+
+class DelayTrigger (threading.Thread):
+    def __init__(self, onfired, timeout=5, name=None):
+        super().__init__()
+
+        if name:
+            self.name = name
+
+        self.trigger_source, self.trigger_dest = socket.socketpair()
+
+        self.onfired = onfired
+        self.timeout = timeout
+
+        self.setDaemon(True)
+        self.start()
+
+    def trigger(self):
+        self.trigger_source.sendall(b'X')
+
+    def run(self):
+        while True:
+            self.trigger_dest.settimeout(None)
+            x = self.trigger_dest.recv(128)
+
+            self.trigger_dest.settimeout(self.timeout)
+
+            while True:
+                try:
+                    x = self.trigger_dest.recv(128)
+                except socket.timeout:
+                    self.onfired()
+                    break
+
+
+class PeriodicTrigger(threading.Thread):
+    def __init__(self, onfired, period=5, name=None):
+        super().__init__()
+
+        if name:
+            self.name = name
+
+        self.onfired = onfired
+        self.period = period
+
+        self.daemon = True
+        self.start()
+
+    def trigger(self):
+        pass
+
+    def run(self):
+        while True:
+            time.sleep(self.period)
+            self.onfired()

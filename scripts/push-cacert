@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# set -x
+
+CHAINPATH="$1"
+PREFIX="$2"
+SECRETNAME="${3:-ambassador-cacert}"
+NAMESPACE="${4:-default}"
+
+if [ -z "$CHAINPATH" ]; then
+    echo "Usage: $(basename $0) chainpath [prefix [secretname [namespace]]]" >&2
+    exit 1
+fi
+
+errors=
+
+if [ ! -r "$CHAINPATH" ]; then
+    echo "$CHAINPATH is not readable" >&2
+    errors=Y
+fi
+
+if [ -n "$errors" ]; then
+    exit 1
+fi
+
+CHAINNAME="fullchain.pem"
+
+if [ -n "$PREFIX" ]; then
+    CHAINNAME="${PREFIX}-fullchain.pem"
+fi
+
+(cat << EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "$SECRETNAME"
+  namespace: "$NAMESPACE"
+type: Opaque
+data:
+  "$CHAINNAME": "$(cat "$CHAINPATH" | base64)"
+EOF
+) > secret.yml
+kubectl apply -f "secret.yml"

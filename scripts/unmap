@@ -1,0 +1,16 @@
+#!/bin/sh
+
+MAPPING="$1"
+
+if [ -z "$MAPPING" ]; then
+    echo "Usage: $(basename $0) mapping-name" >&2
+    exit 1
+fi
+
+if [ -z "$AMBASSADORURL" ]; then
+    path=$(dirname $0)
+    eval $("$SHELL" "$path/geturl")
+fi
+
+curl -XDELETE "$AMBASSADORURL/ambassador/mapping/$MAPPING"
+

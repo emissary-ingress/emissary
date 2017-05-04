@@ -1,23 +1,60 @@
-all: docker-images ambassador.yaml
+all: bump
 
-VERSION=0.3.3
+VERSION=0.8.2
+
+VERSIONED = \
+	.bumpversion.cfg \
+	BUILDING.md \
+	Makefile \
+	ambassador-rest.yaml \
+	ambassador.yaml \
+	ambassador/VERSION.py \
+	templates/ambassador-rest.yaml.sh \
 
 .ALWAYS:
 
-ambassador.yaml: ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml
-	cat ambassador-store.yaml ambassador-sds.yaml ambassador-rest.yaml > ambassador.yaml
+artifacts: docker-images ambassador.yaml
 
-docker-images: ambassador-image sds-image
+bump:
+	@if [ -z "$$LEVEL" ]; then \
+	    echo "LEVEL must be set" >&2 ;\
+	    exit 1 ;\
+	fi
+
+	@if [ -z "$$DOCKER_REGISTRY" ]; then \
+	    echo "DOCKER_REGISTRY must be set" >&2 ;\
+	    exit 1 ;\
+	fi
+
+	@echo "Bumping to new $$LEVEL version..."
+	bump2version --no-tag --no-commit "$$LEVEL"
+
+new-patch:
+	$(MAKE) bump LEVEL=patch
+	$(MAKE) artifacts
+
+new-minor:
+	$(MAKE) bump LEVEL=minor
+	$(MAKE) artifacts
+
+new-major:
+	$(MAKE) bump LEVEL=major
+	$(MAKE) artifacts
+
+tag:
+	git commit $(VERSIONED) -m "v$(VERSION)"
+	git tag -a v$(VERSION) -m "v$(VERSION)"
+
+ambassador-rest.yaml: .ALWAYS
+	sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
+
+ambassador.yaml: ambassador-store.yaml ambassador-rest.yaml
+	cat ambassador-store.yaml ambassador-rest.yaml > ambassador.yaml
+
+docker-images: ambassador-image statsd-image
 
 ambassador-image: .ALWAYS
-	docker build -t dwflynn/ambassador:$(VERSION) ambassador
-	if [ -n "$(DOCKER_REGISTRY)" ]; then \
-		docker push $(DOCKER_REGISTRY)/ambassador:$(VERSION); \
-	fi
+	scripts/docker_build_maybe_push ambassador $(VERSION) ambassador
 
-sds-image: .ALWAYS
-	docker build -t dwflynn/ambassador-sds:$(VERSION) sds
-	if [ -n "$(DOCKER_REGISTRY)" ]; then \
-		docker push $(DOCKER_REGISTRY)/ambassador-sds:$(VERSION); \
-	fi
-	
+statsd-image: .ALWAYS
+	scripts/docker_build_maybe_push statsd $(VERSION) statsd
