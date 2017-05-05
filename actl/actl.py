@@ -16,6 +16,7 @@
 Command line helper for Ambassador
 """
 
+import codecs
 import shlex
 import subprocess
 import sys
@@ -44,7 +45,7 @@ def call_command(cmd, do_exit=True, **kwargs):
         cmd = shlex.split(cmd)
     if VERBOSE:
         print("==> " + " ".join(cmd), file=sys.stderr)
-    res = subprocess.run(cmd, universal_newlines=True, **kwargs)
+    res = subprocess.run(cmd, universal_newlines=True, **kwargs)  # Treat streams etc. as UTF-8
     if res.returncode == 0:
         return res
     print(f"==> Call failed with exit code {res.returncode}", file=sys.stderr)
@@ -56,6 +57,13 @@ def call_command(cmd, do_exit=True, **kwargs):
 def read_from_command(cmd, **kwargs):
     process = call_command(cmd, stdout=subprocess.PIPE, **kwargs)
     return process.stdout
+
+
+def hand_off_to_command(cmd, **kwargs):
+    try:
+        call_command(cmd, **kwargs)  # Maybe this should be an exec(...) instead
+    except KeyboardInterrupt:
+        pass
 
 
 def get_ambassador_pod_name():
@@ -88,6 +96,65 @@ def get_ambassador_url():
 def geturl():
     """Emit export AMBASSADORURL shell snippet"""
     print(f"export AMBASSADORURL={get_ambassador_url()}")
+
+
+@actl.command(name="push-cert")
+@click.argument("chainpath", type=click.File("rb"))
+@click.argument("privkeypath", type=click.File("rb"))
+@click.argument("prefix", required=False, default="")
+@click.argument("secretname", required=False, default="ambassador-certs")
+@click.argument("namespace", required=False, default="default")
+def push_cert(chainpath, privkeypath, prefix, secretname, namespace):
+    """Add certificate for Ambassador to k8s secrets"""
+    chain_data = codecs.encode(chainpath.read(), "base64").decode("utf-8").strip()
+    privkey_data = codecs.encode(privkeypath.read(), "base64").decode("utf-8").strip()
+
+    chain_name = "fullchain.pem"
+    privkey_name = "privkey.pem"
+    if prefix:
+        chain_name = prefix + "-" + chain_name
+        privkey_name = prefix + "-" + privkey_name
+
+    yaml = f"""
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{secretname}"
+  namespace: "{namespace}"
+type: Opaque
+data:
+  "{chain_name}": "{chain_data}"
+  "{privkey_name}": "{privkey_data}"
+    """
+
+    hand_off_to_command("kubectl apply -f -", input=yaml)
+
+
+@actl.command(name="push-cacert")
+@click.argument("chainpath", type=click.File("rb"))
+@click.argument("prefix", required=False, default="")
+@click.argument("secretname", required=False, default="ambassador-cacert")
+@click.argument("namespace", required=False, default="default")
+def push_ca_cert(chainpath, prefix, secretname, namespace):
+    """Add CA certificate for client auth to k8s secrets"""
+    chain_data = codecs.encode(chainpath.read(), "base64").decode("utf-8").strip()
+
+    chain_name = "fullchain.pem"
+    if prefix:
+        chain_name = prefix + "-" + chain_name
+
+    yaml = f"""
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{secretname}"
+  namespace: "{namespace}"
+type: Opaque
+data:
+  "{chain_name}": "{chain_data}"
+    """
+
+    hand_off_to_command("kubectl apply -f -", input=yaml)
 
 
 @actl.command(name="map")
@@ -130,13 +197,6 @@ def list_mappings():
     if response.status_code != 200:
         exit(f"List mappings attempt failed with status {response.status_code} {response.reason}")
     print(response.text)
-
-
-def hand_off_to_command(cmd, **kwargs):
-    try:
-        call_command(cmd, **kwargs)  # Maybe this should be an exec(...) instead
-    except KeyboardInterrupt:
-        pass
 
 
 @actl.command()
