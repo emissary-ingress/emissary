@@ -27,19 +27,23 @@ import requests
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 VERSION = "0.0"
+VERBOSE = False
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=VERSION)
-def actl():
+@click.option("--verbose", "-v", is_flag=True, default=False)
+def actl(verbose):
     """Command line tool to interact with Ambassador"""
-    pass
+    global VERBOSE
+    VERBOSE = verbose
 
 
 def call_command(cmd, do_exit=True, **kwargs):
     if str(cmd) == cmd:
         cmd = shlex.split(cmd)
-    print("==> " + " ".join(cmd), file=sys.stderr)
+    if VERBOSE:
+        print("==> " + " ".join(cmd), file=sys.stderr)
     res = subprocess.run(cmd, universal_newlines=True, **kwargs)
     if res.returncode == 0:
         return res
@@ -80,6 +84,12 @@ def get_ambassador_url():
         time.sleep(1.0)
 
 
+@actl.command()
+def geturl():
+    """Emit export AMBASSADORURL shell snippet"""
+    print(f"export AMBASSADORURL={get_ambassador_url()}")
+
+
 @actl.command(name="map")
 @click.argument("mapping")
 @click.argument("prefix")
@@ -89,6 +99,8 @@ def add_mapping(mapping, prefix, service, rewrite):
     """Map a resource to a service"""
     url = get_ambassador_url() + f"/ambassador/mapping/{mapping}"
     json = dict(prefix=prefix, service=service, rewrite=rewrite)
+    if VERBOSE:
+        print(f"==> POST {url}")
     response = requests.post(url, json=json)
     if response.status_code != 200:
         exit(f"Mapping attempt failed with status {response.status_code} {response.reason}")
@@ -100,6 +112,8 @@ def add_mapping(mapping, prefix, service, rewrite):
 def remove_mapping(mapping):
     """Remove an existing mapping"""
     url = get_ambassador_url() + f"/ambassador/mapping/{mapping}"
+    if VERBOSE:
+        print(f"==> DELETE {url}")
     response = requests.delete(url)
     if response.status_code != 200:
         exit(f"Unmapping attempt failed with status {response.status_code} {response.reason}")
@@ -110,6 +124,8 @@ def remove_mapping(mapping):
 def list_mappings():
     """List current mappings"""
     url = get_ambassador_url() + "/ambassador/mappings"
+    if VERBOSE:
+        print(f"==> GET {url}")
     response = requests.get(url)
     if response.status_code != 200:
         exit(f"List mappings attempt failed with status {response.status_code} {response.reason}")
@@ -146,12 +162,6 @@ def shell(command="/bin/bash"):
     pod_name = get_ambassador_pod_name()
     cmd = f"kubectl exec -it {pod_name} -c ambassador {command}"
     hand_off_to_command(cmd)
-
-
-@actl.command()
-def geturl():
-    """Emit export AMBASSADORURL shell snippet"""
-    print(f"export AMBASSADORURL={get_ambassador_url()}")
 
 
 if __name__ == "__main__":
