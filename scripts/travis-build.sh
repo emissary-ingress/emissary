@@ -2,7 +2,7 @@
 
 set -ex
 
-env | sort 
+env | grep TRAVIS | sort 
 
 # Do we have any non-doc changes?
 change_count=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
@@ -15,7 +15,7 @@ fi
 # Are we on master?
 ONMASTER=
 
-if [ \( "$TRAVIS_BRANCH" = "master" \) -a \( -z "TRAVIS_PULL_REQUEST" \) ]; then
+if [ \( "$TRAVIS_BRANCH" = "master" \) -a \( "$TRAVIS_PULL_REQUEST" = "false" \) ]; then
     ONMASTER=yes
 fi
 
@@ -26,6 +26,11 @@ onmaster () {
 
 if onmaster; then
     DOCKER_REGISTRY="datawire"
+
+    set +x
+    echo "+docker login..."
+    docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+    set -x
 else
     DOCKER_REGISTRY=-
 fi
