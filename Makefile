@@ -28,6 +28,7 @@ bump:
 
 	@echo "Bumping to new $$LEVEL version..."
 	bump2version --no-tag --no-commit "$$LEVEL"
+	@echo "Building version $$(python ambassador/VERSION.py)"
 
 new-patch:
 	$(MAKE) bump LEVEL=patch
@@ -42,7 +43,7 @@ new-major:
 	$(MAKE) artifacts
 
 tag:
-	git commit $(VERSIONED) -m "v$(VERSION)"
+	git commit $(VERSIONED) -m "v$(VERSION) [ci skip]"
 	git tag -a v$(VERSION) -m "v$(VERSION)"
 
 ambassador-rest.yaml: .ALWAYS

@@ -23,7 +23,6 @@ TYPE=$(python scripts/bumptype.py --verbose)
 
 make new-$TYPE
 
-if [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_BRANCH" = "master" ]; then
     echo "would make tag"
 fi
-
