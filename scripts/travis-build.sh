@@ -35,11 +35,13 @@ else
     DOCKER_REGISTRY=-
 fi
 
-TYPE=$(python scripts/bumptype.py --verbose)
-
 git checkout ${TRAVIS_BRANCH}
 
-make new-$TYPE
+# TYPE=$(python scripts/bumptype.py --verbose)
+
+#make new-$TYPE
+bump2version --no-tag --no-commit patch
+echo "Building version $(python ambassador/VERSION.py)"
 
 git status
 git log -5
