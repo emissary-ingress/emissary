@@ -37,20 +37,17 @@ fi
 
 git checkout ${TRAVIS_BRANCH}
 
-# TYPE=$(python scripts/bumptype.py --verbose)
+TYPE=$(python scripts/bumptype.py --verbose)
 
-#make new-$TYPE
-bump2version --no-tag --no-commit patch
-echo "Building version $(python ambassador/VERSION.py)"
+make new-$TYPE
 
 git status
-git log -5
 
 if onmaster; then
-    echo would make tag
+    make tag
 
-    # # Push everything to GitHub
-    # git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
+    # Push everything to GitHub
+    git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
 else
     echo "not on master; not tagging"
 fi
