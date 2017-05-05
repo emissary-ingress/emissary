@@ -13,13 +13,13 @@ if [ $change_count -eq 0 ]; then
 fi
 
 # Are we on master?
-if [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_BRANCH" = "master" ]; then
     DOCKER_REGISTRY="datawire"
 else
     DOCKER_REGISTRY=-
 fi
 
-TYPE=$(python scripts/bumptype.py)
+TYPE=$(python scripts/bumptype.py --verbose)
 
 make new-$TYPE
 

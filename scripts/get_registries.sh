@@ -18,7 +18,7 @@ if [ -z "${DOCKER_REGISTRY}" ]; then
   exit 1
 fi
 
-if [ "$DOCKER_REGISTRY" == "-" ]; then
+if [ "$DOCKER_REGISTRY" = "-" ]; then
     unset DOCKER_REGISTRY
 fi
 
