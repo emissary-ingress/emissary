@@ -2,6 +2,12 @@
 .python-version
 .DS_Store
 certs/
+venv
 
 docs/_site
 docs/Gemfile.lock
+
+# Editor nonsense
+.vscode
+.idea
+tags
