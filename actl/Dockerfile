@@ -11,6 +11,4 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENV KUBECONFIG=/kubeconfig
-
-ENTRYPOINT ["python", "actl.py"]
+ENTRYPOINT ["python", "actl"]
