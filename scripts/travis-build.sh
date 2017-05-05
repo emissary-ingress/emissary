@@ -24,5 +24,7 @@ TYPE=$(python scripts/bumptype.py --verbose)
 make new-$TYPE
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
-    echo "would make tag"
+    make tag
+else
+    echo "not on master; not tagging"
 fi
