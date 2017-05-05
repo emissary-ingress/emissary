@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+
 # Copyright 2017 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,14 +27,15 @@ import time
 import click
 import requests
 
+from VERSION import Version as __version__
+
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
-VERSION = "0.0"
 VERBOSE = False
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=VERSION)
+@click.group(name="actl", context_settings=CONTEXT_SETTINGS)
+@click.version_option(version=__version__)
 @click.option("--verbose", "-v", is_flag=True, default=False)
 def actl(verbose):
     """Command line tool to interact with Ambassador"""

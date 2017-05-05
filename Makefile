@@ -9,6 +9,7 @@ VERSIONED = \
 	ambassador-rest.yaml \
 	ambassador.yaml \
 	ambassador/VERSION.py \
+	actl/VERSION.py \
 	templates/ambassador-rest.yaml.sh \
 
 .ALWAYS:
