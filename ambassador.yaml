@@ -74,7 +74,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: datawire/ambassador:0.8.5
+        image: datawire/ambassador:0.8.6
         # ports:
         # - containerPort: 80
         #   protocol: TCP
@@ -91,7 +91,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: datawire/statsd:0.8.5
+        image: datawire/statsd:0.8.6
         resources: {}
       volumes:
       - name: cert-data

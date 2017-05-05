@@ -1,6 +1,6 @@
 all: bump
 
-VERSION=0.8.5
+VERSION=0.8.6
 
 VERSIONED = \
 	.bumpversion.cfg \
