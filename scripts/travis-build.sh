@@ -37,6 +37,8 @@ fi
 
 TYPE=$(python scripts/bumptype.py --verbose)
 
+git checkout ${TRAVIS_BRANCH}
+
 make new-$TYPE
 
 git status
