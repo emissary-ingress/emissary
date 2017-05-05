@@ -2,9 +2,9 @@
 FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
 
 MAINTAINER Datawire <flynn@datawire.io>
-LABEL PROJECT_REPO_URL         = "git@github.com:datawire/snc-ident.git" \
-      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/snc-ident \
-      DESCRIPTION              = "Simple Test User Service" \
+LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
+      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador \
+      DESCRIPTION              = "Ambassador Service Discovery Service" \
       VENDOR                   = "Datawire" \
       VENDOR_URL               = "https://datawire.io/"
 
