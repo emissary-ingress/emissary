@@ -42,11 +42,8 @@ make new-$TYPE
 if onmaster; then
     make tag
 
-    # Yes, this is weird. Whatever.
-    git remote rm origin
-    git remote add origin https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git    
-
-    git push --tags
+    # Push everything to GitHub
+    git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
 else
     echo "not on master; not tagging"
 fi
