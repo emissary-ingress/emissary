@@ -9,6 +9,7 @@ VERSIONED = \
 	ambassador-rest.yaml \
 	ambassador.yaml \
 	ambassador/VERSION.py \
+	actl/VERSION.py \
 	templates/ambassador-rest.yaml.sh \
 
 .ALWAYS:
@@ -52,10 +53,13 @@ ambassador-rest.yaml: .ALWAYS
 ambassador.yaml: ambassador-store.yaml ambassador-rest.yaml
 	cat ambassador-store.yaml ambassador-rest.yaml > ambassador.yaml
 
-docker-images: ambassador-image statsd-image
+docker-images: ambassador-image statsd-image cli-image
 
 ambassador-image: .ALWAYS
 	scripts/docker_build_maybe_push ambassador $(VERSION) ambassador
 
 statsd-image: .ALWAYS
 	scripts/docker_build_maybe_push statsd $(VERSION) statsd
+
+cli-image: .ALWAYS
+	scripts/docker_build_maybe_push actl $(VERSION) actl

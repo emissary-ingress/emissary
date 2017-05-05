@@ -3,6 +3,7 @@
 .DS_Store
 certs/
 venv
+__pycache__
 
 docs/_site
 docs/Gemfile.lock

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.6
+
 # Copyright 2017 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +18,7 @@
 Command line helper for Ambassador
 """
 
+import codecs
 import shlex
 import subprocess
 import sys
@@ -24,23 +27,28 @@ import time
 import click
 import requests
 
+from VERSION import Version as __version__
+
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
-VERSION = "0.0"
+VERBOSE = False
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
-@click.version_option(version=VERSION)
-def actl():
+@click.group(name="actl", context_settings=CONTEXT_SETTINGS)
+@click.version_option(version=__version__)
+@click.option("--verbose", "-v", is_flag=True, default=False)
+def actl(verbose):
     """Command line tool to interact with Ambassador"""
-    pass
+    global VERBOSE
+    VERBOSE = verbose
 
 
 def call_command(cmd, do_exit=True, **kwargs):
     if str(cmd) == cmd:
         cmd = shlex.split(cmd)
-    print("==> " + " ".join(cmd), file=sys.stderr)
-    res = subprocess.run(cmd, universal_newlines=True, **kwargs)
+    if VERBOSE:
+        print("==> " + " ".join(cmd), file=sys.stderr)
+    res = subprocess.run(cmd, universal_newlines=True, **kwargs)  # Treat streams etc. as UTF-8
     if res.returncode == 0:
         return res
     print(f"==> Call failed with exit code {res.returncode}", file=sys.stderr)
@@ -52,6 +60,13 @@ def call_command(cmd, do_exit=True, **kwargs):
 def read_from_command(cmd, **kwargs):
     process = call_command(cmd, stdout=subprocess.PIPE, **kwargs)
     return process.stdout
+
+
+def hand_off_to_command(cmd, **kwargs):
+    try:
+        call_command(cmd, **kwargs)  # Maybe this should be an exec(...) instead
+    except KeyboardInterrupt:
+        pass
 
 
 def get_ambassador_pod_name():
@@ -80,6 +95,71 @@ def get_ambassador_url():
         time.sleep(1.0)
 
 
+@actl.command()
+def geturl():
+    """Emit export AMBASSADORURL shell snippet"""
+    print(f"export AMBASSADORURL={get_ambassador_url()}")
+
+
+@actl.command(name="push-cert")
+@click.argument("chainpath", type=click.File("rb"))
+@click.argument("privkeypath", type=click.File("rb"))
+@click.argument("prefix", required=False, default="")
+@click.argument("secretname", required=False, default="ambassador-certs")
+@click.argument("namespace", required=False, default="default")
+def push_cert(chainpath, privkeypath, prefix, secretname, namespace):
+    """Add certificate for Ambassador to k8s secrets"""
+    chain_data = codecs.encode(chainpath.read(), "base64").decode("utf-8").strip()
+    privkey_data = codecs.encode(privkeypath.read(), "base64").decode("utf-8").strip()
+
+    chain_name = "fullchain.pem"
+    privkey_name = "privkey.pem"
+    if prefix:
+        chain_name = prefix + "-" + chain_name
+        privkey_name = prefix + "-" + privkey_name
+
+    yaml = f"""
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{secretname}"
+  namespace: "{namespace}"
+type: Opaque
+data:
+  "{chain_name}": "{chain_data}"
+  "{privkey_name}": "{privkey_data}"
+    """
+
+    hand_off_to_command("kubectl apply -f -", input=yaml)
+
+
+@actl.command(name="push-cacert")
+@click.argument("chainpath", type=click.File("rb"))
+@click.argument("prefix", required=False, default="")
+@click.argument("secretname", required=False, default="ambassador-cacert")
+@click.argument("namespace", required=False, default="default")
+def push_ca_cert(chainpath, prefix, secretname, namespace):
+    """Add CA certificate for client auth to k8s secrets"""
+    chain_data = codecs.encode(chainpath.read(), "base64").decode("utf-8").strip()
+
+    chain_name = "fullchain.pem"
+    if prefix:
+        chain_name = prefix + "-" + chain_name
+
+    yaml = f"""
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{secretname}"
+  namespace: "{namespace}"
+type: Opaque
+data:
+  "{chain_name}": "{chain_data}"
+    """
+
+    hand_off_to_command("kubectl apply -f -", input=yaml)
+
+
 @actl.command(name="map")
 @click.argument("mapping")
 @click.argument("prefix")
@@ -89,6 +169,8 @@ def add_mapping(mapping, prefix, service, rewrite):
     """Map a resource to a service"""
     url = get_ambassador_url() + f"/ambassador/mapping/{mapping}"
     json = dict(prefix=prefix, service=service, rewrite=rewrite)
+    if VERBOSE:
+        print(f"==> POST {url}")
     response = requests.post(url, json=json)
     if response.status_code != 200:
         exit(f"Mapping attempt failed with status {response.status_code} {response.reason}")
@@ -100,6 +182,8 @@ def add_mapping(mapping, prefix, service, rewrite):
 def remove_mapping(mapping):
     """Remove an existing mapping"""
     url = get_ambassador_url() + f"/ambassador/mapping/{mapping}"
+    if VERBOSE:
+        print(f"==> DELETE {url}")
     response = requests.delete(url)
     if response.status_code != 200:
         exit(f"Unmapping attempt failed with status {response.status_code} {response.reason}")
@@ -110,17 +194,12 @@ def remove_mapping(mapping):
 def list_mappings():
     """List current mappings"""
     url = get_ambassador_url() + "/ambassador/mappings"
+    if VERBOSE:
+        print(f"==> GET {url}")
     response = requests.get(url)
     if response.status_code != 200:
         exit(f"List mappings attempt failed with status {response.status_code} {response.reason}")
     print(response.text)
-
-
-def hand_off_to_command(cmd, **kwargs):
-    try:
-        call_command(cmd, **kwargs)  # Maybe this should be an exec(...) instead
-    except KeyboardInterrupt:
-        pass
 
 
 @actl.command()
@@ -146,12 +225,6 @@ def shell(command="/bin/bash"):
     pod_name = get_ambassador_pod_name()
     cmd = f"kubectl exec -it {pod_name} -c ambassador {command}"
     hand_off_to_command(cmd)
-
-
-@actl.command()
-def geturl():
-    """Emit export AMBASSADORURL shell snippet"""
-    print(f"export AMBASSADORURL={get_ambassador_url()}")
 
 
 if __name__ == "__main__":
