@@ -39,11 +39,14 @@ TYPE=$(python scripts/bumptype.py --verbose)
 
 make new-$TYPE
 
-if onmaster; then
-    make tag
+git status
+git log -5
 
-    # Push everything to GitHub
-    git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
+if onmaster; then
+    echo would make tag
+
+    # # Push everything to GitHub
+    # git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
 else
     echo "not on master; not tagging"
 fi
