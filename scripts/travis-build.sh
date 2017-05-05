@@ -41,6 +41,7 @@ make new-$TYPE
 
 if onmaster; then
     make tag
+    git push --tags
 else
     echo "not on master; not tagging"
 fi
