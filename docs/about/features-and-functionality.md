@@ -1,6 +1,6 @@
 ---
 layout: doc
-weight: 1
+weight: 2
 title: "Features"
 categories: about
 ---
@@ -11,6 +11,8 @@ Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.git
 * Robust TLS support, including TLS client-certificate authentication
 * Simple setup and configuration
 * Integrated monitoring
+
+Check out the [Ambassador roadmap](roadmap.md) for what's coming up in the future.
 
 ## Self-Service
 

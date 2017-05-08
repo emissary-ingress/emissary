@@ -51,7 +51,7 @@ C=US, ST=Massachusetts, L=Boston, O=Datawire, Inc., OU=Ambassador, CN=Flynn/emai
 * I'm in the United States (Country, `C`), state (`ST`) of Massachusetts, locality (`L`) Boston.
    * It's not "City" because you might need to use something larger or smaller to be meaningful, depending on where you are. In the US, cities are common though.
 
-and here's a DN identifying a server in my Ambassador cluster:
+Here's a DN identifying a server in my Ambassador cluster:
 
 ```
 C=US, ST=Massachusetts, L=Boston, O=Datawire, Inc., OU=Ambassador, CN=ambassador.test.datawire.io/emailAddress=flynn@datawire.io
@@ -87,7 +87,7 @@ Fortunately, modern software lets you just concatenate the public parts of all t
 
 TLS is extremely closely tied to the DNS, so in addition to all the cert stuff, you **must** get the DNS correct for TLS to work. For Ambassador, this means that you **must** set up the Ambassador service in your Kubernetes cluster with a stable DNS name as discussed in [Running Ambassador](running.md).
 
-Mishandling the DNS is a very common source of problems with TLS, so be careful here! To recap a couple of points: it's not important whether you use a `CNAME` or an `A` record, but it _is_ important that your cert`s `CN` match the record you use, and that there's a valid `PTR` in play.
+Mishandling the DNS is a very common source of problems with TLS, so be careful here! To recap a couple of points discussed in [Running Ambassador](running.md): it's not important whether you use a `CNAME` or an `A` record, but it _is_ important that your cert's `CN` match the record you use, and that there's a valid `PTR` in play.
 
 ## Do Not Delete the Service
 
