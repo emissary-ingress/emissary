@@ -97,7 +97,7 @@ curl $AMBASSADORURL/user/health
 If all goes well you should get a health response much like Ambassador's:
 
 ```
-{ 
+{
   "hostname": "usersvc-1786225466-0tb2t",
   "msg": "user health check OK",
   "ok": true,
@@ -110,8 +110,8 @@ Since the `/user/` prefix in the path portion of the URL there matches the prefi
 Of course, we can access the other `usersvc` endpoints as well. Let's create a user named Alice:
 
 ```
-curl -X PUT  -H "Content-Type: application/json"  \
-     -d '{ "fullname": "Alice", "password": "alicerules" }'  \
+curl -X PUT -H "Content-Type: application/json" \
+     -d '{ "fullname": "Alice", "password": "alicerules" }' \
      $AMBASSADORURL/user/alice
 ```
 
