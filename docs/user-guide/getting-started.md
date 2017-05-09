@@ -127,7 +127,7 @@ This should show us our new user, sans password, with something like:
 }
 ```
 
-and of course we can read Alice back using a `GET` request:
+and finally, we can read Alice back using a `GET` request:
 
 ```
 curl $AMBASSADORURL/user/alice
@@ -135,7 +135,7 @@ curl $AMBASSADORURL/user/alice
 
 which should return the same information as above.
 
-That's all there is to it. Ambassador will faithfully proxy any HTTP request matching the mapping to your service, transparently.
+That's all there is to it. If there were other endpoints exposed by the `usersvc` we could use Ambassador to proxy any HTTP requests to them, too: any request matching a mapped prefix will be transparently routed to the mapped service.
 
 Finally, to get rid of the mapping, use a DELETE request:
 
