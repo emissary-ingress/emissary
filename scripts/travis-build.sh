@@ -25,6 +25,8 @@ onmaster () {
 }
 
 if onmaster; then
+    git checkout ${TRAVIS_BRANCH}
+
     DOCKER_REGISTRY="datawire"
 
     set +x
@@ -34,8 +36,6 @@ if onmaster; then
 else
     DOCKER_REGISTRY=-
 fi
-
-git checkout ${TRAVIS_BRANCH}
 
 TYPE=$(python scripts/bumptype.py --verbose)
 
