@@ -4,6 +4,7 @@ weight: 3
 title: "Administering Ambassador"
 categories: user-guide
 ---
+
 Ambassador's admin interface is reachable over port 8888. This port is deliberately not exposed with a Kubernetes service; you'll need to use `kubectl port-forward` to reach it:
 
 ```

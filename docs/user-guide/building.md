@@ -4,6 +4,7 @@ weight: 4
 title: Building Ambassador
 categories: user-guide
 ---
+
 If you just want to **use** Ambassador, the [Running Ambassador](running.md) section has you covered! You don't need to build anything.
 
 If you really want to customize Ambassador, though, read on &mdash; but **NOTE WELL**! This process will change soon.

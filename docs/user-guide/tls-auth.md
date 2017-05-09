@@ -9,6 +9,19 @@ categories: user-guide
 
 The challenges mostly arise because TLS relies extensively on certificates (which are often misunderstood) and on the DNS (which is oddly easy to get wrong).
 
+# tl;dr
+
+If you already know all about TLS and just want the checklist, here it is. There's more information on all of this below.
+
+1. Certificates
+   1. Make sure that the `CN` matches the DNS name of your service.
+   2. Ambassador needs the full certificate chain:
+      1. Concatenate the server certificate and any intermediate certs into a single file, and give that to Ambassador.
+2. DNS
+   1. Create the `ambassador` service first, and don't delete it even if you need to delete and recreate the `ambassador` deployment. This will give you a stable external appearance that you can use for DNS records.
+   2. Either a `CNAME` or an `A` is fine.
+   3. Make sure that there's a valid `PTR` record.
+
 # TLS Handshake
 
 The basic TLS handshake goes like this:
@@ -85,9 +98,14 @@ Fortunately, modern software lets you just concatenate the public parts of all t
 
 # Managing the DNS
 
-TLS is extremely closely tied to the DNS, so in addition to all the cert stuff, you **must** get the DNS correct for TLS to work. For Ambassador, this means that you **must** set up the Ambassador service in your Kubernetes cluster with a stable DNS name as discussed in [Running Ambassador](running.md).
+TLS is extremely closely tied to the DNS, so in addition to all the cert stuff, you **must** get the DNS correct for TLS to work. For Ambassador, this means that you **must** set up the Ambassador service in your Kubernetes cluster with a stable DNS name as discussed in [Running Ambassador](running.md). To recap:
 
-Mishandling the DNS is a very common source of problems with TLS, so be careful here! To recap a couple of points discussed in [Running Ambassador](running.md): it's not important whether you use a `CNAME` or an `A` record, but it _is_ important that your cert's `CN` match the record you use, and that there's a valid `PTR` in play.
+* Create the `ambassador` service first.
+* Do not delete it, even if you need to delete and recreate the `ambassador` deployment.
+
+Creating the `ambassador` service early, and letting it stick around, gives you a stable external appearance that you can associate with a DNS record. If you delete and recreate it, you'll need the update the DNS again.
+
+It's not important whether you use a `CNAME` or an `A` record for Ambassador, but it _is_ important that your cert's `CN` match the record you use, and that there's a valid `PTR` in play. User agents tend to be very paranoid about this.
 
 ## Do Not Delete the Service
 
