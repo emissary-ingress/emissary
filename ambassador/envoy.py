@@ -170,6 +170,8 @@ class EnvoyConfig (object):
         # Generate routes and clusters.
         routes = copy.deepcopy(EnvoyConfig.self_routes)
         clusters = copy.deepcopy(EnvoyConfig.self_clusters)
+        in_istio = False
+        istio_services = {}
 
         logging.info("writing Envoy config to %s" % path)
         logging.info("initial routes: %s" % routes)
@@ -198,6 +200,13 @@ class EnvoyConfig (object):
             except KeyError:
                 pass
 
+            if service_name.startswith('istio-'):
+                # This is an Istio service. Remember that we've seen it...
+                istio_services[service_name] = True
+
+                # ...and continue, we needn't do anything else.
+                continue
+
             try:
                 portspecs = dpath.util.get(item, "/spec/ports")
             except KeyError:
@@ -205,6 +214,12 @@ class EnvoyConfig (object):
 
             if service_name and portspecs:
                 service_info[service_name] = portspecs
+
+        # OK. Are we running in an Istio cluster?
+        if (('istio-ingress' in istio_services) and
+            ('istio-manager' in istio_services) and
+            ('istio-mixer' in istio_services)):
+            in_istio = True
 
         for mapping_name in self.mappings.keys():
             # Does this mapping refer to a service that we know about?
@@ -216,41 +231,73 @@ class EnvoyConfig (object):
             if service_name in service_info:
                 portspecs = service_info[service_name]
 
-                logging.info("mapping %s: pfx %s => svc %s, portspecs %s" % 
-                             (mapping_name, prefix, service_name, portspecs))
+                istio_string = " (in Istio)" if in_istio else ""
 
-                host_defs = []
+                logging.info("mapping %s%s: pfx %s => svc %s, portspecs %s" % 
+                             (mapping_name, istio_string, prefix, service_name, portspecs))
+
+                # OK, blatant hackery coming up here.
+                #
+                # Here's the problem: when we're running in Istio, at the moment we 
+                # have to force the Host: header to match _exactly_ the destination, 
+                # including the host name _and the port number_. This will change later
+                # in Istio, but for support right now, it's what we need to do.
+                #
+                # The problem is that services might include multiple ports, and we'll
+                # need to rewrite differently for the different ports. Right now, we'll
+                # hack around this by using multiple clusters. Ohhhh the joy.
+
+                cluster_number = 0
 
                 for portspec in portspecs:
                     pspec = { "service_name": service_name }
                     pspec.update(portspec)
 
-                    host_defs.append(EnvoyConfig.host_template.format(**pspec))
+                    # OK, what's the target host spec here?
+                    host_name_and_port = "%s:%d" % (service_name, pspec['port'])
 
-                host_json = "[" + ",".join(host_defs) + "]"
-                cluster_hosts = json.loads(host_json)
+                    # How should we write that in a cluster definition?
+                    host_json = EnvoyConfig.host_template.format(**pspec)
 
-                # NOTE WELL: the cluster is named after the MAPPING, for flexibility.
-                service_def = {
-                    'service_name': service_name,
-                    'url_prefix': prefix,
-                    'rewrite_prefix_as': rewrite,
-                    'cluster_name': '%s_cluster' % mapping_name # NOT A TYPO, see above
-                }
+                    # What is the cluster's name? (Note that we name clusters after the
+                    # mapping, not the service.)
+                    cluster_name = "%s_cluster_%d" % (mapping_name, cluster_number)
 
-                route_json = EnvoyConfig.route_template.format(**service_def)
-                route = json.loads(route_json)
-                logging.info("add route %s" % route)
-                routes.append(route)
+                    # What's the spec for our back-end service look like?
+                    service_def = {
+                        'service_name': service_name,
+                        'url_prefix': prefix,
+                        'rewrite_prefix_as': rewrite,
+                        'cluster_name': cluster_name
+                    }
 
-                cluster_json = EnvoyConfig.cluster_template.format(**service_def)
+                    # OK. We can build up the cluster definition now...
+                    cluster_json = EnvoyConfig.cluster_template.format(**service_def)
 
-                cluster = json.loads(cluster_json)
-                cluster['hosts'] = cluster_hosts
+                    cluster = json.loads(cluster_json)
+                    cluster['hosts'] = [ json.loads(host_json) ]
 
-                logging.info("add cluster %s" % cluster)
-                clusters.append(cluster)
+                    # ...and we can write a routing entry that routes to that cluster...
+                    route_json = EnvoyConfig.route_template.format(**service_def)
 
+                    route = json.loads(route_json)
+
+                    # ...including a host_rewrite rule if we need it.
+                    if in_istio:
+                        route['host_rewrite'] = host_name_and_port
+
+                    # Once that's done, save the route...
+                    logging.info("add route %s" % route)
+                    routes.append(route)
+
+                    # ...and save the cluster.
+                    logging.info("add cluster %s" % cluster)
+                    clusters.append(cluster)
+
+                    # Finally, bump the cluster number.
+                    cluster_number += 1
+
+        # OK. Spin out the config.
         config = copy.deepcopy(self.base_config)
 
         logging.info("final routes: %s" % routes)
