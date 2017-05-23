@@ -112,7 +112,7 @@ which should give something like this if all is well:
   "msg": "ambassador health check OK",
   "ok": true,
   "resolvedname": "109.196.3.8",
-  "version": "0.8.8"
+  "version": "0.8.9"
 }
 ```
 
@@ -146,7 +146,7 @@ which should show you something like
   ],
   "ok": true,
   "resolvedname": "109.196.3.8",
-  "version": "0.8.8"
+  "version": "0.8.9"
 }
 ```
 
