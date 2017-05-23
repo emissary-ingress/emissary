@@ -5,6 +5,10 @@ title: "Getting Started"
 categories: user-guide
 ---
 
+<hr />
+Are you looking to run Ambassador within Istio? Check out our [Ambassador and Istio](with-istio.md) quickstart!
+<hr />
+
 Ambassador is an API Gateway for microservices, so to get started, it's helpful to actually have a running service to use it with. We'll use the demo `usersvc` from our "Deploying Envoy with a Python Flask webapp and Kubernetes" [article](https://www.datawire.io/guide/traffic/envoy-flask-kubernetes/); you can deploy it into Kubernetes with
 
 ```
