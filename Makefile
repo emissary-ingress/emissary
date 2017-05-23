@@ -2,6 +2,8 @@ all: bump
 
 VERSION=0.8.8
 
+# Make sure to update this list and .bumpversion.cfg at the same time.
+
 VERSIONED = \
 	.bumpversion.cfg \
 	BUILDING.md \
@@ -12,7 +14,9 @@ VERSIONED = \
 	ambassador/VERSION.py \
 	actl/VERSION.py \
 	templates/ambassador-rest.yaml.sh \
-	templates/ambassador-istio.yaml.sh
+	templates/ambassador-istio.yaml.sh \
+	docs/user-guide/getting-started.md \
+	docs/user-guide/with-istio.md
 
 .ALWAYS:
 
