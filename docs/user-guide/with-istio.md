@@ -25,8 +25,6 @@ Once Istio is running, you can start Ambassador running as follows:
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/istio/ambassador.yaml
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/istio/ambassador-store.yaml
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/istio/ingress.yaml
 ```
 
 That will launch Ambassador and configure the Istio ingress controller to route all HTTP requests to Ambassador for routing. At this point:
@@ -51,24 +49,29 @@ where `ambassador` and `astore` are the pods that Ambassador needs to run, and t
 
 ## A Test Application
 
-We can test this by deploying a really simple application comprising three microservices: the `usersvc`, the `gruesvc`, and the `mazesvc`. In the world of this app, users and grues wander around a maze, but the important point here is simply that the `mazesvc` has to talk to the `usersvc` and the `gruesvc`, both of which in turn have to talk to a Postgres database. 
+We'll test this by deploying a really simple application called `micromaze`, which comprises three microservices: the `usersvc`, the `gruesvc`, and the `mazesvc`. In the world of this app, users and grues wander around a maze, but the important point here is simply that the `mazesvc` has to talk to the `usersvc` and the `gruesvc`, both of which in turn have to talk to a Postgres database.
 
-Bare-bones versions of these three apps live on GitHub in our [istio-example](https://github.com/datawire/istio-example) repo. You'll need to clone this repo to follow along: Datawire has already built and published Docker images for the three microservices, but you'll need local access to the YAML files defining everything as we go along.
+Bare-bones versions of all three apps live on GitHub in our [micromaze](https://github.com/datawire/micromaze). Since Datawire has already published Docker images for them on DockerHub, you don't need to clone that repo unless you're curious about the microservices, or you want to rebuild images locally for some reason.
 
 ### Deploying the Microservices
 
 Getting the three microservices hooked into the Istio service mesh isn't quite as simple as just getting them deployed into Kubernetes. We need the service, yes, but each instance of each service also needs an Envoy running alongside it, participating in the Istio mesh. This would be pretty painful to do by hand, so Istio provides tooling to automate it. 
 
-Using `bash`, you can do 
+However, where `kubectl` can directly use definition files via GitHub URLs, as we do above, Istio's tooling need local files. So we'll start by downloading the YAML file we'll need:
 
 ```
-kubectl apply -f <(istioctl kube-inject -f postgres/postgres.yaml)
-kubectl apply -f <(istioctl kube-inject -f usersvc/usersvc.yaml)
-kubectl apply -f <(istioctl kube-inject -f gruesvc/gruesvc.yaml)
-kubectl apply -f <(istioctl kube-inject -f mazesvc/mazesvc.yaml)
+curl -o micromaze.yaml https://raw.githubusercontent.com/datawire/ambassador/master/istio/micromaze.yaml
 ```
 
-to set everything up correctly. `istioctl kube-inject` reads the YAML definition handed to it and outputs a modified version that includes an appropriately-configured Envoy sidecar; we use it here with the `<()` construct of `bash` to pass that modified output to `kubectl apply` as a file.
+(`micromaze.yaml` is built from four smaller YAML files, which you can see in the [micromaze](https://github.com/datawire/micromaze) repo if you're curious.)
+
+Once you've downloaded `micromaze.yaml`, you can deploy the `micromaze` app into the Istio mesh using `bash`:
+
+```
+kubectl apply -f <(istioctl kube-inject -f micromaze.yaml)
+```
+
+`istioctl kube-inject` reads the YAML definition handed to it and outputs a modified version that includes an appropriately-configured Envoy sidecar; we use it here with the `<()` construct of `bash` to pass that modified output to `kubectl apply` as a file.
 
 Once this is done, `kubectl get pods` should show quite a few pods running:
 
