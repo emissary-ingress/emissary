@@ -8,13 +8,15 @@ VERSIONED = \
 	Makefile \
 	ambassador-rest.yaml \
 	ambassador.yaml \
+	istio/ambassador.yaml \
 	ambassador/VERSION.py \
 	actl/VERSION.py \
 	templates/ambassador-rest.yaml.sh \
+	templates/ambassador-istio.yaml.sh
 
 .ALWAYS:
 
-artifacts: docker-images ambassador.yaml
+artifacts: docker-images ambassador.yaml istio/ambassador.yaml
 
 bump:
 	@if [ -z "$$LEVEL" ]; then \
@@ -49,6 +51,9 @@ tag:
 
 ambassador-rest.yaml: .ALWAYS
 	sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
+
+istio/ambassador.yaml: .ALWAYS
+	sh templates/ambassador-istio.yaml.sh > istio/ambassador.yaml
 
 ambassador.yaml: ambassador-store.yaml ambassador-rest.yaml
 	cat ambassador-store.yaml ambassador-rest.yaml > ambassador.yaml

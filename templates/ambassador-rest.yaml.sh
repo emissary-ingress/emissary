@@ -6,7 +6,6 @@ cat <<EOF
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
     service: ambassador-admin
   name: ambassador-admin
@@ -22,24 +21,17 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   name: ambassador
 spec:
   replicas: 1
-  strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         service: ambassador
-        # service: ambassador-admin
     spec:
       containers:
       - name: ambassador
         image: ${AMREG}ambassador:0.8.6
-        # ports:
-        # - containerPort: 80
-        #   protocol: TCP
         resources:
           limits:
             cpu: 1
@@ -54,7 +46,6 @@ spec:
           name: cacert-data
       - name: statsd
         image: ${STREG}statsd:0.8.6
-        resources: {}
       volumes:
       - name: cert-data
         secret:
@@ -63,5 +54,4 @@ spec:
         secret:
           secretName: ambassador-cacert
       restartPolicy: Always
-status: {}
 EOF
