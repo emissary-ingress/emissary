@@ -9,12 +9,9 @@ categories: user-guide
 Are you looking to run Ambassador without Istio? You probably want to check out the [Getting Started](getting-started.md) guide for Ambassador alone.
 <hr />
 
-Ambassador is an API Gateway for microservices. [Istio](https://istio.io/) is a service mesh for microservices. Both use [Envoy](https://lyft.github.io/envoy/) for the heavy lifting, but they have different goals:
+Ambassador is an API Gateway for microservices. [Istio](https://istio.io/) is a service mesh for microservices. Both use [Envoy](https://lyft.github.io/envoy/) for the heavy lifting.
 
-- Ambassador (and the other elements of [Project Blackbird](https://www.datawire.io/)) is all about reducing friction for developers working with microservices -- especially those just getting started with microservices.
-- Istio is more about powerful functionality, with a bit of an ops focus at the moment.
-
-Obviously there's a lot of overlap between the two, and in particular we expect to be able to bring more of Ambassador's functionality into Istio over time -- but for now, using Ambassador as an API gateway fronting an Istio mesh is the simple way to get the best of both worlds. This is especially true since Ambassador can take care of URL rewriting and managing the `Host` header on the way into your microservices, and these two things can be otherwise quite irritating for your microservice developers.
+Given the use of Envoy, there's a good amount of overlap between the two. In particular, we expect to be able to bring more of Ambassador's functionality into Istio over time -- but for now, using Ambassador as an API gateway fronting an Istio mesh is the simplest way to get an integrated service mesh that handles external traffic. Ambassador takes care of URL rewriting and managing the `Host` header on the way into your microservices, two things that can be otherwise quite irritating for your microservice developers.
 
 ### Caveats
 
