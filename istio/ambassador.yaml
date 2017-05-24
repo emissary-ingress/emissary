@@ -45,6 +45,47 @@ spec:
   selector:
     service: ambassador
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: astore
+  name: astore
+spec:
+  type: ClusterIP
+  ports:
+  - name: astore
+    port: 5432
+  selector:
+    service: astore
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: astore
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: astore
+    spec:
+      containers:
+      - name: astore
+        image: postgres:9.6
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+      restartPolicy: Always
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -85,3 +126,18 @@ spec:
         secret:
           secretName: ambassador-cacert
       restartPolicy: Always
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: simple-ingress
+  annotations:
+    kubernetes.io/ingress.class: "istio"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /.*
+        backend:
+          serviceName: ambassador
+          servicePort: 80
