@@ -8,7 +8,7 @@ Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.git
 * Integrated monitoring
 * All the load balancing, observability, and protocol support of Envoy
 
-To get started, visit http://www.getambassador.io.
+To get started, visit http://www.getambassador.io, or join our [Gitter channel](https://gitter.im/datawire/ambassador).
 
 Mapping
 =======
