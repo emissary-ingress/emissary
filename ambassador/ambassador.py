@@ -321,7 +321,8 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
     except:
         # Huh. This can really only happen if something isn't quite initialized
         # in the database yet.
-        logging.debug("new_config mappings is not an array, assuming empty")
+        logging.debug("new_config got %s for mappings? assuming empty" % type(rc.mappings))
+        rc.mappings = []
 
     if rc.mappings != app.current_mappings:
         logging.debug("new_config found changes (count %d)" % num_mappings)
