@@ -68,10 +68,12 @@ curl -o micromaze.yaml https://raw.githubusercontent.com/datawire/ambassador/mas
 Once you've downloaded `micromaze.yaml`, you can deploy the `micromaze` app into the Istio mesh using `bash`:
 
 ```
+export MANAGER_HUB="docker.io/istio"
+export MANAGER_TAG="0.1.2"
 kubectl apply -f <(istioctl kube-inject -f micromaze.yaml)
 ```
 
-`istioctl kube-inject` reads the YAML definition handed to it and outputs a modified version that includes an appropriately-configured Envoy sidecar; we use it here with the `<()` construct of `bash` to pass that modified output to `kubectl apply` as a file.
+`istioctl kube-inject` reads the YAML definition handed to it and outputs a modified version that includes an appropriately-configured Envoy sidecar; we use it here with the `<()` construct of `bash` to pass that modified output to `kubectl apply` as a file. `MANAGER_HUB` and `MANAGER_TAG` are needed for `istioctl kube-inject` to know what exactly to inject.
 
 Once this is done, `kubectl get pods` should show quite a few pods running:
 
@@ -120,7 +122,7 @@ We need to map the `/maze/` resource to our `mazesvc`, which needs a POST reques
 
 ```
 curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "/maze/", "service": "mazesvc" }' \
+      -d '{ "prefix": "/maze/", "service": "mazesvc", "rewrite": "/maze/" }' \
       http://localhost:8888/ambassador/mapping/maze_map
 ```
 
@@ -140,7 +142,7 @@ which should show you something like
     {
       "name": "maze_map",
       "prefix": "/maze/",
-      "rewrite": "/",
+      "rewrite": "/maze/",
       "service": "mazesvc"
     }
   ],
