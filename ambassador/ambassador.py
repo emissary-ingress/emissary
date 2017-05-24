@@ -295,18 +295,37 @@ def ambassador_stats():
 
 def new_config(envoy_base_config=None, envoy_tls_config=None,
                envoy_config_path=None, envoy_restarter_pid=None):
+    # logging.debug("new_config entry...")
+    
     rc = fetch_all_mappings()
     if not rc:
         # Failed to fetch mappings from DB.
+        logging.debug("new_config could not fetch mappings: %s" % rc)
         return rc
 
     # Suppose the fetch "succeeded" but we got no mappings?
-    if (not 'mappings' in rc) or (len(rc.mappings) <= 0):
-        # This shouldn't really happen. Weird.
-        return RichStatus.fromError("no mappings found? original rc %s" % str(rc))
+    if 'mappings' not in rc:
+        # This shouldn't happen. Clear out app.current_mappings so that
+        # we have a better chance of recovering when we get data, but don't
+        # actually change our Envoy config.
 
-    num_mappings = len(rc.mappings)
+        app.current_mappings = None
+
+        logging.debug("new_config got no mappings at all? %s" % str(rc))
+        return RichStatus.fromError("no mappings found at all, original rc %s" % str(rc))
+
+    num_mappings = 0
+
+    try:
+        num_mappings = len(rc.mappings)
+    except:
+        # Huh. This can really only happen if something isn't quite initialized
+        # in the database yet.
+        logging.debug("new_config mappings is not an array, assuming empty")
+
     if rc.mappings != app.current_mappings:
+        logging.debug("new_config found changes (count %d)" % num_mappings)
+
         # Mappings have changed. Really perform work for a new config.
         if not envoy_base_config:
             envoy_base_config = app.envoy_base_config
@@ -326,12 +345,19 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
             config.add_mapping(mapping['name'], mapping['prefix'],
                                mapping['service'], mapping['rewrite'])
 
-        config.write_config(envoy_config_path)
+        try:
+            config.write_config(envoy_config_path)
 
-        if envoy_restarter_pid > 0:
-            os.kill(envoy_restarter_pid, signal.SIGHUP)
+            if envoy_restarter_pid > 0:
+                os.kill(envoy_restarter_pid, signal.SIGHUP)
 
-        app.current_mappings = rc.mappings
+            app.current_mappings = rc.mappings
+        except Exception as e:
+            logging.exception(e)
+            logging.error("new_config couldn't write config")
+    else:
+        # logging.debug("new_config found NO changes (count %d)" % num_mappings)
+        pass
 
     return RichStatus.OK(count=num_mappings)
 
