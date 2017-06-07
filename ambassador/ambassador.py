@@ -194,8 +194,12 @@ def handle_mapping_post(req, name):
         conn = get_db("ambassador")
         cursor = conn.cursor()
 
-        cursor.execute('INSERT INTO mappings VALUES(:name, :prefix, :service, :rewrite)',
-                       locals())
+        cursor.execute('''
+            INSERT INTO mappings VALUES(:name, :prefix, :service, :rewrite)
+                ON CONFLICT (name) DO UPDATE SET
+                    name=EXCLUDED.name, prefix=EXCLUDED.prefix, 
+                    service=EXCLUDED.service, rewrite=EXCLUDED.rewrite
+        ''', locals())
         conn.commit()
 
         app.reconfigurator.trigger()
