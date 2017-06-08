@@ -110,6 +110,31 @@ class EnvoyConfig (object):
     }}
     '''
 
+    ext_auth_filter_template = '''
+    {{
+        "type": "decoder",
+        "name": "extauth",
+        "config": {{
+            "cluster": "ext_auth",
+            "timeout_ms": 5000
+        }}
+    }}
+    '''    
+
+    ext_auth_cluster_template = '''
+    {{
+        "name": "ext_auth",
+        "type": "logical_dns",
+        "connect_timeout_ms": 5000,
+        "lb_type": "random",
+        "hosts": [
+            {{
+                "url": "tcp://{ext_auth_host}:{ext_auth_port}"
+            }}
+        ]
+    }}
+    '''
+
     self_routes = [
         # {
         #     "timeout_ms": 0,
@@ -159,7 +184,12 @@ class EnvoyConfig (object):
         self.base_config = base_config
         self.tls_config = tls_config
 
+        self.ext_auth_host = os.environ.get('AMBASSADOR_EXTAUTH_HOST', None)
+        self.ext_auth_port = os.environ.get('AMBASSADOR_EXTAUTH_PORT', None)
+
     def add_mapping(self, name, prefix, service, rewrite):
+        logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
+        
         self.mappings[name] = {
             'prefix': prefix,
             'service': service,
@@ -300,10 +330,39 @@ class EnvoyConfig (object):
         # OK. Spin out the config.
         config = copy.deepcopy(self.base_config)
 
+        if self.ext_auth_host and self.ext_auth_port:
+            logging.info("enabling ext_auth to %s:%s" % (self.ext_auth_host, self.ext_auth_port))
+
+            filt0name = dpath.util.get(config, "/listeners/1/filters/0/name")
+
+            if filt0name != 'http_connection_manager':
+                msg = "expected httpconnman as /listeners/1/filters/0, got %s?" % filt0name
+                raise Exception(msg)
+
+            ext_auth_def = {
+                'ext_auth_host': self.ext_auth_host,
+                'ext_auth_port': self.ext_auth_port
+            }
+
+            ext_auth_filter_json = EnvoyConfig.ext_auth_filter_template.format(**ext_auth_def)
+
+            logging.debug("ext_auth_filter %s" % ext_auth_filter_json)
+
+            ext_auth_filter = json.loads(ext_auth_filter_json)
+            filter_set = dpath.util.get(config, "/listeners/1/filters/0/config/filters")
+            filter_set.insert(0, ext_auth_filter)
+
+            ext_auth_cluster_json = EnvoyConfig.ext_auth_cluster_template.format(**ext_auth_def)
+
+            logging.debug("ext_auth_cluster %s" % ext_auth_cluster_json)
+
+            ext_auth_cluster = json.loads(ext_auth_cluster_json)
+            clusters.append(ext_auth_cluster)
+
         logging.info("final routes: %s" % routes)
         logging.info("final clusters: %s" % clusters)
 
-        listeners = config.get("listeners", [])
+        # listeners = config.get("listeners", [])
 
         dpath.util.set(
             config,
