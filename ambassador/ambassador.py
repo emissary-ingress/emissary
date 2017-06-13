@@ -9,18 +9,16 @@ import signal
 import time
 
 import dpath
-import pg8000
 
 from flask import Flask, jsonify, request
 
 import VERSION
 
+from storage_postgres import AmbassadorStore
 from envoy import EnvoyStats, EnvoyConfig, TLSConfig
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
 __version__ = VERSION.Version
-
-pg8000.paramstyle = 'named'
 
 logging.basicConfig(
     # filename=logPath,
@@ -33,64 +31,6 @@ logging.info("initializing on %s (resolved %s)" %
              (SystemInfo.MyHostName, SystemInfo.MyResolvedName))
 
 app = Flask(__name__)
-
-AMBASSADOR_TABLE_SQL = '''
-CREATE TABLE IF NOT EXISTS mappings (
-    name VARCHAR(64) NOT NULL PRIMARY KEY,
-    prefix VARCHAR(2048) NOT NULL,
-    service VARCHAR(2048) NOT NULL,
-    rewrite VARCHAR(2048) NOT NULL
-)
-'''
-
-PRINCIPAL_TABLE_SQL = '''
-CREATE TABLE IF NOT EXISTS principals (
-    name VARCHAR(64) NOT NULL PRIMARY KEY,
-    fingerprint VARCHAR(2048) NOT NULL
-)
-'''
-
-
-def get_db(database):
-    db_host = "ambassador-store"
-    db_port = 5432
-
-    if "AMBASSADOR_DB_HOST" in os.environ:
-        db_host = os.environ["AMBASSADOR_DB_HOST"]
-
-    if "AMBASSADOR_DB_PORT" in os.environ:
-        db_port = int(os.environ["AMBASSADOR_DB_PORT"])
-
-    return pg8000.connect(user="postgres", password="postgres",
-                          database=database, host=db_host, port=db_port)
-
-def setup():
-    try:
-        conn = get_db("postgres")
-        conn.autocommit = True
-
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM pg_database WHERE datname = 'ambassador'")
-        results = cursor.fetchall()
-
-        if not results:
-            cursor.execute("CREATE DATABASE ambassador")
-
-        conn.close()
-    except pg8000.Error as e:
-        return RichStatus.fromError("no ambassador database in setup: %s" % e)
-
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
-        cursor.execute(AMBASSADOR_TABLE_SQL)
-        cursor.execute(PRINCIPAL_TABLE_SQL)
-        conn.commit()
-        conn.close()
-    except pg8000.Error as e:
-        return RichStatus.fromError("no data tables in setup: %s" % e)
-
-    return RichStatus.OK()
 
 def getIncomingJSON(req, *needed):
     """
@@ -126,157 +66,81 @@ def getIncomingJSON(req, *needed):
 
 ######## SERVICE UTILITIES
 
-def fetch_all_mappings():
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT name, prefix, service, rewrite FROM mappings ORDER BY name, prefix")
-
-        mappings = []
-
-        for name, prefix, service, rewrite in cursor:
-            mappings.append({ 'name': name, 'prefix': prefix, 
-                              'service': service, 'rewrite': rewrite })
-
-        return RichStatus.OK(mappings=mappings, count=len(mappings))
-    except pg8000.Error as e:
-        return RichStatus.fromError("mappings: could not fetch info: %s" % e)
-
 def handle_mapping_list(req):
-    return fetch_all_mappings()
+    return app.storage.fetch_all_mappings()
 
 def handle_mapping_get(req, name):
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT prefix, service, rewrite FROM mappings WHERE name = :name", locals())
-        [ prefix, service, rewrite ] = cursor.fetchone()
-
-        return RichStatus.OK(name=name, prefix=prefix, service=service, rewrite=rewrite)
-    except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
+    return app.storage.fetch_mapping(name)
 
 def handle_mapping_del(req, name):
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
+    rc = app.storage.delete_mapping(name)
 
-        cursor.execute("DELETE FROM mappings WHERE name = :name", locals())
-        conn.commit()
-
+    if rc:
         app.reconfigurator.trigger()
 
-        return RichStatus.OK(name=name)
-    except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not delete mapping: %s" % (name, e))
+    return rc
 
 def handle_mapping_post(req, name):
-    try:
-        rc = getIncomingJSON(req, 'prefix', 'service')
+    rc = getIncomingJSON(req, 'prefix', 'service')
 
-        logging.debug("handle_mapping_post %s: got args %s" % (name, rc.toDict()))
+    logging.debug("handle_mapping_post %s: got args %s" % (name, rc.toDict()))
 
-        if not rc:
-            return rc
+    if not rc:
+        return rc
 
-        prefix = rc.prefix
-        service = rc.service
-        rewrite = '/'
+    prefix = rc.prefix
+    service = rc.service
+    rewrite = '/'
 
-        if 'rewrite' in rc:
-            rewrite = rc.rewrite
+    if 'rewrite' in rc:
+        rewrite = rc.rewrite
 
-        logging.debug("handle_mapping_post %s: pfx %s => svc %s (rewrite %s)" %
-                      (name, prefix, service, rewrite))
+    logging.debug("handle_mapping_post %s: pfx %s => svc %s (rewrite %s)" %
+                  (name, prefix, service, rewrite))
 
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
+    rc = app.storage.store_mapping(name, prefix, service, rewrite)
 
-        cursor.execute('''
-            INSERT INTO mappings VALUES(:name, :prefix, :service, :rewrite)
-                ON CONFLICT (name) DO UPDATE SET
-                    name=EXCLUDED.name, prefix=EXCLUDED.prefix, 
-                    service=EXCLUDED.service, rewrite=EXCLUDED.rewrite
-        ''', locals())
-        conn.commit()
-
+    if rc:
         app.reconfigurator.trigger()
 
-        return RichStatus.OK(name=name)
-    except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not save info: %s" % (name, e))
+    return rc
 
 ######## PRINCIPAL UTILITIES
 
-def fetch_all_principals():
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT name, fingerprint FROM principals ORDER BY name, fingerprint")
-
-        principals = []
-
-        for name, fingerprint in cursor:
-            principals.append({ 'name': name, 'fingerprint': fingerprint })
-
-        return RichStatus.OK(principals=principals, count=len(principals))
-    except pg8000.Error as e:
-        return RichStatus.fromError("principals: could not fetch info: %s" % e)
-
 def handle_principal_list(req):
-    return fetch_all_principals()
+    return app.storage.fetch_all_principals()
 
 def handle_principal_get(req, name):
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT fingerprint FROM principals WHERE name = :name", locals())
-        [ fingerprint ] = cursor.fetchone()
-
-        return RichStatus.OK(name=name, fingerprint=fingerprint)
-    except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not fetch info: %s" % (name, e))
+    return app.storage.fetch_principal(name)
 
 def handle_principal_del(req, name):
-    try:
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
+    rc = app.storage.delete_principal(name)
 
-        cursor.execute("DELETE FROM principals WHERE name = :name", locals())
-        conn.commit()
-
+    if rc:
         app.reconfigurator.trigger()
 
-        return RichStatus.OK(name=name)
-    except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not delete principal: %s" % (name, e))
+    return rc
 
 def handle_principal_post(req, name):
-    try:
-        rc = getIncomingJSON(req, 'fingerprint')
+    rc = getIncomingJSON(req, 'fingerprint')
 
-        logging.debug("handle_principal_post %s: got args %s" % (name, rc.toDict()))
+    logging.debug("handle_principal_post %s: got args %s" % (name, rc.toDict()))
 
-        if not rc:
-            return rc
+    if not rc:
+        return rc
 
-        fingerprint = rc.fingerprint
+    fingerprint = rc.fingerprint
 
-        logging.debug("handle_principal_post %s: fingerprint %s" % (name, fingerprint))
+    logging.debug("handle_principal_post %s: fingerprint %s" % (name, fingerprint))
 
-        conn = get_db("ambassador")
-        cursor = conn.cursor()
+    rc = app.storage.store_principal(name, fingerprint)
 
-        cursor.execute('INSERT INTO principals VALUES(:name, :fingerprint)', locals())
-        conn.commit()
+    if rc:
+        app.reconfigurator.trigger()
 
-        return RichStatus.OK(name=name)
-    except pg8000.Error as e:
-        return RichStatus.fromError("%s: could not save info: %s" % (name, e))
+    return rc
+
+######## FLASK ROUTES
 
 @app.route('/ambassador/health', methods=[ 'GET' ])
 def health():
@@ -286,7 +150,7 @@ def health():
 
 @app.route('/ambassador/stats', methods=[ 'GET' ])
 def ambassador_stats():
-    rc = fetch_all_mappings()
+    rc = handle_mapping_list(request)
 
     active_mapping_names = []
 
@@ -297,11 +161,11 @@ def ambassador_stats():
 
     return jsonify(app.stats.stats)
 
-def new_config(envoy_base_config=None, envoy_tls_config=None,
-               envoy_config_path=None, envoy_restarter_pid=None):
+def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=None, envoy_restarter_pid=None):
     # logging.debug("new_config entry...")
     
-    rc = fetch_all_mappings()
+    rc = app.storage.fetch_all_mappings()
+
     if not rc:
         # Failed to fetch mappings from DB.
         logging.debug("new_config could not fetch mappings: %s" % rc)
@@ -370,19 +234,16 @@ def new_config(envoy_base_config=None, envoy_tls_config=None,
 def handle_mappings():
     rc = RichStatus.fromError("impossible error")
     logging.debug("handle_mappings: method %s" % request.method)
-    
-    try:
-        rc = setup()
 
-        if rc:
-            if request.method == 'PUT':
-                app.reconfigurator.trigger()
-                rc = RichStatus.OK(msg="reconfigure requested")
-            else:
-                rc = handle_mapping_list(request)
+    try:
+        if request.method == 'PUT':
+            app.reconfigurator.trigger()
+            rc = RichStatus.OK(msg="reconfigure requested")
+        else:
+            rc = handle_mapping_list(request)
     except Exception as e:
         logging.exception(e)
-        rc = RichStatus.fromError("handle_mappings: %s failed: %s" % (request.method, e))
+        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
 
     return jsonify(rc.toDict())
 
@@ -392,15 +253,12 @@ def handle_mapping(name):
     logging.debug("handle_mapping %s: method %s" % (name, request.method))
     
     try:
-        rc = setup()
-
-        if rc:
-            if request.method == 'POST':
-                rc = handle_mapping_post(request, name)
-            elif request.method == 'DELETE':
-                rc = handle_mapping_del(request, name)
-            else:
-                rc = handle_mapping_get(request, name)
+        if request.method == 'POST':
+            rc = handle_mapping_post(request, name)
+        elif request.method == 'DELETE':
+            rc = handle_mapping_del(request, name)
+        else:
+            rc = handle_mapping_get(request, name)
     except Exception as e:
         logging.exception(e)
         rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
@@ -413,14 +271,11 @@ def handle_principals():
     logging.debug("handle_principals: method %s" % request.method)
     
     try:
-        rc = setup()
-
-        if rc:
-            if request.method == 'PUT':
-                app.reconfigurator.trigger()
-                rc = RichStatus.OK(msg="reconfigure requested")
-            else:
-                rc = handle_principal_list(request)
+        if request.method == 'PUT':
+            app.reconfigurator.trigger()
+            rc = RichStatus.OK(msg="reconfigure requested")
+        else:
+            rc = handle_principal_list(request)
     except Exception as e:
         logging.exception(e)
         rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
@@ -433,10 +288,7 @@ def handle_approved():
     logging.debug("handle_principals: method %s" % request.method)
     
     try:
-        rc = setup()
-
-        if rc:
-            rc = handle_principal_list(request)
+        rc = handle_principal_list(request)
 
         if rc:
             principals = [ { "fingerprint_sha256": x['fingerprint'] } for x in rc.principals ]
@@ -455,15 +307,12 @@ def handle_principal(name):
     logging.debug("handle_principal %s: method %s" % (name, request.method))
     
     try:
-        rc = setup()
-
-        if rc:
-            if request.method == 'POST':
-                rc = handle_principal_post(request, name)
-            elif request.method == 'DELETE':
-                rc = handle_principal_del(request, name)
-            else:
-                rc = handle_principal_get(request, name)
+        if request.method == 'POST':
+            rc = handle_principal_post(request, name)
+        elif request.method == 'DELETE':
+            rc = handle_principal_del(request, name)
+        else:
+            rc = handle_principal_get(request, name)
     except Exception as e:
         logging.exception(e)
         rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
@@ -471,6 +320,10 @@ def handle_principal(name):
     return jsonify(rc.toDict())
 
 def main():
+    # Set up storage.
+    app.storage = AmbassadorStore()
+
+    # Set up config templates and restarter.
     app.envoy_template_path = sys.argv[1]
     app.envoy_config_path = sys.argv[2]
     app.envoy_restarter_pid_path = sys.argv[3]
@@ -486,10 +339,10 @@ def main():
         "AMBASSADOR_CACERT_PATH", "/etc/cacert/fullchain.pem"
     )
 
+    # Set up stats.
     app.stats = EnvoyStats()
 
     # Learn the PID of the restarter.
-
     while app.envoy_restarter_pid is None:
         try:
             pid_file = open(app.envoy_restarter_pid_path, "r")
@@ -521,5 +374,4 @@ def main():
     app.run(host='127.0.0.1', port=5000, debug=True)
 
 if __name__ == '__main__':
-    setup()
     main()
