@@ -140,26 +140,7 @@ def handle_principal_post(req, name):
 
     return rc
 
-######## FLASK ROUTES
-
-@app.route('/ambassador/health', methods=[ 'GET' ])
-def health():
-    rc = RichStatus.OK(msg="ambassador health check OK")
-
-    return jsonify(rc.toDict())
-
-@app.route('/ambassador/stats', methods=[ 'GET' ])
-def ambassador_stats():
-    rc = handle_mapping_list(request)
-
-    active_mapping_names = []
-
-    if rc and rc.mappings:
-        active_mapping_names = [ x['name'] for x in rc.mappings ]
-
-    app.stats.update(active_mapping_names)
-
-    return jsonify(app.stats.stats)
+######## CONFIG UTILITIES
 
 def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=None, envoy_restarter_pid=None):
     # logging.debug("new_config entry...")
@@ -229,6 +210,27 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
         pass
 
     return RichStatus.OK(count=num_mappings)
+
+######## FLASK ROUTES
+
+@app.route('/ambassador/health', methods=[ 'GET' ])
+def health():
+    rc = RichStatus.OK(msg="ambassador health check OK")
+
+    return jsonify(rc.toDict())
+
+@app.route('/ambassador/stats', methods=[ 'GET' ])
+def ambassador_stats():
+    rc = handle_mapping_list(request)
+
+    active_mapping_names = []
+
+    if rc and rc.mappings:
+        active_mapping_names = [ x['name'] for x in rc.mappings ]
+
+    app.stats.update(active_mapping_names)
+
+    return jsonify(app.stats.stats)
 
 @app.route('/ambassador/mappings', methods=[ 'GET', 'PUT' ])
 def handle_mappings():
