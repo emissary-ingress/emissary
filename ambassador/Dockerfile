@@ -37,8 +37,9 @@ RUN pip3 install -r requirements.txt
 COPY envoy-restarter.py .
 COPY envoy-wrapper.sh .
 RUN chmod 755 envoy-wrapper.sh
-
 COPY ambassador.py envoy.py storage_postgres.py utils.py VERSION.py ./
+COPY map unmap ./
+RUN chmod 755 map unmap
 COPY envoy-template.json .
 
 # NOT A BUG! this is for bootstrapping.
