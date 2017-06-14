@@ -34,15 +34,18 @@ class AmbassadorStore (object):
         # no-ops if not self.status.
 
         self.conn = self._get_connection()
-        self.conn.autocommit = True
-        self.cursor = self._get_cursor()
 
+        # Get a cursor and verify our database.
+        self.cursor = self._get_cursor()
         self._verify_database()
 
-        # Switch autoconnect off.
-        self.conn.autocommit = False
+        # Switch autocommit off...
+        self._autocommit(False)
+
+        # ...grab a new cursor...
         self.cursor = self._get_cursor()
 
+        # ...and make sure our tables are OK.
         self._verify_tables()
 
         # At this point we're ready to answer queries...
@@ -74,10 +77,22 @@ class AmbassadorStore (object):
         try:
             conn = pg8000.connect(user="postgres", password="postgres",
                                   database=self.db_name, host=self.db_host, port=self.db_port)
+
+            # Start with autocommit on.
+            conn.autocommit = True
         except pg8000.Error as e:
             self.status = RichStatus.fromError("could not connect to database: %s" % e)
 
         return conn
+
+    def _autocommit(self, setting):
+        if not self:
+            return
+
+        if self.conn:
+            self.conn.autocommit = setting
+        else:
+            self.status = RichStatus.fromError("cannot set autocommit with no connection")
 
     def _get_cursor(self):
         if not self:
