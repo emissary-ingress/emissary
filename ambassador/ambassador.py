@@ -2,6 +2,7 @@
 
 import sys
 
+import functools
 import json
 import logging
 import os
@@ -211,15 +212,35 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
 
     return RichStatus.OK(count=num_mappings)
 
+######## DECORATORS
+
+def standard_handler(f):
+    func_name = getattr(f, '__name__', '<anonymous>')
+
+    @functools.wraps(f)
+    def wrapper(*args, **kwds):
+        rc = RichStatus.fromError("impossible error")
+        logging.debug("%s: method %s" % (func_name, request.method))
+
+        try:
+            rc = f(*args, **kwds)
+        except Exception as e:
+            logging.exception(e)
+            rc = RichStatus.fromError("%s: %s failed: %s" % (func_name, request.method, e))
+
+        return jsonify(rc.toDict())
+
+    return wrapper
+
 ######## FLASK ROUTES
 
 @app.route('/ambassador/health', methods=[ 'GET' ])
+@standard_handler
 def health():
-    rc = RichStatus.OK(msg="ambassador health check OK")
-
-    return jsonify(rc.toDict())
+    return RichStatus.OK(msg="ambassador health check OK")
 
 @app.route('/ambassador/stats', methods=[ 'GET' ])
+@standard_handler
 def ambassador_stats():
     rc = handle_mapping_list(request)
 
@@ -230,96 +251,57 @@ def ambassador_stats():
 
     app.stats.update(active_mapping_names)
 
-    return jsonify(app.stats.stats)
+    return app.stats.stats
 
 @app.route('/ambassador/mappings', methods=[ 'GET', 'PUT' ])
+@standard_handler
 def handle_mappings():
-    rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_mappings: method %s" % request.method)
-
-    try:
-        if request.method == 'PUT':
-            app.reconfigurator.trigger()
-            rc = RichStatus.OK(msg="reconfigure requested")
-        else:
-            rc = handle_mapping_list(request)
-    except Exception as e:
-        logging.exception(e)
-        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
-
-    return jsonify(rc.toDict())
+    if request.method == 'PUT':
+        app.reconfigurator.trigger()
+        return RichStatus.OK(msg="reconfigure requested")
+    else:
+        return handle_mapping_list(request)
 
 @app.route('/ambassador/mapping/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+@standard_handler
 def handle_mapping(name):
-    rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_mapping %s: method %s" % (name, request.method))
-    
-    try:
-        if request.method == 'POST':
-            rc = handle_mapping_post(request, name)
-        elif request.method == 'DELETE':
-            rc = handle_mapping_del(request, name)
-        else:
-            rc = handle_mapping_get(request, name)
-    except Exception as e:
-        logging.exception(e)
-        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
-
-    return jsonify(rc.toDict())
+    if request.method == 'POST':
+        return handle_mapping_post(request, name)
+    elif request.method == 'DELETE':
+        return handle_mapping_del(request, name)
+    else:
+        return handle_mapping_get(request, name)
 
 @app.route('/ambassador/principals', methods=[ 'GET', 'PUT' ])
+@standard_handler
 def handle_principals():
-    rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_principals: method %s" % request.method)
-    
-    try:
-        if request.method == 'PUT':
-            app.reconfigurator.trigger()
-            rc = RichStatus.OK(msg="reconfigure requested")
-        else:
-            rc = handle_principal_list(request)
-    except Exception as e:
-        logging.exception(e)
-        rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
-
-    return jsonify(rc.toDict())
+    if request.method == 'PUT':
+        app.reconfigurator.trigger()
+        return RichStatus.OK(msg="reconfigure requested")
+    else:
+        return handle_principal_list(request)
 
 @app.route('/v1/certs/list/approved', methods=[ 'GET', 'PUT' ])
+@standard_handler
 def handle_approved():
-    rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_principals: method %s" % request.method)
-    
-    try:
-        rc = handle_principal_list(request)
+    rc = handle_principal_list(request)
 
-        if rc:
-            principals = [ { "fingerprint_sha256": x['fingerprint'] } for x in rc.principals ]
+    if rc:
+        principals = [ { "fingerprint_sha256": x['fingerprint'] } for x in rc.principals ]
 
-            rc = RichStatus.OK(certificates=principals)
+        rc = RichStatus.OK(certificates=principals)
 
-    except Exception as e:
-        logging.exception(e)
-        rc = RichStatus.fromError("handle_principals: %s failed: %s" % (request.method, e))
-
-    return jsonify(rc.toDict())
+    return rc
 
 @app.route('/ambassador/principal/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+@standard_handler
 def handle_principal(name):
-    rc = RichStatus.fromError("impossible error")
-    logging.debug("handle_principal %s: method %s" % (name, request.method))
-    
-    try:
-        if request.method == 'POST':
-            rc = handle_principal_post(request, name)
-        elif request.method == 'DELETE':
-            rc = handle_principal_del(request, name)
-        else:
-            rc = handle_principal_get(request, name)
-    except Exception as e:
-        logging.exception(e)
-        rc = RichStatus.fromError("%s: %s failed: %s" % (name, request.method, e))
-
-    return jsonify(rc.toDict())
+    if request.method == 'POST':
+        return handle_principal_post(request, name)
+    elif request.method == 'DELETE':
+        return handle_principal_del(request, name)
+    else:
+        return handle_principal_get(request, name)
 
 def main():
     # Set up storage.
