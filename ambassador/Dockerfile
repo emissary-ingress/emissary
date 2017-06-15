@@ -1,6 +1,4 @@
-#FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
-FROM dwflynn/envoy-with-extauth:0.0.2
-#FROM datawire/envoy-custom-filter:start
+FROM datawire/ambassador-envoy:368a4517
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
