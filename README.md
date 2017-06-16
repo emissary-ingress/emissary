@@ -28,4 +28,4 @@ If you clone this repository, you'll have access to multiple Kubernetes resource
 Additionally, you can choose either
 
 - `ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
-- `ambassador-http.yaml', which defines an HTTP-only mechanism to access Ambassador.
+- `ambassador-http.yaml`, which defines an HTTP-only mechanism to access Ambassador.
