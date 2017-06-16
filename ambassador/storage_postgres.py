@@ -7,7 +7,14 @@ import pg8000
 
 from utils import RichStatus
 
-AMBASSADOR_TABLE_SQL = '''
+MODULES_TABLE_SQL = '''
+CREATE TABLE IF NOT EXISTS modules (
+    name VARCHAR(64) NOT NULL PRIMARY KEY,
+    config JSONB NOT NULL
+)
+'''
+
+MAPPINGS_TABLE_SQL = '''
 CREATE TABLE IF NOT EXISTS mappings (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     prefix VARCHAR(2048) NOT NULL,
@@ -16,14 +23,23 @@ CREATE TABLE IF NOT EXISTS mappings (
 )
 '''
 
-PRINCIPAL_TABLE_SQL = '''
+MAPPING_MODULES_TABLE_SQL = '''
+CREATE TABLE IF NOT EXISTS mapping_modules (
+    mapping_name VARCHAR(64) NOT NULL REFERENCES mappings(name),
+    module_name VARCHAR(2048) NOT NULL,
+    module_data JSONB NOT NULL,
+    PRIMARY KEY (mapping_name, module_name)
+)
+'''
+
+PRINCIPALS_TABLE_SQL = '''
 CREATE TABLE IF NOT EXISTS principals (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     fingerprint VARCHAR(2048) NOT NULL
 )
 '''
 
-CONSUMER_TABLE_SQL = '''
+CONSUMERS_TABLE_SQL = '''
 CREATE TABLE IF NOT EXISTS consumers (
     consumer_id VARCHAR(64) NOT NULL PRIMARY KEY,
     username VARCHAR(2048) NOT NULL,
@@ -144,16 +160,95 @@ class AmbassadorStore (object):
             return
 
         try:
-            self.cursor.execute(AMBASSADOR_TABLE_SQL)
-            self.cursor.execute(PRINCIPAL_TABLE_SQL)
-            self.cursor.execute(CONSUMER_TABLE_SQL)
+            self.cursor.execute(MODULES_TABLE_SQL)
+            self.cursor.execute(MAPPINGS_TABLE_SQL)
+            self.cursor.execute(MAPPING_MODULES_TABLE_SQL)
+            self.cursor.execute(PRINCIPALS_TABLE_SQL)
+            self.cursor.execute(CONSUMERS_TABLE_SQL)
             self.cursor.execute(CONSUMER_MODULES_TABLE_SQL)
 
             self.conn.commit()
         except pg8000.Error as e:
             self.status = RichStatus.fromError("no data tables: %s" % e)
 
+    ######## MODULES API
+    def fetch_all_modules(self):
+        if not self:
+            return self.status
+
+        try:
+            self.cursor.execute("SELECT name, config FROM modules ORDER BY name")
+
+            modules = { name: config for name, config in self.cursor }
+
+            return RichStatus.OK(modules=modules, count=len(modules.keys()))
+        except pg8000.Error as e:
+            return RichStatus.fromError("fetch_all_modules: could not fetch info: %s" % e)
+
+    def fetch_module(self, name):
+        if not self:
+            return self.status
+
+        try:
+            self.cursor.execute("SELECT config FROM modules WHERE name = :name", locals())
+
+            if self.cursor.rowcount == 0:
+                return RichStatus.fromError("module %s not found" % name)
+
+            if self.cursor.rowcount > 1:
+                return RichStatus.fromError("module %s matched more than one entry?" % name)
+
+            # We know there's exactly one module match. Good.
+
+            config = self.cursor.fetchone()
+
+            return RichStatus.OK(name=name, config=config)
+        except pg8000.Error as e:
+            return RichStatus.fromError("fetch_module %s: could not fetch info: %s" % (name, e))
+
+    def delete_module(self, name):
+        if not self:
+            return self.status
+
+        try:
+            self.cursor.execute("DELETE FROM modules WHERE name = :name", locals())
+            deleted = self.cursor.rowcount
+            self.conn.commit()
+
+            return RichStatus.OK(name=name, deleted=deleted)
+        except pg8000.Error as e:
+            return RichStatus.fromError("delete_module %s: could not delete module: %s" % (name, e))
+
+    def store_module(self, name, config_object):
+        if not self:
+            return self.status
+
+        try:
+            config = json.dumps(config_object)
+
+            self.cursor.execute('''
+                INSERT INTO modules VALUES(:name, :config)
+                    ON CONFLICT (name) DO UPDATE SET
+                        name=EXCLUDED.name, config=EXCLUDED.config
+            ''', locals())
+            self.conn.commit()
+
+            return RichStatus.OK(name=name)
+        except pg8000.Error as e:
+            return RichStatus.fromError("store_module %s: could not save info: %s" % (name, e))
+
     ######## MAPPING API
+
+    # Mappings are weird because more than one table is involved in Postgres. We
+    # have one table, which we call 'basics' here, with most stuff, and another 
+    # table, which we call 'modules' here, with just name and module info. A given
+    # mapping will have exactly one basics entry and zero or more modules entries.
+    # 
+    # Transactions are important here, since we give users a way to create a
+    # mapping with module info already loaded, and we give users a way to separately
+    # tweak modules afterward. So we split our API here into _*_basics and _*_modules,
+    # and then e.g. fetching a single mapping will use both to DTRT.
+
     def fetch_all_mappings(self):
         if not self:
             return self.status
@@ -161,56 +256,160 @@ class AmbassadorStore (object):
         try:
             self.cursor.execute("SELECT name, prefix, service, rewrite FROM mappings ORDER BY name, prefix")
 
-            mappings = []
-
-            for name, prefix, service, rewrite in self.cursor:
-                mappings.append({ 'name': name, 'prefix': prefix, 
-                                  'service': service, 'rewrite': rewrite })
+            mappings = [ { 'name': name, 'prefix': prefix, 
+                           'service': service, 'rewrite': rewrite }
+                         for name, prefix, service, rewrite in self.cursor ]
 
             return RichStatus.OK(mappings=mappings, count=len(mappings))
         except pg8000.Error as e:
             return RichStatus.fromError("fetch_all_mappings: could not fetch info: %s" % e)
 
-    def fetch_mapping(self, name):
+    #### fetch
+
+    def _fetch_mapping_basics(self, name):
         if not self:
             return self.status
 
         try:
             self.cursor.execute("SELECT prefix, service, rewrite FROM mappings WHERE name = :name", locals())
 
-            found = False
-            prefix = None
-            service = None
-            rewrite = None
-
-            for p, s, r in self.cursor:
-                found = True
-                prefix = p
-                service = s
-                rewrite = r
-                break
-
-            if found:
-                return RichStatus.OK(name=name, prefix=prefix, service=service, rewrite=rewrite)
-            else:
+            if self.cursor.rowcount == 0:
                 return RichStatus.fromError("mapping %s not found" % name)
-        except pg8000.Error as e:
-            return RichStatus.fromError("fetch_mapping %s: could not fetch info: %s" % (name, e))
 
-    def delete_mapping(self, name):
+            if self.cursor.rowcount > 1:
+                return RichStatus.fromError("mapping %s matched more than one entry?" % name)
+
+            # We know there's exactly one mapping match. Good.
+
+            prefix, service, rewrite = self.cursor.fetchone()
+
+            return RichStatus.OK(name=name, prefix=prefix,
+                                 service=service, rewrite=rewrite)
+        except pg8000.Error as e:
+            return RichStatus.fromError("fetch_mapping_basics %s: could not fetch info: %s" % (name, e))
+
+    def _fetch_mapping_modules(self, name, module_name=None):
+        if not self:
+            return self.status
+
+        try:
+            sql = "SELECT module_name, module_data FROM mapping_modules WHERE mapping_name = :name"
+
+            if module_name:
+                sql += " AND module_name = :module_name"
+
+            self.cursor.execute(sql, locals())
+
+            modules = { module_name: module_data 
+                        for module_name, module_data in self.cursor }
+
+            return RichStatus.OK(name=name, modules=modules)
+        except pg8000.Error as e:
+            return RichStatus.fromError("fetch_mapping_modules %s: could not fetch info: %s" % (name, e))
+
+    def fetch_mapping(self, name=None):
+        if not self:
+            return self.status
+
+        rc = self._fetch_mapping_basics(name)
+
+        if not rc:
+            return rc
+
+        rc2 = self._fetch_mapping_modules(name)
+
+        if rc2:
+            # XXX Ew hackery.
+            rc.info['modules'] = rc2.modules
+
+        return rc
+
+    def fetch_mapping_module(self, name, module_name=None):
+        if not self:
+            return self.status
+
+        if not module_name:
+            return RichStatus.fromError("fetch_mapping_module: module_name is required")
+
+        return self._fetch_mapping_modules(name, module_name=module_name)
+
+    #### delete
+
+    def _delete_mapping_basics(self, name):
         if not self:
             return self.status
 
         try:
             self.cursor.execute("DELETE FROM mappings WHERE name = :name", locals())
             deleted = self.cursor.rowcount
-            self.conn.commit()
 
             return RichStatus.OK(name=name, deleted=deleted)
         except pg8000.Error as e:
+            return RichStatus.fromError("delete_mapping %s: could not delete mapping info: %s" % (name, e))
+
+    def _delete_mapping_modules(self, name, module_name=None):
+        if not self:
+            return self.status
+
+        try:
+            sql = "DELETE FROM mapping_modules WHERE mapping_name = :name"
+
+            if module_name:
+                sql += " AND module_name = :module_name"
+
+            self.cursor.execute(sql, locals())
+            deleted = self.cursor.rowcount
+
+            return RichStatus.OK(name=name, modules_deleted=deleted)
+        except pg8000.Error as e:
+            what = name if not module_name else "{} {}".format(name, module_name)
+
+            return RichStatus.fromError("delete_mapping %s: could not delete mapping module info: %s" % (what, e))
+
+    def delete_mapping(self, name):
+        if not self:
+            return self.status
+
+        try:
+            # Have to delete modules first since it holds a foreign key
+            rc = self._delete_mapping_modules(name)
+
+            if not rc:
+                self.conn.rollback()
+                return rc
+
+            modules_deleted = rc.modules_deleted
+
+            rc = self._delete_mapping_basics(name)
+
+            if not rc:
+                self.conn.rollback()
+                return rc
+
+            self.conn.commit()
+            return RichStatus.OK(name=name, deleted=rc.deleted, modules_deleted=modules_deleted)
+        except pg8000.Error as e:
             return RichStatus.fromError("delete_mapping %s: could not delete mapping: %s" % (name, e))
 
-    def store_mapping(self, name, prefix, service, rewrite):
+    def delete_mapping_module(self, name, module_name):
+        if not self:
+            return self.status
+
+        try:
+            rc = self._delete_mapping_modules(name, module_name=module_name)
+
+            if rc:
+                self.conn.commit()
+            else:
+                self.conn.rollback()
+                
+            return rc
+        except pg8000.Error as e:
+            return RichStatus.fromError("delete_mapping_module %s %s: could not delete module: %s" % (name, module_name, e))
+
+    #### store
+
+    def _store_mapping_basics(self, name, prefix, service, rewrite):
         if not self:
             return self.status
 
@@ -221,11 +420,68 @@ class AmbassadorStore (object):
                         name=EXCLUDED.name, prefix=EXCLUDED.prefix, 
                         service=EXCLUDED.service, rewrite=EXCLUDED.rewrite
             ''', locals())
-            self.conn.commit()
 
             return RichStatus.OK(name=name)
         except pg8000.Error as e:
             return RichStatus.fromError("store_mapping %s: could not save info: %s" % (name, e))
+
+    # Note that we do _one module at a time_ here.
+    def _store_mapping_module(self, name, module_name, module_data_object):
+        if not self:
+            return self.status
+
+        module_data = json.dumps(module_data_object)
+
+        try:
+            self.cursor.execute('''
+                INSERT INTO mapping_modules VALUES(:name, :module_name, :module_data)
+                    ON CONFLICT (mapping_name, module_name) DO UPDATE SET
+                        mapping_name=EXCLUDED.mapping_name,
+                        module_name=EXCLUDED.module_name, module_data=EXCLUDED.module_data
+            ''', locals())
+
+            return RichStatus.OK(name=name, module_name=module_name)
+        except pg8000.Error as e:
+            return RichStatus.fromError("store_mapping %s: could not save module info: %s" % (name, e))
+
+    def store_mapping(self, name, prefix, service, rewrite, modules):
+        if not self:
+            return self.status
+
+        try:
+            rc = self._store_mapping_basics(name, prefix, service, rewrite)
+
+            if not rc:
+                self.conn.rollback()
+                return rc
+
+            for module_name in modules.keys():
+                rc = self._store_mapping_module(name, module_name, modules[module_name])
+
+                if not rc:
+                    self.conn.rollback()
+                    return rc
+
+            self.conn.commit()
+            return RichStatus.OK(name=name)
+        except pg8000.Error as e:
+            return RichStatus.fromError("store_mapping %s: could not store mapping: %s" % (name, e))
+
+    def store_mapping_module(self, name, module_name, module_data_object):
+        if not self:
+            return self.status
+
+        try:
+            rc = self._store_mapping_module(name, module_name, module_data_object)
+
+            if rc:
+                self.conn.commit()
+            else:
+                self.conn.rollback()
+
+            return rc
+        except pg8000.Error as e:
+            return RichStatus.fromError("store_mapping_module %s: could not store mapping module: %s" % (name, e))
 
     ######## PRINCIPAL API
     def fetch_all_principals(self):

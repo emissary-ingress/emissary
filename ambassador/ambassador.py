@@ -82,30 +82,41 @@ def handle_mapping_del(req, name):
 
     return rc
 
-def handle_mapping_post(req, name):
+def handle_mapping_store(req, name):
     rc = getIncomingJSON(req, 'prefix', 'service')
 
-    logging.debug("handle_mapping_post %s: got args %s" % (name, rc.toDict()))
+    logging.debug("handle_mapping_store %s: got args %s" % (name, rc.toDict()))
 
     if not rc:
         return rc
 
     prefix = rc.prefix
     service = rc.service
-    rewrite = '/'
+    rewrite = rc.rewrite if ('rewrite' in rc) else '/'
+    modules = rc.modules if ('modules' in rc) else {}
 
-    if 'rewrite' in rc:
-        rewrite = rc.rewrite
+    logging.debug("handle_mapping_store %s: pfx %s => svc %s (rewrite %s, modules %s)" %
+                  (name, prefix, service, rewrite, modules))
 
-    logging.debug("handle_mapping_post %s: pfx %s => svc %s (rewrite %s)" %
-                  (name, prefix, service, rewrite))
-
-    rc = app.storage.store_mapping(name, prefix, service, rewrite)
+    rc = app.storage.store_mapping(name, prefix, service, rewrite, modules)
 
     if rc:
         app.reconfigurator.trigger()
 
     return rc
+
+def handle_mapping_get_module(req, mapping_name, module_name):
+    return app.storage.fetch_mapping_module(mapping_name, module_name)
+
+def handle_mapping_delete_module(req, mapping_name, module_name):
+    return app.storage.delete_mapping_module(mapping_name, module_name)
+
+def handle_mapping_store_module(req, mapping_name, module_name):
+    module_data = req.json
+
+    logging.debug("handle_mapping_store_module: got args %s" % module_data)
+
+    return app.storage.store_mapping_module(mapping_name, module_name, module_data)
 
 ######## PRINCIPAL UTILITIES
 
@@ -298,24 +309,51 @@ def ambassador_stats():
 
     return app.stats.stats
 
-@app.route('/ambassador/mappings', methods=[ 'GET', 'PUT' ])
+@app.route('/ambassador/mapping', methods=[ 'GET' ])
 @standard_handler
 def handle_mappings():
+    return handle_mapping_list(request)
+
+# Backward compatability. No one should be using this.
+@app.route('/ambassador/mappings', methods=[ 'GET', 'PUT' ])
+@standard_handler
+def handle_mappings_deprecated():
     if request.method == 'PUT':
         app.reconfigurator.trigger()
-        return RichStatus.OK(msg="reconfigure requested")
+        return RichStatus.OK(msg="DEPRECATED: was reconfigure requested, now basically no-op")
     else:
-        return handle_mapping_list(request)
+        rc = handle_mapping_list(request)
 
-@app.route('/ambassador/mapping/<name>', methods=[ 'POST', 'GET', 'DELETE' ])
+        # XXX Hackery!
+        rc.info['deprecated'] = 'use /ambassador/mapping (singular) instead'
+        return rc
+
+@app.route('/ambassador/mapping/<name>', methods=[ 'POST', 'PUT', 'GET', 'DELETE' ])
 @standard_handler
 def handle_mapping(name):
+    if request.method == 'PUT':
+        return handle_mapping_store(request, name)
     if request.method == 'POST':
-        return handle_mapping_post(request, name)
+        rc = handle_mapping_store(request, name)
+
+        # XXX Hackery!
+        rc.info['deprecated'] = 'use PUT instead'
+
+        return rc
     elif request.method == 'DELETE':
         return handle_mapping_del(request, name)
     else:
         return handle_mapping_get(request, name)
+
+@app.route('/ambassador/mapping/<mapping_id>/module/<module_name>', methods=[ 'GET', 'PUT', 'DELETE' ])
+@standard_handler
+def handle_mapping_module(mapping_id, module_name):
+    if request.method == 'PUT':
+        return handle_mapping_store_module(request, mapping_id, module_name)
+    elif request.method == 'DELETE':
+        return handle_mapping_delete_module(request, mapping_id, module_name)
+    else:
+        return handle_mapping_get_module(request, mapping_id, module_name)
 
 @app.route('/ambassador/principals', methods=[ 'GET', 'PUT' ])
 @standard_handler
