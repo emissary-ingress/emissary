@@ -8,6 +8,7 @@ import logging
 import os
 import signal
 import time
+import uuid
 
 import dpath
 
@@ -140,6 +141,50 @@ def handle_principal_post(req, name):
         app.reconfigurator.trigger()
 
     return rc
+
+######## CONSUMER UTILITIES
+
+def handle_consumer_list(req):
+    return app.storage.fetch_all_consumers()
+
+def handle_consumer_get(req, consumer_id):
+    return app.storage.fetch_consumer(consumer_id)
+
+def handle_consumer_del(req, consumer_id):
+    return app.storage.delete_consumer(consumer_id)
+
+def handle_consumer_store(req, consumer_id):
+    rc = getIncomingJSON(req, 'username', 'fullname')
+
+    logging.debug("handle_consumer_store: got args %s" % rc.toDict())
+
+    if not rc:
+        return rc
+
+    username = rc.username
+    fullname = rc.fullname
+    shortname = rc.shortname if ('shortname' in rc) else fullname
+    modules = rc.modules if ('modules' in rc) else {}
+
+    logging.debug(
+        "handle_consumer_post %s: username '%s', fullname '%s', shortname '%s', modules %d" %
+        (consumer_id, username, fullname, shortname, len(modules.keys()))
+    )
+
+    return app.storage.store_consumer(consumer_id, username, fullname, shortname, modules)
+
+def handle_consumer_get_module(req, consumer_id, module_name):
+    return app.storage.fetch_consumer_module(consumer_id, module_name)
+
+def handle_consumer_delete_module(req, consumer_id, module_name):
+    return app.storage.delete_consumer_module(consumer_id, module_name)
+
+def handle_consumer_store_module(req, consumer_id, module_name):
+    module_data = req.json
+
+    logging.debug("handle_consumer_store_module: got args %s" % module_data)
+
+    return app.storage.store_consumer_module(consumer_id, module_name, module_data)
 
 ######## CONFIG UTILITIES
 
@@ -302,6 +347,36 @@ def handle_principal(name):
         return handle_principal_del(request, name)
     else:
         return handle_principal_get(request, name)
+
+@app.route('/ambassador/consumer', methods=[ 'GET', 'POST' ])
+@standard_handler
+def handle_consumers():
+    if request.method == 'POST':
+        consumer_id = uuid.uuid4().hex.upper();
+
+        return handle_consumer_store(request, consumer_id)
+    else:
+        return handle_consumer_list(request)
+
+@app.route('/ambassador/consumer/<consumer_id>', methods=[ 'PUT', 'GET', 'DELETE' ])
+@standard_handler
+def handle_consumer(consumer_id):
+    if request.method == 'PUT':
+        return handle_consumer_store(request, consumer_id)
+    elif request.method == 'DELETE':
+        return handle_consumer_del(request, consumer_id)
+    else:
+        return handle_consumer_get(request, consumer_id)
+
+@app.route('/ambassador/consumer/<consumer_id>/module/<module_name>', methods=[ 'GET', 'PUT', 'DELETE' ])
+@standard_handler
+def handle_consumer_module(consumer_id, module_name):
+    if request.method == 'PUT':
+        return handle_consumer_store_module(request, consumer_id, module_name)
+    elif request.method == 'DELETE':
+        return handle_consumer_delete_module(request, consumer_id, module_name)
+    else:
+        return handle_consumer_get_module(request, consumer_id, module_name)
 
 def main():
     # Set up storage.
