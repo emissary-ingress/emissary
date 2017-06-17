@@ -66,7 +66,35 @@ def getIncomingJSON(req, *needed):
     else:
         return RichStatus.OK(**incoming)
 
-######## SERVICE UTILITIES
+######## MODULE UTILITIES
+
+def handle_module_list(req):
+    return app.storage.fetch_all_modules()
+
+def handle_module_get(req, module_name):
+    return app.storage.fetch_module(module_name)
+
+def handle_module_del(req, module_name):
+    rc = app.storage.delete_module(module_name)
+
+    if rc:
+        app.reconfigurator.trigger()
+
+    return rc
+
+def handle_module_store(req, module_name):
+    module_data = req.json
+
+    logging.debug("handle_mapping_store_module: got args %s" % module_data)
+
+    rc = app.storage.store_module(module_name, module_data)
+
+    if rc:
+        app.reconfigurator.trigger()
+
+    return rc
+
+######## MAPPING UTILITIES
 
 def handle_mapping_list(req):
     return app.storage.fetch_all_mappings()
@@ -308,6 +336,21 @@ def ambassador_stats():
     app.stats.update(active_mapping_names)
 
     return app.stats.stats
+
+@app.route('/ambassador/module', methods=[ 'GET' ])
+@standard_handler
+def handle_modules():
+    return handle_module_list(request)
+
+@app.route('/ambassador/module/<module_name>', methods=[ 'POST', 'PUT', 'GET', 'DELETE' ])
+@standard_handler
+def handle_module(module_name):
+    if request.method == 'PUT':
+        return handle_module_store(request, module_name)
+    elif request.method == 'DELETE':
+        return handle_module_del(request, module_name)
+    else:
+        return handle_module_get(request, module_name)
 
 @app.route('/ambassador/mapping', methods=[ 'GET' ])
 @standard_handler
