@@ -12,7 +12,7 @@ import uuid
 
 import dpath
 
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 
 import VERSION
 
@@ -229,6 +229,10 @@ def handle_consumer_store_module(req, consumer_id, module_name):
 
 def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=None, envoy_restarter_pid=None):
     # logging.debug("new_config entry...")
+
+    rc = app.storage.fetch_all_modules()
+
+    current_modules = rc.modules if rc else {}
     
     rc = app.storage.fetch_all_mappings()
 
@@ -258,8 +262,9 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
         logging.debug("new_config got %s for mappings? assuming empty" % type(rc.mappings))
         rc.mappings = []
 
-    if rc.mappings != app.current_mappings:
-        logging.debug("new_config found changes (count %d)" % num_mappings)
+    if (current_modules != app.current_modules) or (rc.mappings != app.current_mappings):
+        logging.debug("new_config found changes (modules %d, mappings %d)" % 
+                      (len(current_modules.keys()), num_mappings))
 
         # Mappings have changed. Really perform work for a new config.
         if not envoy_base_config:
@@ -274,7 +279,7 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
         if not envoy_restarter_pid:
             envoy_restarter_pid = app.envoy_restarter_pid
 
-        config = EnvoyConfig(envoy_base_config, envoy_tls_config)
+        config = EnvoyConfig(envoy_base_config, envoy_tls_config, current_modules)
 
         for mapping in rc.mappings:
             config.add_mapping(mapping['name'], mapping['prefix'],
@@ -286,6 +291,7 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
             if envoy_restarter_pid > 0:
                 os.kill(envoy_restarter_pid, signal.SIGHUP)
 
+            app.current_modules = current_modules
             app.current_mappings = rc.mappings
         except Exception as e:
             logging.exception(e)
@@ -376,7 +382,7 @@ def handle_mappings_deprecated():
 def handle_mapping(name):
     if request.method == 'PUT':
         return handle_mapping_store(request, name)
-    if request.method == 'POST':
+    elif request.method == 'POST':
         rc = handle_mapping_store(request, name)
 
         # XXX Hackery!
@@ -459,6 +465,36 @@ def handle_consumer_module(consumer_id, module_name):
     else:
         return handle_consumer_get_module(request, consumer_id, module_name)
 
+@app.route('/ambassador/auth', methods=[ 'POST' ])
+def handle_extauth():
+    auth_headers = request.json
+    req_headers = request.headers
+
+    logging.info("======== auth:")
+    logging.info("==== REQ")
+
+    for header in sorted(req_headers.keys()):
+        logging.info("%s: %s" % (header, req_headers[header]))
+
+    logging.info("==== AUTH")
+
+    for header in sorted(auth_headers.keys()):
+        logging.info("%s: %s" % (header, auth_headers[header]))
+
+    path = auth_headers.get(':path', None)
+
+    if path and len(path):
+        logging.info("==== MAPPINGS")
+
+        for mapping in app.current_mappings:
+            logging.info("%s" % mapping)
+
+            if path.startswith(mapping['prefix']):
+                logging.info("-> MATCH!")
+
+    return Response('<Why access is denied string goes here...>', 401,
+                    { 'WWW-Authenticate': 'Basic realm="Login Required"' })
+
 def main():
     # Set up storage.
     app.storage = AmbassadorStore()
@@ -500,6 +536,7 @@ def main():
 
     logging.info("ambassador found restarter PID %d" % app.envoy_restarter_pid)
 
+    app.current_modules = None
     app.current_mappings = None
     new_config(envoy_restarter_pid = -1)    # Don't automagically signal here.
 

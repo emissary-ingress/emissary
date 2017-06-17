@@ -254,11 +254,26 @@ class AmbassadorStore (object):
             return self.status
 
         try:
+            self.cursor.execute("SELECT mapping_name, module_name, module_data FROM mapping_modules")
+
+            modules = {}
+
+            for mapping_name, module_name, module_data in self.cursor:
+                mdict = modules.setdefault(mapping_name, {})
+                mdict[module_name] = module_data
+
             self.cursor.execute("SELECT name, prefix, service, rewrite FROM mappings ORDER BY name, prefix")
 
-            mappings = [ { 'name': name, 'prefix': prefix, 
-                           'service': service, 'rewrite': rewrite }
-                         for name, prefix, service, rewrite in self.cursor ]
+            raw_mappings = [ { 'name': name, 'prefix': prefix, 
+                               'service': service, 'rewrite': rewrite,
+                               'modules': modules.get(name, {}) }
+                             for name, prefix, service, rewrite in self.cursor ]
+
+            # print("raw_mappings: %s" % ", ".join([ "%s - %s" % (m['name'], m['prefix']) for m in raw_mappings ]))
+
+            mappings = sorted(raw_mappings, key=lambda m: len(m['prefix']), reverse=True)
+
+            # print("mappings: %s" % ", ".join([ "%s - %s" % (m['name'], m['prefix']) for m in mappings ]))
 
             return RichStatus.OK(mappings=mappings, count=len(mappings))
         except pg8000.Error as e:
@@ -307,7 +322,7 @@ class AmbassadorStore (object):
         except pg8000.Error as e:
             return RichStatus.fromError("fetch_mapping_modules %s: could not fetch info: %s" % (name, e))
 
-    def fetch_mapping(self, name=None):
+    def fetch_mapping(self, name):
         if not self:
             return self.status
 

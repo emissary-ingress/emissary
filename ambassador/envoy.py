@@ -129,7 +129,7 @@ class EnvoyConfig (object):
         "lb_type": "random",
         "hosts": [
             {{
-                "url": "tcp://{ext_auth_host}:{ext_auth_port}"
+                "url": "tcp://{ext_auth_target}"
             }}
         ]
     }}
@@ -179,13 +179,19 @@ class EnvoyConfig (object):
         }
     ]
 
-    def __init__(self, base_config, tls_config):
+    def __init__(self, base_config, tls_config, current_modules):
         self.mappings = {}
         self.base_config = base_config
         self.tls_config = tls_config
+        self.current_modules = current_modules
 
-        self.ext_auth_host = os.environ.get('AMBASSADOR_EXTAUTH_HOST', None)
-        self.ext_auth_port = os.environ.get('AMBASSADOR_EXTAUTH_PORT', None)
+        self.ext_auth_target = None
+
+        if 'BasicAuth' in self.current_modules:
+            self.ext_auth_target = self.current_modules['BasicAuth'].get('auth_service', None)
+
+        if 'AMBASSADOR_BASICAUTH_SERVICE' in os.environ:
+            self.ext_auth_target = os.environ.get('AMBASSADOR_BASICAUTH_SERVICE')
 
     def add_mapping(self, name, prefix, service, rewrite):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
@@ -330,8 +336,8 @@ class EnvoyConfig (object):
         # OK. Spin out the config.
         config = copy.deepcopy(self.base_config)
 
-        if self.ext_auth_host and self.ext_auth_port:
-            logging.info("enabling ext_auth to %s:%s" % (self.ext_auth_host, self.ext_auth_port))
+        if self.ext_auth_target:
+            logging.info("enabling ext_auth to %s" % self.ext_auth_target)
 
             filt0name = dpath.util.get(config, "/listeners/1/filters/0/name")
 
@@ -340,8 +346,7 @@ class EnvoyConfig (object):
                 raise Exception(msg)
 
             ext_auth_def = {
-                'ext_auth_host': self.ext_auth_host,
-                'ext_auth_port': self.ext_auth_port
+                'ext_auth_target': self.ext_auth_target
             }
 
             ext_auth_filter_json = EnvoyConfig.ext_auth_filter_template.format(**ext_auth_def)
