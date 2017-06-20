@@ -180,7 +180,7 @@ class EnvoyConfig (object):
     ]
 
     def __init__(self, base_config, tls_config, current_modules):
-        self.mappings = {}
+        self.mappings = []
         self.base_config = base_config
         self.tls_config = tls_config
         self.current_modules = current_modules
@@ -196,11 +196,12 @@ class EnvoyConfig (object):
     def add_mapping(self, name, prefix, service, rewrite):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
         
-        self.mappings[name] = {
+        self.mappings.append({
+            'name': name,
             'prefix': prefix,
             'service': service,
             'rewrite': rewrite
-        }
+        })
 
     def write_config(self, path):
         # Generate routes and clusters.
@@ -257,9 +258,9 @@ class EnvoyConfig (object):
             ('istio-mixer' in istio_services)):
             in_istio = True
 
-        for mapping_name in self.mappings.keys():
+        for mapping in self.mappings:
             # Does this mapping refer to a service that we know about?
-            mapping = self.mappings[mapping_name]
+            mapping_name = mapping['name']
             prefix = mapping['prefix']
             service_name = mapping['service']
             rewrite = mapping['rewrite']

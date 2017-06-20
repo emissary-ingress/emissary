@@ -253,16 +253,19 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
         return RichStatus.fromError("no mappings found at all, original rc %s" % str(rc))
 
     num_mappings = 0
+    current_mappings = rc.mappings
 
     try:
-        num_mappings = len(rc.mappings)
+        num_mappings = len(current_mappings)
     except:
         # Huh. This can really only happen if something isn't quite initialized
         # in the database yet.
-        logging.debug("new_config got %s for mappings? assuming empty" % type(rc.mappings))
-        rc.mappings = []
+        logging.debug("new_config got %s for mappings? assuming empty" % type(current_mappings))
+        current_mappings = []
 
-    if (current_modules != app.current_modules) or (rc.mappings != app.current_mappings):
+    # print("mappings in new_config: %s" % ", ".join([ "%s - %s" % (m['name'], m['prefix']) for m in current_mappings ]))
+
+    if (current_modules != app.current_modules) or (current_mappings != app.current_mappings):
         logging.debug("new_config found changes (modules %d, mappings %d)" % 
                       (len(current_modules.keys()), num_mappings))
 
@@ -281,7 +284,7 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
 
         config = EnvoyConfig(envoy_base_config, envoy_tls_config, current_modules)
 
-        for mapping in rc.mappings:
+        for mapping in current_mappings:
             config.add_mapping(mapping['name'], mapping['prefix'],
                                mapping['service'], mapping['rewrite'])
 
@@ -292,7 +295,7 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
                 os.kill(envoy_restarter_pid, signal.SIGHUP)
 
             app.current_modules = current_modules
-            app.current_mappings = rc.mappings
+            app.current_mappings = current_mappings
         except Exception as e:
             logging.exception(e)
             logging.error("new_config couldn't write config")
