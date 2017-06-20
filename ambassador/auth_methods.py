@@ -23,7 +23,7 @@ def add_headers(f):
         if not rc: 
             rc.headers['WWW-Authenticate'] = 'Basic realm="Login Required"'
 
-        logging.info("auth returns %s" % rc)
+        # logging.info("auth returns %s" % rc)
 
         return rc
 
