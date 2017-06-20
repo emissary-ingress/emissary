@@ -20,6 +20,8 @@ from storage_postgres import AmbassadorStore
 from envoy import EnvoyStats, EnvoyConfig, TLSConfig
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
+from auth_methods import BasicAuth
+
 __version__ = VERSION.Version
 
 logging.basicConfig(
@@ -473,30 +475,47 @@ def handle_extauth():
     auth_headers = request.json
     req_headers = request.headers
 
-    logging.info("======== auth:")
-    logging.info("==== REQ")
+    # logging.info("======== auth:")
+    # logging.info("==== REQ")
 
     for header in sorted(req_headers.keys()):
         logging.info("%s: %s" % (header, req_headers[header]))
 
-    logging.info("==== AUTH")
+    # logging.info("==== AUTH")
 
     for header in sorted(auth_headers.keys()):
         logging.info("%s: %s" % (header, auth_headers[header]))
 
     path = auth_headers.get(':path', None)
 
+    auth_mapping = None
+
     if path and len(path):
-        logging.info("==== MAPPINGS")
+        # logging.info("==== MAPPINGS")
 
         for mapping in app.current_mappings:
-            logging.info("%s" % mapping)
+            match = path.startswith(mapping['prefix'])
 
-            if path.startswith(mapping['prefix']):
-                logging.info("-> MATCH!")
+            # logging.debug("checking %s: %s -- %smatch" %
+            #                (mapping['name'], mapping['prefix'],
+            #                ("" if match else "no ")))
 
-    return Response('<Why access is denied string goes here...>', 401,
-                    { 'WWW-Authenticate': 'Basic realm="Login Required"' })
+            if match:
+                auth_mapping = mapping
+                break
+
+    if not auth_mapping:
+        return Response('Auth not required for path %s' % path, 200)
+
+    rc = BasicAuth(app.storage, auth_mapping, auth_headers, req_headers)
+
+    if not rc:
+        logging.info("auth error: %s" % rc.error)
+
+        return Response(rc.error, 401, rc.headers if 'headers' in rc else None)
+    else:
+        logging.info("auth OK: %s" % rc.msg)
+        return Response(rc.msg, 200)
 
 def main():
     # Set up storage.
