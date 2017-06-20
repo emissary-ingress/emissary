@@ -1,4 +1,5 @@
-FROM datawire/ambassador-envoy:368a4517
+# NOTE WELL: this might only be OK for Datawire
+FROM datawire/ambassador-envoy:latest
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -35,7 +36,7 @@ RUN pip3 install -r requirements.txt
 COPY envoy-restarter.py .
 COPY envoy-wrapper.sh .
 RUN chmod 755 envoy-wrapper.sh
-COPY ambassador.py envoy.py storage_postgres.py utils.py VERSION.py ./
+COPY ambassador.py auth_methods.py envoy.py storage_postgres.py utils.py VERSION.py ./
 COPY map unmap ./
 RUN chmod 755 map unmap
 COPY envoy-template.json .
