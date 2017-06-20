@@ -478,13 +478,13 @@ def handle_extauth():
     # logging.info("======== auth:")
     # logging.info("==== REQ")
 
-    for header in sorted(req_headers.keys()):
-        logging.info("%s: %s" % (header, req_headers[header]))
+    # for header in sorted(req_headers.keys()):
+    #     logging.info("%s: %s" % (header, req_headers[header]))
 
     # logging.info("==== AUTH")
 
-    for header in sorted(auth_headers.keys()):
-        logging.info("%s: %s" % (header, auth_headers[header]))
+    # for header in sorted(auth_headers.keys()):
+    #     logging.info("%s: %s" % (header, auth_headers[header]))
 
     path = auth_headers.get(':path', None)
 
