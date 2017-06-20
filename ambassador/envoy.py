@@ -187,11 +187,16 @@ class EnvoyConfig (object):
 
         self.ext_auth_target = None
 
-        if 'BasicAuth' in self.current_modules:
-            self.ext_auth_target = self.current_modules['BasicAuth'].get('auth_service', None)
+        auth_mod = self.current_modules.get('Authentication', None)
 
-        if 'AMBASSADOR_BASICAUTH_SERVICE' in os.environ:
-            self.ext_auth_target = os.environ.get('AMBASSADOR_BASICAUTH_SERVICE')
+        if auth_mod:
+            # auth_mod might be a string or a dict.
+            if auth_mod == 'ambassador':
+                # Use the auth module built in to Ambassador.
+                self.ext_auth_target = '127.0.0.1:5000'
+            elif getattr(auth_mod, "get", {}):
+                # Should be a dict. Grab the auth_service from it.
+                self.ext_auth_target = auth_mod.get('auth_service', None)
 
     def add_mapping(self, name, prefix, service, rewrite):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
