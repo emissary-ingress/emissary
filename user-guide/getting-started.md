@@ -12,7 +12,7 @@ Are you looking to run Ambassador within Istio? Check out our [Ambassador and Is
 Ambassador is an API Gateway for microservices, so to get started, it's helpful to actually have a running service to use it with. We'll use Datawire's "Quote of the Moment" service (`qotm`) for this; you can deploy it into Kubernetes with
 
 ```
-kubectl apply -f https://github.com/datawire/ambassador/blob/flynn/rc/extauth/demo-qotm.yaml
+kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/flynn/rc/extauth/demo-qotm.yaml
 ```
 
 This will create a deployment called `qotm` and a corresponding Kubernetes service entry that's also called `qotm`. Quote of the Moment supports a very simple REST API:
@@ -28,8 +28,8 @@ We'll use the health check as our first simple test to make sure that Ambassador
 To set up Ambassador as an API gateway for this service, first we need to get Ambassador running in the Kubernetes cluster. We recommend using [TLS](running.md#TLS), but for right now we'll just set up an HTTP-only Ambassador to show you how things work:
 
 ```
-kubectl apply -f https://github.com/datawire/ambassador/blob/flynn/rc/extauth/ambassador-http.yaml
-kubectl apply -f https://github.com/datawire/ambassador/blob/flynn/rc/extauth/ambassador.yaml
+kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/blob/flynn/rc/extauth/ambassador-http.yaml
+kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/blob/flynn/rc/extauth/ambassador.yaml
 ```
 
 That's it for getting Ambassador running, though in the real world you'd need TLS. Next you need to be able to talk to Ambassador's administrative interface, which is a private REST service on Ambassador's port 8888. This isn't exposed anywhere outside the cluster, for security reasons, so you need to use Kubernetes port forwarding to reach it (doing this in a separate shell window is a good idea):
