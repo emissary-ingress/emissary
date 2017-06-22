@@ -15,9 +15,7 @@ Ambassador is an API Gateway for microservices, so to get started, it's helpful 
 kubectl apply -f https://github.com/datawire/ambassador/blob/flynn/rc/extauth/demo-qotm.yaml
 ```
 
-This will create a deployment called `qotd` and a corresponding Kubernetes service entry that's also called `qotm`. Quote of the Moment supports a very simple REST API:
-
-The  supports using a simple REST API:
+This will create a deployment called `qotm` and a corresponding Kubernetes service entry that's also called `qotm`. Quote of the Moment supports a very simple REST API:
 
 * `GET /health` performs a simple health check
 * `GET /` returns a random Quote of the Moment
