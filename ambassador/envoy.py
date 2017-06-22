@@ -187,16 +187,23 @@ class EnvoyConfig (object):
 
         self.ext_auth_target = None
 
-        auth_mod = self.current_modules.get('Authentication', None)
+        auth_config = self.current_modules.get('authentication', None)
 
-        if auth_mod:
-            # auth_mod might be a string or a dict.
-            if auth_mod == 'ambassador':
-                # Use the auth module built in to Ambassador.
-                self.ext_auth_target = '127.0.0.1:5000'
-            elif getattr(auth_mod, "get", {}):
-                # Should be a dict. Grab the auth_service from it.
-                self.ext_auth_target = auth_mod.get('auth_service', None)
+        if auth_config:
+            try:
+                ambassador_auth = auth_config.get('ambassador', None)
+
+                if ambassador_auth:
+                    # Use the auth module built in to Ambassador.
+                    self.ext_auth_target = '127.0.0.1:5000'
+                else:
+                    # Look in the config itself for the target.
+                    self.ext_auth_target = auth_config.get('auth_service', None)
+            except Exception as e:
+                # This can't really happen except for the case where auth_config
+                # isn't a dict, and that's unsupported.
+                logging.warning("authentication module has unsupported config '%s'" % json.dumps(auth_config))
+                pass                
 
     def add_mapping(self, name, prefix, service, rewrite):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))

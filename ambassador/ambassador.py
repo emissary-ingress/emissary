@@ -507,11 +507,31 @@ def handle_extauth():
     if not auth_mapping:
         return Response('Auth not required for path %s' % path, 200)
 
-    rc = BasicAuth(app.storage, auth_mapping, auth_headers, req_headers)
+    auth_modules = auth_mapping.get('modules', {})
+
+    if not 'authentication' in auth_modules:
+        return Response('Auth not required for path %s' % path, 200)
+
+    auth_config = auth_modules['authentication']
+
+    rc = RichStatus.fromError('authentication failed')
+
+    try:
+        auth_type = auth_config.get('type', None)
+
+        if auth_type == 'basic':
+            rc = BasicAuth(app.storage, auth_mapping, auth_headers, req_headers)
+        elif auth_type:
+            logging.error('%s: authentication type %s is not supported' % 
+                          (auth_mapping['prefix'], auth_type))
+        else:
+            logging.error('%s: no authentication type given?' % auth_mapping['prefix'])
+    except Exception as e:
+        logging.exception(e)
+        logging.error("%s: couldn't fetch authentication type at all??" % auth_mapping['prefix'])
 
     if not rc:
-        logging.info("auth error: %s" % rc.error)
-
+        logging.info("auth failed: %s" % rc.error)
         return Response(rc.error, 401, rc.headers if 'headers' in rc else None)
     else:
         logging.info("auth OK: %s" % rc.msg)

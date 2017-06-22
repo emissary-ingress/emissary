@@ -31,9 +31,6 @@ def add_headers(f):
 
 @add_headers
 def BasicAuth(store, auth_mapping, auth_headers, req_headers):
-    if 'BasicAuth' not in auth_mapping['modules']:
-        return RichStatus.OK(msg="Auth not required for mapping %s" % auth_mapping['name'])
-
     ah = auth_headers.get('authorization', None)
 
     if not ah:
@@ -61,22 +58,51 @@ def BasicAuth(store, auth_mapping, auth_headers, req_headers):
     except Exception:
         return RichStatus.fromError("Error decoding authorization: need both username and password")
 
-    rc = RichStatus.fromError("impossible error")
+    # Grab the auth_module from storage. There are enough ways this can fail
+    # that we need to manage exceptions here too.
+    auth_module = None
 
     try:
         rc = store.fetch_consumer(username=username)
     except Exception as e:
-        rc = RichStatus.fromError("storage failure: %s" % e)
+        rc = RichStatus.fromError("storage exception %s" % (username, e))
 
     if not rc:
-        return RichStatus.fromError("Could not fetch '%s': %s" % (username, e))
+        logging.error("consumer %s: fetch failed: %s" % (username, str(rc)))
+    else:
+        auth_module = rc.modules.get('authentication', {})
 
-    auth_module = rc.modules.get('BasicAuth', None)
+        if not auth_module:
+            logging.error("consumer %s: no authentication module" % username)
 
-    if not auth_module:
-        return RichStatus.fromError("Basic Auth not allowed for %s" % username)
+    # OK, auth_module is valid here, meaning that either it's really the thing
+    # from storage and is not None, or it's None meaning that storage failed.
+    # From this point forward, we're just going to give a canned
+    # "Unauthorized" if anything goes wrong, because we're into the realm of 
+    # places where anything more is a security issue. 
 
-    if password != auth_module.get('password', None):
-        return RichStatus.fromError("Unauthorized")
+    rc = RichStatus.fromError("Unauthorized")
 
-    return RichStatus.OK(msg="Auth good")
+    # To go further we need the auth type, so let's figure that out.
+    auth_type = None
+
+    if auth_module:
+        try:
+            auth_type = auth_module.get('type', None)
+        except Exception as e:
+            logging.exception(e)
+            logging.error("consumer %s: couldn't fetch type from auth config: %s" % (username, e))
+
+    # From this point forward, auth_type is valid (but it might be None,
+    # meaning that the admin who set up the consumer got it wrong).
+
+    if auth_type == "basic":
+        # If auth_type is correctly set, we know that auth_module is a dict,
+        # so we don't need the try/except to look for the password.
+        auth_password = auth_module.get('password', None)
+
+        if password == auth_password:
+            # Finally, a good result.
+            rc = RichStatus.OK(msg="Auth good")
+
+    return rc
