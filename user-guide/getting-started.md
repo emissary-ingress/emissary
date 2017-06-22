@@ -92,7 +92,26 @@ which should show you something like
 }
 ```
 
-To actually _use_ the QotM service, we need the URL for microservice access through Ambassador. Look at the `LoadBalancer Ingress` line of `kubectl describe service ambassador` (or use `minikube service --url ambassador` on Minikube) and set `$AMBASSADORURL` based on that. **Do not include a trailing `/`** on it, or our examples below won't work.
+To actually _use_ the QotM service, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below:
+
+```
+# AWS
+HOST=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+PORT=$(kubectl get service ambassador --output jsonpath='{.spec.ports[0].port}')
+PROTO=$(if [ "$PORT" = "443" ]; then echo "https"; else echo "http"; fi)
+AMBASSADORURL="$PROTO://${HOST}:${PORT}"
+
+# GKE
+HOST=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+PORT=$(kubectl get service ambassador --output jsonpath='{.spec.ports[0].port}')
+PROTO=$(if [ "$PORT" = "443" ]; then echo "https"; else echo "http"; fi)
+AMBASSADORURL="$PROTO://${HOST}:${PORT}"
+
+# Minikube
+AMBASSADORURL=$(minikube service --url ambassador)
+```
+
+If that doesn't work out, look at the `LoadBalancer Ingress` line of `kubectl describe service ambassador` and set `$AMBASSADORURL` based on that. **Do not include a trailing `/`** on it, or our examples below won't work.
 
 Once `$AMBASSADORURL` is set, you'll be able to use that for a basic health check on the QotM service:
 
