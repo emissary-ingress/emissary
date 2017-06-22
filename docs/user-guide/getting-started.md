@@ -55,7 +55,7 @@ which should give something like this if all is well:
   "msg": "ambassador health check OK",
   "ok": true,
   "resolvedname": "109.196.3.8",
-  "version": "0.8.12"
+  "version": "0.8.13"
 }
 ```
 
@@ -88,7 +88,7 @@ which should show you something like
   ],
   "ok": true,
   "resolvedname": "109.196.3.8",
-  "version": "0.8.12"
+  "version": "0.8.13"
 }
 ```
 
@@ -179,7 +179,7 @@ then we should get a 401, since we haven't authenticated.
 
 ```
 HTTP/1.1 401 Unauthorized
-auth-service: Ambassador BasicAuth 0.8.12-ext
+auth-service: Ambassador BasicAuth 0.8.13
 content-length: 25
 content-type: text/html; charset=utf-8
 date: Thu, 22 Jun 2017 14:37:28 GMT
@@ -206,7 +206,7 @@ That will create a new `consumer` for Alice, and return her `consumer_id`:
     "hostname": "ambassador-3176426918-13v2v",
     "ok": true,
     "resolvedname": "109.196.3.8",
-    "version": "0.8.12"
+    "version": "0.8.13"
 }
 ```
 
@@ -233,7 +233,7 @@ which will return something like:
     "resolvedname": "109.196.3.8",
     "shortname": "Alice Rules",
     "username": "alice",
-    "version": "0.8.12"
+    "version": "0.8.13"
 }
 ```
 
