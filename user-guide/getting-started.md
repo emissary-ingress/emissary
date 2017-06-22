@@ -92,22 +92,16 @@ which should show you something like
 }
 ```
 
-To actually _use_ the QotM service, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below:
+To actually _use_ the QotM service, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below -- **note that these will only work since we already know we're using HTTP**:
 
 ```
-# AWS
-HOST=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-PORT=$(kubectl get service ambassador --output jsonpath='{.spec.ports[0].port}')
-PROTO=$(if [ "$PORT" = "443" ]; then echo "https"; else echo "http"; fi)
-AMBASSADORURL="$PROTO://${HOST}:${PORT}"
+# AWS (for Ambassador using HTTP)
+AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-# GKE
-HOST=$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
-PORT=$(kubectl get service ambassador --output jsonpath='{.spec.ports[0].port}')
-PROTO=$(if [ "$PORT" = "443" ]; then echo "https"; else echo "http"; fi)
-AMBASSADORURL="$PROTO://${HOST}:${PORT}"
+# GKE (for Ambassador using HTTP)
+AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-# Minikube
+# Minikube (for Ambassador using HTTP)
 AMBASSADORURL=$(minikube service --url ambassador)
 ```
 
