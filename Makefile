@@ -1,6 +1,6 @@
 all: bump
 
-VERSION=0.8.13-rc1
+VERSION=0.8.12
 
 # Make sure to update this list and .bumpversion.cfg at the same time.
 

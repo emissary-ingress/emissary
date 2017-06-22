@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: gruesvc
-        image: dwflynn/gruesvc:0.1.1
+        image: datawire/gruesvc:0.1.1
         resources: {}
       restartPolicy: Always
 status: {}

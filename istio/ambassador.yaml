@@ -99,7 +99,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: dwflynn/ambassador:0.8.13-rc1
+        image: datawire/ambassador:0.8.12
         imagePullPolicy: Always
         env:
         - name: AMBASSADOR_DB_HOST
@@ -117,7 +117,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: dwflynn/statsd:0.8.13-rc1
+        image: datawire/statsd:0.8.12
       volumes:
       - name: cert-data
         secret:
