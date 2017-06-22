@@ -168,7 +168,7 @@ http PUT http://localhost:8888/ambassador/mapping/qotm_quote_map \
          'modules:={"authentication":{"type":"basic"}}'
 ```
 
-That last bit configures this mapping to use the authentication module, with config info `type: basic`.
+That last bit configures this mapping to use the `authentication` module, with config info `type: basic`. (Note also that we use `rewrite` to make sure the QotM service sees the base URL it expects.)
 
 Now, if we try to read our quote back:
 
