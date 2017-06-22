@@ -39,10 +39,10 @@ POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.nam
 kubectl port-forward "$POD" 8888
 ```
 
-Once that's done, `localhost:8888` is where you can talk to the Ambassador's administrative interface. Let's start with a basic health check of Ambassador itself. Note that our examples below use [HTTPie](https://httpie.org/) -- you can do all of this with `curl` too, it's just a _lot_ more typing:
+Once that's done, `localhost:8888` is where you can talk to the Ambassador's administrative interface. Let's start with a basic health check of Ambassador itself:
 
 ```
-http http://localhost:8888/ambassador/health
+curl http://localhost:8888/ambassador/health
 ```
 
 which should give something like this if all is well:
@@ -60,13 +60,15 @@ which should give something like this if all is well:
 Mapping the `/qotm/` resource to your QotM service needs a PUT request:
 
 ```
-http PUT http://localhost:8888/ambassador/mapping/qotm_map prefix=/qotm/ service=qotm
+curl -XPUT -H"Content-Type: application/json" \
+     -d'{ "prefix": "/qotm/", "service": "qotm" }' \
+     http://localhost:8888/ambassador/mapping/qotm_map
 ```
 
 and after that, you can read back and see that the mapping is there:
 
 ```
-http http://localhost:8888/ambassador/mapping
+curl http://localhost:8888/ambassador/mapping
 ```
 
 which should show you something like
@@ -79,7 +81,7 @@ which should show you something like
     {
       "modules": {},
       "name": "qotm_map",
-      "prefix": "/qotm",
+      "prefix": "/qotm/",
       "rewrite": "/",
       "service": "qotm"
     }
@@ -95,12 +97,13 @@ To actually _use_ the QotM service, we need the URL for microservice access thro
 Once `$AMBASSADORURL` is set, you'll be able to use that for a basic health check on the QotM service:
 
 ```
-http $AMBASSADORURL/qotm/health
+curl -v $AMBASSADORURL/qotm/health
 ```
 
 If all goes well you should get an empty response with an HTTP 200 response:
 
 ```
+...
 HTTP/1.1 200 OK
 content-length: 0
 content-type: text/html; charset=utf-8
@@ -112,7 +115,7 @@ Since the `/qotm/` prefix in the path portion of the URL there matches the prefi
 Suppose we want a quote for this moment?
 
 ```
-http $AMBASSADORURL/qotm/
+curl $AMBASSADORURL/qotm/
 ```
 
 (Note that the trailing `/` is mandatory the way we've set things up.) This should return something like
@@ -130,7 +133,9 @@ and repeating that should yield other (kind of surreal) quotes.
 The QotM service also has an endpoint to supply new quotes, which should be accessible now:
 
 ```
-http POST $AMBASSADORURL/qotm/quote "quote=The grass is never greener anywhere else."
+curl -XPOST -H"Content-Type: application/json" \
+     -d'{ "quote": "The grass is never greener anywhere else." }' \
+     $AMBASSADORURL/qotm/quote
 ```
 
 That should return the ID of the new quote:
@@ -147,13 +152,15 @@ That should return the ID of the new quote:
 and we should be able to read that back with
 
 ```
-http $AMBASSADORURL/qotm/quote/10
+curl $AMBASSADORURL/qotm/quote/10
 ```
 
 But it's probably not a good idea to allow any random person to update our quotations. We can use Ambassador's built-in authentication to prevent that. First, we turn it on by enabling Ambassador's basic-auth module:
 
 ```
-http PUT http://localhost:8888/ambassador/module/authentication ambassador=basic
+curl -XPUT -H"Content-Type: application/json" \
+     -d'{ "ambassador": "basic" }' \
+     http://localhost:8888/ambassador/module/authentication
 ```
 
 That activates the `authentication` module, with `ambassador: basic` as configuration information (in this case telling Ambassador to use its built-in "basic" authentication mechanism).
@@ -161,9 +168,9 @@ That activates the `authentication` module, with `ambassador: basic` as configur
 Next, we add a mapping for `/qotm/quote/` that requires auth:
 
 ```
-http PUT http://localhost:8888/ambassador/mapping/qotm_quote_map \
-         prefix=/qotm/quote/ rewrite=/quote/ service=qotm \
-         'modules:={"authentication":{"type":"basic"}}'
+curl -XPUT -H"Content-Type: application/json" \
+     -d'{ "prefix": "/qotm/quote/", "rewrite": "/quote/", "service": "qotm", "modules": { "authentication": { "type": "basic" } } }' \
+     http://localhost:8888/ambassador/mapping/qotm_quote_map
 ```
 
 That last bit configures this mapping to use the `authentication` module, with config info `type: basic`. (Note also that we use `rewrite` to make sure the QotM service sees the base URL it expects.)
@@ -171,7 +178,7 @@ That last bit configures this mapping to use the `authentication` module, with c
 Now, if we try to read our quote back:
 
 ```
-http $AMBASSADORURL/qotm/quote/10
+curl $AMBASSADORURL/qotm/quote/10
 ```
 
 then we should get a 401, since we haven't authenticated.
@@ -192,9 +199,9 @@ No authorization provided
 We need to tell `HTTPie` to provide an authorization, but in order to do that, we need to tell Ambassador who can log in. We do this by defining a `consumer` in Ambassador:
 
 ```
-http POST http://localhost:8888/ambassador/consumer \
-          username=alice fullname="Alice Rules" \
-          'modules:={"authentication":{"type":"basic", "password":"alice"}}'
+curl -XPOST -H"Content-Type: application/json" \
+     -d'{ "username": "alice", "fullname": "Alice Rules", "modules": { "authentication": { "type":"basic", "password":"alice" } } }' \
+     http://localhost:8888/ambassador/consumer
 ```
 
 That will create a new `consumer` for Alice, and return her `consumer_id`:
@@ -212,7 +219,7 @@ That will create a new `consumer` for Alice, and return her `consumer_id`:
 We can use Alice's `consumer_id` to read back information about Alice:
 
 ```
-http http://localhost:8888/ambassador/consumer/5D86FCDF509B47CCB8CA64EA4561785E
+curl http://localhost:8888/ambassador/consumer/5D86FCDF509B47CCB8CA64EA4561785E
 ```
 
 which will return something like:
@@ -239,5 +246,6 @@ which will return something like:
 and we can now authenticate to the QotM service as Alice:
 
 ```
-http --auth alice:alice $AMBASSADORURL/qotm/quote/10
+curl -u alice:alice $AMBASSADORURL/qotm/quote/10
 ```
+
