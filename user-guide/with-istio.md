@@ -6,7 +6,9 @@ categories: user-guide
 ---
 
 <hr />
+
 Are you looking to run Ambassador without Istio? You probably want to check out the [Getting Started](getting-started.md) guide for Ambassador alone.
+
 <hr />
 
 Ambassador is an API Gateway for microservices. [Istio](https://istio.io/) is a service mesh for microservices. Both use [Envoy](https://lyft.github.io/envoy/) for the heavy lifting.
@@ -19,9 +21,18 @@ It's still early days for both Ambassador and Istio, so **at present we have not
 
 We also assume that you've already gotten a Kubernetes cluster set up with Istio: Ambassador relies on being able to see Istio already running when it's launched, so **it will not work** to launch Ambassador, then Istio. If you don't already have Istio running, check out their [instructions for installing Istio](https://istio.io/docs/tasks/installing-istio.html).
 
+Make sure to remove Istio's default ingress controller, as we are about to replace it. If `kubectl get ingress` shows you an ingress controller:
+
+```
+NAME      HOSTS     ADDRESS          PORTS     AGE
+gateway   *         104.154.161.38   80        10m
+```
+
+make sure you remove it (`kubectl delete ingress gateway`) before proceeding.
+
 ## Starting Ambassador
 
-Once Istio is running, you can start Ambassador running as follows:
+Once Istio is running (minus its default ingress controller -- see above), you can start Ambassador running as follows:
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/istio/ambassador.yaml
