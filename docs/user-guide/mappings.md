@@ -341,7 +341,7 @@ As an alternative to Ambassador's built-in authentication service, you can direc
 
 ### Ambassador External Auth API
 
-Ambassador sends a POST request to the auth service at the path `/ambassador/auth` with body  containing a JSON mapping of the request headers in HTTP/2 style, e.g., `:authority` instead of `Host`. If Ambassador cannot reach the auth service, it returns 503 to the client. If the auth service response code is 200, then Ambassador allows the client request to be resume being processed by the normal Ambassador Envoy flow. This typically means that the client will receive the expected response to its request. If Ambassador receives any response from the auth service other than 200, it returns that full response (header and body) to the client. Ambassador assumes the auth service will return an appropriate response, such as 401.
+Ambassador sends a POST request to the auth service at the path `/ambassador/auth` with body  containing a JSON mapping of the request headers in HTTP/2 style, e.g., `:authority` instead of `Host`. If Ambassador cannot reach the auth service, it returns 503 to the client. If the auth service response code is 200, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow. This typically means that the client will receive the expected response to its request. If Ambassador receives any response from the auth service other than 200, it returns that full response (header and body) to the client. Ambassador assumes the auth service will return an appropriate response, such as 401.
 
 ### Example
 
