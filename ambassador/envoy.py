@@ -479,9 +479,14 @@ class EnvoyStats (object):
                 for x in active_mapping_names
             }
 
+            logging.info("active_cluster_map: %s" % json.dumps(active_cluster_map))
+
             for cluster_name in envoy_stats['cluster']:
                 cluster = envoy_stats['cluster'][cluster_name]
 
+                # Toss any _%d -- that's madness with our Istio code at the moment.
+                cluster = re.sub('_\d+$', '', cluster)
+                
                 if cluster_name in active_cluster_map:
                     mapping_name = active_cluster_map[cluster_name]
                     active_mappings[mapping_name] = {}

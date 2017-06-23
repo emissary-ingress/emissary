@@ -346,7 +346,7 @@ def ambassador_stats():
 
     app.stats.update(active_mapping_names)
 
-    return app.stats.stats
+    return RichStatus.OK(stats=app.stats.stats)
 
 @app.route('/ambassador/module', methods=[ 'GET' ])
 @standard_handler
