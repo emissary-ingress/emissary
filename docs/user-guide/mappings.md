@@ -385,7 +385,7 @@ curl -XPUT -H"Content-Type: application/json" \
      http://localhost:8888/ambassador/module/authentication
 ```
 
-The [`example-auth` service](https://github.com/datawire/ambassador-auth-service) is a simple Node/Express implementation of the API described above. In short, the service expects a POST to the path `/ambassador/auth` with client request headers as a JSON map in the POST body. If auth is okay (HTTP Basic Auth), it returns a 200 to allow the client request to go through. Otherwise it returns a 401 with an HTTP Basic Auth WWW-Authenticate header. This example auth service only performs auth when the client headers indicate a request under the `/service` path prefix. The only valid credentials are `username:password`.
+The [`example-auth` service (GitHub repo)](https://github.com/datawire/ambassador-auth-service) is a simple Node/Express implementation of the API described above. In short, the service expects a POST to the path `/ambassador/auth` with client request headers as a JSON map in the POST body. If auth is okay (HTTP Basic Auth), it returns a 200 to allow the client request to go through. Otherwise it returns a 401 with an HTTP Basic Auth WWW-Authenticate header. This example auth service only performs auth when the client headers indicate a request under the `/service` path prefix. The only valid credentials are `username:password`.
 
 Let's create a second mapping for QotM at `/service/` so we can demonstrate authentication.
 
