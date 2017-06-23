@@ -209,7 +209,7 @@ x-envoy-upstream-service-time: 5
 No authorization provided
 ```
 
-We need to tell `HTTPie` to provide an authorization, but in order to do that, we need to tell Ambassador who can log in. We do this by defining a `consumer` in Ambassador:
+We need to provide an authorization, but in order to do that, we need to tell Ambassador who can log in. We do this by defining a `consumer` in Ambassador:
 
 ```
 curl -XPOST -H"Content-Type: application/json" \
