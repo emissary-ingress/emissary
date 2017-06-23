@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
       - name: usersvc
-        image: datawire/usersvc:0.2.0
+        image: dwflynn/usersvc:0.2.0
         resources: {}
       restartPolicy: Always
 status: {}
