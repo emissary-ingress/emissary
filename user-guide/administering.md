@@ -32,11 +32,11 @@ will get a list of all the resources that Ambassador has mapped; and
 curl http://localhost:8888/ambassador/stats
 ```
 
-will return a JSON dictionary of statistics about resources that Ambassador presently has mapped. Most notably, the `mappings` dictionary lets you know basic health information about the mappings to which Ambassador is providing access:
+will return a JSON dictionary containing a `stats` dictionary with statistics about resources that Ambassador presently has mapped. Most notably, `stats.mappings` contains basic health information about the mappings to which Ambassador is providing access:
 
-- `mappings.$mapping.healthy_members` is the number of healthy back-end systems providing the mapped service;
-- `mappings.$mapping.upstream_ok` is the number of requests to the mapped resource that have succeeded; and
-- `mappings.$mapping.upstream_bad` is the number of requests to the mapped resource that have failed.
+- `stats.mappings.<mapping-name>.healthy_members` is the number of healthy back-end systems providing the mapped service;
+- `stats.mappings.<mapping-name>.upstream_ok` is the number of requests to the mapped resource that have succeeded; and
+- `stats.mappings.<mapping-name>.upstream_bad` is the number of requests to the mapped resource that have failed.
 
 ### Mappings
 
