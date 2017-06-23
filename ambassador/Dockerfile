@@ -1,5 +1,5 @@
-#FROM lyft/envoy:4ef8079e9ff3056bab5fe9485e7fd2bc69d27dc5
-FROM dwflynn/envoy-debug:latest
+# NOTE WELL: this might only be OK for Datawire
+FROM datawire/ambassador-envoy:latest
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -36,8 +36,9 @@ RUN pip3 install -r requirements.txt
 COPY envoy-restarter.py .
 COPY envoy-wrapper.sh .
 RUN chmod 755 envoy-wrapper.sh
-COPY ambassador.py envoy.py utils.py VERSION.py ./
-
+COPY ambassador.py auth_methods.py envoy.py storage_postgres.py utils.py VERSION.py ./
+COPY map unmap ./
+RUN chmod 755 map unmap
 COPY envoy-template.json .
 
 # NOT A BUG! this is for bootstrapping.

@@ -62,7 +62,7 @@ spec:
     spec:
       containers:
       - name: usersvc
-        image: dwflynn/micromaze-user:0.1.0
+        image: datawire/micromaze-user:0.1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -95,7 +95,7 @@ spec:
     spec:
       containers:
       - name: gruesvc
-        image: dwflynn/micromaze-grue:0.1.0
+        image: datawire/micromaze-grue:0.1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -128,7 +128,7 @@ spec:
     spec:
       containers:
       - name: mazesvc
-        image: dwflynn/micromaze-maze:0.1.0
+        image: datawire/micromaze-maze:0.1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

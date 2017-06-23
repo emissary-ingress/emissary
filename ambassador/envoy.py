@@ -110,6 +110,31 @@ class EnvoyConfig (object):
     }}
     '''
 
+    ext_auth_filter_template = '''
+    {{
+        "type": "decoder",
+        "name": "extauth",
+        "config": {{
+            "cluster": "ext_auth",
+            "timeout_ms": 5000
+        }}
+    }}
+    '''    
+
+    ext_auth_cluster_template = '''
+    {{
+        "name": "ext_auth",
+        "type": "logical_dns",
+        "connect_timeout_ms": 5000,
+        "lb_type": "random",
+        "hosts": [
+            {{
+                "url": "tcp://{ext_auth_target}"
+            }}
+        ]
+    }}
+    '''
+
     self_routes = [
         # {
         #     "timeout_ms": 0,
@@ -154,17 +179,41 @@ class EnvoyConfig (object):
         }
     ]
 
-    def __init__(self, base_config, tls_config):
-        self.mappings = {}
+    def __init__(self, base_config, tls_config, current_modules):
+        self.mappings = []
         self.base_config = base_config
         self.tls_config = tls_config
+        self.current_modules = current_modules
+
+        self.ext_auth_target = None
+
+        auth_config = self.current_modules.get('authentication', None)
+
+        if auth_config:
+            try:
+                ambassador_auth = auth_config.get('ambassador', None)
+
+                if ambassador_auth:
+                    # Use the auth module built in to Ambassador.
+                    self.ext_auth_target = '127.0.0.1:5000'
+                else:
+                    # Look in the config itself for the target.
+                    self.ext_auth_target = auth_config.get('auth_service', None)
+            except Exception as e:
+                # This can't really happen except for the case where auth_config
+                # isn't a dict, and that's unsupported.
+                logging.warning("authentication module has unsupported config '%s'" % json.dumps(auth_config))
+                pass                
 
     def add_mapping(self, name, prefix, service, rewrite):
-        self.mappings[name] = {
+        logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
+        
+        self.mappings.append({
+            'name': name,
             'prefix': prefix,
             'service': service,
             'rewrite': rewrite
-        }
+        })
 
     def write_config(self, path):
         # Generate routes and clusters.
@@ -221,9 +270,9 @@ class EnvoyConfig (object):
             ('istio-mixer' in istio_services)):
             in_istio = True
 
-        for mapping_name in self.mappings.keys():
+        for mapping in self.mappings:
             # Does this mapping refer to a service that we know about?
-            mapping = self.mappings[mapping_name]
+            mapping_name = mapping['name']
             prefix = mapping['prefix']
             service_name = mapping['service']
             rewrite = mapping['rewrite']
@@ -300,10 +349,38 @@ class EnvoyConfig (object):
         # OK. Spin out the config.
         config = copy.deepcopy(self.base_config)
 
+        if self.ext_auth_target:
+            logging.info("enabling ext_auth to %s" % self.ext_auth_target)
+
+            filt0name = dpath.util.get(config, "/listeners/1/filters/0/name")
+
+            if filt0name != 'http_connection_manager':
+                msg = "expected httpconnman as /listeners/1/filters/0, got %s?" % filt0name
+                raise Exception(msg)
+
+            ext_auth_def = {
+                'ext_auth_target': self.ext_auth_target
+            }
+
+            ext_auth_filter_json = EnvoyConfig.ext_auth_filter_template.format(**ext_auth_def)
+
+            logging.debug("ext_auth_filter %s" % ext_auth_filter_json)
+
+            ext_auth_filter = json.loads(ext_auth_filter_json)
+            filter_set = dpath.util.get(config, "/listeners/1/filters/0/config/filters")
+            filter_set.insert(0, ext_auth_filter)
+
+            ext_auth_cluster_json = EnvoyConfig.ext_auth_cluster_template.format(**ext_auth_def)
+
+            logging.debug("ext_auth_cluster %s" % ext_auth_cluster_json)
+
+            ext_auth_cluster = json.loads(ext_auth_cluster_json)
+            clusters.append(ext_auth_cluster)
+
         logging.info("final routes: %s" % routes)
         logging.info("final clusters: %s" % clusters)
 
-        listeners = config.get("listeners", [])
+        # listeners = config.get("listeners", [])
 
         dpath.util.set(
             config,
@@ -402,9 +479,14 @@ class EnvoyStats (object):
                 for x in active_mapping_names
             }
 
+            logging.info("active_cluster_map: %s" % json.dumps(active_cluster_map))
+
             for cluster_name in envoy_stats['cluster']:
                 cluster = envoy_stats['cluster'][cluster_name]
 
+                # Toss any _%d -- that's madness with our Istio code at the moment.
+                cluster = re.sub('_\d+$', '', cluster)
+                
                 if cluster_name in active_cluster_map:
                     mapping_name = active_cluster_map[cluster_name]
                     active_mappings[mapping_name] = {}

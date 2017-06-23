@@ -17,10 +17,11 @@ if [ -z "$REWRITE" ]; then
 fi
 
 if [ -z "$AMBASSADORURL" ]; then
-    path=$(dirname $0)
-    eval $("$SHELL" "$path/geturl")
+    # path=$(dirname $0)
+    # eval $("$SHELL" "$path/geturl")
+    AMBASSADORURL="http://localhost:8888"
 fi
 
 curl -v -XPOST -H "Content-Type: application/json" \
-      -d "{ \"prefix\": \"/$PREFIX/\", \"service\": \"$SERVICE\", \"rewrite\": \"$REWRITE\" }" \
+      -d "{ \"prefix\": \"$PREFIX\", \"service\": \"$SERVICE\", \"rewrite\": \"$REWRITE\" }" \
       "$AMBASSADORURL/ambassador/mapping/$MAPPING"

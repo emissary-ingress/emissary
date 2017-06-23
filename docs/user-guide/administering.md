@@ -12,7 +12,7 @@ POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.nam
 kubectl port-forward "$POD" 8888
 ```
 
-Once that's done, you can use the admin interface for health checks, statistics, and mappings.
+Once that's done, you can use the admin interface for health checks, statistics, [mappings](mappings.md#mappings), [modules](mappings.md#modules), and [consumers](mappings.md#consumers).
 
 ### Health Checks and Stats
 
@@ -23,7 +23,7 @@ curl http://localhost:8888/ambassador/health
 will do a health check;
 
 ```
-curl http://localhost:8888/ambassador/mappings
+curl http://localhost:8888/ambassador/mapping
 ```
 
 will get a list of all the resources that Ambassador has mapped; and
@@ -32,28 +32,37 @@ will get a list of all the resources that Ambassador has mapped; and
 curl http://localhost:8888/ambassador/stats
 ```
 
-will return a JSON dictionary of statistics about resources that Ambassador presently has mapped. Most notably, the `mappings` dictionary lets you know basic health information about the mappings to which Ambassador is providing access:
+will return a JSON dictionary containing a `stats` dictionary with statistics about resources that Ambassador presently has mapped. Most notably, `stats.mappings` contains basic health information about the mappings to which Ambassador is providing access:
 
-- `mappings.$mapping.healthy_members` is the number of healthy back-end systems providing the mapped service;
-- `mappings.$mapping.upstream_ok` is the number of requests to the mapped resource that have succeeded; and
-- `mappings.$mapping.upstream_bad` is the number of requests to the mapped resource that have failed.
+- `stats.mappings.<mapping-name>.healthy_members` is the number of healthy back-end systems providing the mapped service;
+- `stats.mappings.<mapping-name>.upstream_ok` is the number of requests to the mapped resource that have succeeded; and
+- `stats.mappings.<mapping-name>.upstream_bad` is the number of requests to the mapped resource that have failed.
 
 ### Mappings
 
-You use `POST` requests to the admin interface to map a resource to a service:
+You use `PUT` requests to the admin interface to map a resource to a service:
 
 ```
-curl -XPOST -H "Content-Type: application/json" \
-      -d '{ "prefix": "<url-prefix>", "service": "<service-name>", "rewrite": "<rewrite-as>" }' \
+curl -XPUT -H "Content-Type: application/json" \
+      -d <mapping-dict> \
       http://localhost:8888/ambassador/mapping/<mapping-name>
 ```
 
-where
+where `<mapping-name>` is a unique name that identifies this mapping, and `<mapping-dict>` is a dictionary that defines the mapping:
 
-- `<mapping-name>` is a unique name that identifies this mapping
-- `<url-prefix>` is the URL prefix identifying your resource
-- `<service-name>` is the name of the service handling the resource
-- `<rewrite-as>` is what to replace the URL prefix with when talking to the service
+```
+{
+    "prefix": <url-prefix>,
+    "service": <service-name>,
+    "rewrite": <rewrite-as>,
+    "modules": <module-dict>
+}
+```
+
+- `<url-prefix>` is the URL prefix identifying your [resource](#resources)
+- `<service-name>` is the name of the [service](#services) handling the resource
+- `<rewrite-as>` (optional) is what to [replace](#rewriting) the URL prefix with when talking to the service
+- `<module-dict>` (optional) defines any relevant module configuration for this mapping.
 
 The `mapping-name` is used to delete mappings later, and to identify mappings in statistics and such.
 
@@ -72,6 +81,14 @@ The `rewrite-as` part is optional: if not given, it defaults to `/`. Whatever it
 etc.
 
 Ambassador updates Envoy's configuration five seconds after any mapping change. If another change arrives during that time, the timer is restarted.
+
+#### Listing Mappings
+
+You can list all the extant mappings with
+
+```
+curl http://localhost:8888/ambassador/mapping
+```
 
 #### Creating a Mapping
 
@@ -112,6 +129,30 @@ To check whether the `user` mapping exists, you can simply
 ```
 curl http://localhost:8888/ambassador/mapping/user
 ```
+
+### Modules and Consumers
+
+[Modules](mappings.md#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings. 
+
+[Consumers](mappings.md#consumers) represent human end users of Ambassador, and may be required for some modules to function.
+
+At present the only supported module is the [`authentication` module](mappings.md#authentication-module). Its global configuration tells Ambassador which authentication service to use, and it uses per-mapping and per-consumer configuration to tell Ambassador which mappings require authentication and which consumers may authenticate.
+
+To list modules and consumers, use `GET` requests:
+
+```
+curl http://localhost:8888/ambassador/module
+curl http://localhost:8888/ambassador/consumer
+```
+
+You can also directly access per-mapping and per-consumer module configuration:
+
+```
+curl http://localhost:8888/ambassador/mapping/<mapping-name>/module
+curl http://localhost:8888/ambassador/consumer/<consumer-id>/module
+```
+
+See [About Mappings, Modules, and Consumers](mappings.md) for more on administering modules and consumers.
 
 ### Ambassador Microservice Access
 

@@ -25,9 +25,12 @@ class RichStatus (object):
     def __getattr__(self, key):
         return self.info.get(key)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.ok
 
+    def __nonzero__(self):
+        return bool(self)
+        
     def __contains__(self, key):
         return key in self.info
 
