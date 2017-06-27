@@ -22,20 +22,31 @@ VERSIONED = \
 
 artifacts: docker-images ambassador.yaml istio/ambassador.yaml
 
-bump:
-	@if [ -z "$$LEVEL" ]; then \
-	    echo "LEVEL must be set" >&2 ;\
+reg-check:
+	@if [ -z "$$DOCKER_REGISTRY" ]; then \
+	    echo "DOCKER_REGISTRY must be set" >&2 ;\
 	    exit 1 ;\
 	fi
 
-	@if [ -z "$$DOCKER_REGISTRY" ]; then \
-	    echo "DOCKER_REGISTRY must be set" >&2 ;\
+bump: reg-check
+	@if [ -z "$$LEVEL" ]; then \
+	    echo "LEVEL must be set" >&2 ;\
 	    exit 1 ;\
 	fi
 
 	@echo "Bumping to new $$LEVEL version..."
 	bump2version --no-tag --no-commit "$$LEVEL"
 	@echo "Building version $$(python ambassador/VERSION.py)"
+
+dev-bump: reg-check
+	@echo "Bumping for development..."
+	bump2version --allow-dirty --no-tag --no-commit \
+	    --new-version `git describe --tags | sed s/^v//` commit
+	@echo "Building version $$(python ambassador/VERSION.py)"
+
+new-commit:
+	$(MAKE) dev-bump
+	$(MAKE) artifacts
 
 new-patch:
 	$(MAKE) bump LEVEL=patch

@@ -31,9 +31,13 @@ Normal Workflow
 
    Hopefully this step is clear.
 
-2. `make new-$level`
+2. `make new-commit`
 
-   This will correctly set the version number everywhere, then build (and probably push) Docker images, then build YAML files for you. IT WILL NOT COMMIT OR TAG.
+   This will compute a temporary version number based on the current version and the git commit ID (`git describe --tags`), then update version numbers everywhere to that version number. Then it will build (and probably push) Docker images, then build YAML files for you. IT WILL NOT COMMIT OR TAG. With new version numbers everywhere, you can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
+
+3. `make new-$level`
+
+   This will correctly set the version number everywhere by incrementing the specified level and removing any commit ID information, then build (and probably push) Docker images, then build YAML files for you. IT WILL NOT COMMIT OR TAG.
 
    `$level` must be one of "major", "minor", or "patch", using [semantic versioning](http://semver.org/):
 
@@ -41,9 +45,7 @@ Normal Workflow
    "minor" is for new functionality that's still backward compatible.
    "patch" is for bug fixes.
 
-   (You can do "make artifacts" if you want to rebuild artifacts but not change the version, even though that's likely to not be a great idea.)
-
-3. `make tag`
+4. `make tag`
 
    Do this once you're happy with everything. It will commit (if need be) and then create a Git tag for your version.
 
