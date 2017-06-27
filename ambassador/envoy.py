@@ -276,6 +276,7 @@ class EnvoyConfig (object):
             prefix = mapping['prefix']
             service_name = mapping['service']
             rewrite = mapping['rewrite']
+            modules = mapping.get('modules', {})
 
             if service_name in service_info:
                 portspecs = service_info[service_name]
@@ -325,6 +326,9 @@ class EnvoyConfig (object):
 
                     cluster = json.loads(cluster_json)
                     cluster['hosts'] = [ json.loads(host_json) ]
+
+                    if 'grpc' in modules:
+                        cluster['features'] = 'http2'
 
                     # ...and we can write a routing entry that routes to that cluster...
                     route_json = EnvoyConfig.route_template.format(**service_def)
