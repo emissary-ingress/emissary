@@ -7,7 +7,7 @@ env | grep TRAVIS | sort
 # Do we have any non-doc changes?
 change_count=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
 
-if [ $change_count -eq 0 ]; then
+if [ -n "$TRAVIS_COMMIT_RANGE" ] && [ $change_count -eq 0 ]; then
     echo "No non-doc changes"
     exit 0
 fi
