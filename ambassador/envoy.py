@@ -283,8 +283,8 @@ class EnvoyConfig (object):
 
                 istio_string = " (in Istio)" if in_istio else ""
 
-                logging.info("mapping %s%s: pfx %s => svc %s, portspecs %s" % 
-                             (mapping_name, istio_string, prefix, service_name, portspecs))
+                logging.info("mapping %s%s: pfx %s => svc %s, portspecs %s, modules %s" %
+                             (mapping_name, istio_string, prefix, service_name, portspecs, modules))
 
                 # OK, blatant hackery coming up here.
                 #
