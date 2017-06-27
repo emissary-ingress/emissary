@@ -103,7 +103,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: ${AMREG}ambassador:0.9.0
+        image: ${AMREG}ambassador:0.10.0
         imagePullPolicy: Always
         env:
         - name: AMBASSADOR_DB_HOST
@@ -121,7 +121,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: ${STREG}statsd:0.9.0
+        image: ${STREG}statsd:0.10.0
       volumes:
       - name: cert-data
         secret:
