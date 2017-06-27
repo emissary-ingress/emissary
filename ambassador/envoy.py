@@ -205,14 +205,15 @@ class EnvoyConfig (object):
                 logging.warning("authentication module has unsupported config '%s'" % json.dumps(auth_config))
                 pass                
 
-    def add_mapping(self, name, prefix, service, rewrite):
+    def add_mapping(self, name, prefix, service, rewrite, modules):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
         
         self.mappings.append({
             'name': name,
             'prefix': prefix,
             'service': service,
-            'rewrite': rewrite
+            'rewrite': rewrite,
+            'modules': modules
         })
 
     def write_config(self, path):

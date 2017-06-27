@@ -288,7 +288,8 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
 
         for mapping in current_mappings:
             config.add_mapping(mapping['name'], mapping['prefix'],
-                               mapping['service'], mapping['rewrite'])
+                               mapping['service'], mapping['rewrite'],
+                               mapping['modules'])
 
         try:
             config.write_config(envoy_config_path)
