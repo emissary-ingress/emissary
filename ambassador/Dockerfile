@@ -3,7 +3,7 @@ FROM datawire/ambassador-envoy:latest
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
-      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador \
+      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
       DESCRIPTION              = "Ambassador REST Service" \
       VENDOR                   = "Datawire" \
       VENDOR_URL               = "https://datawire.io/"
@@ -11,7 +11,7 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # This Dockerfile is set up to install all the application-specific stuff into
 # /application.
 #
-# NOTE: If you don't know what you're doing, it's probably a mistake to 
+# NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
 # We need curl, pip, and dnsutils (for nslookup).
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get -q install -y \
     python3-pip \
     dnsutils
 
-# Set WORKDIR to /application which is the root of all our apps then COPY 
+# Set WORKDIR to /application which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a
 # full reinstall of all dependencies when dependencies are not changed.
 
