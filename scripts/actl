@@ -12,4 +12,4 @@ trap 'rm -rf $tmp' EXIT
 
 kubectl config view --flatten >> $tmp/kubeconfig
 
-docker run --rm -v=${tmp}/kubeconfig:/kubeconfig:ro -it ark3/actl "$@"
+docker run --rm -e "KUBECONFIG=/kubeconfig" -v=${tmp}/kubeconfig:/kubeconfig:ro -it ark3/actl "$@"

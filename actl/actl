@@ -59,6 +59,8 @@ def call_command(cmd, do_exit=True, **kwargs):
 
 def read_from_command(cmd, **kwargs):
     process = call_command(cmd, stdout=subprocess.PIPE, **kwargs)
+    if process is None:
+        return ""
     return process.stdout
 
 
@@ -76,7 +78,7 @@ def get_ambassador_pod_name():
 
 
 def get_ambassador_url():
-    kubecontext = read_from_command("kubectl config current-context")
+    kubecontext = read_from_command("kubectl config current-context", do_exit=False)
     if kubecontext == "minikube":
         return read_from_command("minikube service --url ambassador")
     inspect = "kubectl get service ambassador --output jsonpath={%s}"
