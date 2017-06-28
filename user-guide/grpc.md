@@ -48,11 +48,11 @@ curl -XPUT -H "Content-Type: application/json" -d '{ "grpc": true }' \
 
 curl -XPUT -H"Content-Type: application/json" \
      -d'{ "prefix": "/helloworld.Greeter/", "service": "grpc-greet", "rewrite": "/helloworld.Greeter/", "modules": {"grpc": true} }' \
-     http://localhost:8888/ambassador/mapping/qotm_map
+     http://localhost:8888/ambassador/mapping/greeter_map
 ```
 
 Now you should be able to access your service. In this example, `$AMBASSADORHOST` is the hostname or IP address contained in `$AMBASSADORURL`.
 
 ```
-docker run -e ADDRESS=$AMBASSADORHOST:80 enm10k/grpc-hello-world greeter_client
+docker run -e ADDRESS=${AMBASSADORHOST}:80 enm10k/grpc-hello-world greeter_client
 ```
