@@ -43,7 +43,7 @@ kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/de
 To create an Ambassador mapping for this service, you need the URL prefix, which is the full service name (including package path) as described in the [proto definition file](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto) for the service. In this example, the service prefix is `helloworld.Greeter`. Enable Ambassador's GRPC module and then create the mapping:
 
 ```
-curl -XPUT -H "Content-Type: application/json" -d <module-dict> \
+curl -XPUT -H "Content-Type: application/json" -d '{ "grpc": true }' \
       http://localhost:8888/ambassador/module/grpc
 
 curl -XPUT -H"Content-Type: application/json" \
