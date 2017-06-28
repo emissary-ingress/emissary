@@ -40,12 +40,9 @@ Also, add a [Hello World GRPC service](https://github.com/grpc/grpc-go/tree/mast
 kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-grpc.yaml
 ```
 
-To create an Ambassador mapping for this service, you need the URL prefix, which is the full service name (including package path) as described in the [proto definition file](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto) for the service. In this example, the service prefix is `helloworld.Greeter`. Enable Ambassador's GRPC module and then create the mapping:
+To create an Ambassador mapping for this service, you need the URL prefix, which is the full service name (including package path) as described in the [proto definition file](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto) for the service. In this example, the service prefix is `helloworld.Greeter`. Create the mapping with the GRPC module included:
 
 ```
-curl -XPUT -H "Content-Type: application/json" -d '{ "grpc": true }' \
-      http://localhost:8888/ambassador/module/grpc
-
 curl -XPUT -H"Content-Type: application/json" \
      -d'{ "prefix": "/helloworld.Greeter/", "service": "grpc-greet", "rewrite": "/helloworld.Greeter/", "modules": {"grpc": true} }' \
      http://localhost:8888/ambassador/mapping/greeter_map
