@@ -1,0 +1,17 @@
+{
+    "title": "Ambassador: API Gateway for microservices and Kubernetes",
+    "root": ".",
+    "plugins": [
+        "footer",
+        "gtm"
+    ],
+    "pluginsConfig": {
+      "layout": {
+        "footerPath": "layouts/footer.html"
+      },
+      "gtm": {
+        "token": "GTM-TPMQ838",
+        "virtualPageViews": true
+      }
+    }
+}
