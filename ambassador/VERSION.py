@@ -1,5 +1,5 @@
 # Don't change this line without also changing .bumpversion.cfg
-Version = "0.9.1"
+Version = "0.10.0"
 
 if __name__ == "__main__":
     print(Version)
