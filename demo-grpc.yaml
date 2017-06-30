@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: grpc-greet
+  name: grpc-greet
+spec:
+  type: ClusterIP
+  ports:
+  - name: grpc-greet
+    port: 443
+  selector:
+    service: grpc-greet
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: grpc-greet
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: grpc-greet
+    spec:
+      containers:
+      - name: grpc-greet
+        image: enm10k/grpc-hello-world
+        env:
+          - name: PORT
+            value: "443"
+        command:
+          - greeter_server
+        resources: {}
+      restartPolicy: Always
+status: {}

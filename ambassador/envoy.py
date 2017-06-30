@@ -205,14 +205,15 @@ class EnvoyConfig (object):
                 logging.warning("authentication module has unsupported config '%s'" % json.dumps(auth_config))
                 pass                
 
-    def add_mapping(self, name, prefix, service, rewrite):
+    def add_mapping(self, name, prefix, service, rewrite, modules):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
         
         self.mappings.append({
             'name': name,
             'prefix': prefix,
             'service': service,
-            'rewrite': rewrite
+            'rewrite': rewrite,
+            'modules': modules
         })
 
     def write_config(self, path):
@@ -276,14 +277,15 @@ class EnvoyConfig (object):
             prefix = mapping['prefix']
             service_name = mapping['service']
             rewrite = mapping['rewrite']
+            modules = mapping.get('modules', {})
 
             if service_name in service_info:
                 portspecs = service_info[service_name]
 
                 istio_string = " (in Istio)" if in_istio else ""
 
-                logging.info("mapping %s%s: pfx %s => svc %s, portspecs %s" % 
-                             (mapping_name, istio_string, prefix, service_name, portspecs))
+                logging.info("mapping %s%s: pfx %s => svc %s, portspecs %s, modules %s" %
+                             (mapping_name, istio_string, prefix, service_name, portspecs, modules))
 
                 # OK, blatant hackery coming up here.
                 #
@@ -325,6 +327,9 @@ class EnvoyConfig (object):
 
                     cluster = json.loads(cluster_json)
                     cluster['hosts'] = [ json.loads(host_json) ]
+
+                    if 'grpc' in modules:
+                        cluster['features'] = 'http2'
 
                     # ...and we can write a routing entry that routes to that cluster...
                     route_json = EnvoyConfig.route_template.format(**service_def)
