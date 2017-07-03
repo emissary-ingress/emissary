@@ -38,7 +38,7 @@
 - Ambassador now has the concept of _consumers_ to represent end-users of mapped services
 - Ambassador supports auth via an external auth server
 
-Basic auth is covered in [Getting Started][start-0.9.0]. Learn about modules and consumers and see an example of external auth in [About Mappings, Modules, and Consumers][concept-0.9.0].
+Basic auth is covered in [Getting Started][start-0.9.0]. Learn about modules and consumers and see an example of external auth in [About Mappings, Modules, and Consumers][concepts-0.9.0].
 
 ### Changed
 - State management (via Ambassador store) has been refactored
