@@ -1,7 +1,11 @@
 # Changelog
 
 ## [Unreleased]
-[Unreleased]: https://github.com/datawire/ambassador/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/datawire/ambassador/compare/v0.10.1...HEAD
+
+
+## [0.10.1] July 3, 2017
+[0.10.1]: https://github.com/datawire/ambassador/compare/v0.10.0...v0.10.1
 
 ### Added
 - Changelog
