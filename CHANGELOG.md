@@ -22,53 +22,49 @@
 ## [0.8.12] June 07, 2017
 [0.8.12]: https://github.com/datawire/ambassador/compare/v0.8.11...v0.8.12
 
+### Added
+- Mappings can now be updated
+
 
 ## [0.8.11] May 24, 2017
 [0.8.11]: https://github.com/datawire/ambassador/compare/v0.8.10...v0.8.11
 
+### Added
+- Ambassador interoperates with [Istio]
+- There is additional documentation for statistics and monitoring
 
-## [0.8.10] May 24, 2017
-[0.8.10]: https://github.com/datawire/ambassador/compare/v0.8.9...v0.8.10
-
-
-## [0.8.9] May 23, 2017
-[0.8.9]: https://github.com/datawire/ambassador/compare/v0.8.8...v0.8.9
-
-
-## [0.8.8] May 23, 2017
-[0.8.8]: https://github.com/datawire/ambassador/compare/v0.8.7...v0.8.8
-
-
-## [0.8.7] May 23, 2017
-[0.8.7]: https://github.com/datawire/ambassador/compare/v0.8.6...v0.8.7
+### Fixed
+- Bug in mapping change detection
+- Bug in Istio documentation
+- Release machinery issues
+- Istio-related YAML
 
 
 ## [0.8.6] May 05, 2017
 [0.8.6]: https://github.com/datawire/ambassador/compare/v0.8.5...v0.8.6
 
-
-## [0.8.5] May 05, 2017
-[0.8.5]: https://github.com/datawire/ambassador/compare/v0.8.4...v0.8.5
-
-
-## [0.8.4] May 05, 2017
-[0.8.4]: https://github.com/datawire/ambassador/compare/v0.8.3...v0.8.4
-
-
-## [0.8.3] May 05, 2017
-[0.8.3]: https://github.com/datawire/ambassador/compare/v0.8.2...v0.8.3
+### Added
+- Ambassador releases are now performed by Travis CI
 
 
 ## [0.8.2] May 04, 2017
 [0.8.2]: https://github.com/datawire/ambassador/compare/v0.8.1...v0.8.2
 
-
-## [0.8.1] May 04, 2017
-[0.8.1]: https://github.com/datawire/ambassador/compare/v0.8.0...v0.8.1
+### Changed
+- Documentation updates
 
 
 ## [0.8.0] May 02, 2017
 [0.8.0]: https://github.com/datawire/ambassador/compare/v0.7.0...v0.8.0
+
+### Added
+- [Ambassador has a website!][Ambassador]
+- Ambassador supports auth via TLS client certificates
+- There are some additional helper scripts in the `scripts` directory
+
+### Changed
+- Ambassador's admin interface is now on local port 8888 while mappings are available on port 80/443 depending on whether TLS is enabled
+- Multiple instances of Ambassador talking to the same Ambassador Store pod will pick up each other's changes automatically
 
 
 ## [0.7.0] May 01, 2017
@@ -213,4 +209,6 @@
 
 Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador follows [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+[Ambassador]: http://www.getambassador.io/
 [Telepresence]: http://telepresence.io
+[Istio]: https://istio.io/
