@@ -9,9 +9,10 @@
 
 ## [0.10.0] June 30, 2017
 [0.10.0]: https://github.com/datawire/ambassador/compare/v0.9.1...v0.10.0
+[grpc-0.10.0]: https://github.com/datawire/ambassador/blob/v0.10.0/docs/user-guide/grpc.md
 
 ### Added
-- Ambassador supports GRPC services (and other HTTP/2-only services) using the GRPC module
+- Ambassador supports [GRPC services][grpc-0.10.0] (and other HTTP/2-only services) using the GRPC module
 
 ### Fixed
 - Minor typo in Ambassador's `Dockerfile` that break some versions of Docker
@@ -19,19 +20,25 @@
 
 ## [0.9.1] June 28, 2017
 [0.9.1]: https://github.com/datawire/ambassador/compare/v0.9.0...v0.9.1
+[building-0.9.1]: https://github.com/datawire/ambassador/blob/v0.9.1/BUILDING.md
 
 ### Changed
 - Made development a little easier by automating dev version numbers so that modified Docker images update in Kubernetes
+- Updated [`BUILDING.md`][building-0.9.1]
 
 
 ## [0.9.0] June 23, 2017
 [0.9.0]: https://github.com/datawire/ambassador/compare/v0.8.12...v0.9.0
+[start-0.9.0]: https://github.com/datawire/ambassador/blob/v0.9.0/docs/user-guide/getting-started.md
+[concepts-0.9.0]: https://github.com/datawire/ambassador/blob/v0.9.0/docs/user-guide/mappings.md
 
 ### Added
 - Ambassador supports HTTP Basic Auth
 - Ambassador now has the concept of _modules_ to enable and configure optional features such as auth
 - Ambassador now has the concept of _consumers_ to represent end-users of mapped services
 - Ambassador supports auth via an external auth server
+
+Basic auth is covered in [Getting Started][start-0.9.0]. Learn about modules and consumers and see an example of external auth in [About Mappings, Modules, and Consumers][concept-0.9.0].
 
 ### Changed
 - State management (via Ambassador store) has been refactored
@@ -47,16 +54,16 @@
 
 ## [0.8.11] May 24, 2017
 [0.8.11]: https://github.com/datawire/ambassador/compare/v0.8.10...v0.8.11
+[istio-0.8.11]: https://github.com/datawire/ambassador/blob/v0.8.11/docs/user-guide/with-istio.md
+[stats-0.8.11]: https://github.com/datawire/ambassador/blob/v0.8.11/docs/user-guide/statistics.md
 
 ### Added
-- Ambassador interoperates with [Istio]
-- There is additional documentation for statistics and monitoring
+- Ambassador interoperates with [Istio] -- see [Ambassador and Istio][istio-0.8.11]
+- There is additional documentation for [statistics and monitoring][stats-0.8.11]
 
 ### Fixed
 - Bug in mapping change detection
-- Bug in Istio documentation
 - Release machinery issues
-- Istio-related YAML
 
 
 ## [0.8.6] May 05, 2017
@@ -75,10 +82,11 @@
 
 ## [0.8.0] May 02, 2017
 [0.8.0]: https://github.com/datawire/ambassador/compare/v0.7.0...v0.8.0
+[client-tls-0.8.0]: https://github.com/datawire/ambassador/blob/v0.8.0/README.md#using-tls-for-client-auth
 
 ### Added
 - [Ambassador has a website!][Ambassador]
-- Ambassador supports auth via TLS client certificates
+- Ambassador supports auth via [TLS client certificates][client-tls-0.8.0]
 - There are some additional helper scripts in the `scripts` directory
 
 ### Changed
@@ -88,9 +96,10 @@
 
 ## [0.7.0] May 01, 2017
 [0.7.0]: https://github.com/datawire/ambassador/compare/v0.6.0...v0.7.0
+[start-0.7.0]: https://github.com/datawire/ambassador/blob/v0.7.0/README.md#mappings
 
 ### Added
-- Ambassador can rewrite the request URL path prefix before forwarding the request to your service
+- Ambassador can rewrite the request URL path prefix before forwarding the request to your service (covered in [Getting Started][start-0.7.0])
 - Ambassador supports additional stats aggregators: Datadog, Grafana
 
 ### Changed
