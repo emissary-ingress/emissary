@@ -10,13 +10,32 @@
 ## [0.10.0] June 30, 2017
 [0.10.0]: https://github.com/datawire/ambassador/compare/v0.9.1...v0.10.0
 
+### Added
+- Ambassador supports GRPC services (and other HTTP/2-only services) using the GRPC module
+
+### Fixed
+- Minor typo in Ambassador's `Dockerfile` that break some versions of Docker
+
 
 ## [0.9.1] June 28, 2017
 [0.9.1]: https://github.com/datawire/ambassador/compare/v0.9.0...v0.9.1
 
+### Changed
+- Made development a little easier by automating dev version numbers so that modified Docker images update in Kubernetes
+
 
 ## [0.9.0] June 23, 2017
 [0.9.0]: https://github.com/datawire/ambassador/compare/v0.8.12...v0.9.0
+
+### Added
+- Ambassador supports HTTP Basic Auth
+- Ambassador now has the concept of _modules_ to enable and configure optional features such as auth
+- Ambassador now has the concept of _consumers_ to represent end-users of mapped services
+- Ambassador supports auth via an external auth server
+
+### Changed
+- State management (via Ambassador store) has been refactored
+- Switched to [Ambassador-Envoy] for the base Docker image
 
 
 ## [0.8.12] June 07, 2017
@@ -113,20 +132,8 @@
 
 ### Changed
 - Ambassador now reconfigures Envoy automatically once changes have settled for five seconds
-
-
-## [0.3.3] April 07, 2017
-[0.3.3]: https://github.com/datawire/ambassador/compare/v0.3.2...v0.3.3
-
-### Changed
-- Mappings no longer require specifying the port as it is not needed
-
-
-## [0.3.2] April 07, 2017
-[0.3.2]: https://github.com/datawire/ambassador/compare/v0.3.1...v0.3.2
-
-### Changed
 - Envoy stats and Ambassador stats are separate
+- Mappings no longer require specifying the port as it is not needed
 
 ### Fixed
 - SDS does the right thing with unnamed ports
@@ -135,52 +142,26 @@
 ## [0.3.1] April 06, 2017
 [0.3.1]: https://github.com/datawire/ambassador/compare/v0.3.0...v0.3.1
 
+### Added
+- Envoy stats accessible through Ambassador
+- Basic interpretation of cluster stats
+
 ### Changed
 - Split up `ambassador.py` into multiple files
 - Switch to a debug build of Envoy
 
 
-## [0.3.0] April 06, 2017
-[0.3.0]: https://github.com/datawire/ambassador/compare/v0.2.0...v0.3.0
-
-### Added
-- Basic interpretation of cluster stats
-
-
-## [0.2.0] April 06, 2017
-[0.2.0]: https://github.com/datawire/ambassador/compare/v0.1.9...v0.2.0
-
-### Added
-- Envoy stats accessible through Ambassador
-
-
 ## [0.1.9] April 03, 2017
 [0.1.9]: https://github.com/datawire/ambassador/compare/v0.1.8...v0.1.9
 
-### Fixed
-- Ambassador keeps running with an empty services list (part 2)
-
-
-## [0.1.8] April 03, 2017
-[0.1.8]: https://github.com/datawire/ambassador/compare/v0.1.7...v0.1.8
-
-### Changed
-- Conditionalize Docker push
-
-
-## [0.1.7] April 03, 2017
-[0.1.7]: https://github.com/datawire/ambassador/compare/v0.1.6...v0.1.7
-
-### Changed
-- Updated to current Envoy and pinned the Envoy version
-- Use Bumpversion for version management
-
-
-## [0.1.6] April 03, 2017
-[0.1.6]: https://github.com/datawire/ambassador/compare/v0.1.5...v0.1.6
-
 ### Changed
 - Ambassador configuration on `/ambassador-config/` prefix rather than exposed on port 8001
+- Updated to current Envoy and pinned the Envoy version
+- Use Bumpversion for version management
+- Conditionalized Docker push
+
+### Fixed
+- Ambassador keeps running with an empty services list (part 2)
 
 
 ## [0.1.5] March 31, 2017
@@ -210,5 +191,6 @@
 Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador follows [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 [Ambassador]: http://www.getambassador.io/
+[Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
