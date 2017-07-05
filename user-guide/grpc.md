@@ -53,3 +53,7 @@ Now you should be able to access your service. In this example, `$AMBASSADORHOST
 ```
 docker run -e ADDRESS=${AMBASSADORHOST}:80 enm10k/grpc-hello-world greeter_client
 ```
+
+#### Note
+
+Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, e.g., when using [Istio](with-istio.md), you may find that GRPC requests fail even with correct Ambassador configuration.
