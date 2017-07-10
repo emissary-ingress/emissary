@@ -1,0 +1,10 @@
+.grunt
+node_modules
+
+# Book build output
+_book
+
+# eBook build output
+*.epub
+*.mobi
+*.pdf
