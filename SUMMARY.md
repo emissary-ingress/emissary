@@ -1,18 +1,39 @@
 # Table of Contents
 
 * [Why Ambassador?](about/why-ambassador.md)
-* [Features](about/features-and-functionality.md)
+* [Features and Benefits](about/features-and-benefits.md)
+* [Ambassador Concepts](about/concepts.md)
+* [Changelog](about/changelog.md)
 * [Roadmap](about/roadmap.md)
 
-## User Guide
+## Tutorials
 
-* [Getting started](user-guide/getting-started.md)
+* [Getting Started](user-guide/getting-started.md)
 * [Ambassador and Istio](user-guide/with-istio.md)
+
+## How-to Guides
+
+* [Microservice Access](how-to/service-url.md)
+* [Adminstration Port](how-to/admin-port.md)
+* [Mappings, Routes, and Rewriting](how-to/set-routes.md)
+* [TLS Termination](how-to/tls-termination.md)
+* [Auth with TLS client certificates](how-to/auth-tls-certs.md)
+* [Auth with HTTP Basic Auth](how-to/auth-http-basic.md)
+* [Auth with an external auth service](how-to/auth-external.md)
+* [Statistics and Monitoring](how-to/statistics.md)
+* [gRPC and other HTTP/2-only services](how-to/grpc.md)
+
+## Reference
+* [Ambassador REST APIs](reference/rest-apis.md)
+
+## Developers
+
+* [Building Ambassador](dev/building.md)
+
+## Not fully transitioned (yet)
+
 * [About Mappings, Modules, and Consumers](user-guide/mappings.md)
+* [Running Ambassador](user-guide/running.md)
 * [Administering Ambassador](user-guide/administering.md)
 * [TLS and Auth](user-guide/tls-auth.md)
-* [Statistics](user-guide/statistics.md)
 
-## Developer's Guide
-
-* [Building Ambassador](user-guide/building.md)

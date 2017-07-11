@@ -1,4 +1,4 @@
-# Features
+# Features and Benefits
 
 Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). Key features in Ambassador include:
 
