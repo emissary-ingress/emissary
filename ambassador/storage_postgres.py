@@ -1,6 +1,7 @@
 import sys
 
 import json
+import logging
 import os
 
 import pg8000
@@ -69,6 +70,8 @@ class AmbassadorStore (object):
         # no-ops if not self.status.
 
         self.conn = self._get_connection()
+        logging.info("storage_postgres: conn %sset, status %s" % 
+                     ("NOT " if not self.conn else "", self.status))
 
         # Get a cursor and verify our database.
         self.cursor = self._get_cursor()
@@ -116,7 +119,8 @@ class AmbassadorStore (object):
             # Start with autocommit on.
             conn.autocommit = True
         except pg8000.Error as e:
-            self.status = RichStatus.fromError("could not connect to database: %s" % e)
+            self.status = RichStatus.fromError("could not connect to db %s:%d - %s" % 
+                                                (self.db_host, self.db_port, e))
 
         return conn
 
