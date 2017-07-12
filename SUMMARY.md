@@ -34,6 +34,5 @@
 
 ## Old Docs
 
-* [About Mappings, Modules, and Consumers](user-guide/mappings.md)
 * [Running Ambassador](user-guide/running.md)
 * [Administering Ambassador](user-guide/administering.md)
