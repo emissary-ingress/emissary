@@ -11,7 +11,7 @@ As an example, for a given service `usersvc`, here are some interesting statisti
 Statistics are exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol. Ambassador automatically sends statistics information to a Kubernetes service called `statsd-sink` using typical StatsD protocol settings, UDP to port 8125. We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
 
 
-### Graphite
+## Graphite
 
 [Graphite](http://graphite.readthedocs.org/) is a web-based realtime graphing system. Spin up an example Graphite setup:
 
@@ -25,7 +25,7 @@ This sets up the `statsd-sink` service and a deployment that contains Graphite a
 This sets up Graphite access at `http://localhost:8080/`.
 
 
-### Prometheus
+## Prometheus
 
 [Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you already use Prometheus, use the sample StatsD Exporter YAML file to get started:
 
@@ -45,7 +45,7 @@ The supplied configuration file `helm-prom-config.yaml` includes `statsd-sink` a
 Now you can access the Prometheus web interface on `http://localhost:9090/`.
 
 
-### Datadog
+## Datadog
 
 If you are a user of the [Datadog](https://www.datadoghq.com/) monitoring system, pulling in Ambassador statistics is very easy. Replace the sample API key in the YAML file with your own, then launch the DogStatsD agent:
 

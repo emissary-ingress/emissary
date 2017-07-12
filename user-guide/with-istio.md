@@ -1,16 +1,16 @@
 # Ambassador and Istio
 
-<hr />
+---
 
 Are you looking to run Ambassador without Istio? You probably want to check out the [Getting Started](getting-started.md) guide for Ambassador alone.
 
-<hr />
+---
 
 Ambassador is an API Gateway for microservices. [Istio](https://istio.io/) is a service mesh for microservices. Both use [Envoy](https://lyft.github.io/envoy/) for the heavy lifting.
 
 Given the use of Envoy, there's a good amount of overlap between the two. In particular, we expect to be able to bring more of Ambassador's functionality into Istio over time -- but for now, using Ambassador as an API gateway fronting an Istio mesh is the simplest way to get an integrated service mesh that handles external traffic. Ambassador takes care of URL rewriting and managing the `Host` header on the way into your microservices, two things that can be otherwise quite irritating for your microservice developers.
 
-### Caveats
+## Caveats
 
 It's still early days for both Ambassador and Istio, so **at present we have not tested Ambassador with the Istio Auth feature**. That'll happen soon, never fear.
 
@@ -18,7 +18,7 @@ We also assume that you've already gotten a Kubernetes cluster set up with Istio
 
 Make sure to remove Istio's default ingress controller, as we are about to replace it. If `kubectl get ingress` shows you an ingress controller:
 
-```
+```shell
 NAME      HOSTS     ADDRESS          PORTS     AGE
 gateway   *         104.154.161.38   80        10m
 ```
@@ -29,7 +29,7 @@ make sure you remove it (`kubectl delete ingress gateway`) before proceeding.
 
 Once Istio is running (minus its default ingress controller -- see above), you can start Ambassador running as follows:
 
-```
+```shell
 kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/istio/ambassador.yaml
 ```
 
@@ -41,7 +41,7 @@ That will launch Ambassador and configure the Istio ingress controller to route 
 
 `kubectl get pods` should show you something like this:
 
-```
+```shell
 NAME                             READY     STATUS    RESTARTS   AGE
 ambassador-4101501082-pgmdg      2/2       Running   0          29m
 astore-601808212-107x7           1/1       Running   0          29m
@@ -65,7 +65,7 @@ Getting the three microservices hooked into the Istio service mesh isn't quite a
 
 However, where `kubectl` can directly use definition files via GitHub URLs, as we do above, Istio's tooling need local files. So we'll start by downloading the YAML file we'll need:
 
-```
+```shell
 curl -o micromaze.yaml https://raw.githubusercontent.com/datawire/ambassador/master/istio/micromaze.yaml
 ```
 
@@ -73,7 +73,7 @@ curl -o micromaze.yaml https://raw.githubusercontent.com/datawire/ambassador/mas
 
 Once you've downloaded `micromaze.yaml`, you can deploy the `micromaze` app into the Istio mesh using `bash`:
 
-```
+```shell
 export MANAGER_HUB="docker.io/istio"
 export MANAGER_TAG="0.1.2"
 kubectl apply -f <(istioctl kube-inject -f micromaze.yaml)
@@ -83,7 +83,7 @@ kubectl apply -f <(istioctl kube-inject -f micromaze.yaml)
 
 Once this is done, `kubectl get pods` should show quite a few pods running:
 
-```
+```shell
 NAME                             READY     STATUS    RESTARTS   AGE
 ambassador-4101501082-pgmdg      2/2       Running   0          29m
 astore-601808212-107x7           1/1       Running   0          29m
@@ -101,20 +101,20 @@ usersvc-2967736717-03mgv         2/2       Running   0          16m
 
 At this point Ambassador has no mappings, and we need to define some. We'll use `kubectl port-forward` to get access to Ambassador's administrative interface:
 
-```
+```shell
 POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward "$POD" 8888
 ```
 
 Once that's done, `localhost:8888` is where you can talk to the Ambassador's administrative interface. Let's start with a basic health check of Ambassador itself:
 
-```
-$ curl http://localhost:8888/ambassador/health
+```shell
+curl http://localhost:8888/ambassador/health
 ```
 
 which should give something like this if all is well:
 
-```
+```json
 {
   "hostname": "ambassador-4101501082-pgmdg",
   "msg": "ambassador health check OK",
@@ -126,7 +126,7 @@ which should give something like this if all is well:
 
 We need to map the `/maze/` resource to our `mazesvc`, which needs a POST request:
 
-```
+```shell
 curl -XPOST -H "Content-Type: application/json" \
       -d '{ "prefix": "/maze/", "service": "mazesvc", "rewrite": "/maze/" }' \
       http://localhost:8888/ambassador/mapping/maze_map
@@ -134,13 +134,13 @@ curl -XPOST -H "Content-Type: application/json" \
 
 and after that, you can read back and see that the mapping is there:
 
-```
+```shell
 curl http://localhost:8888/ambassador/mappings
 ```
 
 which should show you something like
 
-```
+```json
 {
   "count": 1,
   "hostname": "ambassador-4101501082-pgmdg",
@@ -164,7 +164,7 @@ We won't map any other services -- the `mazesvc` is meant to be the only one exp
 
 To talk to the `mazesvc` we need to go through the the Istio ingress controller: it's our path into the mesh at this point, which means that we need to figure out how to talk to it. Sadly, this depends a bit on where your cluster is running, but `kubectl get ingress -o wide` should show you what you need to know in most cases:
 
-```
+```shell
 $ kubectl get ingress -o wide
 NAME             HOSTS     ADDRESS         PORTS     AGE
 simple-ingress   *         35.184.167.177   80        1h
@@ -172,7 +172,7 @@ simple-ingress   *         35.184.167.177   80        1h
 
 In this case (running on Google Container Engine) we'd set
 
-```
+```shell
 export ISTIO_URL=http://35.184.167.177
 ```
 
@@ -180,13 +180,13 @@ export ISTIO_URL=http://35.184.167.177
 
 Once that's done, you should be able to perform a simple health check of the `mazesvc` itself with
 
-```
+```shell
 curl ${ISTIO_URL}/maze/health
 ```
 
 and you should see something like
 
-```
+```json
 {
   "hostname": "mazesvc-3997176150-q1wn0",
   "msg": "mazesvc health check OK",

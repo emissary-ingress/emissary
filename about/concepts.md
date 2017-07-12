@@ -8,7 +8,7 @@ At the heart of Ambassador are the ideas of [_mappings_](#mappings), [_modules_]
 
 - [Consumers](#consumers) represent human end users of Ambassador, and may be required for some modules to function. For example, the `authentication` module may require defining consumers to let Ambassador know who's allowed to authenticate.
 
-## <a name="mappings">Mappings</a>
+## Mappings
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL profix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
@@ -18,7 +18,7 @@ Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the 
 
 You use `PUT` requests to the admin interface to map a resource to a service:
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
       -d <mapping-dict> \
       http://localhost:8888/ambassador/mapping/<mapping-name>
@@ -26,7 +26,7 @@ curl -XPUT -H "Content-Type: application/json" \
 
 where `<mapping-name>` is a unique name that identifies this mapping, and `<mapping-dict>` is a dictionary that defines the mapping:
 
-```
+```json
 {
     "prefix": <url-prefix>,
     "service": <service-name>,
@@ -42,25 +42,25 @@ where `<mapping-name>` is a unique name that identifies this mapping, and `<mapp
 
 You can get a list of all the mappings that Ambassador knows about with
 
-```
+```shell
 curl http://localhost:8888/ambassador/mapping
 ```
 
 and you can delete a specific mapping with
 
-```
+```shell
 curl -XDELETE http://localhost:8888/ambassador/mapping/<mapping-name>
 ```
 
 You can manipulate specific bits of module information for this mapping, as well (the [modules](#modules) section has more on this):
 
-```
+```shell
 curl http://localhost:8888/ambassador/mapping/<mapping-name>/module/<module-name>
 ```
 
 to read a single module's config;
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
      -d <module-dict> \
      http://localhost:8888/ambassador/mapping/<mapping-name>/module/<module-name>
@@ -68,7 +68,7 @@ curl -XPUT -H "Content-Type: application/json" \
 
 to alter a single module's config (`<module-dict>` is the dictionary of new configuration information for the given mapping and module); and
 
-```
+```shell
 curl -XDELETE http://localhost:8888/ambassador/mapping/<mapping-name>/module/<module-name>
 ```
 
@@ -76,11 +76,11 @@ to delete a single module's config for a given mapping.
 
 Also, the `mapping-name` identifies the mapping in statistics output and such.
 
-### <a name="resources">Resources</a>
+### Resources
 
 To Ambassador, a `resource` is a group of one or more URLs that all share a common prefix in the URL path. For example:
 
-```
+```shell
 https://ambassador.example.com/resource1/foo
 https://ambassador.example.com/resource1/bar
 https://ambassador.example.com/resource1/baz/zing
@@ -89,7 +89,7 @@ https://ambassador.example.com/resource1/baz/zung
 
 all share the `/resource1/` path prefix, so can be considered a single resource. On the other hand:
 
-```
+```shell
 https://ambassador.example.com/resource1/foo
 https://ambassador.example.com/resource2/bar
 https://ambassador.example.com/resource3/baz/zing
@@ -102,13 +102,13 @@ Note that the length of the prefix doesn't matter: if you want to use prefixes l
 
 Also note that Ambassador does not actually require the prefix to start and end with `/` -- however, in practice, it's a good idea. Specifying a prefix of
 
-```
+```shell
 /man
 ```
 
 would match all of the following:
 
-```
+```shell
 https://ambassador.example.com/man/foo
 https://ambassador.example.com/mankind
 https://ambassador.example.com/man-it-is/really-hot-today
@@ -117,23 +117,23 @@ https://ambassador.example.com/manohmanohman
 
 which is probably not what was intended.
 
-### <a name="services">Services</a>
+### Services
 
 A `service` is exactly the same thing to Ambassador as it is to Kubernetes. When you tell Ambassador to map a resource to a service, it requires there to be a Kubernetes service with _exactly_ the same name, and it trusts whatever Kubernetes has to say about ports and such.
 
 At present, Ambassador relies on Kubernetes to do load balancing: it trusts that using the DNS to look up the service by name will do the right thing in terms of spreading the load across all instances of the service. This will change shortly, in order to gain better control of load balancing.
 
-### <a name="rewriting">Rewrite Rules</a>
+### Rewrite Rules
 
 Once Ambassador uses a prefix to identify the service to which a given request should be passed, it can rewrite the URL before handing it off to the service. By default, the `prefix` is rewritten to `/`, so e.g. if we map `/prefix1/` to the service `service1`, then
 
-```
+```shell
 http://ambassador.example.com/prefix1/foo/bar
 ```
 
 would effectively be written to
 
-```
+```shell
 http://service1/foo/bar
 ```
 
@@ -141,29 +141,29 @@ when it was handed to `service1`.
 
 You can change the rewriting: for example, if you choose to rewrite the prefix as `/v1/` in this example, the final target would be
 
-```
+```shell
 http://service1/v1/foo/bar
 ```
 
 And, of course, you can choose to rewrite the prefix to the prefix itself, so that
 
-```
+```shell
 http://ambassador.example.com/prefix1/foo/bar
 ```
 
 would be "rewritten" as
 
-```
+```shell
 http://service1/prefix1/foo/bar
 ```
 
-## <a name="modules">Modules</a>
+## Modules
 
-Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported module is the [`authentication` module](#authentication-module).
+Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported module is the [`authentication` module](#the-authentication-module).
 
 You use `PUT` requests to the admin interface to save or update a module's global configuration:
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" -d <module-dict> \
       http://localhost:8888/ambassador/module/<module-name>
 ```
@@ -172,33 +172,33 @@ where `<module-name>` is the name of the module from the list below, and `<modul
 
 Module configuration information can also be associated with [mappings](#mappings) and [consumers](#consumers). These are also be set and updated using `PUT` requests:
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" -d <module-dict> \
       http://localhost:8888/ambassador/mapping/<mapping-name>/module/<module-name>
 ```
 
 and
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" -d <module-dict> \
       http://localhost:8888/ambassador/consumer/<consumer-id>/module/<module-name>
 ```
 
 You can get a list of all the modules for which Ambassador knows about configuration information with `GET` requests:
 
-```
+```shell
 curl http://localhost:8888/ambassador/module
 ```
 
 for global configuration, and
 
-```
+```shell
 curl http://localhost:8888/ambassador/mapping/<mapping-name>/module
 ```
 
 or
 
-```
+```shell
 curl http://localhost:8888/ambassador/consumer/<consumer-id>/module
 ```
 
@@ -206,13 +206,13 @@ for mapping- or consumer-specific configuration.
 
 Finally, you can delete module configuration with `DELETE` requests:
 
-```
+```shell
 curl -XDELETE http://localhost:8888/ambassador/module/<module-name>
 curl -XDELETE http://localhost:8888/ambassador/mapping/<mapping-name>/module/<module-name>
 curl -XDELETE http://localhost:8888/ambassador/consumer/<consumer-id>/module/<module-name>
 ```
 
-### <a name="authentication-module">The `authentication` module</a>
+### The `authentication` module
 
 The `authentication` module allows Ambassador to require authentication for specific mappings. Not all mappings must require authentication: a mapping which has no configuration for the `authentication` module will be assumed to require no authentication.
 
@@ -220,7 +220,7 @@ Ambassador's authentication module is built around asking an authentication serv
 
 To enable the `authentication` module and tell Ambassador which service to use, you can use one of the following:
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
      -d '{ "ambassador": "basic" }' \
       http://localhost:8888/ambassador/module/authentication
@@ -228,7 +228,7 @@ curl -XPUT -H "Content-Type: application/json" \
 
 to enable Ambassador's built-in authentication service, or
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
      -d '{ "auth_service": "<target>" }' \
       http://localhost:8888/ambassador/module/authentication
@@ -238,7 +238,7 @@ to use an external auth service, where `target` is a hostname and port, e.g. `au
 
 After enabling the module globally, any mapping that should require authentication needs to be told what kind of authentication to request. If you're using the built-in service, "basic" is currently the only type supported:
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
      -d '{ "type": "basic" }' \
       http://localhost:8888/ambassador/mapping/<mapping-name>/module/authentication
@@ -246,7 +246,7 @@ curl -XPUT -H "Content-Type: application/json" \
 
 You can also define this association when creating a mapping, e.g.:
 
-```
+```shell
 curl -XPUT -H"Content-Type: application/json" \
      -d'{ "prefix": "/qotm/quote/", "rewrite": "/quote/", "service": "qotm", "modules": { "authentication": { "type": "basic" } } }' \
      http://localhost:8888/ambassador/mapping/qotm_quote_map
@@ -254,7 +254,7 @@ curl -XPUT -H"Content-Type: application/json" \
 
 Finally, the built-in service requires using consumers to tell Ambassador who should be allowed to authenticate. To successfully authenticate using HTTP Basic Auth, the consumer must have an `authentication` module config defining the auth type ("basic") and the password:
 
-```
+```shell
 curl -XPUT -H"Content-Type: application/json" \
      -d'{ "type":"basic", "password":"alice" }' \
      http://localhost:8888/ambassador/consumer/<consumer-id>/module/authentication
@@ -262,19 +262,19 @@ curl -XPUT -H"Content-Type: application/json" \
 
 which, again, can be supplied when the consumer is created:
 
-```
+```shell
 curl -XPOST -H"Content-Type: application/json" \
      -d'{ "username": "alice", "fullname": "Alice Rules", "modules": { "authentication": { "type":"basic", "password":"alice" } } }' \
      http://localhost:8888/ambassador/consumer
 ```
 
-## <a name="consumers">Consumers</a>
+## Consumers
 
 Consumers represent human end users of Ambassador, and may be required for some modules to function. For example, the `authentication` module may require defining consumers to let Ambassador know who's allowed to authenticate.
 
 A consumer is created with a `POST` request:
 
-```
+```shell
 curl -XPOST -H"Content-Type: application/json" \
      -d<consumer-dict> \
      http://localhost:8888/ambassador/consumer
@@ -282,7 +282,7 @@ curl -XPOST -H"Content-Type: application/json" \
 
 where `consumer-dict` has the details of the new consumer:
 
-```
+```shell
 {
     "username": <username>,
     "fullname": <full-name>,
@@ -298,25 +298,25 @@ where `consumer-dict` has the details of the new consumer:
 
 You can get a list of all the consumers that Ambassador knows about with
 
-```
+```shell
 curl http://localhost:8888/ambassador/consumer
 ```
 
 and you can delete a specific consumer with
 
-```
+```shell
 curl -XDELETE http://localhost:8888/ambassador/consumer/<consumer-id>
 ```
 
 You can manipulate specific bits of module information for this consumer, as well (the [modules](#modules) section has more on this):
 
-```
+```shell
 curl http://localhost:8888/ambassador/consumer/<consumer-id>/module/<module-name>
 ```
 
 to read a single module's config;
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
      -d <module-dict> \
      http://localhost:8888/ambassador/consumer/<consumer-id>/module/<module-name>
@@ -324,9 +324,8 @@ curl -XPUT -H "Content-Type: application/json" \
 
 to alter a single module's config (`<module-dict>` is the dictionary of new configuration information for the given consumer and module); and
 
-```
+```shell
 curl -XDELETE http://localhost:8888/ambassador/consumer/<consumer-id>/module/<module-name>
 ```
 
 to delete a single module's config for a given consumer.
-

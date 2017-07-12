@@ -2,28 +2,28 @@
 
 Ambassador's admin interface is reachable over port 8888. This port is deliberately not exposed with a Kubernetes service; you'll need to use `kubectl port-forward` to reach it:
 
-```
+```shell
 POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward "$POD" 8888
 ```
 
 Once that's done, you can use the admin interface for health checks, statistics, [mappings](mappings.md#mappings), [modules](mappings.md#modules), and [consumers](mappings.md#consumers).
 
-### Health Checks and Stats
+## Health Checks and Stats
 
-```
+```shell
 curl http://localhost:8888/ambassador/health
 ```
 
 will do a health check;
 
-```
+```shell
 curl http://localhost:8888/ambassador/mapping
 ```
 
 will get a list of all the resources that Ambassador has mapped; and
 
-```
+```shell
 curl http://localhost:8888/ambassador/stats
 ```
 
