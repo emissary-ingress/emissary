@@ -2,11 +2,11 @@
 
 Make sure access to Ambassador's admin port is set up.
 
-### Mappings
+## Mappings
 
 You use `PUT` requests to the admin interface to map a resource to a service:
 
-```
+```shell
 curl -XPUT -H "Content-Type: application/json" \
       -d <mapping-dict> \
       http://localhost:8888/ambassador/mapping/<mapping-name>
@@ -14,7 +14,7 @@ curl -XPUT -H "Content-Type: application/json" \
 
 where `<mapping-name>` is a unique name that identifies this mapping, and `<mapping-dict>` is a dictionary that defines the mapping:
 
-```
+```json
 {
     "prefix": <url-prefix>,
     "service": <service-name>,
@@ -46,19 +46,19 @@ etc.
 
 Ambassador updates Envoy's configuration five seconds after any mapping change. If another change arrives during that time, the timer is restarted.
 
-#### Listing Mappings
+### Listing Mappings
 
 You can list all the extant mappings with
 
-```
+```shell
 curl http://localhost:8888/ambassador/mapping
 ```
 
-#### Creating a Mapping
+### Creating a Mapping
 
 An example mapping:
 
-```
+```shell
 curl -XPOST -H "Content-Type: application/json" \
       -d '{ "prefix": "/v1/user/", "service": "usersvc" }' \
       http://localhost:8888/ambassador/mapping/user
@@ -68,7 +68,7 @@ will create a mapping named `user` that will cause requests for any resource wit
 
 If instead you did
 
-```
+```shell
 curl -XPOST -H "Content-Type: application/json" \
       -d '{ "prefix": "/v1/user/", "service": "usersvc", "rewrite": "/v2/" }' \
       http://localhost:8888/ambassador/mapping/user
@@ -76,20 +76,20 @@ curl -XPOST -H "Content-Type: application/json" \
 
 then `/v1/user/alice` would appear to the service as `/v2/alice`.
 
-#### Deleting a Mapping
+### Deleting a Mapping
 
 To remove a mapping, use a `DELETE` request:
 
-```
+```shell
 curl -XDELETE http://localhost:8888/ambassador/mapping/user
 ```
 
 will delete the mapping from above.
 
-#### Checking for a Mapping
+### Checking for a Mapping
 
 To check whether the `user` mapping exists, you can simply
 
-```
+```shell
 curl http://localhost:8888/ambassador/mapping/user
 ```

@@ -4,17 +4,17 @@ Access to your microservices through Ambassador is via port 443 (if you configur
 
 If you're using TLS, you can set it by hand with something like
 
-```
+```shell
 export AMBASSADORURL=https://your-domain-name
 ```
 
 where `your-domain-name` is the name you set up when you requested your certs. **Do not include a trailing `/`**, or the examples in this document won't work.
 
-Without TLS, if you have a domain name, great, do the above. 
+Without TLS, if you have a domain name, great, do the above.
 
 If you're using AWS, GKE, or Minikube, you may be able to use the commands below -- **note that these will only work since we already know we're using HTTP**:
 
-```
+```shell
 # AWS (for Ambassador using HTTP)
 AMBASSADORURL=http://$(kubectl get service ambassador --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
@@ -29,7 +29,7 @@ Otherwise, look at the `LoadBalancer Ingress` line of `kubectl describe service 
 
 After that, you can access your microservices by using URLs based on `$AMBASSADORURL` and the URL prefixes defined for your mappings. For example, with first the `user` mapping from above in effect:
 
-```
+```shell
 curl $AMBASSADORURL/v1/user/health
 ```
 

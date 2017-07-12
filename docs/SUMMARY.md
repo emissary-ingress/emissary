@@ -14,7 +14,7 @@
 ## How-to Guides
 
 * [Microservice Access](how-to/service-url.md)
-* [Adminstration Port](how-to/admin-port.md)
+* [Administration Port](how-to/admin-port.md)
 * [Mappings, Routes, and Rewriting](how-to/set-routes.md)
 * [TLS Termination](how-to/tls-termination.md)
 * [Auth with TLS client certificates](how-to/auth-tls-certs.md)
@@ -24,16 +24,16 @@
 * [gRPC and other HTTP/2-only services](how-to/grpc.md)
 
 ## Reference
+
 * [Ambassador REST APIs](reference/rest-apis.md)
+* [TLS and Auth](reference/tls-auth.md)
 
 ## Developers
 
 * [Building Ambassador](dev/building.md)
 
-## Not fully transitioned (yet)
+## Old Docs
 
 * [About Mappings, Modules, and Consumers](user-guide/mappings.md)
 * [Running Ambassador](user-guide/running.md)
 * [Administering Ambassador](user-guide/administering.md)
-* [TLS and Auth](user-guide/tls-auth.md)
-
