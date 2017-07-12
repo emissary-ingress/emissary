@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: ${AMREG}ambassador:0.10.1
+        image: ${AMREG}ambassador:0.10.2
         resources:
           limits:
             cpu: 1
@@ -45,7 +45,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: ${STREG}statsd:0.10.1
+        image: ${STREG}statsd:0.10.2
       volumes:
       - name: cert-data
         secret:
