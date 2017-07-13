@@ -21,7 +21,7 @@ At the heart of Ambassador is the idea of mapping _resources_ (in the REST sense
 
 * A `service` is code running in Kubernetes that can handle the resource you want to map.
 
-For more information, check out the [Mappings](mappings.md) section of the Ambassador documentation.
+For more information, check out the [concepts](concepts.md) section of the Ambassador documentation.
 
 ## TLS
 

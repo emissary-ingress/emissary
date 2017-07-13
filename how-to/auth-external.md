@@ -14,7 +14,7 @@ We will use an example auth service to demonstrate the feature. You can deploy i
 kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador-auth-service/master/example-auth.yaml
 ```
 
-Let's also set things up as in the [Getting Started](getting-started.md) section up to the point where we want to add authentication. Here's the short version; read the full text for the details, particularly for how to set up `$AMBASSADORURL`.
+Let's also set things up as in the [Getting Started](../user-guide/getting-started.md) section up to the point where we want to add authentication. Here's the short version; read the full text for the details, particularly for how to set up `$AMBASSADORURL`.
 
 ```shell
 # Add Quote of the Moment service
