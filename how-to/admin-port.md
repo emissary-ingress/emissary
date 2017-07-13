@@ -7,7 +7,7 @@ POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.nam
 kubectl port-forward "$POD" 8888
 ```
 
-Once that's done, you can use the admin interface for health checks, statistics, [mappings](mappings.md#mappings), [modules](mappings.md#modules), and [consumers](mappings.md#consumers).
+Once that's done, you can use the admin interface for health checks, statistics, [mappings](../about/concepts.md#mappings), [modules](../about/concepts.md#modules), and [consumers](../about/concepts.md#consumers).
 
 ## Health Checks and Stats
 

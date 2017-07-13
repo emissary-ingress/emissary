@@ -20,7 +20,7 @@ curl -XPUT -H "Content-Type: application/json" \
       http://localhost:8888/ambassador/module/authentication
 ```
 
-to use an external auth service, where `target` is a hostname and port, e.g. `authv1:5000`. See [external authentication](#external-authentication) below.
+to use an external auth service, where `target` is a hostname and port, e.g. `authv1:5000`. See [external authentication](auth-external.md).
 
 After enabling the module globally, any mapping that should require authentication needs to be told what kind of authentication to request. If you're using the built-in service, "basic" is currently the only type supported:
 
