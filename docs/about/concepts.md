@@ -159,7 +159,7 @@ http://service1/prefix1/foo/bar
 
 ## Modules
 
-Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported module is the [`authentication` module](#the-authentication-module).
+Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported modules are the [`authentication` module](../how-to/auth-http-basic.md) and the [gRPC module](../how-to/grpc.md).
 
 You use `PUT` requests to the admin interface to save or update a module's global configuration:
 
@@ -210,62 +210,6 @@ Finally, you can delete module configuration with `DELETE` requests:
 curl -XDELETE http://localhost:8888/ambassador/module/<module-name>
 curl -XDELETE http://localhost:8888/ambassador/mapping/<mapping-name>/module/<module-name>
 curl -XDELETE http://localhost:8888/ambassador/consumer/<consumer-id>/module/<module-name>
-```
-
-### The `authentication` module
-
-The `authentication` module allows Ambassador to require authentication for specific mappings. Not all mappings must require authentication: a mapping which has no configuration for the `authentication` module will be assumed to require no authentication.
-
-Ambassador's authentication module is built around asking an authentication service for a particular type of authentication. The service is defined globally; the type of auth requested is defined per module. Ambassador provides a built-in authentication service which currently implements only HTTP Basic Authentication; you can also write your own authentication service.
-
-To enable the `authentication` module and tell Ambassador which service to use, you can use one of the following:
-
-```shell
-curl -XPUT -H "Content-Type: application/json" \
-     -d '{ "ambassador": "basic" }' \
-      http://localhost:8888/ambassador/module/authentication
-```
-
-to enable Ambassador's built-in authentication service, or
-
-```shell
-curl -XPUT -H "Content-Type: application/json" \
-     -d '{ "auth_service": "<target>" }' \
-      http://localhost:8888/ambassador/module/authentication
-```
-
-to use an external auth service, where `target` is a hostname and port, e.g. `authv1:5000`. See [external authentication](#external-authentication) below.
-
-After enabling the module globally, any mapping that should require authentication needs to be told what kind of authentication to request. If you're using the built-in service, "basic" is currently the only type supported:
-
-```shell
-curl -XPUT -H "Content-Type: application/json" \
-     -d '{ "type": "basic" }' \
-      http://localhost:8888/ambassador/mapping/<mapping-name>/module/authentication
-```
-
-You can also define this association when creating a mapping, e.g.:
-
-```shell
-curl -XPUT -H"Content-Type: application/json" \
-     -d'{ "prefix": "/qotm/quote/", "rewrite": "/quote/", "service": "qotm", "modules": { "authentication": { "type": "basic" } } }' \
-     http://localhost:8888/ambassador/mapping/qotm_quote_map
-```
-
-Finally, the built-in service requires using consumers to tell Ambassador who should be allowed to authenticate. To successfully authenticate using HTTP Basic Auth, the consumer must have an `authentication` module config defining the auth type ("basic") and the password:
-
-```shell
-curl -XPUT -H"Content-Type: application/json" \
-     -d'{ "type":"basic", "password":"alice" }' \
-     http://localhost:8888/ambassador/consumer/<consumer-id>/module/authentication
-```
-
-which, again, can be supplied when the consumer is created:
-
-```shell
-curl -XPOST -H"Content-Type: application/json" \
-     -d'{ "username": "alice", "fullname": "Alice Rules", "modules": { "authentication": { "type":"basic", "password":"alice" } } }' \
-     http://localhost:8888/ambassador/consumer
 ```
 
 ## Consumers

@@ -93,7 +93,7 @@ Fortunately, modern software lets you just concatenate the public parts of all t
 
 ## Managing the DNS
 
-TLS is extremely closely tied to the DNS, so in addition to all the cert stuff, you **must** get the DNS correct for TLS to work. For Ambassador, this means that you **must** set up the Ambassador service in your Kubernetes cluster with a stable DNS name as discussed in [Running Ambassador](running.md). To recap:
+TLS is extremely closely tied to the DNS, so in addition to all the cert stuff, you **must** get the DNS correct for TLS to work. For Ambassador, this means that you **must** set up the Ambassador service in your Kubernetes cluster with a stable DNS name as discussed in [TLS Termination](../how-to/tls-termination.md). To recap:
 
 * Create the `ambassador` service first.
 * Do not delete it, even if you need to delete and recreate the `ambassador` deployment.
