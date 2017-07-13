@@ -10,7 +10,7 @@ TARGET="$3"
 HERE=$(dirname $0)
 eval $(sh $HERE/get_registries.sh)
 
-docker build -t "${DOCKER_REGISTRY}${NAME}:${VERSION}" "${TARGET}"
+docker build -q -t "${DOCKER_REGISTRY}${NAME}:${VERSION}" "${TARGET}"
 
 if [ -n "$DOCKER_REGISTRY" ]; then
     docker push "${DOCKER_REGISTRY}${NAME}:${VERSION}"

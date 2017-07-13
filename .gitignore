@@ -4,6 +4,7 @@
 certs/
 venv
 __pycache__
+VERSION.py
 
 docs/_site
 docs/Gemfile.lock

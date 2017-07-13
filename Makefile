@@ -1,6 +1,8 @@
-all: bump
+all: dev
 
-VERSION=0.10.2
+VERSION=$(shell git describe --tags --dirty | sed s/^v//)
+
+# VERSION=0.10.2
 
 # Make sure to update this list and .bumpversion.cfg at the same time.
 
@@ -19,6 +21,13 @@ VERSIONED = \
 	docs/user-guide/with-istio.md
 
 .ALWAYS:
+
+dev: reg-check
+	@echo "Building $(VERSION)"
+	for file in actl ambassador; do \
+	    sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > $$file/VERSION.py; \
+	done
+	$(MAKE) artifacts
 
 artifacts: docker-images ambassador.yaml istio/ambassador.yaml
 
@@ -61,14 +70,13 @@ new-major:
 	$(MAKE) artifacts
 
 tag:
-	git commit $(VERSIONED) -m "v$(VERSION) [ci skip]"
 	git tag -a v$(VERSION) -m "v$(VERSION)"
 
 ambassador-rest.yaml: .ALWAYS
-	sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
+	VERSION=$(VERSION) sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
 
 istio/ambassador.yaml: .ALWAYS
-	sh templates/ambassador-istio.yaml.sh > istio/ambassador.yaml
+	VERSION=$(VERSION) sh templates/ambassador-istio.yaml.sh > istio/ambassador.yaml
 
 ambassador.yaml: ambassador-store.yaml ambassador-rest.yaml
 	cat ambassador-store.yaml ambassador-rest.yaml > ambassador.yaml
