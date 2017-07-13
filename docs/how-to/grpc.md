@@ -4,7 +4,7 @@ Ambassador makes it easy to access your services from outside your application. 
 
 ## Example
 
-To demonstrate, let's walk through an example. Start by setting things up as in the [Getting Started](getting-started.md) section up to authentication. Here's the short version; read the full text for the details, particularly for how to set up `$AMBASSADORURL`.
+To demonstrate, let's walk through an example. Start by setting things up as in the [Getting Started](../user-guide/getting-started.md) section up to authentication. Here's the short version; read the full text for the details, particularly for how to set up `$AMBASSADORURL`.
 
 ```shell
 # Add Quote of the Moment service
@@ -52,4 +52,4 @@ docker run -e ADDRESS=${AMBASSADORHOST}:80 enm10k/grpc-hello-world greeter_clien
 
 ## Note
 
-Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, e.g., when using [Istio](with-istio.md), you may find that gRPC requests fail even with correct Ambassador configuration.
+Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, e.g., when using [Istio](../user-guide/with-istio.md), you may find that gRPC requests fail even with correct Ambassador configuration.
