@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: ambassador-sds
-        image: ${AMREG}ambassador-sds:0.6.0
+        image: {{AMREG}}ambassador-sds:0.6.0
         resources: {}
       restartPolicy: Always
 status: {}

@@ -29,7 +29,7 @@ dev: reg-check
 	done
 	$(MAKE) artifacts
 
-artifacts: docker-images ambassador.yaml istio/ambassador.yaml
+artifacts: docker-images yaml-files
 
 reg-check:
 	@if [ -z "$$DOCKER_REGISTRY" ]; then \
@@ -71,6 +71,9 @@ new-major:
 
 tag:
 	git tag -a v$(VERSION) -m "v$(VERSION)"
+
+yaml-files:
+	VERSION=$(VERSION) sh scripts/build-yaml.sh
 
 ambassador-rest.yaml: .ALWAYS
 	VERSION=$(VERSION) sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml

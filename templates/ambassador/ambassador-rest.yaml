@@ -1,7 +1,3 @@
-HERE=$(dirname $0)
-eval $(sh $HERE/../scripts/get_registries.sh)
-
-cat <<EOF
 ---
 apiVersion: v1
 kind: Service
@@ -31,7 +27,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: ${AMREG}ambassador:${VERSION}
+        image: {AMREG}ambassador:{VERSION}
         resources:
           limits:
             cpu: 1
@@ -45,7 +41,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: ${STREG}statsd:${VERSION}
+        image: {STREG}statsd:{VERSION}
       volumes:
       - name: cert-data
         secret:
@@ -54,4 +50,3 @@ spec:
         secret:
           secretName: ambassador-cacert
       restartPolicy: Always
-EOF
