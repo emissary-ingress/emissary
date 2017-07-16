@@ -1,5 +1,9 @@
 # Table of Contents
 
+* [Ambassador](INDEX.md)
+
+----
+
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
 * [Concepts](about/concepts.md)
@@ -36,3 +40,9 @@
 
 * [Running Ambassador](user-guide/running.md)
 * [Administering Ambassador](user-guide/administering.md)
+
+## Need Help?
+
+* [Ask on Gitter](https://gitter.im/datawire/ambassador)
+* [File a GitHub Issue](https://github.com/datawire/ambassador/issues/new)
+* [Visit Datawire.io](https://www.datawire.io)
