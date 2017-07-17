@@ -57,3 +57,8 @@ What if I Don't Want to Push My Images?
 **NOTE WELL**: if you're not using Minikube, this is almost certainly a mistake.
 
 But suppose you are using Minikube. The Makefile (deliberately) requires you to set DOCKER_REGISTRY, so you can't just unset it -- instead, set it to "-" to prevent any pushes.
+
+Building the documentation and website
+======================================
+
+Use `make website` to build the docs and website. See [docs/README.md] for docs-specific steps. The `docs/build-website.sh` script (used by `make`) follows those steps and then performs some additional hacks for website use.
