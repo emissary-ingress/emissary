@@ -1,9 +1,4 @@
----
-layout: doc
-weight: 3
-title: "Administering Ambassador"
-categories: user-guide
----
+# Administering Ambassador
 
 Ambassador's admin interface is reachable over port 8888. This port is deliberately not exposed with a Kubernetes service; you'll need to use `kubectl port-forward` to reach it:
 
@@ -12,7 +7,7 @@ POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.nam
 kubectl port-forward "$POD" 8888
 ```
 
-Once that's done, you can use the admin interface for health checks, statistics, [mappings](mappings.md#mappings), [modules](mappings.md#modules), and [consumers](mappings.md#consumers).
+Once that's done, you can use the admin interface for health checks, statistics, [mappings](../about/concepts.md#mappings), [modules](../about/concepts.md#modules), and [consumers](../about/concepts.md#consumers).
 
 ### Health Checks and Stats
 
@@ -132,11 +127,11 @@ curl http://localhost:8888/ambassador/mapping/user
 
 ### Modules and Consumers
 
-[Modules](mappings.md#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings. 
+[Modules](../about/concepts.md#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings.
 
-[Consumers](mappings.md#consumers) represent human end users of Ambassador, and may be required for some modules to function.
+[Consumers](../about/concepts.md#consumers) represent human end users of Ambassador, and may be required for some modules to function.
 
-At present the only supported module is the [`authentication` module](mappings.md#authentication-module). Its global configuration tells Ambassador which authentication service to use, and it uses per-mapping and per-consumer configuration to tell Ambassador which mappings require authentication and which consumers may authenticate.
+At present the only supported module is the [`authentication` module](../how-to/auth-http-basic.md). Its global configuration tells Ambassador which authentication service to use, and it uses per-mapping and per-consumer configuration to tell Ambassador which mappings require authentication and which consumers may authenticate.
 
 To list modules and consumers, use `GET` requests:
 
@@ -152,7 +147,7 @@ curl http://localhost:8888/ambassador/mapping/<mapping-name>/module
 curl http://localhost:8888/ambassador/consumer/<consumer-id>/module
 ```
 
-See [About Mappings, Modules, and Consumers](mappings.md) for more on administering modules and consumers.
+See [About Mappings, Modules, and Consumers](../about/concepts.md) for more on administering modules and consumers.
 
 ### Ambassador Microservice Access
 

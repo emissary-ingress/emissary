@@ -1,9 +1,4 @@
----
-layout: doc
-weight: 3
-title: "Roadmap"
-categories: about
----
+# Roadmap
 
 Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). Key features in Ambassador include:
 
@@ -15,9 +10,9 @@ Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.git
 Planned features for future releases include the following:
 
 * More authentication mechanisms, including at least:
-   * HTTP Basic auth
-   * OAuth2
-   * JWT
+  * HTTP Basic auth
+  * OAuth2
+  * JWT
 * Per-service authorization
 * Configurable rate limiting (global and per-service)
 * Embeddable custom plugins, probably in Lua or Python
