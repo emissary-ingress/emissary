@@ -7,7 +7,7 @@
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
 * [Concepts](about/concepts.md)
-* [Changelog](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+* [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 * [Roadmap](about/roadmap.md)
 
 ## Tutorials
@@ -34,7 +34,7 @@
 
 ## Developers
 
-* [Building Ambassador](https://github.com/datawire/ambassador/blob/master/BUILDING.md)
+* [Building Ambassador (GitHub)](https://github.com/datawire/ambassador/blob/master/BUILDING.md)
 
 ## Old Docs
 
