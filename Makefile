@@ -94,3 +94,6 @@ statsd-image: .ALWAYS
 
 cli-image: .ALWAYS
 	scripts/docker_build_maybe_push actl $(VERSION) actl
+
+website: .ALWAYS
+	docs/build-website.sh
