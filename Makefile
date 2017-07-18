@@ -2,8 +2,6 @@ all: dev
 
 VERSION=$(shell git describe --tags --dirty | sed s/^v//)
 
-# VERSION=0.10.2
-
 # Make sure to update this list and .bumpversion.cfg at the same time.
 
 VERSIONED = \
