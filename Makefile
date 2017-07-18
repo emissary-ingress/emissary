@@ -1,6 +1,6 @@
 all: bump
 
-VERSION=0.10.3
+VERSION=0.10.4
 
 # Make sure to update this list and .bumpversion.cfg at the same time.
 
