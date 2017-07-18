@@ -5,8 +5,7 @@ import sys
 import logging
 
 import subprocess, re, os
-
-from functools import total_ordering
+from semantic_version import Version
 from git import Repo
 
 dry_run = True
@@ -44,7 +43,7 @@ class VersionedBranch (object):
     @property
     def version(self):
         if (self._version is None) and (self.version_tag is not None):
-            self._version = self.version_tag.name[1:]
+            self._version = Version(self.version_tag.name[1:])
             self.log.debug("version: %s => %s" % (self.branch_name, self._version))
 
         return self._version
@@ -88,37 +87,45 @@ class VersionedBranch (object):
 
                 yield commitID, subject
 
-    def bump_type(self, magic_pre=False, since_tag=None, reduced_zero=True, commit_map=None,
-                  pre_release=None, build=None):
+    def next_version(self, magic_pre=False, since_tag=None, reduced_zero=True, commit_map=None,
+                     pre_release=None, build=None):
         rdelta = ReleaseDelta(self, magic_pre=magic_pre, 
                               since_tag=since_tag, reduced_zero=reduced_zero,
                               commit_map=commit_map, pre_release=pre_release, build=build)
 
-        return rdelta.bump_type
+        return rdelta.next_version
 
-@total_ordering
 class VersionDelta(object):
-    def __init__(self, kind, tag, ordinal):
-        self.kind = kind
+    def __init__(self, scale, xform, tag):
+        self.scale = scale
+        self.xform = xform
         self.tag = tag
-        self.ordinal = ordinal
+        self.delta = scale
+
+    def __cmp__(self, other):
+        if self.scale < other.scale:
+            return -1
+        elif self.scale > other.scale:
+            return 1
+        else:
+            return 0
 
     def __lt__(self, other):
-        return (self.ordinal < other.ordinal)
+        return self.__cmp__(other) < 0
 
-    def __eq__(self, other):
-        return (self.ordinal < other.ordinal)
+    def __gt__(self, other):
+        return self.__cmp__(other) > 0
 
     def __unicode__(self):
         return "<VersionDelta %s>" % self.tag
 
     def __str__(self):
-        return "<VersionDelta %s>" % self.tag
+        return self.__unicode__()
 
 class ReleaseDelta(object):
-    FIX   = VersionDelta( "patch", "[FIX]",   0)
-    MINOR = VersionDelta( "minor", "[MINOR]", 1)
-    MAJOR = VersionDelta( "major", "[MAJOR]", 2)
+    FIX   = VersionDelta( (0,0,1), Version.next_patch, "[FIX]")
+    MINOR = VersionDelta( (0,1,0), Version.next_minor, "[MINOR]")
+    MAJOR = VersionDelta( (1,0,0), Version.next_major, "[MAJOR]")
 
     """ how new commits affect project version """
     log = logging.getLogger("ReleaseDelta")
@@ -175,8 +182,7 @@ class ReleaseDelta(object):
 
             yield delta, commitID, subject
 
-    @property
-    def bump_type(self):
+    def version_change(self):
         finalDelta = None
         commits = []
 
@@ -194,56 +200,65 @@ class ReleaseDelta(object):
                 finalDelta = delta
 
         if not commits:
-            self.log.debug("bump_type: no commits since %s" % self.vbr.version)
+            self.log.debug("version_change: no commits since %s" % self.vbr.version)
             return None, None
         else:
             self.log.debug("folding %d commit%s into %s: delta %s" % 
                            (len(commits), "" if len(commits) == 1 else "s", 
-                            finalDelta, finalDelta.kind))
+                            finalDelta, finalDelta.delta))
 
             return finalDelta, commits
 
-    # @property
-    # def next_version(self):
-    #     version = self.vbr.version
-    #     self.log.debug("version start: %s" % version)
+    @property
+    def next_version(self):
+        version = self.vbr.version
+        self.log.debug("version start: %s" % version)
 
-    #     finalDelta, commits = self.version_change()
+        finalDelta, commits = self.version_change()
 
-    #     if finalDelta:
-    #         self.log.debug("final commit list: %s" % 
-    #                        "\n".join(map(lambda x: "%s %s: %s" % (x[0].tag, x[1], x[2]),
-    #                                      commits)))
-    #         self.log.debug("final change:      %s %s" % (finalDelta, finalDelta.delta))
+        if finalDelta:
+            self.log.debug("final commit list: %s" % 
+                           "\n".join(map(lambda x: "%s %s: %s" % (x[0].tag, x[1], x[2]),
+                                         commits)))
+            self.log.debug("final change:      %s %s" % (finalDelta, finalDelta.delta))
 
-    #         version = finalDelta.xform(version)
+            version = finalDelta.xform(version)
 
-    #         if self.magic_pre:
-    #             pre = self.vbr.version.prerelease
+            self.log.debug("version:           %s" % version)
 
-    #             if pre:
-    #                 pre = pre[0]
+            if self.magic_pre:
+                pre = self.vbr.version.prerelease
 
-    #                 if pre and pre.startswith('b'):
-    #                     if finalDelta > self.FIX:
-    #                         pre = "b1"
-    #                     else:
-    #                         pre = "b" + str(int(pre[1:]) + 1)
+                self.log.debug("magic check:      '%s'" % str(pre))
 
-    #                 self.log.debug("magic prerelease:  %s" % pre)
-    #                 version.prerelease = (pre,)
-    #         elif self.pre_release:
-    #             version.prerelease = (self.pre_release,)
+                if pre:
+                    pre = pre[0]
 
-    #         if self.build:
-    #             version.build = (self.build,)
+                    if pre and pre.startswith('b'):
+                        if finalDelta > self.FIX:
+                            pre = "b1"
+                        else:
+                            pre = "b" + str(int(pre[1:]) + 1)
 
-    #         self.log.debug("version has to change from %s to %s" %
-    #                        (self.vbr.version, version))
+                    self.log.debug("magic prerelease:  %s" % str(pre))
+                    version.prerelease = (pre,)
+                else:
+                    version.prerelease = ("b1",)
+            elif self.pre_release:
+                version.prerelease = (self.pre_release,)
 
-    #         return version
-    #     else:
-    #         return None
+            self.log.debug("final prerelease:  %s" % str(version.prerelease))
+
+            if self.build:
+                version.build = (self.build,)
+                self.log.debug("final build:       %s" % str(version.build))
+
+            self.log.debug("version has to change from %s to %s" %
+                           (self.vbr.version, version))
+
+            return version
+        else:
+            return None
 
 class VersionedRepo (object):
     """ Representation of a git repo that follows our versioning rules """
@@ -299,19 +314,22 @@ class VersionedRepo (object):
 if __name__ == '__main__':
     from docopt import docopt
 
-    __doc__ = """bumptype.py
+    __doc__ = """versioner.py
 
     Manipulate version tags
 
     Usage: 
-        bumptype.py [-n] [--verbose] [options]
+        versioner.py [-n] [--verbose] [options]
 
     Options:
         --branch=<branchname>      set which branch to work on
+        --magic-pre                do magic autoincrementing prerelease numbers
+        --pre=<pre-release-tag>    explicitly set the prerelease number
+        --build=<build-tag>        explicitly set the build number
         --since=<since-tag>        override the tag of the last release
     """
 
-    args = docopt(__doc__, version="bumptype {0}".format("0.1.0"))
+    args = docopt(__doc__, version="versioner {0}".format("0.1.0"))
 
     dryrun = args["-n"]
 
@@ -327,25 +345,21 @@ if __name__ == '__main__':
 
     # print(vbr)
 
-    commit_map = None
-
     # commit_map = {
-    #     '3cfef29': '[MAJOR] OH GOD NO',
-    #     '9b6a492': '[MINOR] Oh yeah!',
+    #     'e787009': '[MAJOR] OH GOD NO',
+    #     'a889b73': '[MINOR] Oh yeah!',
     #     '2d0b5ec': '[MINOR] WTFO?'
     # }
 
-    finalDelta, commits = vbr.bump_type(since_tag=args.get('--since', None),
-                                        reduced_zero=False,
-                                        commit_map=commit_map)
+    next_version = vbr.next_version(magic_pre=args.get('--magic-pre', False),
+                               pre_release=args.get('--pre', None),
+                               build=args.get('--build', None),
+                               since_tag=args.get('--since', None),
+                               reduced_zero=False)
+    #                           commit_map=commit_map)
 
-    if finalDelta:
-        logging.debug("final commit list: %s" % 
-                      "\n".join(map(lambda x: "%s %s: %s" % (x[0].tag, x[1], x[2]),
-                                     commits)))
-        logging.debug("final change:      %s %s" % (finalDelta, finalDelta.kind))
-
-        print(finalDelta.kind)
+    if next_version:
+        print(next_version)
     else:
         sys.stderr.write("no changes since %s\n" % vbr.version)
         sys.exit(1)
