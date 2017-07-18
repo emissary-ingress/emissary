@@ -20,6 +20,9 @@ versions:
 
 artifacts: docker-images yaml-files
 
+tag:
+	git tag -a v$(VERSION) -m "v$(VERSION)"
+
 yaml-files:
 	VERSION=$(VERSION) sh scripts/build-yaml.sh
 

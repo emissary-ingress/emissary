@@ -45,7 +45,7 @@ make VERSION=${VERSION}
 git status
 
 if onmaster; then
-    git tag -a v$(VERSION) -m "v$(VERSION)"
+    make VERSION=$(VERSION) tag
 else
     echo "not on master; not tagging"
 fi
