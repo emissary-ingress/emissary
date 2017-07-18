@@ -6,6 +6,7 @@ venv
 __pycache__
 VERSION.py
 
+docs/yaml
 docs/_site
 docs/Gemfile.lock
 

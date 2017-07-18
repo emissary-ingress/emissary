@@ -12,7 +12,7 @@ HERE=$(cd $(dirname $0); pwd)
 
 cd "${HERE}/../templates"
 
-ODIR="../yaml"
+ODIR="../docs/yaml"
 
 mkdir_if_needed "$ODIR"
 

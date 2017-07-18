@@ -33,21 +33,19 @@ if onmaster; then
     echo "+docker login..."
     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
     set -x
+
+    VERSION=v$(python scripts/versioner.py --verbose)
 else
     DOCKER_REGISTRY=-
+    VERSION=v$(python scripts/versioner.py --verbose --magic-pre)
 fi
 
-TYPE=$(python scripts/bumptype.py --verbose)
-
-make new-$TYPE
+make VERSION=${VERSION}
 
 git status
 
 if onmaster; then
-    make tag
-
-    # Push everything to GitHub
-    git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
+    git tag -a v$(VERSION) -m "v$(VERSION)"
 else
     echo "not on master; not tagging"
 fi
