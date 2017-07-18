@@ -8,12 +8,12 @@
         "gtm"
     ],
     "pluginsConfig": {
-      "layout": {
-        "footerPath": "layouts/footer.html"
-      },
-      "gtm": {
-        "token": "GTM-TPMQ838",
-        "virtualPageViews": true
-      }
+        "layout": {
+            "footerPath": "layouts/footer.html"
+        },
+        "gtm": {
+            "token": "GTM-TPMQ838",
+            "virtualPageViews": true
+        }
     }
 }
