@@ -43,5 +43,5 @@ statsd-image: .ALWAYS
 cli-image: .ALWAYS
 	scripts/docker_build_maybe_push actl $(VERSION) actl
 
-website: .ALWAYS
+website: yaml-files
 	VERSION=$(VERSION) docs/build-website.sh
