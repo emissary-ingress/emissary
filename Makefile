@@ -24,7 +24,7 @@ versions:
 	    sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > $$file/VERSION.py; \
 	done
 
-artifacts: docker-images yaml-files
+artifacts: docker-images website
 
 tag:
 	git tag -a v$(VERSION) -m "v$(VERSION)"

@@ -2,7 +2,7 @@
 
 set -ex
 
-env | grep TRAVIS | sort 
+env | grep TRAVIS | sort
 
 # Do we have any non-doc changes?
 change_count=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
@@ -35,12 +35,19 @@ if onmaster; then
     set -x
 
     VERSION=v$(python scripts/versioner.py --verbose)
+    NETLIFY_ENVIRONMENT=production
 else
     DOCKER_REGISTRY=-
     VERSION=v$(python scripts/versioner.py --verbose --magic-pre)
+    NETLIFY_ENVIRONMENT=branch-deploy
 fi
 
 make VERSION=${VERSION}
+
+netlify --access-token ${NETLIFY_TOKEN} \
+    deploy --path docs/_book \
+           --site-id datawire-ambassador
+           --env ${NETLIFY_ENVIRONMENT}
 
 git status
 
