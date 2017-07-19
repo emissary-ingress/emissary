@@ -19,3 +19,7 @@ sed -i"" 's,<li class="chapter " data-level="1.1" data-path="[^"]*">,<li class="
 
 # Replace index.html with our hand-crafted landing page
 cp index.html _book/
+
+# Copy YAML into _book/ as well.
+cp -prv yaml _book/
+
