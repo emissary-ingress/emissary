@@ -4,7 +4,13 @@ VERSION=$(shell python scripts/versioner.py --magic-pre)
 
 .ALWAYS:
 
-dev: reg-check versions artifacts
+dev: version-check reg-check versions artifacts
+
+version-check:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Nothing needs to be built" >&2 ;\
+		exit 1 ;\
+	fi
 
 reg-check:
 	@if [ -z "$$DOCKER_REGISTRY" ]; then \

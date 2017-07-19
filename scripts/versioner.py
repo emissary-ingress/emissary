@@ -18,6 +18,7 @@ class VersionedBranch (object):
         self.log = logging.getLogger("VersionedBranch")
 
         self.repo = git_repo
+        self.is_dirty = self.repo.is_dirty()
         self.head = git_head
         self.branch_name = git_head.name
 
@@ -123,6 +124,7 @@ class VersionDelta(object):
         return self.__unicode__()
 
 class ReleaseDelta(object):
+    NONE  = VersionDelta( (0,0,0), lambda x: x,        "[NONE]")
     FIX   = VersionDelta( (0,0,1), Version.next_patch, "[FIX]")
     MINOR = VersionDelta( (0,1,0), Version.next_minor, "[MINOR]")
     MAJOR = VersionDelta( (1,0,0), Version.next_major, "[MAJOR]")
@@ -134,6 +136,7 @@ class ReleaseDelta(object):
                  reduced_zero=True, commit_map=None,
                  pre_release=None, build=None):
         self.vbr = vbr
+        self.is_dirty = vbr.is_dirty
         self.magic_pre = magic_pre
         self.since_tag = since_tag
         self.pre_release = pre_release
@@ -216,17 +219,26 @@ class ReleaseDelta(object):
 
         finalDelta, commits = self.version_change()
 
-        if finalDelta:
-            self.log.debug("final commit list: %s" % 
-                           "\n".join(map(lambda x: "%s %s: %s" % (x[0].tag, x[1], x[2]),
-                                         commits)))
-            self.log.debug("final change:      %s %s" % (finalDelta, finalDelta.delta))
+        # if not finalDelta and self.is_dirty:
+        #     finalDelta = ReleaseDelta.NONE
+        #     commits = []
 
-            version = finalDelta.xform(version)
+        if finalDelta or self.is_dirty:
+            if commits:
+                self.log.debug("final commit list: %s" % 
+                               "\n".join(map(lambda x: "%s %s: %s" % (x[0].tag, x[1], x[2]),
+                                             commits)))
+
+            if finalDelta:
+                self.log.debug("final change:      %s %s" % (finalDelta, finalDelta.delta))
+
+                version = finalDelta.xform(version)
+            else:
+                version = ReleaseDelta.NONE.xform(version)
 
             self.log.debug("version:           %s" % version)
 
-            if self.magic_pre:
+            if finalDelta and self.magic_pre:
                 pre = self.vbr.version.prerelease
 
                 self.log.debug("magic check:      '%s'" % str(pre))
@@ -241,17 +253,28 @@ class ReleaseDelta(object):
                             pre = "b" + str(int(pre[1:]) + 1)
 
                     self.log.debug("magic prerelease:  %s" % str(pre))
-                    version.prerelease = (pre,)
+                    version.prerelease = [pre]
                 else:
-                    version.prerelease = ("b1",)
+                    version.prerelease = ["b1"]
             elif self.pre_release:
-                version.prerelease = (self.pre_release,)
+                version.prerelease = [self.pre_release]
 
             self.log.debug("final prerelease:  %s" % str(version.prerelease))
 
             if self.build:
-                version.build = (self.build,)
-                self.log.debug("final build:       %s" % str(version.build))
+                version.build = [self.build]
+
+            if self.is_dirty:
+                self.log.debug("dirty build")
+
+                if not version.build:
+                    version.build = []
+
+                if 'DIRTY' not in version.build:
+                    version.build = list(version.build)
+                    version.build.append('DIRTY')
+
+            self.log.debug("final build:       %s" % str(version.build))
 
             self.log.debug("version has to change from %s to %s" %
                            (self.vbr.version, version))
@@ -267,7 +290,7 @@ class VersionedRepo (object):
         self.log = logging.getLogger("VersionedRepo")
 
         self.repo = Repo(repo_root, search_parent_directories=True)
-
+        self.is_dirty = self.repo.is_dirty()
         self.branches = {}
 
     def get_branch(self, branch_name):
