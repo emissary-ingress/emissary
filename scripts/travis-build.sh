@@ -52,7 +52,7 @@ netlify --access-token ${NETLIFY_TOKEN} \
 git status
 
 if onmaster; then
-    make VERSION=$(VERSION) tag
+    make VERSION=${VERSION} tag
 else
     echo "not on master; not tagging"
 fi
