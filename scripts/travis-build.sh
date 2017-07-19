@@ -47,7 +47,7 @@ make VERSION=${VERSION}
 
 docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
     deploy --path docs/_book \
-           --site-id datawire-ambassador
+           --site-id datawire-ambassador \
            --env ${NETLIFY_ENVIRONMENT}
 
 git status
