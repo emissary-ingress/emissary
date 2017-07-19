@@ -3,6 +3,7 @@
 set -ex
 
 env | grep TRAVIS | sort
+npm version
 
 # Do we have any non-doc changes?
 change_count=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
@@ -44,7 +45,7 @@ fi
 
 make VERSION=${VERSION}
 
-netlify --access-token ${NETLIFY_TOKEN} \
+docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
     deploy --path docs/_book \
            --site-id datawire-ambassador
            --env ${NETLIFY_ENVIRONMENT}
