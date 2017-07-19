@@ -7,8 +7,9 @@ __pycache__
 VERSION.py
 
 docs/yaml
-docs/_site
-docs/Gemfile.lock
+docs/_book
+docs/node_modules
+.netlify
 
 # Editor nonsense
 .vscode

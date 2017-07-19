@@ -36,11 +36,11 @@ if onmaster; then
     set -x
 
     VERSION=v$(python scripts/versioner.py --verbose)
-    NETLIFY_ENVIRONMENT=production
+    NETLIFY_DRAFT=
 else
     DOCKER_REGISTRY=-
     VERSION=v$(python scripts/versioner.py --verbose --magic-pre)
-    NETLIFY_ENVIRONMENT=branch-deploy
+    NETLIFY_DRAFT=--draft
 fi
 
 make VERSION=${VERSION}
@@ -48,7 +48,7 @@ make VERSION=${VERSION}
 docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
     deploy --path docs/_book \
            --site-id datawire-ambassador \
-           --env ${NETLIFY_ENVIRONMENT}
+           ${NETLIFY_DRAFT}
 
 git status
 
