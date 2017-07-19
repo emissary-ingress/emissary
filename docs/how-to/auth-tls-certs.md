@@ -6,7 +6,7 @@ If you want to use TLS client-certificate authentication, you'll need to tell Am
 sh scripts/push-cacert $CACERT_PATH
 ```
 
-After starting Ambassador, you **must** tell Ambassador about which certificates are allowed, using the `/ambassador/principal/` REST API of Ambassador's [admin interface](administering.md):
+After starting Ambassador, you **must** tell Ambassador about which certificates are allowed, using the `/ambassador/principal/` REST API of Ambassador's [admin interface](admin-port.md):
 
 ```shell
 curl -X POST -H "Content-Type: application/json" \
