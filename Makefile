@@ -6,6 +6,10 @@ VERSION=$(shell python scripts/versioner.py --magic-pre)
 
 dev: version-check reg-check versions artifacts
 
+travis-images: version-check reg-check versions docker-images
+
+travis-website: version-check website
+
 version-check:
 	@if [ -z "$(VERSION)" ]; then \
 		echo "Nothing needs to be built" >&2 ;\

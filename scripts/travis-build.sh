@@ -5,14 +5,6 @@ set -ex
 env | grep TRAVIS | sort
 npm version
 
-# Do we have any non-doc changes?
-change_count=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
-
-if [ -n "$TRAVIS_COMMIT_RANGE" ] && [ $change_count -eq 0 ]; then
-    echo "No non-doc changes"
-    exit 0
-fi
-
 # Are we on master?
 ONMASTER=
 
@@ -25,35 +17,57 @@ onmaster () {
     test -n "$ONMASTER"
 }
 
-if onmaster; then
-    git checkout ${TRAVIS_BRANCH}
+# Do we have any non-doc changes?
+nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
+doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '^docs/' | wc -l)
 
-    DOCKER_REGISTRY="datawire"
+if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \)]; then
+    if onmaster; then
+        git checkout ${TRAVIS_BRANCH}
 
-    set +x
-    echo "+docker login..."
-    docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-    set -x
+        DOCKER_REGISTRY="datawire"
 
-    VERSION=v$(python scripts/versioner.py --verbose)
-    NETLIFY_DRAFT=
-else
-    DOCKER_REGISTRY=-
-    VERSION=v$(python scripts/versioner.py --verbose --magic-pre)
-    NETLIFY_DRAFT=--draft
+        set +x
+        echo "+docker login..."
+        docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+        set -x
+
+        VERSION=v$(python scripts/versioner.py --verbose)
+    else
+        DOCKER_REGISTRY=-
+        VERSION=v$(python scripts/versioner.py --verbose --magic-pre)
+    fi
+
+    echo "==== BUILDING IMAGES FOR $VERSION"
+
+    make VERSION=${VERSION} travis-images
+
+    if [ $doc_changes -eq 0 ]; then
+        doc_changes=1
+    fi
+
+    if onmaster; then
+        make VERSION=${VERSION} tag
+    else
+        echo "not on master; not tagging"
+    fi
 fi
 
-make VERSION=${VERSION}
+if [ $doc_changes -gt 0 ]; then
+    if onmaster; then
+        NETLIFY_DRAFT=
+        HRDRAFT=
+    else
+        NETLIFY_DRAFT=--draft
+        HRDRAFT=" (draft)"
+    fi
 
-docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
-    deploy --path docs/_book \
-           --site-id datawire-ambassador \
-           ${NETLIFY_DRAFT}
+    echo "==== BUILDING DOCS FOR ${VERSION}${HRDRAFT}"
 
-git status
+    make VERSION=${VERSION} travis-website
 
-if onmaster; then
-    make VERSION=${VERSION} tag
-else
-    echo "not on master; not tagging"
+    docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
+        deploy --path docs/_book \
+               --site-id datawire-ambassador \
+               ${NETLIFY_DRAFT}
 fi
