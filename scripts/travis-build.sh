@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex -o pipefail
+set -ex
 
 env | grep TRAVIS | sort
 npm version
@@ -18,8 +18,8 @@ onmaster () {
 }
 
 # Do we have any non-doc changes?
-nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
-doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '^docs/' | wc -l)
+nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
+doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if onmaster; then
