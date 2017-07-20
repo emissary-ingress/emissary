@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -ex
+set -ex -o pipefail
 
 env | grep TRAVIS | sort
 npm version
@@ -21,7 +21,7 @@ onmaster () {
 nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l)
 doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '^docs/' | wc -l)
 
-if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \)]; then
+if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if onmaster; then
         git checkout ${TRAVIS_BRANCH}
 
