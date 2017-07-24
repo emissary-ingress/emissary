@@ -1,6 +1,59 @@
 {
   "listeners": [
     {
+      "address": "tcp://0.0.0.0:8888",
+      "filters": [
+        {
+          "config": {
+            "access_log": [
+              {
+                "path": "/tmp/ambassador_log"
+              }
+            ],
+            "codec_type": "auto",
+            "filters": [
+              {
+                "config": {},
+                "name": "router",
+                "type": "decoder"
+              }
+            ],
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "domains": [
+                    "*"
+                  ],
+                  "name": "backend",
+                  "routes": [
+                    {
+                      "prefix": "/ambassador/",
+                      "cluster": "ambassador_cluster",
+                      "timeout_ms":0
+                    },
+                    {
+                      "prefix": "/v1/",
+                      "cluster": "ambassador_cluster",
+                      "timeout_ms":0
+                    },
+                    {
+                      "prefix": "/ambassador-config/",
+                      "prefix_rewrite": "/",
+                      "cluster": "ambassador_config_cluster",
+                      "timeout_ms":0
+                    }
+                  ]
+                }
+              ]
+            },
+            "stat_prefix": "admin_http"
+          },
+          "name": "http_connection_manager",
+          "type": "read"
+        }
+      ]
+    },
+    {
       "address": "tcp://0.0.0.0:80",
       "filters": [
         {
