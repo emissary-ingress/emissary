@@ -259,20 +259,20 @@ class ReleaseDelta(object):
             elif self.pre_release:
                 version.prerelease = [self.pre_release]
 
+            if self.is_dirty:
+                self.log.debug("dirty build")
+
+                if not version.prerelease:
+                    version.prerelease = []
+
+                if 'DIRTY' not in version.prerelease:
+                    version.prerelease = list(version.prerelease)
+                    version.prerelease.append('DIRTY')
+
             self.log.debug("final prerelease:  %s" % str(version.prerelease))
 
             if self.build:
                 version.build = [self.build]
-
-            if self.is_dirty:
-                self.log.debug("dirty build")
-
-                if not version.build:
-                    version.build = []
-
-                if 'DIRTY' not in version.build:
-                    version.build = list(version.build)
-                    version.build.append('DIRTY')
 
             self.log.debug("final build:       %s" % str(version.build))
 
