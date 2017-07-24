@@ -4,7 +4,7 @@ VERSION=$(shell python scripts/versioner.py --magic-pre)
 
 .ALWAYS:
 
-dev: version-check reg-check versions artifacts
+dev: version-check reg-check versions docker-images yaml-files
 
 travis-images: version-check reg-check versions docker-images
 
