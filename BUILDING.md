@@ -15,9 +15,9 @@ Version Numbering
 
 **Version numbers are determined by tags in Git, and will be computed by the build process.**
 
-This means that if you build repeatedly without committing and tagging, you'll get the same version number. This isn't a problem as you debug and hack, although you may need to set `imagePullPolicy: Always` to have things work smoothly.
+This means that if you build repeatedly without committing, you'll get the same version number. This isn't a problem as you debug and hack, although you may need to set `imagePullPolicy: Always` to have things work smoothly.
 
-It also means that we humans don't say things like "I'm going to make this version 1.23.5" -- Ambassador uses [Semantic Versioning](http://www.semver.org/), and the build process computes the next version by looking at changes since the last tagged version. Start a Git commit comment with `[MINOR]` to tell the build that the change is worthy of a minor-version bump; start it with `[MAJOR]` for a major-version bump.
+It also means that we humans don't say things like "I'm going to make this version 1.23.5" -- Ambassador uses [Semantic Versioning](http://www.semver.org/), and the build process computes the next version by looking at changes since the last tagged version. Start a Git commit comment with `[MINOR]` to tell the build that the change is worthy of a minor-version bump; start it with `[MAJOR]` for a major-version bump. If no marker is present, the patch version will be incremented.
 
 Normal Workflow
 ===============
@@ -35,13 +35,13 @@ Normal Workflow
 
    This will compute a version number based on git tags (`git describe --tags`), then push that version number everywhere it needs to be in the code. Then it will build (and probably push) Docker images, then build YAML files for you. **IT WILL NOT COMMIT OR TAG**. With new version numbers everywhere, you can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
 
-   If you make further changes and `make` again, _the version number will not change_. To get a new version number, you'll need to commit and `make tag`.
+   If you make further changes and `make` again, _the version number will not change_. To get a new version number, you'll need to commit.
 
 2. Commit, then `make tag` to mark a version.
 
    Generally you would do this when you're ready to ship, but it will also be very important if you're working with multiple developers!
 
-   Note that just typing `make` will build a development version, marked with a build number (e.g. `0.10.4-b3`). This is intentional: at Datawire, the CI pipeline is the only thing that builds non-development versions.
+   Note that just typing `make` will build a development version, marked with a build number (e.g. `0.10.4-b3.56d8917`). This is intentional: at Datawire, the CI pipeline is the only thing that builds non-development versions.
 
 What if I Don't Want to Push My Images?
 ---------------------------------------
@@ -53,4 +53,4 @@ But suppose you are using Minikube. The Makefile (deliberately) requires you to 
 Building the documentation and website
 ======================================
 
-Use `make website` to build the docs and website. See [docs/README.md] for docs-specific steps. The `docs/build-website.sh` script (used by `make`) follows those steps and then performs some additional hacks for website use.
+Use `make website` to build the docs and website. See [the README](docs/README.md) for docs-specific steps. The `docs/build-website.sh` script (used by `make`) follows those steps and then performs some additional hacks for website use.

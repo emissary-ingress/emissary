@@ -18,26 +18,41 @@ class VersionedBranch (object):
         self.log = logging.getLogger("VersionedBranch")
 
         self.repo = git_repo
-        self.is_dirty = self.repo.is_dirty()
         self.head = git_head
         self.branch_name = git_head.name
 
-        self._version_tag = None
+        try:
+            branch_info = self.repo.git.describe(tags=True, dirty=True, long=True).split('-')
+        except Exception as e:
+            self.log.warning("VersionedBranch: %s could not be described: %s" % (self.branch_name, e))
+
+        if not branch_info:
+            self.log.warning("VersionedBranch: %s has no description info?" % self.branch_name)
+
+        try:
+            self._version_tag = self.repo.tags[branch_info[0]]
+        except Exception as e:
+            self.log.warning("VersionedBranch: %s has no valid tag %s?" % (self.branch_name, branch_info[0]))
+
+        self.log.debug("%s _version_tag: %s" % (self.branch_name, self._version_tag.name))
+
         self._version = None
         self._versioned_commit = None
-        self._current_commit = None
+
+        self._current_commit = branch_info[2][1:]
+        self.log.debug("%s _current_commit: %s" %
+                       (self.branch_name, self._current_commit))
+
+        self._commit_count = int(branch_info[1])
+        self.log.debug("%s _commit_count: %s" % (self.branch_name, self._commit_count))
+
+        self.is_dirty = True if (len(branch_info) > 3) else False
+        self.log.debug("%s is_dirty: %s" % (self.branch_name, self.is_dirty))
 
     @property
     def version_tag(self):
         if self._version_tag is None:
-            try:
-                tag_name = self.repo.git.describe(self.branch_name, abbrev=0, match='v[0-9]*')
-
-                self._version_tag = self.repo.tags[tag_name]
-
-                self.log.debug("version_tag: %s => %s" % (self.branch_name, self._version_tag.name))
-            except Exception as e:
-                self.log.warning("version_tag: %s got no tag: %s" % (self.branch_name, e))
+            self.log.warning("version_tag: %s got no tag" % self.branch_name)
 
         return self._version_tag
     
@@ -66,6 +81,13 @@ class VersionedBranch (object):
                            (self.branch_name, self._current_commit))
 
         return self._current_commit
+
+    @property
+    def commit_count(self):
+        if not self._commit_count:
+            self.log.warning("commit_count: %s got no count" % self.branch_name)
+
+        return self._commit_count
 
     def __unicode__(self):
         return ("<VersionedBranch %s @ %s [%s @ %s]>" %
@@ -239,25 +261,27 @@ class ReleaseDelta(object):
             self.log.debug("version:           %s" % version)
 
             if finalDelta and self.magic_pre:
-                pre = self.vbr.version.prerelease
+                version.prerelease = [ 'b%d' % self.vbr.commit_count, self.vbr.current_commit ]
 
-                self.log.debug("magic check:      '%s'" % str(pre))
+                # pre = self.vbr.version.prerelease
 
-                if pre:
-                    pre = pre[0]
+                # self.log.debug("magic check:      '%s'" % str(pre))
 
-                    if pre and pre.startswith('b'):
-                        if finalDelta > self.FIX:
-                            pre = "b1"
-                        else:
-                            pre = "b" + str(int(pre[1:]) + 1)
+                # if pre:
+                #     pre = pre[0]
 
-                    self.log.debug("magic prerelease:  %s" % str(pre))
-                    version.prerelease = [pre]
-                else:
-                    version.prerelease = ["b1"]
+                #     if pre and pre.startswith('b'):
+                #         if finalDelta > self.FIX:
+                #             pre = "b1"
+                #         else:
+                #             pre = "b" + str(int(pre[1:]) + 1)
+
+                #     self.log.debug("magic prerelease:  %s" % str(pre))
+                #     version.prerelease = [pre]
+                # else:
+                #     version.prerelease = [ "b" + ]
             elif self.pre_release:
-                version.prerelease = [self.pre_release]
+                version.prerelease = [ self.pre_release ]
 
             if self.is_dirty:
                 self.log.debug("dirty build")
@@ -272,7 +296,7 @@ class ReleaseDelta(object):
             self.log.debug("final prerelease:  %s" % str(version.prerelease))
 
             if self.build:
-                version.build = [self.build]
+                version.build = [ self.build ]
 
             self.log.debug("final build:       %s" % str(version.build))
 
