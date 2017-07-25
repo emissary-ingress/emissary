@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.6] July 25, 2017
+[0.10.6]: https://github.com/datawire/ambassador/compare/v0.10.5...v0.10.6
+
+### Changed
+- Fix automagic master build tagging
+
 ## [0.10.5] July 25, 2017
 [0.10.5]: https://github.com/datawire/ambassador/compare/v0.10.1...v0.10.5
 

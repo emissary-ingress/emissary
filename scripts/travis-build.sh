@@ -48,6 +48,9 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
 
     if onmaster; then
         make VERSION=${VERSION} tag
+
+        # Push everything to GitHub
+        git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
     else
         echo "not on master; not tagging"
     fi
