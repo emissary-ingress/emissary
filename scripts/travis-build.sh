@@ -32,10 +32,10 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
         set -x
 
-        VERSION=v$(python scripts/versioner.py --verbose)
+        VERSION=$(python scripts/versioner.py --verbose)
     else
         DOCKER_REGISTRY=-
-        VERSION=v$(python scripts/versioner.py --verbose --magic-pre)
+        VERSION=$(python scripts/versioner.py --verbose --magic-pre)
     fi
 
     echo "==== BUILDING IMAGES FOR $VERSION"
