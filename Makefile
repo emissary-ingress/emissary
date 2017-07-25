@@ -1,26 +1,20 @@
-all: bump
+all: dev
 
-VERSION=0.10.4
-
-# Make sure to update this list and .bumpversion.cfg at the same time.
-
-VERSIONED = \
-	.bumpversion.cfg \
-	BUILDING.md \
-	Makefile \
-	ambassador-rest.yaml \
-	ambassador.yaml \
-	istio/ambassador.yaml \
-	ambassador/VERSION.py \
-	actl/VERSION.py \
-	templates/ambassador-rest.yaml.sh \
-	templates/ambassador-istio.yaml.sh \
-	docs/user-guide/getting-started.md \
-	docs/user-guide/with-istio.md
+VERSION=$(shell python scripts/versioner.py --magic-pre)
 
 .ALWAYS:
 
-artifacts: docker-images ambassador.yaml istio/ambassador.yaml
+dev: version-check reg-check versions docker-images yaml-files
+
+travis-images: version-check reg-check versions docker-images
+
+travis-website: version-check website
+
+version-check:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Nothing needs to be built" >&2 ;\
+		exit 1 ;\
+	fi
 
 reg-check:
 	@if [ -z "$$DOCKER_REGISTRY" ]; then \
@@ -28,50 +22,19 @@ reg-check:
 	    exit 1 ;\
 	fi
 
-bump: reg-check
-	@if [ -z "$$LEVEL" ]; then \
-	    echo "LEVEL must be set" >&2 ;\
-	    exit 1 ;\
-	fi
+versions:
+	@echo "Building $(VERSION)"
+	for file in actl ambassador; do \
+	    sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > $$file/VERSION.py; \
+	done
 
-	@echo "Bumping to new $$LEVEL version..."
-	bump2version --no-tag --no-commit "$$LEVEL"
-	@echo "Building version $$(python ambassador/VERSION.py)"
-
-dev-bump: reg-check
-	@echo "Bumping for development..."
-	bump2version --allow-dirty --no-tag --no-commit \
-	    --new-version `git describe --tags | sed s/^v//` commit
-	@echo "Building version $$(python ambassador/VERSION.py)"
-
-new-commit:
-	$(MAKE) dev-bump
-	$(MAKE) artifacts
-
-new-patch:
-	$(MAKE) bump LEVEL=patch
-	$(MAKE) artifacts
-
-new-minor:
-	$(MAKE) bump LEVEL=minor
-	$(MAKE) artifacts
-
-new-major:
-	$(MAKE) bump LEVEL=major
-	$(MAKE) artifacts
+artifacts: docker-images website
 
 tag:
-	git commit $(VERSIONED) -m "v$(VERSION) [ci skip]"
 	git tag -a v$(VERSION) -m "v$(VERSION)"
 
-ambassador-rest.yaml: .ALWAYS
-	sh templates/ambassador-rest.yaml.sh > ambassador-rest.yaml
-
-istio/ambassador.yaml: .ALWAYS
-	sh templates/ambassador-istio.yaml.sh > istio/ambassador.yaml
-
-ambassador.yaml: ambassador-store.yaml ambassador-rest.yaml
-	cat ambassador-store.yaml ambassador-rest.yaml > ambassador.yaml
+yaml-files:
+	VERSION=$(VERSION) sh scripts/build-yaml.sh
 
 docker-images: ambassador-image statsd-image cli-image
 
@@ -84,5 +47,5 @@ statsd-image: .ALWAYS
 cli-image: .ALWAYS
 	scripts/docker_build_maybe_push actl $(VERSION) actl
 
-website: .ALWAYS
-	docs/build-website.sh
+website: yaml-files
+	VERSION=$(VERSION) docs/build-website.sh

@@ -5,7 +5,7 @@ metadata:
   name: ambassador-certs
   namespace: default
 type: Opaque
-data: {}
+data: {{}}
 ---
 apiVersion: v1
 kind: Secret
@@ -13,7 +13,7 @@ metadata:
   name: ambassador-cacert
   namespace: default
 type: Opaque
-data: {}
+data: {{}}
 ---
 apiVersion: v1
 kind: Service
@@ -26,7 +26,7 @@ spec:
   type: LoadBalancer
   ports:
   - name: ambassador
-    port: 443
-    targetPort: 443
+    port: 80
+    targetPort: 80
   selector:
     service: ambassador

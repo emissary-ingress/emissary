@@ -1,8 +1,10 @@
 # Changelog
 
-## [Unreleased]
-[Unreleased]: https://github.com/datawire/ambassador/compare/v0.10.1...HEAD
+## [0.10.5] July 25, 2017
+[0.10.5]: https://github.com/datawire/ambassador/compare/v0.10.1...v0.10.5
 
+### Changed
+- Many changes to the build process and versioning. In particular, CI no longer has to commit files.
 
 ## [0.10.1] July 3, 2017
 [0.10.1]: https://github.com/datawire/ambassador/compare/v0.10.0...v0.10.1

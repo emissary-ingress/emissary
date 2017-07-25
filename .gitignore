@@ -4,9 +4,14 @@
 certs/
 venv
 __pycache__
+VERSION.py
 
+docs/yaml
+docs/_book
 docs/_site
 docs/Gemfile.lock
+docs/node_modules
+.netlify
 
 # Editor nonsense
 .vscode

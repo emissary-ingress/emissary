@@ -18,14 +18,6 @@ Ambassador is built around the idea of mapping _resources_ (in the REST sense) t
 What's in this repo
 ==================
 
-If you clone this repository, you'll have access to multiple Kubernetes resource files:
+**If you are just trying to use Ambassador, don't clone this repo! Go to http://www.getambassador.io/ instead!!**
 
-- `ambassador-rest.yaml` defines the main Ambassador server itself;
-- `ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running;
-- `ambassador-sds.yaml` defines the Envoy Service Discovery Service that Ambassador relies on; and finally,
-- `ambassador.yaml` wraps up all of the above.
-
-Additionally, you can choose either
-
-- `ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
-- `ambassador-http.yaml`, which defines an HTTP-only mechanism to access Ambassador.
+To _build_ Ambassador from source, check out [the build guide](BUILDING.md).

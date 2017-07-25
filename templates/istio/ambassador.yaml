@@ -5,7 +5,7 @@ metadata:
   name: ambassador-certs
   namespace: default
 type: Opaque
-data: {}
+data: {{}}
 ---
 apiVersion: v1
 kind: Secret
@@ -13,7 +13,7 @@ metadata:
   name: ambassador-cacert
   namespace: default
 type: Opaque
-data: {}
+data: {{}}
 ---
 apiVersion: v1
 kind: Service
@@ -67,7 +67,7 @@ metadata:
   name: astore
 spec:
   replicas: 1
-  strategy: {}
+  strategy: {{}}
   template:
     metadata:
       creationTimestamp: null
@@ -99,7 +99,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: datawire/ambassador:0.10.4
+        image: {AMREG}ambassador:{VERSION}
         imagePullPolicy: Always
         env:
         - name: AMBASSADOR_DB_HOST
@@ -117,7 +117,7 @@ spec:
         - mountPath: /etc/cacert
           name: cacert-data
       - name: statsd
-        image: datawire/statsd:0.10.4
+        image: {STREG}statsd:{VERSION}
       volumes:
       - name: cert-data
         secret:

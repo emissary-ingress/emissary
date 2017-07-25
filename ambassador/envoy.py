@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 import os
+import re
 import time
 
 import dpath
@@ -490,7 +491,7 @@ class EnvoyStats (object):
                 cluster = envoy_stats['cluster'][cluster_name]
 
                 # Toss any _%d -- that's madness with our Istio code at the moment.
-                cluster = re.sub('_\d+$', '', cluster)
+                cluster_name = re.sub('_\d+$', '', cluster_name)
                 
                 if cluster_name in active_cluster_map:
                     mapping_name = active_cluster_map[cluster_name]

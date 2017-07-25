@@ -6,7 +6,8 @@
   "dependencies": {
     "gitbook-cli": "^2.3.0",
     "gitbook-plugin-footer": "^0.1.0",
-    "gitbook-plugin-gtm": "0.0.6"
+    "gitbook-plugin-gtm": "0.0.6",
+    "netlify-cli": "^1.2.2"
   },
   "scripts": {
     "postinstall": "gitbook install",
@@ -22,5 +23,6 @@
   "bugs": {
     "url": "https://github.com/datawire/ambassador-web/issues"
   },
-  "homepage": "https://github.com/datawire/ambassador-web#readme"
+  "homepage": "https://github.com/datawire/ambassador-web#readme",
+  "devDependencies": {}
 }
