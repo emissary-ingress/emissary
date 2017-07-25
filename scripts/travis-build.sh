@@ -2,6 +2,12 @@
 
 set -ex
 
+# Don't build on version-tag pushes.
+if [ $(echo "$TRAVIS_BRANCH" | egrep -c '^v[0-9][0-9\.]*$') -gt 0 ]; then
+    echo "No need to build $TRAVIS_BRANCH"
+    exit 0
+fi
+
 env | grep TRAVIS | sort
 npm version
 
