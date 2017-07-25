@@ -1,55 +1,47 @@
 Building Ambassador
 ===================
 
-If you just want to **use** Ambassador, check out the [README.md](README.md)! You don't need to build anything.
+If you just want to **use** Ambassador, check out http://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
 
-If you really want to customize Ambassador, though, read on -- but **NOTE WELL**! This process will change soon.
-
-You'll need the following:
+If you really want to customize Ambassador, though, read on.
 
 - bash
 - make
 - docker
 - Python 3
-- [bump2version](https://pypi.python.org/pypi/bump2version)
 
-(Honestly, you only need Python for `bump2version`.)
+Version Numbering
+=================
+
+**Version numbers are determined by tags in Git, and will be computed by the build process.**
+
+This means that if you build repeatedly without committing and tagging, you'll get the same version number. This isn't a problem as you debug and hack, although you may need to set `imagePullPolicy: Always` to have things work smoothly.
+
+It also means that we humans don't say things like "I'm going to make this version 1.23.5" -- Ambassador uses [Semantic Versioning](http://www.semver.org/), and the build process computes the next version by looking at changes since the last tagged version. Start a Git commit comment with `[MINOR]` to tell the build that the change is worthy of a minor-version bump; start it with `[MAJOR]` for a major-version bump.
 
 Normal Workflow
 ===============
 
 0. `export DOCKER_REGISTRY=$registry`
 
-   This sets the registry to which to push Docker images and is **mandatory** if you're not using Minikube. The `$registry` info should be the prefix for `docker push`:
+   This sets the registry to which to push Docker images and is **mandatory** if you're not using Minikube. The `$registry` info should be the prefix for `docker push`, for example:
 
    "dwflynn" will push to Dockerhub with user `dwflynn`
    "gcr.io/flynn" will push to GCR with user `flynn`
 
    You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY` and `STATSD_REGISTRY`. See the files in `templates` for more here.
 
-1. Make changes. Commit.
+1. Hack away, then `make`.
 
-   Hopefully this step is clear.
+   This will compute a version number based on git tags (`git describe --tags`), then push that version number everywhere it needs to be in the code. Then it will build (and probably push) Docker images, then build YAML files for you. **IT WILL NOT COMMIT OR TAG**. With new version numbers everywhere, you can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
 
-2. `make new-commit`
+   If you make further changes and `make` again, _the version number will not change_. To get a new version number, you'll need to commit and `make tag`.
 
-   This will compute a temporary version number based on the current version and the git commit ID (`git describe --tags`), then update version numbers everywhere to that version number. Then it will build (and probably push) Docker images, then build YAML files for you. IT WILL NOT COMMIT OR TAG. With new version numbers everywhere, you can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
+2. Commit, then `make tag` to mark a version.
 
-3. `make new-$level`
+   Generally you would do this when you're ready to ship, but it will also be very important if you're working with multiple developers!
 
-   This will correctly set the version number everywhere by incrementing the specified level and removing any commit ID information, then build (and probably push) Docker images, then build YAML files for you. IT WILL NOT COMMIT OR TAG.
-
-   `$level` must be one of "major", "minor", or "patch", using [semantic versioning](http://semver.org/):
-
-   "major" is for major breaking changes.
-   "minor" is for new functionality that's still backward compatible.
-   "patch" is for bug fixes.
-
-4. `make tag`
-
-   Do this once you're happy with everything. It will commit (if need be) and then create a Git tag for your version.
-
-   **IT WILL NOT PUSH YOUR COMMIT OR YOUR TAG.** Do that on your own.
+   Note that just typing `make` will build a development version, marked with a build number (e.g. `0.10.4-b3`). This is intentional: at Datawire, the CI pipeline is the only thing that builds non-development versions.
 
 What if I Don't Want to Push My Images?
 ---------------------------------------
