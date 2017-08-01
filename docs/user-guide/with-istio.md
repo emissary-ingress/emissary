@@ -30,7 +30,7 @@ make sure you remove it (`kubectl delete ingress gateway`) before proceeding.
 Once Istio is running (minus its default ingress controller -- see above), you can start Ambassador running as follows:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/istio/ambassador.yaml
+kubectl apply -f http://www.getambassador.io/yaml/istio/ambassador.yaml
 ```
 
 That will launch Ambassador and configure the Istio ingress controller to route all HTTP requests to Ambassador for routing. At this point:
@@ -66,7 +66,7 @@ Getting the three microservices hooked into the Istio service mesh isn't quite a
 However, where `kubectl` can directly use definition files via GitHub URLs, as we do above, Istio's tooling need local files. So we'll start by downloading the YAML file we'll need:
 
 ```shell
-curl -o micromaze.yaml https://raw.githubusercontent.com/datawire/ambassador/master/istio/micromaze.yaml
+curl -o micromaze.yaml http://www.getambassador.io/yaml/istio/micromaze.yaml
 ```
 
 (`micromaze.yaml` is built from four smaller YAML files, which you can see in the [micromaze](https://github.com/datawire/micromaze) repo if you're curious.)
