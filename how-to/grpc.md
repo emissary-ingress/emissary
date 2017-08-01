@@ -8,11 +8,11 @@ To demonstrate, let's walk through an example. Start by setting things up as in 
 
 ```shell
 # Add Quote of the Moment service
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-qotm.yaml
+kubectl apply -f http://www.getambassador.io/yaml/demo/demo-qotm.yaml
 
 # Add Ambassador
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/ambassador-http.yaml
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/ambassador.yaml
+kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
+kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador.yaml
 
 # Set up port-forwarding
 POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
@@ -33,7 +33,7 @@ curl $AMBASSADORURL/qotm/
 Also, add a [Hello World gRPC service](https://github.com/grpc/grpc-go/tree/master/examples/helloworld) to your cluster:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-grpc.yaml
+kubectl apply -f http://www.getambassador.io/yaml/demo/demo-grpc.yaml
 ```
 
 To create an Ambassador mapping for this service, you need the URL prefix, which is the full service name (including package path) as described in the [proto definition file](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto) for the service. In this example, the service prefix is `helloworld.Greeter`. Create the mapping with the gRPC module included:

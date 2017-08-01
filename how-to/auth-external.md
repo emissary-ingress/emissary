@@ -18,11 +18,11 @@ Let's also set things up as in the [Getting Started](../user-guide/getting-start
 
 ```shell
 # Add Quote of the Moment service
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/demo-qotm.yaml
+kubectl apply -f http://www.getambassador.io/yaml/demo/demo-qotm.yaml
 
 # Add Ambassador
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/ambassador-http.yaml
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador/master/ambassador.yaml
+kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
+kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador.yaml
 
 # Set up port-forwarding
 POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
