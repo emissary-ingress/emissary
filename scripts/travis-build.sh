@@ -27,6 +27,9 @@ onmaster () {
 nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
 doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
+# Default a VERSION
+VERSION=$(python scripts/versioner.py --verbose)
+
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if onmaster; then
         git checkout ${TRAVIS_BRANCH}
@@ -37,10 +40,10 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         echo "+docker login..."
         docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
         set -x
-
-        VERSION=$(python scripts/versioner.py --verbose)
     else
         DOCKER_REGISTRY=-
+
+        # Override the VERSION for a non-master build.
         VERSION=$(python scripts/versioner.py --verbose --magic-pre)
     fi
 
