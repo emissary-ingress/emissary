@@ -1,15 +1,15 @@
 # Running Ambassador
 
-The simplest way to run Ambassador is **not** to build it! Instead, just use the YAML files published at http://getambassador.io:
+The simplest way to run Ambassador is **not** to build it! Instead, just use the YAML files published at https://www.getambassador.io:
 
-- `http://www.getambassador.io/yaml/ambassador/ambassador-rest.yaml` defines the main Ambassador server itself;
-- `http://www.getambassador.io/yaml/ambassador/ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running; and, finally,
-- `http://www.getambassador.io/yaml/ambassador/ambassador.yaml` wraps up all of the above.
+- `https://www.getambassador.io/yaml/ambassador/ambassador-rest.yaml` defines the main Ambassador server itself;
+- `https://www.getambassador.io/yaml/ambassador/ambassador-store.yaml` defines the persistent storage that Ambassador uses to remember which services are running; and, finally,
+- `https://www.getambassador.io/yaml/ambassador/ambassador.yaml` wraps up all of the above.
 
 Additionally, you can choose either
 
-- `http://www.getambassador.io/yaml/ambassador/ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
-- `http://www.getambassador.io/yaml/ambassador/ambassador-http.yaml`, which defines an HTTP-only mechanism to access Ambassador.
+- `https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml`, which defines an HTTPS-only service for talking to Ambassador and is recommended, or
+- `https://www.getambassador.io/yaml/ambassador/ambassador-http.yaml`, which defines an HTTP-only mechanism to access Ambassador.
 
 ### <a name="TLS">The Ambassador Service and TLS</a>
 
@@ -18,7 +18,7 @@ You need to choose up front whether you want to use TLS or not. (If you want mor
 **We recommend using TLS**, which means speaking to Ambassador only over HTTPS. To do this, you need a TLS certificate, which means you'll need the DNS set up correctly. So start by creating the Ambassador's kubernetes service:
 
 ```
-kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
 ```
 
 This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this README -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin, check out our [TLS Overview](../reference/tls-auth.md), and check out [Let's Encrypt](https://letsencrypt.org/) if you're shopping for a new CA.)
@@ -36,7 +36,7 @@ where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certific
 If you really, really cannot use TLS, you can do
 
 ```
-kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
 ```
 
 for HTTP-only access.
@@ -70,7 +70,7 @@ openssl x509 -fingerprint -sha256 -in $CERTPATH -noout | cut -d= -f2 | tr -d ':'
 The easy way to get Ambassador fully running once its service is created is
 
 ```
-kubectl apply -f http://www.getambassador.io/yaml/ambassador/ambassador.yaml
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 ```
 
 ### Once Running
