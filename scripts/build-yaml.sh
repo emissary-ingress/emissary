@@ -24,3 +24,6 @@ for tdir in *; do
         python "$HERE/template.py" < $tfile > "$ODIR/$tfile"
     done
 done
+
+ADIR="$ODIR/ambassador"
+cat "$ADIR/ambassador-store.yaml" "$ADIR/ambassador-rest.yaml" > "$ADIR/ambassador.yaml"
