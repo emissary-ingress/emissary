@@ -1,7 +1,7 @@
 Building Ambassador
 ===================
 
-If you just want to **use** Ambassador, check out http://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
+If you just want to **use** Ambassador, check out https://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
 
 If you really want to customize Ambassador, though, read on.
 

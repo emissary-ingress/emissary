@@ -30,7 +30,7 @@ make sure you remove it (`kubectl delete ingress gateway`) before proceeding.
 Once Istio is running (minus its default ingress controller -- see above), you can start Ambassador running as follows:
 
 ```shell
-kubectl apply -f http://www.getambassador.io/yaml/istio/ambassador.yaml
+kubectl apply -f https://www.getambassador.io/yaml/istio/ambassador.yaml
 ```
 
 That will launch Ambassador and configure the Istio ingress controller to route all HTTP requests to Ambassador for routing. At this point:
@@ -57,7 +57,7 @@ where `ambassador` and `astore` are the pods that Ambassador needs to run, and t
 
 We'll test this by deploying a really simple application called `micromaze`, which comprises three microservices: the `usersvc`, the `gruesvc`, and the `mazesvc`. In the world of this app, users and grues wander around a maze, but the important point here is simply that the `mazesvc` has to talk to the `usersvc` and the `gruesvc`, both of which in turn have to talk to a Postgres database.
 
-Bare-bones versions of all three apps live on GitHub in our [micromaze](https://github.com/datawire/micromaze). Since Datawire has already published Docker images for them on DockerHub, you don't need to clone that repo unless you're curious about the microservices, or you want to rebuild images locally for some reason.
+Bare-bones versions of all three apps live on GitHub in our [micromaze](https://github.com/datawire/micromaze) repository. Since Datawire has already published Docker images for them on DockerHub, you don't need to clone that repo unless you're curious about the microservices, or you want to rebuild images locally for some reason.
 
 ### Deploying the Microservices
 
@@ -66,7 +66,7 @@ Getting the three microservices hooked into the Istio service mesh isn't quite a
 However, where `kubectl` can directly use definition files via GitHub URLs, as we do above, Istio's tooling need local files. So we'll start by downloading the YAML file we'll need:
 
 ```shell
-curl -o micromaze.yaml http://www.getambassador.io/yaml/istio/micromaze.yaml
+curl -o micromaze.yaml https://www.getambassador.io/yaml/istio/micromaze.yaml
 ```
 
 (`micromaze.yaml` is built from four smaller YAML files, which you can see in the [micromaze](https://github.com/datawire/micromaze) repo if you're curious.)

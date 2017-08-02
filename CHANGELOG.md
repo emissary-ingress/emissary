@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.10.10] August 1, 2017
+[0.10.10]: https://github.com/datawire/ambassador/compare/v0.10.7...v0.10.10
+
+Fix broken doc paths and simplify building as a developer. 0.10.8, 0.10.9, and 0.10.10 were all stops along the way to getting this done; hopefully we'll be able to reduce version churn from here on out.
+
 ## [0.10.7] July 25, 2017
 [0.10.7]: https://github.com/datawire/ambassador/compare/v0.10.6...v0.10.7
 
@@ -217,7 +222,7 @@ Basic auth is covered in [Getting Started][start-0.9.0]. Learn about modules and
 
 Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador follows [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-[Ambassador]: http://www.getambassador.io/
+[Ambassador]: https://www.getambassador.io/
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
