@@ -49,7 +49,7 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
 
     echo "==== BUILDING IMAGES FOR $VERSION"
 
-    make VERSION=${VERSION} travis-images
+    make VERSION=${VERSION} EXTRA_DOCKER_ARGS=-q travis-images
 
     if [ $doc_changes -eq 0 ]; then
         doc_changes=1
