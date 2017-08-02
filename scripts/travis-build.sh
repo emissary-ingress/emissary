@@ -28,7 +28,7 @@ nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' 
 doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
 # Default a VERSION
-VERSION=$(python scripts/versioner.py --verbose)
+VERSION=$(python scripts/versioner.py --only-if-changes)
 
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if onmaster; then
@@ -44,12 +44,12 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         DOCKER_REGISTRY=-
 
         # Override the VERSION for a non-master build.
-        VERSION=$(python scripts/versioner.py --verbose --magic-pre)
+        VERSION=$(python scripts/versioner.py --only-if-changes --magic-pre)
     fi
 
     echo "==== BUILDING IMAGES FOR $VERSION"
 
-    make VERSION=${VERSION} travis-images
+    make VERSION=${VERSION} EXTRA_DOCKER_ARGS=-q travis-images
 
     if [ $doc_changes -eq 0 ]; then
         doc_changes=1

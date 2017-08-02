@@ -110,9 +110,10 @@ class VersionedBranch (object):
 
                 yield commitID, subject
 
-    def next_version(self, magic_pre=False, since_tag=None, reduced_zero=True, commit_map=None,
-                     pre_release=None, build=None):
-        rdelta = ReleaseDelta(self, magic_pre=magic_pre, 
+    def next_version(self, magic_pre=False, since_tag=None, reduced_zero=True,
+                     only_if_changes=False, pre_release=None, build=None,
+                     commit_map=None):
+        rdelta = ReleaseDelta(self, only_if_changes=only_if_changes, magic_pre=magic_pre,
                               since_tag=since_tag, reduced_zero=reduced_zero,
                               commit_map=commit_map, pre_release=pre_release, build=build)
 
@@ -154,11 +155,12 @@ class ReleaseDelta(object):
     """ how new commits affect project version """
     log = logging.getLogger("ReleaseDelta")
 
-    def __init__(self, vbr, magic_pre=False, since_tag=None,
+    def __init__(self, vbr, only_if_changes=False, magic_pre=False, since_tag=None,
                  reduced_zero=True, commit_map=None,
                  pre_release=None, build=None):
         self.vbr = vbr
         self.is_dirty = vbr.is_dirty
+        self.only_if_changes = only_if_changes
         self.magic_pre = magic_pre
         self.since_tag = since_tag
         self.pre_release = pre_release
@@ -304,8 +306,11 @@ class ReleaseDelta(object):
                            (self.vbr.version, version))
 
             return version
-        else:
+        elif self.only_if_changes:
             return None
+        else:
+            # Just return the old version.
+            return version
 
 class VersionedRepo (object):
     """ Representation of a git repo that follows our versioning rules """
@@ -374,6 +379,7 @@ if __name__ == '__main__':
         --pre=<pre-release-tag>    explicitly set the prerelease number
         --build=<build-tag>        explicitly set the build number
         --since=<since-tag>        override the tag of the last release
+        --only-if-changes          don't build if there are no changes since last tag
     """
 
     args = docopt(__doc__, version="versioner {0}".format("0.1.0"))
@@ -399,11 +405,12 @@ if __name__ == '__main__':
     # }
 
     next_version = vbr.next_version(magic_pre=args.get('--magic-pre', False),
-                               pre_release=args.get('--pre', None),
-                               build=args.get('--build', None),
-                               since_tag=args.get('--since', None),
-                               reduced_zero=False)
-    #                           commit_map=commit_map)
+                                    pre_release=args.get('--pre', None),
+                                    build=args.get('--build', None),
+                                    since_tag=args.get('--since', None),
+                                    only_if_changes=args.get('--only-if-changes', False),
+                                    reduced_zero=False)
+                                    # commit_map=commit_map)
 
     if next_version:
         print(next_version)
