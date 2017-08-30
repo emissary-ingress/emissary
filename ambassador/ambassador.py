@@ -318,6 +318,10 @@ def standard_handler(f):
         rc = RichStatus.fromError("impossible error")
         logging.debug("%s: method %s" % (func_name, request.method))
 
+        if app.storage.connection_finished and not app.storage:
+            logging.error("%s: storage unavailable, bailing" % func_name)
+            app.diediedie()
+
         try:
             rc = f(*args, **kwds)
         except Exception as e:
@@ -581,7 +585,15 @@ def main():
 
     app.current_modules = None
     app.current_mappings = None
-    new_config(envoy_restarter_pid = -1)    # Don't automagically signal here.
+
+    # Regenerate the config, but don't automagically signal here.
+
+    if not new_config(envoy_restarter_pid = -1):
+        # Huh. If this went wrong, it basically means that we couldn't
+        # interact with the DB. That ain't good. Bail so kubernetes can
+        # take over.
+        logging.error("could not generate new config, bailing")
+        app.diediedie()
 
     time.sleep(2)
 
@@ -590,6 +602,15 @@ def main():
 
     # Set up the trigger for future restarts.
     app.reconfigurator = PeriodicTrigger(new_config)
+
+    def diediedie():
+        logging.warning("dying in five seconds")
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGTERM)
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGKILL)
+
+    app.diediedie = diediedie
 
     app.run(host='127.0.0.1', port=5000, debug=True)
 

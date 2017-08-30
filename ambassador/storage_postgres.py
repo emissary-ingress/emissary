@@ -63,6 +63,7 @@ class AmbassadorStore (object):
         pg8000.paramstyle = 'named'
 
         self.status = RichStatus.OK()
+        self.connection_finished = False
 
         # Make sure we have tables and such.
         #
@@ -87,6 +88,7 @@ class AmbassadorStore (object):
         self._verify_tables()
 
         # At this point we're ready to answer queries...
+        self.connection_finished = True
 
     def __bool__(self):
         return bool(self.status)
@@ -187,7 +189,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(modules=modules, count=len(modules.keys()))
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_all_modules: could not fetch info: %s" % e)
+            # Assume that we've become disconnected.
+            self.status = RichStatus.fromError("fetch_all_modules: could not fetch info: %s" % e)
+            return self.status
 
     def fetch_module(self, name):
         if not self:
@@ -208,7 +212,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name, config=config)
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_module %s: could not fetch info: %s" % (name, e))
+            self.status = RichStatus.fromError("fetch_module %s: could not fetch info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def delete_module(self, name):
         if not self:
@@ -221,7 +227,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name, deleted=deleted)
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_module %s: could not delete module: %s" % (name, e))
+            self.status = RichStatus.fromError("delete_module %s: could not delete module: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def store_module(self, name, config_object):
         if not self:
@@ -239,7 +247,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_module %s: could not save info: %s" % (name, e))
+            self.status = RichStatus.fromError("store_module %s: could not save info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     ######## MAPPING API
 
@@ -281,7 +291,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(mappings=mappings, count=len(mappings))
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_all_mappings: could not fetch info: %s" % e)
+            self.status = RichStatus.fromError("fetch_all_mappings: could not fetch info: %s" % e)
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     #### fetch
 
@@ -305,7 +317,9 @@ class AmbassadorStore (object):
             return RichStatus.OK(name=name, prefix=prefix,
                                  service=service, rewrite=rewrite)
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_mapping_basics %s: could not fetch info: %s" % (name, e))
+            self.status = RichStatus.fromError("fetch_mapping_basics %s: could not fetch info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def _fetch_mapping_modules(self, name, module_name=None):
         if not self:
@@ -324,7 +338,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name, modules=modules)
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_mapping_modules %s: could not fetch info: %s" % (name, e))
+            self.status = RichStatus.fromError("fetch_mapping_modules %s: could not fetch info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def fetch_mapping(self, name):
         if not self:
@@ -364,7 +380,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name, deleted=deleted)
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_mapping %s: could not delete mapping info: %s" % (name, e))
+            self.status = RichStatus.fromError("delete_mapping %s: could not delete mapping info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def _delete_mapping_modules(self, name, module_name=None):
         if not self:
@@ -408,7 +426,9 @@ class AmbassadorStore (object):
             self.conn.commit()
             return RichStatus.OK(name=name, deleted=rc.deleted, modules_deleted=modules_deleted)
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_mapping %s: could not delete mapping: %s" % (name, e))
+            self.status = RichStatus.fromError("delete_mapping %s: could not delete mapping: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def delete_mapping_module(self, name, module_name):
         if not self:
@@ -424,7 +444,9 @@ class AmbassadorStore (object):
                 
             return rc
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_mapping_module %s %s: could not delete module: %s" % (name, module_name, e))
+            self.status = RichStatus.fromError("delete_mapping_module %s %s: could not delete module: %s" % (name, module_name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     #### store
 
@@ -442,7 +464,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_mapping %s: could not save info: %s" % (name, e))
+            self.status = RichStatus.fromError("store_mapping %s: could not save info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     # Note that we do _one module at a time_ here.
     def _store_mapping_module(self, name, module_name, module_data_object):
@@ -461,7 +485,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name, module_name=module_name)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_mapping %s: could not save module info: %s" % (name, e))
+            self.status = RichStatus.fromError("store_mapping %s: could not save module info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def store_mapping(self, name, prefix, service, rewrite, modules):
         if not self:
@@ -484,7 +510,9 @@ class AmbassadorStore (object):
             self.conn.commit()
             return RichStatus.OK(name=name)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_mapping %s: could not store mapping: %s" % (name, e))
+            self.status = RichStatus.fromError("store_mapping %s: could not store mapping: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def store_mapping_module(self, name, module_name, module_data_object):
         if not self:
@@ -500,7 +528,9 @@ class AmbassadorStore (object):
 
             return rc
         except pg8000.Error as e:
-            return RichStatus.fromError("store_mapping_module %s: could not store mapping module: %s" % (name, e))
+            self.status = RichStatus.fromError("store_mapping_module %s: could not store mapping module: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     ######## PRINCIPAL API
     def fetch_all_principals(self):
@@ -517,7 +547,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(principals=principals, count=len(principals))
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_all_principals: could not fetch info: %s" % e)
+            self.status = RichStatus.fromError("fetch_all_principals: could not fetch info: %s" % e)
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def fetch_principal(self, name):
         if not self:
@@ -539,7 +571,9 @@ class AmbassadorStore (object):
             else:
                 return RichStatus.fromError("principal %s not found" % name)
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_principal %s: could not fetch info: %s" % (name, e))
+            self.status = RichStatus.fromError("fetch_principal %s: could not fetch info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def delete_principal(self, name):
         if not self:
@@ -553,7 +587,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name, deleted=deleted)
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_principal %s: could not delete principal: %s" % (name, e))
+            self.status = RichStatus.fromError("delete_principal %s: could not delete principal: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def store_principal(self, name, fingerprint):
         if not self:
@@ -565,7 +601,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(name=name)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_principal %s: could not save info: %s" % (name, e))
+            self.status = RichStatus.fromError("store_principal %s: could not save info: %s" % (name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     ######## CONSUMER API
     def consumers_where(self, consumer_id=None, username=None):
@@ -608,7 +646,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(consumers=consumers, count=len(consumers))
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_all_consumers: could not fetch info: %s" % e)
+            self.status = RichStatus.fromError("fetch_all_consumers: could not fetch info: %s" % e)
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     # Consumers are weird because more than one table is involved in Postgres. We
     # have one table, which we call 'basics' here, with ID and names and that's it.
@@ -647,7 +687,9 @@ class AmbassadorStore (object):
                                  fullname=fullname,
                                  shortname=shortname)
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_consumer_basics %s: could not fetch info: %s" % (where.hr, e))
+            self.status = RichStatus.fromError("fetch_consumer_basics %s: could not fetch info: %s" % (where.hr, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def _fetch_consumer_modules(self, consumer_id, module_name=None):
         if not self:
@@ -666,7 +708,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(consumer_id=consumer_id, modules=modules)
         except pg8000.Error as e:
-            return RichStatus.fromError("fetch_consumer %s: could not fetch info: %s" % (where.hr, e))
+            self.status = RichStatus.fromError("fetch_consumer %s: could not fetch info: %s" % (where.hr, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def fetch_consumer(self, consumer_id=None, username=None):
         if not self:
@@ -711,7 +755,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(consumer_id=consumer_id, deleted=deleted)
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_consumer %s: could not delete consumer info: %s" % (consumer_id, e))
+            self.status = RichStatus.fromError("delete_consumer %s: could not delete consumer info: %s" % (consumer_id, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def _delete_consumer_modules(self, consumer_id, module_name=None):
         if not self:
@@ -755,7 +801,9 @@ class AmbassadorStore (object):
             self.conn.commit()
             return RichStatus.OK(consumer_id=consumer_id, deleted=rc.deleted, modules_deleted=modules_deleted)
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_consumer %s: could not delete consumer: %s" % (consumer_id, e))
+            self.status = RichStatus.fromError("delete_consumer %s: could not delete consumer: %s" % (consumer_id, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def delete_consumer_module(self, consumer_id, module_name):
         if not self:
@@ -771,7 +819,9 @@ class AmbassadorStore (object):
                 
             return rc
         except pg8000.Error as e:
-            return RichStatus.fromError("delete_consumer_module %s %s: could not delete module: %s" % (consumer_id, module_name, e))
+            self.status = RichStatus.fromError("delete_consumer_module %s %s: could not delete module: %s" % (consumer_id, module_name, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     #### store
 
@@ -789,7 +839,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(consumer_id=consumer_id)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_consumer %s: could not save info: %s" % (consumer_id, e))
+            self.status = RichStatus.fromError("store_consumer %s: could not save info: %s" % (consumer_id, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     # Note that we do _one module at a time_ here.
     def _store_consumer_module(self, consumer_id, module_name, module_data_object):
@@ -808,7 +860,9 @@ class AmbassadorStore (object):
 
             return RichStatus.OK(consumer_id=consumer_id, module_name=module_name)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_consumer %s: could not save module info: %s" % (consumer_id, e))
+            self.status = RichStatus.fromError("store_consumer %s: could not save module info: %s" % (consumer_id, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def store_consumer(self, consumer_id, username, fullname, shortname, modules):
         if not self:
@@ -831,7 +885,9 @@ class AmbassadorStore (object):
             self.conn.commit()
             return RichStatus.OK(consumer_id=consumer_id)
         except pg8000.Error as e:
-            return RichStatus.fromError("store_consumer %s: could not store consumer: %s" % (consumer_id, e))
+            self.status = RichStatus.fromError("store_consumer %s: could not store consumer: %s" % (consumer_id, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
 
     def store_consumer_module(self, consumer_id, module_name, module_data_object):
         if not self:
@@ -847,4 +903,6 @@ class AmbassadorStore (object):
 
             return rc
         except pg8000.Error as e:
-            return RichStatus.fromError("store_consumer_module %s: could not store consumer module: %s" % (consumer_id, e))
+            self.status = RichStatus.fromError("store_consumer_module %s: could not store consumer module: %s" % (consumer_id, e))
+            logging.error("DB FAILURE: %s" % self.status)
+            return self.status
