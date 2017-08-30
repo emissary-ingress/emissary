@@ -1,5 +1,4 @@
-# NOTE WELL: this might only be OK for Datawire
-FROM datawire/ambassador-envoy:latest
+FROM dwflynn/ambassador-envoy:v1.4.0-49-g008635a04
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
