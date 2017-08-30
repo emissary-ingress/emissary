@@ -302,11 +302,28 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
         except Exception as e:
             logging.exception(e)
             logging.error("new_config couldn't write config")
+
+            # Don't update the watchdog
+            return
     else:
         # logging.debug("new_config found NO changes (count %d)" % num_mappings)
         pass
 
+    app.watchdog_updated = time.time()
+    # logging.debug("new_config: watchdog updated")
     return RichStatus.OK(count=num_mappings)
+
+######## WATCHDOG
+
+def watchdog():
+    delta = time.time() - app.watchdog_updated
+
+    # logging.debug("Watchdog: delta %d" % delta)
+
+    if delta >= 30:
+        # This is a problem.
+        logging.error("WATCHDOG FIRED")
+        app.diediedie()
 
 ######## DECORATORS
 
@@ -602,6 +619,10 @@ def main():
 
     # Set up the trigger for future restarts.
     app.reconfigurator = PeriodicTrigger(new_config)
+
+    # Set up the watchdog, too.
+    app.watchdog_updated = time.time()
+    app.watchdog = PeriodicTrigger(watchdog, period=10)
 
     def diediedie():
         logging.warning("dying in five seconds")
