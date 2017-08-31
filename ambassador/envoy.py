@@ -19,11 +19,34 @@ def percentage(x, y):
 
 
 class TLSConfig (object):
-    def __init__(self, chain_env, chain_default_path, privkey_env, privkey_default_path,
-                       cacert_chain_env, cacert_chain_default_path):
-        self.chain_path = os.environ.get(chain_env, chain_default_path)
-        self.privkey_path = os.environ.get(privkey_env, privkey_default_path)
-        self.cacert_chain_path = os.environ.get(cacert_chain_env, cacert_chain_default_path)
+    def __init__(self, chain_path=None, privkey_path=None, cacert_chain_path=None):
+        self.chain_path = self.check_path(chain_path)
+        self.privkey_path = self.check_path(privkey_path)
+        self.cacert_chain_path = self.check_path(cacert_chain_path)
+
+    def check_path(self, pathinfo):
+        if not pathinfo:
+            logging.error("pathinfo missing??")
+            return None
+
+        if not "paths" in pathinfo:
+            logging.error("pathinfo missing paths??")
+            return None
+
+        default = pathinfo["paths"][-1]
+
+        if "env" in pathinfo:
+            tmp = os.environ.get(pathinfo["env"], None)
+
+            if tmp:
+                return tmp
+
+        if "paths" in pathinfo:
+            for path in pathinfo["paths"]:
+                if self.check_file(path):
+                    return path
+
+        return default
 
     def check_file(self, path):
         found = False
@@ -403,6 +426,8 @@ class EnvoyConfig (object):
         ssl_context = self.tls_config.config_block()
 
         if ssl_context:
+            logging.info("configuring with TLS")
+
             dpath.util.new(
                 config,
                 "/listeners/1/ssl_context",
@@ -419,6 +444,8 @@ class EnvoyConfig (object):
 
             if client_cert_config:
                 dpath.util.get(config, "/listeners/1/filters").append(client_cert_config)
+        else:
+            logging.info("configuring plaintext-only")
 
         output_file = open(path, "w")
 
