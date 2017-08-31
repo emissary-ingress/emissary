@@ -560,6 +560,16 @@ def handle_extauth():
         return Response(rc.msg, 200)
 
 def main():
+    # First things first: set up our panic routine.
+    def diediedie():
+        logging.warning("dying in five seconds")
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGTERM)
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGKILL)
+
+    app.diediedie = diediedie
+
     # Set up storage.
     app.storage = AmbassadorStore()
 
@@ -623,15 +633,6 @@ def main():
     # Set up the watchdog, too.
     app.watchdog_updated = time.time()
     app.watchdog = PeriodicTrigger(watchdog, period=10)
-
-    def diediedie():
-        logging.warning("dying in five seconds")
-        time.sleep(5)
-        os.kill(os.getpid(), signal.SIGTERM)
-        time.sleep(5)
-        os.kill(os.getpid(), signal.SIGKILL)
-
-    app.diediedie = diediedie
 
     app.run(host='127.0.0.1', port=5000, debug=True)
 
