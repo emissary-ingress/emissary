@@ -303,8 +303,8 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
             logging.exception(e)
             logging.error("new_config couldn't write config")
 
-            # Don't update the watchdog
-            return
+            # DO update the watchdog here -- without doing that it's too hard
+            # to recover from a bad config crashing the world.
     else:
         # logging.debug("new_config found NO changes (count %d)" % num_mappings)
         pass
@@ -634,7 +634,12 @@ def main():
     time.sleep(2)
 
     logging.info("ambassador asking restarter for initial reread")
-    os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
+    
+    try:
+        os.kill(app.envoy_restarter_pid, signal.SIGHUP) 
+    except Exception as e:
+        logging.exception(e)
+        logging.error("initial reread failed!")
 
     # Set up the trigger for future restarts.
     app.reconfigurator = PeriodicTrigger(new_config)
