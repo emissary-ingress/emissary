@@ -643,7 +643,7 @@ def main():
     app.watchdog_updated = time.time()
     app.watchdog = PeriodicTrigger(watchdog, period=10)
 
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=8888, debug=True)
 
 if __name__ == '__main__':
     main()
