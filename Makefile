@@ -49,3 +49,6 @@ cli-image: .ALWAYS
 
 website: yaml-files
 	VERSION=$(VERSION) docs/build-website.sh
+
+clean:
+	rm -rf docs/yaml docs/_book docs/_site docs/node_modules

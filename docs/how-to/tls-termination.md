@@ -13,7 +13,9 @@ This will create an L4 load balancer that will later be used to talk to Ambassad
 Once you have the cert, you can run
 
 ```shell
-sh scripts/push-cert $FULLCHAIN_PATH $PRIVKEY_PATH
+kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
 ```
 
-where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key. `push-cert` will push the cert into Kubernetes secret storage, for Ambassador's later use.
+where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
+
+The `ambassador-certs` secret tells Ambassador to provide HTTPS on port 443, and gives it the certificate to present to a client contacting Ambassador. 

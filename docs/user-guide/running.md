@@ -25,11 +25,13 @@ This will create an L4 load balancer that will later be used to talk to Ambassad
 
 Once you have the cert, you can run
 
-```
-sh scripts/push-cert $FULLCHAIN_PATH $PRIVKEY_PATH
+```shell
+kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
 ```
 
-where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key. `push-cert` will push the cert into Kubernetes secret storage, for Ambassador's later use.
+where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
+
+The `ambassador-certs` secret tells Ambassador to provide HTTPS on port 443, and gives it the certificate to present to a client contacting Ambassador. 
 
 ### Without TLS
 
@@ -43,10 +45,10 @@ for HTTP-only access.
 
 ### Using TLS for Client Auth
 
-If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and use `scripts/push-cacert` to push it into a Kubernetes secret:
+If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and create a Kubernetes secret with it:
 
-```
-sh scripts/push-cacert $CACERT_PATH
+```shell
+kubectl create secret generic ambassador-cacert --from-file=fullchain.pem=$CACERT_PATH
 ```
 
 After starting Ambassador, you **must** tell Ambassador about which certificates are allowed, using the `/ambassador/principal/` REST API of Ambassador's [admin interface](administering.md):

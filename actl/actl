@@ -103,65 +103,6 @@ def geturl():
     print(f"export AMBASSADORURL={get_ambassador_url()}")
 
 
-@actl.command(name="push-cert")
-@click.argument("chainpath", type=click.File("rb"))
-@click.argument("privkeypath", type=click.File("rb"))
-@click.argument("prefix", required=False, default="")
-@click.argument("secretname", required=False, default="ambassador-certs")
-@click.argument("namespace", required=False, default="default")
-def push_cert(chainpath, privkeypath, prefix, secretname, namespace):
-    """Add certificate for Ambassador to k8s secrets"""
-    chain_data = codecs.encode(chainpath.read(), "base64").decode("utf-8").strip()
-    privkey_data = codecs.encode(privkeypath.read(), "base64").decode("utf-8").strip()
-
-    chain_name = "fullchain.pem"
-    privkey_name = "privkey.pem"
-    if prefix:
-        chain_name = prefix + "-" + chain_name
-        privkey_name = prefix + "-" + privkey_name
-
-    yaml = f"""
-apiVersion: v1
-kind: Secret
-metadata:
-  name: "{secretname}"
-  namespace: "{namespace}"
-type: Opaque
-data:
-  "{chain_name}": "{chain_data}"
-  "{privkey_name}": "{privkey_data}"
-    """
-
-    hand_off_to_command("kubectl apply -f -", input=yaml)
-
-
-@actl.command(name="push-cacert")
-@click.argument("chainpath", type=click.File("rb"))
-@click.argument("prefix", required=False, default="")
-@click.argument("secretname", required=False, default="ambassador-cacert")
-@click.argument("namespace", required=False, default="default")
-def push_ca_cert(chainpath, prefix, secretname, namespace):
-    """Add CA certificate for client auth to k8s secrets"""
-    chain_data = codecs.encode(chainpath.read(), "base64").decode("utf-8").strip()
-
-    chain_name = "fullchain.pem"
-    if prefix:
-        chain_name = prefix + "-" + chain_name
-
-    yaml = f"""
-apiVersion: v1
-kind: Secret
-metadata:
-  name: "{secretname}"
-  namespace: "{namespace}"
-type: Opaque
-data:
-  "{chain_name}": "{chain_data}"
-    """
-
-    hand_off_to_command("kubectl apply -f -", input=yaml)
-
-
 @actl.command(name="map")
 @click.argument("mapping")
 @click.argument("prefix")

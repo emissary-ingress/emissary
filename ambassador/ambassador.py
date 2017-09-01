@@ -302,11 +302,28 @@ def new_config(envoy_base_config=None, envoy_tls_config=None, envoy_config_path=
         except Exception as e:
             logging.exception(e)
             logging.error("new_config couldn't write config")
+
+            # DO update the watchdog here -- without doing that it's too hard
+            # to recover from a bad config crashing the world.
     else:
         # logging.debug("new_config found NO changes (count %d)" % num_mappings)
         pass
 
+    app.watchdog_updated = time.time()
+    # logging.debug("new_config: watchdog updated")
     return RichStatus.OK(count=num_mappings)
+
+######## WATCHDOG
+
+def watchdog():
+    delta = time.time() - app.watchdog_updated
+
+    # logging.debug("Watchdog: delta %d" % delta)
+
+    if delta >= 30:
+        # This is a problem.
+        logging.error("WATCHDOG FIRED")
+        app.diediedie()
 
 ######## DECORATORS
 
@@ -317,6 +334,10 @@ def standard_handler(f):
     def wrapper(*args, **kwds):
         rc = RichStatus.fromError("impossible error")
         logging.debug("%s: method %s" % (func_name, request.method))
+
+        if app.storage.connection_finished and not app.storage:
+            logging.error("%s: storage unavailable, bailing" % func_name)
+            app.diediedie()
 
         try:
             rc = f(*args, **kwds)
@@ -539,6 +560,16 @@ def handle_extauth():
         return Response(rc.msg, 200)
 
 def main():
+    # First things first: set up our panic routine.
+    def diediedie():
+        logging.warning("dying in five seconds")
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGTERM)
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGKILL)
+
+    app.diediedie = diediedie
+
     # Set up storage.
     app.storage = AmbassadorStore()
 
@@ -553,9 +584,18 @@ def main():
 
     # Set up the TLS config stuff.
     app.envoy_tls_config = TLSConfig(
-        "AMBASSADOR_CHAIN_PATH", "/etc/certs/fullchain.pem",
-        "AMBASSADOR_PRIVKEY_PATH", "/etc/certs/privkey.pem",
-        "AMBASSADOR_CACERT_PATH", "/etc/cacert/fullchain.pem"
+        chain_path={
+            "env": "AMBASSADOR_CHAIN_PATH",
+            "paths": [ "/etc/certs/tls.crt", "/etc/certs/fullchain.pem" ] 
+        },
+        privkey_path={
+            "env": "AMBASSADOR_PRIVKEY_PATH",
+            "paths": [ "/etc/certs/tls.key", "/etc/certs/privkey.pem" ]
+        },
+        cacert_chain_path={
+            "env": "AMBASSADOR_CACERT_PATH", 
+            "paths": [ "/etc/cacert/fullchain.pem" ]
+        }
     )
 
     # Set up stats.
@@ -581,17 +621,34 @@ def main():
 
     app.current_modules = None
     app.current_mappings = None
-    new_config(envoy_restarter_pid = -1)    # Don't automagically signal here.
+
+    # Regenerate the config, but don't automagically signal here.
+
+    if not new_config(envoy_restarter_pid = -1):
+        # Huh. If this went wrong, it basically means that we couldn't
+        # interact with the DB. That ain't good. Bail so kubernetes can
+        # take over.
+        logging.error("could not generate new config, bailing")
+        app.diediedie()
 
     time.sleep(2)
 
     logging.info("ambassador asking restarter for initial reread")
-    os.kill(app.envoy_restarter_pid, signal.SIGHUP)    
+    
+    try:
+        os.kill(app.envoy_restarter_pid, signal.SIGHUP) 
+    except Exception as e:
+        logging.exception(e)
+        logging.error("initial reread failed!")
 
     # Set up the trigger for future restarts.
     app.reconfigurator = PeriodicTrigger(new_config)
 
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    # Set up the watchdog, too.
+    app.watchdog_updated = time.time()
+    app.watchdog = PeriodicTrigger(watchdog, period=10)
+
+    app.run(host='127.0.0.1', port=8888, debug=True)
 
 if __name__ == '__main__':
     main()
