@@ -1,9 +1,9 @@
 # Auth with TLS Client Certs
 
-If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and use `scripts/push-cacert` to push it into a Kubernetes secret:
+If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and create a Kubernetes secret with it:
 
 ```shell
-sh scripts/push-cacert $CACERT_PATH
+kubectl create secret generic ambassador-cacert --from-file=fullchain.pem=$CACERT_PATH
 ```
 
 After starting Ambassador, you **must** tell Ambassador about which certificates are allowed, using the `/ambassador/principal/` REST API of Ambassador's [admin interface](admin-port.md):
