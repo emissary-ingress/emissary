@@ -1,9 +1,11 @@
 import copy
+import collections
 import json
 import logging
 import os
 import re
 import time
+import types
 
 import dpath
 import requests
@@ -153,7 +155,7 @@ class EnvoyConfig (object):
         "lb_type": "random",
         "hosts": [
             {{
-                "url": "tcp://{ext_auth_target}"
+                "url": "tcp://{target}"
             }}
         ]
     }}
@@ -209,25 +211,51 @@ class EnvoyConfig (object):
         self.tls_config = tls_config
         self.current_modules = current_modules
 
-        self.ext_auth_target = None
+        self.ext_auth_config = None
 
         auth_config = self.current_modules.get('authentication', None)
 
         if auth_config:
             try:
                 ambassador_auth = auth_config.get('ambassador', None)
+                ext_auth_target = None
 
                 if ambassador_auth:
                     # Use the auth module built in to Ambassador.
-                    self.ext_auth_target = '127.0.0.1:5000'
+                    ext_auth_target = '127.0.0.1:5000'
                 else:
                     # Look in the config itself for the target.
-                    self.ext_auth_target = auth_config.get('auth_service', None)
+                    ext_auth_target = auth_config.get('auth_service', None)
+
+                if ext_auth_target:
+                    logging.info("configuring ext_auth with target %s" % ext_auth_target)
+
+                    self.ext_auth_config = {
+                        'target': ext_auth_target
+                    }
+
+                    prefix = auth_config.get('path_prefix', None)
+
+                    logging.info("got path_prefix %s" % prefix)
+
+                    if prefix:
+                        self.ext_auth_config['path_prefix'] = prefix
+
+                    allowed_headers = auth_config.get('allowed_headers', None)
+
+                    logging.info("got allowed_headers %s" % allowed_headers)
+
+                    if allowed_headers:
+                        if (isinstance(allowed_headers, collections.Iterable) and
+                            not isinstance(allowed_headers, str)):
+                            self.ext_auth_config['allowed_headers'] = allowed_headers
+                        else:
+                            logging.warning("Authentication config: allowed_headers must be an array")
             except Exception as e:
                 # This can't really happen except for the case where auth_config
                 # isn't a dict, and that's unsupported.
                 logging.warning("authentication module has unsupported config '%s'" % json.dumps(auth_config))
-                pass                
+                raise             
 
     def add_mapping(self, name, prefix, service, rewrite, modules):
         logging.debug("adding mapping %s (%s -> %s)" % (name, prefix, service))
@@ -378,8 +406,8 @@ class EnvoyConfig (object):
         # OK. Spin out the config.
         config = copy.deepcopy(self.base_config)
 
-        if self.ext_auth_target:
-            logging.info("enabling ext_auth to %s" % self.ext_auth_target)
+        if self.ext_auth_config:
+            logging.info("enabling ext_auth, config %s" % json.dumps(self.ext_auth_config))
 
             filt0name = dpath.util.get(config, "/listeners/0/filters/0/name")
 
@@ -387,19 +415,28 @@ class EnvoyConfig (object):
                 msg = "expected httpconnman as /listeners/0/filters/0, got %s?" % filt0name
                 raise Exception(msg)
 
-            ext_auth_def = {
-                'ext_auth_target': self.ext_auth_target
-            }
-
-            ext_auth_filter_json = EnvoyConfig.ext_auth_filter_template.format(**ext_auth_def)
+            ext_auth_filter_json = EnvoyConfig.ext_auth_filter_template.format(**self.ext_auth_config)
 
             logging.debug("ext_auth_filter %s" % ext_auth_filter_json)
 
             ext_auth_filter = json.loads(ext_auth_filter_json)
+
+            path_prefix = self.ext_auth_config.get("path_prefix", None)
+
+            if path_prefix:
+                ext_auth_filter['config']['path_prefix'] = path_prefix
+
+            allowed_headers = self.ext_auth_config.get("allowed_headers", None)
+
+            if allowed_headers:
+                ext_auth_filter['config']['allowed_headers'] = allowed_headers
+
             filter_set = dpath.util.get(config, "/listeners/0/filters/0/config/filters")
             filter_set.insert(0, ext_auth_filter)
 
-            ext_auth_cluster_json = EnvoyConfig.ext_auth_cluster_template.format(**ext_auth_def)
+            logging.debug("ext_auth_filter final %s" % json.dumps(ext_auth_filter))
+
+            ext_auth_cluster_json = EnvoyConfig.ext_auth_cluster_template.format(**self.ext_auth_config)
 
             logging.debug("ext_auth_cluster %s" % ext_auth_cluster_json)
 
