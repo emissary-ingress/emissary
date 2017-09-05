@@ -4,7 +4,42 @@ As an alternative to Ambassador's built-in authentication service, you can direc
 
 ## Ambassador External Auth API
 
-Ambassador sends a POST request to the auth service at the path `/ambassador/auth` with body  containing a JSON mapping of the request headers in HTTP/2 style, e.g., `:authority` instead of `Host`. If Ambassador cannot reach the auth service, it returns 503 to the client. If the auth service response code is 200, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow. This typically means that the client will receive the expected response to its request. If Ambassador receives any response from the auth service other than 200, it returns that full response (header and body) to the client. Ambassador assumes the auth service will return an appropriate response, such as 401.
+When Ambassador is configured to use the external auth service, the method and headers of every incoming request are forwarded to the auth service, with two changes:
+
+1. The `Host` header is overwritten with the host information of the external auth service.
+2. The body is removed.
+
+So, for example, if the incoming request is 
+
+```
+PUT /path/to/service HTTP/1.1
+Host: myservice.example.com:80
+User-Agent: curl/7.54.0
+Accept: */*
+Content-Type: application/json
+Content-Length: 27
+
+{ "greeting": "hello world!", "spiders": "OMG no "}
+```
+
+then the request Ambassador will make of the auth service is:
+
+```
+PUT /path/to/service HTTP/1.1
+Host: extauth.example.com:80
+User-Agent: curl/7.54.0
+Accept: */*
+Content-Type: application/json
+Content-Length: 0
+```
+
+**ALL** request methods will be proxied; the auth service should be able to handle any request that any client could make. If desired, Ambassador can add a prefix to the path before forwarding it to the auth service; see the example below.
+
+If Ambassador cannot reach the auth service, it returns 503 to the client. If Ambassador receives any response from the auth service other than 200, it returns that full response (header and body) to the client. Ambassador assumes the auth service will return an appropriate response, such as 401.
+
+If the auth service response code is 200, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow. This typically means that the client will receive the expected response to its request.
+
+Additionally, Ambassador can be configured to allow headers from the auth service to be passed back to the client when the auth service returns 200; see the example below.
 
 ## Example
 
@@ -44,11 +79,17 @@ Now let's turn on authentication using the `example-auth` service we deployed ea
 
 ```shell
 curl -XPUT -H"Content-Type: application/json" \
-     -d'{ "auth_service": "example-auth:3000" }' \
+     -d'{ "auth_service": "example-auth:3000", "path_prefix": "/extauth", "allowed_headers": [ "x-qotm-session" ] }' \
      http://localhost:8888/ambassador/module/authentication
 ```
 
-The [`example-auth` service (GitHub repo)](https://github.com/datawire/ambassador-auth-service) is a simple Node/Express implementation of the API described above. In short, the service expects a POST to the path `/ambassador/auth` with client request headers as a JSON map in the POST body. If auth is okay (HTTP Basic Auth), it returns a 200 to allow the client request to go through. Otherwise it returns a 401 with an HTTP Basic Auth WWW-Authenticate header. This example auth service only performs auth when the client headers indicate a request under the `/service` path prefix. The only valid credentials are `username:password`.
+Here, we're telling extauth to use the `example-auth` service on port 3000, to prepend `/extauth` to every path before handing it to the auth service, and to allow the `x-qotm-session` header to be included in responses from the auth service. Note that `path_prefix` and `allowed_headers` are optional; omit them if you don't want them.
+
+The [`example-auth` service (GitHub repo)](https://github.com/datawire/ambassador-auth-service) is a simple Node/Express implementation of the API described above. It implements HTTP Basic Authentication, where the only valid credentials are user `username` and password `password`, and only requires authentication when the original path requested begins with `/service` (which means that the auth service sees a path starting with `/extauth/service`).
+
+If auth is not required for the request, the service returns 200 immediately.
+
+If auth _is_ required and a valid username and password are supplied, the extauth service returns a 200 to allow the client request to go through, and it makes sure that an `x-qotm-session` header is present (if the client provided one, great! otherwise, the extauth service will create a new session value). Otherwise it returns a 401 with an HTTP Basic Auth WWW-Authenticate header.
 
 Let's create a second mapping for QotM at `/service/` so we can demonstrate authentication.
 
@@ -75,3 +116,5 @@ unless you use the correct credentials:
 ```shell
 curl -v -u username:password $AMBASSADORURL/service/
 ```
+
+For any successful request made to `/service`, you should see the `x-qotm-session` header in the response.
