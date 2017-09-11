@@ -16,7 +16,7 @@ class AmbassadorConfig (object):
         self.envoy_config = {}
         self.envoy_clusters = {}
 
-        for dirpath, dirnames, filenames in os.walk(sys.argv[1]):
+        for dirpath, dirnames, filenames in os.walk(self.config_dir_path):
             for filename in [ x for x in filenames if x.endswith(".yaml") ]:
                 filepath = os.path.join(dirpath, filename)
 
