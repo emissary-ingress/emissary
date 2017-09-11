@@ -1,0 +1,80 @@
+{
+  "listeners": [
+    {
+      "address": "tcp://0.0.0.0:{{ listeners.service_port }}",
+      {%- if tls -%}
+      {%- if tls.cert_chain_file -%}"cert_chain_file": "{{ tls.cert_chain_file }}",{%- endif -%}
+      {%- if tls.private_key_file -%}"private_key_file": "{{ tls.private_key_file }}",{%- endif -%}
+      {%- if tls.cacert_chain_file -%}"cacert_chain_file": "{{ tls.cacert_chain_file }}",{%- endif -%}
+      {%- endif -%}
+      "filters": [
+        {
+          "type": "read",
+          "name": "http_connection_manager",
+          "config": {
+            "codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "access_log": [
+              {
+                "path": "/tmp/access_log"
+              }
+            ],
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "name": "backend",
+                  "domains": ["*"],
+                  "routes": [
+                    {% for route in routes %}
+                    {
+                      "timeout_ms": {{ route.timeout_ms or 500 }},
+                      "prefix": "{{ route.prefix }}",
+                      "prefix_rewrite": "{{ route.prefix_rewrite }}",
+                      "cluster": "{{ route.cluster }}"
+                    }
+                    {{ "," if not loop.last }}
+                    {% endfor %}
+                  ]
+                }
+              ]
+            },
+            "filters": [
+              {% for filter in filters -%}
+              { 
+                "type": "{{ filter.type }}",
+                "name": "{{ filter.name }}",
+                "config": {{ filter.config | tojson }}
+              }{{ "," if not loop.last }}
+              {%- endfor %}
+            ]
+          }
+        }
+      ]
+    }    
+  ],
+  "admin": {
+    "address": "tcp://127.0.0.1:{{ listeners.admin_port }}",
+    "access_log_path": "/tmp/admin_access_log"
+  },
+  "cluster_manager": {
+    "clusters": [
+      {% for cluster in clusters -%}
+      {
+        "name": "{{ cluster.name }}",
+        "connect_timeout_ms": {{ cluster.timeout_ms or 250 }},
+        "type": "{{ cluster.type or 'strict_dns' }}",
+        "lb_type": "{{ cluster.lb_type or 'round_robin' }}",
+        "hosts": [
+          {% for url in cluster.urls -%}
+          {
+            "url": "{{ url }}"
+          }{{ "," if not loop.last }}
+          {% endfor %}
+        ]
+      }{{ "," if not loop.last }}
+      {% endfor %}
+    ]
+  },
+  "statsd_udp_ip_address": "127.0.0.1:8125",
+  "stats_flush_interval_ms": 1000
+}

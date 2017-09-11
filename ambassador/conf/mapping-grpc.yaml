@@ -1,0 +1,5 @@
+mapping:
+  grpc_mapping:
+    prefix: /grpc/
+    service: qotm
+    grpc: true

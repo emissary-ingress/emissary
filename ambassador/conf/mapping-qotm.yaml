@@ -1,0 +1,10 @@
+mappings:
+  qotm_mapping:
+    prefix: /qotm/
+    service: qotm
+  quote_mapping:
+    prefix: /qotm/quote/
+    service: qotm
+  service_mapping:
+    prefix: /service/
+    service: qotm

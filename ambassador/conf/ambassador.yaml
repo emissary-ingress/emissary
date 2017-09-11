@@ -1,0 +1,15 @@
+ambassador:
+  # If present, service_port will be the port Ambassador listens
+  # on for microservice access. If not present, Ambassador will
+  # use 443 if TLS is configured, 80 otherwise.
+  service_port: 80
+
+  # admin_port is where we'll listen for administrative requests.
+  admin_port: 8001
+
+  # # TLS setup
+  # tls:
+  #   cert_chain_file: ...
+  #   private_key_file: ...
+  #   cacert_chain_file: ...
+
