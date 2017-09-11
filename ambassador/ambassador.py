@@ -17,12 +17,22 @@ logging.basicConfig(
 
 logging.info("DECLARATIVE! running")
 
-if __name__ == "__main__":
-    config_dir_path = sys.argv[1]
-    output_json_path = sys.argv[2]
+@click.command()
+@click.option('--check', default=False, is_flag=True,
+              help="Only regenerate output if it doesn't exist")
+@click.argument('config_dir_path', type=click.Path(exists=True))
+#help="Path of directory to scan for configuration info")
+@click.argument('output_json_path', type=click.Path(exists=True))
+#help="Path to which to write Envoy configuration")
+def generate_envoy_json(check, config_dir_path, output_json_path):
+    logging.info("CHECK MODE  %s" % check)
+    logging.info("CONFIG DIR  %s" % config_dir_path)
+    logging.info("OUTPUT PATH %s" % output_json_path)
 
     aconf = AmbassadorConfig(config_dir_path)
     econf = aconf.envoy_config_object()
 
-    aconf.pretty(econf, out=open(output_json_path, "w"))
+    aconf.pretty(econf, out=open(output_json_path, "w"))   
 
+if __name__ == "__main__":
+    generate_envoy_json()
