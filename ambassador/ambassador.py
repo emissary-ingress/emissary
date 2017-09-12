@@ -1,6 +1,8 @@
 import sys
 
-import click
+import clize
+from clize import Parameter
+
 import json
 import logging
 
@@ -16,19 +18,33 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-logging.info("Ambassador starting")
+def version():
+    """
+    Show Ambassador's version
+    """
 
-@click.command()
-@click.option('--check', default=False, is_flag=True,
-              help="Only regenerate output if it doesn't exist")
-@click.argument('config_dir_path', type=click.Path(exists=True))
-#help="Path of directory to scan for configuration info")
-@click.argument('output_json_path', type=click.Path(readable=False))
-#help="Path to which to write Envoy configuration")
-def generate_envoy_json(check, config_dir_path, output_json_path):
-    logging.info("CHECK MODE  %s" % check)
-    logging.info("CONFIG DIR  %s" % config_dir_path)
-    logging.info("OUTPUT PATH %s" % output_json_path)
+    print("Ambassador %s" % __version__)
+
+def publish(config_dir_path:Parameter.REQUIRED, output_config_map="ambassador-config"):
+    """
+    Push an Ambassador configuration to a configmap
+
+    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param output_config_map: Name of map to update
+    """
+
+def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *, check=False):
+    """
+    Generate an Envoy configuration
+
+    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param output_json_path: Path to output envoy.json
+    :param check: If set, generate configuration only if it doesn't already exist
+    """
+
+    logging.debug("CHECK MODE  %s" % check)
+    logging.debug("CONFIG DIR  %s" % config_dir_path)
+    logging.debug("OUTPUT PATH %s" % output_json_path)
 
     # Bypass the existence check...
     output_exists = False
@@ -63,4 +79,15 @@ def generate_envoy_json(check, config_dir_path, output_json_path):
         aconf.pretty(econf, out=open(output_json_path, "w"))   
 
 if __name__ == "__main__":
-    generate_envoy_json()
+    clize.run([config, publish], alt=[version],
+              description="""
+              Generate an Envoy config, or manage an Ambassador deployment. Use
+
+              ambassador.py command --help 
+
+              for more help, or 
+
+              ambassador.py --version               
+
+              to see Ambassador's version.
+              """)
