@@ -16,7 +16,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-logging.info("DECLARATIVE! running")
+logging.info("Ambassador starting")
 
 @click.command()
 @click.option('--check', default=False, is_flag=True,
