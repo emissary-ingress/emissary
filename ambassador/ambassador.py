@@ -1,10 +1,16 @@
 import sys
 
-import clize
-from clize import Parameter
-
 import json
 import logging
+import requests
+import time
+import traceback
+import uuid
+
+import clize
+from clize import Parameter
+from scout import Scout
+from utils import RichStatus
 
 from AmbassadorConfig import AmbassadorConfig
 
@@ -13,10 +19,27 @@ import VERSION
 __version__ = VERSION.Version
 
 logging.basicConfig(
-    level=logging.DEBUG, # if appDebug else logging.INFO,
+    level=logging.INFO, # if appDebug else logging.INFO,
     format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
+
+# logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
+logger = logging.getLogger("ambassador")
+logger.setLevel(logging.DEBUG)
+
+scout = Scout(app="ambassador", version=__version__, 
+              id_plugin=Scout.configmap_install_id_plugin)
+
+def handle_exception(what, e, **kwargs):
+    tb = "\n".join(traceback.format_exception(*sys.exc_info()))
+
+    result = scout.report(action=what, exception=str(e), traceback=tb, **kwargs)
+
+    time.sleep(1)
+
+    logger.debug("Scout %s, result: %s" % ("disabled" if scout.disabled else "enabled", result))
+    logger.error("%s: %s\n%s" % (what, e, tb))
 
 def version():
     """
@@ -24,6 +47,13 @@ def version():
     """
 
     print("Ambassador %s" % __version__)
+
+def showid():
+    """
+    Show Ambassador's installation ID
+    """
+
+    print("%s" % scout.install_id)
 
 def publish(config_dir_path:Parameter.REQUIRED, output_config_map="ambassador-config"):
     """
@@ -42,44 +72,52 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
     :param check: If set, generate configuration only if it doesn't already exist
     """
 
-    logging.debug("CHECK MODE  %s" % check)
-    logging.debug("CONFIG DIR  %s" % config_dir_path)
-    logging.debug("OUTPUT PATH %s" % output_json_path)
+    try:
+        logger.debug("CHECK MODE  %s" % check)
+        logger.debug("CONFIG DIR  %s" % config_dir_path)
+        logger.debug("OUTPUT PATH %s" % output_json_path)
 
-    # Bypass the existence check...
-    output_exists = False
+        # Bypass the existence check...
+        output_exists = False
 
-    if check:
-        # ...oh no wait, they explicitly asked for the existence check!
-        # Assume that the file exists (ie, we'll do nothing) unless we
-        # determine otherwise.
-        output_exists = True
+        if check:
+            # ...oh no wait, they explicitly asked for the existence check!
+            # Assume that the file exists (ie, we'll do nothing) unless we
+            # determine otherwise.
+            output_exists = True
 
-        try:
-            x = json.loads(open(output_json_path, "r").read())
-        except FileNotFoundError:
-            logging.debug("output file does not exist")
-            output_exists = False
-        except OSError:
-            logging.warning("output file is not sane?")
-            output_exists = False
-        except json.decoder.JSONDecodeError:
-            logging.warning("output file is not valid JSON")
-            output_exists = False
+            try:
+                x = json.loads(open(output_json_path, "r").read())
+            except FileNotFoundError:
+                logger.debug("output file does not exist")
+                output_exists = False
+            except OSError:
+                logger.warning("output file is not sane?")
+                output_exists = False
+            except json.decoder.JSONDecodeError:
+                logger.warning("output file is not valid JSON")
+                output_exists = False
 
-        logging.info("Output file %s" % ("exists" if output_exists else "does not exist"))
+            logger.info("Output file %s" % ("exists" if output_exists else "does not exist"))
 
-    if not output_exists:
-        # Either we didn't need to check, or the check didn't turn up
-        # a valid config. Regenerate.
-        logging.info("Generating new Envoy configuration...")
-        aconf = AmbassadorConfig(config_dir_path)
-        econf = aconf.envoy_config_object()
+        if not output_exists:
+            # Either we didn't need to check, or the check didn't turn up
+            # a valid config. Regenerate.
+            logger.info("Generating new Envoy configuration...")
+            aconf = AmbassadorConfig(config_dir_path)
+            econf = aconf.envoy_config_object()
+            crap
+            aconf.pretty(econf, out=open(output_json_path, "w"))   
 
-        aconf.pretty(econf, out=open(output_json_path, "w"))   
+        scout.report(action="config", check=check, generated=(not output_exists),
+                     config_dir_path=config_dir_path, output_json_path=output_json_path)
+    except Exception as e:
+        # scout.report(action="WTFO?")
+        handle_exception("EXCEPTION from config", e, 
+                         config_dir_path=config_dir_path, output_json_path=output_json_path)
 
 if __name__ == "__main__":
-    clize.run([config, publish], alt=[version],
+    clize.run([config, publish], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
