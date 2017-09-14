@@ -27,7 +27,9 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
 
-scout = Scout(app="ambassador", version=__version__, 
+scout_version = "+".join(__version__.split('-', 1))
+
+scout = Scout(app="ambassador", version=scout_version, 
               id_plugin=Scout.configmap_install_id_plugin)
 
 def handle_exception(what, e, **kwargs):
