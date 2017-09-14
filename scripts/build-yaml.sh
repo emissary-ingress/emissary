@@ -26,4 +26,4 @@ for tdir in *; do
 done
 
 ADIR="$ODIR/ambassador"
-cat "$ADIR/ambassador-rest.yaml" > "$ADIR/ambassador.yaml"
+cp "$ADIR/ambassador-proxy.yaml" "$ADIR/ambassador.yaml"
