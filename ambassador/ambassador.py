@@ -10,7 +10,6 @@ import uuid
 import clize
 from clize import Parameter
 from scout import Scout
-from utils import RichStatus
 
 from AmbassadorConfig import AmbassadorConfig
 

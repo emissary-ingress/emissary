@@ -1,5 +1,3 @@
-flask==0.11.1
-dpath==1.4.0
 clize==4.0.1
 pyyaml==3.12
 scout.py==0.2.0
