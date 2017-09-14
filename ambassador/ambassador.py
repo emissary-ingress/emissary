@@ -108,8 +108,10 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             econf = aconf.envoy_config_object()
             aconf.pretty(econf, out=open(output_json_path, "w"))   
 
-        scout.report(action="config", check=check, generated=(not output_exists),
+        result = scout.report(action="config", check=check, generated=(not output_exists),
                      config_dir_path=config_dir_path, output_json_path=output_json_path)
+
+        logging.info("Scout reports %s" % json.dumps(result))
     except Exception as e:
         # scout.report(action="WTFO?")
         handle_exception("EXCEPTION from config", e, 
