@@ -25,4 +25,6 @@ fi
 
 sleep 5
 echo "ENTRYPOINT: shutting down"
+echo "Here's the envoy.json we were trying to run with:"
+cat /etc/envoy.json
 
