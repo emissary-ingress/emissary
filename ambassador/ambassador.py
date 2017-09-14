@@ -106,7 +106,6 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             logger.info("Generating new Envoy configuration...")
             aconf = AmbassadorConfig(config_dir_path)
             econf = aconf.envoy_config_object()
-            crap
             aconf.pretty(econf, out=open(output_json_path, "w"))   
 
         scout.report(action="config", check=check, generated=(not output_exists),
