@@ -105,11 +105,16 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
             aconf = AmbassadorConfig(config_dir_path)
-            econf = aconf.envoy_config_object()
-            aconf.pretty(econf, out=open(output_json_path, "w"))   
+            rc = aconf.envoy_config_object()
 
-        result = scout.report(action="config", check=check, generated=(not output_exists),
-                     config_dir_path=config_dir_path, output_json_path=output_json_path)
+            if rc:
+                aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))   
+            else:
+                logging.error("Could not generate new Envoy configuration: %s" % rc.error)
+                logging.error("Raw template output:")
+                logging.error("%s" % rc.raw)
+
+            result = scout.report(action="config", result=bool(rc), check=check, generated=(not output_exists))
 
         logging.info("Scout reports %s" % json.dumps(result))
     except Exception as e:

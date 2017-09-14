@@ -28,8 +28,13 @@
                     {% for route in routes %}
                     {
                       "timeout_ms": {{ route.timeout_ms or 500 }},
-                      "prefix": "{{ route.prefix }}",
-                      "prefix_rewrite": "{{ route.prefix_rewrite }}",
+                      {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
+                      {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
+                      {%- if route.method -%}"headers": [ {
+                        "name": ":method",
+                        "value": "{{ route.method }}",
+                        "regex": {{ route.method_regex or 'false' }}
+                      } ],{% endif %}
                       "cluster": "{{ route.cluster }}"
                     }
                     {{ "," if not loop.last }}

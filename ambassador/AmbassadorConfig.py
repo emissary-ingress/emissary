@@ -8,6 +8,7 @@ import re
 import yaml
 
 from jinja2 import Environment, FileSystemLoader
+from utils import RichStatus
 
 class AmbassadorConfig (object):
     def __init__(self, config_dir_path):
@@ -180,6 +181,10 @@ class AmbassadorConfig (object):
                 "cluster": cluster_name
             }
 
+            if 'method' in mapping:
+                route['method'] = mapping['method']
+                route['method_regex'] = route.get('method_regex', False)
+
             if 'timeout_ms' in mapping:
                 route['timeout_ms'] = mapping['timeout_ms']
 
@@ -236,7 +241,16 @@ class AmbassadorConfig (object):
 
     def envoy_config_object(self, **kwargs):
         envoy_json = self.to_json(**kwargs)
-        return(json.loads(envoy_json))
+        rc = RichStatus.fromError("impossible")
+
+        try:
+            obj = json.loads(envoy_json)
+            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
+        except json.decoder.JSONDecodeError as e:
+            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
+                                      raw=envoy_json, exception=e)
+
+        return rc
 
     def dump(self):
         print("==== config")
