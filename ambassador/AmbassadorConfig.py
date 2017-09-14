@@ -81,16 +81,11 @@ class AmbassadorConfig (object):
         return self.handle_mappings(filename, toplevel, obj)
 
     def generate_envoy_config(self):
-        # First things first. Do we have some basic config set up?
-
-        if 'ambassador' not in self.config: 
-            raise Exception("The 'ambassador' configuration file must be provided")
-
-        # Assume we'll listen on port 80.
+        # First things first. Assume we'll listen on port 80.
         service_port = 80
 
         # OK. Is TLS configured?
-        aconf = self.config['ambassador']
+        aconf = self.config.get('ambassador', {})
 
         if 'tls' in aconf:
             # Yes. Switch to port 443 by default...
