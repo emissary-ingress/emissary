@@ -32,16 +32,8 @@ RUN pip3 install -r requirements.txt
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
 
-COPY envoy-restarter.py .
-COPY envoy-wrapper.sh .
-RUN chmod 755 envoy-wrapper.sh
-COPY ambassador.py auth_methods.py envoy.py storage_postgres.py utils.py VERSION.py ./
-COPY map unmap ./
-RUN chmod 755 map unmap
-COPY envoy-template.json .
-
-# NOT A BUG! this is for bootstrapping.
-COPY envoy-template.json /etc/envoy.json
+COPY ambassador.py AmbassadorConfig.py VERSION.py ./
+COPY templates/ ./templates
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .

@@ -1,10 +1,28 @@
-#!/bin/sh
+#!/bin/bash
+
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 
 APPDIR=${APPDIR:-/application}
-echo "$APPDIR"
 
-/usr/bin/python3 "$APPDIR/envoy-restarter.py" /etc/envoy-restarter.pid "$APPDIR/envoy-wrapper.sh" &
-/usr/bin/python3 "$APPDIR/ambassador.py" "$APPDIR/envoy-template.json" /etc/envoy.json /etc/envoy-restarter.pid
+echo "ENTRYPOINT: checking /etc/envoy.json"
+/usr/bin/python3 "$APPDIR/ambassador.py" config --check /etc/ambassador-config /etc/envoy.json
 
-echo "Ambassador exiting" >&2
+STATUS=$?
+
+if [ $STATUS -eq 0 ]; then
+    echo "ENTRYPOINT: starting Envoy"
+    /usr/local/bin/envoy -c /etc/envoy.json
+
+    STATUS=$?
+fi
+
+if [ $STATUS -eq 0 ]; then
+    echo "ENTRYPOINT: claiming success, but exited \?\?\?\?"
+else
+    echo "ENTRYPOINT: exited with status $STATUS"
+fi
+
+sleep 5
+echo "ENTRYPOINT: shutting down"
 
