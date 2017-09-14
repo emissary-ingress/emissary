@@ -2,7 +2,6 @@ import sys
 
 import json
 import logging
-import requests
 import time
 import traceback
 import uuid
