@@ -8,7 +8,7 @@ At the heart of Ambassador are the ideas of [_resources_](#resources)], [_mappin
 
 - [Modules](#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings. For example, the `authentication` module allows Ambassador to require authentication per mapping.
 
-- [Consumers](#consumers) represent human end users of Ambassador, and may be required for some modules to function. For example, the `authentication` module may require defining consumers to let Ambassador know who's allowed to authenticate.
+- [Consumers](#consumers) represent human end users of Ambassador. More here later.
 
 Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. When run as part of an image build, the caller must tell Ambassador the path to the directory; when run as a proxy pod within Kubernetes, Ambassador assumes that its configuration has been published as a `ConfigMap` named `ambassador-config`. The easiest way to create such a `ConfigMap` is to assemble a directory of appropriate YAML files, and use 
 
