@@ -22,9 +22,9 @@ This will create a deployment called `qotm` and a corresponding Kubernetes servi
 
 We'll use the health check as our first simple test to make sure that Ambassador is relaying requests, but of course we want all of the above to work through Ambassador -- and we want everything using the `/quote` endpoint to require authentication.
 
-At its heart, Ambassador is controlled by a collection of YAML files that tell it which URLs map to which services. The most straightforward way is to push these configuration files into a Kubernetes ConfigMap named `ambassador-config`, then use Datawire's published Ambassador image to read the published configuration at boot time. When you need to change the configuration, you update the ConfigMap, then use Kubernetes' deployment machinery to trigger a rollout.
+At its heart, Ambassador is controlled by a collection of YAML files that tell it which URLs map to which services. The most straightforward way to run Ambassador is to push these configuration files into a Kubernetes `ConfigMap` named `ambassador-config`, then use Datawire's published Ambassador image to read the published configuration at boot time. When you need to change the configuration, you update the `ConfigMap`, then use Kubernetes' deployment machinery to trigger a rollout.
 
-To set this up, we'll start by creating the ConfigMap from a directory of YAML files. In any real scenario, this would a directory under revision control, but for now, we'll just create an empty `config` directory:
+To set this up, we'll start by creating the `ConfigMap` from a directory of YAML files. In any real scenario, this would be a directory under revision control, but for now, we'll just create an empty `config` directory:
 
 ```
 mkdir config
@@ -82,7 +82,8 @@ If all goes well you should get an HTTP 200 response with a JSON body, something
   "ok": true,
   "time": "2017-09-15T04:09:51.897241",
   "version": "1.1"
-}```
+}
+```
 
 Since the `/qotm/` prefix in the path portion of the URL there matches the prefix we used for the `qotm_map` mapping above, Ambassador knows to route the request to the QotM service. In the process it rewrites `/qotm/` to `/` so that `/qotm/health` becomes `/health`, which is what the QotM service expects. (This rewriting is configurable; `/` is just the default.)
 
@@ -101,11 +102,12 @@ curl $AMBASSADORURL/qotm/
   "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
   "time": "2017-09-15T04:18:10.371552",
   "version": "1.1"
-}```
+}
+```
 
 and repeating that should yield other (kind of surreal) quotes.
 
-The QotM service also has an endpoint to supply new quotes, which should be accessible now:
+The QotM service also has an endpoint that allows teaching it new quotes, which should be accessible now:
 
 ```shell
 curl -XPOST -H"Content-Type: application/json" \
@@ -132,13 +134,19 @@ and we should be able to read that back with
 curl $AMBASSADORURL/qotm/quote/10
 ```
 
-But it's probably not a good idea to allow any random person to update our quotations. Ambassador supports an external authentication service for exactly this reason: let's set it up, using Datawire's (very very simple) example Basic-Auth service:
+But it's probably not a good idea to allow any random person to update our quotations. Ambassador supports an external authentication service for exactly this reason: let's set it up, using a very very demo authentication service:
 
 ```shell
-kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador-auth-service/master/example-auth.yaml
+kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
 ```
 
-That will start the example auth service running: it listens for requests on port 3000 and performs HTTP Basic Auth for all URLs starting with `/qotm/quote/`; the only valid credentials are user `username`, password `password`.
+That will start the demo auth service running. The auth service:
+
+- listens for requests on port 3000;
+- expects all URLs to begin with `/extauth/`;
+- performs HTTP Basic Auth for all URLs starting with `/qotm/quote/` (other URLs are always permitted); and
+- accepts only user `username`, password `password`;
+- makes sure that the `x-qotm-session` header is present, generating a new one if needed.
 
 Once the auth service is running, add `config/module-authentication.yaml`:
 
@@ -150,15 +158,9 @@ module:
   - "x-qotm-session"
 ```
 
-which tells Ambassador about the auth service:
+which tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
 
-- it's running at `example-auth` port 3000;
-- when contacting the auth service, we prefix the URL with `/extauth`, so e.g. if the user requests `/qotm/quote/10` then the auth service will see `/extauth/qotm/quote/10`;
-- if the service hands back an `x-qotm-session` header, it'll be propagated to the actual service.
-
-Note that `path_prefix` and `allowed_headers` are optional.
-
-We don't actually need to change any mappings yet, since the auth service is responsible for knowing about which things need auth and which don't. However, if we try pull quote 10 again:
+We don't actually need to change any mappings, since the auth service is responsible for knowing about which things need auth and which don't. However, if we try pull quote 10 again:
 
 ```shell
 curl $AMBASSADORURL/qotm/quote/10
@@ -166,16 +168,16 @@ curl $AMBASSADORURL/qotm/quote/10
 
 ...then you'll see that it works, even though it seems like it should need authentication! 
 
-The problem is that we only changed the Ambassador config on the local disk -- we need to update the ConfigMap, and we need to force a new rollout of Ambassador so that it can reconfigure everything.
+The problem is that we only changed the Ambassador config on the local disk -- we need to update the `ConfigMap`, and we need to force a new rollout of Ambassador so that it can reconfigure everything.
 
-We can update the ConfigMap by using `kubectl` to rewrite it in place:
+We can update the `ConfigMap` by using `kubectl` to rewrite it in place:
 
 ```shell
 kubectl create configmap ambassador-config --from-file config -o yaml --dry-run | \
     kubectl replace -f -
 ```
 
-This neat little trick uses `-o yaml --dry-run` option to make `kubectl` write a file that we can feed into `kubectl replace`, since `kubectl replace` doesn't understand the `--from-file` option. The result is that the `ambassador-config` ConfigMap gets updated with all the new config at once.
+This neat little trick uses `-o yaml --dry-run` option to make `kubectl` write a file that we can feed into `kubectl replace`, since `kubectl replace` doesn't understand the `--from-file` option. The result is that the `ambassador-config` `ConfigMap` gets updated with all the new config at once.
 
 Once that's done, we need to trigger a new rollout of Ambassador using the Kubernetes deployment machinery. There are several ways to do this, but the most painless (unless you happen to need to upgrade to a new Ambassador release!) is to update an annotation on the deployment:
 
