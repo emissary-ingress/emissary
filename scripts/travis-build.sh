@@ -72,7 +72,8 @@ if [ $doc_changes -gt 0 ]; then
     else
         NETLIFY_DRAFT=--draft
         HRDRAFT=" (draft)"
-        DOCKER_REGISTRY=dwflynn
+        DOCKER_REGISTRY=datawire
+        VERSION="${VERSION}-draft"
     fi
 
     echo "==== BUILDING DOCS FOR ${VERSION}${HRDRAFT}"
