@@ -30,21 +30,9 @@ where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certific
 
 The `ambassador-certs` secret tells Ambassador to provide HTTPS on port 443, and gives it the certificate to present to a client contacting Ambassador. 
 
-[//]:# (
-### Using TLS for Client Auth
---
-If you want to use TLS client-certificate authentication, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. This is also best done before starting Ambassador. Get the CA certificate chain - including all necessary intermediate certificates - and create a Kubernetes secret with it:
---
-```shell
-kubectl create secret generic ambassador-cacert --from-file=fullchain.pem=$CACERT_PATH
-```
---
-**NOTE WELL** that the presence of the CA cert chain makes a valid client certificate **mandatory**. If you don't define some valid certificates, Ambassador won't allow any access.  
-)
-
 ### Starting Ambassador with TLS
 
-After all of the above, you can configure Ambassador's mappings, etc., then start Ambassador running with
+After all of the above, you can [configure Ambassador's mappings, etc.](../reference/configuration.md), then start Ambassador running with
 
 ```
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
@@ -52,7 +40,7 @@ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.y
 
 ### Without TLS
 
-If you really, really cannot use TLS, you can set up your Ambassador configuration, then do
+If you really, really cannot use TLS, you can [set up your Ambassador configuration](../reference/configuration.md), then do
 
 ```
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
