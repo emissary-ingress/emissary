@@ -48,11 +48,12 @@ kubectl create configmap ambassador-config --from-file config
 Now we can start Ambassador running in the Kubernetes cluster. We recommend using [TLS](running.md#TLS), but for right now we'll just set up an HTTP-only Ambassador to show you how things work:
 
 ```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 ```
 
-Again, in the real world you'll want TLS, but for now... that's it. To actually _use_ the QotM service, though, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below -- **note that these will only work since we already know we're using HTTP**:
+This will create the Ambassador service, listening on port 80, and the Ambassador deployment itself. Again, in the real world you'll definitely want TLS, but this is enough for our purposes here.
+
+To actually use the QotM service, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below -- **note that these will only work since we already know we're using HTTP**:
 
 ```shell
 # AWS (for Ambassador using HTTP)
