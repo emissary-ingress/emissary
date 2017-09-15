@@ -19,7 +19,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate  
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -27,9 +27,9 @@ spec:
     spec:
       containers:
       - name: qotm
-        image: datawire/qotm:1.1.0
+        image: datawire/qotm:1.1
         ports:
-        - name: http-api 
+        - name: http-api
           containerPort: 5000
         resources:
           limits:
