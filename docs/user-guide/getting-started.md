@@ -138,7 +138,7 @@ But it's probably not a good idea to allow any random person to update our quota
 kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador-auth-service/master/example-auth.yaml
 ```
 
-That will start the example auth service running: it listens for requests on port 3000 and performs HTTP Basic Auth for all URLs starting with `/service/`; the only valid credentials are user `username`, password `password`.
+That will start the example auth service running: it listens for requests on port 3000 and performs HTTP Basic Auth for all URLs starting with `/qotm/quote/`; the only valid credentials are user `username`, password `password`.
 
 Once the auth service is running, add `config/module-authentication.yaml`:
 
