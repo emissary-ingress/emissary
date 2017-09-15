@@ -22,74 +22,37 @@ This will create a deployment called `qotm` and a corresponding Kubernetes servi
 
 We'll use the health check as our first simple test to make sure that Ambassador is relaying requests, but of course we want all of the above to work through Ambassador -- and we want everything using the `/quote` endpoint to require authentication.
 
-To set up Ambassador as an API gateway for this service, first we need to get Ambassador running in the Kubernetes cluster. We recommend using [TLS](running.md#TLS), but for right now we'll just set up an HTTP-only Ambassador to show you how things work:
+At its heart, Ambassador is controlled by a collection of YAML files that tell it which URLs map to which services. The most straightforward way is to push these configuration files into a Kubernetes ConfigMap named `ambassador-config`, then use Datawire's published Ambassador image to read the published configuration at boot time. When you need to change the configuration, you update the ConfigMap, then use Kubernetes' deployment machinery to trigger a rollout.
+
+To set this up, we'll start by creating the ConfigMap from a directory of YAML files. In any real scenario, this would a directory under revision control, but for now, we'll just create an empty `config` directory:
+
+```
+mkdir config
+```
+
+Our configuration will start with a single mapping: the `/qotm/` resource will be mapped to the Quote of the Moment service. Here's the YAML for that, which we'll put into `config/mapping-qotm.yaml`:
+
+```yaml
+mappings:
+  qotm_mapping:
+    prefix: /qotm/
+    service: qotm
+```
+
+Once that's done, we can create the `ambassador-config` map from our `config` directory:
+
+```shell
+kubectl create configmap ambassador-config --from-file config
+```
+
+Now we can start Ambassador running in the Kubernetes cluster. We recommend using [TLS](running.md#TLS), but for right now we'll just set up an HTTP-only Ambassador to show you how things work:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
 ```
 
-That's it for getting Ambassador running, though in the real world you'd need TLS. Next you need to be able to talk to Ambassador's administrative interface, which is a private REST service on Ambassador's port 8888. This isn't exposed anywhere outside the cluster, for security reasons, so you need to use Kubernetes port forwarding to reach it (doing this in a separate shell window is a good idea):
-
-```shell
-POD=$(kubectl get pod -l service=ambassador -o jsonpath="{.items[0].metadata.name}")
-kubectl port-forward "$POD" 8888
-```
-
-Once that's done, `localhost:8888` is where you can talk to the Ambassador's administrative interface. Let's start with a basic health check of Ambassador itself:
-
-```shell
-curl http://localhost:8888/ambassador/health
-```
-
-which should give something like this if all is well:
-
-```json
-{
-  "hostname": "ambassador-3176426918-13v2v",
-  "msg": "ambassador health check OK",
-  "ok": true,
-  "resolvedname": "109.196.3.8",
-  "version": "{VERSION}"
-}
-```
-
-Mapping the `/qotm/` resource to your QotM service needs a PUT request:
-
-```shell
-curl -XPUT -H"Content-Type: application/json" \
-     -d'{ "prefix": "/qotm/", "service": "qotm" }' \
-     http://localhost:8888/ambassador/mapping/qotm_map
-```
-
-and after that, you can read back and see that the mapping is there:
-
-```shell
-curl http://localhost:8888/ambassador/mapping
-```
-
-which should show you something like
-
-```json
-{
-  "count": 1,
-  "hostname": "ambassador-3176426918-13v2v",
-  "mappings": [
-    {
-      "modules": {},
-      "name": "qotm_map",
-      "prefix": "/qotm/",
-      "rewrite": "/",
-      "service": "qotm"
-    }
-  ],
-  "ok": true,
-  "resolvedname": "109.196.3.8",
-  "version": "{VERSION}"
-}
-```
-
-To actually _use_ the QotM service, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below -- **note that these will only work since we already know we're using HTTP**:
+Again, in the real world you'll want TLS, but for now... that's it. To actually _use_ the QotM service, though, we need the URL for microservice access through Ambassador. This is, sadly, a little harder than one might like. If you're using AWS, GKE, or Minikube, you may be able to use the commands below -- **note that these will only work since we already know we're using HTTP**:
 
 ```shell
 # AWS (for Ambassador using HTTP)
@@ -110,15 +73,16 @@ Once `$AMBASSADORURL` is set, you'll be able to use that for a basic health chec
 curl -v $AMBASSADORURL/qotm/health
 ```
 
-If all goes well you should get an empty response with an HTTP 200 response:
+If all goes well you should get an HTTP 200 response with a JSON body, something like:
 
-```shell
-...
-HTTP/1.1 200 OK
-content-length: 0
-content-type: text/html; charset=utf-8
-...
-```
+```json
+{
+  "hostname": "qotm-2399866569-9q4pz",
+  "msg": "QotM health check OK",
+  "ok": true,
+  "time": "2017-09-15T04:09:51.897241",
+  "version": "1.1"
+}```
 
 Since the `/qotm/` prefix in the path portion of the URL there matches the prefix we used for the `qotm_map` mapping above, Ambassador knows to route the request to the QotM service. In the process it rewrites `/qotm/` to `/` so that `/qotm/health` becomes `/health`, which is what the QotM service expects. (This rewriting is configurable; `/` is just the default.)
 
@@ -132,11 +96,12 @@ curl $AMBASSADORURL/qotm/
 
 ```json
 {
-  "hostname": "qotm-424688516-883pl",
-  "quote": "A small mercy is nothing at all?",
-  "time": "2017-06-22T03:53:22.074919"
-}
-```
+  "hostname": "qotm-2399866569-9q4pz",
+  "ok": true,
+  "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
+  "time": "2017-09-15T04:18:10.371552",
+  "version": "1.1"
+}```
 
 and repeating that should yield other (kind of surreal) quotes.
 
@@ -152,10 +117,12 @@ That should return the ID of the new quote:
 
 ```json
 {
-  "hostname": "qotm-424688516-883pl",
+  "hostname": "qotm-2399866569-9q4pz",
+  "ok": true,
   "quote": "The grass is never greener anywhere else.",
   "quoteid": 10,
-  "time": "2017-06-22T03:57:03.339907"
+  "time": "2017-09-15T04:19:06.367547",
+  "version": "1.1"
 }
 ```
 
@@ -165,27 +132,61 @@ and we should be able to read that back with
 curl $AMBASSADORURL/qotm/quote/10
 ```
 
-But it's probably not a good idea to allow any random person to update our quotations. We can use Ambassador's built-in authentication to prevent that. First, we turn it on by enabling Ambassador's basic-auth module:
+But it's probably not a good idea to allow any random person to update our quotations. Ambassador supports an external authentication service for exactly this reason: let's set it up, using Datawire's (very very simple) example Basic-Auth service:
 
 ```shell
-curl -XPUT -H"Content-Type: application/json" \
-     -d'{ "ambassador": "basic" }' \
-     http://localhost:8888/ambassador/module/authentication
+kubectl apply -f https://raw.githubusercontent.com/datawire/ambassador-auth-service/master/example-auth.yaml
 ```
 
-That activates the `authentication` module, with `ambassador: basic` as configuration information (in this case telling Ambassador to use its built-in "basic" authentication mechanism).
+That will start the example auth service running: it listens for requests on port 3000 and performs HTTP Basic Auth for all URLs starting with `/service/`; the only valid credentials are user `username`, password `password`.
 
-Next, we add a mapping for `/qotm/quote/` that requires auth:
+Once the auth service is running, add `config/module-authentication.yaml`:
+
+```yaml
+module:
+  auth_service: "example-auth:3000"
+  path_prefix: "/extauth"
+  allowed_headers:
+  - "x-qotm-session"
+```
+
+which tells Ambassador about the auth service:
+
+- it's running at `example-auth` port 3000;
+- when contacting the auth service, we prefix the URL with `/extauth`, so e.g. if the user requests `/qotm/quote/10` then the auth service will see `/extauth/qotm/quote/10`;
+- if the service hands back an `x-qotm-session` header, it'll be propagated to the actual service.
+
+Note that `path_prefix` and `allowed_headers` are optional.
+
+We don't actually need to change any mappings yet, since the auth service is responsible for knowing about which things need auth and which don't. However, if we try pull quote 10 again:
 
 ```shell
-curl -XPUT -H"Content-Type: application/json" \
-     -d'{ "prefix": "/qotm/quote/", "rewrite": "/quote/", "service": "qotm", "modules": { "authentication": { "type": "basic" } } }' \
-     http://localhost:8888/ambassador/mapping/qotm_quote_map
+curl $AMBASSADORURL/qotm/quote/10
 ```
 
-That last bit configures this mapping to use the `authentication` module, with config info `type: basic`. (Note also that we use `rewrite` to make sure the QotM service sees the base URL it expects.)
+...then you'll see that it works, even though it seems like it should need authentication! 
 
-Now, if we try to read our quote back:
+The problem is that we only changed the Ambassador config on the local disk -- we need to update the ConfigMap, and we need to force a new rollout of Ambassador so that it can reconfigure everything.
+
+We can update the ConfigMap by using `kubectl` to rewrite it in place:
+
+```shell
+kubectl create configmap ambassador-config --from-file config -o yaml --dry-run | \
+    kubectl replace -f -
+```
+
+This neat little trick uses `-o yaml --dry-run` option to make `kubectl` write a file that we can feed into `kubectl replace`, since `kubectl replace` doesn't understand the `--from-file` option. The result is that the `ambassador-config` ConfigMap gets updated with all the new config at once.
+
+Once that's done, we need to trigger a new rollout of Ambassador using the Kubernetes deployment machinery. There are several ways to do this, but the most painless (unless you happen to need to upgrade to a new Ambassador release!) is to update an annotation on the deployment:
+
+```shell
+kubectl patch deployment ambassador -p \
+  "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
+```
+
+This simply patches the deployment with an annotation containing a timestamp of when the configuration was last updated. Kubernetes will respond by rolling out new Ambassador pods, which will pick up the new configuration. You can use `kubectl rollout status deployment/ambassador` to keep an eye on this process.
+
+Once that's all done, if we try to read our quote back:
 
 ```shell
 curl $AMBASSADORURL/qotm/quote/10
@@ -195,66 +196,19 @@ then we should get a 401, since we haven't authenticated.
 
 ```shell
 HTTP/1.1 401 Unauthorized
-auth-service: Ambassador BasicAuth {VERSION}
-content-length: 25
+x-powered-by: Express
+x-request-id: 9793dec9-323c-4edf-bc30-352141b0a5e5
+www-authenticate: Basic realm="Ambassador Realm"
 content-type: text/html; charset=utf-8
-date: Thu, 22 Jun 2017 14:37:28 GMT
+content-length: 0
+etag: W/"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"
+date: Fri, 15 Sep 2017 15:22:09 GMT
+x-envoy-upstream-service-time: 2
 server: envoy
-www-authenticate: Basic realm="Login Required"
-x-envoy-upstream-service-time: 5
-
-No authorization provided
 ```
 
-We need to provide an authorization, but in order to do that, we need to tell Ambassador who can log in. We do this by defining a `consumer` in Ambassador:
+It will work, though, if we authenticate to the QotM service:
 
 ```shell
-curl -XPOST -H"Content-Type: application/json" \
-     -d'{ "username": "alice", "fullname": "Alice Rules", "modules": { "authentication": { "type":"basic", "password":"alice" } } }' \
-     http://localhost:8888/ambassador/consumer
-```
-
-That will create a new `consumer` for Alice, and return her `consumer_id`:
-
-```json
-{
-    "consumer_id": "5D86FCDF509B47CCB8CA64EA4561785E",
-    "hostname": "ambassador-3176426918-13v2v",
-    "ok": true,
-    "resolvedname": "109.196.3.8",
-    "version": "{VERSION}"
-}
-```
-
-We can use Alice's `consumer_id` to read back information about Alice:
-
-```shell
-curl http://localhost:8888/ambassador/consumer/5D86FCDF509B47CCB8CA64EA4561785E
-```
-
-which will return something like:
-
-```json
-{
-    "consumer_id": "5D86FCDF509B47CCB8CA64EA4561785E",
-    "fullname": "Alice Rules",
-    "hostname": "ambassador-3176426918-13v2v",
-    "modules": {
-        "authentication": {
-            "password": "alice",
-            "type": "basic"
-        }
-    },
-    "ok": true,
-    "resolvedname": "109.196.3.8",
-    "shortname": "Alice Rules",
-    "username": "alice",
-    "version": "{VERSION}"
-}
-```
-
-and we can now authenticate to the QotM service as Alice:
-
-```shell
-curl -u alice:alice $AMBASSADORURL/qotm/quote/10
+curl -u username:password $AMBASSADORURL/qotm/quote/10
 ```
