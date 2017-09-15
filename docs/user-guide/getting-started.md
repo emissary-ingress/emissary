@@ -134,7 +134,7 @@ and we should be able to read that back with
 curl $AMBASSADORURL/qotm/quote/10
 ```
 
-But it's probably not a good idea to allow any random person to update our quotations. Ambassador supports an external authentication service for exactly this reason: let's set it up, using a very very demo authentication service:
+But it's probably not a good idea to allow any random person to update our quotations. Ambassador supports an external authentication service for exactly this reason: let's set it up, using a very very simple demo authentication service:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
@@ -144,8 +144,8 @@ That will start the demo auth service running. The auth service:
 
 - listens for requests on port 3000;
 - expects all URLs to begin with `/extauth/`;
-- performs HTTP Basic Auth for all URLs starting with `/qotm/quote/` (other URLs are always permitted); and
-- accepts only user `username`, password `password`;
+- performs HTTP Basic Auth for all URLs starting with `/qotm/quote/` (other URLs are always permitted);
+- accepts only user `username`, password `password`; and
 - makes sure that the `x-qotm-session` header is present, generating a new one if needed.
 
 Once the auth service is running, add `config/module-authentication.yaml`:
@@ -212,5 +212,25 @@ server: envoy
 It will work, though, if we authenticate to the QotM service:
 
 ```shell
-curl -u username:password $AMBASSADORURL/qotm/quote/10
+curl -v -u username:password $AMBASSADORURL/qotm/quote/10
+```
+
+which should now return something like the following (including the `x-qotm-session` header!):
+
+```
+HTTP/1.1 200 OK
+content-type: application/json
+x-qotm-session: 599969b7-8f00-4663-bb8c-fefd3dfc6174
+content-length: 176
+server: envoy
+date: Fri, 15 Sep 2017 15:39:58 GMT
+x-envoy-upstream-service-time: 4
+
+{
+  "hostname": "qotm-2399866569-9q4pz",
+  "ok": true,
+  "quote": "The grass is never greener anywhere else.",
+  "time": "2017-09-15T15:39:59.200961",
+  "version": "1.1"
+}
 ```
