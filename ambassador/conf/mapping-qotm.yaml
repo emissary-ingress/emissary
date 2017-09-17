@@ -1,11 +1,19 @@
-mappings:
-  qotm_mapping:
-    prefix: /qotm/
-    service: qotm
-  quote_mapping:
-    prefix: /qotm/quote/
-    service: qotm
-    rewrite: /quote/
-  service_mapping:
-    prefix: /service/
-    service: qotm
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+---
+apiVersion: ambassador/v0.12
+kind:  Mapping
+name:  quote_mapping
+prefix: /qotm/quote/
+service: qotm
+rewrite: /quote/
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  service_mapping
+prefix: /service/
+service: qotm

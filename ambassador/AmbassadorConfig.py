@@ -2,6 +2,7 @@ import sys
 
 import collections
 import json
+import jsonschema
 import logging
 import os
 import re
@@ -11,75 +12,106 @@ from jinja2 import Environment, FileSystemLoader
 from utils import RichStatus
 
 class AmbassadorConfig (object):
-    def __init__(self, config_dir_path):
+    def __init__(self, config_dir_path,
+                 schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
+        self.schema_dir_path = schema_dir_path
+        self.template_dir_path = template_dir_path
+
+        self.schemas = {}
         self.config = {}
         self.envoy_config = {}
         self.envoy_clusters = {}
 
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path):
             for filename in [ x for x in filenames if x.endswith(".yaml") ]:
+                self.filename = filename
+
                 filepath = os.path.join(dirpath, filename)
 
                 try:
-                    obj = yaml.safe_load(open(filepath, "r"))
+                    objects = yaml.safe_load_all(open(filepath, "r"))
                 except Exception as e:
                     logging.error("%s: could not parse YAML: %s" % (filepath, e))
                     continue
 
-                # The object must be a dict with a single toplevel key.
-                if not isinstance(obj, collections.Mapping):
-                    raise Exception("%s: not a dictionary" % filepath)
+                self.ocount = 0
+                for obj in objects:
+                    self.ocount += 1
 
-                if len(obj.keys()) != 1:
-                    raise Exception("%s: need exactly one toplevel key, found %d" %
-                                    (filepath, len(obj.keys())))
-
-                toplevel = list(obj.keys())[0]
-                handler_name = "handle_%s" % toplevel
-                handler = getattr(self, handler_name, None)
-
-                if not handler:
-                    logging.warning("%s: no handler for %s, skipping" % (filepath, toplevel))
-                    continue
-
-                logging.debug("%s: handling %s..." % (filename, toplevel))
-
-                handler(filename, toplevel, obj)
+                    self.process_object(obj)
 
         self.generate_envoy_config()
 
-    def handle_ambassador(self, filename, toplevel, obj):
+    def process_object(self, obj):
+        # OK. What is this thing?
+        obj_kind, obj_version = self.validate_object(obj)
+
+        handler_name = "handle_%s" % obj_kind.lower()
+        handler = getattr(self, handler_name, None)
+
+        if not handler:
+            logging.warning("%s[%d]: no handler for %s, skipping" % (self.filename, self.ocount, obj_kind))
+        else:
+            logging.debug("%s[%d]: handling %s..." % (self.filename, self.ocount, obj_kind))
+
+            handler(obj, obj_kind, obj_version)
+
+    def validate_object(self, obj):
+        # Each object must be a dict, and must include "apiVersion"
+        # and "type" at toplevel.
+
+        if not isinstance(obj, collections.Mapping):
+            raise Exception("%s[%d]: not a dictionary" % (self.filename, self.ocount))
+
+        if not (("apiVersion" in obj) and ("kind" in obj)):
+            raise Exception("%s[%d]: must have apiVersion and kind" % (self.filename, self.ocount))
+
+        obj_version = obj['apiVersion']
+        obj_kind = obj['kind']
+
+        if obj_version.startswith("ambassador/"):
+            obj_version = obj_version.split('/')[1]
+        else:
+            raise Exception("%s[%d]: apiVersion %s unsupported" % (self.filename, self.ocount, obj_version))
+
+        schema_key = "%s-%s" % (obj_version, obj_kind)
+
+        schema = self.schemas.get(schema_key, None)
+
+        if not schema:
+            schema_path = os.path.join(self.schema_dir_path, obj_version, "%s.schema" % obj_kind)
+
+            try:
+                schema = json.load(open(schema_path, "r"))
+            except OSError:
+                logging.debug("no schema at %s, skipping" % schema_path)
+            except json.decoder.JSONDecodeError as e:
+                logging.warning("corrupt schema at %s, skipping (%s)" % (schema_path, e))
+
+        if schema:
+            self.schemas[schema_key] = schema
+            try:
+                jsonschema.validate(obj, schema)
+            except jsonschema.exceptions.ValidationError as e:
+                raise Exception("%s[%d] is not a valid %s: %s" % 
+                                (self.filename, self.ocount, obj_kind, e))
+
+        return (obj_kind, obj_version)
+
+    def handle_ambassador(self, obj, obj_kind, obj_version):
         # Just save this for now.
         self.config['ambassador'] = obj['ambassador']
 
-    def handle_module(self, filename, toplevel, obj):
-        # This is a single module definition. The name of the module
-        # comes from the name of the file.
-
-        m = re.match(r'^module-([a-zA-Z][a-zA-Z0-9_]*)\.[^.]*$', filename)
-
-        if not m:
-            raise Exception("parsing %s: cannot infer module name" % filename)
-
-        module_name = m.group(1)
-
-        logging.debug("%s: module name is %s" % (filename, module_name))
-
+    def handle_module(self, obj, obj_kind, obj_version):
+        logging.debug("%s[%d]: saving module %s" % (self.filename, self.ocount, obj['name']))
         modules = self.config.setdefault("modules", {})
-        modules[module_name] = obj['module']
+        modules[obj['name']] = obj['config']
 
-    def handle_mappings(self, filename, toplevel, obj):
+    def handle_mapping(self, obj, obj_kind, obj_version):
+        logging.debug("%s[%d]: saving mapping %s" % (self.filename, self.ocount, obj['name']))
         mappings = self.config.setdefault("mappings", {})
-
-        # Support both 'mapping' and 'mappings'...
-        for mapping_name in obj[toplevel].keys():
-            logging.debug("%s: saving mapping %s" % (filename, mapping_name))
-
-            mappings[mapping_name] = obj[toplevel][mapping_name]
-
-    def handle_mapping(self, filename, toplevel, obj):
-        return self.handle_mappings(filename, toplevel, obj)
+        mappings[obj['name']] = obj
 
     def generate_envoy_config(self):
         # First things first. Assume we'll listen on port 80.

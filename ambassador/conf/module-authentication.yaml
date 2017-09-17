@@ -1,4 +1,8 @@
-module:
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  authentication
+xconfig:
   auth_service: "example-auth:3000"
   path_prefix: "/extauth"
   allowed_headers:

@@ -1,5 +1,7 @@
-mapping:
-  grpc_mapping:
-    prefix: /grpc/
-    service: qotm
-    grpc: true
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: grpc_mapping
+prefix: /grpc/
+grpc: true
+service: qotm
