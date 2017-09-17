@@ -51,11 +51,12 @@ class AmbassadorConfig (object):
         handler = getattr(self, handler_name, None)
 
         if not handler:
-            logging.warning("%s[%d]: no handler for %s, skipping" % (self.filename, self.ocount, obj_kind))
+            handler = self.save_object
+            logging.warning("%s[%d]: no handler for %s, just saving" % (self.filename, self.ocount, obj_kind))
         else:
             logging.debug("%s[%d]: handling %s..." % (self.filename, self.ocount, obj_kind))
 
-            handler(obj, obj_kind, obj_version)
+        handler(obj, obj_kind, obj_version)
 
     def validate_object(self, obj):
         # Each object must be a dict, and must include "apiVersion"
@@ -99,9 +100,11 @@ class AmbassadorConfig (object):
 
         return (obj_kind, obj_version)
 
-    def handle_ambassador(self, obj, obj_kind, obj_version):
-        # Just save this for now.
-        self.config['ambassador'] = obj['ambassador']
+    def save_object(self, obj, obj_kind, obj_version):
+        logging.debug("%s[%d]: saving %s %s" %
+                      (self.filename, self.ocount, obj_kind,  obj['name']))
+        objects = self.config.setdefault(obj_kind, {})
+        objects[obj['name']] = obj
 
     def handle_module(self, obj, obj_kind, obj_version):
         logging.debug("%s[%d]: saving module %s" % (self.filename, self.ocount, obj['name']))
@@ -118,7 +121,7 @@ class AmbassadorConfig (object):
         service_port = 80
 
         # OK. Is TLS configured?
-        aconf = self.config.get('ambassador', {})
+        aconf = self.config.get('Ambassador', {})
 
         if 'tls' in aconf:
             # Yes. Switch to port 443 by default...
@@ -179,17 +182,40 @@ class AmbassadorConfig (object):
         # Once that's done, it's time to wrangle mappings. These must be sorted by prefix
         # length...
         mappings = self.config.get("mappings", [])
+        breakers = self.config.get("CircuitBreaker", {})
+        outliers = self.config.get("OutlierDetection", {})
 
         for mapping_name in sorted(mappings.keys(), key=lambda x: len(mappings[x]['prefix'])):
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
-            # service name.
+            # service name, plus things like circuit breaker and outlier 
+            # detection settings.
             svc = mapping['service']
 
             # Use just the DNS name for the cluster -- if a port was included, drop it.
             svc_name_only = svc.split(':')[0]
-            cluster_name = '%s_cluster' % svc_name_only
+            cluster_name_fields =[ svc_name_only ]
+
+            cb_name = mapping.get('circuit_breaker', None)
+
+            if cb_name:
+                if cb_name in breakers:
+                    cluster_name_fields.append("cb_%s" % cb_name)
+                else:
+                    logging.error("CircuitBreaker %s is not defined (mapping %s)" %
+                                  (cb_name, mapping_name))
+
+            od_name = mapping.get('outlier_detection', None)
+
+            if od_name:
+                if od_name in outliers:
+                    cluster_name_fields.append("od_%s" % od_name)
+                else:
+                    logging.error("OutlierDetection %s is not defined (mapping %s)" %
+                                  (od_name, mapping_name))
+
+            cluster_name = '%s_cluster' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
             logging.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
@@ -200,12 +226,20 @@ class AmbassadorConfig (object):
                 if ':' not in svc:
                     url += ':80'
 
-                self.envoy_clusters[cluster_name] = {
+                cluster_def = {
                     "name": cluster_name,
                     "type": "strict_dns",
                     "lb_type": "round_robin",
                     "urls": [ url ]
                 }
+
+                if cb_name and (cb_name in breakers):
+                    cluster_def['circuit_breakers'] = breakers[cb_name]
+
+                if od_name and (od_name in outliers):
+                    cluster_def['outlier_detection'] = outliers[od_name]
+
+                self.envoy_clusters[cluster_name] = cluster_def
 
             route = {
                 "prefix": mapping['prefix'],
