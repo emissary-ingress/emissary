@@ -6,30 +6,28 @@
 
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
-* [Concepts](about/concepts.md)
+* [Configuration](reference/configuration.md)
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 * [Roadmap](about/roadmap.md)
 
 ## Tutorials
 
 * [Getting Started](user-guide/getting-started.md)
-* [Ambassador and Istio](user-guide/with-istio.md)
+* [The QotM Demo in Detail](user-guide/demo-in-detail.md)
+* [Configuring Ambassador](reference/configuration.md)
 
 ## How-to Guides
 
 * [Microservice Access](how-to/service-url.md)
-* [Administration Port](how-to/admin-port.md)
-* [Mappings, Routes, and Rewriting](how-to/set-routes.md)
+* [Configuring Ambassador](reference/configuration.md)
 * [TLS Termination](how-to/tls-termination.md)
-* [Auth with TLS client certificates](how-to/auth-tls-certs.md)
-* [Auth with HTTP Basic Auth](how-to/auth-http-basic.md)
 * [Auth with an external auth service](how-to/auth-external.md)
 * [Statistics and Monitoring](how-to/statistics.md)
 * [gRPC and other HTTP/2-only services](how-to/grpc.md)
 
 ## Reference
 
-* [Ambassador REST APIs](reference/rest-apis.md)
+* [Configuring Ambassador](reference/configuration.md)
 * [TLS and Auth](reference/tls-auth.md)
 
 ## Developers
@@ -39,7 +37,6 @@
 ## Old Docs
 
 * [Running Ambassador](user-guide/running.md)
-* [Administering Ambassador](user-guide/administering.md)
 
 ## Need Help?
 
