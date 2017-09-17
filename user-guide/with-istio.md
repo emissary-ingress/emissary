@@ -2,6 +2,12 @@
 
 ---
 
+**This document refers to Ambassador 0.10 and earlier! Contact us [on Gitter](https://gitter.im/datawire/ambassador) if you're trying to use Ambassador 0.11 in Istio.** 
+
+(Yes, this documentation will be updated soon.)
+
+---
+
 Are you looking to run Ambassador without Istio? You probably want to check out the [Getting Started](getting-started.md) guide for Ambassador alone.
 
 ---
