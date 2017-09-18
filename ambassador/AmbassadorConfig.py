@@ -185,7 +185,7 @@ class AmbassadorConfig (object):
         breakers = self.config.get("CircuitBreaker", {})
         outliers = self.config.get("OutlierDetection", {})
 
-        for mapping_name in sorted(mappings.keys(), key=lambda x: len(mappings[x]['prefix'])):
+        for mapping_name in reversed(sorted(mappings.keys(), key=lambda x: len(mappings[x]['prefix']))):
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
