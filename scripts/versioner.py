@@ -183,6 +183,7 @@ class ReleaseDelta(object):
         for commit, subject in self.vbr.recent_commits(self.since_tag):
             if self.commit_map and (commit in self.commit_map):
                 subject = self.commit_map[commit]
+                logging.debug("Override %s with %s" % (commit, subject))
 
             yield commit, subject
 
@@ -379,7 +380,11 @@ if __name__ == '__main__':
         --pre=<pre-release-tag>    explicitly set the prerelease number
         --build=<build-tag>        explicitly set the build number
         --since=<since-tag>        override the tag of the last release
+        --map=<mappings>           override what kind of change given commits are (see below)
         --only-if-changes          don't build if there are no changes since last tag
+
+    Mappings are commit=kind[,commit=kind[,...]] where commit is a unique SHA prefix
+    and kind is FIX, MINOR, or MAJOR.
     """
 
     args = docopt(__doc__, version="versioner {0}".format("0.1.0"))
@@ -398,19 +403,28 @@ if __name__ == '__main__':
 
     # print(vbr)
 
-    # commit_map = {
-    #     'e787009': '[MAJOR] OH GOD NO',
-    #     'a889b73': '[MINOR] Oh yeah!',
-    #     '2d0b5ec': '[MINOR] WTFO?'
-    # }
+    commit_map = {}
+
+    if args["--map"]:
+        shown_format_error = False
+
+        for element in args["--map"].split(","):
+            if '=' in element:
+                commit, kind = element.split('=')
+
+                commit_map[commit] = "[%s]" % kind
+                logging.debug("Forcing %s to %s" % (commit, commit_map[commit]))
+            elif not shown_format_error:
+                logging.error("Map elements must be commit=kind")
+                shown_format_error = True
 
     next_version = vbr.next_version(magic_pre=args.get('--magic-pre', False),
                                     pre_release=args.get('--pre', None),
                                     build=args.get('--build', None),
                                     since_tag=args.get('--since', None),
                                     only_if_changes=args.get('--only-if-changes', False),
-                                    reduced_zero=False)
-                                    # commit_map=commit_map)
+                                    reduced_zero=False,
+                                    commit_map=commit_map)
 
     if next_version:
         print(next_version)

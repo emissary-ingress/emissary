@@ -25,5 +25,6 @@ for tdir in *; do
     done
 done
 
-ADIR="$ODIR/ambassador"
-cat "$ADIR/ambassador-store.yaml" "$ADIR/ambassador-rest.yaml" > "$ADIR/ambassador.yaml"
+# ADIR="$ODIR/ambassador"
+# echo "---- synth ambassador.yaml"
+# cat "$ADIR"/ambassador-{empty-certs,http,proxy}.yaml > "$ADIR/ambassador.yaml"

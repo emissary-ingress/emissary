@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: ambassador
+  name: ambassador
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 80
+  selector:
+    service: ambassador
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        service: ambassador
+    spec:
+      containers:
+      - name: ambassador
+        image: {AMREG}ambassador:{VERSION}
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /etc/ambassador-config
+          name: config-map
+      - name: statsd
+        image: {STREG}statsd:{VERSION}
+      volumes:
+      - name: config-map
+        configMap:
+          name: ambassador-config
+      restartPolicy: Always

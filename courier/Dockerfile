@@ -32,7 +32,7 @@ RUN pip3 install -r requirements.txt
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
 
-COPY ambassador.py AmbassadorConfig.py utils.py VERSION.py ./
+COPY ambassador.py AmbassadorConfig.py VERSION.py ./
 COPY templates/ ./templates
 
 # COPY the entrypoint script and make it runnable.
