@@ -17,7 +17,7 @@ import VERSION
 __version__ = VERSION.Version
 
 logging.basicConfig(
-    level=logging.INFO, # if appDebug else logging.INFO,
+    level=logging.DEBUG, # if appDebug else logging.INFO,
     format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )

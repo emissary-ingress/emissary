@@ -2,6 +2,7 @@ import sys
 
 import collections
 import json
+import jsonschema
 import logging
 import os
 import re
@@ -11,82 +12,116 @@ from jinja2 import Environment, FileSystemLoader
 from utils import RichStatus
 
 class AmbassadorConfig (object):
-    def __init__(self, config_dir_path):
+    def __init__(self, config_dir_path,
+                 schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
+        self.schema_dir_path = schema_dir_path
+        self.template_dir_path = template_dir_path
+
+        self.schemas = {}
         self.config = {}
         self.envoy_config = {}
         self.envoy_clusters = {}
 
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path):
             for filename in [ x for x in filenames if x.endswith(".yaml") ]:
+                self.filename = filename
+
                 filepath = os.path.join(dirpath, filename)
 
                 try:
-                    obj = yaml.safe_load(open(filepath, "r"))
+                    objects = yaml.safe_load_all(open(filepath, "r"))
                 except Exception as e:
                     logging.error("%s: could not parse YAML: %s" % (filepath, e))
                     continue
 
-                # The object must be a dict with a single toplevel key.
-                if not isinstance(obj, collections.Mapping):
-                    raise Exception("%s: not a dictionary" % filepath)
+                self.ocount = 0
+                for obj in objects:
+                    self.ocount += 1
 
-                if len(obj.keys()) != 1:
-                    raise Exception("%s: need exactly one toplevel key, found %d" %
-                                    (filepath, len(obj.keys())))
-
-                toplevel = list(obj.keys())[0]
-                handler_name = "handle_%s" % toplevel
-                handler = getattr(self, handler_name, None)
-
-                if not handler:
-                    logging.warning("%s: no handler for %s, skipping" % (filepath, toplevel))
-                    continue
-
-                logging.debug("%s: handling %s..." % (filename, toplevel))
-
-                handler(filename, toplevel, obj)
+                    self.process_object(obj)
 
         self.generate_envoy_config()
 
-    def handle_ambassador(self, filename, toplevel, obj):
-        # Just save this for now.
-        self.config['ambassador'] = obj['ambassador']
+    def process_object(self, obj):
+        # OK. What is this thing?
+        obj_kind, obj_version = self.validate_object(obj)
 
-    def handle_module(self, filename, toplevel, obj):
-        # This is a single module definition. The name of the module
-        # comes from the name of the file.
+        handler_name = "handle_%s" % obj_kind.lower()
+        handler = getattr(self, handler_name, None)
 
-        m = re.match(r'^module-([a-zA-Z][a-zA-Z0-9_]*)\.[^.]*$', filename)
+        if not handler:
+            handler = self.save_object
+            logging.warning("%s[%d]: no handler for %s, just saving" % (self.filename, self.ocount, obj_kind))
+        else:
+            logging.debug("%s[%d]: handling %s..." % (self.filename, self.ocount, obj_kind))
 
-        if not m:
-            raise Exception("parsing %s: cannot infer module name" % filename)
+        handler(obj, obj_kind, obj_version)
 
-        module_name = m.group(1)
+    def validate_object(self, obj):
+        # Each object must be a dict, and must include "apiVersion"
+        # and "type" at toplevel.
 
-        logging.debug("%s: module name is %s" % (filename, module_name))
+        if not isinstance(obj, collections.Mapping):
+            raise Exception("%s[%d]: not a dictionary" % (self.filename, self.ocount))
 
+        if not (("apiVersion" in obj) and ("kind" in obj)):
+            raise Exception("%s[%d]: must have apiVersion and kind" % (self.filename, self.ocount))
+
+        obj_version = obj['apiVersion']
+        obj_kind = obj['kind']
+
+        if obj_version.startswith("ambassador/"):
+            obj_version = obj_version.split('/')[1]
+        else:
+            raise Exception("%s[%d]: apiVersion %s unsupported" % (self.filename, self.ocount, obj_version))
+
+        schema_key = "%s-%s" % (obj_version, obj_kind)
+
+        schema = self.schemas.get(schema_key, None)
+
+        if not schema:
+            schema_path = os.path.join(self.schema_dir_path, obj_version, "%s.schema" % obj_kind)
+
+            try:
+                schema = json.load(open(schema_path, "r"))
+            except OSError:
+                logging.debug("no schema at %s, skipping" % schema_path)
+            except json.decoder.JSONDecodeError as e:
+                logging.warning("corrupt schema at %s, skipping (%s)" % (schema_path, e))
+
+        if schema:
+            self.schemas[schema_key] = schema
+            try:
+                jsonschema.validate(obj, schema)
+            except jsonschema.exceptions.ValidationError as e:
+                raise Exception("%s[%d] is not a valid %s: %s" % 
+                                (self.filename, self.ocount, obj_kind, e))
+
+        return (obj_kind, obj_version)
+
+    def save_object(self, obj, obj_kind, obj_version):
+        logging.debug("%s[%d]: saving %s %s" %
+                      (self.filename, self.ocount, obj_kind,  obj['name']))
+        objects = self.config.setdefault(obj_kind, {})
+        objects[obj['name']] = obj
+
+    def handle_module(self, obj, obj_kind, obj_version):
+        logging.debug("%s[%d]: saving module %s" % (self.filename, self.ocount, obj['name']))
         modules = self.config.setdefault("modules", {})
-        modules[module_name] = obj['module']
+        modules[obj['name']] = obj['config']
 
-    def handle_mappings(self, filename, toplevel, obj):
+    def handle_mapping(self, obj, obj_kind, obj_version):
+        logging.debug("%s[%d]: saving mapping %s" % (self.filename, self.ocount, obj['name']))
         mappings = self.config.setdefault("mappings", {})
-
-        # Support both 'mapping' and 'mappings'...
-        for mapping_name in obj[toplevel].keys():
-            logging.debug("%s: saving mapping %s" % (filename, mapping_name))
-
-            mappings[mapping_name] = obj[toplevel][mapping_name]
-
-    def handle_mapping(self, filename, toplevel, obj):
-        return self.handle_mappings(filename, toplevel, obj)
+        mappings[obj['name']] = obj
 
     def generate_envoy_config(self):
         # First things first. Assume we'll listen on port 80.
         service_port = 80
 
         # OK. Is TLS configured?
-        aconf = self.config.get('ambassador', {})
+        aconf = self.config.get('Ambassador', {})
 
         if 'tls' in aconf:
             # Yes. Switch to port 443 by default...
@@ -147,17 +182,40 @@ class AmbassadorConfig (object):
         # Once that's done, it's time to wrangle mappings. These must be sorted by prefix
         # length...
         mappings = self.config.get("mappings", [])
+        breakers = self.config.get("CircuitBreaker", {})
+        outliers = self.config.get("OutlierDetection", {})
 
-        for mapping_name in sorted(mappings.keys(), key=lambda x: len(mappings[x]['prefix'])):
+        for mapping_name in reversed(sorted(mappings.keys(), key=lambda x: len(mappings[x]['prefix']))):
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
-            # service name.
+            # service name, plus things like circuit breaker and outlier 
+            # detection settings.
             svc = mapping['service']
 
             # Use just the DNS name for the cluster -- if a port was included, drop it.
             svc_name_only = svc.split(':')[0]
-            cluster_name = '%s_cluster' % svc_name_only
+            cluster_name_fields =[ svc_name_only ]
+
+            cb_name = mapping.get('circuit_breaker', None)
+
+            if cb_name:
+                if cb_name in breakers:
+                    cluster_name_fields.append("cb_%s" % cb_name)
+                else:
+                    logging.error("CircuitBreaker %s is not defined (mapping %s)" %
+                                  (cb_name, mapping_name))
+
+            od_name = mapping.get('outlier_detection', None)
+
+            if od_name:
+                if od_name in outliers:
+                    cluster_name_fields.append("od_%s" % od_name)
+                else:
+                    logging.error("OutlierDetection %s is not defined (mapping %s)" %
+                                  (od_name, mapping_name))
+
+            cluster_name = '%s_cluster' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
             logging.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
@@ -168,12 +226,20 @@ class AmbassadorConfig (object):
                 if ':' not in svc:
                     url += ':80'
 
-                self.envoy_clusters[cluster_name] = {
+                cluster_def = {
                     "name": cluster_name,
                     "type": "strict_dns",
                     "lb_type": "round_robin",
                     "urls": [ url ]
                 }
+
+                if cb_name and (cb_name in breakers):
+                    cluster_def['circuit_breakers'] = breakers[cb_name]
+
+                if od_name and (od_name in outliers):
+                    cluster_def['outlier_detection'] = outliers[od_name]
+
+                self.envoy_clusters[cluster_name] = cluster_def
 
             route = {
                 "prefix": mapping['prefix'],

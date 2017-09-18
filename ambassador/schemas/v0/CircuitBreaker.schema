@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "https://getambassador.io/schemas/circuitbreaker.json",
+
+    "type": "object",
+    "properties": {
+        "apiVersion": { "enum": ["ambassador/v0"] },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "max_connections": { "type": "integer" },
+        "max_pending": { "type": "integer" },
+        "max_retries": { "type": "integer" }
+    },
+    "required": [ "apiVersion", "kind", "name" ]
+}

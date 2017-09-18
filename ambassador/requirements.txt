@@ -2,3 +2,4 @@ clize==4.0.1
 pyyaml==3.12
 scout.py==0.2.2
 jinja2==2.9.6
+jsonschema==2.6.0

@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "https://getambassador.io/schemas/mapping.json",
+
+    "type": "object",
+    "properties": {
+        "apiVersion": { "enum": ["ambassador/v0"] },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "prefix": { "type": "string" },
+        "rewrite": { "type": "string" },
+        "service": { "type": "string" },
+        "method": { "type": "string" },
+        "circuit_breaker": { "type": "string" },
+        "outlier_detection": { "type": "string" },
+        "modules": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    },
+    "required": [ "apiVersion", "kind", "name", "prefix", "service" ]
+}
