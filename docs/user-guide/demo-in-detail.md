@@ -27,10 +27,12 @@ mkdir config
 Our configuration will start with a single mapping: the `/qotm/` resource will be mapped to the Quote of the Moment service. Here's the YAML for that, which we'll put into `config/mapping-qotm.yaml`:
 
 ```yaml
-mappings:
-  qotm_mapping:
-    prefix: /qotm/
-    service: qotm
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm_mapping
+prefix: /qotm/
+service: qotm
 ```
 
 Once that's done, we can create the `ambassador-config` map from our `config` directory:
@@ -146,7 +148,11 @@ That will start the demo auth service running. The auth service:
 Once the auth service is running, add `config/module-authentication.yaml`:
 
 ```yaml
-module:
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  authentication
+config:
   auth_service: "example-auth:3000"
   path_prefix: "/extauth"
   allowed_headers:
