@@ -1,5 +1,13 @@
 # gRPC and Ambassador
 
+---
+
+**This document refers to Ambassador 0.10 and earlier! Contact us [on Gitter](https://gitter.im/datawire/ambassador) if you're trying to use Ambassador 0.11 in Istio.** 
+
+(Yes, this documentation will be updated soon.)
+
+---
+
 Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required. Why? By default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2. The Ambassador gRPC module makes this possible.
 
 ## Example
