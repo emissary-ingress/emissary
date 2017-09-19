@@ -3,7 +3,7 @@
 Ambassador is an API Gateway for microservices. We'll demo the very basics here.
 
 
-## 1. the QOTM service
+## 1. The QOTM Service
 
 
 We'll start by deploying a sample "Quote of the Moment" service (`qotm`) to demo the gateway.
@@ -41,7 +41,7 @@ At this point we can start an HTTP-only Ambassador (obviously, in the real world
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 ```
 
-## 5. Test it out!
+## 5. Test It Out!
 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
