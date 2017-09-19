@@ -17,14 +17,12 @@ kubectl apply -f https://www.getambassador.io/yaml/demo/demo-qotm.yaml
 In Ambassador, we configure routes with a YAML file. Create a file called `mapping-qotm.yaml` with the following contents:
 
 ```yaml
-mappings:
-  qotm_mapping:
-    prefix: /qotm/
-    service: qotm
-  quote_mapping:
-    prefix: /qotm/quote/
-    service: qotm
-    rewrite: /quote/
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm_mapping
+prefix: /qotm/
+service: qotm
 ```
 
 ## 3. Create a ConfigMap
