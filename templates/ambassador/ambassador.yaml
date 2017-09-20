@@ -40,6 +40,11 @@ spec:
         volumeMounts:
         - mountPath: /etc/ambassador-config
           name: config-map
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace          
       - name: statsd
         image: {STREG}statsd:{VERSION}
       volumes:
