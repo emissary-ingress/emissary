@@ -2,9 +2,12 @@
 
 import sys
 
+import json
 import logging
+import os
+import re
+import subprocess
 
-import subprocess, re, os
 from semantic_version import Version
 from git import Repo
 
@@ -382,6 +385,7 @@ if __name__ == '__main__':
         --since=<since-tag>        override the tag of the last release
         --map=<mappings>           override what kind of change given commits are (see below)
         --only-if-changes          don't build if there are no changes since last tag
+        --scout-json=<output>      write an app.json for Scout
 
     Mappings are commit=kind[,commit=kind[,...]] where commit is a unique SHA prefix
     and kind is FIX, MINOR, or MAJOR.
@@ -425,6 +429,15 @@ if __name__ == '__main__':
                                     only_if_changes=args.get('--only-if-changes', False),
                                     reduced_zero=False,
                                     commit_map=commit_map)
+
+    if args['--scout-json']:
+        app_json = {
+          "application": "ambassador",
+          "latest_version": str(next_version),
+          "notices": []
+        }
+
+        json.dump(app_json, open(args['--scout-json'], "w"), indent=4, sort_keys=True)
 
     if next_version:
         print(next_version)

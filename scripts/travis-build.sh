@@ -28,7 +28,7 @@ nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' 
 doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
 # Default a VERSION
-VERSION=$(python scripts/versioner.py --only-if-changes)
+VERSION=$(python scripts/versioner.py --only-if-changes --scout-json=app.json)
 
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if onmaster; then
@@ -57,6 +57,13 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
 
     if onmaster; then
         make VERSION=${VERSION} tag
+
+        # Update the S3 info for Ambassador (versioner.py writes app.json for us).
+        export AWS_DEFAULT_REGION=us-east-1
+        aws s3api put-object \
+            --bucket scout-datawire-io \
+            --key ambassador/app.json \
+            --body app.json
 
         # Push everything to GitHub
         git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
