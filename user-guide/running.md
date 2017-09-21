@@ -48,6 +48,23 @@ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 
 to create an HTTP-only Ambassador service, then start Ambassador running.
 
+## Namespaces
+
+Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (which is included in the YAML files from `getambassador.io`):
+
+```yaml
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace          
+```
+
+Given that `AMBASSADOR_NAMESPACE` is set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
+
+- Using `service: servicename` will route to a service in the same namespace as the Ambassador, and
+- Using `service: servicename.namespace` will route to a service in a different namespace.
+
 ## Once Running
 
 However you started Ambassador, once it's running you'll see pods and services called `ambassador`. By default three replicas of the `ambassador` proxy will be run.
