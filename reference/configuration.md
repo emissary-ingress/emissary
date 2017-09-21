@@ -117,7 +117,7 @@ name:  qotm_mapping
 prefix: /qotm/
 service: qotm
 ---
-apiVersion: ambassador/v0.12
+apiVersion: ambassador/v0
 kind:  Mapping
 name:  quote_mapping
 prefix: /qotm/quote/
