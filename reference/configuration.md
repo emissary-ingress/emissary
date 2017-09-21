@@ -244,3 +244,10 @@ would be "rewritten" as
 ```shell
 http://service1/prefix1/foo/bar
 ```
+
+### Modifying Ambassador's Underlying Envoy Configuration
+
+Ambassador uses Envoy for the heavy lifting of proxying. If necessary, you can override the template that Ambassador uses to configure Envoy, by supplying it in the `ambassador-config` ConfigMap before deploying Ambassador. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary for a given use case.
+
+
+
