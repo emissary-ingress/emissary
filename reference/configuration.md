@@ -1,12 +1,12 @@
 # Ambassador Configuration
 
-At the heart of Ambassador are the ideas of [_modules_](#modules), [_mappings_](#mappings), [_resources_](#resources)], and soon [_consumers_](#consumers).
+At the heart of Ambassador are the ideas of [_modules_](#modules), [_mappings_](#mappings), and [_resources_](#resources).
 
 - [Modules](#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings. For example, the `authentication` module allows Ambassador to require authentication per mapping.
 
 - [Mappings](#mappings) associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-- [Consumers](#consumers) represent human end users of Ambassador. More here later.
+- [Resources](#resources) are as defined in REST: effectively groups of one or more URLs that all share a common prefix in the URL path.
 
 Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. Each file must have a name that ends in `.yaml`, and Ambassador fully supports multiple documents in a single file.
 
