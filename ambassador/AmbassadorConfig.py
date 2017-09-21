@@ -298,9 +298,14 @@ class AmbassadorConfig (object):
         json.dump(obj, out, indent=4, separators=(',',':'), sort_keys=True)
         out.write("\n")
 
-    def to_json(self, template=None, template_dir="templates"):
+    def to_json(self, template=None, template_dir=None):
+        template_paths = [ self.config_dir_path, self.template_dir_path ]
+
+        if template_dir:
+            template_paths.insert(0, template_dir)
+
         if not template:
-            env = Environment(loader=FileSystemLoader("templates"))
+            env = Environment(loader=FileSystemLoader(template_paths))
             template = env.get_template("envoy.j2")
 
         return(template.render(**self.envoy_config))
