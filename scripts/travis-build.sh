@@ -10,6 +10,7 @@ fi
 
 env | grep TRAVIS | sort
 npm version
+aws --version
 
 # Are we on master?
 ONMASTER=
