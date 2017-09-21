@@ -1,16 +1,16 @@
 # Ambassador Configuration
 
-At the heart of Ambassador are the ideas of [_resources_](#resources)], [_mappings_](#mappings), [_modules_](#modules), and soon [_consumers_](#consumers). There may also be an `ambassador.yaml` file.
-
-- [The `ambassador.yaml` file](#ambassador-yaml) is optional. If present, it defines system-wide things like TLS certificates.
-
-- [Mappings](#mappings) associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
+At the heart of Ambassador are the ideas of [_modules_](#modules), [_mappings_](#mappings), and [_resources_](#resources).
 
 - [Modules](#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings. For example, the `authentication` module allows Ambassador to require authentication per mapping.
 
-- [Consumers](#consumers) represent human end users of Ambassador. More here later.
+- [Mappings](#mappings) associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. When run as part of an image build, the caller must tell Ambassador the path to the directory; when run as a proxy pod within Kubernetes, Ambassador assumes that its configuration has been published as a `ConfigMap` named `ambassador-config`. The easiest way to create such a `ConfigMap` is to assemble a directory of appropriate YAML files, and use 
+- [Resources](#resources) are as defined in REST: effectively groups of one or more URLs that all share a common prefix in the URL path.
+
+Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. Each file must have a name that ends in `.yaml`, and Ambassador fully supports multiple documents in a single file.
+
+When run as part of an image build, the caller must tell Ambassador the path to the directory; when run as a proxy pod within Kubernetes, Ambassador assumes that its configuration has been published as a `ConfigMap` named `ambassador-config`. The easiest way to create such a `ConfigMap` is to assemble a directory of appropriate YAML files, and use 
 
 ```shell
 kubectl create configmap ambassador-config --from-file config-dir-path
@@ -34,52 +34,117 @@ Ambassador uses a directory structure for its configuration to allow multiple de
 
     If two different developers try to map `/user/` to something, Ambassador should catch it and refuse to start, but it's still not what you want (obviously).
 
-## The `ambassador.yaml` File
+## Namespaces
 
-If present, the `ambassador.yaml` file defines system-wide configuration. **You will not normally need this file.**
+Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (which is included in the YAML files from `getambassador.io`):
 
 ```yaml
-ambassador:
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace          
+```
+
+Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](#mappings) can operate within the same namespace, or across namespaces.
+
+## Modules
+
+Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported modules are the `ambassador` module and the `authentication` module.
+
+### The `ambassador` Module
+
+If present, the `ambassador` module defines system-wide configuration. **You will not normally need this file.**
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
   # If present, service_port will be the port Ambassador listens
   # on for microservice access. If not present, Ambassador will
   # use 443 if TLS is configured, 80 otherwise.
-  service_port: 80
+  # service_port: 80
 
   # admin_port is where we'll listen for administrative requests.
-  admin_port: 8001
+  # admin_port: 8001
 
   # TLS setup
-  tls:
-    cert_chain_file: ...
-    private_key_file: ...
+  # tls:
+  #   cert_chain_file: ...
+  #   private_key_file: ...
+  #   cacert_chain_file: ...
 ```
 
 Everything in this file has a sane default; you should need to supply it _only_ to override defaults in highly-custom situations.
+
+### The `authentication` Module
+
+The [`authentication` module](../how-to/auth-http-basic.md) configures Ambassador to use an external service to check authentication and authorization for incoming requests:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  authentication
+config:
+  auth_service: "example-auth:3000"
+  path_prefix: "/extauth"
+  allowed_headers:
+  - "x-qotm-session"
+```
+
+- `auth_service` gives the URL of the authentication service
+- `path_prefix` (optional) gives a prefix prepended to every request going to the auth service
+- `allowed_headers` (optional) gives an array of headers that will be incorporated into the upstream request if the auth service supplies them.
 
 ## Mappings
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL profix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, and a set of [_module configuration_](#modules) specific to that mapping
+Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, and a set of [_module configuration_](#modules) specific to that mapping.
 
 ### Defining Mappings
 
-**NOTE WELL: The mapping definition format is very likely to change shortly.**
-
-One or more mappings may be in YAML files with names starting with "mapping-", for example a file named `mapping-qotm.yaml` might have mappings associated with the `qotm` service:
+Mapping definitions are fairly straightforward. Here's an example for a REST service:
 
 ```yaml
-mappings:
-  qotm_mapping:
-    prefix: /qotm/
-    service: qotm
-  quote_mapping:
-    prefix: /qotm/quote/
-    service: qotm
-    rewrite: /quote/
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+---
+apiVersion: ambassador/v0.12
+kind:  Mapping
+name:  quote_mapping
+prefix: /qotm/quote/
+service: qotm
+rewrite: /quotation/
 ```
 
-The above example defines two mappings (`qotm_mapping` and `quote_mapping`) which map two resources over to the `qotm` service. Valid attributes for mappings:
+and an example for a CQRS service:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: cqrs_get_mapping
+prefix: /cqrs/
+method: GET
+service: getcqrs
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: cqrs_put_mapping
+prefix: /cqrs/
+method: PUT
+service: putcqrs
+```
+
+Valid attributes for mappings:
 
 - `prefix` is the URL prefix identifying your [resource](#resources)
 - `rewrite` (optional) is what to [replace](#rewriting) the URL prefix with when talking to the service
@@ -89,6 +154,11 @@ The above example defines two mappings (`qotm_mapping` and `quote_mapping`) whic
 - `grpc` (optional) if present with a true value, tells the system that the service will be handling gRPC calls
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
+
+Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
+
+- `service: servicename` will route to a service in the same namespace as the Ambassador, and
+- `service: servicename.namespace` will route to a service in a different namespace.
 
 ### Resources
 
@@ -133,9 +203,13 @@ which is probably not what was intended.
 
 ### Services
 
-A `service` is exactly the same thing to Ambassador as it is to Kubernetes. When you tell Ambassador to map a resource to a service, it requires there to be a Kubernetes service with _exactly_ the same name, and it trusts whatever Kubernetes has to say about ports and such.
+A `service` is simply a URL to Ambassador. For example:
 
-At present, Ambassador relies on Kubernetes to do load balancing: it trusts that using the DNS to look up the service by name will do the right thing in terms of spreading the load across all instances of the service. This will change shortly, in order to gain better control of load balancing.
+- `servicename` assumes that DNS can resolve the bare servicename, and that it's listening on the default HTTP port;
+- `servicename.domain` supplies a domain name (for example, you might do this to route across namespaces in Kubernetes); and
+- `service:3000` supplies a nonstandard port number.
+
+At present, Ambassador relies on Kubernetes to do load balancing: it trusts that using the DNS to look up the service by name will do the right thing in terms of spreading the load across all instances of the service.
 
 ### Rewrite Rules
 
@@ -170,19 +244,3 @@ would be "rewritten" as
 ```shell
 http://service1/prefix1/foo/bar
 ```
-
-## Modules
-
-Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported module is the [`authentication` module](../how-to/auth-http-basic.md), which is configured using the `module-authentication.yaml` file:
-
-```yaml
-module:
-  auth_service: "example-auth:3000"
-  path_prefix: "/extauth"
-  allowed_headers:
-  - "x-qotm-session"
-```
-
-- `auth_service` gives the URL of the authentication service
-- `path_prefix` (optional) gives a prefix prepended to every request going to the auth service
-- `allowed_headers` (optional) gives an array of headers that will be incorporated into the upstream request if the auth service supplies them.

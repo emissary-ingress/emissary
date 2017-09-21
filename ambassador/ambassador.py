@@ -2,6 +2,7 @@ import sys
 
 import json
 import logging
+import os
 import time
 import traceback
 import uuid
@@ -28,17 +29,24 @@ logger.setLevel(logging.DEBUG)
 
 scout_version = "+".join(__version__.split('-', 1))
 
-scout = Scout(app="ambassador", version=scout_version, 
-              id_plugin=Scout.configmap_install_id_plugin)
+scout = None
+
+try:
+    namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+
+    scout = Scout(app="ambassador", version=scout_version, 
+                  id_plugin=Scout.configmap_install_id_plugin, 
+                  id_plugin_args={ "namespace": namespace })
+except OSError as e:
+    logger.warning("couldn't do version check: %s" % str(e))
 
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
-    result = scout.report(action=what, exception=str(e), traceback=tb, **kwargs)
+    if scout:
+        result = scout.report(action=what, exception=str(e), traceback=tb, **kwargs)
+        logger.debug("Scout %s, result: %s" % ("disabled" if scout.disabled else "enabled", result))
 
-    time.sleep(1)
-
-    logger.debug("Scout %s, result: %s" % ("disabled" if scout.disabled else "enabled", result))
     logger.error("%s: %s\n%s" % (what, e, tb))
 
 def version():
@@ -53,7 +61,10 @@ def showid():
     Show Ambassador's installation ID
     """
 
-    print("%s" % scout.install_id)
+    if scout:
+        print("%s" % scout.install_id)
+    else:
+        print("unknown")
 
 def publish(config_dir_path:Parameter.REQUIRED, output_config_map="ambassador-config"):
     """
@@ -114,9 +125,12 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 logging.error("Raw template output:")
                 logging.error("%s" % rc.raw)
 
-            result = scout.report(action="config", result=bool(rc), check=check, generated=(not output_exists))
+            if scout:
+                result = scout.report(action="config", result=bool(rc), check=check, generated=(not output_exists))
+            else:
+                result = {"scout": "inactive"}
 
-        logging.info("Scout reports %s" % json.dumps(result))
+        logging.debug("Scout reports %s" % json.dumps(result))
     except Exception as e:
         # scout.report(action="WTFO?")
         handle_exception("EXCEPTION from config", e, 
