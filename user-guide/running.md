@@ -70,3 +70,21 @@ Given that `AMBASSADOR_NAMESPACE` is set, Ambassador can map to services in othe
 However you started Ambassador, once it's running you'll see pods and services called `ambassador`. By default three replicas of the `ambassador` proxy will be run.
 
 *ALSO NOTE*: The very first time you start Ambassador, it can take a very long time - like 15 minutes - to get the images pulled down and running. You can use `kubectl get pods` to see when the pods are actually running.
+
+## Upgrading Ambassador
+
+Since Ambassador's configuration is entirely stored in its ConfigMap, no special process is necessary to upgrade Ambassador. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating (for HTTPS)
+
+```
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
+```
+
+or (for HTTP)
+
+```shell
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
+```
+
+will trigger a rolling upgrade of Ambassador.
+
+If you're using your own YAML, check the Datawire YAML to be sure of other changes, but at minimum, you'll need to change the pulled `image` for the Ambassador container and redeploy.
