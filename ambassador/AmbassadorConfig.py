@@ -67,10 +67,12 @@ class AmbassadorConfig (object):
         # and "type" at toplevel.
 
         if not isinstance(obj, collections.Mapping):
-            raise Exception("%s[%d]: not a dictionary" % (self.filename, self.ocount))
+            raise Exception("%s[%d]: not a dictionary" %
+                            (self.filename, self.ocount))
 
         if not (("apiVersion" in obj) and ("kind" in obj)):
-            raise Exception("%s[%d]: must have apiVersion and kind" % (self.filename, self.ocount))
+            raise Exception("%s[%d]: must have apiVersion and kind" %
+                            (self.filename, self.ocount))
 
         obj_version = obj['apiVersion']
         obj_kind = obj['kind']
@@ -78,14 +80,16 @@ class AmbassadorConfig (object):
         if obj_version.startswith("ambassador/"):
             obj_version = obj_version.split('/')[1]
         else:
-            raise Exception("%s[%d]: apiVersion %s unsupported" % (self.filename, self.ocount, obj_version))
+            raise Exception("%s[%d]: apiVersion %s unsupported" %
+                            (self.filename, self.ocount, obj_version))
 
         schema_key = "%s-%s" % (obj_version, obj_kind)
 
         schema = self.schemas.get(schema_key, None)
 
         if not schema:
-            schema_path = os.path.join(self.schema_dir_path, obj_version, "%s.schema" % obj_kind)
+            schema_path = os.path.join(self.schema_dir_path, obj_version,
+                                       "%s.schema" % obj_kind)
 
             try:
                 schema = json.load(open(schema_path, "r"))
