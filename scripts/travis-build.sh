@@ -74,13 +74,15 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
 fi
 
 if [ $doc_changes -gt 0 ]; then
+    # Always build the docs assuming the Datawire registry.
+    DOCKER_REGISTRY=datawire
+
     if onmaster; then
         NETLIFY_DRAFT=
         HRDRAFT=
     else
         NETLIFY_DRAFT=--draft
         HRDRAFT=" (draft)"
-        DOCKER_REGISTRY=datawire
         VERSION="${VERSION}-draft"
     fi
 
