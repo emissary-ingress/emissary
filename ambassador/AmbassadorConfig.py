@@ -164,8 +164,8 @@ class AmbassadorConfig (object):
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.envoy_clusters = {
-            "ambassador_config_cluster": {
-                "name": "ambassador_config_cluster",
+            "cluster_ambassador_config": {
+                "name": "cluster_ambassador_config",
                 "type": "static",
                 "urls": [ "tcp://127.0.0.1:8001" ]
             }
@@ -214,9 +214,7 @@ class AmbassadorConfig (object):
             # detection settings.
             svc = mapping['service']
 
-            # Use just the DNS name for the cluster -- if a port was included, drop it.
-            svc_name_only = svc.split(':')[0]
-            cluster_name_fields =[ svc_name_only ]
+            cluster_name_fields =[ svc ]
 
             cb_name = mapping.get('circuit_breaker', None)
 
@@ -236,7 +234,7 @@ class AmbassadorConfig (object):
                     self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
                                   (od_name, mapping_name))
 
-            cluster_name = '%s_cluster' % "_".join(cluster_name_fields)
+            cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
             self.logger.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
@@ -287,7 +285,7 @@ class AmbassadorConfig (object):
             "type": "decoder",
             "name": "extauth",
             "config": {
-                "cluster": "ext_auth_cluster",
+                "cluster": "cluster_ext_auth",
                 "timeout_ms": 5000
             }
         }
@@ -307,8 +305,8 @@ class AmbassadorConfig (object):
         if 'ext_auth_cluster' not in self.envoy_clusters:
             svc = module.get('auth_service', '127.0.0.1:5000')
 
-            self.envoy_clusters['ext_auth_cluster'] = {
-                "name": "ext_auth_cluster",
+            self.envoy_clusters['cluster_ext_auth'] = {
+                "name": "cluster_ext_auth",
                 "type": "logical_dns",
                 "connect_timeout_ms": 5000,
                 "lb_type": "random",
