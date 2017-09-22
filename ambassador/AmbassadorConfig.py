@@ -48,6 +48,7 @@ class AmbassadorConfig (object):
     def process_object(self, obj):
         # OK. What is this thing?
         obj_kind, obj_version = self.validate_object(obj)
+        obj_name = obj['name']
 
         handler_name = "handle_%s" % obj_kind.lower()
         handler = getattr(self, handler_name, None)
@@ -60,7 +61,7 @@ class AmbassadorConfig (object):
             self.logger.debug("%s[%d]: handling %s..." %
                               (self.filename, self.ocount, obj_kind))
 
-        handler(obj, obj_kind, obj_version)
+        handler(obj, obj_name, obj_kind, obj_version)
 
     def validate_object(self, obj):
         # Each object must be a dict, and must include "apiVersion"
@@ -109,21 +110,32 @@ class AmbassadorConfig (object):
 
         return (obj_kind, obj_version)
 
-    def save_object(self, obj, obj_kind, obj_version):
-        logging.debug("%s[%d]: saving %s %s" %
-                      (self.filename, self.ocount, obj_kind,  obj['name']))
-        objects = self.config.setdefault(obj_kind, {})
-        objects[obj['name']] = obj
+    def safe_store(self, storage_name, obj_name, obj_kind, value, allow_log=True):
+        storage = self.config.setdefault(storage_name, {})
 
-    def handle_module(self, obj, obj_kind, obj_version):
-        logging.debug("%s[%d]: saving module %s" % (self.filename, self.ocount, obj['name']))
-        modules = self.config.setdefault("modules", {})
-        modules[obj['name']] = obj['config']
+        if obj_name in storage:
+            # Oooops.
+            raise Exception("%s[%d] defines %s %s, which is already present" % 
+                            (self.filename, self.ocount, obj_kind, obj_name))
 
-    def handle_mapping(self, obj, obj_kind, obj_version):
-        logging.debug("%s[%d]: saving mapping %s" % (self.filename, self.ocount, obj['name']))
-        mappings = self.config.setdefault("mappings", {})
-        mappings[obj['name']] = obj
+        if allow_log:
+            self.logger.debug("%s[%d]: saving %s %s" %
+                          (self.filename, self.ocount, obj_kind, obj_name))
+
+        storage[obj_name] = value
+
+    def save_object(self, obj, obj_name, obj_kind, obj_version):
+        self.safe_store(obj_kind, obj_name, obj_kind, obj)
+
+    def handle_module(self, obj, obj_name, obj_kind, obj_version):
+        self.safe_store("modules", obj_name, obj_kind, obj['config'])
+
+    def handle_mapping(self, obj, obj_name, obj_kind, obj_version):
+        method = obj.get("method", "GET")
+        mapping_key = "%s:%s" % (method, obj['prefix'])
+
+        self.safe_store("mapping_prefixes", mapping_key, obj_kind, True)
+        self.safe_store("mappings", obj_name, obj_kind, obj)
 
     def generate_envoy_config(self):
         # First things first. Assume we'll listen on port 80.
