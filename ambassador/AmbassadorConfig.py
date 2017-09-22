@@ -23,6 +23,8 @@ class AmbassadorConfig (object):
         self.envoy_config = {}
         self.envoy_clusters = {}
 
+        self.logger = logging.getLogger("ambassador.config")
+
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path):
             for filename in [ x for x in filenames if x.endswith(".yaml") ]:
                 self.filename = filename
@@ -32,7 +34,7 @@ class AmbassadorConfig (object):
                 try:
                     objects = yaml.safe_load_all(open(filepath, "r"))
                 except Exception as e:
-                    logging.error("%s: could not parse YAML: %s" % (filepath, e))
+                    self.logger.error("%s: could not parse YAML: %s" % (filepath, e))
                     continue
 
                 self.ocount = 0
@@ -52,9 +54,11 @@ class AmbassadorConfig (object):
 
         if not handler:
             handler = self.save_object
-            logging.warning("%s[%d]: no handler for %s, just saving" % (self.filename, self.ocount, obj_kind))
+            self.logger.warning("%s[%d]: no handler for %s, just saving" %
+                                (self.filename, self.ocount, obj_kind))
         else:
-            logging.debug("%s[%d]: handling %s..." % (self.filename, self.ocount, obj_kind))
+            self.logger.debug("%s[%d]: handling %s..." %
+                              (self.filename, self.ocount, obj_kind))
 
         handler(obj, obj_kind, obj_version)
 
@@ -86,9 +90,10 @@ class AmbassadorConfig (object):
             try:
                 schema = json.load(open(schema_path, "r"))
             except OSError:
-                logging.debug("no schema at %s, skipping" % schema_path)
+                self.logger.debug("no schema at %s, skipping" % schema_path)
             except json.decoder.JSONDecodeError as e:
-                logging.warning("corrupt schema at %s, skipping (%s)" % (schema_path, e))
+                self.logger.warning("corrupt schema at %s, skipping (%s)" %
+                                    (schema_path, e))
 
         if schema:
             self.schemas[schema_key] = schema
@@ -203,7 +208,7 @@ class AmbassadorConfig (object):
                 if cb_name in breakers:
                     cluster_name_fields.append("cb_%s" % cb_name)
                 else:
-                    logging.error("CircuitBreaker %s is not defined (mapping %s)" %
+                    self.logger.error("CircuitBreaker %s is not defined (mapping %s)" %
                                   (cb_name, mapping_name))
 
             od_name = mapping.get('outlier_detection', None)
@@ -212,13 +217,13 @@ class AmbassadorConfig (object):
                 if od_name in outliers:
                     cluster_name_fields.append("od_%s" % od_name)
                 else:
-                    logging.error("OutlierDetection %s is not defined (mapping %s)" %
+                    self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
                                   (od_name, mapping_name))
 
             cluster_name = '%s_cluster' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
-            logging.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
+            self.logger.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
 
             if cluster_name not in self.envoy_clusters:
                 url = 'tcp://%s' % svc
