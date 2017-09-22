@@ -56,21 +56,26 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         doc_changes=1
     fi
 
+    # Assume we'll push app.json to ...app.json
+    SCOUT_KEY=app.json
+
     if onmaster; then
         make VERSION=${VERSION} tag
-
-        # Update the S3 info for Ambassador (versioner.py writes app.json for us).
-        export AWS_DEFAULT_REGION=us-east-1
-        aws s3api put-object \
-            --bucket scout-datawire-io \
-            --key ambassador/app.json \
-            --body app.json
 
         # Push everything to GitHub
         git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
     else
         echo "not on master; not tagging"
+
+        SCOUT_KEY=testapp.json
     fi
+
+    # Push new info to AWS
+    export AWS_DEFAULT_REGION=us-east-1
+    aws s3api put-object \
+        --bucket scout-datawire-io \
+        --key ambassador/$SCOUT_KEY \
+        --body app.json
 fi
 
 if [ $doc_changes -gt 0 ]; then
