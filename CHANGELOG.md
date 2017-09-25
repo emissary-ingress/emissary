@@ -1,5 +1,60 @@
 # Changelog
 
+## [0.13.0] September 19, 2017
+[0.13.0]: https://github.com/datawire/ambassador/compare/v0.12.1...v0.13.0
+
+Support using IP addresses for services.
+Check for collisions, so that trying to e.g. map the same prefix twice will report an error.
+Enable liveness and readiness probes, and have Kubernetes perform them by default.
+Document the presence of the template-override escape hatch.
+
+## [0.12.1] September 22, 2017
+[0.12.1]: https://github.com/datawire/ambassador/compare/v0.12.0...v0.12.1
+
+Notify (in the logs) if a new version of Ambassador is available.
+
+## [0.12.0] September 21, 2017
+[0.12.0]: https://github.com/datawire/ambassador/compare/v0.11.2...v0.12.0
+
+Support for non-default Kubernetes namespaces.
+Infrastructure for checking if a new version of Ambassador is available.
+
+## [0.11.2] September 20, 2017
+[0.11.2]: https://github.com/datawire/ambassador/compare/v0.11.1...v0.11.2
+
+Better schema verification.
+
+## [0.11.1] September 18, 2017
+[0.11.1]: https://github.com/datawire/ambassador/compare/v0.11.0...v0.11.1
+
+Do schema verification of input YAML files.
+
+## [0.11.0] September 18, 2017
+[0.11.0]: https://github.com/datawire/ambassador/compare/v0.10.14...v0.11.0
+
+Declarative Ambassador: 
+- Configuration is now via YAML files rather than REST calls
+- The `ambassador-store` service is no longer needed.
+
+## [0.10.14] September 15, 2017
+[0.10.13]: https://github.com/datawire/ambassador/compare/v0.10.13...v0.10.14
+
+Update `demo-qotm.yaml` with the correct image tag.
+
+## [0.10.13] September 5, 2017
+[0.10.13]: https://github.com/datawire/ambassador/compare/v0.10.12...v0.10.13
+
+Properly support proxying all methods to an external authentication service, with headers intact, rather than moving request headers into the body of an HTTP POST.
+
+## [0.10.12] August 2, 2017
+[0.10.12]: https://github.com/datawire/ambassador/compare/v0.10.10...v0.10.12
+
+Move Ambassador out from behind Envoy, so that you can use Ambassador to fix things if you completely botch your Envoy config.
+
+Let Ambassador keep running if Envoy totally chokes and dies, but make sure the pod dies if Ambassador loses access to its storage.
+
+While we're at it, make TLS work with standard K8s TLS secrets, and completely ditch push-cert and push-cacert.
+
 ## [0.10.10] August 1, 2017
 [0.10.10]: https://github.com/datawire/ambassador/compare/v0.10.7...v0.10.10
 
