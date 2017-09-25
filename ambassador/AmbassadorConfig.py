@@ -47,7 +47,18 @@ class AmbassadorConfig (object):
 
         self.logger = logging.getLogger("ambassador.config")
 
-        for dirpath, dirnames, filenames in os.walk(self.config_dir_path):
+        for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
+            # Modify dirnames in-place (dirs[:]) to remove any weird directories
+            # whose names start with '.' -- why? because my GKE cluster mounts my
+            # ConfigMap with a self-referential directory named 
+            # /etc/ambassador-config/..9989_25_09_15_43_06.922818753, and if we don't
+            # ignore that, we end up trying to read the same config files twice, which
+            # triggers the collision checks. Sigh.
+
+            dirnames[:] = [ d for d in dirnames if not d.startswith('.') ]
+
+            # self.logger.debug("WALK %s: dirs %s, files %s" % (dirpath, dirnames, filenames))
+
             for filename in [ x for x in filenames if x.endswith(".yaml") ]:
                 self.filename = filename
 
