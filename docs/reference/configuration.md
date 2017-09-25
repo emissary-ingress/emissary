@@ -70,6 +70,14 @@ config:
   # admin_port is where we'll listen for administrative requests.
   # admin_port: 8001
 
+  # liveness probe defaults on, but you can disable it.
+  # liveness_probe:
+  #   enabled: false
+
+  # readiness probe defaults on, but you can disable it.
+  # readiness_probe:
+  #   enabled: false
+
   # TLS setup
   # tls:
   #   cert_chain_file: ...
@@ -78,6 +86,21 @@ config:
 ```
 
 Everything in this file has a sane default; you should need to supply it _only_ to override defaults in highly-custom situations.
+
+### Probes
+
+The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route
+requests to some other service. For example, to have the readiness probe map to the Quote of the Moment's health check, you could do
+
+```yaml
+readiness_probe:
+  service: qotm
+  rewrite: /health
+```
+
+The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](#mappings). Additionally, the `enabled` boolean may be set to `false` (as an the commented-out examples above) to disable support for the probe entirely.
+
+**Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
 ### The `authentication` Module
 
