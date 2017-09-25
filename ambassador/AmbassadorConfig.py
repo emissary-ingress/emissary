@@ -23,6 +23,28 @@ class AmbassadorConfig (object):
         self.envoy_config = {}
         self.envoy_clusters = {}
 
+        self.default_liveness_probe = {
+            "enabled": True,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/server_info"
+            # "service" gets added later
+        }
+
+        self.liveness_probe = { "enabled": True }
+        # self.liveness_probe.update(self.default_liveness_probe)
+
+        self.default_readiness_probe = {
+            "enabled": True,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/server_info"
+            # "service" gets added later
+        }
+
+        self.readiness_probe = { "enabled": True }
+        # self.readiness_probe.update(self.default_readiness_probe)
+
+        self.tls_config = None
+
         self.logger = logging.getLogger("ambassador.config")
 
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path):
@@ -138,37 +160,22 @@ class AmbassadorConfig (object):
         self.safe_store("mappings", obj_name, obj_kind, obj)
 
     def generate_envoy_config(self):
-        # First things first. Assume we'll listen on port 80.
-        service_port = 80
-
-        # OK. Is TLS configured?
-        aconf = self.config.get('Ambassador', {})
-
-        if 'tls' in aconf:
-            # Yes. Switch to port 443 by default...
-            service_port = 443
-
-            # ...and copy the TLS config to the envoy_config dict.
-            self.envoy_config['tls'] = aconf['tls']
-
-        # OK. Copy listener data into the envoy_config dict.
-        self.envoy_config['listeners'] = {
-            "service_port": service_port,
-            "admin_port": aconf.get('admin_port', 8001)
-        }
+        # First things first. Assume we'll listen on port 80, with an admin port
+        # on 8001.
+        self.service_port = 80
+        self.admin_port = 8001
 
         # Next up: let's define initial clusters, routes, and filters.
         #
-        # Our initial set of clusters is just the ambassador config interface.
-        # Note that we use a map for clusters, not a list -- the reason is that
-        # multiple mappings can use the same service, and we don't want multiple
-        # clusters.
+        # Our initial set of clusters is empty. Note that we use a map for
+        # clusters, not a list -- the reason is that multiple mappings can use the
+        # same service, and we don't want multiple clusters.
         self.envoy_clusters = {
-            "cluster_ambassador_config": {
-                "name": "cluster_ambassador_config",
-                "type": "static",
-                "urls": [ "tcp://127.0.0.1:8001" ]
-            }
+            # "cluster_ambassador_config": {
+            #     "name": "cluster_ambassador_config",
+            #     "type": "static",
+            #     "urls": [ "tcp://127.0.0.1:8001" ]
+            # }
         }
 
         # ...our initial set of routes is empty...
@@ -187,6 +194,11 @@ class AmbassadorConfig (object):
             }
         ]
 
+        # For mappings, start with empty sets for everything.
+        mappings = self.config.get("mappings", {})
+        breakers = self.config.get("CircuitBreaker", {})
+        outliers = self.config.get("OutlierDetection", {})
+
         # OK. Given those initial sets, let's look over our global modules.
         modules = self.config.get('modules', {})
 
@@ -200,13 +212,49 @@ class AmbassadorConfig (object):
 
             handler(module_name, modules[module_name])
 
-        # Once that's done, it's time to wrangle mappings. These must be sorted by prefix
-        # length...
-        mappings = self.config.get("mappings", [])
-        breakers = self.config.get("CircuitBreaker", {})
-        outliers = self.config.get("OutlierDetection", {})
+        # Once modules are handled, we can set up our listeners...
+        self.envoy_config['listeners'] = {
+            "service_port": self.service_port,
+            "admin_port": self.admin_port
+        }
 
-        for mapping_name in reversed(sorted(mappings.keys(), key=lambda x: len(mappings[x]['prefix']))):
+        self.default_liveness_probe['service'] = '127.0.0.1:%d' % self.admin_port
+        self.default_readiness_probe['service'] = '127.0.0.1:%d' % self.admin_port
+
+        self.logger.debug("LIVENESS: cur  %s" % json.dumps(self.liveness_probe))
+        self.logger.debug("LIVENESS: dflt %s" % json.dumps(self.default_liveness_probe))
+        self.logger.debug("READINESS: cur  %s" % json.dumps(self.readiness_probe))
+        self.logger.debug("READINESS: dflt %s" % json.dumps(self.default_readiness_probe))
+
+        # ...TLS config, if necessary...
+        if self.tls_config:
+            self.envoy_config['tls'] = self.tls_config
+
+        # ...and probes, if configured.
+        for name, cur, dflt in [ ("liveness", self.liveness_probe, self.default_liveness_probe), 
+                                 ("readiness", self.readiness_probe, self.default_readiness_probe) ]:
+            if cur and cur.get("enabled", False):
+                prefix = cur.get("prefix", dflt['prefix'])
+                rewrite = cur.get("rewrite", dflt['rewrite'])
+                service = cur.get("service", dflt['service'])
+
+                # Push a fake mapping to handle this.
+                name = "internal_%s_probe_mapping" % name
+
+                mappings[name] = {
+                    'name': name,
+                    'prefix': prefix,
+                    'rewrite': rewrite,
+                    'service': service
+                }
+
+                self.logger.debug("PROBE %s: %s -> %s%s" % (name, prefix, service, rewrite))
+
+
+        # OK! We have all the mappings we need. Process them sorted by decreasing
+        # length of prefix.
+        for mapping_name in reversed(sorted(mappings.keys(),
+                                            key=lambda x: len(mappings[x]['prefix']))):
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
@@ -279,6 +327,27 @@ class AmbassadorConfig (object):
         self.envoy_config['clusters'] = [
             self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
         ]
+
+    def module_config_ambassador(self, name, module):
+        # Toplevel Ambassador configuration. First up: is TLS configured?
+
+        if 'tls' in module:
+            # Yes. Switch to port 443 by default...
+            self.service_port = 443
+
+            # ...and save the TLS config.
+            self.tls_config = module['tls']
+
+        # After that, is a service port defined?
+        if 'service_port' in module:
+            # Yes. It overrides the default.
+            self.service_port = module['service_port']
+
+        if 'liveness_probe' in module:
+            self.liveness_probe.update(module['liveness_probe'])
+
+        if 'readiness_probe' in module:
+            self.readiness_probe.update(module['readiness_probe'])
 
     def module_config_authentication(self, name, module):
         filter = {
