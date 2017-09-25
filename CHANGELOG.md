@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.13.0] September 19, 2017
+## [0.13.0] September 25, 2017
 [0.13.0]: https://github.com/datawire/ambassador/compare/v0.12.1...v0.13.0
 
 Support using IP addresses for services.
