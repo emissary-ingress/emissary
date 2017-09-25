@@ -45,6 +45,18 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace          
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 3
       - name: statsd
         image: {STREG}statsd:{VERSION}
       volumes:

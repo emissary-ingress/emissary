@@ -38,6 +38,8 @@ After all of the above, you can [configure Ambassador's mappings, etc.](../refer
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
 ```
 
+Note that `ambassador-proxy.yaml` includes liveness and readiness probes that assume that Ambassador is listening on port 443. This won't work for an HTTP-only Ambassador.
+
 ### Without TLS
 
 If you really, really cannot use TLS, you can [set up your Ambassador configuration](../reference/configuration.md), then do
@@ -85,6 +87,6 @@ or (for HTTP)
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 ```
 
-will trigger a rolling upgrade of Ambassador.
+to trigger a rolling upgrade of Ambassador.
 
 If you're using your own YAML, check the Datawire YAML to be sure of other changes, but at minimum, you'll need to change the pulled `image` for the Ambassador container and redeploy.

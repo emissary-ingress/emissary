@@ -10,6 +10,7 @@ fi
 
 env | grep TRAVIS | sort
 npm version
+aws --version
 
 # Are we on master?
 ONMASTER=
@@ -28,7 +29,7 @@ nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' 
 doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
 # Default a VERSION
-VERSION=$(python scripts/versioner.py --only-if-changes)
+VERSION=$(python scripts/versioner.py --only-if-changes --scout-json=app.json)
 
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if onmaster; then
@@ -55,6 +56,9 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         doc_changes=1
     fi
 
+    # Assume we'll push app.json to ...app.json
+    SCOUT_KEY=app.json
+
     if onmaster; then
         make VERSION=${VERSION} tag
 
@@ -62,7 +66,16 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
     else
         echo "not on master; not tagging"
+
+        SCOUT_KEY=testapp.json
     fi
+
+    # Push new info to AWS
+    export AWS_DEFAULT_REGION=us-east-1
+    aws s3api put-object \
+        --bucket scout-datawire-io \
+        --key ambassador/$SCOUT_KEY \
+        --body app.json
 fi
 
 if [ $doc_changes -gt 0 ]; then
