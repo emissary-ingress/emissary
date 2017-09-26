@@ -104,15 +104,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <div class="container">
   <header class="section-header">
-  <h5><center><strong>It's easy to get started:</strong></center></h5>
+  <h5><center><strong>It's easy to <a href="/user-guide/getting-started.html">get started:</a></strong></center></h5>
   </header>
   <div class="row">
     <div class="one-half column">
       1. <strong>Create a <code>mapping.yaml</code> file</strong> with your routes.
     </div>
       <div class="one-half column">
-<pre><code>
----
+<pre><code>---
 apiVersion: ambassador/v0
 kind: Mapping
 name: qotm_mapping
@@ -133,7 +132,7 @@ service: qotm
       3. <strong>Deploy Ambassador.</strong> Ambassador comes pre-configured with liveness and readiness probes, and is ready to run in a high availability environment from the get go.
     </div>
     <div class="one-half column">
-      <pre><code>kubectl kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
+      <pre><code>kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 </code></pre>
     </div>
   </div>
