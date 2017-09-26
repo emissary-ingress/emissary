@@ -95,14 +95,20 @@ def showid():
     else:
         print("unknown")
 
-def publish(config_dir_path:Parameter.REQUIRED, output_config_map="ambassador-config"):
+def dump(config_dir_path:Parameter.REQUIRED):
     """
-    Push an Ambassador configuration to a configmap
+    Dump the intermediate form of an Ambassador configuration for debugging
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param output_config_map: Name of map to update
     """
-    logger.error("Publish is not yet implemented")
+    try:
+        logger.debug("CONFIG DIR  %s" % config_dir_path)
+        aconf = AmbassadorConfig(config_dir_path)
+        json.dump(aconf.envoy_config, sys.stdout, indent=4, sort_keys=True)
+    except Exception as e:
+        # scout.report(action="WTFO?")
+        handle_exception("EXCEPTION from dump", e, 
+                         config_dir_path=config_dir_path)
 
 def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *, check=False):
     """
@@ -146,7 +152,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
             aconf = AmbassadorConfig(config_dir_path)
-            rc = aconf.envoy_config_object()
+            rc = aconf.generate_envoy_config()
 
             if rc:
                 aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))   
@@ -211,7 +217,7 @@ def get_semver(what, version_string):
     return semver
 
 if __name__ == "__main__":
-    clize.run([config, publish], alt=[version, showid],
+    clize.run([config, dump], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
