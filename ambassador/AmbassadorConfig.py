@@ -47,6 +47,9 @@ class AmbassadorConfig (object):
 
         self.logger = logging.getLogger("ambassador.config")
 
+        self.syntax_errors = 0
+        self.object_errors = 0
+
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
             # Modify dirnames in-place (dirs[:]) to remove any weird directories
             # whose names start with '.' -- why? because my GKE cluster mounts my
@@ -65,16 +68,37 @@ class AmbassadorConfig (object):
                 filepath = os.path.join(dirpath, filename)
 
                 try:
-                    objects = yaml.safe_load_all(open(filepath, "r"))
+                    # XXX This is a bit of a hack -- yaml.safe_load_all returns a
+                    # generator, and if we don't use list() here, any exception
+                    # dealing with the actual object gets deferred 
+                    objects = list(yaml.safe_load_all(open(filepath, "r")))
                 except Exception as e:
                     self.logger.error("%s: could not parse YAML: %s" % (filepath, e))
+                    self.syntax_errors += 1
                     continue
 
                 self.ocount = 0
                 for obj in objects:
                     self.ocount += 1
 
-                    self.process_object(obj)
+                    try:
+                        if not self.process_object(obj):
+                            # Object error. Not good but we'll allow the system to start.
+                            # We assume that the processor already logged appropriately.
+                            self.object_errors += 1
+                    except Exception as e:
+                        # Bzzzt.
+                        self.logger.error("%s[%d]: could not process object: %s" % 
+                                          (self.filename, self.ocount, e))
+                        self.syntax_errors += 1
+                        continue
+
+        if self.syntax_errors:
+            # Kaboom.
+            raise Exception("ERROR ERROR ERROR Unparseable configuration; exiting")
+
+        if object_errors:
+            self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
         self.generate_envoy_config()
 
@@ -94,19 +118,19 @@ class AmbassadorConfig (object):
             self.logger.debug("%s[%d]: handling %s..." %
                               (self.filename, self.ocount, obj_kind))
 
-        handler(obj, obj_name, obj_kind, obj_version)
+        return handler(obj, obj_name, obj_kind, obj_version)
 
     def validate_object(self, obj):
         # Each object must be a dict, and must include "apiVersion"
         # and "type" at toplevel.
 
         if not isinstance(obj, collections.Mapping):
-            raise Exception("%s[%d]: not a dictionary" %
-                            (self.filename, self.ocount))
+            raise TypeException("%s[%d]: not a dictionary" %
+                                (self.filename, self.ocount))
 
         if not (("apiVersion" in obj) and ("kind" in obj)):
-            raise Exception("%s[%d]: must have apiVersion and kind" %
-                            (self.filename, self.ocount))
+            raise TypeException("%s[%d]: must have apiVersion and kind" %
+                                (self.filename, self.ocount))
 
         obj_version = obj['apiVersion']
         obj_kind = obj['kind']
@@ -114,8 +138,8 @@ class AmbassadorConfig (object):
         if obj_version.startswith("ambassador/"):
             obj_version = obj_version.split('/')[1]
         else:
-            raise Exception("%s[%d]: apiVersion %s unsupported" %
-                            (self.filename, self.ocount, obj_version))
+            raise ValueException("%s[%d]: apiVersion %s unsupported" %
+                                 (self.filename, self.ocount, obj_version))
 
         schema_key = "%s-%s" % (obj_version, obj_kind)
 
@@ -138,8 +162,8 @@ class AmbassadorConfig (object):
             try:
                 jsonschema.validate(obj, schema)
             except jsonschema.exceptions.ValidationError as e:
-                raise Exception("%s[%d] is not a valid %s: %s" % 
-                                (self.filename, self.ocount, obj_kind, e))
+                raise TypeException("%s[%d] is not a valid %s: %s" % 
+                                    (self.filename, self.ocount, obj_kind, e))
 
         return (obj_kind, obj_version)
 
@@ -156,19 +180,22 @@ class AmbassadorConfig (object):
                           (self.filename, self.ocount, obj_kind, obj_name))
 
         storage[obj_name] = value
+        return True
 
     def save_object(self, obj, obj_name, obj_kind, obj_version):
-        self.safe_store(obj_kind, obj_name, obj_kind, obj)
+        return self.safe_store(obj_kind, obj_name, obj_kind, obj)
 
     def handle_module(self, obj, obj_name, obj_kind, obj_version):
-        self.safe_store("modules", obj_name, obj_kind, obj['config'])
+        return self.safe_store("modules", obj_name, obj_kind, obj['config'])
 
     def handle_mapping(self, obj, obj_name, obj_kind, obj_version):
         method = obj.get("method", "GET")
         mapping_key = "%s:%s" % (method, obj['prefix'])
 
-        self.safe_store("mapping_prefixes", mapping_key, obj_kind, True)
-        self.safe_store("mappings", obj_name, obj_kind, obj)
+        if not self.safe_store("mapping_prefixes", mapping_key, obj_kind, True):
+            return False
+
+        return self.safe_store("mappings", obj_name, obj_kind, obj)
 
     def generate_envoy_config(self):
         # First things first. Assume we'll listen on port 80, with an admin port
