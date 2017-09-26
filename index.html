@@ -108,23 +108,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </header>
   <div class="row">
     <div class="one-half column">
-      1. <strong>Add your API to Ambassador.</strong>
-         <a href="/user-guide/getting-started.html">Install Ambassador on Kubernetes</a>, and add a new API mapping using the REST API. In this example, Ambassador creates a <a href="about/concepts.html#mappings">mapping</a> called <code>user_map</code> that will route external requests from <code>/user/</code> to the <code>usersvc</code> running in Kubernetes.</li>
-      </div>
+      1. <strong>Create a <code>mapping.yaml</code> file</strong> with your routes.
+    </div>
       <div class="one-half column">
-<pre><code>curl -XPOST -H "Content-Type: application/json" \
-     -d '{ "prefix": "/user/", "service": "usersvc" }' \
-     http://localhost:8888/ambassador/mapping/user_map</code></pre>
+<pre><code>
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm_mapping
+prefix: /qotm/
+service: qotm
+</code></pre>
       </div>
   <div class="row">
     <div class="one-half column">
-      2. <strong>Access your service.</strong> Make a request to Ambassador, and have it route the request directly to the usersvc service.
+      2. <strong>Deploy your configuration as a <code>ConfigMap</code></strong>.
     </div>
     <div class="one-half column">
-      <pre><code>curl http://localhost:8000/user/</code></pre>
+      <pre><code>kubectl create configmap ambassador-config --from-file mapping-qotm.yaml</code></pre>
     </div>
   </div>
-
+  <div class="row">
+    <div class="one-half column">
+      3. <strong>Deploy Ambassador.</strong> Ambassador comes pre-configured with liveness and readiness probes, and is ready to run in a high availability environment from the get go.
+    </div>
+    <div class="one-half column">
+      <pre><code>kubectl kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
+</code></pre>
+    </div>
+  </div>
 </div>
 
 
