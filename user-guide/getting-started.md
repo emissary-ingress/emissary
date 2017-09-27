@@ -77,5 +77,5 @@ This should be routed to the `qotm` service per the mapping we created at the st
 That's the basics. For more:
 
 - Join us on [Gitter](https://gitter.im/datawire/ambassador);
-- Take a [deeper dive into this demo](demo-in-detail.md); or
+- Learn how to [add authentication](auth-tutorial.md); or 
 - Dig into more about [running Ambassador](running.md).
