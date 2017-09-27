@@ -11,6 +11,9 @@ echo "ENTRYPOINT: checking /etc/envoy.json"
 STATUS=$?
 
 if [ $STATUS -eq 0 ]; then
+    echo "ENTRYPOINT: starting diagd"
+    /usr/bin/python3 "$APPDIR/diagd.py" /etc/ambassador-config &
+
     echo "ENTRYPOINT: starting Envoy"
     /usr/local/bin/envoy -c /etc/envoy.json
 

@@ -35,14 +35,16 @@ class AmbassadorConfig (object):
         self.default_liveness_probe = {
             "enabled": True,
             "prefix": "/ambassador/v0/check_alive",
-            "rewrite": "/server_info"
+            "rewrite": "/ambassador/v0/check_alive",
+            # "rewrite": "/server_info"
             # "service" gets added later
         }
 
         self.default_readiness_probe = {
             "enabled": True,
             "prefix": "/ambassador/v0/check_ready",
-            "rewrite": "/server_info"
+            "rewrite": "/ambassador/v0/check_ready",
+            # "rewrite": "/server_info"
             # "service" gets added later
         }
 
@@ -268,7 +270,7 @@ class AmbassadorConfig (object):
         # clusters.
         self.envoy_clusters = {}
         self.add_intermediate_cluster('--diagnostics--',
-                                      'cluster_diagnostics', [ "tcp://127.0.0.1:8877" ],
+                                      'cluster_diagnostics', [ "tcp://127.0.0.1:8888" ],
                                       type="logical_dns", lb_type="random")
 
         # ...our initial set of routes is empty...
@@ -308,8 +310,10 @@ class AmbassadorConfig (object):
             admin_port=self.ambassador_module["admin_port"]
         )
 
-        self.default_liveness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
-        self.default_readiness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
+        # self.default_liveness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
+        # self.default_readiness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
+        self.default_liveness_probe['service'] = '127.0.0.1:8888'
+        self.default_readiness_probe['service'] = '127.0.0.1:8888'
 
         # ...TLS config, if necessary...
         if self.ambassador_module['tls_config']:
@@ -317,8 +321,10 @@ class AmbassadorConfig (object):
 
         # ...and probes, if configured.
         for name, cur, dflt in [ 
-            ("liveness", self.ambassador_module['liveness_probe'], self.default_liveness_probe), 
-            ("readiness", self.ambassador_module['readiness_probe'], self.default_readiness_probe) ]:
+            ("liveness", self.ambassador_module['liveness_probe'], 
+                         self.default_liveness_probe), 
+            ("readiness", self.ambassador_module['readiness_probe'], 
+                         self.default_readiness_probe) ]:
 
             if cur and cur.get("enabled", False):
                 prefix = cur.get("prefix", dflt['prefix'])
@@ -395,7 +401,7 @@ class AmbassadorConfig (object):
                 prefix = prefix[1:]
 
             diag_prefix = '/ambassador/v0/diag/%s/%s' % (method, prefix)
-            diag_rewrite = '/ambassador/v0/diag/%s/%s' % (method, source)
+            diag_rewrite = '/ambassador/v0/diag/%s' % source
 
             self.add_intermediate_route(
                 '--diagnostics--',

@@ -35,6 +35,7 @@ RUN pip3 install -r requirements.txt
 COPY ambassador.py AmbassadorConfig.py utils.py VERSION.py ./
 COPY templates/ ./templates
 COPY schemas/ ./schemas
+COPY tdw.py ./
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .
