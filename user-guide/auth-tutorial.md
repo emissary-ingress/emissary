@@ -4,7 +4,7 @@ Ambassador can authenticate incoming requests before routing them to a backing s
 
 ## Before you get started
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](https://www.getambassador.io/user-guide/getting-started). If you haven't done that already, go do that now.
+This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html). If you haven't done that already, go do that now.
 
 ## 1. Deploy third party authentication service
 
@@ -72,10 +72,10 @@ We get a 401, since we haven't authenticated.
 HTTP/1.1 401 Unauthorized
 x-powered-by: Express
 x-request-id: 9793dec9-323c-4edf-bc30-352141b0a5e5
-www-authenticate: Basic realm="Ambassador Realm"
+www-authenticate: Basic realm=\"Ambassador Realm\"
 content-type: text/html; charset=utf-8
 content-length: 0
-etag: W/"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"
+etag: W/\"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk\"
 date: Fri, 15 Sep 2017 15:22:09 GMT
 x-envoy-upstream-service-time: 2
 server: envoy
@@ -88,7 +88,7 @@ $ curl -v -u username:password $AMBASSADORURL/qotm/quote/1
 
 TCP_NODELAY set
 * Connected to 35.196.173.175 (35.196.173.175) port 80 (#0)
-* Server auth using Basic with user 'username'
+* Server auth using Basic with user \'username\'
 > GET /qotm/quote/1 HTTP/1.1
 > Host: 35.196.173.175
 > Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
@@ -104,10 +104,14 @@ TCP_NODELAY set
 < x-envoy-upstream-service-time: 25
 <
 {
- "hostname": "qotm-1827164760-gf534",
- "ok": true,
- "quote": "A late night does not make any sense.",
- "time": "2017-09-27T18:53:39.376073",
- "version": "1.1"
+ \"hostname\": \"qotm-1827164760-gf534\",
+ \"ok\": true,
+ \"quote\": \"A late night does not make any sense.\",
+ \"time\": \"2017-09-27T18:53:39.376073\",
+ \"version\": \"1.1\"
 }
 ```
+
+## More
+
+For more details about configuring authentication, read the documentation on [external authentication](/how-to/auth-external).
