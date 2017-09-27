@@ -13,6 +13,7 @@
 ## Tutorials
 
 * [Getting Started](user-guide/getting-started.md)
+* [Adding Authentication](user-guide/auth-tutorial.md)
 * [The QotM Demo in Detail](user-guide/demo-in-detail.md)
 * [Configuring Ambassador](reference/configuration.md)
 
@@ -21,7 +22,6 @@
 * [Microservice Access](how-to/service-url.md)
 * [Configuring Ambassador](reference/configuration.md)
 * [TLS Termination](how-to/tls-termination.md)
-* [Auth with an external auth service](how-to/auth-external.md)
 * [Statistics and Monitoring](how-to/statistics.md)
 * [gRPC and other HTTP/2-only services](how-to/grpc.md)
 
@@ -29,6 +29,7 @@
 
 * [Configuring Ambassador](reference/configuration.md)
 * [TLS and Auth](reference/tls-auth.md)
+* [Auth with an external auth service](how-to/auth-external.md)
 
 ## Developers
 
