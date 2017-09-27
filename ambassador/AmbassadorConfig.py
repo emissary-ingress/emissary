@@ -228,6 +228,23 @@ class AmbassadorConfig (object):
         else:
             self.envoy_clusters[name]['_referenced_by'].append(_source)
 
+    def add_intermediate_route(self, _source, mapping, cluster_name):
+        route = SourcedDict(
+            _source=_source,
+            prefix=mapping['prefix'],
+            prefix_rewrite=mapping.get('rewrite', '/'),
+            cluster=cluster_name
+        )
+
+        if 'method' in mapping:
+            route['method'] = mapping['method']
+            route['method_regex'] = route.get('method_regex', False)
+
+        if 'timeout_ms' in mapping:
+            route['timeout_ms'] = mapping['timeout_ms']
+
+        self.envoy_config['routes'].append(route)
+
     def generate_intermediate_config(self):
         # First things first. Assume we'll listen on port 80, with an admin port
         # on 8001.
@@ -242,10 +259,17 @@ class AmbassadorConfig (object):
 
         # Next up: let's define initial clusters, routes, and filters.
         #
-        # Our initial set of clusters is empty. Note that we use a map for
-        # clusters, not a list -- the reason is that multiple mappings can use the
-        # same service, and we don't want multiple clusters.
+        # Our initial set of clusters just contains the one for our Courier container.
+        # We start with the empty set and use add_intermediate_cluster() to make sure 
+        # that all the source-tracking stuff works out.
+        #
+        # Note that we use a map for clusters, not a list -- the reason is that
+        # multiple mappings can use the same service, and we don't want multiple
+        # clusters.
         self.envoy_clusters = {}
+        self.add_intermediate_cluster('--diagnostics--',
+                                      'cluster_diagnostics', [ "tcp://127.0.0.1:8877" ],
+                                      type="logical_dns", lb_type="random")
 
         # ...our initial set of routes is empty...
         self.envoy_config['routes'] = []
@@ -317,7 +341,6 @@ class AmbassadorConfig (object):
         # OK! We have all the mappings we need. Process them sorted by decreasing
         # length of prefix.
 
-        print(mappings)
         for mapping_name in reversed(sorted(mappings.keys(),
                                             key=lambda x: len(mappings[x]['prefix']))):
             mapping = mappings[mapping_name]
@@ -360,26 +383,75 @@ class AmbassadorConfig (object):
             self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
                                           cb_name=cb_name, od_name=od_name)
 
-            route = SourcedDict(
-                _from=mapping,
-                prefix=mapping['prefix'],
-                prefix_rewrite=mapping.get('rewrite', '/'),
-                cluster=cluster_name
+            self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
+
+            # Also add a diag route.
+
+            source = mapping['_source']
+            method = mapping.get("method", "GET").lower()
+            prefix = mapping['prefix']
+
+            if prefix.startswith('/'):
+                prefix = prefix[1:]
+
+            diag_prefix = '/ambassador/v0/diag/%s/%s' % (method, prefix)
+            diag_rewrite = '/ambassador/v0/diag/%s/%s' % (method, source)
+
+            self.add_intermediate_route(
+                '--diagnostics--',
+                {
+                    'prefix': diag_prefix,
+                    'rewrite': diag_rewrite,
+                    'service': 'cluster_diagnostics'
+                },
+                'cluster_diagnostics'
             )
-
-            if 'method' in mapping:
-                route['method'] = mapping['method']
-                route['method_regex'] = route.get('method_regex', False)
-
-            if 'timeout_ms' in mapping:
-                route['timeout_ms'] = mapping['timeout_ms']
-
-            self.envoy_config['routes'].append(route)
 
         # OK. When all is said and done, map the cluster set back into a list.
         self.envoy_config['clusters'] = [
             self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
         ]
+
+    def _get_intermediate_for(self, element_list, source_keys, value):
+        if not isinstance(value, dict):
+            return
+
+        value_source = value.get("_source", None)
+        value_referenced_by = value.get("_referenced_by", [])
+
+        if ((value_source in source_keys) or
+            (source_keys & set(value_referenced_by))):
+            element_list.append(value)
+
+    def get_intermediate_for(self, source_key):
+        source_keys = []
+
+        if source_key in self.sources:
+            source_keys.append(source_key)
+        elif not re.search(r'\.\d+$', source_key):
+            source_key_with_dot = source_key + "."
+
+            source_keys = [ key for key in self.sources.keys()
+                            if key.startswith(source_key_with_dot) ]
+
+        source_keys = set(source_keys)
+
+        result = {
+            "sources": [ self.sources[key] for key in source_keys ],
+        }
+
+        for key in self.envoy_config.keys():
+            result[key] = []
+
+            value = self.envoy_config[key]
+
+            if isinstance(value, list):
+                for v2 in value:
+                    self._get_intermediate_for(result[key], source_keys, v2)
+            else:
+                self._get_intermediate_for(result[key], source_keys, value)
+
+        return result
 
     def generate_envoy_config(self, template=None, template_dir=None):
         # Finally! Render the template to JSON...
