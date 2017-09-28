@@ -378,6 +378,7 @@ if __name__ == '__main__':
         versioner.py [-n] [--verbose] [options]
 
     Options:
+        --bump                     figure out a new version number
         --branch=<branchname>      set which branch to work on
         --magic-pre                do magic autoincrementing prerelease numbers
         --pre=<pre-release-tag>    explicitly set the prerelease number
@@ -386,6 +387,8 @@ if __name__ == '__main__':
         --map=<mappings>           override what kind of change given commits are (see below)
         --only-if-changes          don't build if there are no changes since last tag
         --scout-json=<output>      write an app.json for Scout
+
+    Without --bump, versioner.py will simply output the current version number.
 
     Mappings are commit=kind[,commit=kind[,...]] where commit is a unique SHA prefix
     and kind is FIX, MINOR, or MAJOR.
@@ -405,7 +408,9 @@ if __name__ == '__main__':
     vr = VersionedRepo(os.getcwd())
     vbr = vr.get_branch(args.get('--branch', None))
 
-    # print(vbr)
+    if not args['--bump']:
+        print(vbr.version)
+        sys.exit(0)
 
     commit_map = {}
 
