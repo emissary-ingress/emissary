@@ -30,6 +30,23 @@ where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certific
 
 The `ambassador-certs` secret tells Ambassador to provide HTTPS on port 443, and gives it the certificate to present to a client contacting Ambassador. 
 
+### `ambassador.yaml`
+
+Once the certificate is installed, you'll need to make sure that the `ambassador` [module](../about/concepts.md#modules) enables its use. The simplest way to do that is:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  tls:
+    server:
+      enabled: True
+```
+
+which will enable TLS termination. (More details about this configuration file are available: see [TLS Termination](../how-to/tls-termination.md).)
+
 ### Starting Ambassador with TLS
 
 After all of the above, you can [configure Ambassador's mappings, etc.](../reference/configuration.md), then start Ambassador running with
@@ -38,7 +55,7 @@ After all of the above, you can [configure Ambassador's mappings, etc.](../refer
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
 ```
 
-Note that `ambassador-proxy.yaml` includes liveness and readiness probes that assume that Ambassador is listening on port 443. This won't work for an HTTP-only Ambassador.
+Note that `ambassador-proxy.yaml` includes liveness and readiness probes that assume that Ambassador is listening to HTTPS on port 443. This won't work for an HTTP-only Ambassador.
 
 ### Without TLS
 
