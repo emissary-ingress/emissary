@@ -32,10 +32,10 @@ RUN pip3 install -r requirements.txt
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
 
-COPY ambassador.py AmbassadorConfig.py utils.py VERSION.py ./
+COPY ambassador.py AmbassadorConfig.py envoy.py utils.py VERSION.py ./
 COPY templates/ ./templates
 COPY schemas/ ./schemas
-COPY tdw.py ./
+COPY diagd.py ./
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .

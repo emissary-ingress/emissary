@@ -394,14 +394,15 @@ class AmbassadorConfig (object):
             # Also add a diag route.
 
             source = mapping['_source']
-            method = mapping.get("method", "GET").lower()
+
+            method = mapping.get("method", "GET")
+            dmethod = method.lower()
+
             prefix = mapping['prefix']
+            dprefix = prefix[1:] if prefix.startswith('/') else prefix
 
-            if prefix.startswith('/'):
-                prefix = prefix[1:]
-
-            diag_prefix = '/ambassador/v0/diag/%s/%s' % (method, prefix)
-            diag_rewrite = '/ambassador/v0/diag/%s' % source
+            diag_prefix = '/ambassador/v0/diag/%s/%s' % (dmethod, dprefix)
+            diag_rewrite = '/ambassador/v0/diag/%s?method=%s&resource=%s' % (source, method, prefix)
 
             self.add_intermediate_route(
                 '--diagnostics--',

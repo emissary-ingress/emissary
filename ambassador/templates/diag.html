@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- <link rel="icon" href="http://getbootstrap.com/favicon.ico"> -->
+
+    <title>Ambassador Diagnostics</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="http://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div class="container">
+
+      <h1>Ambassador Diagnostics 
+        {% if method or resource %} for <code>
+          {% if method %}{{ method }}{% endif %}
+          {% if resource %}{{ resource }}{% endif %}
+          </code>
+        {% endif %}
+      </h1>
+      <!-- <p class="lead">Basic grid layouts to get you familiar with building within the Bootstrap grid system.</p> -->
+
+      <div class="row">
+        <div class="col-12">
+          YAML input files
+
+          {% for source in sources %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ source['filename'] }}.{{ source['index'] }}</code>
+            </div>
+            <div class="col-5">
+              <div class="row">
+                <code><pre>{{ source['yaml'] }}</pre></code>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          Routes
+
+          {% for route in routes | sort(attribute = '_source') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ route.get('method', 'GET') }} {{ route['prefix'] }}</code> -> <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
+              <br/>
+              created by <code>{{ route['_source'] }}</code>
+            </div>
+            <div class="col-5">
+              <div class="row">
+                <code><pre>{{ route | pretty_json }}</pre></code>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          Clusters
+
+          {% for cluster in clusters | sort(attribute = 'name') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ cluster['name'] }}</code> -- 
+              {% if stats[cluster.name].valid %}
+                {{ stats[cluster.name].healthy_percent }}% healthy
+              {% else %}
+                unknown health ({{ stats[cluster.name].reason }})
+              {% endif %}
+              <br/>
+              created by <code>{{ cluster['_source'] }}</code>
+              <br/>
+              referenced by
+                {% for ref in cluster['_referenced_by'] | sort %}
+                  <code>{{ ref }}</code>{{ "," if not loop.last }}
+                {% endfor %}
+            </div>
+            <div class="col-5">
+              <div class="row">
+                <code><pre>{{ cluster | pretty_json }}</pre></code>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="http://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>
