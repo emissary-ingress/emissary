@@ -18,4 +18,49 @@ kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY
 
 where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
 
-The `ambassador-certs` secret tells Ambassador to provide HTTPS on port 443, and gives it the certificate to present to a client contacting Ambassador. 
+### `ambassador.yaml`
+
+In addition to installing the certificate, you'll need to make sure that the `ambassador` [module](../about/concepts.md#modules) is configured to allow TLS:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  tls:
+    # The 'server' block configures TLS termination. 'enabled' is the only required element.
+    server:
+      enabled: True
+      # These are optional: if not present, they take the values listed here,
+      # which match what's in ambassador-proxy.yaml. 
+      # cert_chain_file: /etc/certs/tls.crt
+      # private_key_file: /etc/certs/tls.key
+```
+
+The simplest possible TLS block is thus:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  tls:
+    server:
+      enabled: True
+```
+
+which simply enables TLS termination using the default map for certificates. 
+
+Note well that if you change the pathnames in the TLS configuration, you'll have to make sure that your secret mounting matches your edits! Beyond that, Ambassador doesn't care what paths you use.
+
+### Starting Ambassador with TLS
+
+After all of the above, you can [configure Ambassador's mappings, etc.](../reference/configuration.md), then start Ambassador running with
+
+```
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
+```
+
+Note that `ambassador-proxy.yaml` includes liveness and readiness probes that assume that Ambassador is listening on port 443. This won't work for an HTTP-only Ambassador.

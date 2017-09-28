@@ -37,12 +37,14 @@ spec:
           httpGet:
             path: /ambassador/v0/check_alive
             port: 443
+            scheme: HTTPS
           initialDelaySeconds: 3
           periodSeconds: 3
         readinessProbe:
           httpGet:
             path: /ambassador/v0/check_ready
             port: 443
+            scheme: HTTPS
           initialDelaySeconds: 3
           periodSeconds: 3
       - name: statsd

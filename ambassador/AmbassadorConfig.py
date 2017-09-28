@@ -48,6 +48,18 @@ class AmbassadorConfig (object):
             # "service" gets added later
         }
 
+        self.default_tls_config = {
+            "server": {
+                "cert_chain_file": "/etc/certs/tls.crt",
+                "private_key_file": "/etc/certs/tls.key"
+            },
+            "client": {
+                "cacert_chain_file": "/etc/cacert/fullchain.pem"
+            }
+        }
+
+        self.tls_config = None
+
         self.logger = logging.getLogger("ambassador.config")
 
         self.syntax_errors = 0
@@ -317,6 +329,7 @@ class AmbassadorConfig (object):
 
         # ...TLS config, if necessary...
         if self.ambassador_module['tls_config']:
+            self.logger.debug("USING TLS")
             self.envoy_config['tls'] = self.ambassador_module['tls_config']
 
         # ...and probes, if configured.
@@ -489,12 +502,40 @@ class AmbassadorConfig (object):
     def module_config_ambassador(self, name, module):
         # Toplevel Ambassador configuration. First up: is TLS configured?
 
-        if 'tls' in module:            
-            # Yes. Switch to port 443 by default...
-            self.set_config_ambassador(module, 'service_port', 443)
+        if 'tls' in module:
+            tmod = module['tls']
+            tmp_config = {}
+            some_enabled = False
 
-            # ...save the TLS config...
-            self.set_config_ambassador(module, 'tls_config', module['tls'])
+            if ('server' in tmod) and tmod['server'].get('enabled', True):
+                # Server-side TLS is enabled. 
+                self.logger.debug("TLS termination enabled!")
+                some_enabled = True
+
+                # Yes. Switch to port 443 by default...
+                self.set_config_ambassador(module, 'service_port', 443)
+
+                # ...and merge in the server-side defaults.
+                tmp_config.update(self.default_tls_config['server'])
+                tmp_config.update(tmod['server'])
+
+            if ('client' in tmod) and tmod['client'].get('enabled', True):
+                # Client-side TLS is enabled. 
+                self.logger.debug("TLS client certs enabled!")
+                some_enabled = True
+
+                # Merge in the client-side defaults.
+                tmp_config.update(self.default_tls_config['client'])
+                tmp_config.update(tmod['client'])
+
+            if some_enabled:
+                if 'enabled' in tmp_config:
+                    del(tmp_config['enabled'])
+
+                # Save the TLS config...
+                self.set_config_ambassador(module, 'tls_config', tmp_config)
+
+            self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
 
         # After that, is a service port defined?
         if 'service_port' in module:
