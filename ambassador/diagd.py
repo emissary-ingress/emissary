@@ -70,17 +70,17 @@ def check_ready():
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 def show_intermediate(source=None):
     logging.debug("getting intermediate for '%s'" % source)
+
     result = aconf.get_intermediate_for(source)
+
+    logging.debug(json.dumps(result, indent=4))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    logging.debug(json.dumps(result, indent=4))
-
     cluster_names = [ x['name'] for x in result['clusters'] ]
-
     stats = { name: estats.cluster_stats(name) for name in cluster_names }
-    print(stats)
+
     result['sources'].sort(key=lambda x: "%s.%d" % (x['filename'], x['index']))
 
     return render_template('diag.html', method=method, resource=resource, stats=stats, **result)
