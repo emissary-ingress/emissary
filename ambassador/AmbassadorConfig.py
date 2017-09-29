@@ -234,9 +234,11 @@ class AmbassadorConfig (object):
 
             if cb_name and (cb_name in self.breakers):
                 cluster['circuit_breakers'] = self.breakers[cb_name]
+                self.breakers[cb_name]['_referenced_by'].append(_source)
 
             if od_name and (od_name in self.outliers):
                 cluster['outlier_detection'] = self.outliers[od_name]
+                self.outliers[od_name]['_referenced_by'].append(_source)
 
             self.envoy_clusters[name] = cluster
         else:
@@ -299,8 +301,16 @@ class AmbassadorConfig (object):
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
+
         self.breakers = self.config.get("CircuitBreaker", {})
+
+        for key, breaker in self.breakers.items():
+            breaker['_referenced_by'] = []
+
         self.outliers = self.config.get("OutlierDetection", {})
+
+        for key, outlier in self.outliers.items():
+            outlier['_referenced_by'] = []
 
         # OK. Given those initial sets, let's look over our global modules.
         modules = self.config.get('modules', {})
@@ -427,10 +437,38 @@ class AmbassadorConfig (object):
                 'cluster_diagnostics'
             )
 
-        # OK. When all is said and done, map the cluster set back into a list.
+        # OK. When all is said and done, map clusters back into a list...
         self.envoy_config['clusters'] = [
             self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
         ]
+
+        # ...and then repeat for breakers and outliers, but copy them in the process so we
+        # can mess with the originals.
+        #
+        # What's going on here is that circuit-breaker and outlier-detection configs aren't
+        # included as independent objects in envoy.json, but we want to be able to discuss 
+        # them in diag. We also don't need to keep the _source and _referenced_by elements
+        # in their real Envoy appearances.
+
+        self.envoy_config['breakers'] = self.clean_and_copy(self.breakers)
+        self.envoy_config['outliers'] = self.clean_and_copy(self.outliers)
+
+    def clean_and_copy(self, d):
+        out = []
+
+        for key in sorted(d.keys()):
+            original = d[key]
+            copy = dict(**original)
+
+            if '_source' in original:
+                del(original['_source'])
+
+            if '_referenced_by' in original:
+                del(original['_referenced_by'])
+
+            out.append(copy)
+
+        return out
 
     def _get_intermediate_for(self, element_list, source_keys, value):
         if not isinstance(value, dict):
