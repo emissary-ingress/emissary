@@ -9,7 +9,8 @@
           "private_key_file": "{{ tls.private_key_file }}"{{ "," if tls.cacert_chain_file }}
         {%- endif -%}
         {%- if tls.cacert_chain_file -%}
-          "ca_cert_file": "{{ tls.cacert_chain_file }}"
+          "ca_cert_file": "{{ tls.cacert_chain_file }}"{{ "," if tls.cert_required }}
+          {%- if tls.cert_required -%}"require_client_certificate": true{%- endif %}
         {%- endif %}
       },
       {%- endif -%}
