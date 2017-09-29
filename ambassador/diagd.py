@@ -22,9 +22,30 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-aconf = AmbassadorConfig(sys.argv[1])
 estats = EnvoyStats()
-stats_updater = PeriodicTrigger(estats.update, period=5)
+
+dir_index = 1
+health_checks = True
+errors = 0
+
+while sys.argv[dir_index].startswith('-'):
+    arg = sys.argv[dir_index]
+    dir_index += 1
+
+    if arg == '--no-health':
+        health_checks = False
+    else:
+        logging.error("unknown argument %s" % arg)
+        errors += 1
+
+if errors:
+    sys.exit(errors)
+
+if health_checks:
+    logging.debug("Starting periodic updates")
+    stats_updater = PeriodicTrigger(estats.update, period=5)
+
+aconf = AmbassadorConfig(sys.argv[dir_index])
 
 app = Flask(__name__)
 
