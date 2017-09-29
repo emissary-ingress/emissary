@@ -135,6 +135,9 @@ class AmbassadorConfig (object):
 
         source_key = "%s.%d" % (self.filename, self.ocount)
         self.sources[source_key] = {
+            'kind': obj_kind,
+            'version': obj_version,
+            'name': obj_name,
             'filename': self.filename,
             'index': self.ocount,
             'yaml': yaml.safe_dump(obj, default_flow_style=False)

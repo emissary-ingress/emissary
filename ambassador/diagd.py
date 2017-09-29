@@ -83,6 +83,20 @@ def show_intermediate(source=None):
 
     result['sources'].sort(key=lambda x: "%s.%d" % (x['filename'], x['index']))
 
+    ambassador_targets = {
+        'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
+        'module': 'https://www.getambassador.io/reference/configuration#modules',
+    }
+
+    envoy_targets = {
+        'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
+        'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
+    }
+
+    for source in result['sources']:
+        if source['kind'].lower() in ambassador_targets:
+            source['target'] = ambassador_targets[source['kind'].lower()]
+
     return render_template('diag.html', method=method, resource=resource, stats=stats, **result)
 
 @app.template_filter('pretty_json')
