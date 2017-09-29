@@ -213,15 +213,24 @@ h1, h2, h3, h4, h5, h6, strong {
 
 .main-navigation {
     display: flex;
-    padding: 30px;
+    padding: 20px;
+}
+@media (min-width: 768px) {
+    .main-navigation {
+        padding: 30px;
+    }
 }
 .main-navigation li a {
-    font-size: 1.125em;
-    font-weight: bold;
     margin: 0 10px;
     color: #222222;
     text-decoration: none;
     text-transform: uppercase;
+}
+@media (min-width: 768px) {
+    .main-navigation li a {
+        font-size: 1.125em;
+        font-weight: bold;
+    }
 }
 
 #hero {
@@ -247,8 +256,6 @@ h1, h2, h3, h4, h5, h6, strong {
 }
 
 .about-tabs .tab {
-    width: 185px;
-    height: 131px;
     text-align: center;
     color: #fff;
     font-weight: 600;
@@ -257,6 +264,16 @@ h1, h2, h3, h4, h5, h6, strong {
     flex-direction: column;
     justify-content: center;
     cursor: pointer;
+    font-size: 12px;
+    padding: 10px;
+}
+@media (min-width: 768px) {
+    .about-tabs .tab {
+        width: 185px;
+        height: 131px;
+        font-size: 1em;
+        padding: 0;
+    }
 }
 .about-tabs .tab.active {
     background: #F9634E;
@@ -333,9 +350,16 @@ h1, h2, h3, h4, h5, h6, strong {
 }
 .mailing-list-signup .hbspt-form > form {
     display: flex;
+    flex-direction: column;
+}
+@media (min-width: 768px) {
+    .mailing-list-signup .hbspt-form > form {
+        flex-direction: row;
+    }
 }
 .mailing-list-signup .hbspt-form > form > .hs_email {
     flex: 1;
+    margin-bottom: 10px;
 }
 .mailing-list-signup .hbspt-form > form > .hs_email input {
     width: 100%;
@@ -364,4 +388,8 @@ h1, h2, h3, h4, h5, h6, strong {
     background-color: #F9634E;
     border: none;
     height: 60px;
+}
+
+footer {
+    padding: 30px;
 }
