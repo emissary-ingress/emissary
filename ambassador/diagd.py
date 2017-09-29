@@ -75,56 +75,6 @@ def show_intermediate(source=None):
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    # output = []
-
-    # if result['sources']:
-    #     for source in sorted(result['sources'], key=lambda x: "%s.%d" % (x['filename'], x['index'])):
-    #         output.append("# %s[%d]" % (source['filename'], source['index']))
-    #         output.append("---")
-    #         output.append(source['yaml'])
-
-    #     # link types back to Ambassador and Envoy docs
-    #     # present cluster stats, too
-    #     for type in [ 'listeners', 'filters', 'routes', 'clusters' ]:
-    #         if result[type]:
-    #             output.append("--------")
-    #             output.append("%s:" % type)
-
-    #             first = True
-
-    #             for element in sorted(result[type], key=lambda x: x['_source']):
-    #                 source = element['_source']
-    #                 refs = element.get('_referenced_by', [])
-
-    #                 output.append("# created by %s" % source)
-
-    #                 if refs:
-    #                     output.append("# referenced by %s" % ", ".join(sorted(refs)))
-
-    #                 if type == 'clusters':
-    #                     name = element['name']
-
-    #                     cluster_stats = estats.cluster_stats(name)
-
-    #                     if cluster_stats['valid']:
-    #                         output.append("# cluster is %d%% healthy" % cluster_stats['healthy_percent'])
-    #                     else:
-    #                         output.append("# cluster health unknown: %s" % cluster_stats['reason'])
-
-    #                 x = dict(**element)
-    #                 del(x['_source'])
-
-    #                 if '_referenced_by' in x:
-    #                     del(x['_referenced_by'])
-
-    #                 output.append("%s\n" % json.dumps(x, indent=4))
-
-    #                 if not first:
-    #                     output.append("")
-
-    #                 first = False
-
-    # return "\n".join(output)
     logging.debug(json.dumps(result, indent=4))
 
     cluster_names = [ x['name'] for x in result['clusters'] ]
