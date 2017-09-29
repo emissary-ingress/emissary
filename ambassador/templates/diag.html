@@ -106,6 +106,58 @@
           {% endfor %}
         </div>
       </div>
+
+      <div class="row">
+        <div class="col-12">
+          Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_circuit_breakers.html">Circuit Breakers</a>
+
+          {% for breaker in breakers | sort(attribute = 'name') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ breaker['name'] }}</code>
+              <br/>
+              created by <code>{{ breaker['_source'] }}</code>
+              <br/>
+              referenced by
+                {% for ref in breaker['_referenced_by'] | sort %}
+                  <code>{{ ref }}</code>{{ "," if not loop.last }}
+                {% endfor %}
+            </div>
+            <div class="col-5">
+              <div class="row">
+                <code><pre>{{ breaker | pretty_json }}</pre></code>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_outlier_detection.html">Outlier Detection</a>
+
+          {% for outlier in outliers | sort(attribute = 'name') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ outlier['name'] }}</code>
+              <br/>
+              created by <code>{{ outlier['_source'] }}</code>
+              <br/>
+              referenced by
+                {% for ref in outlier['_referenced_by'] | sort %}
+                  <code>{{ ref }}</code>{{ "," if not loop.last }}
+                {% endfor %}
+            </div>
+            <div class="col-5">
+              <div class="row">
+                <code><pre>{{ outlier | pretty_json }}</pre></code>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
     </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript
