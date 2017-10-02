@@ -135,9 +135,11 @@ if [ $doc_changes -gt 0 ]; then
         # If not on master, we leave all the Netlify stuff in draft mode...
         NETLIFY_DRAFT=--draft
 
-        # ...and we append "-draft" to the version number so that we've a fighting
-        # chance of being able to push a version that'll actually match it, later.
-        VERSION="${VERSION}-draft"
+        # ...and, if the version number has no '-' already, we append "-draft" to it
+        # so that we can push something real if we want to.
+        if [ $(echo ${VERSION} | grep -c -e '-') -eq 0 ]; then
+            VERSION="${VERSION}-draft"
+        fi
     fi
 
     echo "==== BUILDING DOCS FOR ${VERSION}"
