@@ -1,0 +1,395 @@
+/* http://meyerweb.com/eric/tools/css/reset/
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    box-sizing: border-box;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+ol, ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.container {
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 15px;
+    padding-left: 15px;
+    width: 100%;
+}
+
+
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+body {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #222222;
+    font-weight: 400;
+}
+
+a {
+    color: #F9634E;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6, strong {
+    font-weight: bold;
+}
+
+/*
+* COLORS
+*/
+.text-red {
+    color: #F9634E;
+}
+.bg-red {
+    background-color: #F9634E;
+}
+.text-blue {
+    color: #68C2D6;
+}
+.bg-blue {
+    background-color: #68C2D6;
+}
+.text-white {
+    color: #FFFFFF;
+}
+.bg-white {
+    background-color: #FFFFFF;
+}
+.bg-gray {
+    background-color: #F4F4F4;
+}
+.text-black {
+    color: #222222;
+}
+
+.text-xl {
+    font-size: 3em; // 48px
+}
+.text-lg {
+    font-size: 2.25em; // 36px
+}
+.text-md {
+    font-size: 1.5em; // 24px
+}
+.text-sm {
+    font-size: 1.125em; // 18px
+}
+.text-regular {
+    font-size: 1em; // 16px
+}
+.text-xs {
+    font-size: 0.875em; // 14px
+}
+
+.font-light {
+    font-weight: 300;
+}
+
+
+/*
+* Utilities
+*/
+.text-center {
+    text-align: center;
+}
+
+.flex-center {
+    justify-content: center;
+}
+
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.btn {
+    padding: 15px 30px;
+    text-transform: uppercase;
+    font-size: 20px;
+    color: #fff;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn:hover {
+    text-decoration: none;
+    opacity: 0.95;
+}
+.btn-black {
+    background-color: #2B2F3E;
+}
+.btn-red {
+    background-color: #F9634E;
+}
+
+.border-gray {
+    border: 1px solid #E2E2E2;
+}
+
+.box-shadow {
+    box-shadow: 0 12px 14px rgba(0,0,0,0.1);
+}
+
+.padding-top-130 {
+    padding-top: 130px;
+}
+
+.padding-bottom-130 {
+    padding-bottom: 130px;
+}
+
+.padding-top-75 {
+    padding-top: 75px;
+}
+
+.main-navigation {
+    display: flex;
+    padding: 20px;
+}
+@media (min-width: 768px) {
+    .main-navigation {
+        padding: 30px;
+    }
+}
+.main-navigation li a {
+    margin: 0 10px;
+    color: #222222;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+@media (min-width: 768px) {
+    .main-navigation li a {
+        font-size: 1.125em;
+        font-weight: bold;
+    }
+}
+
+#hero {
+    background: url('/images/penguin-background.svg') no-repeat center bottom;
+    max-width: 919px;
+    margin: 0 auto -90px;
+    padding: 60px 30px 250px;
+}
+#hero h1 {
+    font-weight: 900;
+}
+#hero .btn {
+    margin-top: 70px;
+}
+
+#tabs {
+    padding: 25px 0;
+}
+
+.about-tabs {
+    display: flex;
+    justify-content: center;
+}
+
+.about-tabs .tab {
+    text-align: center;
+    color: #fff;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 10px;
+}
+@media (min-width: 768px) {
+    .about-tabs .tab {
+        width: 185px;
+        height: 131px;
+        font-size: 1em;
+        padding: 0;
+    }
+}
+.about-tabs .tab.active {
+    background: #F9634E;
+}
+.about-tabs .tab img {
+    margin-bottom: 10px;
+    height: 33px;
+}
+.tab-content {
+    padding: 20px 0 50px;
+    max-width: 925px;
+    margin: 0 auto;
+}
+
+.tab-content div {
+    display: none;
+}
+
+
+.content-box {
+    padding: 70px 50px;
+    position: relative;
+}
+
+.github-buttons {
+    padding: 20px;
+}
+
+.code-box {
+    margin-top: 25px;
+    padding: 25px;
+    background-color: #F4F4F4;
+    overflow: auto;
+}
+.code-box code {
+    font-family: Courier New, serif;
+}
+
+.get-started-steps {
+    counter-reset: item;
+    margin-left: 0;
+    padding-left: 75px;
+}
+.get-started-steps li {
+    display: block;
+    margin-bottom: 50px;
+    list-style-position: inside;
+}
+.get-started-steps li::before {
+    position: absolute;
+    display: inline-block;
+    content: counter(item);
+    counter-increment: item;
+    width: 48px;
+    line-height: 48px;
+    color: #fff;
+    background: #F9634E;
+    margin-left: -75px;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+.sponsored-by {
+    padding: 90px 0 0;
+}
+.sponsored-by img.datawire-logo {
+    margin-bottom: 25px;
+}
+
+
+.mailing-list-signup .hbspt-form {
+    max-width: 680px;
+    margin: 30px auto 0;
+}
+.mailing-list-signup .hbspt-form > form {
+    display: flex;
+    flex-direction: column;
+}
+@media (min-width: 768px) {
+    .mailing-list-signup .hbspt-form > form {
+        flex-direction: row;
+    }
+}
+.mailing-list-signup .hbspt-form > form > .hs_email {
+    flex: 1;
+    margin-bottom: 10px;
+}
+.mailing-list-signup .hbspt-form > form > .hs_email input {
+    width: 100%;
+    border-radius: 0;
+    border: 1px solid #F9634E;
+    height: 60px;
+    padding: 10px;
+    font-size: 20px;
+    color: #9B9B9B;
+    font-weight: 400;
+}
+.mailing-list-signup .hbspt-form > form > .hs_email > label {
+    display: none;
+}
+.mailing-list-signup .hbspt-form .hs-error-msgs {
+    list-style-type: none;
+    margin-bottom: 0;
+}
+.mailing-list-signup .hs_submit .hs-button {
+    padding: 15px 30px;
+    text-transform: uppercase;
+    font-size: 20px;
+    color: #fff;
+    text-decoration: none;
+    display: inline-block;
+    background-color: #F9634E;
+    border: none;
+    height: 60px;
+}
+
+footer {
+    padding: 30px;
+}
