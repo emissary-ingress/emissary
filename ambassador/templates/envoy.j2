@@ -2,10 +2,17 @@
   "listeners": [
     {
       "address": "tcp://0.0.0.0:{{ listeners.service_port }}",
-      {%- if tls -%}
-      {%- if tls.cert_chain_file -%}"cert_chain_file": "{{ tls.cert_chain_file }}",{%- endif -%}
-      {%- if tls.private_key_file -%}"private_key_file": "{{ tls.private_key_file }}",{%- endif -%}
-      {%- if tls.cacert_chain_file -%}"cacert_chain_file": "{{ tls.cacert_chain_file }}",{%- endif -%}
+      {% if tls -%}
+      "ssl_context": {
+        {%- if tls.cert_chain_file -%}
+          "cert_chain_file": "{{ tls.cert_chain_file }}",
+          "private_key_file": "{{ tls.private_key_file }}"{{ "," if tls.cacert_chain_file }}
+        {%- endif -%}
+        {%- if tls.cacert_chain_file -%}
+          "ca_cert_file": "{{ tls.cacert_chain_file }}"{{ "," if tls.cert_required }}
+          {%- if tls.cert_required -%}"require_client_certificate": true{%- endif %}
+        {%- endif %}
+      },
       {%- endif -%}
       "filters": [
         {

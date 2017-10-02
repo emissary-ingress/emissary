@@ -54,7 +54,7 @@ Modules let you enable and configure special behaviors for Ambassador, in ways t
 
 ### The `ambassador` Module
 
-If present, the `ambassador` module defines system-wide configuration. **You will not normally need this file.**
+If present, the `ambassador` module defines system-wide configuration. **You will not normally need this file.** The defaults in the `ambassador` module are, roughly:
 
 ```yaml
 ---
@@ -78,14 +78,35 @@ config:
   # readiness_probe:
   #   enabled: false
 
-  # TLS setup
+  # TLS defaults to unconfigured. See below for more.
   # tls:
-  #   cert_chain_file: ...
-  #   private_key_file: ...
-  #   cacert_chain_file: ...
+  #   ...
 ```
 
-Everything in this file has a sane default; you should need to supply it _only_ to override defaults in highly-custom situations.
+Everything in this file except for TLS has a default that should cover most situations; it should only be necessary to include them to override the defaults in highly-custom situations.
+
+TLS, on the other hand, must be explicitly enabled in order to be used. The simplest configurations that make sense are
+
+```yaml
+  tls:
+    server:
+      enabled: True
+```
+
+to enable TLS termination only, and 
+
+```yaml
+  tls:
+    server:
+      enabled: True
+    client:
+      enabled: True
+      cert_required: True
+```
+
+to enable TLS termination and mandatory use of TLS client certificates.
+
+For more discussion of TLS configuration, see the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
 
 ### Probes
 
