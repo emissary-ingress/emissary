@@ -240,6 +240,10 @@ h1, h2, h3, h4, h5, h6, strong {
     }
 }
 
+.main-navigation li a:hover {
+    text-decoration: underline;
+}
+
 #hero {
     background: url('/images/penguin-background.svg') no-repeat center bottom;
     max-width: 919px;
