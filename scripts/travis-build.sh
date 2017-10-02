@@ -17,7 +17,7 @@ ECHO=echo
 DRYRUN=yes
 
 if [ -n "$TRAVIS" ]; then
-    ECHO=echo
+    ECHO=
     DRYRUN=
 fi
 
