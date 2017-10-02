@@ -292,7 +292,8 @@ class AmbassadorConfig (object):
         modules = self.config.get('modules', {})
 
         # ...and then use process whatever the user has to say in the "ambassador" module.
-        self.module_config_ambassador("ambassador", modules['ambassador'])        
+        if 'ambassador' in modules:
+            self.module_config_ambassador("ambassador", modules['ambassador'])        
 
         # Next up: let's define initial clusters, routes, and filters.
         #

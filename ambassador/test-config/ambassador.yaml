@@ -1,0 +1,39 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  # If present, service_port will be the port Ambassador listens
+  # on for microservice access. If not present, Ambassador will
+  # use 443 if TLS is configured, 80 otherwise.
+  # service_port: 80
+
+  # admin_port is for various administrative things. It's not exposed
+  # outside the pod, so you shouldn't really ever have a reason to 
+  # override it, but just in case...
+  # admin_port: 8001
+
+  # liveness probe defaults on, but you can disable it.
+  # liveness_probe:
+  #   enabled: false
+
+  # readiness probe defaults on, but you can disable it.
+  # readiness_probe:
+  #   rewrite: /stats
+  #   prefix: /ambassador/v0/are_you_ready_yet
+  #   service: omg.omg:7777
+
+  # TLS defaults to unconfigured. Here's the simplest way.
+  tls:
+    server:
+      enabled: True
+      # These are optional.
+      # cert_chain_file: /etc/certs/tls.crt
+      # private_key_file: /etc/certs/tls.key
+
+    client:
+      enabled: True,
+      # These are optional.
+      cert_required: True
+      # cacert_chain_file: /etc/ca_cert_chain/tls.crt
+

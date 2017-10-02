@@ -1,0 +1,15 @@
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: evil_get_mapping
+prefix: /evil/
+method: GET
+service: qotm
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: evil_put_mapping
+prefix: /evil/
+rewrite: /qotm/quote/
+method: PUT
+service: qotm
