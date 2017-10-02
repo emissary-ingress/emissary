@@ -16,7 +16,7 @@ export DOCKER_REGISTRY
 ECHO=echo
 DRYRUN=yes
 
-if [ $(hostname | egrep -c '\.travis-ci\.') -gt 0 ]; then
+if [ -n "$TRAVIS" ]; then
     ECHO=
     DRYRUN=
 fi
@@ -45,13 +45,18 @@ onmaster () {
 }
 
 # Do we have any non-doc changes?
+echo "======== Diff summary"
+git diff --stat "$TRAVIS_COMMIT_RANGE"
+
 nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
 doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
 # Default VERSION to _the current version of Ambassador._
 VERSION=$(python scripts/versioner.py)
 
+echo "========"
 echo "Base version ${VERSION}; non-doc changes ${nondoc_changes}, doc changes ${doc_changes}"
+echo "========"
 
 # Do we have any non-doc changes?
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
