@@ -20,6 +20,13 @@ class SourcedDict (dict):
         else:
             self['_source'] = _source
 
+# class AmbassadorMapping (object):
+#     def __init__(self, )
+
+# # An Ambassador Listener is the object that ca
+# class AmbassadorListener (object):
+#     pass
+
 class AmbassadorConfig (object):
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
@@ -222,6 +229,12 @@ class AmbassadorConfig (object):
 
         return self.safe_store(source_key, "mappings", obj_name, obj_kind, obj)
 
+    def admin_port(self):
+        modules = self.config.get("modules", {})
+        amod = modules.get("ambassador", {})
+
+        return amod.get("admin_port", 8001)
+
     def add_intermediate_cluster(self, _source, name, urls, 
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None):
@@ -265,16 +278,21 @@ class AmbassadorConfig (object):
         self.envoy_config['routes'].append(route)
 
     def generate_intermediate_config(self):
-        # First things first. Assume we'll listen on port 80, with an admin port
-        # on 8001.
+        # First things first. Define the default "Ambassador" module...
 
         self.ambassador_module = SourcedDict(
-            service_port=80,
+            service_port = 80,
             admin_port = 8001,
             liveness_probe = { "enabled": True },
             readiness_probe = { "enabled": True },
             tls_config = None
         )
+
+        # ...pull our defined modules from our config...
+        modules = self.config.get('modules', {})
+
+        # ...and then use process whatever the user has to say in the "ambassador" module.
+        self.module_config_ambassador("ambassador", modules['ambassador'])        
 
         # Next up: let's define initial clusters, routes, and filters.
         #
@@ -289,6 +307,11 @@ class AmbassadorConfig (object):
         self.add_intermediate_cluster('--diagnostics--',
                                       'cluster_diagnostics', [ "tcp://127.0.0.1:8888" ],
                                       type="logical_dns", lb_type="random")
+
+        # # We have two listeners: one on our main listen port, and one on the admin port.
+        # self.envoy_listeners = [
+        #     "admin": AmbassadorListener(self.modules["ambassador"].)
+        # ]
 
         # ...our initial set of routes is empty...
         self.envoy_config['routes'] = []
@@ -316,9 +339,10 @@ class AmbassadorConfig (object):
             outlier['_referenced_by'] = []
 
         # OK. Given those initial sets, let's look over our global modules.
-        modules = self.config.get('modules', {})
-
         for module_name in modules.keys():
+            if module_name == 'ambassador':
+                continue
+
             handler_name = "module_config_%s" % module_name
             handler = getattr(self, handler_name, None)
 
@@ -335,10 +359,10 @@ class AmbassadorConfig (object):
             admin_port=self.ambassador_module["admin_port"]
         )
 
-        # self.default_liveness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
-        # self.default_readiness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
-        self.default_liveness_probe['service'] = '127.0.0.1:8888'
-        self.default_readiness_probe['service'] = '127.0.0.1:8888'
+        self.default_liveness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
+        self.default_readiness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
+        # self.default_liveness_probe['service'] = '127.0.0.1:8888'
+        # self.default_readiness_probe['service'] = '127.0.0.1:8888'
 
         # ...TLS config, if necessary...
         if self.ambassador_module['tls_config']:
