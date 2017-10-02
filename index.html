@@ -81,7 +81,7 @@
                         <span>Easy to configure</span>
                     </li>
                 </ul>
-                <div class="tab-content text-lg font-light text-white">
+                <div class="tab-content font-light text-white">
                     <div id="routing">
                         <p>Map services to arbitrary URLs in a single, declarative YAML file.</p>
                     </div>
@@ -117,13 +117,13 @@
                 </div>
             </div>
         </section>
-        <section id="get-started" class="bg-gray padding-top-130">
-            <h1 class="text-lg text-uppercase text-center padding-bottom-130">It's easy to <span class="text-red">get started:</span></h1>
+        <section id="get-started" class="bg-gray padding-top-75">
+            <h1 class="text-lg text-uppercase text-center padding-bottom-75">It's easy to get started:</h1>
             <div class="container">
                 <div class="bg-white border-gray box-shadow content-box">
                     <ol class="get-started-steps">
                         <li>
-                            <p class="text-md">Create a <span class="text-red">mapping.yaml</span> file with your routes.</p>
+                            <p class="text-md">Create a mapping.yaml file with your routes.</p>
                             <div class="code-box">
 <pre><code>---
 apiVersion: ambassador/v0
@@ -135,7 +135,7 @@ service: qotm
                             </div>
                         </li>
                         <li>
-                            <p class="text-md">Deploy your configuration as a <span class="text-red">ConfigMap</span></p>
+                            <p class="text-md">Deploy your configuration as a ConfigMap</p>
                             <div class="code-box">
 <pre><code>kubectl create configmap ambassador-config --from-file mapping-qotm.yaml</code></pre>
                             </div>
@@ -174,8 +174,8 @@ service: qotm
                     </div>
                 </div>
                 <div class="sponsored-by">
-                    <img class="datawire-logo" alt="Datawire" src="/images/datawire-logo.svg">
-                    <p class="text-md">Built by Datawire, helping you <a target="_blank" href="https://datawire.io">deploy microservices on Kubernetes in AWS</a></p>
+                    <a href="https://datawire.io" target="_blank"><img class="datawire-logo" alt="Datawire" src="/images/datawire-logo.svg"></a>
+                    <p class="text-md">Built by <a href="https://datawire.io" target="_blank">Datawire</a>, helping you build an amazing development workflow on Kubernetes</a></p>
                 </div>
             </div>
         </section>
