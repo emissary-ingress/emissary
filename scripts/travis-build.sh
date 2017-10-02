@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 # Don't build on version-tag pushes.
 if [ $(echo "$TRAVIS_BRANCH" | egrep -c '^v[0-9][0-9\.]*$') -gt 0 ]; then
@@ -119,6 +119,8 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     if [ $doc_changes -eq 0 ]; then
         doc_changes=1
     fi
+else
+    echo "Not building images for $VERSION; no non-doc changes"
 fi
 
 # OK. Any doc changes?
@@ -144,10 +146,12 @@ if [ $doc_changes -gt 0 ]; then
 
     echo "==== BUILDING DOCS FOR ${VERSION}"
 
-    make VERSION=${VERSION} travis-website
+    $ECHO make VERSION=${VERSION} travis-website
 
     $ECHO docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
         deploy --path docs/_book \
                --site-id datawire-ambassador \
                ${NETLIFY_DRAFT}
+else
+    echo "Not building docs for $VERSION; no doc changes"
 fi
