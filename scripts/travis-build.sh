@@ -17,7 +17,7 @@ ECHO=echo
 DRYRUN=yes
 
 if [ -n "$TRAVIS" ]; then
-    ECHO=
+    ECHO=echo
     DRYRUN=
 fi
 
@@ -84,7 +84,7 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
     fi
 
     # OK. Figure out the correct version number, including updating app.json...
-    VERSION=$(python scripts/versioner.py --only-if-changes --scout-json=app.json $MAGIC_PRE)
+    VERSION=$(python scripts/versioner.py --bump --only-if-changes --scout-json=app.json $MAGIC_PRE)
 
     # ...then actually build our Docker images.
     echo "==== BUILDING IMAGES FOR $VERSION"

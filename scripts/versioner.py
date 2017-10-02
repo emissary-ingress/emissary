@@ -32,6 +32,8 @@ class VersionedBranch (object):
         if not branch_info:
             self.log.warning("VersionedBranch: %s has no description info?" % self.branch_name)
 
+        self.log.debug("VersionedBranch: %s gets %s" % (self.branch_name, branch_info))
+
         try:
             self._version_tag = self.repo.tags[branch_info[0]]
         except Exception as e:
