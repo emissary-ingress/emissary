@@ -13,10 +13,23 @@ npm version
 aws --version
 
 export DOCKER_REGISTRY
-ECHO=
+ECHO=echo
+DRYRUN=yes
 
-if [ $(hostname | grep -c '\.travis-ci\.') -eq 0 ]; then
-     ECHO=echo
+if [ $(hostname | egrep -c '\.travis-ci\.') -gt 0 ]; then
+    ECHO=
+    DRYRUN=
+fi
+
+# Syntactic sugar really...
+dryrun () {
+    test -n "$DRYRUN"
+}
+
+if dryrun; then
+    echo "======== DRYRUN"
+else
+    echo "======== RUNNING"
 fi
 
 # Are we on master?
@@ -37,6 +50,8 @@ doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | w
 
 # Default VERSION to _the current version of Ambassador._
 VERSION=$(python scripts/versioner.py)
+
+echo "Base version ${VERSION}; non-doc changes ${nondoc_changes}, doc changes ${doc_changes}"
 
 # Do we have any non-doc changes?
 if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
