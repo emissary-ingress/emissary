@@ -235,7 +235,7 @@ h1, h2, h3, h4, h5, h6, strong {
 }
 @media screen and (min-width: 768px) {
     .main-navigation li a {
-        font-size: 1.25em;
+        font-size: 1.125em;
         font-weight: bold;
     }
 }
