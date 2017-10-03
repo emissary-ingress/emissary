@@ -348,7 +348,7 @@ class AmbassadorConfig (object):
             handler = getattr(self, handler_name, None)
 
             if not handler:
-                print("module %s: no configuration generator, skipping" % module_name)
+                self.logger.error("module %s: no configuration generator, skipping" % module_name)
                 continue
 
             handler(module_name, modules[module_name])
