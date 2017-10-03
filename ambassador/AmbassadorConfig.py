@@ -395,11 +395,10 @@ class AmbassadorConfig (object):
 
                 self.logger.debug("PROBE %s: %s -> %s%s" % (name, prefix, service, rewrite))
 
-        # OK! We have all the mappings we need. Process them sorted by decreasing
-        # length of prefix.
+        # OK! We have all the mappings we need. Process them (don't worry about sorting
+        # yet, we'll do that on routes).
 
-        for mapping_name in reversed(sorted(mappings.keys(),
-                                            key=lambda x: len(mappings[x]['prefix']))):
+        for mapping_name in mappings.keys():
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
@@ -465,7 +464,14 @@ class AmbassadorConfig (object):
                 'cluster_diagnostics'
             )
 
-        # OK. When all is said and done, map clusters back into a list...
+        # OK. When all is said and done, sort the list of routes by descending 
+        # legnth of prefix, then prefix itself, then method...
+        self.envoy_config['routes'].sort(reverse=True,
+                                         key=lambda x: (len(x['prefix']), 
+                                                        x['prefix'],
+                                                        x.get('method', 'GET')))
+
+        # ...map clusters back into a list...
         self.envoy_config['clusters'] = [
             self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
         ]
