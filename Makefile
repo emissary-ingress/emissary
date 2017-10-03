@@ -1,6 +1,6 @@
 all: dev
 
-VERSION=$(shell python scripts/versioner.py --magic-pre)
+VERSION=$(shell python scripts/versioner.py --bump --magic-pre)
 
 .ALWAYS:
 

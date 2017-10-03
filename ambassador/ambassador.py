@@ -52,7 +52,7 @@ scout_version = __version__
 if '-' in scout_version:
     # Dev build!
     v, p = scout_version.split('-')
-    p, b = p.split('.', 1)
+    p, b = p.split('.', 1) if ('.' in p) else (0, p)
 
     scout_version = "%s-%s+%s" % (v, p, b)
 
