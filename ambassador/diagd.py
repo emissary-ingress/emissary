@@ -112,4 +112,4 @@ def pretty_json(obj):
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
-app.run(host='127.0.0.1', port=aconf.admin_port(), debug=True)
+app.run(host='127.0.0.1', port=aconf.diag_port(), debug=True)

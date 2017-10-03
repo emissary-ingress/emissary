@@ -229,11 +229,14 @@ class AmbassadorConfig (object):
 
         return self.safe_store(source_key, "mappings", obj_name, obj_kind, obj)
 
-    def admin_port(self):
+    def diag_port(self):
         modules = self.config.get("modules", {})
         amod = modules.get("ambassador", {})
 
-        return amod.get("admin_port", 8001)
+        return amod.get("diag_port", 8877)
+
+    def diag_service(self):
+        return "127.0.0.1:%d" % self.diag_port()
 
     def add_intermediate_cluster(self, _source, name, urls, 
                                  type="strict_dns", lb_type="round_robin",
@@ -283,6 +286,7 @@ class AmbassadorConfig (object):
         self.ambassador_module = SourcedDict(
             service_port = 80,
             admin_port = 8001,
+            diag_port = 8877,
             liveness_probe = { "enabled": True },
             readiness_probe = { "enabled": True },
             tls_config = None
@@ -306,7 +310,8 @@ class AmbassadorConfig (object):
         # clusters.
         self.envoy_clusters = {}
         self.add_intermediate_cluster('--diagnostics--',
-                                      'cluster_diagnostics', [ "tcp://127.0.0.1:8888" ],
+                                      'cluster_diagnostics', 
+                                      [ "tcp://%s" % self.diag_service() ],
                                       type="logical_dns", lb_type="random")
 
         # # We have two listeners: one on our main listen port, and one on the admin port.
@@ -360,8 +365,8 @@ class AmbassadorConfig (object):
             admin_port=self.ambassador_module["admin_port"]
         )
 
-        self.default_liveness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
-        self.default_readiness_probe['service'] = '127.0.0.1:%d' % self.ambassador_module["admin_port"]
+        self.default_liveness_probe['service'] = self.diag_service()
+        self.default_readiness_probe['service'] = self.diag_service()
         # self.default_liveness_probe['service'] = '127.0.0.1:8888'
         # self.default_readiness_probe['service'] = '127.0.0.1:8888'
 
@@ -609,21 +614,12 @@ class AmbassadorConfig (object):
 
             self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
 
-        # After that, is a service port defined?
-        if 'service_port' in module:
-            # Yes. It overrides the default.
-            self.set_config_ambassador(module, 'service_port', module['service_port'])
-
-        # How about an admin port?
-        if 'admin_port' in module:
-            # Yes. It overrides the default.
-            self.set_config_ambassador(module, 'admin_port', module['admin_port'])
-
-        if 'liveness_probe' in module:
-            self.update_config_ambassador(module, 'liveness_probe', module['liveness_probe'])
-
-        if 'readiness_probe' in module:
-            self.update_config_ambassador(module, 'readiness_probe', module['readiness_probe'])
+        # After that, check for port definitions and probes, and copy them in as we find them.
+        for key in [ 'service_port', 'admin_port', 'diag_port',
+                     'liveness_probe', 'readiness_probe' ]:
+            if key in module:
+                # Yes. It overrides the default.
+                self.set_config_ambassador(module, key, module[key])
 
     def module_config_authentication(self, name, module):
         filter = SourcedDict(

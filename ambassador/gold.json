@@ -9,11 +9,11 @@
                 "connect_timeout_ms":250,
                 "hosts":[
                     {
-                        "url":"tcp://127.0.0.1:8001"
+                        "url":"tcp://127.0.0.1:8877"
                     }
                 ],
                 "lb_type":"round_robin",
-                "name":"cluster_127_0_0_1_8001",
+                "name":"cluster_127_0_0_1_8877",
                 "type":"strict_dns"
             },
             {
@@ -31,7 +31,7 @@
                 "connect_timeout_ms":250,
                 "hosts":[
                     {
-                        "url":"tcp://127.0.0.1:8888"
+                        "url":"tcp://127.0.0.1:8877"
                     }
                 ],
                 "lb_type":"random",
@@ -208,13 +208,13 @@
                                             "timeout_ms":500
                                         },
                                         {
-                                            "cluster":"cluster_127_0_0_1_8001",
+                                            "cluster":"cluster_127_0_0_1_8877",
                                             "prefix":"/ambassador/v0/check_ready",
                                             "prefix_rewrite":"/ambassador/v0/check_ready",
                                             "timeout_ms":500
                                         },
                                         {
-                                            "cluster":"cluster_127_0_0_1_8001",
+                                            "cluster":"cluster_127_0_0_1_8877",
                                             "prefix":"/ambassador/v0/check_alive",
                                             "prefix_rewrite":"/ambassador/v0/check_alive",
                                             "timeout_ms":500
