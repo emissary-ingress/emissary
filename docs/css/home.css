@@ -134,22 +134,22 @@ h1, h2, h3, h4, h5, h6, strong {
 }
 
 .text-xl {
-    font-size: 3em; // 48px
+    font-size: 3em; /* 48px */
 }
 .text-lg {
-    font-size: 2.25em; // 36px
+    font-size: 2.25em; /* 36px */
 }
 .text-md {
-    font-size: 1.5em; // 24px
+    font-size: 1.5em; /* 24px */
 }
 .text-sm {
-    font-size: 1.125em; // 18px
+    font-size: 1.125em; /* 18px */
 }
 .text-regular {
-    font-size: 1em; // 16px
+    font-size: 1em; /* 16px */
 }
 .text-xs {
-    font-size: 0.875em; // 14px
+    font-size: 0.875em; /* 14px */
 }
 
 .font-light {
@@ -179,9 +179,6 @@ h1, h2, h3, h4, h5, h6, strong {
     color: #fff;
     text-decoration: none;
     display: inline-block;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
 }
 .btn:hover {
     text-decoration: none;
@@ -409,6 +406,9 @@ h1, h2, h3, h4, h5, h6, strong {
     border: none;
     height: 60px;
     cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 .mailing-list-signup .hs_submit .hs-button:hover {
     opacity: 0.95;
