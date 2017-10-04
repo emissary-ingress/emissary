@@ -8,9 +8,9 @@ At the heart of Ambassador are the ideas of [_modules_](#modules), [_mappings_](
 
 - [Resources](#resources) are as defined in REST: effectively groups of one or more URLs that all share a common prefix in the URL path.
 
-Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. Each file must have a name that ends in `.yaml`, and Ambassador fully supports multiple documents in a single file.
+Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. Each file must have a name that ends in `.yaml`, and Ambassador fully supports multiple documents in a single file. Behind the scenes, Ambassador than translates the configuration into the necessary Envoy configuration.
 
-When run as part of an image build, the caller must tell Ambassador the path to the directory; when run as a proxy pod within Kubernetes, Ambassador assumes that its configuration has been published as a `ConfigMap` named `ambassador-config`. The easiest way to create such a `ConfigMap` is to assemble a directory of appropriate YAML files, and use 
+When run as part of an image build, the caller must tell Ambassador the path to the directory; when run as a proxy pod within Kubernetes, Ambassador assumes that its configuration has been published as a `ConfigMap` named `ambassador-config`. The easiest way to create such a `ConfigMap` is to assemble a directory of appropriate YAML files, and use
 
 ```shell
 kubectl create configmap ambassador-config --from-file config-dir-path
@@ -93,7 +93,7 @@ TLS, on the other hand, must be explicitly enabled in order to be used. The simp
       enabled: True
 ```
 
-to enable TLS termination only, and 
+to enable TLS termination only, and
 
 ```yaml
   tls:
@@ -291,7 +291,8 @@ http://service1/prefix1/foo/bar
 
 ### Modifying Ambassador's Underlying Envoy Configuration
 
-Ambassador uses Envoy for the heavy lifting of proxying. If necessary, you can override the template that Ambassador uses to configure Envoy, by supplying it in the `ambassador-config` ConfigMap before deploying Ambassador. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary for a given use case.
+Ambassador uses Envoy for the heavy lifting of proxying.
 
+If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use your own custom config template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
 
-
+Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary for a given use case (or better yet, submit a PR!) so that we can expose this in the future.
