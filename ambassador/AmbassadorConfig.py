@@ -469,6 +469,19 @@ class AmbassadorConfig (object):
                 'cluster_diagnostics'
             )
 
+        # Also push a fallback diag route, so that one can easily ask for diagnostics 
+        # by source file.
+
+        self.add_intermediate_route(
+            '--diagnostics--',
+            {
+                'prefix': "/ambassador/v0/diag/",
+                'rewrite': "/ambassador/v0/diag/",
+                'service': 'cluster_diagnostics'
+            },
+            'cluster_diagnostics'
+        )
+
         # OK. When all is said and done, sort the list of routes by descending 
         # legnth of prefix, then prefix itself, then method...
         self.envoy_config['routes'].sort(reverse=True,

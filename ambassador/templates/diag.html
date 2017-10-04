@@ -29,21 +29,28 @@
 
       <div class="row">
         <div class="col-12">
+          Ambassador version {{ system.version }}
+          <br/>
+          Hostname {{ system.hostname }}
+          <br/>
+          Configuration from {{ system.boot_time }} -- {{ system.hr_uptime }} ago
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
           YAML input files
 
           {% for source in sources %}
           <div class="row">
             <div class="col-7">
-              <div class="row">
-                Ambassador 
+              Ambassador 
 
-                {% if source['target'] %}&nbsp;<a href={{ source['target'] }}>{% endif %}
-                {{ source['kind'] }}
-                {% if source['target'] %}</a>{% endif %}
-              </div>
-              <div class="row">
-                 Defined in <code>{{ source['filename'] }}.{{ source['index'] }}</code>
-              </div>
+              {% if source['target'] %}<a href={{ source['target'] }}>{% endif %}
+              {{ source['kind'] }}
+              {% if source['target'] %}</a>{% endif %}
+              <br/>
+              <code>{{ source['filename'] }}.{{ source['index'] }}</code> -- object {{ source.index }} in <a href="/ambassador/v0/diag/{{ source.filename }}"><code>{{ source.filename }}</code></a>
             </div>
             <div class="col-5">
               <div class="row">
@@ -64,7 +71,7 @@
             <div class="col-7">
               <code>{{ route.get('method', 'GET') }} {{ route['prefix'] }}</code> -> <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
               <br/>
-              created by <code>{{ route['_source'] }}</code>
+              created by <a href="/ambassador/v0/diag/{{ route['_source'] }}"><code>{{ route['_source'] }}</code></a>
             </div>
             <div class="col-5">
               <div class="row">
@@ -90,11 +97,11 @@
                 unknown health ({{ stats[cluster.name].reason }})
               {% endif %}
               <br/>
-              created by <code>{{ cluster['_source'] }}</code>
+              created by <a href="/ambassador/v0/diag/{{ cluster['_source'] }}"><code>{{ cluster['_source'] }}</code></a>
               <br/>
               referenced by
                 {% for ref in cluster['_referenced_by'] | sort %}
-                  <code>{{ ref }}</code>{{ "," if not loop.last }}
+                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
                 {% endfor %}
             </div>
             <div class="col-5">
@@ -116,11 +123,11 @@
             <div class="col-7">
               <code>{{ breaker['name'] }}</code>
               <br/>
-              created by <code>{{ breaker['_source'] }}</code>
+              created by <a href="/ambassador/v0/diag/{{ breaker['_source'] }}"><code>{{ breaker['_source'] }}</code></a>
               <br/>
               referenced by
                 {% for ref in breaker['_referenced_by'] | sort %}
-                  <code>{{ ref }}</code>{{ "," if not loop.last }}
+                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
                 {% endfor %}
             </div>
             <div class="col-5">
@@ -142,11 +149,11 @@
             <div class="col-7">
               <code>{{ outlier['name'] }}</code>
               <br/>
-              created by <code>{{ outlier['_source'] }}</code>
+              created by <a href="/ambassador/v0/diag/{{ outlier['_source'] }}"><code>{{ outlier['_source'] }}</code></a>
               <br/>
               referenced by
                 {% for ref in outlier['_referenced_by'] | sort %}
-                  <code>{{ ref }}</code>{{ "," if not loop.last }}
+                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
                 {% endfor %}
             </div>
             <div class="col-5">

@@ -220,6 +220,12 @@
                                             "timeout_ms":500
                                         },
                                         {
+                                            "cluster":"cluster_diagnostics",
+                                            "prefix":"/ambassador/v0/diag/",
+                                            "prefix_rewrite":"/ambassador/v0/diag/",
+                                            "timeout_ms":500
+                                        },
+                                        {
                                             "cluster":"cluster_qotm_cb_default",
                                             "prefix":"/qotm/quote/",
                                             "prefix_rewrite":"/quote/",

@@ -2,6 +2,7 @@
 
 import sys
 
+import datetime
 import json
 import logging
 
@@ -14,6 +15,7 @@ from envoy import EnvoyStats
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
 __version__ = VERSION.Version
+boot_time = datetime.datetime.now()
 
 logging.basicConfig(
     # filename=logPath,
@@ -67,6 +69,27 @@ def check_ready():
     else:
         return "ambassador readiness check OK (%d)" % age, 200
 
+def td_format(td_object):
+    seconds = int(td_object.total_seconds())
+    periods = [
+        ('year',   60*60*24*365),
+        ('month',  60*60*24*30),
+        ('day',    60*60*24),
+        ('hour',   60*60),
+        ('minute', 60),
+        ('second', 1)
+    ]
+
+    strings=[]
+    for period_name,period_seconds in periods:
+        if seconds > period_seconds:
+            period_value, seconds = divmod(seconds,period_seconds)
+
+            strings.append("%d %s%s" % 
+                           (period_value, period_name, "" if (period_value == 1) else "s"))
+
+    return ", ".join(strings)
+
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 def show_intermediate(source=None):
     logging.debug("getting intermediate for '%s'" % source)
@@ -97,7 +120,15 @@ def show_intermediate(source=None):
         if source['kind'].lower() in ambassador_targets:
             source['target'] = ambassador_targets[source['kind'].lower()]
 
-    return render_template('diag.html', method=method, resource=resource, stats=stats, **result)
+    system_info = {
+        "version": __version__,
+        "hostname": SystemInfo.MyHostName,
+        "boot_time": boot_time,
+        "hr_uptime": td_format(datetime.datetime.now() - boot_time)
+    }
+
+    return render_template('diag.html', system=system_info,
+                           method=method, resource=resource, stats=stats, **result)
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
