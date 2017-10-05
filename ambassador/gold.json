@@ -31,17 +31,6 @@
                 "connect_timeout_ms":250,
                 "hosts":[
                     {
-                        "url":"tcp://127.0.0.1:8877"
-                    }
-                ],
-                "lb_type":"random",
-                "name":"cluster_diagnostics",
-                "type":"logical_dns"
-            },
-            {
-                "connect_timeout_ms":250,
-                "hosts":[
-                    {
                         "url":"tcp://example-auth:3000"
                     }
                 ],
@@ -154,60 +143,6 @@
                                     "name":"backend",
                                     "routes":[
                                         {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/ambassador/v0/check_ready",
-                                            "prefix_rewrite":"/ambassador/v0/diag/ambassador.yaml.1?method=GET&resource=/ambassador/v0/check_ready",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/ambassador/v0/check_alive",
-                                            "prefix_rewrite":"/ambassador/v0/diag/ambassador.yaml.1?method=GET&resource=/ambassador/v0/check_alive",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/qotm/quote/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-qotm.yaml.2?method=GET&resource=/qotm/quote/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/service/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-qotm.yaml.3?method=GET&resource=/service/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/tspace/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-qotm2.yaml.1?method=GET&resource=/tspace/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/put/evil/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-evil.yaml.2?method=PUT&resource=/evil/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/qotm/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-qotm.yaml.1?method=GET&resource=/qotm/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/grpc/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-grpc.yaml.1?method=GET&resource=/grpc/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/get/evil/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/mapping-evil.yaml.1?method=GET&resource=/evil/",
-                                            "timeout_ms":500
-                                        },
-                                        {
                                             "cluster":"cluster_127_0_0_1_8877",
                                             "prefix":"/ambassador/v0/check_ready",
                                             "prefix_rewrite":"/ambassador/v0/check_ready",
@@ -217,12 +152,6 @@
                                             "cluster":"cluster_127_0_0_1_8877",
                                             "prefix":"/ambassador/v0/check_alive",
                                             "prefix_rewrite":"/ambassador/v0/check_alive",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_diagnostics",
-                                            "prefix":"/ambassador/v0/diag/",
-                                            "prefix_rewrite":"/ambassador/v0/diag/",
                                             "timeout_ms":500
                                         },
                                         {

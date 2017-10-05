@@ -321,10 +321,10 @@ class AmbassadorConfig (object):
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.envoy_clusters = {}
-        self.add_intermediate_cluster('--diagnostics--',
-                                      'cluster_diagnostics', 
-                                      [ "tcp://%s" % self.diag_service() ],
-                                      type="logical_dns", lb_type="random")
+        # self.add_intermediate_cluster('--diagnostics--',
+        #                               'cluster_diagnostics', 
+        #                               [ "tcp://%s" % self.diag_service() ],
+        #                               type="logical_dns", lb_type="random")
 
         # Our initial set of routes is empty...
         self.envoy_config['routes'] = []
@@ -451,41 +451,41 @@ class AmbassadorConfig (object):
 
             self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
 
-            # Also add a diag route.
+            # # Also add a diag route.
 
-            source = mapping['_source']
+            # source = mapping['_source']
 
-            method = mapping.get("method", "GET")
-            dmethod = method.lower()
+            # method = mapping.get("method", "GET")
+            # dmethod = method.lower()
 
-            prefix = mapping['prefix']
-            dprefix = prefix[1:] if prefix.startswith('/') else prefix
+            # prefix = mapping['prefix']
+            # dprefix = prefix[1:] if prefix.startswith('/') else prefix
 
-            diag_prefix = '/ambassador/v0/diag/%s/%s' % (dmethod, dprefix)
-            diag_rewrite = '/ambassador/v0/diag/%s?method=%s&resource=%s' % (source, method, prefix)
+            # diag_prefix = '/ambassador/v0/diag/%s/%s' % (dmethod, dprefix)
+            # diag_rewrite = '/ambassador/v0/diag/%s?method=%s&resource=%s' % (source, method, prefix)
 
-            self.add_intermediate_route(
-                '--diagnostics--',
-                {
-                    'prefix': diag_prefix,
-                    'rewrite': diag_rewrite,
-                    'service': 'cluster_diagnostics'
-                },
-                'cluster_diagnostics'
-            )
+            # self.add_intermediate_route(
+            #     '--diagnostics--',
+            #     {
+            #         'prefix': diag_prefix,
+            #         'rewrite': diag_rewrite,
+            #         'service': 'cluster_diagnostics'
+            #     },
+            #     'cluster_diagnostics'
+            # )
 
-        # Also push a fallback diag route, so that one can easily ask for diagnostics 
-        # by source file.
+        # # Also push a fallback diag route, so that one can easily ask for diagnostics 
+        # # by source file.
 
-        self.add_intermediate_route(
-            '--diagnostics--',
-            {
-                'prefix': "/ambassador/v0/diag/",
-                'rewrite': "/ambassador/v0/diag/",
-                'service': 'cluster_diagnostics'
-            },
-            'cluster_diagnostics'
-        )
+        # self.add_intermediate_route(
+        #     '--diagnostics--',
+        #     {
+        #         'prefix': "/ambassador/v0/diag/",
+        #         'rewrite': "/ambassador/v0/diag/",
+        #         'service': 'cluster_diagnostics'
+        #     },
+        #     'cluster_diagnostics'
+        # )
 
         # OK. When all is said and done, sort the list of routes by descending 
         # legnth of prefix, then prefix itself, then method...
