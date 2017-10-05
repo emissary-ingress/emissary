@@ -16,8 +16,11 @@ def percentage(x, y):
         return int(((x * 100) / y) + 0.5)
 
 class EnvoyStats (object):
-    def __init__(self):
+    def __init__(self, max_live_age=20, max_ready_age=20):
         self.update_errors = 0
+        self.max_live_age = max_live_age
+        self.max_ready_age = max_ready_age
+
         self.stats = {
             "created": time.time(),
             "last_update": 0,
@@ -27,14 +30,53 @@ class EnvoyStats (object):
             "envoy": {}
         }
 
-    def age(self):
-        """ Return the amount of time since we were updated. """
+    def is_alive(self):
+        """
+        Make sure we've heard from Envoy within max_live_age seconds. 
+
+        If we haven't yet heard from Envoy at all (we've just booted),
+        consider Envoy alive if we haven't yet been running for max_live_age
+        seconds -- basically, Envoy gets a grace period to start running at
+        boot time.
+        """
+
         epoch = self.stats["last_update"]
 
         if not epoch:
             epoch = self.stats["created"]
 
-        return time.time() - epoch
+        return (time.time() - epoch) <= self.max_live_age
+
+    def is_ready(self):
+        """
+        Make sure we've heard from Envoy within max_ready_age seconds. 
+
+        If we haven't yet heard from Envoy at all (we've just booted),
+        then Envoy is not yet ready, and is_ready() returns False.
+        """
+
+        epoch = self.stats["last_update"]
+
+        if not epoch:
+            return False
+
+        return (time.time() - epoch) <= self.max_ready_age
+
+    def time_since_boot(self):
+        """ Return the number of seconds since Envoy booted. """
+        logging.error("wtf self-stats is %s" % sorted(self.stats.keys()))
+        return time.time() - self.stats["created"]
+
+    def time_since_update(self):
+        """
+        Return the number of seconds since we last heard from Envoy, or None if
+        we've never heard from Envoy.
+        """
+        
+        if self.stats["last_update"] == 0:
+            return None
+        else:
+            return time.time() - self.stats["last_update"]
 
     def cluster_stats(self, name):
         if not self.stats['last_update']:
@@ -153,11 +195,11 @@ class EnvoyStats (object):
         # OK, we're now officially finished with all the hard stuff.
         last_update = time.time()
 
-        self.stats = {
+        self.stats.update({
             "last_update": last_update,
             "last_attempt": last_attempt,
             "update_errors": update_errors,
             # "mappings": active_mappings,
             "clusters": active_clusters,
             "envoy": envoy_stats
-        }
+        })

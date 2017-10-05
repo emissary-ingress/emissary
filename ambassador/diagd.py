@@ -49,26 +49,6 @@ if health_checks:
 
 aconf = AmbassadorConfig(sys.argv[dir_index])
 
-app = Flask(__name__)
-
-@app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
-def check_alive():
-    age = estats.age()
-
-    if age > 20:
-        return "ambassador seems to have died (%d)" % age, 400
-    else:
-        return "ambassador liveness check OK (%d)" % age, 200
-
-@app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
-def check_ready():
-    age = estats.age()
-
-    if (age > 20) or (estats.stats['last_update'] == 0):
-        return "ambassador not ready (%d)" % age, 400
-    else:
-        return "ambassador readiness check OK (%d)" % age, 200
-
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
@@ -90,6 +70,115 @@ def td_format(td_object):
 
     return ", ".join(strings)
 
+def interval_format(seconds, normal_format, now_message):
+    if seconds >= 1:
+        return normal_format % td_format(datetime.timedelta(seconds=seconds))
+    else:
+        return now_message
+
+def system_info():
+    return {
+        "version": __version__,
+        "hostname": SystemInfo.MyHostName,
+        "boot_time": boot_time,
+        "hr_uptime": td_format(datetime.datetime.now() - boot_time)
+    }
+
+def cluster_stats(clusters):
+    cluster_names = [ x['name'] for x in clusters ]
+    return { name: estats.cluster_stats(name) for name in cluster_names }
+
+def sorted_sources(sources):
+    return sorted(sources, key=lambda x: "%s.%d" % (x['filename'], x['index']))
+
+def envoy_status(estats):
+    since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
+
+    since_update = "Never updated"
+
+    if estats.time_since_update():
+        since_update = interval_format(estats.time_since_update(), "%s ago", "within the last second")
+
+    return {
+        "alive": estats.is_alive(),
+        "ready": estats.is_ready(),
+        "uptime": since_boot,
+        "since_update": since_update
+    }
+
+ambassador_targets = {
+    'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
+    'module': 'https://www.getambassador.io/reference/configuration#modules',
+}
+
+envoy_targets = {
+    'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
+    'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
+}
+
+app = Flask(__name__)
+
+@app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
+def check_alive():
+    status = envoy_status(estats)
+
+    if status['alive']:
+        return "ambassador liveness check OK (%s)" % status['uptime'], 200
+    else:
+        return "ambassador seems to have died (%s)" % status['uptime'], 400
+
+@app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
+def check_ready():
+    status = envoy_status(estats)
+
+    if status['ready']:
+        return "ambassador readiness check OK (%s)" % status['since_update'], 200
+    else:
+        return "ambassador not ready (%s)" % status['since_update'], 400
+
+@app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
+def show_overview():
+    logging.debug("showing overview")
+
+    # Build a set of source _files_ rather than source _objects_.
+    source_files = {}
+    
+    for key, source in aconf.sources.items():
+        source_dict = source_files.setdefault(
+            source['filename'],
+            {
+                'filename': source['filename'],
+                'objects': {},
+                'count': 0,
+                'plural': "objects"
+            }
+        )
+
+        source_dict['count'] += 1
+        source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
+
+        object_dict = source_dict['objects']
+        object_dict[key] = {
+            'key': key,
+            'kind': source['kind'],
+            'target': ambassador_targets.get(source['kind'].lower())
+        }
+
+    routes = [ route for route in aconf.envoy_config['routes']
+               if route['_source'] != "--diagnostics--" ]
+
+    clusters = aconf.envoy_config['clusters']
+
+    configuration = { key: aconf.envoy_config[key] for key in aconf.envoy_config.keys()
+                      if key != "routes" }
+
+    return render_template('overview.html', system=system_info(), 
+                           envoy_status=envoy_status(estats), 
+                           cluster_stats=cluster_stats(clusters),
+                           sources=sorted(source_files.values(), key=lambda x: x['filename']),
+                           routes=routes,
+                           **configuration)
+
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 def show_intermediate(source=None):
     logging.debug("getting intermediate for '%s'" % source)
@@ -101,10 +190,7 @@ def show_intermediate(source=None):
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    cluster_names = [ x['name'] for x in result['clusters'] ]
-    stats = { name: estats.cluster_stats(name) for name in cluster_names }
-
-    result['sources'].sort(key=lambda x: "%s.%d" % (x['filename'], x['index']))
+    result['sources'] = sorted_sources(result['sources'])
 
     ambassador_targets = {
         'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
@@ -120,15 +206,12 @@ def show_intermediate(source=None):
         if source['kind'].lower() in ambassador_targets:
             source['target'] = ambassador_targets[source['kind'].lower()]
 
-    system_info = {
-        "version": __version__,
-        "hostname": SystemInfo.MyHostName,
-        "boot_time": boot_time,
-        "hr_uptime": td_format(datetime.datetime.now() - boot_time)
-    }
-
-    return render_template('diag.html', system=system_info,
-                           method=method, resource=resource, stats=stats, **result)
+    return render_template('diag.html', 
+                           system=system_info(),
+                           envoy_status=envoy_status(estats),                         
+                           method=method, resource=resource,
+                           cluster_stats=cluster_stats(result['clusters']),
+                           **result)
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
