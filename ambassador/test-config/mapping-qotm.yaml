@@ -1,0 +1,27 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+headers:
+- "x-some-crazy-header": "value"
+- "x-other-thing": "value2"
+  regex: true
+# circuit_breaker: default
+---
+apiVersion: ambassador/v0.12
+kind:  Mapping
+name:  quote_mapping
+prefix: /qotm/quote/
+service: qotm
+rewrite: /quote/
+circuit_breaker: default
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  service_mapping
+prefix: /service/
+service: qotm
+circuit_breaker: default
+outlier_detection: default

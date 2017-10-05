@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm2_mapping
+prefix: /tspace/
+service: qotm.tspace
+# circuit_breaker: default

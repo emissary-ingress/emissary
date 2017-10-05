@@ -107,3 +107,19 @@ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
 to trigger a rolling upgrade of Ambassador.
 
 If you're using your own YAML, check the Datawire YAML to be sure of other changes, but at minimum, you'll need to change the pulled `image` for the Ambassador container and redeploy.
+
+## Diagnostics
+
+Ambassador provides a diagnostics overview on port 8877 by default. This is deliberately not exposed to the outside world; you'll need to use `kubectl port-forward` for access, something like
+
+```shell
+kubectl port-forward ambassador-xxxx-yyy 8877
+```
+
+where, obviously, you'll have to fill in the actual pod name of one of your Ambassador pods (any will do).
+
+Once you have that, you'll be able to point a web browser at 
+
+`http://localhost:8877/ambassador/v0/diag/`
+
+for the diagnostics overview. Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
