@@ -20,13 +20,6 @@ class SourcedDict (dict):
         else:
             self['_source'] = _source
 
-# class AmbassadorMapping (object):
-#     def __init__(self, )
-
-# # An Ambassador Listener is the object that ca
-# class AmbassadorListener (object):
-#     pass
-
 class AmbassadorConfig (object):
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
@@ -37,7 +30,26 @@ class AmbassadorConfig (object):
         self.config = {}
         self.envoy_config = {}
         self.envoy_clusters = {}
-        self.sources = {}
+
+
+        self.sources = {
+            "--internal--": {
+                "kind": "Internal",
+                "version": "v0",
+                "name": "Ambassador Internals",
+                "filename": "--internal--",
+                "index": 0,
+                "description": "The '--internal--' source marks objects created by Ambassador's internal logic."
+            },
+            "--diagnostics--": {
+                "kind": "diagnostics",
+                "version": "v0",
+                "name": "Ambassador Diagnostics",
+                "filename": "--diagnostics--",
+                "index": 0,
+                "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
+            }            
+        }
 
         self.default_liveness_probe = {
             "enabled": True,
@@ -314,12 +326,7 @@ class AmbassadorConfig (object):
                                       [ "tcp://%s" % self.diag_service() ],
                                       type="logical_dns", lb_type="random")
 
-        # # We have two listeners: one on our main listen port, and one on the admin port.
-        # self.envoy_listeners = [
-        #     "admin": AmbassadorListener(self.modules["ambassador"].)
-        # ]
-
-        # ...our initial set of routes is empty...
+        # Our initial set of routes is empty...
         self.envoy_config['routes'] = []
 
         # ...and our initial set of filters is just the 'router' filter.
@@ -367,8 +374,6 @@ class AmbassadorConfig (object):
 
         self.default_liveness_probe['service'] = self.diag_service()
         self.default_readiness_probe['service'] = self.diag_service()
-        # self.default_liveness_probe['service'] = '127.0.0.1:8888'
-        # self.default_readiness_probe['service'] = '127.0.0.1:8888'
 
         # ...TLS config, if necessary...
         if self.ambassador_module['tls_config']:
@@ -537,6 +542,7 @@ class AmbassadorConfig (object):
         source_keys = []
 
         if source_key in self.sources:
+            # Exact match for a source file.
             source_keys.append(source_key)
         elif not re.search(r'\.\d+$', source_key):
             source_key_with_dot = source_key + "."

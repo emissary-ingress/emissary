@@ -144,6 +144,9 @@ def show_overview():
     source_files = {}
     
     for key, source in aconf.sources.items():
+        if source['filename'].startswith('--'):
+            continue
+
         source_dict = source_files.setdefault(
             source['filename'],
             {
