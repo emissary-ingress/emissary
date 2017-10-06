@@ -4,10 +4,6 @@ kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
 service: qotm
-headers:
-- "x-some-crazy-header": "value"
-- "x-other-thing": "value2"
-  regex: true
 # circuit_breaker: default
 ---
 apiVersion: ambassador/v0.12
