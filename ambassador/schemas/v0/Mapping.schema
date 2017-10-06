@@ -20,5 +20,6 @@
             }
         }
     },
-    "required": [ "apiVersion", "kind", "name", "prefix", "service" ]
+    "required": [ "apiVersion", "kind", "name", "prefix", "service" ],
+    "additionalProperties": false
 }

@@ -9,5 +9,6 @@
         "name": { "type": "string" },
         "config": { "type": "object" }
     },
-    "required": [ "apiVersion", "kind", "name", "config" ]
+    "required": [ "apiVersion", "kind", "name", "config" ],
+    "additionalProperties": false
 }

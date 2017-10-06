@@ -11,5 +11,6 @@
         "max_ejection": { "type": "integer" },
         "interval_ms": { "type": "integer" }
     },
-    "required": [ "apiVersion", "kind", "name" ]
+    "required": [ "apiVersion", "kind", "name" ],
+    "additionalProperties": false
 }
