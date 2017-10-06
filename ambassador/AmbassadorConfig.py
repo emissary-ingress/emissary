@@ -55,7 +55,6 @@ class AmbassadorConfig (object):
             "enabled": True,
             "prefix": "/ambassador/v0/check_alive",
             "rewrite": "/ambassador/v0/check_alive",
-            # "rewrite": "/server_info"
             # "service" gets added later
         }
 
@@ -63,7 +62,6 @@ class AmbassadorConfig (object):
             "enabled": True,
             "prefix": "/ambassador/v0/check_ready",
             "rewrite": "/ambassador/v0/check_ready",
-            # "rewrite": "/server_info"
             # "service" gets added later
         }
 

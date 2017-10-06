@@ -188,7 +188,7 @@ def show_intermediate(source=None):
 
     result = aconf.get_intermediate_for(source)
 
-    logging.debug(json.dumps(result, indent=4))
+    # logging.debug(json.dumps(result, indent=4))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)

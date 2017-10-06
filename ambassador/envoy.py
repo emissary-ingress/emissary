@@ -64,7 +64,6 @@ class EnvoyStats (object):
 
     def time_since_boot(self):
         """ Return the number of seconds since Envoy booted. """
-        logging.error("wtf self-stats is %s" % sorted(self.stats.keys()))
         return time.time() - self.stats["created"]
 
     def time_since_update(self):
