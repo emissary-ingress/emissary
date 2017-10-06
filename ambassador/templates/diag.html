@@ -45,6 +45,13 @@
         </div>
       </div>
 
+      {% if error %}
+        <div class="row">
+          <div class="col-12">
+            ERROR: {{ error }}
+          </div>
+        </div>
+      {% else %}
       <div class="row">
         <div class="col-12">
           YAML input files -- these are the files that Ambassador is currently using for its configuration.
@@ -60,6 +67,12 @@
                 {% if source['target'] %}<a href={{ source['target'] }}>{% endif %}
                 {{ source['kind'] }}
                 {% if source['target'] %}</a>{% endif %}
+
+                {% if source.errors %}
+                  {% for error in source.errors %}
+                  <br/>ERROR: {{ error.summary }}
+                  {% endfor %}
+                {% endif %}
               {% endif %}
             </div>
             <div class="col-5">
@@ -176,6 +189,7 @@
           {% endfor %}
         </div>
       </div>
+      {% endif %}
       {% endif %}
     </div> <!-- /container -->
 
