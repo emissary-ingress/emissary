@@ -26,11 +26,12 @@ class AmbassadorConfig (object):
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
 
+        self.logger = logging.getLogger("ambassador.config")
+
         self.schemas = {}
         self.config = {}
         self.envoy_config = {}
         self.envoy_clusters = {}
-
 
         self.sources = {
             "--internal--": {
@@ -51,11 +52,14 @@ class AmbassadorConfig (object):
             }            
         }
 
+        self.source_map = {
+            '--internal--': { '--internal--': True }
+        }
+
         self.default_liveness_probe = {
             "enabled": True,
             "prefix": "/ambassador/v0/check_alive",
             "rewrite": "/ambassador/v0/check_alive",
-            # "rewrite": "/server_info"
             # "service" gets added later
         }
 
@@ -63,7 +67,6 @@ class AmbassadorConfig (object):
             "enabled": True,
             "prefix": "/ambassador/v0/check_ready",
             "rewrite": "/ambassador/v0/check_ready",
-            # "rewrite": "/server_info"
             # "service" gets added later
         }
 
@@ -79,9 +82,8 @@ class AmbassadorConfig (object):
 
         self.tls_config = None
 
-        self.logger = logging.getLogger("ambassador.config")
-
-        self.syntax_errors = 0
+        self.errors = {}
+        self.fatal_errors = 0
         self.object_errors = 0
 
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
@@ -108,39 +110,66 @@ class AmbassadorConfig (object):
                     objects = list(yaml.safe_load_all(open(filepath, "r")))
                 except Exception as e:
                     self.logger.error("%s: could not parse YAML: %s" % (filepath, e))
-                    self.syntax_errors += 1
+                    self.fatal_errors += 1
                     continue
 
                 self.ocount = 0
                 for obj in objects:
                     self.ocount += 1
 
-                    try:
-                        if not self.process_object(obj):
-                            # Object error. Not good but we'll allow the system to start.
-                            # We assume that the processor already logged appropriately.
-                            self.object_errors += 1
-                    except Exception as e:
-                        # Bzzzt.
-                        self.logger.error("%s[%d]: could not process object: %s" % 
-                                          (self.filename, self.ocount, e))
-                        self.syntax_errors += 1
-                        continue
+                    rc = self.process_object(obj)
 
-        if self.syntax_errors:
+                    if not rc:
+                        # Object error. Not good but we'll allow the system to start.
+                        self.post_error(rc)
+
+        if self.fatal_errors:
             # Kaboom.
             raise Exception("ERROR ERROR ERROR Unparseable configuration; exiting")
 
-        if self.object_errors:
+        if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
         self.generate_intermediate_config()
 
+    def current_source_key(self):
+        return("%s.%d" % (self.filename, self.ocount))
+
+    def post_error(self, rc):
+        source_map = self.source_map.setdefault(self.filename, {})
+        source_map[self.current_source_key()] = True
+
+        errors = self.errors.setdefault(self.current_source_key(), [])
+        errors.append(rc.toDict())
+        self.logger.error("%s: %s" % (self.current_source_key(), rc))
+
     def process_object(self, obj):
-        # OK. What is this thing?
-        obj_kind, obj_version = self.validate_object(obj)
+        obj_version = obj['apiVersion']
+        obj_kind = obj['kind']
         obj_name = obj['name']
 
+        # ...save the source info...
+        source_key = "%s.%d" % (self.filename, self.ocount)
+        self.sources[source_key] = {
+            'kind': obj_kind,
+            'version': obj_version,
+            'name': obj_name,
+            'filename': self.filename,
+            'index': self.ocount,
+            'yaml': yaml.safe_dump(obj, default_flow_style=False)
+        }
+
+        source_map = self.source_map.setdefault(self.filename, {})
+        source_map[source_key] = True
+
+        # OK. What is this thing?
+        rc = self.validate_object(obj)
+
+        if not rc:
+            # Well that's no good.
+            return rc
+
+        # OK, so far so good. Grab the handler for this object type.
         handler_name = "handle_%s" % obj_kind.lower()
         handler = getattr(self, handler_name, None)
 
@@ -152,38 +181,33 @@ class AmbassadorConfig (object):
             self.logger.debug("%s[%d]: handling %s..." %
                               (self.filename, self.ocount, obj_kind))
 
-        source_key = "%s.%d" % (self.filename, self.ocount)
-        self.sources[source_key] = {
-            'kind': obj_kind,
-            'version': obj_version,
-            'name': obj_name,
-            'filename': self.filename,
-            'index': self.ocount,
-            'yaml': yaml.safe_dump(obj, default_flow_style=False)
-        }
+        try:
+            handler(source_key, obj, obj_name, obj_kind, obj_version)
+        except Exception as e:
+            # Bzzzt.
+            return RichStatus.fromError("could not process %s object: %s" % (obj_kind, e))
 
-        handler(source_key, obj, obj_name, obj_kind, obj_version)
+        # OK, all's well.
+        return RichStatus.OK(msg="%s object processed successfully" % obj_kind)
 
     def validate_object(self, obj):
         # Each object must be a dict, and must include "apiVersion"
         # and "type" at toplevel.
 
         if not isinstance(obj, collections.Mapping):
-            raise TypeException("%s[%d]: not a dictionary" %
-                                (self.filename, self.ocount))
+            return RichStatus.fromError("not a dictionary")
 
-        if not (("apiVersion" in obj) and ("kind" in obj)):
-            raise TypeException("%s[%d]: must have apiVersion and kind" %
-                                (self.filename, self.ocount))
+        if not (("apiVersion" in obj) and ("kind" in obj) and ("name" in obj)):
+            return RichStatus.fromError("must have apiVersion, kind, and name")
 
         obj_version = obj['apiVersion']
         obj_kind = obj['kind']
+        obj_name = obj['name']
 
         if obj_version.startswith("ambassador/"):
             obj_version = obj_version.split('/')[1]
         else:
-            raise ValueException("%s[%d]: apiVersion %s unsupported" %
-                                 (self.filename, self.ocount, obj_version))
+            return RichStatus.fromError("apiVersion %s unsupported" % obj_version)
 
         schema_key = "%s-%s" % (obj_version, obj_kind)
 
@@ -206,10 +230,10 @@ class AmbassadorConfig (object):
             try:
                 jsonschema.validate(obj, schema)
             except jsonschema.exceptions.ValidationError as e:
-                raise TypeException("%s[%d] is not a valid %s: %s" % 
-                                    (self.filename, self.ocount, obj_kind, e))
+                return RichStatus.fromError("not a valid %s: %s" % (obj_kind, e))
 
-        return (obj_kind, obj_version)
+        return RichStatus.OK(msg="valid %s" % obj_kind,
+                             details=(obj_kind, obj_version, obj_name))
 
     def safe_store(self, source_key, storage_name, obj_name, obj_kind, value, allow_log=True):
         storage = self.config.setdefault(storage_name, {})
@@ -541,19 +565,37 @@ class AmbassadorConfig (object):
     def get_intermediate_for(self, source_key):
         source_keys = []
 
-        if source_key in self.sources:
-            # Exact match for a source file.
+        if source_key in self.source_map:
+            # Exact match for a file in the source map: include all the objects
+            # in the file.
+            source_keys = self.source_map[source_key]
+        elif source_key in self.sources:
+            # Exact match for an object in a file: include only that object.
             source_keys.append(source_key)
-        elif not re.search(r'\.\d+$', source_key):
-            source_key_with_dot = source_key + "."
-
-            source_keys = [ key for key in self.sources.keys()
-                            if key.startswith(source_key_with_dot) ]
+        else: 
+            # No match at all. Weird.
+            return {
+                "error": "No source matches %s" % source_key
+            }
 
         source_keys = set(source_keys)
 
+        sources = []
+
+        for key in source_keys:
+            source_dict = dict(self.sources[key])
+            source_dict['errors'] = [
+                {
+                    'summary': error['error'].split('\n', 1)[0],
+                    'text': error['error']
+                }
+                for error in self.errors.get(key, [])
+            ]
+
+            sources.append(source_dict)
+
         result = {
-            "sources": [ self.sources[key] for key in source_keys ],
+            "sources": sources
         }
 
         for key in self.envoy_config.keys():

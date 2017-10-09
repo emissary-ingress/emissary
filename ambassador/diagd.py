@@ -3,11 +3,17 @@
 import sys
 
 import datetime
+import functools
 import json
 import logging
+import os
+import signal
+import uuid
 
 import VERSION
 
+import clize
+from clize import Parameter
 from flask import Flask, render_template, request # Response, jsonify
 
 from AmbassadorConfig import AmbassadorConfig
@@ -18,37 +24,110 @@ __version__ = VERSION.Version
 boot_time = datetime.datetime.now()
 
 logging.basicConfig(
-    # filename=logPath,
-    level=logging.DEBUG, # if appDebug else logging.INFO,
+    level=logging.INFO,
     format="%%(asctime)s diagd %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-estats = EnvoyStats()
+# Shut up Werkzeug's standard request logs -- they're just too noisy.
+logging.getLogger("werkzeug").setLevel(logging.CRITICAL)
 
-dir_index = 1
-health_checks = True
-errors = 0
+ambassador_targets = {
+    'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
+    'module': 'https://www.getambassador.io/reference/configuration#modules',
+}
 
-while sys.argv[dir_index].startswith('-'):
-    arg = sys.argv[dir_index]
-    dir_index += 1
+envoy_targets = {
+    'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
+    'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
+}
 
-    if arg == '--no-health':
-        health_checks = False
-    else:
-        logging.error("unknown argument %s" % arg)
-        errors += 1
+######## DECORATORS
 
-if errors:
-    sys.exit(errors)
+def standard_handler(f):
+    func_name = getattr(f, '__name__', '<anonymous>')
 
-if health_checks:
-    logging.debug("Starting periodic updates")
-    stats_updater = PeriodicTrigger(estats.update, period=5)
+    @functools.wraps(f)
+    def wrapper(*args, **kwds):
+        reqid = str(uuid.uuid4()).upper()
+        prefix = "%s: %s \"%s %s\"" % (reqid, request.remote_addr, request.method, request.path)
 
-aconf = AmbassadorConfig(sys.argv[dir_index])
+        start = datetime.datetime.now()
 
+        app.logger.debug("%s handler %s" % (prefix, func_name))
+
+        result = ("impossible error", 500)
+        status_to_log = 500
+        result_to_log = "impossible error"
+        result_log_level = logging.ERROR
+
+        try:
+            result = f(*args, reqid=reqid, **kwds)
+
+            if not isinstance(result, tuple):
+                result = (result, 200)
+
+            status_to_log = result[1]
+
+            if (status_to_log // 100) == 2:
+                result_log_level = logging.DEBUG
+                result_to_log = "success"
+            else:
+                result_log_level = logging.ERROR
+                result_to_log = "failure"
+        except Exception as e:
+            result_to_log = "server error"
+            status_to_log = 500
+            result_log_level = logging.ERROR
+            result = (result_to_log, status_to_log)
+
+            app.logger.exception(e)
+
+        end = datetime.datetime.now()
+        ms = int(((end - start).total_seconds() * 1000) + .5)
+
+        app.logger.log(result_log_level, "%s %dms %d %s" % (prefix, ms, status_to_log, result_to_log))
+
+        return result
+
+    return wrapper
+
+# Get the Flask app defined early.
+app = Flask(__name__)
+
+# Watchdog
+def watchdog():
+    now = datetime.datetime.now()
+    kaboom = False
+
+    for which in [ 'liveness', 'readiness' ]:
+        delta = int((now - app.watchdog_checks[which]).total_seconds() + 0.5)
+
+        if delta > 30:
+            # Well this is a problem.
+            app.logger.critical("WATCHDOG FAILURE: %s hasn't been checked for %d seconds" % (which, delta))
+            kaboom = True
+        elif delta >= 10:
+            # Switch this from check to warning.
+            if not app.watchdog_warnings[which]:
+                app.logger.error("WATCHDOG WARNING: %s hasn't been checked for %d seconds" % (which, delta))
+
+            app.watchdog_warnings[which] = True
+        else:
+            # Switch this from warning to clear.
+            if app.watchdog_warnings[which]:
+                app.logger.error("WATCHDOG OK: %s checked within %d seconds" % (which, delta))
+
+            app.watchdog_warnings[which] = False
+
+    if kaboom:
+        # Kaboom kaboom kaboom!
+        app.logger.critical("WATCHDOG FAILURE: exiting")
+        os.kill(os.getpid(), signal.SIGTERM)
+        time.sleep(5)
+        os.kill(os.getpid(), signal.SIGKILL)
+
+# Next, various helpers.
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
@@ -86,7 +165,7 @@ def system_info():
 
 def cluster_stats(clusters):
     cluster_names = [ x['name'] for x in clusters ]
-    return { name: estats.cluster_stats(name) for name in cluster_names }
+    return { name: app.estats.cluster_stats(name) for name in cluster_names }
 
 def sorted_sources(sources):
     return sorted(sources, key=lambda x: "%s.%d" % (x['filename'], x['index']))
@@ -106,21 +185,11 @@ def envoy_status(estats):
         "since_update": since_update
     }
 
-ambassador_targets = {
-    'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
-    'module': 'https://www.getambassador.io/reference/configuration#modules',
-}
-
-envoy_targets = {
-    'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
-    'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
-}
-
-app = Flask(__name__)
-
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
-    status = envoy_status(estats)
+    app.watchdog_checks['liveness'] = datetime.datetime.now()
+
+    status = envoy_status(app.estats)
 
     if status['alive']:
         return "ambassador liveness check OK (%s)" % status['uptime'], 200
@@ -129,7 +198,9 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    status = envoy_status(estats)
+    app.watchdog_checks['readiness'] = datetime.datetime.now()
+
+    status = envoy_status(app.estats)
 
     if status['ready']:
         return "ambassador readiness check OK (%s)" % status['since_update'], 200
@@ -137,83 +208,110 @@ def check_ready():
         return "ambassador not ready (%s)" % status['since_update'], 400
 
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
-def show_overview():
-    logging.debug("showing overview")
+@standard_handler
+def show_overview(reqid=None):
+    app.logger.debug("OV %s - showing overview" % reqid)
 
     # Build a set of source _files_ rather than source _objects_.
     source_files = {}
     
-    for key, source in aconf.sources.items():
-        if source['filename'].startswith('--'):
+    for filename, source_keys in app.aconf.source_map.items():
+        # logging.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
+
+        if filename.startswith('--'):
             continue
 
         source_dict = source_files.setdefault(
-            source['filename'],
+            filename,
             {
-                'filename': source['filename'],
+                'filename': filename,
                 'objects': {},
                 'count': 0,
-                'plural': "objects"
+                'plural': "objects",
+                'error_count': 0,
+                'error_plural': "errors"
             }
         )
 
-        source_dict['count'] += 1
-        source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
+        for source_key in source_keys:
+            # logging.debug("OV %s --- source_key %s" % (reqid, source_key))
 
-        object_dict = source_dict['objects']
-        object_dict[key] = {
-            'key': key,
-            'kind': source['kind'],
-            'target': ambassador_targets.get(source['kind'].lower())
-        }
+            source = app.aconf.sources[source_key]
+            raw_errors = app.aconf.errors.get(source_key, [])
 
-    routes = [ route for route in aconf.envoy_config['routes']
+            errors = []
+
+            for error in raw_errors:
+                source_dict['error_count'] += 1
+
+                errors.append({
+                    'summary': error['error'].split('\n', 1)[0],
+                    'text': error['error']
+                })
+
+            source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "errors"
+
+            source_dict['count'] += 1
+            source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
+
+            object_dict = source_dict['objects']
+            object_dict[source_key] = {
+                'key': source_key,
+                'kind': source['kind'],
+                'target': ambassador_targets.get(source['kind'].lower(), None),
+                'errors': errors
+            }
+
+    # logging.debug("OV %s --- sources built" % reqid)
+
+    routes = [ route for route in app.aconf.envoy_config['routes']
                if route['_source'] != "--diagnostics--" ]
 
-    clusters = aconf.envoy_config['clusters']
+    # logging.debug("OV %s --- routes built" % reqid)
 
-    configuration = { key: aconf.envoy_config[key] for key in aconf.envoy_config.keys()
+    clusters = app.aconf.envoy_config['clusters']
+
+    # logging.debug("OV %s --- clusters built" % reqid)
+
+    configuration = { key: app.aconf.envoy_config[key] for key in app.aconf.envoy_config.keys()
                       if key != "routes" }
 
-    return render_template('overview.html', system=system_info(), 
-                           envoy_status=envoy_status(estats), 
-                           cluster_stats=cluster_stats(clusters),
-                           sources=sorted(source_files.values(), key=lambda x: x['filename']),
-                           routes=routes,
-                           **configuration)
+    # logging.debug("OV %s --- configuration built" % reqid)
+
+    result = render_template('overview.html', system=system_info(), 
+                             envoy_status=envoy_status(app.estats), 
+                             cluster_stats=cluster_stats(clusters),
+                             sources=sorted(source_files.values(), key=lambda x: x['filename']),
+                             routes=routes,
+                             **configuration)
+
+    logging.debug("OV %s from %s --- completed in %s " % (reqid, request.remote_addr, result))
+
+    return result
 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
-def show_intermediate(source=None):
-    logging.debug("getting intermediate for '%s'" % source)
+@standard_handler
+def show_intermediate(source=None, reqid=None):
+    logging.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    result = aconf.get_intermediate_for(source)
+    result = app.aconf.get_intermediate_for(source)
 
-    logging.debug(json.dumps(result, indent=4))
+    # logging.debug(json.dumps(result, indent=4))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    result['sources'] = sorted_sources(result['sources'])
+    if "error" not in result:
+        result['cluster_stats'] = cluster_stats(result['clusters'])
+        result['sources'] = sorted_sources(result['sources'])
 
-    ambassador_targets = {
-        'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
-        'module': 'https://www.getambassador.io/reference/configuration#modules',
-    }
-
-    envoy_targets = {
-        'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
-        'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
-    }
-
-    for source in result['sources']:
-        if source['kind'].lower() in ambassador_targets:
-            source['target'] = ambassador_targets[source['kind'].lower()]
+        for source in result['sources']:
+            source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
     return render_template('diag.html', 
                            system=system_info(),
-                           envoy_status=envoy_status(estats),                         
+                           envoy_status=envoy_status(app.estats),
                            method=method, resource=resource,
-                           cluster_stats=cluster_stats(result['clusters']),
                            **result)
 
 @app.template_filter('pretty_json')
@@ -229,4 +327,36 @@ def pretty_json(obj):
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
-app.run(host='127.0.0.1', port=aconf.diag_port(), debug=True)
+def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
+    """
+    Run the diagnostic daemon.
+
+    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param no_checks: If True, don't do Envoy-cluster health checking
+    :param no_debugging: If True, don't run Flask in debug mode
+    :param verbose: If True, be more verbose
+    """
+
+    app.estats = EnvoyStats()
+    app.health_checks = False
+    app.debugging = not no_debugging
+    app.logger.setLevel(logging.DEBUG)
+    app.watchdog_checks = { 'liveness': datetime.datetime.now(), 'readiness': datetime.datetime.now() }
+    app.watchdog_warnings = { 'liveness': False, 'readiness': False }
+
+    if app.debugging or verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+
+    if not no_checks:
+        app.health_checks = True
+        logging.debug("Starting periodic updates")
+        app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
+
+    app.watchdog = PeriodicTrigger(watchdog, period=5)
+
+    app.aconf = AmbassadorConfig(config_dir_path)
+
+    app.run(host='127.0.0.1', port=app.aconf.diag_port(), debug=app.debugging)
+
+if __name__ == "__main__":
+    clize.run(main)

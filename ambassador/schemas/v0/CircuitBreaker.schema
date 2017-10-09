@@ -11,5 +11,6 @@
         "max_pending": { "type": "integer" },
         "max_retries": { "type": "integer" }
     },
-    "required": [ "apiVersion", "kind", "name" ]
+    "required": [ "apiVersion", "kind", "name" ],
+    "additionalProperties": false
 }

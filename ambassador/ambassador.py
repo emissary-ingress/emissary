@@ -106,7 +106,6 @@ def dump(config_dir_path:Parameter.REQUIRED):
         aconf = AmbassadorConfig(config_dir_path)
         json.dump(aconf.envoy_config, sys.stdout, indent=4, sort_keys=True)
     except Exception as e:
-        # scout.report(action="WTFO?")
         handle_exception("EXCEPTION from dump", e, 
                          config_dir_path=config_dir_path)
 
@@ -201,7 +200,6 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 except TypeError:
                     logger.warning(str(notice))
     except Exception as e:
-        # scout.report(action="WTFO?")
         handle_exception("EXCEPTION from config", e, 
                          config_dir_path=config_dir_path, output_json_path=output_json_path)
 

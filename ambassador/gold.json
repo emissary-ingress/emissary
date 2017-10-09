@@ -20,17 +20,6 @@
                 "connect_timeout_ms":250,
                 "hosts":[
                     {
-                        "url":"tcp://192.168.0.1:45"
-                    }
-                ],
-                "lb_type":"round_robin",
-                "name":"cluster_192_168_0_1_45",
-                "type":"strict_dns"
-            },
-            {
-                "connect_timeout_ms":250,
-                "hosts":[
-                    {
                         "url":"tcp://example-auth:3000"
                     }
                 ],
@@ -175,12 +164,6 @@
                                         {
                                             "cluster":"cluster_qotm",
                                             "prefix":"/qotm/",
-                                            "prefix_rewrite":"/",
-                                            "timeout_ms":500
-                                        },
-                                        {
-                                            "cluster":"cluster_192_168_0_1_45",
-                                            "prefix":"/grpc/",
                                             "prefix_rewrite":"/",
                                             "timeout_ms":500
                                         },

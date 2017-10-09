@@ -12,7 +12,7 @@ STATUS=$?
 
 if [ $STATUS -eq 0 ]; then
     echo "ENTRYPOINT: starting diagd"
-    /usr/bin/python3 "$APPDIR/diagd.py" /etc/ambassador-config &
+    /usr/bin/python3 "$APPDIR/diagd.py" --no-debugging /etc/ambassador-config &
 
     echo "ENTRYPOINT: starting Envoy"
     /usr/local/bin/envoy -c /etc/envoy.json

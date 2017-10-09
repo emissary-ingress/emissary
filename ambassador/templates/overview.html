@@ -32,7 +32,7 @@
           {% if envoy_status.ready %}
           Envoy ready, last status reported {{ envoy_status.since_update }}
           {% elif envoy_status.alive %}
-          Envoy alive but not yet ready, running {{ envoy_status.uptime }}
+          Envoy alive but not yet ready{%- if envoy_status.uptime -%}, running {{ envoy_status.uptime }}{% endif %}
           {% else %}
           Envoy not running!!
           {% endif %}
@@ -48,7 +48,8 @@
             <div class="col-7">
               <a href="/ambassador/v0/diag/{{ source.filename }}"><code>{{ source.filename }}</code></a>
               {% if not source.description %}
-              -- {{ source.count }} {{ source.plural }}
+              -- {{ source.count }} {{ source.plural }},
+              {{ source.error_count }} {{ source.error_plural}}
               {% endif %}
             </div>
 
@@ -59,6 +60,13 @@
                 -- Ambassador {% if object.target %}<a href={{ object.target }}>{% endif %}
                   {{ object.kind }}
                   {% if object.target %}</a>{% endif %}
+
+                  {% if object.errors %}
+                    {% for error in object.errors %}
+                    <br/>ERROR: {{ error.summary }}
+                    {% endfor %}
+                  {% endif %}
+
                   {% if not loop.last %}<br/>{% endif %}
                 {% endfor %}
               {% else %}
