@@ -32,7 +32,7 @@
           {% if envoy_status.ready %}
           Envoy ready, last status reported {{ envoy_status.since_update }}
           {% elif envoy_status.alive %}
-          Envoy alive but not yet ready, running {{ envoy_status.uptime }}
+          Envoy alive but not yet ready{%- if envoy_status.uptime -%}, running {{ envoy_status.uptime }}{% endif %}
           {% else %}
           Envoy not running!!
           {% endif %}
