@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import signal
+import time
 import uuid
 
 import VERSION
@@ -194,7 +195,7 @@ def check_alive():
     if status['alive']:
         return "ambassador liveness check OK (%s)" % status['uptime'], 200
     else:
-        return "ambassador seems to have died (%s)" % status['uptime'], 400
+        return "ambassador seems to have died (%s)" % status['uptime'], 503
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
@@ -205,7 +206,7 @@ def check_ready():
     if status['ready']:
         return "ambassador readiness check OK (%s)" % status['since_update'], 200
     else:
-        return "ambassador not ready (%s)" % status['since_update'], 400
+        return "ambassador not ready (%s)" % status['since_update'], 503
 
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler

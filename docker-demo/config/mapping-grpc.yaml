@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: grpc_mapping
+prefix: /grpc/
+grpc: true
+service: "192.168.0.1:45"
