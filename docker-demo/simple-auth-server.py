@@ -2,10 +2,8 @@
 
 import sys
 
-# import functools
-# import json
 import logging
-import pprint
+import uuid
 
 from flask import Flask, Response, jsonify, request
 
@@ -82,12 +80,19 @@ def catch_all(path):
                 }
             )
         else:
+            session = request.headers.get('x-qotm-session', None)
+
+            if not session:
+                session = str(uuid.uuid4()).upper()
+                logging.debug("Generated new QOTM session ID %s" % session)
+
             resp = Response(
                 "Authentication succeeded for %s" % path,
                 200,
                 {
                     'X-Authenticated-As': auth.username,
-                    'X-ExtAuth-Required': 'True'
+                    'X-ExtAuth-Required': 'True',
+                    'X-QoTM-Session': session
                 }                    
             )
     else:
