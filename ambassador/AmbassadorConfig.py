@@ -86,6 +86,9 @@ class AmbassadorConfig (object):
         self.fatal_errors = 0
         self.object_errors = 0
 
+        if not os.path.isdir(self.config_dir_path):
+            raise Exception("ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
+
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
             # Modify dirnames in-place (dirs[:]) to remove any weird directories
             # whose names start with '.' -- why? because my GKE cluster mounts my
