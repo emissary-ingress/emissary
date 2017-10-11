@@ -181,7 +181,7 @@ def show_overview(reqid=None):
     source_files = {}
     
     for filename, source_keys in app.aconf.source_map.items():
-        # logging.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
+        # app.logger.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
 
         if filename.startswith('--'):
             continue
@@ -199,7 +199,7 @@ def show_overview(reqid=None):
         )
 
         for source_key in source_keys:
-            # logging.debug("OV %s --- source_key %s" % (reqid, source_key))
+            # app.logger.debug("OV %s --- source_key %s" % (reqid, source_key))
 
             source = app.aconf.sources[source_key]
             raw_errors = app.aconf.errors.get(source_key, [])
@@ -227,21 +227,21 @@ def show_overview(reqid=None):
                 'errors': errors
             }
 
-    # logging.debug("OV %s --- sources built" % reqid)
+    # app.logger.debug("OV %s --- sources built" % reqid)
 
     routes = [ route for route in app.aconf.envoy_config['routes']
                if route['_source'] != "--diagnostics--" ]
 
-    # logging.debug("OV %s --- routes built" % reqid)
+    # app.logger.debug("OV %s --- routes built" % reqid)
 
     clusters = app.aconf.envoy_config['clusters']
 
-    # logging.debug("OV %s --- clusters built" % reqid)
+    # app.logger.debug("OV %s --- clusters built" % reqid)
 
     configuration = { key: app.aconf.envoy_config[key] for key in app.aconf.envoy_config.keys()
                       if key != "routes" }
 
-    # logging.debug("OV %s --- configuration built" % reqid)
+    # app.logger.debug("OV %s --- configuration built" % reqid)
 
     result = render_template('overview.html', system=system_info(), 
                              envoy_status=envoy_status(app.estats), 
@@ -250,18 +250,18 @@ def show_overview(reqid=None):
                              routes=routes,
                              **configuration)
 
-    logging.debug("OV %s from %s --- completed in %s " % (reqid, request.remote_addr, result))
+    # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
 
     return result
 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
-    logging.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
+    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     result = app.aconf.get_intermediate_for(source)
 
-    # logging.debug(json.dumps(result, indent=4))
+    # app.logger.debug(json.dumps(result, indent=4))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
@@ -306,12 +306,17 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
     app.health_checks = False
     app.debugging = not no_debugging
 
+    # This feels like overkill.
+    app._logger = logging.getLogger(app.logger_name)
+    app.logger.setLevel(logging.INFO)
+
     if app.debugging or verbose:
+        app.logger.setLevel(logging.DEBUG)
         logging.getLogger().setLevel(logging.DEBUG)
 
     if not no_checks:
         app.health_checks = True
-        logging.debug("Starting periodic updates")
+        app.logger.debug("Starting periodic updates")
         app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
 
     app.aconf = AmbassadorConfig(config_dir_path)
