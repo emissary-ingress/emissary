@@ -96,38 +96,6 @@ def standard_handler(f):
 # Get the Flask app defined early.
 app = Flask(__name__)
 
-# Watchdog
-def watchdog():
-    now = datetime.datetime.now()
-    kaboom = False
-
-    for which in [ 'liveness', 'readiness' ]:
-        delta = int((now - app.watchdog_checks[which]).total_seconds() + 0.5)
-
-        if delta > 30:
-            # Well this is a problem.
-            app.logger.critical("WATCHDOG FAILURE: %s hasn't been checked for %d seconds" % (which, delta))
-            kaboom = True
-        elif delta >= 10:
-            # Switch this from check to warning.
-            if not app.watchdog_warnings[which]:
-                app.logger.error("WATCHDOG WARNING: %s hasn't been checked for %d seconds" % (which, delta))
-
-            app.watchdog_warnings[which] = True
-        else:
-            # Switch this from warning to clear.
-            if app.watchdog_warnings[which]:
-                app.logger.error("WATCHDOG OK: %s checked within %d seconds" % (which, delta))
-
-            app.watchdog_warnings[which] = False
-
-    if kaboom:
-        # Kaboom kaboom kaboom!
-        app.logger.critical("WATCHDOG FAILURE: exiting")
-        os.kill(os.getpid(), signal.SIGTERM)
-        time.sleep(5)
-        os.kill(os.getpid(), signal.SIGKILL)
-
 # Next, various helpers.
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
@@ -188,8 +156,6 @@ def envoy_status(estats):
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
-    app.watchdog_checks['liveness'] = datetime.datetime.now()
-
     status = envoy_status(app.estats)
 
     if status['alive']:
@@ -199,8 +165,6 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    app.watchdog_checks['readiness'] = datetime.datetime.now()
-
     status = envoy_status(app.estats)
 
     if status['ready']:
@@ -341,9 +305,6 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
     app.estats = EnvoyStats()
     app.health_checks = False
     app.debugging = not no_debugging
-    app.logger.setLevel(logging.DEBUG)
-    app.watchdog_checks = { 'liveness': datetime.datetime.now(), 'readiness': datetime.datetime.now() }
-    app.watchdog_warnings = { 'liveness': False, 'readiness': False }
 
     if app.debugging or verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -352,8 +313,6 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
         app.health_checks = True
         logging.debug("Starting periodic updates")
         app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
-
-    app.watchdog = PeriodicTrigger(watchdog, period=5)
 
     app.aconf = AmbassadorConfig(config_dir_path)
 
