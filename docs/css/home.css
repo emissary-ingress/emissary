@@ -242,16 +242,34 @@ h1, h2, h3, h4, h5, h6, strong {
 }
 
 #hero {
-    background: url('/images/penguin-background.svg') no-repeat center bottom;
-    max-width: 919px;
+    background: url('/images/penguin-background.svg') no-repeat right bottom;
+    max-width: 1120px;
     margin: 0 auto -90px;
     padding: 60px 30px 250px;
+}
+@media screen and (max-width: 1120px) {
+    #hero {
+        padding-bottom: 400px;
+    }
 }
 #hero h1 {
     font-weight: 900;
 }
 #hero .btn {
     margin-top: 70px;
+}
+
+.version-number {
+    height: 72px;
+    width: 72px;
+    display: inline-block;
+    line-height: 68px;
+    text-align: center;
+    border: 2px solid #222;
+    border-radius: 30px;
+    font-size: 28px;
+    font-weight: 300;
+    margin: 10px 0;
 }
 
 #tabs {
