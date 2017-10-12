@@ -1,6 +1,6 @@
 FROM datawire/qotm:1.3 as qotm
 
-FROM {AMREG}ambassador:{VERSION}
+FROM {AMREG}ambassador-core:{VERSION}
 
 WORKDIR /demo
 

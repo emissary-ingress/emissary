@@ -24,7 +24,7 @@ reg-check:
 
 versions:
 	@echo "Building $(VERSION)"
-	for file in actl ambassador; do \
+	for file in actl ambassador-core; do \
 	    sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > $$file/VERSION.py; \
 	done
 
@@ -39,14 +39,14 @@ yaml-files:
 ambassador-test:
 	sh scripts/ambassador-test.sh
 
-docker-images: ambassador-image docker-demo-image statsd-image cli-image
+docker-images: ambassador-core-image ambassador-image statsd-image cli-image
+
+ambassador-core-image: ambassador-test .ALWAYS
+	scripts/docker_build_maybe_push ambassador-core $(VERSION) ambassador-core
 
 ambassador-image: ambassador-test .ALWAYS
+	VERSION=$(VERSION) python scripts/template.py < ambassador/Dockerfile.template > ambassador/Dockerfile
 	scripts/docker_build_maybe_push ambassador $(VERSION) ambassador
-
-docker-demo-image: ambassador-test .ALWAYS
-	VERSION=$(VERSION) python scripts/template.py < docker-demo/Dockerfile.template > docker-demo/Dockerfile
-	scripts/docker_build_maybe_push ambassador-demo $(VERSION) docker-demo
 
 statsd-image: .ALWAYS
 	scripts/docker_build_maybe_push statsd $(VERSION) statsd
@@ -60,4 +60,5 @@ website: yaml-files
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf app.json
-	rm -rf ambassador/__pycache__  ambassador/envoy-test.json
+	rm -rf ambassador-core/__pycache__  ambassador-core/envoy-test.json
+	rm -rf ambassador/__pycache__  ambassador/Dockerfile
