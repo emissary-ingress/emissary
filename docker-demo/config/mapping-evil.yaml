@@ -10,6 +10,6 @@ apiVersion: ambassador/v0
 kind: Mapping
 name: evil_put_mapping
 prefix: /evil/
-rewrite: /qotm/quote/
+rewrite: /quote/
 method: PUT
 service: 127.0.0.1:5000
