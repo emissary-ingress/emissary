@@ -39,10 +39,14 @@ yaml-files:
 ambassador-test:
 	sh scripts/ambassador-test.sh
 
-docker-images: ambassador-image statsd-image cli-image
+docker-images: ambassador-image docker-demo-image statsd-image cli-image
 
 ambassador-image: ambassador-test .ALWAYS
 	scripts/docker_build_maybe_push ambassador $(VERSION) ambassador
+
+docker-demo-image: ambassador-test .ALWAYS
+	VERSION=$(VERSION) python scripts/template.py < docker-demo/Dockerfile.template > docker-demo/Dockerfile
+	scripts/docker_build_maybe_push ambassador-demo $(VERSION) docker-demo
 
 statsd-image: .ALWAYS
 	scripts/docker_build_maybe_push statsd $(VERSION) statsd

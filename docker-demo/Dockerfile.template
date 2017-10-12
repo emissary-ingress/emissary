@@ -1,14 +1,19 @@
-FROM datawire/qotm:1.1 as qotm
+FROM datawire/qotm:1.3 as qotm
 
-FROM {{ambassador-image}}
+FROM {AMREG}ambassador:{VERSION}
 
 WORKDIR /demo
 
 # Copy in the qotm service...
 COPY --from=qotm /service/qotm/qotm.py .
 
+COPY check-services.py .
+
 # ...and the auth service...
 COPY simple-auth-server.py .
+
+# ...and the prober...
+COPY probes.sh .
 
 # ...and the demo config.
 COPY config /etc/ambassador-config

@@ -34,23 +34,24 @@ trap "handle_chld" CHLD
 
 ROOT=$$
 
-echo "DOCKER-DEMO: starting QoTM"
-/usr/bin/python3 "$APPDIR/qotm.py" &
-pids+=("$!;qotm")
+if python3 check-services.py; then
+    echo "DOCKER-DEMO: starting QoTM"
+    /usr/bin/python3 "$APPDIR/qotm.py" &
+    pids+=("$!;qotm")
 
-echo "DOCKER-DEMO: starting Extauth"
-/usr/bin/python3 "$APPDIR/simple-auth-server.py" &
-pids+=("$!;extauth")
+    echo "DOCKER-DEMO: starting Extauth"
+    /usr/bin/python3 "$APPDIR/simple-auth-server.py" &
+    pids+=("$!;extauth")
+
+    echo "DOCKER-DEMO: starting probes"
+    /bin/sh "$APPDIR/probes.sh" &
+    pids+=("$!;probes")
+fi
 
 echo "DOCKER-DEMO: starting Ambassador"
 ( cd /application ; /bin/bash entrypoint.sh ) &
 pids+=("$!;ambassador")
 
-echo "DOCKER-DEMO: starting probes"
-/bin/sh "$APPDIR/probes.sh" &
-pids+=("$!;probes")
-
 echo "DOCKER-DEMO: waiting"
 wait
-
 
