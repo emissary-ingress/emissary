@@ -6,7 +6,7 @@ venv
 __pycache__
 VERSION.py
 
-ambassador/Dockerfile
+docker-demo/Dockerfile
 
 docs/yaml
 docs/_book

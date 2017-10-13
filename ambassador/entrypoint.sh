@@ -3,10 +3,26 @@
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-APPDIR=${APPDIR:-/demo}
-echo "DOCKER-DEMO: args $@"
+APPDIR=${APPDIR:-/application}
 
 pids=()
+
+diediedie() {
+    NAME=$1
+    STATUS=$2
+
+    if [ $STATUS -eq 0 ]; then
+        echo "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
+    else
+        echo "AMBASSADOR: $NAME exited with status $STATUS"
+    fi
+
+    echo "Here's the envoy.json we were trying to run with:"
+    cat /etc/envoy.json
+
+    echo "AMBASSADOR: shutting down"
+    exit 1
+}
 
 handle_chld() {
     local tmp=()
@@ -18,9 +34,10 @@ handle_chld() {
 
         if [ ! -d /proc/$pid ]; then
             wait $pid
-            echo "DOCKER-DEMO: $name exited: $?"
-            echo "DOCKER-DEMO: shutting down"
-            exit 1
+            STATUS=$?
+            # echo "AMBASSADOR: $name exited: $STATUS"
+            # echo "AMBASSADOR: shutting down"
+            diediedie "$name" "$STATUS"
         else
             tmp+=(${pids[i]})
         fi
@@ -32,26 +49,23 @@ handle_chld() {
 set -o monitor
 trap "handle_chld" CHLD
 
-ROOT=$$
+echo "AMBASSADOR: checking /etc/envoy.json"
+/usr/bin/python3 "$APPDIR/ambassador.py" config --check /etc/ambassador-config /etc/envoy.json
 
-if python3 check-services.py; then
-    echo "DOCKER-DEMO: starting QoTM"
-    /usr/bin/python3 "$APPDIR/qotm.py" &
-    pids+=("$!;qotm")
+STATUS=$?
 
-    echo "DOCKER-DEMO: starting Extauth"
-    /usr/bin/python3 "$APPDIR/simple-auth-server.py" &
-    pids+=("$!;extauth")
-
-    echo "DOCKER-DEMO: starting probes"
-    /bin/sh "$APPDIR/probes.sh" &
-    pids+=("$!;probes")
+if [ $STATUS -ne 0 ]; then
+    diediedie "ambassador" "$STATUS"
 fi
 
-echo "DOCKER-DEMO: starting Ambassador"
-( cd /application ; /bin/bash entrypoint.sh ) &
-pids+=("$!;ambassador")
+echo "AMBASSADOR: starting diagd"
+/usr/bin/python3 "$APPDIR/diagd.py" --no-debugging /etc/ambassador-config &
+pids+=("$!;diagd")
 
-echo "DOCKER-DEMO: waiting"
+echo "AMBASSADOR: starting Envoy"
+/usr/local/bin/envoy -c /etc/envoy.json &
+pids+=("$!;envoy")
+
+echo "AMBASSADOR: waiting"
 wait
 
