@@ -1,13 +1,15 @@
 Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png)](https://travis-ci.org/datawire/ambassador)
-
 ==========
 
-Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). Key features in Ambassador include:
+Ambassador is an open source Kubernetes-native API Gateway built on [Envoy](https://envoyproxy.github.io), designed for microservices. Key features include:
 
 * Ability to flexibly map public URLs to services running inside a Kubernetes cluster
-* Simple setup and configuration
+* Authentication
+* Simple setup and configuration via a declarative YAML file
 * Integrated monitoring
 * All the load balancing, observability, and protocol support of Envoy
+
+Ambassador also takes full advantage of Kubernetes for availability and scalability, dramatically simplifying the architecture of Ambassador.
 
 To get started, visit https://www.getambassador.io, or join our [Gitter channel](https://gitter.im/datawire/ambassador).
 
