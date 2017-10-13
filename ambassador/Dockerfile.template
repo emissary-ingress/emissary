@@ -4,23 +4,22 @@ FROM {AMREG}ambassador-core:{VERSION}
 
 WORKDIR /demo
 
-# Copy in the qotm service...
+# Copy in the qotm service from the QoTM image.
 COPY --from=qotm /service/qotm/qotm.py .
 
+# check-services.py determines whether or not to actually start all the demo stuff.
 COPY check-services.py .
 
-# ...and the auth service...
+# simple-auth-server.py is the extauth server used for the demo.
 COPY simple-auth-server.py .
 
-# ...and the prober...
+# probes.sh is a stupid bash implementation of K8s liveness & readiness probes.
 COPY probes.sh .
 
-# ...and the demo config.
+# Finally, we need the demo configuration...
 COPY config /etc/ambassador-config
 
-# Finally set an endpoint.
-
-# COPY the entrypoint script and make it runnable.
+# ...and the entrypoint script that gets everything running.
 COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh
 
