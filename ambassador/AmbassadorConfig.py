@@ -711,6 +711,9 @@ class AmbassadorConfig (object):
         if 'ext_auth_cluster' not in self.envoy_clusters:
             svc = module.get('auth_service', '127.0.0.1:5000')
 
+            if ':' not in svc:
+                svc = "%s:80" % svc
+
             self.add_intermediate_cluster(module['_source'],
                                           'cluster_ext_auth', [ "tcp://%s" % svc ],
                                           type="logical_dns", lb_type="random")

@@ -56,9 +56,12 @@ if '-' in scout_version:
 
     scout_version = "%s-%s+%s" % (v, p, b)
 
-logging.debug("Scout version %s" % scout_version)
+logger.debug("Scout version %s" % scout_version)
 
 scout = None
+
+runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
+logger.debug("runtime: %s" % runtime)
 
 try:
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
@@ -73,7 +76,8 @@ def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
     if scout:
-        result = scout.report(action=what, exception=str(e), traceback=tb, **kwargs)
+        result = scout.report(action=what, exception=str(e), traceback=tb,
+                              runtime=runtime, **kwargs)
         logger.debug("Scout %s, result: %s" % ("disabled" if scout.disabled else "enabled", result))
 
     logger.error("%s: %s\n%s" % (what, e, tb))
@@ -161,7 +165,8 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 logger.error("%s" % rc.raw)
 
             if scout:
-                result = scout.report(action="config", result=bool(rc), check=check, generated=(not output_exists))
+                result = scout.report(action="config", result=bool(rc),
+                                      runtime=runtime, check=check, generated=(not output_exists))
             else:
                 result = {"scout": "inactive"}
 

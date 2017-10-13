@@ -3,8 +3,8 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  authentication
 config:
-  auth_service: "127.0.0.1:3000"
-  path_prefix: "/extauth"
+  auth_service: "demo.getambassador.io"
+  path_prefix: "/simpleauth/v0"
   allowed_headers:
   - "x-extauth-required"
   - "x-authenticated-as"
