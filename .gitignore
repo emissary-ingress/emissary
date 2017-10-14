@@ -16,6 +16,9 @@ docs/Gemfile.lock
 docs/node_modules
 .netlify
 
+.forge
+forge.yaml
+
 # Editor nonsense
 .vscode
 .idea
