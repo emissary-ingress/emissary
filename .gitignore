@@ -1,3 +1,4 @@
+*.pyc
 *~
 .python-version
 .DS_Store
