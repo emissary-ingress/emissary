@@ -261,7 +261,7 @@ class AmbassadorConfig (object):
 
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
         method = obj.get("method", "GET")
-        mapping_key = "%s:%s" % (method, obj['prefix'])
+        mapping_key = "%s:%s->%s" % (method, obj['prefix'], obj['service'])
 
         if not self.safe_store(source_key, "mapping_prefixes", mapping_key, obj_kind, obj):
             return False
@@ -303,21 +303,33 @@ class AmbassadorConfig (object):
             self.envoy_clusters[name]['_referenced_by'].append(_source)
 
     def add_intermediate_route(self, _source, mapping, cluster_name):
-        route = SourcedDict(
-            _source=_source,
-            prefix=mapping['prefix'],
-            prefix_rewrite=mapping.get('rewrite', '/'),
-            cluster=cluster_name
-        )
+        routes = self.envoy_config['routes']
+        group = None
+        for r in routes:
+            if r['prefix'] == mapping['prefix'] and r.get('method') == mapping.get('method'):
+                group = r
+                break
 
-        if 'method' in mapping:
-            route['method'] = mapping['method']
-            route['method_regex'] = route.get('method_regex', False)
+        if group is None:
+            route = SourcedDict(
+                _source=_source,
+                prefix=mapping['prefix'],
+                prefix_rewrite=mapping.get('rewrite', '/'),
+                clusters=[{"name": cluster_name,
+                           "weight": mapping.get("weight", None)}]
+            )
 
-        if 'timeout_ms' in mapping:
-            route['timeout_ms'] = mapping['timeout_ms']
+            if 'method' in mapping:
+                route['method'] = mapping['method']
+                route['method_regex'] = route.get('method_regex', False)
 
-        self.envoy_config['routes'].append(route)
+            if 'timeout_ms' in mapping:
+                route['timeout_ms'] = mapping['timeout_ms']
+
+            routes.append(route)
+        else:
+            group["clusters"].append({"name": cluster_name,
+                                      "weight": mapping.get("weight", None)})
 
     def generate_intermediate_config(self):
         # First things first. Define the default "Ambassador" module...
@@ -514,6 +526,24 @@ class AmbassadorConfig (object):
         #     'cluster_diagnostics'
         # )
 
+        # We need to default any unspecified weights and renormalize to 100
+        for r in self.envoy_config['routes']:
+            clusters = r["clusters"]
+            total = 0.0
+            unspecified = 0
+            for c in clusters:
+                if c["weight"] is None:
+                    unspecified += 1
+                else:
+                    total += c["weight"]
+            if unspecified:
+                for c in clusters:
+                    if c["weight"] is None:
+                        c["weight"] = (100.0 - total)/unspecified
+            elif total != 100.0:
+                for c in clusters:
+                    c["weight"] *= 100.0/total
+
         # OK. When all is said and done, sort the list of routes by descending 
         # legnth of prefix, then prefix itself, then method...
         self.envoy_config['routes'].sort(reverse=True,
@@ -617,15 +647,16 @@ class AmbassadorConfig (object):
     def generate_envoy_config(self, template=None, template_dir=None):
         # Finally! Render the template to JSON...
         envoy_json = self.to_json(template=template, template_dir=template_dir)
-        rc = RichStatus.fromError("impossible")
+        return RichStatus.OK(msg="Envoy configuration OK", envoy_config=envoy_json)
+#        rc = RichStatus.fromError("impossible")
 
         # ...and use the JSON parser as a final sanity check.
-        try:
-            obj = json.loads(envoy_json)
-            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
-        except json.decoder.JSONDecodeError as e:
-            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
-                                      raw=envoy_json, exception=e)
+#        try:
+#            obj = json.loads(envoy_json)
+#            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
+#        except json.decoder.JSONDecodeError as e:
+#            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
+#                                      raw=envoy_json, exception=e)
 
         return rc
 
@@ -719,8 +750,9 @@ class AmbassadorConfig (object):
                                           type="logical_dns", lb_type="random")
 
     def pretty(self, obj, out=sys.stdout):
-        json.dump(obj, out, indent=4, separators=(',',':'), sort_keys=True)
-        out.write("\n")
+        out.write(obj)
+#        json.dump(obj, out, indent=4, separators=(',',':'), sort_keys=True)
+#        out.write("\n")
 
     def to_json(self, template=None, template_dir=None):
         template_paths = [ self.config_dir_path, self.template_dir_path ]

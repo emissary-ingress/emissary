@@ -42,7 +42,13 @@
                         "value": "{{ route.method }}",
                         "regex": {{ route.method_regex or 'false' }}
                       } ],{% endif %}
-                      "cluster": "{{ route.cluster }}"
+                      "weighted_clusters": {
+                          "clusters": [
+                              {% for wc in route.clusters %}
+                                 { "name": "{{wc.name}}", "weight": {{wc.weight}} }{{ "," if not loop.last }}
+                              {% endfor %}
+                          ]
+                      }
                     }
                     {{ "," if not loop.last }}
                     {% endfor %}

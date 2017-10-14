@@ -41,7 +41,10 @@ COPY diagd.py ./
 COPY default-config/ /etc/ambassador-config
 
 # COPY the entrypoint script and make it runnable.
+COPY kubewatch.py .
+COPY hot-restarter.py .
+COPY start-envoy.sh .
 COPY entrypoint.sh .
-RUN chmod 755 entrypoint.sh
+RUN chmod 755 start-envoy.sh entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
