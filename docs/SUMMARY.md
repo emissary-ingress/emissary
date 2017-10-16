@@ -4,6 +4,7 @@
 
 ----
 
+* [Microservices API Gateways](about/microservices-api-gateways.md)
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
