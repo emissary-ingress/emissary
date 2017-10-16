@@ -132,28 +132,20 @@
                 <div class="bg-white border-gray box-shadow content-box">
                     <ol class="get-started-steps">
                         <li>
-                            <p class="text-md">Create a mapping.yaml file with your routes.</p>
+                            <p class="text-md">Download and run Ambassador as a Docker container:</p>
                             <div class="code-box">
 <pre><code>---
-apiVersion: ambassador/v0
-kind: Mapping
-name: qotm_mapping
-prefix: /qotm/
-service: qotm
+docker run -it -p 8080:80 --name=ambassador --rm datawire/ambassador:{VERSION}
 </code></pre>
                             </div>
                         </li>
                         <li>
-                            <p class="text-md">Deploy your configuration as a ConfigMap</p>
-                            <div class="code-box">
-<pre><code>kubectl create configmap ambassador-config --from-file mapping.yaml</code></pre>
-                            </div>
+                            <p class="text-md">That's it! Check out the diagnostics page at http://localhost:8080/ambassador/v0/diag/.</p>
                         </li>
                         <li>
-                            <p class="text-md">Deploy Ambassador. Ambassador comes pre-configured with liveness and readiness probes,
-                                and is ready to run in a high availability environment from the get go.</p>
+                            <p class="text-md">See Ambassador route requests live to our Quote of The Moment service at demo.getambassador.io:</p>
                             <div class="code-box">
-<pre><code>kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml</code></pre>
+<pre><code>curl localhost:8080/qotm/</code></pre>
                             </div>
                         </li>
                     </ol>
