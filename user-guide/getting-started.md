@@ -7,7 +7,7 @@ Ambassador is an API Gateway for microservices. We'll demo the very basics here.
 You can use `docker run` to start Ambassador with a default configuration that can route to some Datawire cloud services as a demonstration:
 
 ```shell
-docker run -it -p 8080:80 --name=ambassador --rm ambassador:{VERSION}
+docker run -it -p 8080:80 --name=ambassador --rm datawire/ambassador:{VERSION}
 ```
 
 will start an Ambassador running in Docker that you can talk to on `localhost` port 8080.
@@ -82,5 +82,5 @@ You can also use a `ConfigMap` to allow configuration updates without building a
 That's the basics. For more:
 
 - Join us on [Gitter](https://gitter.im/datawire/ambassador);
-- Learn how to [add authentication](auth-tutorial.md) to existing services; or 
+- Learn how to [add authentication](auth-tutorial.md) to existing services; or
 - Dig into more about [running Ambassador](running.md).
