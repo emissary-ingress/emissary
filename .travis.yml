@@ -13,7 +13,7 @@ python:
 
 install:
 - pip install -r dev-requirements.txt
-- pip install -r ambassador-core/requirements.txt
+- pip install -r ambassador/requirements.txt
 
 services:
 - docker
