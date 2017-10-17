@@ -68,16 +68,156 @@ will succeed. (Note that that's literally "username" and "password" -- the demo 
 
 Note that it's up to the auth service to decide what needs authentication -- teaming Ambassador with an authentication service can be as flexible or strict as you need it to be.
 
-## 5. Using Your Own Config
+## 5. Running the Demo in Kubernetes
 
-If you want to run Ambasasdor with a custom configuration, it's as simple as assembling a directory full of YAML files and using a two-line Dockerfile:
+Since the Ambassador Docker image contains its configuration already, running it in Kubernetes is simple. You can easily deploy it with the following YAML:
+
+```shell
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador
+  name: ambassador
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 80
+  selector:
+    service: ambassador
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: ambassador
+    spec:
+      containers:
+      - name: ambassador
+        image: datawire/ambassador:0.14.2-draft
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+      restartPolicy: Always
+``` 
+
+To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
+
+```shell
+kubectl get svc ambassador
+```
+
+which should, eventually, give you something like
+
+```
+NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
+ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
+```
+
+All the tests from above should work fine, but instead of `localhost:8080`, you'll use the `EXTERNAL-IP` from the `kubectl` output. For example, using the `EXTERNAL-IP` from above, you could grab a a Quote of the Moment:
+
+```shell
+curl 35.36.37.38/qotm/
+```
+
+or see the diagnostic overview at `http://35.36.37.38/ambassador/v0/diag/`.
+
+## 6. Using Your Own Configuration
+
+Ambassador's configuration is supplied by YAML files installed in `/etc/ambassador-config` inside its container. You can check out the "[Configuring Ambassador](reference/configuration.md)" reference for the gory details, but here's the one-file version of the default configuration to get started with:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  authentication
+config:
+  auth_service: "demo.getambassador.io"
+  path_prefix: "/auth/v0"
+  allowed_headers:
+  - "x-extauth-required"
+  - "x-authenticated-as"
+  - "x-qotm-session"
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  diag_mapping
+prefix: /ambassador/
+rewrite: /ambassador/
+service: 127.0.0.1:8877
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+rewrite: /qotm/
+service: demo.getambassador.io
+```
+
+The easiest way to run Ambassador with a custom configuration is simply to use our Docker image as a base, but to replace our default configuration with your own. If you put the above YAML into a file named `config.yaml`, the following `Dockerfile` would do the trick:
 
 ```shell
 FROM datawire/ambassador:{VERSION}
-COPY config /etc/ambassador-config
+RUN rm /etc/ambassador-config/*
+COPY config.yaml /etc/ambassador-config
 ```
 
-You can also use a `ConfigMap` to allow configuration updates without building a new image: Ambassador is designed for flexibility and self-service.
+Of course, this isn't very flexible: you'll need to rebuild the image for any configuration change. With Kubernetes, you can do better by mounting the configuration from a `ConfigMap`. 
+
+Using `config.yaml` from above, we can create a `ConfigMap` by running
+
+```shell
+kubectl create configmap ambassador-config --from-file config.yaml
+```
+
+and then update the Ambassador deployment with the following YAML to mount the config from our newly-created `ConfigMap`:
+
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        service: ambassador
+    spec:
+      containers:
+      - name: ambassador
+        image: datawire/ambassador:0.14.2-draft
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        volumeMounts:
+        - mountPath: /etc/ambassador-config
+          name: config-map
+      volumes:
+      - name: config-map
+        configMap:
+          name: ambassador-config
+      restartPolicy: Always
+```
 
 That's the basics. For more:
 
