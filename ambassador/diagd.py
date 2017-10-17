@@ -15,7 +15,7 @@ import VERSION
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, request # Response, jsonify
+from flask import Flask, render_template, request, jsonify # Response
 
 from AmbassadorConfig import AmbassadorConfig
 from envoy import EnvoyStats
@@ -243,12 +243,17 @@ def show_overview(reqid=None):
 
     # app.logger.debug("OV %s --- configuration built" % reqid)
 
-    result = render_template('overview.html', system=system_info(), 
-                             envoy_status=envoy_status(app.estats), 
-                             cluster_stats=cluster_stats(clusters),
-                             sources=sorted(source_files.values(), key=lambda x: x['filename']),
-                             routes=routes,
-                             **configuration)
+    tvars = dict(system=system_info(), 
+                 envoy_status=envoy_status(app.estats), 
+                 cluster_stats=cluster_stats(clusters),
+                 sources=sorted(source_files.values(), key=lambda x: x['filename']),
+                 routes=routes,
+                 **configuration)
+
+    if request.args.get('json', None):
+        result = jsonify(tvars)
+    else:
+        result = render_template('overview.html', **tvars)
 
     # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
 
@@ -273,11 +278,15 @@ def show_intermediate(source=None, reqid=None):
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
-    return render_template('diag.html', 
-                           system=system_info(),
-                           envoy_status=envoy_status(app.estats),
-                           method=method, resource=resource,
-                           **result)
+    tvars = dict(system=system_info(),
+                 envoy_status=envoy_status(app.estats),
+                 method=method, resource=resource,
+                 **result)
+
+    if request.args.get('json', None):
+        return jsonify(tvars)
+    else:
+        return render_template('diag.html', **tvars)
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
