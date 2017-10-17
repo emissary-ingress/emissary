@@ -13,6 +13,23 @@ spec:
       targetPort: 80
   type: LoadBalancer
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{service.name}}-metrics
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "9102"
+spec:
+  selector:
+    app: {{service.name}}
+  ports:
+    - name: metrics
+      port: 9102
+      targetPort: 9102
+  type: ClusterIP
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -45,7 +62,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata: {name: {{service.name}}}
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels: {app: {{service.name}}}
   strategy:
@@ -70,6 +87,8 @@ spec:
             memory: {{service.max_memory}}
             cpu: {{service.max_cpu}}
         terminationMessagePath: /dev/termination-log
+      - name: statsd-exporter
+        image: prom/statsd-exporter
       restartPolicy: Always
       dnsPolicy: ClusterFirst
       restartPolicy: Always
