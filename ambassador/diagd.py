@@ -330,7 +330,7 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
 
     app.aconf = AmbassadorConfig(config_dir_path)
 
-    app.run(host='127.0.0.1', port=app.aconf.diag_port(), debug=app.debugging)
+    app.run(host='0.0.0.0', port=app.aconf.diag_port(), debug=app.debugging)
 
 if __name__ == "__main__":
     clize.run(main)
