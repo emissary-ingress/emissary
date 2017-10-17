@@ -182,4 +182,4 @@ We've just done a quick tour of some of the core features of Ambassador: diagnos
 
 - Join us on [Gitter](https://gitter.im/datawire/ambassador);
 - Learn how to [add authentication](auth-tutorial.md) to existing services; or
-- Dig into more about [running Ambassador](running.md).
+- Read about [configuring Ambassador](/reference/configuration.md).
