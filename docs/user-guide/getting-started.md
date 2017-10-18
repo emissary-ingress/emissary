@@ -69,9 +69,10 @@ service: demo.getambassador.io
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  httpbin
+name:  httpbin_mapping
 prefix: /httpbin/
-service: httpbin.org
+service: httpbin.org:80
+host_rewrite: httpbin.org
 ```
 
 We can deploy this configuration into a `ConfigMap` for Ambassador.
@@ -114,7 +115,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: datawire/ambassador:0.14.2-draft
+        image: datawire/ambassador:{VERSION}
         imagePullPolicy: Always
         resources:
           limits:
@@ -156,7 +157,7 @@ You should now be able to use `curl` to both `qotm` and `google` (don't forget t
 
 ```shell
 $ curl 35.36.37.38/qotm/
-$ curl 35.36.37.38/google/
+$ curl 35.36.37.38/httpbin/
 ```
 
 Note that we did not expose the diagnostics port for Ambassador, since we don't want to expose it on the Internet. To view it, we'll need to get the name of one of the ambassador pods:
@@ -176,7 +177,25 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 Which will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 7. Next
+## 7. Updating Ambassador configuration
+
+To change the Ambassador configuration, you need to do two things:
+
+1. Update your ConfigMap in Kubernetes. The following will regenerate and replace your `ambassador-config` ConfigMap:
+
+```
+lost-cause:tmp richard$ kubectl create configmap ambassador-config --from-file conf.yaml -o yaml --dry-run | \
+kubectl replace -f -
+```
+
+2. Tell Ambassador to reread the ConfigMap:
+
+```
+kubectl patch deployment ambassador -p \
+  "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
+```
+
+## 8. Next
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
