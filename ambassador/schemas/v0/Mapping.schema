@@ -9,6 +9,7 @@
         "name": { "type": "string" },
         "prefix": { "type": "string" },
         "rewrite": { "type": "string" },
+        "host_rewrite": { "type": "string" },
         "service": { "type": "string" },
         "method": { "type": "string" },
         "circuit_breaker": { "type": "string" },
@@ -18,6 +19,9 @@
             "items": {
                 "type": "object"
             }
+        },
+        "envoy_override": { 
+            "type": "object"
         }
     },
     "required": [ "apiVersion", "kind", "name", "prefix", "service" ],

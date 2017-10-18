@@ -307,6 +307,7 @@ class AmbassadorConfig (object):
             _source=_source,
             prefix=mapping['prefix'],
             prefix_rewrite=mapping.get('rewrite', '/'),
+            envoy_override=mapping.get('envoy_override', {}),
             cluster=cluster_name
         )
 
@@ -316,6 +317,9 @@ class AmbassadorConfig (object):
 
         if 'timeout_ms' in mapping:
             route['timeout_ms'] = mapping['timeout_ms']
+
+        if 'host_rewrite' in mapping:
+            route['host_rewrite'] = mapping['host_rewrite']
 
         self.envoy_config['routes'].append(route)
 
