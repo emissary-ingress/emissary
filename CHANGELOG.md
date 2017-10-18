@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.15.0] October 16, 2017
+[0.15.0]: https://github.com/datawire/ambassador/compare/v0.14.2...v0.15.0
+
+### Changed
+
+- Allow `docker run` to start Ambassador with a simple default configuration for testing
+- Support `host_rewrite` in mappings to force the HTTP `Host` header value for services that need it
+- Support `envoy_override` in mappings for odd situations
+- Allow asking the diagnostic service for JSON output rather than HTML
+
+## [0.14.2] October 12, 2017
+[0.14.2]: https://github.com/datawire/ambassador/compare/v0.14.0...v0.14.2
+
+### Changed
+
+- Allow the diagnostic service to show configuration errors.
+
+## [0.14.0] October 5, 2017
+[0.14.0]: https://github.com/datawire/ambassador/compare/v0.13.0...v0.14.0
+
+### Changed
+
+- Have a diagnostic service!
+- Support `cert_required` in TLS config
+
 ## [0.13.0] September 25, 2017
 [0.13.0]: https://github.com/datawire/ambassador/compare/v0.12.1...v0.13.0
 
