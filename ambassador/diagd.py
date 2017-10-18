@@ -8,13 +8,14 @@ import json
 import logging
 import os
 import signal
+import time
 import uuid
 
 import VERSION
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, request # Response, jsonify
+from flask import Flask, render_template, request, jsonify # Response
 
 from AmbassadorConfig import AmbassadorConfig
 from envoy import EnvoyStats
@@ -95,38 +96,6 @@ def standard_handler(f):
 # Get the Flask app defined early.
 app = Flask(__name__)
 
-# Watchdog
-def watchdog():
-    now = datetime.datetime.now()
-    kaboom = False
-
-    for which in [ 'liveness', 'readiness' ]:
-        delta = int((now - app.watchdog_checks[which]).total_seconds() + 0.5)
-
-        if delta > 30:
-            # Well this is a problem.
-            app.logger.critical("WATCHDOG FAILURE: %s hasn't been checked for %d seconds" % (which, delta))
-            kaboom = True
-        elif delta >= 10:
-            # Switch this from check to warning.
-            if not app.watchdog_warnings[which]:
-                app.logger.error("WATCHDOG WARNING: %s hasn't been checked for %d seconds" % (which, delta))
-
-            app.watchdog_warnings[which] = True
-        else:
-            # Switch this from warning to clear.
-            if app.watchdog_warnings[which]:
-                app.logger.error("WATCHDOG OK: %s checked within %d seconds" % (which, delta))
-
-            app.watchdog_warnings[which] = False
-
-    if kaboom:
-        # Kaboom kaboom kaboom!
-        app.logger.critical("WATCHDOG FAILURE: exiting")
-        os.kill(os.getpid(), signal.SIGTERM)
-        time.sleep(5)
-        os.kill(os.getpid(), signal.SIGKILL)
-
 # Next, various helpers.
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
@@ -187,25 +156,21 @@ def envoy_status(estats):
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
-    app.watchdog_checks['liveness'] = datetime.datetime.now()
-
     status = envoy_status(app.estats)
 
     if status['alive']:
         return "ambassador liveness check OK (%s)" % status['uptime'], 200
     else:
-        return "ambassador seems to have died (%s)" % status['uptime'], 400
+        return "ambassador seems to have died (%s)" % status['uptime'], 503
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    app.watchdog_checks['readiness'] = datetime.datetime.now()
-
     status = envoy_status(app.estats)
 
     if status['ready']:
         return "ambassador readiness check OK (%s)" % status['since_update'], 200
     else:
-        return "ambassador not ready (%s)" % status['since_update'], 400
+        return "ambassador not ready (%s)" % status['since_update'], 503
 
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
@@ -216,7 +181,7 @@ def show_overview(reqid=None):
     source_files = {}
     
     for filename, source_keys in app.aconf.source_map.items():
-        # logging.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
+        # app.logger.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
 
         if filename.startswith('--'):
             continue
@@ -234,7 +199,7 @@ def show_overview(reqid=None):
         )
 
         for source_key in source_keys:
-            # logging.debug("OV %s --- source_key %s" % (reqid, source_key))
+            # app.logger.debug("OV %s --- source_key %s" % (reqid, source_key))
 
             source = app.aconf.sources[source_key]
             raw_errors = app.aconf.errors.get(source_key, [])
@@ -262,41 +227,46 @@ def show_overview(reqid=None):
                 'errors': errors
             }
 
-    # logging.debug("OV %s --- sources built" % reqid)
+    # app.logger.debug("OV %s --- sources built" % reqid)
 
     routes = [ route for route in app.aconf.envoy_config['routes']
                if route['_source'] != "--diagnostics--" ]
 
-    # logging.debug("OV %s --- routes built" % reqid)
+    # app.logger.debug("OV %s --- routes built" % reqid)
 
     clusters = app.aconf.envoy_config['clusters']
 
-    # logging.debug("OV %s --- clusters built" % reqid)
+    # app.logger.debug("OV %s --- clusters built" % reqid)
 
     configuration = { key: app.aconf.envoy_config[key] for key in app.aconf.envoy_config.keys()
                       if key != "routes" }
 
-    # logging.debug("OV %s --- configuration built" % reqid)
+    # app.logger.debug("OV %s --- configuration built" % reqid)
 
-    result = render_template('overview.html', system=system_info(), 
-                             envoy_status=envoy_status(app.estats), 
-                             cluster_stats=cluster_stats(clusters),
-                             sources=sorted(source_files.values(), key=lambda x: x['filename']),
-                             routes=routes,
-                             **configuration)
+    tvars = dict(system=system_info(), 
+                 envoy_status=envoy_status(app.estats), 
+                 cluster_stats=cluster_stats(clusters),
+                 sources=sorted(source_files.values(), key=lambda x: x['filename']),
+                 routes=routes,
+                 **configuration)
 
-    logging.debug("OV %s from %s --- completed in %s " % (reqid, request.remote_addr, result))
+    if request.args.get('json', None):
+        result = jsonify(tvars)
+    else:
+        result = render_template('overview.html', **tvars)
+
+    # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
 
     return result
 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
-    logging.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
+    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     result = app.aconf.get_intermediate_for(source)
 
-    # logging.debug(json.dumps(result, indent=4))
+    # app.logger.debug(json.dumps(result, indent=4))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
@@ -308,11 +278,15 @@ def show_intermediate(source=None, reqid=None):
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
-    return render_template('diag.html', 
-                           system=system_info(),
-                           envoy_status=envoy_status(app.estats),
-                           method=method, resource=resource,
-                           **result)
+    tvars = dict(system=system_info(),
+                 envoy_status=envoy_status(app.estats),
+                 method=method, resource=resource,
+                 **result)
+
+    if request.args.get('json', None):
+        return jsonify(tvars)
+    else:
+        return render_template('diag.html', **tvars)
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
@@ -340,23 +314,23 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
     app.estats = EnvoyStats()
     app.health_checks = False
     app.debugging = not no_debugging
-    app.logger.setLevel(logging.DEBUG)
-    app.watchdog_checks = { 'liveness': datetime.datetime.now(), 'readiness': datetime.datetime.now() }
-    app.watchdog_warnings = { 'liveness': False, 'readiness': False }
+
+    # This feels like overkill.
+    app._logger = logging.getLogger(app.logger_name)
+    app.logger.setLevel(logging.INFO)
 
     if app.debugging or verbose:
+        app.logger.setLevel(logging.DEBUG)
         logging.getLogger().setLevel(logging.DEBUG)
 
     if not no_checks:
         app.health_checks = True
-        logging.debug("Starting periodic updates")
+        app.logger.debug("Starting periodic updates")
         app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
-
-    app.watchdog = PeriodicTrigger(watchdog, period=5)
 
     app.aconf = AmbassadorConfig(config_dir_path)
 
-    app.run(host='127.0.0.1', port=app.aconf.diag_port(), debug=app.debugging)
+    app.run(host='0.0.0.0', port=app.aconf.diag_port(), debug=app.debugging)
 
 if __name__ == "__main__":
     clize.run(main)

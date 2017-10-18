@@ -6,6 +6,8 @@ venv
 __pycache__
 VERSION.py
 
+docker-demo/Dockerfile
+
 docs/yaml
 docs/_book
 docs/_site

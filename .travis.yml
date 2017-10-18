@@ -6,6 +6,7 @@ addons:
   apt:
     packages:
     - python3
+    - docker-ce
 
 python:
 - '3.6'

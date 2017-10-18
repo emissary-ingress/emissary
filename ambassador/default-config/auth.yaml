@@ -1,0 +1,11 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  authentication
+config:
+  auth_service: "demo.getambassador.io"
+  path_prefix: "/auth/v0"
+  allowed_headers:
+  - "x-extauth-required"
+  - "x-authenticated-as"
+  - "x-qotm-session"

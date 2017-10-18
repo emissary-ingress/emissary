@@ -37,6 +37,9 @@ COPY templates/ ./templates
 COPY schemas/ ./schemas
 COPY diagd.py ./
 
+# COPY in a default config. You can dump a configmap over this with no trouble.
+COPY default-config/ /etc/ambassador-config
+
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh

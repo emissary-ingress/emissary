@@ -37,12 +37,18 @@
                       "timeout_ms": {{ route.timeout_ms or 500 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
+                      {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
                       {%- if route.method -%}"headers": [ {
                         "name": ":method",
                         "value": "{{ route.method }}",
                         "regex": {{ route.method_regex or 'false' }}
                       } ],{% endif %}
-                      "cluster": "{{ route.cluster }}"
+                      "cluster": "{{ route.cluster }}"{{ "," if route.envoy_override }}
+                      {% if route.envoy_override %}
+                        {% for key in route.envoy_override.keys() %}
+                        "{{ key }}": {{ route.envoy_override[key] | tojson }}{{ "," if not loop.last }}
+                        {% endfor %}
+                      {% endif %}
                     }
                     {{ "," if not loop.last }}
                     {% endfor %}

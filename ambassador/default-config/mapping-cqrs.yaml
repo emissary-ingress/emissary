@@ -1,0 +1,16 @@
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: cqrs_get_mapping
+prefix: /cqrs/
+method: GET
+rewrite: /qotm/quote/
+service: demo.getambassador.io
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: cqrs_put_mapping
+prefix: /cqrs/
+method: PUT
+rewrite: /qotm/quote/
+service: demo.getambassador.io

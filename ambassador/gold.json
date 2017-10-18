@@ -31,6 +31,28 @@
                 "connect_timeout_ms":250,
                 "hosts":[
                     {
+                        "url":"tcp://google.com:80"
+                    }
+                ],
+                "lb_type":"round_robin",
+                "name":"cluster_google_com_80",
+                "type":"strict_dns"
+            },
+            {
+                "connect_timeout_ms":250,
+                "hosts":[
+                    {
+                        "url":"tcp://httpbin.org:80"
+                    }
+                ],
+                "lb_type":"round_robin",
+                "name":"cluster_httpbin_org",
+                "type":"strict_dns"
+            },
+            {
+                "connect_timeout_ms":250,
+                "hosts":[
+                    {
                         "url":"tcp://qotm:80"
                     }
                 ],
@@ -156,9 +178,34 @@
                                             "timeout_ms":500
                                         },
                                         {
+                                            "cluster":"cluster_httpbin_org",
+                                            "host_rewrite":"httpbin.org",
+                                            "prefix":"/httpbin/",
+                                            "prefix_rewrite":"/",
+                                            "timeout_ms":500
+                                        },
+                                        {
                                             "cluster":"cluster_qotm_tspace",
                                             "prefix":"/tspace/",
                                             "prefix_rewrite":"/",
+                                            "timeout_ms":500
+                                        },
+                                        {
+                                            "cluster":"cluster_google_com_80",
+                                            "host_rewrite":"google.com",
+                                            "no_really":[
+                                                "testing",
+                                                {
+                                                    "a":[
+                                                        "really",
+                                                        "large"
+                                                    ]
+                                                },
+                                                "amount"
+                                            ],
+                                            "prefix":"/google/",
+                                            "prefix_rewrite":"/",
+                                            "testing":"baby",
                                             "timeout_ms":500
                                         },
                                         {

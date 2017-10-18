@@ -86,6 +86,9 @@ class AmbassadorConfig (object):
         self.fatal_errors = 0
         self.object_errors = 0
 
+        if not os.path.isdir(self.config_dir_path):
+            raise Exception("ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
+
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
             # Modify dirnames in-place (dirs[:]) to remove any weird directories
             # whose names start with '.' -- why? because my GKE cluster mounts my
@@ -304,6 +307,7 @@ class AmbassadorConfig (object):
             _source=_source,
             prefix=mapping['prefix'],
             prefix_rewrite=mapping.get('rewrite', '/'),
+            envoy_override=mapping.get('envoy_override', {}),
             cluster=cluster_name
         )
 
@@ -313,6 +317,9 @@ class AmbassadorConfig (object):
 
         if 'timeout_ms' in mapping:
             route['timeout_ms'] = mapping['timeout_ms']
+
+        if 'host_rewrite' in mapping:
+            route['host_rewrite'] = mapping['host_rewrite']
 
         self.envoy_config['routes'].append(route)
 
@@ -707,6 +714,9 @@ class AmbassadorConfig (object):
 
         if 'ext_auth_cluster' not in self.envoy_clusters:
             svc = module.get('auth_service', '127.0.0.1:5000')
+
+            if ':' not in svc:
+                svc = "%s:80" % svc
 
             self.add_intermediate_cluster(module['_source'],
                                           'cluster_ext_auth', [ "tcp://%s" % svc ],

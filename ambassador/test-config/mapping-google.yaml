@@ -1,0 +1,15 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  google_mapping
+prefix: /google/
+service: google.com:80
+host_rewrite: google.com
+envoy_override:
+  testing: baby
+  no_really:
+    - testing
+    - a:
+      - really
+      - large
+    - amount
