@@ -46,8 +46,13 @@ handle_chld() {
     pids=(${tmp[@]})
 }
 
+handle_int() {
+    echo "Exiting due to Control-C"
+}
+
 set -o monitor
 trap "handle_chld" CHLD
+trap "handle_int" INT
 
 echo "AMBASSADOR: checking /etc/envoy.json"
 /usr/bin/python3 "$APPDIR/ambassador.py" config --check /etc/ambassador-config /etc/envoy.json
