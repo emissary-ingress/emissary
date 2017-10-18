@@ -75,6 +75,8 @@ service: httpbin.org:80
 host_rewrite: httpbin.org
 ```
 
+(Note the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services.)
+
 We can deploy this configuration into a `ConfigMap` for Ambassador.
 
 ```shell
