@@ -56,7 +56,7 @@ Note that it's up to the auth service to decide what needs authentication -- tea
 
 ## 5. Configuring Ambassador
 
-So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now create a custom configuration for Ambassador that maps `/google/` to Google.com. Create a `config.yaml` file with the following contents:
+So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now create a custom configuration for Ambassador that maps `/httpbin/` to `httpbin.org`. Create a `config.yaml` file with the following contents:
 
 ```yaml
 ---
@@ -155,7 +155,7 @@ NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
 
-You should now be able to use `curl` to both `qotm` and `google` (don't forget the trailing `/`):
+You should now be able to use `curl` to both `qotm` and `httpbin` (don't forget the trailing `/`):
 
 ```shell
 $ curl 35.36.37.38/qotm/
@@ -171,26 +171,26 @@ ambassador-3655608000-43x86   1/1       Running   0          2m
 ambassador-3655608000-w63zf   1/1       Running   0          2m
 ```
 
-Forward port 8877 from one of the pods to localhost:
+Forwarding local port 8877 to one of the pods:
 
 ```
 kubectl port-forward ambassador-3655608000-43x86 8877
 ```
 
-Which will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
+will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
 ## 7. Updating Ambassador configuration
 
 To change the Ambassador configuration, you need to do two things:
 
-1. Update your ConfigMap in Kubernetes. The following will regenerate and replace your `ambassador-config` ConfigMap:
+1. Update your ConfigMap in Kubernetes. The following will regenerate and replace your `ambassador-config` ConfigMap using the current contents of your `conf.yaml` file:
 
 ```
-lost-cause:tmp richard$ kubectl create configmap ambassador-config --from-file conf.yaml -o yaml --dry-run | \
-kubectl replace -f -
+kubectl create configmap ambassador-config --from-file conf.yaml -o yaml --dry-run | \
+  kubectl replace -f -
 ```
 
-2. Tell Ambassador to reread the ConfigMap:
+2. Use Kubernetes to redeploy Ambassador, so that it can reread the ConfigMap:
 
 ```
 kubectl patch deployment ambassador -p \
