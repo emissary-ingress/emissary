@@ -35,3 +35,7 @@ Once you have that, you'll be able to point a web browser at
 `http://localhost:8877/ambassador/v0/diag/`
 
 for the diagnostics overview. Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
+
+If needed, you can get JSON output from the diagnostic service, instead of HTML:
+
+`curl http://localhost:8877/ambassador/v0/diag/?json=true`
