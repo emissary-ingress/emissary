@@ -28,6 +28,7 @@
 ## Developers
 
 * [Building Ambassador (GitHub)](https://github.com/datawire/ambassador/blob/master/BUILDING.md)
+* [Istio and Ambassador](user-guide/with-istio.md)
 
 
 ## Need Help?
