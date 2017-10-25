@@ -1,7 +1,6 @@
 *~
 .python-version
 .DS_Store
-certs/
 venv
 __pycache__
 VERSION.py

@@ -28,6 +28,9 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
 
+rootdir = os.path.dirname(os.path.abspath(sys.argv[0]))
+# logger.debug("ROOT %s" % rootdir)
+
 # Weird stuff. The build version looks like
 #
 # 0.12.0                    for a prod build, or
@@ -99,19 +102,43 @@ def showid():
     else:
         print("unknown")
 
+def parse_config(config_dir_path, template_dir_path=None, schema_dir_path=None):
+    if not template_dir_path:
+        template_dir_path = os.path.join(rootdir, "templates")
+
+    if not schema_dir_path:
+        schema_dir_path = os.path.join(rootdir, "schemas")
+
+    try:
+        logger.debug("CONFIG DIR   %s" % os.path.abspath(config_dir_path))
+        logger.debug("TEMPLATE DIR %s" % os.path.abspath(template_dir_path))
+        logger.debug("SCHEMA DIR   %s" % os.path.abspath(schema_dir_path))
+        return AmbassadorConfig(config_dir_path,
+                                template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
+    except Exception as e:
+        handle_exception("EXCEPTION from parse_config", e, 
+                         config_dir_path=config_dir_path, template_dir_path=template_dir_path,
+                         schema_dir_path=schema_dir_path)
+
+        # This is fatal.
+        sys.exit(1)
+
 def dump(config_dir_path:Parameter.REQUIRED):
     """
     Dump the intermediate form of an Ambassador configuration for debugging
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     """
+
     try:
-        logger.debug("CONFIG DIR  %s" % config_dir_path)
-        aconf = AmbassadorConfig(config_dir_path)
+        aconf = parse_config(config_dir_path)
         json.dump(aconf.envoy_config, sys.stdout, indent=4, sort_keys=True)
     except Exception as e:
         handle_exception("EXCEPTION from dump", e, 
                          config_dir_path=config_dir_path)
+
+        # This is fatal.
+        sys.exit(1)
 
 def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *, check=False):
     """
@@ -154,7 +181,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # Either we didn't need to check, or the check didn't turn up
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
-            aconf = AmbassadorConfig(config_dir_path)
+            aconf = parse_config(config_dir_path)
             rc = aconf.generate_envoy_config()
 
             if rc:
@@ -207,6 +234,9 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
     except Exception as e:
         handle_exception("EXCEPTION from config", e, 
                          config_dir_path=config_dir_path, output_json_path=output_json_path)
+
+        # This is fatal.
+        sys.exit(1)
 
 def get_semver(what, version_string):
     semver = None

@@ -37,7 +37,7 @@ yaml-files:
 	VERSION=$(VERSION) sh scripts/build-yaml.sh
 
 ambassador-test:
-	SCOUT_DISABLE=1 sh scripts/ambassador-test.sh
+	sh ambassador/test.sh
 
 docker-images: ambassador-image statsd-image cli-image
 
