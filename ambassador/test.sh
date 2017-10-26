@@ -52,9 +52,11 @@ do
 
     fqdir="${TESTDIR}/$dir"
 
-    # Magicify 000-default rather than relying on a symlink in git.
-    if [ "$dir" = "000-default" ]; then
-        # NOT fqdir here; we want the default-config that's a sibling of tests.
+    # Is there a TEST_DEFAULT_CONFIG file?
+    if [ -f "$fqdir/TEST_DEFAULT_CONFIG" ]; then
+        # Yes; test the default-config that's a sibling of this script.
+        # (We could've use a symlink for this, but I'm paranoid about git,
+        # symlinks, and portability.)
         CONFIGDIR="${HERE}/default-config"
     elif [ -d "$fqdir/config" ]; then
         CONFIGDIR="$fqdir/config"
