@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -x
-
 usage () {
     echo "$(basename $0) [--update-gold] [test-patterns]" >&2
     echo "" >&2
