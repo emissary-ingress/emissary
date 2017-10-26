@@ -63,7 +63,7 @@ do
 
     ENVOY_JSON="${fqdir}/envoy.json"
     GOLD_JSON="${fqdir}/gold.json"
-    ENVOY_DIFF="${fqdir}/envoy.diff"
+    ENVOY_DIFF="${fqdir}/envoy-diff.out"
     AMBASSADOR_OUT="${fqdir}/ambassador.out"
     ENVOY_OUT="${fqdir}/envoy.out"
 

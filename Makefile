@@ -56,4 +56,5 @@ website: yaml-files
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf app.json
-	rm -rf ambassador/__pycache__  ambassador/envoy-test.json
+	rm -rf ambassador/__pycache__
+	find ambassador/tests -name '*.out' -print0 | xargs -0 rm -f
