@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 usage () {
     echo "$(basename $0) [--update-gold] [test-patterns]" >&2
     echo "" >&2
@@ -68,6 +70,8 @@ do
     ENVOY_OUT="${fqdir}/envoy.out"
 
     NEEDS_GOLD_UPDATE=
+
+    echo "$dir: starting..."
 
     # Use Ambassador to generate an envoy.json...
     if ! python "$AMBASSADOR" config "$CONFIGDIR" "$ENVOY_JSON" > "$AMBASSADOR_OUT" 2>&1; then
