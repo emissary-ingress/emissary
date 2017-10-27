@@ -70,6 +70,13 @@ class AmbassadorConfig (object):
             # "service" gets added later
         }
 
+        self.default_diagnostics = {
+            "enabled": True,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            # "service" gets added later
+        }
+
         self.default_tls_config = {
             "server": {
                 "cert_chain_file": "/etc/certs/tls.crt",
@@ -340,6 +347,7 @@ class AmbassadorConfig (object):
             diag_port = 8877,
             liveness_probe = { "enabled": True },
             readiness_probe = { "enabled": True },
+            diagnostics = { "enabled": True },
             tls_config = None
         )
 
@@ -413,6 +421,7 @@ class AmbassadorConfig (object):
 
         self.default_liveness_probe['service'] = self.diag_service()
         self.default_readiness_probe['service'] = self.diag_service()
+        self.default_diagnostics['service'] = self.diag_service()
 
         # ...TLS config, if necessary...
         if self.ambassador_module['tls_config']:
@@ -424,7 +433,10 @@ class AmbassadorConfig (object):
             ("liveness", self.ambassador_module['liveness_probe'], 
                          self.default_liveness_probe), 
             ("readiness", self.ambassador_module['readiness_probe'], 
-                         self.default_readiness_probe) ]:
+                         self.default_readiness_probe),
+            ("diagnostics", self.ambassador_module['diagnostics'],
+                         self.default_diagnostics)
+        ]:
 
             if cur and cur.get("enabled", False):
                 prefix = cur.get("prefix", dflt['prefix'])

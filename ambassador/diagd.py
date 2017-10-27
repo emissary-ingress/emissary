@@ -4,6 +4,7 @@ import sys
 
 import datetime
 import functools
+import glob
 import json
 import logging
 import os
@@ -172,6 +173,12 @@ def check_ready():
     else:
         return "ambassador not ready (%s)" % status['since_update'], 503
 
+def aconf(app):
+    configs = glob.glob("%s-*" % app.config_dir_prefix)
+    configs.sort(key=lambda x: int(x.split("-")[-1]))
+    latest = configs[-1]
+    return AmbassadorConfig(latest)
+
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
@@ -180,7 +187,7 @@ def show_overview(reqid=None):
     # Build a set of source _files_ rather than source _objects_.
     source_files = {}
     
-    for filename, source_keys in app.aconf.source_map.items():
+    for filename, source_keys in aconf(app).source_map.items():
         # app.logger.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
 
         if filename.startswith('--'):
@@ -201,8 +208,8 @@ def show_overview(reqid=None):
         for source_key in source_keys:
             # app.logger.debug("OV %s --- source_key %s" % (reqid, source_key))
 
-            source = app.aconf.sources[source_key]
-            raw_errors = app.aconf.errors.get(source_key, [])
+            source = aconf(app).sources[source_key]
+            raw_errors = aconf(app).errors.get(source_key, [])
 
             errors = []
 
@@ -229,16 +236,16 @@ def show_overview(reqid=None):
 
     # app.logger.debug("OV %s --- sources built" % reqid)
 
-    routes = [ route for route in app.aconf.envoy_config['routes']
+    routes = [ route for route in aconf(app).envoy_config['routes']
                if route['_source'] != "--diagnostics--" ]
 
     # app.logger.debug("OV %s --- routes built" % reqid)
 
-    clusters = app.aconf.envoy_config['clusters']
+    clusters = aconf(app).envoy_config['clusters']
 
     # app.logger.debug("OV %s --- clusters built" % reqid)
 
-    configuration = { key: app.aconf.envoy_config[key] for key in app.aconf.envoy_config.keys()
+    configuration = { key: aconf(app).envoy_config[key] for key in aconf(app).envoy_config.keys()
                       if key != "routes" }
 
     # app.logger.debug("OV %s --- configuration built" % reqid)
@@ -259,7 +266,7 @@ def show_overview(reqid=None):
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    result = app.aconf.get_intermediate_for(source)
+    result = aconf(app).get_intermediate_for(source)
 
     # app.logger.debug(json.dumps(result, indent=4))
 
@@ -319,9 +326,10 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
         app.logger.debug("Starting periodic updates")
         app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
 
-    app.aconf = AmbassadorConfig(config_dir_path)
+    aconf = AmbassadorConfig(config_dir_path)
+    app.config_dir_prefix = config_dir_path
 
-    app.run(host='127.0.0.1', port=app.aconf.diag_port(), debug=app.debugging)
+    app.run(host='127.0.0.1', port=aconf.diag_port(), debug=app.debugging)
 
 if __name__ == "__main__":
     clize.run(main)
