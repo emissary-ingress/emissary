@@ -3,6 +3,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{service.name}}
+  annotations:
+    ambassador: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: {{build.name}}-prometheus-mapping
+      prefix: /prometheus/
+      service: prometheus
 spec:
   selector:
     app: {{service.name}}
