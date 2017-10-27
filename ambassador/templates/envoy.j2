@@ -34,7 +34,7 @@
                   "routes": [
                     {% for route in routes %}
                     {
-                      "timeout_ms": {{ route.timeout_ms or 500 }},
+                      "timeout_ms": {{ route.timeout_ms or 10000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
                       {%- if route.method -%}"headers": [ {
@@ -79,7 +79,7 @@
       {% for cluster in clusters -%}
       {
         "name": "{{ cluster.name }}",
-        "connect_timeout_ms": {{ cluster.timeout_ms or 250 }},
+        "connect_timeout_ms": {{ cluster.timeout_ms or 3000 }},
         "type": "{{ cluster.type or 'strict_dns' }}",
         "lb_type": "{{ cluster.lb_type or 'round_robin' }}",
         "hosts": [
