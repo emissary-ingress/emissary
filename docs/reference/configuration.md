@@ -67,7 +67,13 @@ config:
   # use 443 if TLS is configured, 80 otherwise.
   # service_port: 80
 
-  # admin_port is where we'll listen for administrative requests.
+  # diag_port is the port where Ambassador will listen for requests
+  # to the diagnostic service.
+  # diag_port: 8877
+
+  # admin_port is the port where Ambassador's Envoy will listen for 
+  # low-level admin requests. You should almost never need to change
+  # this.
   # admin_port: 8001
 
   # liveness probe defaults on, but you can disable it.
