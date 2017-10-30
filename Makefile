@@ -1,4 +1,4 @@
-all: dev
+all: deps-check dev
 
 VERSION=$(shell python scripts/versioner.py --bump --magic-pre)
 
@@ -9,6 +9,27 @@ dev: version-check reg-check versions docker-images yaml-files
 travis-images: version-check reg-check versions docker-images
 
 travis-website: version-check website
+
+deps-check:
+	@python -c "import sys; sys.exit(0 if sys.version_info > (3,4) else 1)" || { \
+		echo "Python 3.4 or higher is required" >&2; \
+		exit 1 ;\
+	}
+	@which pytest >/dev/null 2>&1 || { \
+		echo "Could not find pytest -- is it installed?" >&2 ;\
+		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
+		exit 1 ;\
+	}
+	@python -c 'import shell, semantic_version, git' >/dev/null 2>&1 || { \
+		echo "Could not import shell, semantic_version, or git -- are they installed?" >&2 ;\
+		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
+		exit 1 ;\
+	}
+	@which aws >/dev/null 2>&1 || { \
+		echo "Could not find aws -- is it installed?" >&2 ;\
+		echo "(if not, check out https://docs.npmjs.com/getting-started/installing-node)" >&2 ;\
+		exit 1 ;\
+	}
 
 version-check:
 	@if [ -z "$(VERSION)" ]; then \
