@@ -1,12 +1,12 @@
-all: deps-check dev
+all: dev
 
 VERSION=$(shell python scripts/versioner.py --bump --magic-pre)
 
 .ALWAYS:
 
-dev: version-check reg-check versions docker-images yaml-files
+dev: deps-check version-check reg-check versions docker-images yaml-files
 
-travis-images: version-check reg-check versions docker-images
+travis-images: deps-check version-check reg-check versions docker-images
 
 travis-website: version-check website
 
