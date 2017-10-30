@@ -37,7 +37,7 @@ yaml-files:
 	VERSION=$(VERSION) sh scripts/build-yaml.sh
 
 ambassador-test:
-	sh ambassador/test.sh
+	pytest
 
 docker-images: ambassador-image statsd-image cli-image
 
