@@ -190,7 +190,7 @@ def diag_paranoia(configdir, outputdir):
             # Make this a single-element list to match the reconstition.
             filtered_overview[key] = [ ov[key] ]
 
-    if filtered_overview != reconstituted_lists:
+    if prettify(filtered_overview) != prettify(reconstituted_lists):
         ov_out  = os.path.join(outputdir, "OV.json.out")
         ovf_out = os.path.join(outputdir, "OVF.json.out")
         rc_out  = os.path.join(outputdir, "RC.json.out")
@@ -207,9 +207,11 @@ def diag_paranoia(configdir, outputdir):
         diff_cmd = shell([ 'diff', '-u', "OVF.json.out", "RCL.json.out" ])
         diff = "\n".join(diff_cmd.output())
 
-        errors.append("%s\n-- DIFF --\n%s" % 
+        errors.append("%s\n-- DIFF --\n%s\n-- OVERVIEW --\n%s\n\n-- RECONSTITUTED --\n%s\n" %
                       ("mismatch between overview and reconstituted diagnostics",
-                       diff))
+                       diff,
+                       prettify(filtered_overview),
+                       prettify(reconstituted_lists)))
 
     return {
         'errors': errors,
