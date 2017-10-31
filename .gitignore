@@ -1,12 +1,12 @@
 *~
 .python-version
 .DS_Store
-certs/
 venv
 __pycache__
 VERSION.py
 
-docker-demo/Dockerfile
+*.out
+envoy.json
 
 docs/yaml
 docs/_book

@@ -20,6 +20,10 @@ class SourcedDict (dict):
         else:
             self['_source'] = _source
 
+    def _mark_referenced_by(self, source):
+        if source not in self['_referenced_by']:
+            self['_referenced_by'].append(source)
+
 class AmbassadorConfig (object):
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
@@ -292,15 +296,15 @@ class AmbassadorConfig (object):
 
             if cb_name and (cb_name in self.breakers):
                 cluster['circuit_breakers'] = self.breakers[cb_name]
-                self.breakers[cb_name]['_referenced_by'].append(_source)
+                self.breakers[cb_name]._mark_referenced_by(_source)
 
             if od_name and (od_name in self.outliers):
                 cluster['outlier_detection'] = self.outliers[od_name]
-                self.outliers[od_name]['_referenced_by'].append(_source)
+                self.outliers[od_name]._mark_referenced_by(_source)
 
             self.envoy_clusters[name] = cluster
         else:
-            self.envoy_clusters[name]['_referenced_by'].append(_source)
+            self.envoy_clusters[name]._mark_referenced_by(_source)
 
     def add_intermediate_route(self, _source, mapping, cluster_name):
         route = SourcedDict(
@@ -562,11 +566,19 @@ class AmbassadorConfig (object):
         if not isinstance(value, dict):
             return
 
-        value_source = value.get("_source", None)
-        value_referenced_by = value.get("_referenced_by", [])
+        good = True
 
-        if ((value_source in source_keys) or
-            (source_keys & set(value_referenced_by))):
+        if '_source' in value:
+            good = False
+
+            value_source = value.get("_source", None)
+            value_referenced_by = value.get("_referenced_by", [])
+
+            if ((value_source in source_keys) or
+                (source_keys & set(value_referenced_by))):
+                good = True
+
+        if good:
             element_list.append(value)
 
     def get_intermediate_for(self, source_key):
@@ -610,6 +622,9 @@ class AmbassadorConfig (object):
 
             value = self.envoy_config[key]
 
+            # print("-key %s" % key)
+            # print("-value %s" % json.dumps(value, indent=4, sort_keys=True))
+
             if isinstance(value, list):
                 for v2 in value:
                     self._get_intermediate_for(result[key], source_keys, v2)
@@ -649,7 +664,7 @@ class AmbassadorConfig (object):
 
         if 'tls' in module:
             tmod = module['tls']
-            tmp_config = {}
+            tmp_config = SourcedDict(_from=module)
             some_enabled = False
 
             if ('server' in tmod) and tmod['server'].get('enabled', True):
@@ -722,6 +737,73 @@ class AmbassadorConfig (object):
                                           'cluster_ext_auth', [ "tcp://%s" % svc ],
                                           type="logical_dns", lb_type="random")
 
+    ### DIAGNOSTICS
+    def diagnostic_overview(self):
+        # Build a set of source _files_ rather than source _objects_.
+        source_files = {}
+    
+        for filename, source_keys in self.source_map.items():
+            self.logger.debug("overview -- filename %s, source_keys %d" %
+                              (filename, len(source_keys)))
+
+            # Skip '--internal--' etc.
+            if filename.startswith('--'):
+                continue
+
+            source_dict = source_files.setdefault(
+                filename,
+                {
+                    'filename': filename,
+                    'objects': {},
+                    'count': 0,
+                    'plural': "objects",
+                    'error_count': 0,
+                    'error_plural': "errors"
+                }
+            )
+
+            for source_key in source_keys:
+                self.logger.debug("overview --- source_key %s" % source_key)
+
+                source = self.sources[source_key]
+                raw_errors = self.errors.get(source_key, [])
+
+                errors = []
+
+                for error in raw_errors:
+                    source_dict['error_count'] += 1
+
+                    errors.append({
+                        'summary': error['error'].split('\n', 1)[0],
+                        'text': error['error']
+                    })
+
+                source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "errors"
+
+                source_dict['count'] += 1
+                source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
+
+                object_dict = source_dict['objects']
+                object_dict[source_key] = {
+                    'key': source_key,
+                    'kind': source['kind'],
+                    'errors': errors
+                }
+
+        routes = [ route for route in self.envoy_config['routes']
+                   if route['_source'] != "--diagnostics--" ]
+
+        configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
+                          if key != "routes" }
+
+        overview = dict(sources=sorted(source_files.values(), key=lambda x: x['filename']),
+                        routes=routes,
+                        **configuration)
+
+        self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
+
+        return overview
+
     def pretty(self, obj, out=sys.stdout):
         json.dump(obj, out, indent=4, separators=(',',':'), sort_keys=True)
         out.write("\n")
@@ -744,3 +826,8 @@ class AmbassadorConfig (object):
 
         print("==== envoy_config")
         self.pretty(self.envoy_config)
+
+if __name__ == '__main__':
+    aconf = AmbassadorConfig(sys.argv[1])
+    print(json.dumps(aconf.diagnostic_overview(), indent=4, sort_keys=True))
+

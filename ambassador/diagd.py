@@ -177,78 +177,18 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    # Build a set of source _files_ rather than source _objects_.
-    source_files = {}
-    
-    for filename, source_keys in app.aconf.source_map.items():
-        # app.logger.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
+    ov = app.aconf.diagnostic_overview()
+    cstats = cluster_stats(ov['clusters'])
+    del(ov['clusters'])
 
-        if filename.startswith('--'):
-            continue
-
-        source_dict = source_files.setdefault(
-            filename,
-            {
-                'filename': filename,
-                'objects': {},
-                'count': 0,
-                'plural': "objects",
-                'error_count': 0,
-                'error_plural': "errors"
-            }
-        )
-
-        for source_key in source_keys:
-            # app.logger.debug("OV %s --- source_key %s" % (reqid, source_key))
-
-            source = app.aconf.sources[source_key]
-            raw_errors = app.aconf.errors.get(source_key, [])
-
-            errors = []
-
-            for error in raw_errors:
-                source_dict['error_count'] += 1
-
-                errors.append({
-                    'summary': error['error'].split('\n', 1)[0],
-                    'text': error['error']
-                })
-
-            source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "errors"
-
-            source_dict['count'] += 1
-            source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
-
-            object_dict = source_dict['objects']
-            object_dict[source_key] = {
-                'key': source_key,
-                'kind': source['kind'],
-                'target': ambassador_targets.get(source['kind'].lower(), None),
-                'errors': errors
-            }
-
-    # app.logger.debug("OV %s --- sources built" % reqid)
-
-    routes = [ route for route in app.aconf.envoy_config['routes']
-               if route['_source'] != "--diagnostics--" ]
-
-    # app.logger.debug("OV %s --- routes built" % reqid)
-
-    clusters = app.aconf.envoy_config['clusters']
-
-    # app.logger.debug("OV %s --- clusters built" % reqid)
-
-    configuration = { key: app.aconf.envoy_config[key] for key in app.aconf.envoy_config.keys()
-                      if key != "routes" }
-
-    # app.logger.debug("OV %s --- configuration built" % reqid)
+    for source in ov['sources']:
+        for obj in source['objects'].values():
+            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
     tvars = dict(system=system_info(), 
                  envoy_status=envoy_status(app.estats), 
-                 cluster_stats=cluster_stats(clusters),
-                 sources=sorted(source_files.values(), key=lambda x: x['filename']),
-                 routes=routes,
-                 **configuration)
+                 cluster_stats=cstats,
+                 **ov)
 
     if request.args.get('json', None):
         result = jsonify(tvars)
