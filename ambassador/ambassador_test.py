@@ -46,29 +46,69 @@ def standard_setup(f):
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
 def test_config(testname, dirpath, configdir):
-    assert os.path.isdir(configdir)
+    errors = []
+
+    if not os.path.isdir(configdir):
+        errors.append("configdir %s is not a directory" % configdir)
 
     envoy_json_out = os.path.join(dirpath, "envoy.json")
 
-    ambassador = shell([ 'python', AMBASSADOR, 'config', configdir, envoy_json_out ])
+    ambassador = shell([ 'python', AMBASSADOR, 'config', configdir, envoy_json_out],
+                       verbose=True)
 
-    print("\n".join(ambassador.output()))
+    if ambassador.code != 0:
+        errors.append('ambassador failed! %s' % ambassador.code)
+    else:
+        envoy = shell([ 'docker', 'run', 
+                            '--rm',
+                            '-v', '%s:/etc/ambassador-config' % dirpath,
+                            VALIDATOR_IMAGE,
+                            '/usr/local/bin/envoy',
+                               '--base-id', '1',
+                               '--mode', 'validate',
+                               '-c', '/etc/ambassador-config/envoy.json' ],
+                      verbose=True)
 
-    ambassador_succeeded = (ambassador.code == 0)
-    assert ambassador_succeeded
-    assert False
+        envoy_succeeded = (envoy.code == 0)
+        print("envoy code %d" % envoy.code)
+        print("envoy succeeded %d" % envoy_succeeded)
+
+        if not envoy_succeeded:
+            errors.append('envoy failed! %s' % envoy.code)
+
+        envoy_output = list(envoy.output())
+
+        if envoy_succeeded:
+            if not envoy_output[-1].strip().endswith(' OK'):
+                errors.append('envoy validation failed!')
+
+    if errors:
+        print("---- ERRORS")
+        print("%s" % "\n".join(errors))
+
+    assert not errors, ("failing, errors: %d" % len(errors))
 
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
-def test_config(testname, dirpath, configdir):
-    assert os.path.isdir(configdir)
+def test_diag(testname, dirpath, configdir):
+    errors = []
+    errorcount = 0
+
+    if not os.path.isdir(configdir):
+        errors.append("configdir %s is not a directory" % configdir)
+        errorcount += 1
 
     results = diag_paranoia(configdir, dirpath)
 
     if results['warnings']:
-        print("\n".join(['WARNING: %s' % x for x in results['warnings']]))
+        errors.append("[DIAG WARNINGS]\n%s" % "\n".join(results['warnings']))
 
     if results['errors']:
-        print("\n".join(['ERROR: %s' % x for x in results['errors']]))
+        errors.append("[DIAG ERRORS]\n%s" % "\n".join(results['errors']))
+        errorcount += len(results[errors])
 
-    assert not results['errors']
+    if errors:
+        print("---- ERRORS")
+        print("%s" % "\n".join(errors))
+
+    assert errorcount == 0, ("failing, errors: %d" % errorcount)

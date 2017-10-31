@@ -3,4 +3,3 @@ gitpython
 docopt
 awscli
 pytest
-shell
