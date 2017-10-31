@@ -20,8 +20,8 @@ deps-check:
 		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
 		exit 1 ;\
 	}
-	@python -c 'import shell, semantic_version, git' >/dev/null 2>&1 || { \
-		echo "Could not import shell, semantic_version, or git -- are they installed?" >&2 ;\
+	@python -c 'import semantic_version, git' >/dev/null 2>&1 || { \
+		echo "Could not import semantic_version or git -- are they installed?" >&2 ;\
 		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
 		exit 1 ;\
 	}
