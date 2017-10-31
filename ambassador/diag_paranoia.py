@@ -1,5 +1,6 @@
 import sys
 
+import difflib
 import json
 import os
 
@@ -9,6 +10,18 @@ from AmbassadorConfig import AmbassadorConfig
 
 def prettify(obj):
     return json.dumps(obj, indent=4, sort_keys=True)
+
+def mark_referenced_by(obj, refby):
+    if '_referenced_by' not in obj:
+        return True
+
+    if refby not in obj['_referenced_by']:
+        obj['_referenced_by'].append(refby)
+        obj['_referenced_by'].sort()
+
+        return True
+    else:
+        return False
 
 Uniqifiers = {
     'breakers': lambda x: x['name'],
@@ -33,9 +46,7 @@ def diag_paranoia(configdir, outputdir):
     missing_uniqifiers = {}
 
     for source in ov['sources']:
-        # print(prettify(source))
         source_filename = source['filename']
-        # print("== %s" % source_filename)
 
         for source_key in source['objects'].keys():
             intermediate = aconf.get_intermediate_for(source_key)
@@ -60,11 +71,9 @@ def diag_paranoia(configdir, outputdir):
                             rcluster = rclusters[cname]
                             # print("%s: extant cluster %s" % (source_key, prettify(rclusters[cname])))
 
-                            if source_key in rcluster['_referenced_by']:
+                            if not mark_referenced_by(rcluster, source_key):
                                 errors.append('%s: already appears in cluster %s?' %
                                               (source_key, rcluster['name']))
-                            else:
-                                rcluster['_referenced_by'].append(source_key)
 
                             for ckey in sorted(cluster.keys()):
                                 if ckey == '_referenced_by':
@@ -100,14 +109,12 @@ def diag_paranoia(configdir, outputdir):
                                 errors.append('%s: %s %s already defined by %s' %
                                               (source_key, key, u, prettify(rcon[u])))
                             else:
-                                rconned = rcon[u]
-                                ref_by = rconned['_referenced_by']
-                                osrc = obj['_source']
-
-                                if osrc not in ref_by:
-                                    ref_by.append(osrc)
+                                mark_referenced_by(rcon[u], obj['_source'])
                         else:
                             rcon[u] = obj
+
+                            if '_referenced_by' in rcon[u]:
+                                rcon[u]['_referenced_by'].sort()
 
     # OK. After all that, flip the dictionaries in reconstituted back into lists...
 
@@ -165,9 +172,6 @@ def diag_paranoia(configdir, outputdir):
     filtered_overview = {}
 
     for key in ov.keys():
-        # if key == 'listeners':
-        #     continue
-
         if not ov[key]:
             continue
 
@@ -181,37 +185,32 @@ def diag_paranoia(configdir, outputdir):
                     continue
 
                 if '_referenced_by' in obj:
-                    obj['_referenced_by'] = [ x for x in obj['_referenced_by'] if x != '--internal--' ]
+                    obj['_referenced_by'] = sorted([ x for x in obj['_referenced_by'] if x != '--internal--' ])
 
                 filtered.append(obj)
 
             filtered_overview[key] = sorted(filtered, key=uniqifier)
         else:
             # Make this a single-element list to match the reconstition.
-            filtered_overview[key] = [ ov[key] ]
+            obj = ov[key]
 
-    if prettify(filtered_overview) != prettify(reconstituted_lists):
-        ov_out  = os.path.join(outputdir, "OV.json.out")
-        ovf_out = os.path.join(outputdir, "OVF.json.out")
-        rc_out  = os.path.join(outputdir, "RC.json.out")
-        rcl_out = os.path.join(outputdir, "RCL.json.out")
+            if '_referenced_by' in obj:
+                obj['_referenced_by'].sort()
 
-        for obj, output_path in [ 
-            (ov, ov_out),            (filtered_overview, ovf_out),
-            (reconstituted, rc_out), (reconstituted_lists, rcl_out)
-        ]:
-            with open(output_path, "w") as output:
-                output.write(prettify(obj))
-                output.write("\n")
+            filtered_overview[key] = [ obj ]
 
-        diff_cmd = shell([ 'diff', '-u', "OVF.json.out", "RCL.json.out" ])
-        diff = "\n".join(diff_cmd.output())
+    pretty_filtered_overview = prettify(filtered_overview)
+    pretty_reconstituted_lists = prettify(reconstituted_lists)
 
+    udiff = list(difflib.unified_diff(pretty_filtered_overview.split("\n"),
+                                      pretty_reconstituted_lists.split("\n"),
+                                      fromfile="from overview", tofile="from intermediates",
+                                      lineterm=""))
+
+    if udiff:
         errors.append("%s\n-- DIFF --\n%s\n-- OVERVIEW --\n%s\n\n-- RECONSTITUTED --\n%s\n" %
                       ("mismatch between overview and reconstituted diagnostics",
-                       diff,
-                       prettify(filtered_overview),
-                       prettify(reconstituted_lists)))
+                       "\n".join(udiff), pretty_filtered_overview, pretty_reconstituted_lists))
 
     return {
         'errors': errors,
