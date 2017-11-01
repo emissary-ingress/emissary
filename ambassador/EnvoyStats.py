@@ -1,11 +1,5 @@
-# import copy
-# import collections
-# import json
 import logging
-# import os
-# import re
 import time
-# import types
 
 import requests
 

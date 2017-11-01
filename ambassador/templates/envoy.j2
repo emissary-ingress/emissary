@@ -37,6 +37,7 @@
                       "timeout_ms": {{ route.timeout_ms or 10000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
+                      {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
                       {%- if route.method -%}"headers": [ {
                         "name": ":method",
                         "value": "{{ route.method }}",
@@ -48,7 +49,12 @@
                                  { "name": "{{wc.name}}", "weight": {{wc.weight}} }{{ "," if not loop.last }}
                               {% endfor %}
                           ]
-                      }
+                      }{{ "," if route.envoy_override }}
+                      {% if route.envoy_override %}
+                        {% for key in route.envoy_override.keys() %}
+                        "{{ key }}": {{ route.envoy_override[key] | tojson }}{{ "," if not loop.last }}
+                        {% endfor %}
+                      {% endif %}
                     }
                     {{ "," if not loop.last }}
                     {% endfor %}
@@ -105,6 +111,6 @@
       {% endfor %}
     ]
   },
-  "statsd_udp_ip_address": "127.0.0.1:9125",
+  "statsd_udp_ip_address": "127.0.0.1:8125",
   "stats_flush_interval_ms": 1000
 }

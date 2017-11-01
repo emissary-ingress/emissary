@@ -2,94 +2,6 @@
 
 The simplest way to run Ambassador is **not** to build it! Instead, just use the YAML files published at https://www.getambassador.io, and start by deciding whether you want to use TLS or not. (If you want more information on TLS, check out our [TLS Overview](../reference/tls-auth.md).) It's possible to switch this later, but it's a pain, and may well involve mucking about with your DNS and such to do it, so it's better to decide up front.
 
-## <a name="TLS">Using TLS</a>
-
-**We recommend using TLS**, which means speaking to Ambassador only over HTTPS. To do this, you need a TLS certificate, which means you'll need the DNS set up correctly.
-
-### TLS, DNS, and the Ambassador Service
-
-In order to set up DNS, we need to know the external IP address or hostname for Ambassador. In order to know that, we need to start by creating the Ambassador's kubernetes service:
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
-```
-
-This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, and it should be stable **as long as you don't delete the service**.
-
-### Setting up Ambassador's TLS Certificate
-
-Given Ambassador's DNS name, you can request a certificate for it. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this document -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin, check out our [TLS Overview](../reference/tls-auth.md), and check out [Let's Encrypt](https://letsencrypt.org/) if you're shopping for a new CA.)
-
-Once you have the cert, you can run
-
-```shell
-kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
-```
-
-where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
-
-The `ambassador-certs` secret tells Ambassador to provide HTTPS on port 443, and gives it the certificate to present to a client contacting Ambassador. 
-
-### `ambassador.yaml`
-
-Once the certificate is installed, you'll need to make sure that the `ambassador` [module](../about/concepts.md#modules) enables its use. The simplest way to do that is:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Module
-name:  ambassador
-config:
-  tls:
-    server:
-      enabled: True
-```
-
-which will enable TLS termination. (More details about this configuration file are available: see [TLS Termination](../how-to/tls-termination.md).)
-
-### Starting Ambassador with TLS
-
-After all of the above, you can [configure Ambassador's mappings, etc.](../reference/configuration.md), then start Ambassador running with
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-proxy.yaml
-```
-
-Note that `ambassador-proxy.yaml` includes liveness and readiness probes that assume that Ambassador is listening to HTTPS on port 443. This won't work for an HTTP-only Ambassador.
-
-### Without TLS
-
-If you really, really cannot use TLS, you can [set up your Ambassador configuration](../reference/configuration.md), then do
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml
-```
-
-to create an HTTP-only Ambassador service, then start Ambassador running.
-
-## Namespaces
-
-Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (which is included in the YAML files from `getambassador.io`):
-
-```yaml
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace          
-```
-
-Given that `AMBASSADOR_NAMESPACE` is set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
-
-- Using `service: servicename` will route to a service in the same namespace as the Ambassador, and
-- Using `service: servicename.namespace` will route to a service in a different namespace.
-
-## Once Running
-
-However you started Ambassador, once it's running you'll see pods and services called `ambassador`. By default three replicas of the `ambassador` proxy will be run.
-
-*ALSO NOTE*: The very first time you start Ambassador, it can take a very long time - like 15 minutes - to get the images pulled down and running. You can use `kubectl get pods` to see when the pods are actually running.
-
 ## Upgrading Ambassador
 
 Since Ambassador's configuration is entirely stored in its ConfigMap, no special process is necessary to upgrade Ambassador. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating (for HTTPS)
@@ -118,8 +30,12 @@ kubectl port-forward ambassador-xxxx-yyy 8877
 
 where, obviously, you'll have to fill in the actual pod name of one of your Ambassador pods (any will do).
 
-Once you have that, you'll be able to point a web browser at 
+Once you have that, you'll be able to point a web browser at
 
 `http://localhost:8877/ambassador/v0/diag/`
 
 for the diagnostics overview. Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
+
+If needed, you can get JSON output from the diagnostic service, instead of HTML:
+
+`curl http://localhost:8877/ambassador/v0/diag/?json=true`

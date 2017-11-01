@@ -16,10 +16,10 @@ import VERSION
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, request # Response, jsonify
+from flask import Flask, render_template, request, jsonify # Response
 
 from AmbassadorConfig import AmbassadorConfig
-from envoy import EnvoyStats
+from EnvoyStats import EnvoyStats
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
 __version__ = VERSION.Version
@@ -98,6 +98,12 @@ def standard_handler(f):
 app = Flask(__name__)
 
 # Next, various helpers.
+def aconf(app):
+    configs = glob.glob("%s-*" % app.config_dir_prefix)
+    configs.sort(key=lambda x: int(x.split("-")[-1]))
+    latest = configs[-1]
+    return AmbassadorConfig(latest)
+
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
@@ -173,89 +179,28 @@ def check_ready():
     else:
         return "ambassador not ready (%s)" % status['since_update'], 503
 
-def aconf(app):
-    configs = glob.glob("%s-*" % app.config_dir_prefix)
-    configs.sort(key=lambda x: int(x.split("-")[-1]))
-    latest = configs[-1]
-    return AmbassadorConfig(latest)
-
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    # Build a set of source _files_ rather than source _objects_.
-    source_files = {}
-    
-    for filename, source_keys in aconf(app).source_map.items():
-        # app.logger.debug("OV %s -- filename %s, source_keys %d" % (reqid, filename, len(source_keys)))
+    ov = aconf(app).diagnostic_overview()
+    cstats = cluster_stats(ov['clusters'])
+    del(ov['clusters'])
 
-        if filename.startswith('--'):
-            continue
+    for source in ov['sources']:
+        for obj in source['objects'].values():
+            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
-        source_dict = source_files.setdefault(
-            filename,
-            {
-                'filename': filename,
-                'objects': {},
-                'count': 0,
-                'plural': "objects",
-                'error_count': 0,
-                'error_plural': "errors"
-            }
-        )
+    tvars = dict(system=system_info(), 
+                 envoy_status=envoy_status(app.estats), 
+                 cluster_stats=cstats,
+                 **ov)
 
-        for source_key in source_keys:
-            # app.logger.debug("OV %s --- source_key %s" % (reqid, source_key))
-
-            source = aconf(app).sources[source_key]
-            raw_errors = aconf(app).errors.get(source_key, [])
-
-            errors = []
-
-            for error in raw_errors:
-                source_dict['error_count'] += 1
-
-                errors.append({
-                    'summary': error['error'].split('\n', 1)[0],
-                    'text': error['error']
-                })
-
-            source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "errors"
-
-            source_dict['count'] += 1
-            source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
-
-            object_dict = source_dict['objects']
-            object_dict[source_key] = {
-                'key': source_key,
-                'kind': source['kind'],
-                'target': ambassador_targets.get(source['kind'].lower(), None),
-                'errors': errors
-            }
-
-    # app.logger.debug("OV %s --- sources built" % reqid)
-
-    routes = [ route for route in aconf(app).envoy_config['routes']
-               if route['_source'] != "--diagnostics--" ]
-
-    # app.logger.debug("OV %s --- routes built" % reqid)
-
-    clusters = aconf(app).envoy_config['clusters']
-
-    # app.logger.debug("OV %s --- clusters built" % reqid)
-
-    configuration = { key: aconf(app).envoy_config[key] for key in aconf(app).envoy_config.keys()
-                      if key != "routes" }
-
-    # app.logger.debug("OV %s --- configuration built" % reqid)
-
-    result = render_template('overview.html', system=system_info(), 
-                             envoy_status=envoy_status(app.estats), 
-                             cluster_stats=cluster_stats(clusters),
-                             sources=sorted(source_files.values(), key=lambda x: x['filename']),
-                             routes=routes,
-                             **configuration)
+    if request.args.get('json', None):
+        result = jsonify(tvars)
+    else:
+        result = render_template('overview.html', **tvars)
 
     # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
 
@@ -280,11 +225,15 @@ def show_intermediate(source=None, reqid=None):
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
-    return render_template('diag.html', 
-                           system=system_info(),
-                           envoy_status=envoy_status(app.estats),
-                           method=method, resource=resource,
-                           **result)
+    tvars = dict(system=system_info(),
+                 envoy_status=envoy_status(app.estats),
+                 method=method, resource=resource,
+                 **result)
+
+    if request.args.get('json', None):
+        return jsonify(tvars)
+    else:
+        return render_template('diag.html', **tvars)
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
@@ -326,10 +275,9 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
         app.logger.debug("Starting periodic updates")
         app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
 
-    aconf = AmbassadorConfig(config_dir_path)
     app.config_dir_prefix = config_dir_path
 
-    app.run(host='127.0.0.1', port=aconf.diag_port(), debug=app.debugging)
+    app.run(host='0.0.0.0', port=aconf(app).diag_port(), debug=app.debugging)
 
 if __name__ == "__main__":
     clize.run(main)

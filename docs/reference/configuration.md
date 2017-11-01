@@ -28,7 +28,7 @@ Ambassador uses a directory structure for its configuration to allow multiple de
 
 - Be aware that Ambassador tries to not start with a broken configuration, but it's not perfect.
 
-    Gross errors will result in Ambassador refusing to start, in which case `kubectl logs` will be helpful. However, it's always possible to e.g. map a resource to the wrong service, or using the wrong `rewrite` rules. Ambassador can't detect that on its own.
+    Gross errors will result in Ambassador refusing to start, in which case `kubectl logs` will be helpful. However, it's always possible to e.g. map a resource to the wrong service, or use the wrong `rewrite` rules. Ambassador can't detect that on its own, although its diagnostic pages can help you figure it out.
 
 - Be careful of mapping collisions.
 
@@ -67,7 +67,13 @@ config:
   # use 443 if TLS is configured, 80 otherwise.
   # service_port: 80
 
-  # admin_port is where we'll listen for administrative requests.
+  # diag_port is the port where Ambassador will listen for requests
+  # to the diagnostic service.
+  # diag_port: 8877
+
+  # admin_port is the port where Ambassador's Envoy will listen for 
+  # low-level admin requests. You should almost never need to change
+  # this.
   # admin_port: 8001
 
   # liveness probe defaults on, but you can disable it.
@@ -192,12 +198,45 @@ Valid attributes for mappings:
 
 - `prefix` is the URL prefix identifying your [resource](#resources)
 - `rewrite` (optional) is what to [replace](#rewriting) the URL prefix with when talking to the service
+- `host_rewrite` (optional) forces the HTTP `Host` header to a specific value when talking to the service
 - `service` is the name of the [service](#services) handling the resource
 - `method` (optional) defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex` (optional) if present and true, tells the system to interpret the `method` as a regular expression
 - `grpc` (optional) if present with a true value, tells the system that the service will be handling gRPC calls
+- `envoy_override` (optional) supplies raw configuration data to be included with the generated Envoy route entry.
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
+
+#### Using `host_rewrite`
+
+By default, the `Host` header is not altered when talking to the service -- whatever `Host` header the client gave to Ambassador will be presented to the service. For many microservices this will be fine, but if you use Ambassador to route to services that use the `Host` header for routing, it's likely to fail (legacy monoliths are particularly susceptible to this, as well as external services). You can use `host_rewrite` to force the `Host` header to whatever value that such target services need.
+
+An example: the default Ambassador configuration includes the following mapping for `httpbin.org`:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: httpbin_mapping
+prefix: /httpbin/
+service: httpbin.org:80
+host_rewrite: httpbin.org
+```
+
+As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
+
+#### Using `envoy_override`
+
+It's possible that your situation may strain the limits of what Ambassador can do. The `envoy_override` attribute is provided for cases we haven't predicted: any object given as the value of `envoy_override` will be inserted into the Envoy `Route` synthesized for the given mapping. For example, you could enable Envoy's `auto_host_rewrite` by supplying
+
+```yaml
+envoy_override:
+  auto_host_rewrite: True
+```
+
+Note that `envoy_override` cannot, at present, change any element already synthesized in the mapping: it can only add additional information.
+
+#### Namespaces and Mappings
 
 Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
 
