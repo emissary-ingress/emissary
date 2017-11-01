@@ -1,2 +1,0 @@
-click==6.*
-requests==2.*

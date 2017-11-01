@@ -18,7 +18,7 @@ from clize import Parameter
 from flask import Flask, render_template, request, jsonify # Response
 
 from AmbassadorConfig import AmbassadorConfig
-from envoy import EnvoyStats
+from EnvoyStats import EnvoyStats
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
 __version__ = VERSION.Version

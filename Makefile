@@ -45,9 +45,7 @@ reg-check:
 
 versions:
 	@echo "Building $(VERSION)"
-	for file in actl ambassador; do \
-	    sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > $$file/VERSION.py; \
-	done
+	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/VERSION.py
 
 artifacts: docker-images website
 
@@ -60,16 +58,13 @@ yaml-files:
 ambassador-test:
 	pytest
 
-docker-images: ambassador-image statsd-image cli-image
+docker-images: ambassador-image statsd-image
 
 ambassador-image: ambassador-test .ALWAYS
 	scripts/docker_build_maybe_push ambassador $(VERSION) ambassador
 
 statsd-image: .ALWAYS
 	scripts/docker_build_maybe_push statsd $(VERSION) statsd
-
-cli-image: .ALWAYS
-	scripts/docker_build_maybe_push actl $(VERSION) actl
 
 website: yaml-files
 	VERSION=$(VERSION) docs/build-website.sh
