@@ -3,6 +3,12 @@
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
+CONFIG_DIR="/etc/ambassador-config"
+
+if [ "$1" == "--demo" ]; then
+    CONFIG_DIR="/etc/ambassador-demo-config"
+fi
+
 APPDIR=${APPDIR:-/application}
 
 pids=()
@@ -59,7 +65,7 @@ set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" sync /etc/ambassador-config /etc/envoy.json 
+/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" /etc/envoy.json 
 
 STATUS=$?
 
@@ -68,7 +74,7 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-/usr/bin/python3 "$APPDIR/diagd.py" --no-debugging /etc/ambassador-config &
+/usr/bin/python3 "$APPDIR/diagd.py" --no-debugging "$CONFIG_DIR" &
 pids+=("$!;diagd")
 
 echo "AMBASSADOR: starting Envoy"
@@ -76,7 +82,7 @@ echo "AMBASSADOR: starting Envoy"
 RESTARTER_PID="$!"
 pids+=("${RESTARTER_PID};envoy")
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch /etc/ambassador-config /etc/envoy.json -p "${RESTARTER_PID}" &
+/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
 pids+=("$!;kubewatch")
 
 echo "AMBASSADOR: waiting"

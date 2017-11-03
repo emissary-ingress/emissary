@@ -32,20 +32,31 @@ class Restarter(threading.Thread):
         self.processed = self.pokes
         self.restart_count = 0
 
+        self.configs = {}
+
+        # Read the base configuration...
+        self.read_fs(self.ambassador_config_dir)
+
+        # ...then pull in anything updated by the restarter logic.
+
         while True:
             if not os.path.exists("%s-%s" % (self.ambassador_config_dir, self.restart_count + 1)):
                 break
             else:
                 self.restart_count += 1
 
-        self.configs = {}
         path = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
+        self.read_fs(path)
+
+    def read_fs(self, path):
         if os.path.exists(path):
-            print ("Restoring config inputs from %s" % path)
+            print("Merging config inputs from %s" % path)
+
             for name in os.listdir(path):
                 if name.endswith(".yaml"):
                     with open(os.path.join(path, name)) as fd:
                         self.configs[name] = fd.read()
+
                     print ("Loaded %s" % os.path.join(path, name))
 
     def changes(self):
@@ -141,33 +152,55 @@ class Restarter(threading.Thread):
 
 
 def kube_v1():
+    # Assume we got nothin'.
+    k8s_api = None
+
     # XXX: is there a better way to check if we are inside a cluster or not?
     if "KUBERNETES_SERVICE_HOST" in os.environ:
+        # If this goes horribly wrong and raises an exception (it shouldn't),
+        # we'll crash, and Kubernetes will kill the pod. That's probably not an
+        # unreasonable response.
         config.load_incluster_config()
+        k8s_api = client.CoreV1Api()
     else:
-        config.load_kube_config()
+        # Here, we might be running in docker, in which case we'll likely not
+        # have any Kube secrets, and that's OK.
+        try:
+            config.load_kube_config()
+            k8s_api = client.CoreV1Api()
+        except FileNotFoundError:
+            # Meh, just ride through.
+            print("No K8s")
+            pass
 
-    return client.CoreV1Api()
+    return k8s_api
 
 def sync(restarter):
     v1 = kube_v1()
-    for svc in v1.list_service_for_all_namespaces().items:
-        restarter.update(svc)
-    if restarter.changes():
-        print ("Changes detected, regenerating envoy config.")
-        restarter.restart()
-    else:
-        print ("No changes detected, no regen needed.")
+
+    if v1:
+        # We have a Kube API! Check for annotations and such.
+        for svc in v1.list_service_for_all_namespaces().items:
+            restarter.update(svc)
+
+    print ("Changes detected, regenerating envoy config.")
+    restarter.restart()
 
 def watch_loop(restarter):
     v1 = kube_v1()
-    w = watch.Watch()
-    for evt in w.stream(v1.list_service_for_all_namespaces):
-        print("Event: %s %s" % (evt["type"], evt["object"].metadata.name))
-        if evt["type"] == "DELETED":
-            restarter.delete(evt["object"])
-        else:
-            restarter.update(evt["object"])
+
+    if v1:
+        w = watch.Watch()
+        for evt in w.stream(v1.list_service_for_all_namespaces):
+            print("Event: %s %s" % (evt["type"], evt["object"].metadata.name))
+            if evt["type"] == "DELETED":
+                restarter.delete(evt["object"])
+            else:
+                restarter.update(evt["object"])
+    else:
+        print("No K8s, idling")
+        while True:
+            time.sleep(60)
 
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
