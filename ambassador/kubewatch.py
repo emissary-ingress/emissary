@@ -193,6 +193,8 @@ def watch_loop(restarter):
         w = watch.Watch()
         for evt in w.stream(v1.list_service_for_all_namespaces):
             print("Event: %s %s" % (evt["type"], evt["object"].metadata.name))
+            sys.stdout.flush()
+
             if evt["type"] == "DELETED":
                 restarter.delete(evt["object"])
             else:
