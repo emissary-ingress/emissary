@@ -3,6 +3,21 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    service: ambassador
+  name: ambassador
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 80
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
     service: ambassador-admin
   name: ambassador-admin
 spec:
@@ -36,13 +51,6 @@ spec:
           requests:
             cpu: 200m
             memory: 100Mi
-        volumeMounts:
-        - mountPath: /etc/certs
-          name: cert-data
-        - mountPath: /etc/cacert
-          name: cacert-data
-        - mountPath: /etc/ambassador-config
-          name: config-map
         env:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
@@ -62,14 +70,4 @@ spec:
           periodSeconds: 3
       - name: statsd
         image: {STREG}statsd:{VERSION}
-      volumes:
-      - name: cert-data
-        secret:
-          secretName: ambassador-certs
-      - name: cacert-data
-        secret:
-          secretName: ambassador-cacert
-      - name: config-map
-        configMap:
-          name: ambassador-config
       restartPolicy: Always

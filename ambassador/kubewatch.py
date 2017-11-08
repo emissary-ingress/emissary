@@ -17,10 +17,11 @@ def get_filename(svc):
 
 class Restarter(threading.Thread):
 
-    def __init__(self, ambassador_config_dir, envoy_config_file, delay, pid):
+    def __init__(self, ambassador_config_dir, namespace, envoy_config_file, delay, pid):
         threading.Thread.__init__(self, daemon=True)
 
         self.ambassador_config_dir = ambassador_config_dir
+        self.namespace = namespace
         self.envoy_config_file = envoy_config_file
         self.delay = delay
         self.pid = pid
@@ -122,20 +123,28 @@ class Restarter(threading.Thread):
 
         raise ValueError("Unable to generate config")
 
-    def update(self, svc):
+    def update_from_service(self, svc):
         config = get_annotation(svc)
         if config is None:
             self.delete(svc)
         else:
             key = get_filename(svc)
-            with self.mutex:
-                if key in self.configs:
-                    if config != self.configs[key]:
-                        self.configs[key] = config
-                        self.poke()
-                elif key not in self.configs:
-                    self.configs[key] = config
-                    self.poke()
+            self.update(key, config)
+
+    def update(self, key, config):
+        print("update: including key %s" % key)
+
+        with self.mutex:
+            need_update = False
+
+            if key not in self.configs:
+                need_update = True
+            elif config != self.configs[key]:
+                need_update = True
+
+            if need_update:
+                self.configs[key] = config
+                self.poke()
 
     def delete(self, svc):
         with self.mutex:
@@ -179,9 +188,21 @@ def sync(restarter):
     v1 = kube_v1()
 
     if v1:
-        # We have a Kube API! Check for annotations and such.
-        for svc in v1.list_service_for_all_namespaces().items:
-            restarter.update(svc)
+        # We have a Kube API! Do we have an ambassador-config ConfigMap?
+        cm_names = [ x.metadata.name 
+                     for x in v1.list_namespaced_config_map(restarter.namespace).items ]
+
+        if 'ambassador-config' in cm_names:
+            config_data = v1.read_namespaced_config_map("ambassador-config", restarter.namespace)
+
+            if config_data:
+                for key, yaml in config_data.data.items():
+                    # print("ambassador-config: found %s" % key)
+                    restarter.update(key, yaml)
+
+        # Next, check for annotations and such.
+        for svc in v1.list_namespaced_service(restarter.namespace).items:
+            restarter.update_from_service(svc)
 
     print ("Changes detected, regenerating envoy config.")
     restarter.restart()
@@ -198,7 +219,7 @@ def watch_loop(restarter):
             if evt["type"] == "DELETED":
                 restarter.delete(evt["object"])
             else:
-                restarter.update(evt["object"])
+                restarter.update_from_service(evt["object"])
     else:
         print("No K8s, idling")
         while True:
@@ -273,12 +294,17 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     is an ambassador bug encountered when processing an annotation.
 
     """
-    restarter = Restarter(ambassador_config_dir, envoy_config_file, delay, pid)
+
+    namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+
+    restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
 
     if mode == "sync":
         sync(restarter)
     elif mode == "watch":
         restarter.start()
+
+
         while True:
             try:
                 # this is in a loop because sometimes the auth expires
