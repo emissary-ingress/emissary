@@ -153,7 +153,7 @@ config:
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, and a set of [_module configuration_](#modules) specific to that mapping.
+Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, a [_weight_](#weights) specifying how much of the traffic for the resource will be routed using the mapping, and a set of [_module configuration_](#modules) specific to that mapping.
 
 ### Defining Mappings
 
@@ -203,6 +203,7 @@ Valid attributes for mappings:
 - `method` (optional) defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex` (optional) if present and true, tells the system to interpret the `method` as a regular expression
 - `grpc` (optional) if present with a true value, tells the system that the service will be handling gRPC calls
+- `weight` (optional) if present, specifies the percentage of traffic for this resource that will be routed using this mapping
 - `envoy_override` (optional) supplies raw configuration data to be included with the generated Envoy route entry.
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
@@ -224,6 +225,30 @@ host_rewrite: httpbin.org
 ```
 
 As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
+
+#### Using `weight`
+
+The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
+
+Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. Here's an example, which might appear during a canary deployment:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm2_mapping
+prefix: /qotm/
+service: qotmv2
+weight: 10
+```
+
+In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
 
 #### Using `envoy_override`
 
