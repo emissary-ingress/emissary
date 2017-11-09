@@ -343,18 +343,18 @@ class AmbassadorConfig (object):
 
             headers = []
 
-            for name, value in mapping.get('headers', []):
-                headers.append({ "name": name, "value": value, "regex": False })
+            # for name, value in mapping.get('headers', {}).items():
+            #     headers.append({ "name": name, "value": value, "regex": False })
 
-            for name, value in mapping.get('regex_headers', []):
-                headers.append({ "name": name, "value": value, "regex": True })
+            # for name, value in mapping.get('regex_headers', []):
+            #     headers.append({ "name": name, "value": value, "regex": True })
 
-            if 'host' in mapping:
-                headers.append({
-                    "name": ":host",
-                    "value": mapping['host'],
-                    "regex": mapping.get('host_regex', False)
-            })
+            # if 'host' in mapping:
+            #     headers.append({
+            #         "name": ":host",
+            #         "value": mapping['host'],
+            #         "regex": mapping.get('host_regex', False)
+            # })
 
             if 'method' in mapping:
                 headers.append({
