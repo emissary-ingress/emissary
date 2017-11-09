@@ -84,6 +84,7 @@
         "connect_timeout_ms": {{ cluster.timeout_ms or 3000 }},
         "type": "{{ cluster.type or 'strict_dns' }}",
         "lb_type": "{{ cluster.lb_type or 'round_robin' }}",
+        {%- if cluster.features -%}"features": "{{ cluster.features }}",{% endif %}        
         "hosts": [
           {% for url in cluster.urls -%}
           {

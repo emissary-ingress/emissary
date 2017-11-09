@@ -301,7 +301,7 @@ class AmbassadorConfig (object):
 
     def add_intermediate_cluster(self, _source, name, urls, 
                                  type="strict_dns", lb_type="round_robin",
-                                 cb_name=None, od_name=None):
+                                 cb_name=None, od_name=None, grpc=False):
         if name not in self.envoy_clusters:
             cluster = SourcedDict(
                 _source=_source,
@@ -545,8 +545,11 @@ class AmbassadorConfig (object):
             if ':' not in svc:
                 url += ':80'
 
+            grpc = mapping.get('grpc', False)
+            self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
+
             self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
-                                          cb_name=cb_name, od_name=od_name)
+                                          cb_name=cb_name, od_name=od_name, grpc=grpc)
 
             self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
 
