@@ -1,5 +1,7 @@
 import sys
 
+import difflib
+import json
 import logging
 import functools
 import os
@@ -81,6 +83,19 @@ def test_config(testname, dirpath, configdir):
         if envoy_succeeded:
             if not envoy_output[-1].strip().endswith(' OK'):
                 errors.append('envoy validation failed!')
+
+        gold_path = os.path.join(dirpath, "gold.json")
+
+        if os.path.exists(gold_path):
+            gold = json.dumps(json.load(open(gold_path, "r")), indent=4, sort_keys=True)
+            current = json.dumps(json.load(open(envoy_json_out, "r")), indent=4, sort_keys=True)
+
+            udiff = list(difflib.unified_diff(gold.split("\n"), current.split("\n"),
+                                              fromfile="gold.json", tofile="envoy.json",
+                                              lineterm=""))
+
+            if udiff:
+                errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
 
     if errors:
         print("---- ERRORS")
