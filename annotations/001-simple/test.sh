@@ -1,4 +1,6 @@
-#!/bin/sh -x
+#!/bin/bash
+
+set -e -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
 
@@ -20,6 +22,9 @@ kubectl cluster-info
 
 kubectl create cm ambassador-config --from-file k8s/base-config.yaml
 kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+
+set +e +o pipefail
 
 wait_for_pods
 

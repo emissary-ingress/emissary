@@ -38,11 +38,7 @@
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
                       {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
-                      {%- if route.method -%}"headers": [ {
-                        "name": ":method",
-                        "value": "{{ route.method }}",
-                        "regex": {{ route.method_regex or 'false' }}
-                      } ],{% endif %}
+                      {%- if route.headers -%}"headers": {{ route.headers | tojson }},{% endif %}
                       "weighted_clusters": {
                           "clusters": [
                               {% for wc in route.clusters %}

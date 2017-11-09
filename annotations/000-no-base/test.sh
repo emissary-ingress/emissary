@@ -1,4 +1,6 @@
-#!/bin/sh -x
+#!/bin/bash
+
+set -e -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
 
@@ -13,13 +15,16 @@ step "Dropping old cluster"
 kubernaut discard
 
 step "Claiming new cluster"
-kubernaut claim 
+kubernaut claim
 export KUBECONFIG=${HOME}/.kube/kubernaut
 
 kubectl cluster-info
 
 kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f ${ROOT}/ambassador-deployment.yaml
 kubectl apply -f k8s/qotm.yaml
+
+set +e +o pipefail
 
 wait_for_pods
 

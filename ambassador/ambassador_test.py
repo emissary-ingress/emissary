@@ -105,7 +105,7 @@ def test_diag(testname, dirpath, configdir):
 
     if results['errors']:
         errors.append("[DIAG ERRORS]\n%s" % "\n".join(results['errors']))
-        errorcount += len(results[errors])
+        errorcount += len(results['errors'])
 
     if errors:
         print("---- ERRORS")

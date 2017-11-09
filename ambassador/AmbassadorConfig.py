@@ -25,6 +25,17 @@ class SourcedDict (dict):
             self['_referenced_by'].append(source)
 
 class AmbassadorConfig (object):
+    TransparentRouteKeys = {
+        "host_redirect": True,
+        "path_redirect": True,
+        "host_rewrite": True,
+        "auto_host_rewrite": True,
+        "case_sensitive": True,
+        "use_websocket": True,
+        "timeout_ms": True,
+        "priority": True,
+    }
+
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
         self.schema_dir_path = schema_dir_path
@@ -271,7 +282,7 @@ class AmbassadorConfig (object):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, obj['config'])
 
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
-        method = obj.get("method", "GET")
+        method = obj.get('method', "GET")
         mapping_key = "%s:%s->%s" % (method, obj['prefix'], obj['service'])
 
         if not self.safe_store(source_key, "mapping_prefixes", mapping_key, obj_kind, obj):
@@ -317,7 +328,7 @@ class AmbassadorConfig (object):
         routes = self.envoy_config['routes']
         group = None
         for r in routes:
-            if r['prefix'] == mapping['prefix'] and r.get('method') == mapping.get('method'):
+            if r['prefix'] == mapping['prefix'] and r.get('_method') == mapping.get('method', 'GET'):
                 group = r
                 break
 
@@ -326,24 +337,55 @@ class AmbassadorConfig (object):
                 _source=_source,
                 prefix=mapping['prefix'],
                 prefix_rewrite=mapping.get('rewrite', '/'),
-                clusters=[{"name": cluster_name,
-                           "weight": mapping.get("weight", None)}]
+                clusters=[ { "name": cluster_name,
+                             "weight": mapping.get("weight", None) } ]
             )
 
+            headers = []
+
+            for name, value in mapping.get('headers', []):
+                headers.append({ "name": name, "value": value, "regex": False })
+
+            for name, value in mapping.get('regex_headers', []):
+                headers.append({ "name": name, "value": value, "regex": True })
+
+            if 'host' in mapping:
+                headers.append({
+                    "name": ":host",
+                    "value": mapping['host'],
+                    "regex": mapping.get('host_regex', False)
+            })
+
             if 'method' in mapping:
-                route['method'] = mapping['method']
-                route['method_regex'] = route.get('method_regex', False)
+                headers.append({
+                    "name": ":method",
+                    "value": mapping['method'],
+                    "regex": mapping.get('method_regex', False)
+                })
 
-            if 'timeout_ms' in mapping:
-                route['timeout_ms'] = mapping['timeout_ms']
+            if headers:
+                route['headers'] = headers
 
-            if 'host_rewrite' in mapping:
-                route['host_rewrite'] = mapping['host_rewrite']
+            # Even though we don't use it for generating the Envoy config, go ahead
+            # and make sure that any ':method' header match gets saved under the
+            # route's '_method' key -- diag uses it to make life easier.
+
+            route['_method'] = 'GET'    # Default to 'GET'
+            for hdict in headers:
+                if hdict['name'] == ':method':
+                    route['_method'] = hdict['value']
+
+            # There's a slew of things we'll just copy over transparently; handle
+            # those.
+
+            for key, value in mapping.items():
+                if key in AmbassadorConfig.TransparentRouteKeys:
+                    route[key] = value
 
             routes.append(route)
         else:
-            group["clusters"].append({"name": cluster_name,
-                                      "weight": mapping.get("weight", None)})
+            group["clusters"].append( { "name": cluster_name,
+                                        "weight": mapping.get("weight", None) } )
 
     def generate_intermediate_config(self):
         # First things first. Define the default "Ambassador" module...
@@ -444,7 +486,6 @@ class AmbassadorConfig (object):
             ("diagnostics", self.ambassador_module['diagnostics'],
                             self.default_diagnostics)
         ]:
-
             if cur and cur.get("enabled", False):
                 prefix = cur.get("prefix", dflt['prefix'])
                 rewrite = cur.get("rewrite", dflt['rewrite'])
@@ -568,7 +609,7 @@ class AmbassadorConfig (object):
         self.envoy_config['routes'].sort(reverse=True,
                                          key=lambda x: (len(x['prefix']), 
                                                         x['prefix'],
-                                                        x.get('method', 'GET')))
+                                                        x.get('_method', 'GET')))
 
         # ...map clusters back into a list...
         self.envoy_config['clusters'] = [

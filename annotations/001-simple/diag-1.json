@@ -1,5 +1,6 @@
 [
     {
+        "_method": "GET",
         "_source": "--internal--",
         "clusters": [
             {
@@ -11,6 +12,7 @@
         "prefix_rewrite": "/ambassador/v0/check_ready"
     },
     {
+        "_method": "GET",
         "_source": "--internal--",
         "clusters": [
             {
@@ -22,6 +24,7 @@
         "prefix_rewrite": "/ambassador/v0/check_alive"
     },
     {
+        "_method": "GET",
         "_source": "--internal--",
         "clusters": [
             {
@@ -31,5 +34,17 @@
         ],
         "prefix": "/ambassador/v0/",
         "prefix_rewrite": "/ambassador/v0/"
+    },
+    {
+        "_method": "GET",
+        "_source": "base-config.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/",
+        "prefix_rewrite": "/ambassador/"
     }
 ]
