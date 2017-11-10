@@ -2,7 +2,7 @@
 
 ---
 
-Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2. The Ambassador gRPC module makes this possible.
+Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
 ## Example
 
@@ -35,7 +35,7 @@ rewrite: /helloworld.Greeter/
 service: grpc-greet
 ```
 
-Note the `grpc: true` line -- this is necessary when mapping a gRPC service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
+Note the `grpc: true` line -- this is the necessary magic when mapping a gRPC service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
 ## Deploying `Hello World`
 
@@ -128,4 +128,6 @@ docker run -e ADDRESS=${AMBASSADORHOST}:${AMBASSADORPORT} enm10k/grpc-hello-worl
 
 ## Note
 
-Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, e.g., when using [Istio](../user-guide/with-istio.md), you may find that gRPC requests fail even with correct Ambassador configuration.
+Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador configuration.
+
+A simple way around this is to use Ambassador with a `LoadBalancer` service, rather than an Ingress controller.
