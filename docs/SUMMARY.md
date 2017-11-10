@@ -14,7 +14,7 @@
 
 * [Getting Started](user-guide/getting-started.md)
 * [Adding Authentication](user-guide/auth-tutorial.md)
-* [The QotM Demo in Detail](user-guide/demo-in-detail.md)
+* [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
 * [Statistics and Monitoring](how-to/statistics.md)
 
@@ -29,7 +29,6 @@
 
 * [Building Ambassador (GitHub)](https://github.com/datawire/ambassador/blob/master/BUILDING.md)
 * [Istio and Ambassador](user-guide/with-istio.md)
-
 
 ## Need Help?
 
