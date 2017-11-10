@@ -16,7 +16,7 @@ Ambassador assembles its configuration from YAML blocks that may be stored:
 - as data in a Kubernetes `ConfigMap`; or
 - as files in Ambassador's local filesystem.
 
-The data contained within each YAML block is the same no matter where the blocks are stored, and multiple YAML documents are likewise supported no matter where the blocks are stored. 
+The data contained within each YAML block is the same no matter where the blocks are stored, and multiple YAML documents are likewise supported no matter where the blocks are stored.
 
 ### Running Ambassador Within Kubernetes
 
@@ -93,7 +93,7 @@ config:
   # to the diagnostic service.
   # diag_port: 8877
 
-  # admin_port is the port where Ambassador's Envoy will listen for 
+  # admin_port is the port where Ambassador's Envoy will listen for
   # low-level admin requests. You should almost never need to change
   # this.
   # admin_port: 8001
@@ -211,7 +211,7 @@ Common optional attributes for mappings:
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
 - `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
-- `weight` if present, specifies the percentage of traffic for this resource that will be routed using this mapping
+- `weight` if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
 
 Less-common optional attributes for mappings:
 
