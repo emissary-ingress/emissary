@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.16.0] November 10, 2017
+[0.16.0]: https://github.com/datawire/ambassador/compare/v0.15.0...v0.16.0
+
+### Changed
+
+- Support configuring Ambassador via `annotations` on Kubernetes `service`s
+- No need for volume mounts! Ambassador can read configuration and TLS-certificate information directly from Kubernetes to simplify your Kubernetes YAML
+- Expose more configuration elements for Envoy `route`s: `host_redirect`, `path_redirect`, `host_rewrite`, `auto_host_rewrite`, `case_sensitive`, `use_websocket`, `timeout_ms`, and `priority` get transparently copied
+
+### Fixed
+
+- Reenable support for gRPC
+
 ## [0.15.0] October 16, 2017
 [0.15.0]: https://github.com/datawire/ambassador/compare/v0.14.2...v0.15.0
 
