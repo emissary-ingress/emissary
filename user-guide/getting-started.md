@@ -60,8 +60,7 @@ So far, we've used a demo configuration, and run everything in our local Docker 
 
 ### 5.1 Defining the Ambassador Service
 
-We'll start by defining a Kubernetes service of type `LoadBalancer` for Ambassador. 
-Here's the mapping we want to use:
+We'll start by defining a Kubernetes service of type `LoadBalancer` for Ambassador, and we'll use a Kubernetes `annotation` on the Ambassador service to define the following `Mapping`:
 
 ```yaml
 ---
@@ -75,7 +74,7 @@ host_rewrite: httpbin.org
 
 (Note the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services.)
 
-We need to include this in an `annotation` on a Kubernetes `service`, and the annotation needs to have a name of `getambassador.io/config`. Here's an appropriate service definition for HTTP-only Ambassador:
+Getting Ambassador to pick up the mapping definition is as simple as placing the YAML above into an annotation named `getambassador.io/config` on a Kubernetes service. Here's an appropriate service definition for HTTP-only Ambassador:
 
 ```yaml
 ---
