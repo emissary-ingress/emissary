@@ -320,6 +320,9 @@ class AmbassadorConfig (object):
                 cluster['outlier_detection'] = self.outliers[od_name]
                 self.outliers[od_name]._mark_referenced_by(_source)
 
+            if grpc:
+                cluster['features'] = 'http2'
+
             self.envoy_clusters[name] = cluster
         else:
             self.envoy_clusters[name]._mark_referenced_by(_source)
