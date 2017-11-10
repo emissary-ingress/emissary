@@ -31,10 +31,11 @@ kind: Mapping
 name: grpc_mapping
 grpc: true
 prefix: /helloworld.Greeter/
+rewrite: /helloworld.Greeter/
 service: grpc-greet
 ```
 
-Note the `grpc: true` line -- this is necessary when mapping a gRPC service.
+Note the `grpc: true` line -- this is necessary when mapping a gRPC service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
 ## Deploying `Hello World`
 
@@ -56,12 +57,14 @@ metadata:
       name: grpc_mapping
       grpc: true
       prefix: /helloworld.Greeter/
+      rewrite: /helloworld.Greeter/
       service: grpc-greet
 spec:
   type: ClusterIP
   ports:
-  - name: grpc-greet
-    port: 443
+  - port: 80
+    name: grpc-greet
+    targetPort: grpc-api
   selector:
     service: grpc-greet
 ---
@@ -79,13 +82,18 @@ spec:
       containers:
       - name: grpc-greet
         image: enm10k/grpc-hello-world
+        ports:
+        - name: grpc-api
+          containerPort: 9999
         env:
           - name: PORT
-            value: "443"
+            value: "9999"
         command:
           - greeter_server
       restartPolicy: Always
 ```
+
+(We tell the gRPC service to run on port 9999, then map the container's port 80 inbound to simplify the `Mapping`. There's no magic behind these port numbers: anything will work as long as you're consistent in when mapping everything.)
 
 This is available from getambassador.io, so you can simply
 
@@ -110,12 +118,12 @@ NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
 
-and the `EXTERNAL-IP` element is what we want. We'll call that `$AMBASSADORHOST`. 
+and the `EXTERNAL-IP` element is what we want. We'll call that `$AMBASSADORHOST`. You'll also need the port: if you haven't explicitly configured Ambassador otherwise, this should be 80 for an HTTP Ambassador or 443 for an HTTPS Ambassador. We'll call that `$AMBASSADORPORT`.
 
 To test `Hello World`, we can use the Docker image `enm10k/grpc-hello-world`:
 
 ```shell
-docker run -e ADDRESS=${AMBASSADORHOST}:80 enm10k/grpc-hello-world greeter_client
+docker run -e ADDRESS=${AMBASSADORHOST}:${AMBASSADORPORT} enm10k/grpc-hello-world greeter_client
 ```
 
 ## Note
