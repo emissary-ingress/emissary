@@ -9,9 +9,10 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  grpc_mapping
-      prefix: /grpc/
+      kind: Mapping
+      name: grpc_mapping
+      grpc: true
+      prefix: /helloworld.Greeter/
       service: grpc-greet
 spec:
   type: ClusterIP
@@ -27,10 +28,8 @@ metadata:
   name: grpc-greet
 spec:
   replicas: 1
-  strategy: {{}}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         service: grpc-greet
     spec:
@@ -42,6 +41,4 @@ spec:
             value: "443"
         command:
           - greeter_server
-        resources: {{}}
       restartPolicy: Always
-status: {{}}
