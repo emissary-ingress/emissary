@@ -4,7 +4,7 @@ kind: Service
 metadata:
   name: {{service.name}}
   annotations:
-    ambassador: |
+    getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind: Mapping

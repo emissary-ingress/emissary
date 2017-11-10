@@ -14,8 +14,7 @@ import yaml
 from kubernetes import client, config, watch
 from AmbassadorConfig import AmbassadorConfig
 
-# XXX: need to figure out the proper conventions for annotation keys
-KEY = "ambassador"
+KEY = "getambassador.io/config"
 
 def is_annotated(svc):
     annotations = svc.metadata.annotations
