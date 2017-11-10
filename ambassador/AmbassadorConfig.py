@@ -391,7 +391,8 @@ class AmbassadorConfig (object):
                                         "weight": mapping.get("weight", None) } )
 
     def generate_intermediate_config(self):
-        # First things first. Define the default "Ambassador" module...
+        # First things first. The "Ambassador" module always exists; create it with
+        # default values now.
 
         self.ambassador_module = SourcedDict(
             service_port = 80,
@@ -403,12 +404,15 @@ class AmbassadorConfig (object):
             tls_config = None
         )
 
-        # ...pull our defined modules from our config...
+        # Now we look at user-defined modules from our config...
         modules = self.config.get('modules', {})
 
-        # ...and then use process whatever the user has to say in the "ambassador" module.
-        if 'ambassador' in modules:
-            self.module_config_ambassador("ambassador", modules['ambassador'])        
+        # ...most notably the 'ambassador' and 'tls' modules, which are handled first.
+        amod = modules.get('ambassador', None)
+        tmod = modules.get('tls', None)
+
+        if amod or tmod:
+            self.module_config_ambassador("ambassador", amod, tmod)
 
         # Next up: let's define initial clusters, routes, and filters.
         #
@@ -452,7 +456,7 @@ class AmbassadorConfig (object):
 
         # OK. Given those initial sets, let's look over our global modules.
         for module_name in modules.keys():
-            if module_name == 'ambassador':
+            if (module_name == 'ambassador') or (module_name == 'tls'):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -745,50 +749,59 @@ class AmbassadorConfig (object):
     def update_config_ambassador(self, module, key, value):
         self.set_config_ambassador(module, key, value, merge=True)
 
-    def module_config_ambassador(self, name, module):
-        # Toplevel Ambassador configuration. First up: is TLS configured?
+    def tls_config_helper(self, name, amod, tmod):
+        tmp_config = SourcedDict(_from=amod)
+        some_enabled = False
 
-        if 'tls' in module:
-            tmod = module['tls']
-            tmp_config = SourcedDict(_from=module)
-            some_enabled = False
+        if ('server' in tmod) and tmod['server'].get('enabled', True):
+            # Server-side TLS is enabled. 
+            self.logger.debug("TLS termination enabled!")
+            some_enabled = True
 
-            if ('server' in tmod) and tmod['server'].get('enabled', True):
-                # Server-side TLS is enabled. 
-                self.logger.debug("TLS termination enabled!")
-                some_enabled = True
+            # Yes. Switch to port 443 by default...
+            self.set_config_ambassador(amod, 'service_port', 443)
 
-                # Yes. Switch to port 443 by default...
-                self.set_config_ambassador(module, 'service_port', 443)
+            # ...and merge in the server-side defaults.
+            tmp_config.update(self.default_tls_config['server'])
+            tmp_config.update(tmod['server'])
 
-                # ...and merge in the server-side defaults.
-                tmp_config.update(self.default_tls_config['server'])
-                tmp_config.update(tmod['server'])
+        if ('client' in tmod) and tmod['client'].get('enabled', True):
+            # Client-side TLS is enabled. 
+            self.logger.debug("TLS client certs enabled!")
+            some_enabled = True
 
-            if ('client' in tmod) and tmod['client'].get('enabled', True):
-                # Client-side TLS is enabled. 
-                self.logger.debug("TLS client certs enabled!")
-                some_enabled = True
+            # Merge in the client-side defaults.
+            tmp_config.update(self.default_tls_config['client'])
+            tmp_config.update(tmod['client'])
 
-                # Merge in the client-side defaults.
-                tmp_config.update(self.default_tls_config['client'])
-                tmp_config.update(tmod['client'])
+        if some_enabled:
+            if 'enabled' in tmp_config:
+                del(tmp_config['enabled'])
 
-            if some_enabled:
-                if 'enabled' in tmp_config:
-                    del(tmp_config['enabled'])
+            # Save the TLS config...
+            self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
-                # Save the TLS config...
-                self.set_config_ambassador(module, 'tls_config', tmp_config)
+        self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
 
-            self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
+        return some_enabled
+
+    def module_config_ambassador(self, name, amod, tmod):
+        # Toplevel Ambassador configuration. First up, check out TLS.
+
+        have_amod_tls = False
+
+        if amod and ('tls' in amod):
+            have_amod_tls = self.tls_config_helper(name, amod, amod['tls'])
+
+        if not have_amod_tls and tmod:
+            self.tls_config_helper(name, tmod, tmod)
 
         # After that, check for port definitions and probes, and copy them in as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe' ]:
-            if key in module:
+            if amod and (key in amod):
                 # Yes. It overrides the default.
-                self.set_config_ambassador(module, key, module[key])
+                self.set_config_ambassador(amod, key, amod[key])
 
     def module_config_authentication(self, name, module):
         filter = SourcedDict(

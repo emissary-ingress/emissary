@@ -167,6 +167,12 @@ def diag_paranoia(configdir, outputdir):
             }
         ]
 
+    # If there're no 'filters' in the reconstituted set, uh, there were no filters
+    # defined. Create an empty list.
+
+    if 'filters' not in reconstituted_lists:
+        reconstituted_lists['filters'] = []
+
     # OK. Next, filter out the '--internal--' stuff from our overview.
 
     filtered_overview = {}

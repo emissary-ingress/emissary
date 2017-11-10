@@ -49,7 +49,7 @@ spec:
     spec:
       serviceAccountName: ambassador
       containers:
-      - image: dwflynn/ambassador:0.15.3-b19.f244774.DIRTY
+      - image: dwflynn/ambassador:0.15.3-b20.2f84f17.DIRTY
         imagePullPolicy: Always
         name: ambassador
         resources:
