@@ -8,23 +8,45 @@ At the heart of Ambassador are the ideas of [_modules_](#modules), [_mappings_](
 
 - [Resources](#resources) are as defined in REST: effectively groups of one or more URLs that all share a common prefix in the URL path.
 
-Ambassador assembles its configuration from YAML files contained within a single directory on the filesystem. Each file must have a name that ends in `.yaml`, and Ambassador fully supports multiple documents in a single file. Behind the scenes, Ambassador than translates the configuration into the necessary Envoy configuration.
+## Ambassador Configuration
 
-When run as part of an image build, the caller must tell Ambassador the path to the directory; when run as a proxy pod within Kubernetes, Ambassador assumes that its configuration has been published as a `ConfigMap` named `ambassador-config`. The easiest way to create such a `ConfigMap` is to assemble a directory of appropriate YAML files, and use
+Ambassador assembles its configuration from YAML blocks that may be stored:
 
-```shell
-kubectl create configmap ambassador-config --from-file config-dir-path
-```
+- as `annotations` on Kubernetes `service`s (this is the recommended technique);
+- as data in a Kubernetes `ConfigMap`; or
+- as files in Ambassador's local filesystem.
 
-to publish the configuration.
+The data contained within each YAML block is the same no matter where the blocks are stored, and multiple YAML documents are likewise supported no matter where the blocks are stored. 
 
-### Best Practices for Configuration Files
+### Running Ambassador Within Kubernetes
 
-Ambassador uses a directory structure for its configuration to allow multiple developers to more easily collaborate on a microservice application: developers working on a given microservice can create a mapping file for their single microservice without having to worry about stepping on other developers, etc. This implies a few things:
+When you run Ambassador within Kubernetes:
+
+1. At startup, Ambassador will look for the `ambassador-config` Kubernetes `ConfigMap`. If it exists, its contents will be used as the baseline Ambassador configuration.
+2. Ambassador will then scan Kubernetes `service`s in its namespace, looking for `annotation`s named `getambassador.io/config`. YAML from these `annotation`s will be merged into the baseline Ambassador configuration.
+3. Whenever any services change, Ambassador will update its `annotation`-based configuration.
+4. The baseline configuration, if present, will **never be updated** after Ambassador starts. To effect a change in the baseline configuration, use Kubernetes to force a redeployment of Ambassador.
+
+**Note:** the baseline configuration is not required. It is completely possible - indeed, recommended - to use _only_ `annotation`-based configuration.
+
+### Running Ambassador Within a Custom Image
+
+You can also run Ambassador by building a custom image that contains baked-in configuration:
+
+1. All the configuration data should be collected within a single directory on the filesystem.
+2. At image startup, run `ambassador config $configdir $envoy_json_out` where
+   - `$configdir` is the path of the directory containing the configuration data, and
+   - `$envoy_json_out` is the path to the `envoy.json` to be written.
+
+In this usage, Ambassador will not look for `annotation`-based configuration, and will not update any configuration after startup.
+
+### Best Practices for Configuration
+
+Ambassador's configuration is assembled from multiple YAML blocks, to help enable self-service routing and make it easier for multiple developers to collaborate on a single larger application. This implies a few things:
 
 - Ambassador's configuration should be under version control.
 
-    Having the configuration directory under git or the like is an obvious thought here. Ambassador doesn't do any versioning of its configuration.
+    While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, it's far better to have a master copy under git or the like. Ambassador doesn't do any versioning of its configuration.
 
 - Be aware that Ambassador tries to not start with a broken configuration, but it's not perfect.
 
@@ -32,11 +54,11 @@ Ambassador uses a directory structure for its configuration to allow multiple de
 
 - Be careful of mapping collisions.
 
-    If two different developers try to map `/user/` to something, Ambassador should catch it and refuse to start, but it's still not what you want (obviously).
+    If two different developers try to map `/user/` to something, this can lead to unexpected behavior. Ambassador's canary-deployment logic means that it's more likely that traffic will be split between them than that it will throw an error -- again, the diagnostic service can help you here.
 
 ## Namespaces
 
-Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (which is included in the YAML files from `getambassador.io`):
+Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (this is included in the YAML files from `getambassador.io`):
 
 ```yaml
         env:
@@ -84,37 +106,19 @@ config:
   # readiness_probe:
   #   enabled: false
 
-  # TLS defaults to unconfigured. See below for more.
+  # TLS configuration defaults to configuration based on certificate discovery.
+  # See below for more.
   # tls:
   #   ...
 ```
 
-Everything in this file except for TLS has a default that should cover most situations; it should only be necessary to include them to override the defaults in highly-custom situations.
+Everything in this file has a default that should cover most situations; it should only be necessary to include them to override the defaults in highly-custom situations.
 
-TLS, on the other hand, must be explicitly enabled in order to be used. The simplest configurations that make sense are
+#### TLS
 
-```yaml
-  tls:
-    server:
-      enabled: True
-```
+When running in Kubernetes, Ambassador will look for the existence of certificate `secret`s for default configuration. When running using filesystem-based configuration, TLS must be explicitly configured. This process is examined in detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
 
-to enable TLS termination only, and
-
-```yaml
-  tls:
-    server:
-      enabled: True
-    client:
-      enabled: True
-      cert_required: True
-```
-
-to enable TLS termination and mandatory use of TLS client certificates.
-
-For more discussion of TLS configuration, see the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
-
-### Probes
+#### Probes
 
 The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route
 requests to some other service. For example, to have the readiness probe map to the Quote of the Moment's health check, you could do
@@ -153,7 +157,7 @@ config:
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, and a set of [_module configuration_](#modules) specific to that mapping.
+Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, a [_weight_](#weights) specifying how much of the traffic for the resource will be routed using the mapping, and a set of [_module configuration_](#modules) specific to that mapping.
 
 ### Defining Mappings
 
@@ -194,16 +198,29 @@ method: PUT
 service: putcqrs
 ```
 
-Valid attributes for mappings:
+Required attributes for mappings:
 
+- `name` is a string identifying the `Mapping` (e.g. in diagnostics)
 - `prefix` is the URL prefix identifying your [resource](#resources)
-- `rewrite` (optional) is what to [replace](#rewriting) the URL prefix with when talking to the service
-- `host_rewrite` (optional) forces the HTTP `Host` header to a specific value when talking to the service
 - `service` is the name of the [service](#services) handling the resource
-- `method` (optional) defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
-- `method_regex` (optional) if present and true, tells the system to interpret the `method` as a regular expression
-- `grpc` (optional) if present with a true value, tells the system that the service will be handling gRPC calls
-- `envoy_override` (optional) supplies raw configuration data to be included with the generated Envoy route entry.
+
+Common optional attributes for mappings:
+
+- `rewrite` is what to [replace](#rewriting) the URL prefix with when talking to the service
+- `host_rewrite`: forces the HTTP `Host` header to a specific value when talking to the service
+- `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
+- `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
+- `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
+- `weight` if present, specifies the percentage of traffic for this resource that will be routed using this mapping
+
+Less-common optional attributes for mappings:
+
+- `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route
+- `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True
+- `host_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `host_redirect` value
+- `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value
+- `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
+- `envoy_override`: supplies raw configuration data to be included with the generated Envoy route entry.
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
@@ -224,6 +241,30 @@ host_rewrite: httpbin.org
 ```
 
 As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
+
+#### Using `weight`
+
+The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
+
+Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. Here's an example, which might appear during a canary deployment:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm2_mapping
+prefix: /qotm/
+service: qotmv2
+weight: 10
+```
+
+In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
 
 #### Using `envoy_override`
 
