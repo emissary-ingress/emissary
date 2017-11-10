@@ -16,7 +16,6 @@
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [The QotM Demo in Detail](user-guide/demo-in-detail.md)
 * [TLS Termination](how-to/tls-termination.md)
-* [gRPC](how-to/grpc.md)
 * [Statistics and Monitoring](how-to/statistics.md)
 
 ## Reference
