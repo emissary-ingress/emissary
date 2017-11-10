@@ -60,7 +60,7 @@ So far, we've used a demo configuration, and run everything in our local Docker 
 
 ### 5.1 Defining the Ambassador Service
 
-We'll start by defining a Kubernetes service of type `LoadBalancer` for Ambassador, and we'll use a Kubernetes `annotation` on the Ambassador service to define the following `Mapping`:
+We'll start by using a Kubernetes `annotation` to define the following `Mapping`:
 
 ```yaml
 ---
@@ -74,7 +74,7 @@ host_rewrite: httpbin.org
 
 (Note the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services.)
 
-Getting Ambassador to pick up the mapping definition is as simple as placing the YAML above into an annotation named `getambassador.io/config` on a Kubernetes service. Here's an appropriate service definition for HTTP-only Ambassador:
+Getting Ambassador to pick up the mapping definition is as simple as placing the YAML above into an annotation named `getambassador.io/config` on a Kubernetes service. In this example, we're going to include it in the actual Ambassador manifest. More commonly, you'll wait to place the annotation directly with your service. Here's an appropriate service definition for HTTP-only Ambassador:
 
 ```yaml
 ---
@@ -103,7 +103,7 @@ spec:
     service: ambassador
 ```
 
-Create the service by putting the YAML above in a file called `ambassador-service.yaml` and appyling it with `kubectl`:
+Create the service by putting the YAML above in a file called `ambassador-service.yaml` and applying it with `kubectl`:
 
 ```shell
 kubectl apply -f ambassador-service.yaml
@@ -198,7 +198,7 @@ spec:
             memory: 100Mi
 ```
 
-and then applying it with 
+and then applying it with
 
 ```
 kubectl apply -f qotm.yaml
