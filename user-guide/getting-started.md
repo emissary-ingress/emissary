@@ -158,7 +158,7 @@ kind: Service
 metadata:
   name: qotm
   annotations:
-    ambassador: |
+    getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
