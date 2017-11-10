@@ -553,7 +553,7 @@ class AmbassadorConfig (object):
                 url += ':80'
 
             grpc = mapping.get('grpc', False)
-            self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
+            # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
 
             self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
                                           cb_name=cb_name, od_name=od_name, grpc=grpc)
