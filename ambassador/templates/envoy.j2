@@ -34,16 +34,18 @@
                   "routes": [
                     {% for route in routes %}
                     {
-                      "timeout_ms": {{ route.timeout_ms or 500 }},
+                      "timeout_ms": {{ route.timeout_ms or 10000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
                       {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
-                      {%- if route.method -%}"headers": [ {
-                        "name": ":method",
-                        "value": "{{ route.method }}",
-                        "regex": {{ route.method_regex or 'false' }}
-                      } ],{% endif %}
-                      "cluster": "{{ route.cluster }}"{{ "," if route.envoy_override }}
+                      {%- if route.headers -%}"headers": {{ route.headers | tojson }},{% endif %}
+                      "weighted_clusters": {
+                          "clusters": [
+                              {% for wc in route.clusters %}
+                                 { "name": "{{wc.name}}", "weight": {{wc.weight}} }{{ "," if not loop.last }}
+                              {% endfor %}
+                          ]
+                      }{{ "," if route.envoy_override }}
                       {% if route.envoy_override %}
                         {% for key in route.envoy_override.keys() %}
                         "{{ key }}": {{ route.envoy_override[key] | tojson }}{{ "," if not loop.last }}
@@ -79,9 +81,10 @@
       {% for cluster in clusters -%}
       {
         "name": "{{ cluster.name }}",
-        "connect_timeout_ms": {{ cluster.timeout_ms or 250 }},
+        "connect_timeout_ms": {{ cluster.timeout_ms or 3000 }},
         "type": "{{ cluster.type or 'strict_dns' }}",
         "lb_type": "{{ cluster.lb_type or 'round_robin' }}",
+        {%- if cluster.features -%}"features": "{{ cluster.features }}",{% endif %}        
         "hosts": [
           {% for url in cluster.urls -%}
           {

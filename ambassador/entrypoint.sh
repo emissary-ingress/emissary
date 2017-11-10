@@ -3,6 +3,12 @@
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
+CONFIG_DIR="/etc/ambassador-config"
+
+if [ "$1" == "--demo" ]; then
+    CONFIG_DIR="/etc/ambassador-demo-config"
+fi
+
 APPDIR=${APPDIR:-/application}
 
 pids=()
@@ -18,7 +24,12 @@ diediedie() {
     fi
 
     echo "Here's the envoy.json we were trying to run with:"
-    cat /etc/envoy.json
+    LATEST="$(ls -v /etc/envoy*.json | tail -1)"
+    if [ -e "$LATEST" ]; then
+        cat $LATEST
+    else
+        echo "No config generated."
+    fi
 
     echo "AMBASSADOR: shutting down"
     exit 1
@@ -54,23 +65,25 @@ set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-echo "AMBASSADOR: checking /etc/envoy.json"
-/usr/bin/python3 "$APPDIR/ambassador.py" config --check /etc/ambassador-config /etc/envoy.json
+/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" /etc/envoy.json 
 
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
-    diediedie "ambassador" "$STATUS"
+    diediedie "kubewatch sync" "$STATUS"
 fi
 
 echo "AMBASSADOR: starting diagd"
-/usr/bin/python3 "$APPDIR/diagd.py" --no-debugging /etc/ambassador-config &
+/usr/bin/python3 "$APPDIR/diagd.py" --no-debugging "$CONFIG_DIR" &
 pids+=("$!;diagd")
 
 echo "AMBASSADOR: starting Envoy"
-/usr/local/bin/envoy -c /etc/envoy.json &
-pids+=("$!;envoy")
+/usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
+RESTARTER_PID="$!"
+pids+=("${RESTARTER_PID};envoy")
+
+/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
+pids+=("$!;kubewatch")
 
 echo "AMBASSADOR: waiting"
 wait
-

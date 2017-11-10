@@ -4,6 +4,7 @@ import sys
 
 import datetime
 import functools
+import glob
 import json
 import logging
 import os
@@ -97,6 +98,12 @@ def standard_handler(f):
 app = Flask(__name__)
 
 # Next, various helpers.
+def aconf(app):
+    configs = glob.glob("%s-*" % app.config_dir_prefix)
+    configs.sort(key=lambda x: int(x.split("-")[-1]))
+    latest = configs[-1]
+    return AmbassadorConfig(latest)
+
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
@@ -177,7 +184,7 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    ov = app.aconf.diagnostic_overview()
+    ov = aconf(app).diagnostic_overview()
     cstats = cluster_stats(ov['clusters'])
     del(ov['clusters'])
 
@@ -204,7 +211,7 @@ def show_overview(reqid=None):
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    result = app.aconf.get_intermediate_for(source)
+    result = aconf(app).get_intermediate_for(source)
 
     # app.logger.debug(json.dumps(result, indent=4))
 
@@ -268,9 +275,9 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
         app.logger.debug("Starting periodic updates")
         app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
 
-    app.aconf = AmbassadorConfig(config_dir_path)
+    app.config_dir_prefix = config_dir_path
 
-    app.run(host='0.0.0.0', port=app.aconf.diag_port(), debug=app.debugging)
+    app.run(host='0.0.0.0', port=aconf(app).diag_port(), debug=app.debugging)
 
 if __name__ == "__main__":
     clize.run(main)

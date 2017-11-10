@@ -4,9 +4,11 @@ Ambassador can authenticate incoming requests before routing them to a backing s
 
 ## Before you get started
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html). If you haven't done that already, go do that now.
+This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
 
-## 1. Deploy third party authentication service
+After completing [Getting Started](/user-guide/getting-started.html), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding authentication to this setup.
+
+## 1. Deploy the authentication service
 
 Ambassador delegates the actual authentication logic to a third party authentication service. We've written a [simple authentication service](https://github.com/datawire/ambassador-auth-service) that:
 
@@ -16,49 +18,119 @@ Ambassador delegates the actual authentication logic to a third party authentica
 - accepts only user `username`, password `password`; and
 - makes sure that the `x-qotm-session` header is present, generating a new one if needed.
 
-Deploy the auth service in Kubernetes:
+Ambassador routes _all_ requests through the authentication service: it relies on the auth service to distinguish between requests that need authentication and those that do not. If Ambassador cannot contact the auth service, it will return a 503 for the request; as such, **it is very important to have the auth service running before configuring Ambassador to use it.**
+
+Here's the YAML we'll start with:
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-auth
+spec:
+  type: ClusterIP
+  selector:
+    app: example-auth
+  ports:
+  - port: 3000
+    name: http-example-auth
+    targetPort: http-api
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: example-auth
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: example-auth
+    spec:
+      containers:
+      - name: example-auth
+        image: datawire/ambassador-auth-service:1.1.1
+        imagePullPolicy: Always
+        ports:
+        - name: http-api
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+```
+
+Note that the service does _not_ yet contain any Ambassador annotations. This is intentional: we want the service running before we tell Ambassador about it.
+
+The YAML above is published at getambassador.io, so if you like, you can just do
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
 ```
 
+to spin everything up. (Of course, you can also use a local file, if you prefer.)
+
+Wait for the pod to be running before continuing. The best test here is to use `kubectl port-forward` to make port 3000 available, then actually try talking to the auth service. In one window:
+
+```shell
+kubectl port-forward $example-auth-pod-name 3000
+```
+
+then in another 
+
+```shell
+$ curl http://localhost:3000/ready
+```
+
+You should see output like `OK (not /qotm/quote)` when the service is running.
+
 ## 2. Configure Ambassador authentication
 
-Now, we configure Ambassador to use the authentication service. Once the auth service is running, add the following to the end of your existing `mapping-qotm.yaml` file:
+Once the auth service is running, we need to tell Ambassador about it. The easiest way to do that is to annotate the `example-auth` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply. Here's the new YAML:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
-kind:  Module
-name:  authentication
-config:
-  auth_service: "example-auth:3000"
-  path_prefix: "/extauth"
-  allowed_headers:
-  - "x-qotm-session"
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-auth
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Module
+      name:  authentication
+      config:
+        auth_service: "example-auth:3000"
+        path_prefix: "/extauth"
+        allowed_headers:
+        - "x-qotm-session"
+spec:
+  type: ClusterIP
+  selector:
+    app: example-auth
+  ports:
+  - port: 3000
+    name: http-example-auth
+    targetPort: http-api
 ```
 
-This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
+This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional. 
 
-## 3. Update the ConfigMap
-
-We need to update the `ConfigMap` with the new configuration.
+You can apply this file from getambassdor.io with
 
 ```shell
-$ kubectl create configmap ambassador-config --from-file mapping-qotm.yaml -o yaml --dry-run | \
-    kubectl replace -f -
+kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
 ```
 
-## 4. Update Ambassador
+or, again, apply it from a local file if you prefer.
 
-We use Kubernetes to do a rolling update (zero downtime) of Ambassador. We do this by updating an annotation on the deployment:
+Ambassador will see the annotations and reconfigure itself within a few seconds.
 
-```shell
-$ kubectl patch deployment ambassador -p \
-  "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
-```
-
-## 5. Test authentication
+## 4. Test authentication
 
 If we `curl` to a protected URL:
 

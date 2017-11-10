@@ -12,8 +12,10 @@
         "host_rewrite": { "type": "string" },
         "service": { "type": "string" },
         "method": { "type": "string" },
+        "weight": { "type": "integer" },
         "circuit_breaker": { "type": "string" },
         "outlier_detection": { "type": "string" },
+        "grpc": { "type": "boolean" },
         "modules": {
             "type": "array",
             "items": {

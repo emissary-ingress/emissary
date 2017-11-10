@@ -29,7 +29,7 @@ Uniqifiers = {
     'filters': lambda x: x['name'],
     'tls': lambda x: "TLS",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x['admin_port']),
-    'routes': lambda x: '%s-%s' % (x.get('method', 'GET'), x['prefix']),
+    'routes': lambda x: '%s-%s' % (x.get('_method', 'GET'), x['prefix']),
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if ('index' in x) else x['filename']
 }
 
@@ -166,6 +166,12 @@ def diag_paranoia(configdir, outputdir):
                 "service_port": 80
             }
         ]
+
+    # If there're no 'filters' in the reconstituted set, uh, there were no filters
+    # defined. Create an empty list.
+
+    if 'filters' not in reconstituted_lists:
+        reconstituted_lists['filters'] = []
 
     # OK. Next, filter out the '--internal--' stuff from our overview.
 

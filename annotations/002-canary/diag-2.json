@@ -1,0 +1,62 @@
+[
+    {
+        "_method": "GET",
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/v0/check_ready",
+        "prefix_rewrite": "/ambassador/v0/check_ready"
+    },
+    {
+        "_method": "GET",
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/v0/check_alive",
+        "prefix_rewrite": "/ambassador/v0/check_alive"
+    },
+    {
+        "_method": "GET",
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/v0/",
+        "prefix_rewrite": "/ambassador/v0/"
+    },
+    {
+        "_method": "GET",
+        "_source": "ambassador.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/ambassador/",
+        "prefix_rewrite": "/ambassador/"
+    },
+    {
+        "_method": "GET",
+        "_source": "demo1.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_demo1",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    }
+]

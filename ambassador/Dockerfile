@@ -37,11 +37,18 @@ COPY templates/ ./templates
 COPY schemas/ ./schemas
 COPY diagd.py ./
 
-# COPY in a default config. You can dump a configmap over this with no trouble.
-COPY default-config/ /etc/ambassador-config
+# MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no
+# trouble, or you can let annotations do the right thing.
+RUN mkdir /etc/ambassador-config
+
+# COPY in a default config for use with --demo.
+COPY default-config/ /etc/ambassador-demo-config
 
 # COPY the entrypoint script and make it runnable.
+COPY kubewatch.py .
+COPY hot-restarter.py .
+COPY start-envoy.sh .
 COPY entrypoint.sh .
-RUN chmod 755 entrypoint.sh
+RUN chmod 755 start-envoy.sh entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]

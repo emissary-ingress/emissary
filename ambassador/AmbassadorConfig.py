@@ -25,6 +25,17 @@ class SourcedDict (dict):
             self['_referenced_by'].append(source)
 
 class AmbassadorConfig (object):
+    TransparentRouteKeys = {
+        "host_redirect": True,
+        "path_redirect": True,
+        "host_rewrite": True,
+        "auto_host_rewrite": True,
+        "case_sensitive": True,
+        "use_websocket": True,
+        "timeout_ms": True,
+        "priority": True,
+    }
+
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
         self.schema_dir_path = schema_dir_path
@@ -71,6 +82,13 @@ class AmbassadorConfig (object):
             "enabled": True,
             "prefix": "/ambassador/v0/check_ready",
             "rewrite": "/ambassador/v0/check_ready",
+            # "service" gets added later
+        }
+
+        self.default_diagnostics = {
+            "enabled": True,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
             # "service" gets added later
         }
 
@@ -264,8 +282,8 @@ class AmbassadorConfig (object):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, obj['config'])
 
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
-        method = obj.get("method", "GET")
-        mapping_key = "%s:%s" % (method, obj['prefix'])
+        method = obj.get('method', "GET")
+        mapping_key = "%s:%s->%s" % (method, obj['prefix'], obj['service'])
 
         if not self.safe_store(source_key, "mapping_prefixes", mapping_key, obj_kind, obj):
             return False
@@ -283,7 +301,7 @@ class AmbassadorConfig (object):
 
     def add_intermediate_cluster(self, _source, name, urls, 
                                  type="strict_dns", lb_type="round_robin",
-                                 cb_name=None, od_name=None):
+                                 cb_name=None, od_name=None, grpc=False):
         if name not in self.envoy_clusters:
             cluster = SourcedDict(
                 _source=_source,
@@ -302,33 +320,79 @@ class AmbassadorConfig (object):
                 cluster['outlier_detection'] = self.outliers[od_name]
                 self.outliers[od_name]._mark_referenced_by(_source)
 
+            if grpc:
+                cluster['features'] = 'http2'
+
             self.envoy_clusters[name] = cluster
         else:
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
     def add_intermediate_route(self, _source, mapping, cluster_name):
-        route = SourcedDict(
-            _source=_source,
-            prefix=mapping['prefix'],
-            prefix_rewrite=mapping.get('rewrite', '/'),
-            envoy_override=mapping.get('envoy_override', {}),
-            cluster=cluster_name
-        )
+        routes = self.envoy_config['routes']
+        group = None
+        for r in routes:
+            if r['prefix'] == mapping['prefix'] and r.get('_method') == mapping.get('method', 'GET'):
+                group = r
+                break
 
-        if 'method' in mapping:
-            route['method'] = mapping['method']
-            route['method_regex'] = route.get('method_regex', False)
+        if group is None:
+            route = SourcedDict(
+                _source=_source,
+                prefix=mapping['prefix'],
+                prefix_rewrite=mapping.get('rewrite', '/'),
+                clusters=[ { "name": cluster_name,
+                             "weight": mapping.get("weight", None) } ]
+            )
 
-        if 'timeout_ms' in mapping:
-            route['timeout_ms'] = mapping['timeout_ms']
+            headers = []
 
-        if 'host_rewrite' in mapping:
-            route['host_rewrite'] = mapping['host_rewrite']
+            # for name, value in mapping.get('headers', {}).items():
+            #     headers.append({ "name": name, "value": value, "regex": False })
 
-        self.envoy_config['routes'].append(route)
+            # for name, value in mapping.get('regex_headers', []):
+            #     headers.append({ "name": name, "value": value, "regex": True })
+
+            # if 'host' in mapping:
+            #     headers.append({
+            #         "name": ":host",
+            #         "value": mapping['host'],
+            #         "regex": mapping.get('host_regex', False)
+            # })
+
+            if 'method' in mapping:
+                headers.append({
+                    "name": ":method",
+                    "value": mapping['method'],
+                    "regex": mapping.get('method_regex', False)
+                })
+
+            if headers:
+                route['headers'] = headers
+
+            # Even though we don't use it for generating the Envoy config, go ahead
+            # and make sure that any ':method' header match gets saved under the
+            # route's '_method' key -- diag uses it to make life easier.
+
+            route['_method'] = 'GET'    # Default to 'GET'
+            for hdict in headers:
+                if hdict['name'] == ':method':
+                    route['_method'] = hdict['value']
+
+            # There's a slew of things we'll just copy over transparently; handle
+            # those.
+
+            for key, value in mapping.items():
+                if key in AmbassadorConfig.TransparentRouteKeys:
+                    route[key] = value
+
+            routes.append(route)
+        else:
+            group["clusters"].append( { "name": cluster_name,
+                                        "weight": mapping.get("weight", None) } )
 
     def generate_intermediate_config(self):
-        # First things first. Define the default "Ambassador" module...
+        # First things first. The "Ambassador" module always exists; create it with
+        # default values now.
 
         self.ambassador_module = SourcedDict(
             service_port = 80,
@@ -336,15 +400,19 @@ class AmbassadorConfig (object):
             diag_port = 8877,
             liveness_probe = { "enabled": True },
             readiness_probe = { "enabled": True },
+            diagnostics = { "enabled": True },
             tls_config = None
         )
 
-        # ...pull our defined modules from our config...
+        # Now we look at user-defined modules from our config...
         modules = self.config.get('modules', {})
 
-        # ...and then use process whatever the user has to say in the "ambassador" module.
-        if 'ambassador' in modules:
-            self.module_config_ambassador("ambassador", modules['ambassador'])        
+        # ...most notably the 'ambassador' and 'tls' modules, which are handled first.
+        amod = modules.get('ambassador', None)
+        tmod = modules.get('tls', None)
+
+        if amod or tmod:
+            self.module_config_ambassador("ambassador", amod, tmod)
 
         # Next up: let's define initial clusters, routes, and filters.
         #
@@ -388,7 +456,7 @@ class AmbassadorConfig (object):
 
         # OK. Given those initial sets, let's look over our global modules.
         for module_name in modules.keys():
-            if module_name == 'ambassador':
+            if (module_name == 'ambassador') or (module_name == 'tls'):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -409,6 +477,7 @@ class AmbassadorConfig (object):
 
         self.default_liveness_probe['service'] = self.diag_service()
         self.default_readiness_probe['service'] = self.diag_service()
+        self.default_diagnostics['service'] = self.diag_service()
 
         # ...TLS config, if necessary...
         if self.ambassador_module['tls_config']:
@@ -417,11 +486,13 @@ class AmbassadorConfig (object):
 
         # ...and probes, if configured.
         for name, cur, dflt in [ 
-            ("liveness", self.ambassador_module['liveness_probe'], 
-                         self.default_liveness_probe), 
-            ("readiness", self.ambassador_module['readiness_probe'], 
-                         self.default_readiness_probe) ]:
-
+            ("liveness",    self.ambassador_module['liveness_probe'],
+                            self.default_liveness_probe),
+            ("readiness",   self.ambassador_module['readiness_probe'],
+                            self.default_readiness_probe),
+            ("diagnostics", self.ambassador_module['diagnostics'],
+                            self.default_diagnostics)
+        ]:
             if cur and cur.get("enabled", False):
                 prefix = cur.get("prefix", dflt['prefix'])
                 rewrite = cur.get("rewrite", dflt['rewrite'])
@@ -481,8 +552,11 @@ class AmbassadorConfig (object):
             if ':' not in svc:
                 url += ':80'
 
+            grpc = mapping.get('grpc', False)
+            # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
+
             self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
-                                          cb_name=cb_name, od_name=od_name)
+                                          cb_name=cb_name, od_name=od_name, grpc=grpc)
 
             self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
 
@@ -522,12 +596,30 @@ class AmbassadorConfig (object):
         #     'cluster_diagnostics'
         # )
 
+        # We need to default any unspecified weights and renormalize to 100
+        for r in self.envoy_config['routes']:
+            clusters = r["clusters"]
+            total = 0.0
+            unspecified = 0
+            for c in clusters:
+                if c["weight"] is None:
+                    unspecified += 1
+                else:
+                    total += c["weight"]
+            if unspecified:
+                for c in clusters:
+                    if c["weight"] is None:
+                        c["weight"] = (100.0 - total)/unspecified
+            elif total != 100.0:
+                for c in clusters:
+                    c["weight"] *= 100.0/total
+
         # OK. When all is said and done, sort the list of routes by descending 
         # legnth of prefix, then prefix itself, then method...
         self.envoy_config['routes'].sort(reverse=True,
                                          key=lambda x: (len(x['prefix']), 
                                                         x['prefix'],
-                                                        x.get('method', 'GET')))
+                                                        x.get('_method', 'GET')))
 
         # ...map clusters back into a list...
         self.envoy_config['clusters'] = [
@@ -622,9 +714,6 @@ class AmbassadorConfig (object):
 
             value = self.envoy_config[key]
 
-            # print("-key %s" % key)
-            # print("-value %s" % json.dumps(value, indent=4, sort_keys=True))
-
             if isinstance(value, list):
                 for v2 in value:
                     self._get_intermediate_for(result[key], source_keys, v2)
@@ -636,15 +725,16 @@ class AmbassadorConfig (object):
     def generate_envoy_config(self, template=None, template_dir=None):
         # Finally! Render the template to JSON...
         envoy_json = self.to_json(template=template, template_dir=template_dir)
-        rc = RichStatus.fromError("impossible")
+        return RichStatus.OK(msg="Envoy configuration OK", envoy_config=envoy_json)
+#        rc = RichStatus.fromError("impossible")
 
         # ...and use the JSON parser as a final sanity check.
-        try:
-            obj = json.loads(envoy_json)
-            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
-        except json.decoder.JSONDecodeError as e:
-            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
-                                      raw=envoy_json, exception=e)
+#        try:
+#            obj = json.loads(envoy_json)
+#            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
+#        except json.decoder.JSONDecodeError as e:
+#            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
+#                                      raw=envoy_json, exception=e)
 
         return rc
 
@@ -659,50 +749,59 @@ class AmbassadorConfig (object):
     def update_config_ambassador(self, module, key, value):
         self.set_config_ambassador(module, key, value, merge=True)
 
-    def module_config_ambassador(self, name, module):
-        # Toplevel Ambassador configuration. First up: is TLS configured?
+    def tls_config_helper(self, name, amod, tmod):
+        tmp_config = SourcedDict(_from=amod)
+        some_enabled = False
 
-        if 'tls' in module:
-            tmod = module['tls']
-            tmp_config = SourcedDict(_from=module)
-            some_enabled = False
+        if ('server' in tmod) and tmod['server'].get('enabled', True):
+            # Server-side TLS is enabled. 
+            self.logger.debug("TLS termination enabled!")
+            some_enabled = True
 
-            if ('server' in tmod) and tmod['server'].get('enabled', True):
-                # Server-side TLS is enabled. 
-                self.logger.debug("TLS termination enabled!")
-                some_enabled = True
+            # Yes. Switch to port 443 by default...
+            self.set_config_ambassador(amod, 'service_port', 443)
 
-                # Yes. Switch to port 443 by default...
-                self.set_config_ambassador(module, 'service_port', 443)
+            # ...and merge in the server-side defaults.
+            tmp_config.update(self.default_tls_config['server'])
+            tmp_config.update(tmod['server'])
 
-                # ...and merge in the server-side defaults.
-                tmp_config.update(self.default_tls_config['server'])
-                tmp_config.update(tmod['server'])
+        if ('client' in tmod) and tmod['client'].get('enabled', True):
+            # Client-side TLS is enabled. 
+            self.logger.debug("TLS client certs enabled!")
+            some_enabled = True
 
-            if ('client' in tmod) and tmod['client'].get('enabled', True):
-                # Client-side TLS is enabled. 
-                self.logger.debug("TLS client certs enabled!")
-                some_enabled = True
+            # Merge in the client-side defaults.
+            tmp_config.update(self.default_tls_config['client'])
+            tmp_config.update(tmod['client'])
 
-                # Merge in the client-side defaults.
-                tmp_config.update(self.default_tls_config['client'])
-                tmp_config.update(tmod['client'])
+        if some_enabled:
+            if 'enabled' in tmp_config:
+                del(tmp_config['enabled'])
 
-            if some_enabled:
-                if 'enabled' in tmp_config:
-                    del(tmp_config['enabled'])
+            # Save the TLS config...
+            self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
-                # Save the TLS config...
-                self.set_config_ambassador(module, 'tls_config', tmp_config)
+        self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
 
-            self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
+        return some_enabled
+
+    def module_config_ambassador(self, name, amod, tmod):
+        # Toplevel Ambassador configuration. First up, check out TLS.
+
+        have_amod_tls = False
+
+        if amod and ('tls' in amod):
+            have_amod_tls = self.tls_config_helper(name, amod, amod['tls'])
+
+        if not have_amod_tls and tmod:
+            self.tls_config_helper(name, tmod, tmod)
 
         # After that, check for port definitions and probes, and copy them in as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe' ]:
-            if key in module:
+            if amod and (key in amod):
                 # Yes. It overrides the default.
-                self.set_config_ambassador(module, key, module[key])
+                self.set_config_ambassador(amod, key, amod[key])
 
     def module_config_authentication(self, name, module):
         filter = SourcedDict(
@@ -805,8 +904,9 @@ class AmbassadorConfig (object):
         return overview
 
     def pretty(self, obj, out=sys.stdout):
-        json.dump(obj, out, indent=4, separators=(',',':'), sort_keys=True)
-        out.write("\n")
+        out.write(obj)
+#        json.dump(obj, out, indent=4, separators=(',',':'), sort_keys=True)
+#        out.write("\n")
 
     def to_json(self, template=None, template_dir=None):
         template_paths = [ self.config_dir_path, self.template_dir_path ]
