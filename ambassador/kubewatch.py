@@ -1,4 +1,16 @@
-import click, os, shutil, signal, subprocess, sys, threading, time, traceback
+import sys
+
+import binascii
+import click
+import os
+import shutil
+import signal
+import subprocess
+import threading
+import time
+import traceback
+import yaml
+
 from kubernetes import client, config, watch
 from AmbassadorConfig import AmbassadorConfig
 
@@ -184,6 +196,57 @@ def kube_v1():
 
     return k8s_api
 
+def check_cert_file(path):
+    readable = False
+
+    try:
+        data = open(path, "r").read()
+
+        if data and (len(data) > 0):
+            readable = True
+    except OSError:
+        pass
+    except IOError:
+        pass
+
+    return readable
+
+def read_cert_secret(k8s_api, secret_name, namespace):
+    cert_data = None
+    cert = None
+    key = None
+
+    try:
+        cert_data = k8s_api.read_namespaced_secret(secret_name, namespace)
+    except client.rest.ApiException as e:
+        if e.reason == "Not Found":
+            pass
+        else:
+            print("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
+
+    if cert_data and cert_data.data:
+        cert_data = cert_data.data
+        cert = cert_data.get('tls.crt', None)
+
+        if cert:
+            cert = binascii.a2b_base64(cert)
+
+        key = cert_data.get('tls.key', None)
+
+        if key:
+            key = binascii.a2b_base64(key)
+
+    return (cert, key, cert_data)
+
+def save_cert(cert, key, dir):
+    try:
+        os.makedirs(dir)
+    except FileExistsError:
+        pass
+
+    open(os.path.join(dir, "tls.crt"), "w").write(cert.decode("utf-8"))
+    open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
+
 def sync(restarter):
     v1 = kube_v1()
 
@@ -196,9 +259,46 @@ def sync(restarter):
             config_data = v1.read_namespaced_config_map("ambassador-config", restarter.namespace)
 
             if config_data:
-                for key, yaml in config_data.data.items():
+                for key, config_yaml in config_data.data.items():
                     # print("ambassador-config: found %s" % key)
-                    restarter.update(key, yaml)
+                    restarter.update(key, config_yaml)
+
+        # If we don't already see a TLS server key in its usual spot...
+        if not check_cert_file("/etc/certs/tls.crt"):
+            # ...then try pulling keys directly from the configmaps.
+            (server_cert, server_key, server_data) = read_cert_secret(v1, "ambassador-certs", 
+                                                                      restarter.namespace)
+            (client_cert, _, client_data) = read_cert_secret(v1, "ambassador-cacert", 
+                                                             restarter.namespace)
+
+            if server_cert and server_key:
+                tls_mod = {
+                    "apiVersion": "ambassador/v0",
+                    "kind": "Module",
+                    "name": "tls",
+                    "config": {
+                        "server": {
+                            "enabled": True,
+                            "cert_chain_file": "/etc/certs/tls.crt",
+                            "private_key_file": "/etc/certs/tls.key"
+                        }
+                    }
+                }
+
+                save_cert(server_cert, server_key, "/etc/certs")
+
+                if client_cert:
+                    tls_mod['config']['client'] = {
+                        "enabled": True,
+                        "cacert_chain_file": "/etc/cacert/tls.pem"
+                    }
+
+                    if client_data.get('cert_required', None):
+                        tls_mod['config']['client']["cert_required"] = True
+
+                    save_cert(client_cert, None, "/etc/cacert")
+
+                restarter.update("tls.yaml", yaml.safe_dump(tls_mod))
 
         # Next, check for annotations and such.
         for svc in v1.list_namespaced_service(restarter.namespace).items:
