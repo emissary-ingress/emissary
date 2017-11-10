@@ -58,6 +58,9 @@ Note that it's up to the auth service to decide what needs authentication -- tea
 
 So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now switch to Kubernetes, using service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
+### 5.1 Defining the Ambassador Service
+
+We'll start by defining a Kubernetes service of type `LoadBalancer` for Ambassador. 
 Here's the mapping we want to use:
 
 ```yaml
@@ -72,7 +75,7 @@ host_rewrite: httpbin.org
 
 (Note the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services.)
 
-We can deploy this with the Ambassador service by including it as an `annotation` with a name of `ambassador`. Create a Kubernetes manifest in a file called `ambassador.yaml` that looks like the following:
+We need to include this in an `annotation` on a Kubernetes `service`, and the annotation needs to have a name of `getambassador.io/config`. Here's an appropriate service definition for HTTP-only Ambassador:
 
 ```yaml
 ---
@@ -83,7 +86,7 @@ metadata:
     service: ambassador
   name: ambassador
   annotations:
-    ambassador: |
+    getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
@@ -99,39 +102,31 @@ spec:
     targetPort: 80
   selector:
     service: ambassador
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: ambassador
-spec:
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        service: ambassador
-    spec:
-      containers:
-      - name: ambassador
-        image: datawire/ambassador:{VERSION}
-        imagePullPolicy: Always
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
-      restartPolicy: Always
 ```
 
-Then, deploy Ambassador into Kubernetes:
+Create the service by putting the YAML above in a file called `ambassador-service.yaml` and appyling it with `kubectl`:
 
-```
-kubectl apply -f ambassador.yaml
+```shell
+kubectl apply -f ambassador-service.yaml
 ```
 
-Ambassador will notice the annotation on its own service and configure itself with the Mapping from the annotation. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+### 5.2 Deploying Ambassador
+
+Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use
+
+```shell
+kubectl apply -f http://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+```
+
+Without RBAC, you can use
+
+```shell
+kubectl apply -f http://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
+```
+
+When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+
+### 5.3 Testing the Mapping
 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
@@ -146,7 +141,7 @@ NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
 
-You should now be able to use `curl` to both `httpbin` (don't forget the trailing `/`):
+You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`):
 
 ```shell
 $ curl 35.36.37.38/httpbin/
