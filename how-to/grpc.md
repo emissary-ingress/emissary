@@ -98,7 +98,7 @@ spec:
 This is available from getambassador.io, so you can simply
 
 ```shell
-kubectl apply -f http://getambassador.io/yaml/demo/demo-grpc.yaml
+kubectl apply -f https://getambassador.io/yaml/demo/demo-grpc.yaml
 ```
 
 or, as always, you can use a local file instead.
