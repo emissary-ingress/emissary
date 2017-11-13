@@ -54,6 +54,9 @@ tag:
 
 yaml-files:
 	VERSION=$(VERSION) sh scripts/build-yaml.sh
+	VERSION=$(VERSION) python scripts/template.py \
+		< annotations/ambassador-deployment-template.yaml \
+		> annotations/ambassador-deployment.yaml
 
 ambassador-test:
 	pytest
@@ -75,3 +78,6 @@ clean:
 	rm -rf ambassador/__pycache__
 	rm -rf .cache ambassador/.cache
 	find ambassador/tests \( -name '*.out' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
+	rm -rf annotations/ambassador-deployment.yaml
+	find annotations \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
+

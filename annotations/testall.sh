@@ -1,7 +1,15 @@
 #!/bin/sh
 
-set -ex
+set -e
 
 for dir in 0*; do
-    sh $dir/test.sh
+    echo "========"
+    echo "${dir}..."
+    echo
+
+    if sh $dir/test.sh; then
+        echo "${dir} PASSED"
+    else
+        echo "${dir} FAILED"
+    fi
 done

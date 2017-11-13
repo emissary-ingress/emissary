@@ -33,23 +33,28 @@ subjects:
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
-metadata: {name: ambassador}
+metadata:
+  name: ambassador
 spec:
   replicas: 1
   selector:
-    matchLabels: {app: ambassador}
+    matchLabels:
+      app: ambassador
   strategy:
-    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
     type: RollingUpdate
   revisionHistoryLimit: 1
   template:
     metadata:
-      labels: {app: ambassador}
+      labels:
+        app: ambassador
       name: ambassador
     spec:
       serviceAccountName: ambassador
       containers:
-      - image: dwflynn/ambassador:0.15.4-b27.80d808a.DIRTY
+      - image: {AMREG}ambassador:{VERSION}
         imagePullPolicy: Always
         name: ambassador
         resources:
@@ -65,5 +70,4 @@ spec:
       restartPolicy: Always
       dnsPolicy: ClusterFirst
       restartPolicy: Always
-      securityContext: {}
       terminationGracePeriodSeconds: 30
