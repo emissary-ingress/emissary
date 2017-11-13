@@ -32,7 +32,7 @@ RUN pip3 install -r requirements.txt
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
 
-COPY ambassador.py AmbassadorConfig.py EnvoyStats.py utils.py VERSION.py ./
+COPY ambassador.py AmbassadorConfig.py AmbassadorMapping.py EnvoyStats.py utils.py VERSION.py ./
 COPY templates/ ./templates
 COPY schemas/ ./schemas
 COPY diagd.py ./

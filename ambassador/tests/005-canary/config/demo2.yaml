@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  demo2_mapping
+prefix: /demo/
+service: demo2
+weight: 50

@@ -60,6 +60,19 @@ class RichStatus (object):
     def OK(self, **kwargs):
         return RichStatus(True, **kwargs)
 
+class SourcedDict (dict):
+    def __init__(self, _source="--internal--", _from=None, **kwargs):
+        super().__init__(self, **kwargs)
+
+        if _from and ('_source' in _from):
+            self['_source'] = _from['_source']
+        else:
+            self['_source'] = _source
+
+    def _mark_referenced_by(self, source):
+        if source not in self['_referenced_by']:
+            self['_referenced_by'].append(source)
+
 class DelayTrigger (threading.Thread):
     def __init__(self, onfired, timeout=5, name=None):
         super().__init__()

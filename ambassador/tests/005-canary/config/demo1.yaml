@@ -1,0 +1,6 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  demo1_mapping
+prefix: /demo/
+service: demo1
