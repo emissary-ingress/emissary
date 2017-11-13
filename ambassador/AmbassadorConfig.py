@@ -265,9 +265,6 @@ class AmbassadorConfig (object):
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
         mapping = Mapping(source_key, **obj)
 
-        # if not self.safe_store(source_key, "mapping_prefixes", mapping.group_id, obj_kind, mapping):
-        #     return False
-
         return self.safe_store(source_key, "mappings", obj_name, obj_kind, mapping)
 
     def diag_port(self):
