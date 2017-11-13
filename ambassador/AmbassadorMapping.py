@@ -17,6 +17,14 @@ class Mapping (object):
 
         return h.hexdigest()
 
+    @classmethod
+    def route_weight(klass, route):
+        prefix = route['prefix']
+        method = route.get('method', 'GET')
+        headers = route.get('headers', [])
+
+        return (len(prefix) + len(headers), prefix, method)
+
     TransparentRouteKeys = {
         "host_redirect": True,
         "path_redirect": True,

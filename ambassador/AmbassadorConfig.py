@@ -550,9 +550,7 @@ class AmbassadorConfig (object):
         # length of prefix, then prefix itself, then method...
         self.envoy_config['routes'] = sorted([
             route for group_id, route in self.envoy_routes.items()
-        ], reverse=True, key=lambda x: (len(x['prefix']), 
-                                        x['prefix'],
-                                        x.get('_method', 'GET')))
+        ], reverse=True, key=Mapping.route_weight)
 
         # ...then map clusters back into a list...
         self.envoy_config['clusters'] = [
