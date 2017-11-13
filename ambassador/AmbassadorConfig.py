@@ -822,8 +822,14 @@ class AmbassadorConfig (object):
                     'errors': errors
                 }
 
-        routes = [ route for route in self.envoy_config['routes']
-                   if route['_source'] != "--diagnostics--" ]
+        routes = []
+
+        for route in self.envoy_config['routes']:
+            if route['_source'] != "--diagnostics--":
+                route['group_id'] = Mapping.group_id(route.get('method', 'GET'),
+                                                     route['prefix'], route.get('headers', []))
+
+                routes.append(route)
 
         configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
                           if key != "routes" }

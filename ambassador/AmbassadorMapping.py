@@ -3,6 +3,20 @@ import hashlib
 from utils import SourcedDict
 
 class Mapping (object):
+    @classmethod
+    def group_id(klass, method, prefix, headers):
+        # Yes, we're using a  cryptographic hash here. Cope. [ :) ]
+
+        h = hashlib.new('sha1')
+        h.update(method.encode('utf-8'))
+        h.update(prefix.encode('utf-8'))
+
+        for hdr in headers:
+            h.update(hdr['name'].encode('utf-8'))
+            h.update(hdr['value'].encode('utf-8'))
+
+        return h.hexdigest()
+
     TransparentRouteKeys = {
         "host_redirect": True,
         "path_redirect": True,
@@ -53,18 +67,8 @@ class Mapping (object):
                 "regex": self.get('method_regex', False)
             })
 
-        # OK. After all that we can compute the group ID. Yes, we're using a 
-        # cryptographic hash here, because meh, whatever.
-
-        h = hashlib.new('sha1')
-        h.update(self.method.encode('utf-8'))
-        h.update(self.prefix.encode('utf-8'))
-
-        for hdr in self.headers:
-            h.update(hdr['name'].encode('utf-8'))
-            h.update(hdr['value'].encode('utf-8'))
-
-        self.group_id = h.hexdigest()
+        # OK. After all that we can compute the group ID.
+        self.group_id = Mapping.group_id(self.method, self.prefix, self.headers)
 
     def __getitem__(self, key):
         return self.attrs[key]
