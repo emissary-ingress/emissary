@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0] November 14, 2017
+[0.17.0]: https://github.com/datawire/ambassador/compare/v0.16.0...v0.17.0
+
+### Changed
+
+- Allow Mappings to require matches on HTTP headers and `Host`
+- Update tests, docs, and diagnostic service for header matching
+
+### Fixed
+
+- Published YAML resource files will no longer overwrite annotations on the Ambassador `service` when creating the Ambassador `deployment`
+
 ## [0.16.0] November 10, 2017
 [0.16.0]: https://github.com/datawire/ambassador/compare/v0.15.0...v0.16.0
 
