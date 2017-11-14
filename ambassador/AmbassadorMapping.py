@@ -63,7 +63,7 @@ class Mapping (object):
 
         if 'host' in self.attrs:
             self.headers.append({
-                "name": ":host",
+                "name": ":authority",
                 "value": self['host'],
                 "regex": self.get('host_regex', False)
             })

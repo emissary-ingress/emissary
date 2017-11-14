@@ -73,6 +73,26 @@
     },
     {
         "_method": "GET",
+        "_source": "demo2.yaml.2",
+        "clusters": [
+            {
+                "name": "cluster_demo2",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "680712f1da5009382c1987e04b84df2cdfe25649",
+        "headers": [
+            {
+                "name": ":authority",
+                "regex": false,
+                "value": "demo2.datawire.io"
+            }
+        ],
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
         "_source": "demo1.yaml.1",
         "clusters": [
             {
