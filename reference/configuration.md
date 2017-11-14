@@ -283,7 +283,6 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
-host: qotm.datawire.io
 service: qotm1
 ---
 apiVersion: ambassador/v0
@@ -294,7 +293,7 @@ host: qotm.datawire.io
 service: qotm2
 ```
 
-will map requests for `/qotm/` to the `qotm1` if the `Host` header is `qotm.datawire.io`, and to the `qotm2` service otherwise.
+will map requests for `/qotm/` to the `qotm2` service if the `Host` header is `qotm.datawire.io`, and to the `qotm1` service otherwise.
 
 #### Using `headers`
 
@@ -314,10 +313,12 @@ service: qotm
 
 will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has the value `canary` _and_ the `x-random-header` has the value `datawire`.
 
+#### `headers`, `host`, and `method`
+
 Internally:
 
-- the `method` attribute becomes a `header` match on the `:method` header; and
-- the `host` attribute becomes a `header` match on the `:authority` header.
+- the `host` attribute becomes a `header` match on the `:authority` header; and
+- the `method` attribute becomes a `header` match on the `:method` header.
 
 You will see these headers in the diagnostic service if you use the `method` or `host` attributes.
 
