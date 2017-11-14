@@ -157,7 +157,12 @@ config:
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-Each mapping can also specify a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service, a [_weight_](#weights) specifying how much of the traffic for the resource will be routed using the mapping, and a set of [_module configuration_](#modules) specific to that mapping.
+Each mapping can also specify, among other things:
+
+- a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service;
+- a [_weight_](#weights) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_host_](#host) specifying a required value for the HTTP `Host` header; and
+- other [_headers_](#headers) which must appear in the HTTP request.
 
 ### Defining Mappings
 
@@ -211,7 +216,9 @@ Common optional attributes for mappings:
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
 - `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
-- `weight` if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
+- `weight`: if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
+- `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
+- `headers`: if present, specifies a dictionary of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
 
 Less-common optional attributes for mappings:
 
@@ -265,6 +272,54 @@ weight: 10
 ```
 
 In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
+
+#### Using `host`
+
+A mapping that specifies the `host` attribute will take effect _only_ if the HTTP `Host` header matches the value in the `host` attribute. You may have multiple mappings listing the same resource but different `host` attributes to effect `Host`-based routing. An example:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+host: qotm.datawire.io
+service: qotm1
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+host: qotm.datawire.io
+service: qotm2
+```
+
+will map requests for `/qotm/` to the `qotm1` if the `Host` header is `qotm.datawire.io`, and to the `qotm2` service otherwise.
+
+#### Using `headers`
+
+If present, the `headers` attribute must be a dictionary of `header`: `value` pairs, for example:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+headers:
+  x-qotm-mode: canary
+  x-random-header: datawire
+service: qotm
+```
+
+will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has the value `canary` _and_ the `x-random-header` has the value `datawire`.
+
+Internally:
+
+- the `method` attribute becomes a `header` match on the `:method` header; and
+- the `host` attribute becomes a `header` match on the `:authority` header.
+
+You will see these headers in the diagnostic service if you use the `method` or `host` attributes.
 
 #### Using `envoy_override`
 
