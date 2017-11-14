@@ -1,4 +1,4 @@
-FROM dwflynn/ambassador-envoy:v1.4.0-49-g008635a04
+FROM ubuntu:14.04
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -32,23 +32,13 @@ RUN pip3 install -r requirements.txt
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
 
-COPY ambassador.py AmbassadorConfig.py AmbassadorMapping.py EnvoyStats.py utils.py VERSION.py ./
-COPY templates/ ./templates
-COPY schemas/ ./schemas
-COPY diagd.py ./
-
-# MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no
-# trouble, or you can let annotations do the right thing.
-RUN mkdir /etc/ambassador-config
-
-# COPY in a default config for use with --demo.
-COPY default-config/ /etc/ambassador-demo-config
+COPY demo.py ./
 
 # COPY the entrypoint script and make it runnable.
-COPY kubewatch.py .
-COPY hot-restarter.py .
-COPY start-envoy.sh .
 COPY entrypoint.sh .
-RUN chmod 755 start-envoy.sh entrypoint.sh
+RUN chmod 755 entrypoint.sh
 
-ENTRYPOINT [ "./entrypoint.sh" ]
+ARG VERSION="?.?.?"
+ENV VERSION=${VERSION}
+
+ENTRYPOINT ./entrypoint.sh ${VERSION}

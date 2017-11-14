@@ -40,7 +40,7 @@
     },
     {
         "_method": "GET",
-        "_source": "base-config.yaml.1",
+        "_source": "ambassador.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -53,15 +53,59 @@
     },
     {
         "_method": "GET",
-        "_source": "qotm.yaml.1",
+        "_source": "demo1.yaml.2",
         "clusters": [
             {
-                "name": "cluster_qotm",
+                "name": "cluster_demo1",
+                "weight": 50.0
+            },
+            {
+                "name": "cluster_demo2",
+                "weight": 50
+            }
+        ],
+        "group_id": "d3f94625e5cbd5e4148bc41aafa23fd17e66306a",
+        "headers": [
+            {
+                "name": "x-demo-mode",
+                "regex": false,
+                "value": "canary"
+            }
+        ],
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
+        "_source": "demo2.yaml.2",
+        "clusters": [
+            {
+                "name": "cluster_demo2",
                 "weight": 100.0
             }
         ],
-        "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
-        "prefix": "/qotm/",
+        "group_id": "680712f1da5009382c1987e04b84df2cdfe25649",
+        "headers": [
+            {
+                "name": ":authority",
+                "regex": false,
+                "value": "demo2.datawire.io"
+            }
+        ],
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
+        "_source": "demo1.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_demo1",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
+        "prefix": "/demo/",
         "prefix_rewrite": "/"
     }
 ]

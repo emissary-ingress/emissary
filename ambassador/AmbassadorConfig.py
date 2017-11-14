@@ -9,33 +9,11 @@ import re
 import yaml
 
 from jinja2 import Environment, FileSystemLoader
-from utils import RichStatus
+from utils import RichStatus, SourcedDict
 
-class SourcedDict (dict):
-    def __init__(self, _source="--internal--", _from=None, **kwargs):
-        super().__init__(self, **kwargs)
-
-        if _from and ('_source' in _from):
-            self['_source'] = _from['_source']
-        else:
-            self['_source'] = _source
-
-    def _mark_referenced_by(self, source):
-        if source not in self['_referenced_by']:
-            self['_referenced_by'].append(source)
+from AmbassadorMapping import Mapping
 
 class AmbassadorConfig (object):
-    TransparentRouteKeys = {
-        "host_redirect": True,
-        "path_redirect": True,
-        "host_rewrite": True,
-        "auto_host_rewrite": True,
-        "case_sensitive": True,
-        "use_websocket": True,
-        "timeout_ms": True,
-        "priority": True,
-    }
-
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
         self.schema_dir_path = schema_dir_path
@@ -47,6 +25,7 @@ class AmbassadorConfig (object):
         self.config = {}
         self.envoy_config = {}
         self.envoy_clusters = {}
+        self.envoy_routes = {}
 
         self.sources = {
             "--internal--": {
@@ -272,23 +251,21 @@ class AmbassadorConfig (object):
             self.logger.debug("%s[%d]: saving %s %s" %
                           (self.filename, self.ocount, obj_kind, obj_name))
 
-        storage[obj_name] = SourcedDict(_source=source_key, **value)
+        storage[obj_name] = value
         return storage[obj_name]
 
     def save_object(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, obj_kind, obj_name, obj_kind, obj)
+        return self.safe_store(source_key, obj_kind, obj_name, obj_kind, 
+                               SourcedDict(_source=source_key, **obj))
 
     def handle_module(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "modules", obj_name, obj_kind, obj['config'])
+        return self.safe_store(source_key, "modules", obj_name, obj_kind, 
+                               SourcedDict(_source=source_key, **obj['config']))
 
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
-        method = obj.get('method', "GET")
-        mapping_key = "%s:%s->%s" % (method, obj['prefix'], obj['service'])
+        mapping = Mapping(source_key, **obj)
 
-        if not self.safe_store(source_key, "mapping_prefixes", mapping_key, obj_kind, obj):
-            return False
-
-        return self.safe_store(source_key, "mappings", obj_name, obj_kind, obj)
+        return self.safe_store(source_key, "mappings", obj_name, obj_kind, mapping)
 
     def diag_port(self):
         modules = self.config.get("modules", {})
@@ -328,67 +305,19 @@ class AmbassadorConfig (object):
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
     def add_intermediate_route(self, _source, mapping, cluster_name):
-        routes = self.envoy_config['routes']
-        group = None
-        for r in routes:
-            if r['prefix'] == mapping['prefix'] and r.get('_method') == mapping.get('method', 'GET'):
-                group = r
-                break
+        route = self.envoy_routes.get(mapping.group_id, None)
 
-        if group is None:
-            route = SourcedDict(
-                _source=_source,
-                prefix=mapping['prefix'],
-                prefix_rewrite=mapping.get('rewrite', '/'),
-                clusters=[ { "name": cluster_name,
-                             "weight": mapping.get("weight", None) } ]
-            )
+        if route:
+            # Take the easy way out -- just add a new entry to this
+            # route's set of weighted clusters.
+            route["clusters"].append( { "name": cluster_name,
+                                        "weight": mapping.attrs.get("weight", None) } )
+            return
 
-            headers = []
-
-            # for name, value in mapping.get('headers', {}).items():
-            #     headers.append({ "name": name, "value": value, "regex": False })
-
-            # for name, value in mapping.get('regex_headers', []):
-            #     headers.append({ "name": name, "value": value, "regex": True })
-
-            # if 'host' in mapping:
-            #     headers.append({
-            #         "name": ":host",
-            #         "value": mapping['host'],
-            #         "regex": mapping.get('host_regex', False)
-            # })
-
-            if 'method' in mapping:
-                headers.append({
-                    "name": ":method",
-                    "value": mapping['method'],
-                    "regex": mapping.get('method_regex', False)
-                })
-
-            if headers:
-                route['headers'] = headers
-
-            # Even though we don't use it for generating the Envoy config, go ahead
-            # and make sure that any ':method' header match gets saved under the
-            # route's '_method' key -- diag uses it to make life easier.
-
-            route['_method'] = 'GET'    # Default to 'GET'
-            for hdict in headers:
-                if hdict['name'] == ':method':
-                    route['_method'] = hdict['value']
-
-            # There's a slew of things we'll just copy over transparently; handle
-            # those.
-
-            for key, value in mapping.items():
-                if key in AmbassadorConfig.TransparentRouteKeys:
-                    route[key] = value
-
-            routes.append(route)
-        else:
-            group["clusters"].append( { "name": cluster_name,
-                                        "weight": mapping.get("weight", None) } )
+        # OK, if here, we don't have an extent route group for this Mapping. Make a
+        # new one.
+        route = mapping.new_route(cluster_name)
+        self.envoy_routes[mapping.group_id] = route
 
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
@@ -430,7 +359,7 @@ class AmbassadorConfig (object):
         #                               type="logical_dns", lb_type="random")
 
         # Our initial set of routes is empty...
-        self.envoy_config['routes'] = []
+        self.envoy_routes = {}
 
         # ...and our initial set of filters is just the 'router' filter.
         #
@@ -501,8 +430,9 @@ class AmbassadorConfig (object):
                 # Push a fake mapping to handle this.
                 name = "internal_%s_probe_mapping" % name
 
-                mappings[name] = SourcedDict(
+                mappings[name] = Mapping(
                     _from=self.ambassador_module,
+                    kind='Mapping',
                     name=name,
                     prefix=prefix,
                     rewrite=rewrite,
@@ -597,15 +527,17 @@ class AmbassadorConfig (object):
         # )
 
         # We need to default any unspecified weights and renormalize to 100
-        for r in self.envoy_config['routes']:
-            clusters = r["clusters"]
+        for group_id, route in self.envoy_routes.items():
+            clusters = route["clusters"]
             total = 0.0
             unspecified = 0
+
             for c in clusters:
                 if c["weight"] is None:
                     unspecified += 1
                 else:
                     total += c["weight"]
+
             if unspecified:
                 for c in clusters:
                     if c["weight"] is None:
@@ -615,18 +547,17 @@ class AmbassadorConfig (object):
                     c["weight"] *= 100.0/total
 
         # OK. When all is said and done, sort the list of routes by descending 
-        # legnth of prefix, then prefix itself, then method...
-        self.envoy_config['routes'].sort(reverse=True,
-                                         key=lambda x: (len(x['prefix']), 
-                                                        x['prefix'],
-                                                        x.get('_method', 'GET')))
+        # length of prefix, then prefix itself, then method...
+        self.envoy_config['routes'] = sorted([
+            route for group_id, route in self.envoy_routes.items()
+        ], reverse=True, key=Mapping.route_weight)
 
-        # ...map clusters back into a list...
+        # ...then map clusters back into a list...
         self.envoy_config['clusters'] = [
             self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
         ]
 
-        # ...and then repeat for breakers and outliers, but copy them in the process so we
+        # ...and finally repeat for breakers and outliers, but copy them in the process so we
         # can mess with the originals.
         #
         # What's going on here is that circuit-breaker and outlier-detection configs aren't
@@ -889,8 +820,14 @@ class AmbassadorConfig (object):
                     'errors': errors
                 }
 
-        routes = [ route for route in self.envoy_config['routes']
-                   if route['_source'] != "--diagnostics--" ]
+        routes = []
+
+        for route in self.envoy_config['routes']:
+            if route['_source'] != "--diagnostics--":
+                route['group_id'] = Mapping.group_id(route.get('method', 'GET'),
+                                                     route['prefix'], route.get('headers', []))
+
+                routes.append(route)
 
         configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
                           if key != "routes" }

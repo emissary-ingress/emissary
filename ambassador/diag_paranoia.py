@@ -29,7 +29,7 @@ Uniqifiers = {
     'filters': lambda x: x['name'],
     'tls': lambda x: "TLS",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x['admin_port']),
-    'routes': lambda x: '%s-%s' % (x.get('_method', 'GET'), x['prefix']),
+    'routes': lambda x: x['group_id'],
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if ('index' in x) else x['filename']
 }
 

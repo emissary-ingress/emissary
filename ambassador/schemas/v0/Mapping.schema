@@ -22,8 +22,16 @@
                 "type": "object"
             }
         },
+        "host": { "type": "string" },
+        "headers": { "$ref": "#/definitions/mapStrStr" },
         "envoy_override": { 
             "type": "object"
+        }
+    },
+    "definitions": {
+        "mapStrStr": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
         }
     },
     "required": [ "apiVersion", "kind", "name", "prefix", "service" ],
