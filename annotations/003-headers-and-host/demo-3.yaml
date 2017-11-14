@@ -8,7 +8,7 @@ tests:
   headers:
     x-demo-mode: canary
   versions:
-    1.0.0: 100
+    2.0.0: 100
 - name: host
   host: demo2.datawire.io
   versions:

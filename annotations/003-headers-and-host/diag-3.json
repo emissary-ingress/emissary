@@ -53,10 +53,10 @@
     },
     {
         "_method": "GET",
-        "_source": "demo1.yaml.2",
+        "_source": "demo2.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo1",
+                "name": "cluster_demo2",
                 "weight": 100.0
             }
         ],
@@ -73,7 +73,7 @@
     },
     {
         "_method": "GET",
-        "_source": "demo2.yaml.1",
+        "_source": "demo2.yaml.2",
         "clusters": [
             {
                 "name": "cluster_demo2",

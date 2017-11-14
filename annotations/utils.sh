@@ -111,15 +111,11 @@ wait_for_extauth_enabled () {
 }
 
 wait_for_demo_weights () {
-    baseurl=${1}
-    shift
-    weights="$@"
     attempts=60
     routed=
 
     while [ $attempts -gt 0 ]; do
-        if curl -s $baseurl/ambassador/v0/diag/?json=true | checkweights.py $weights; then
-            printf "weights $weights            \n"
+        if checkweights.py "$@"; then
             routed=YES
             break
         fi

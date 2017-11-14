@@ -57,7 +57,11 @@
         "clusters": [
             {
                 "name": "cluster_demo1",
-                "weight": 100.0
+                "weight": 50.0
+            },
+            {
+                "name": "cluster_demo2",
+                "weight": 50
             }
         ],
         "group_id": "d3f94625e5cbd5e4148bc41aafa23fd17e66306a",
@@ -73,7 +77,7 @@
     },
     {
         "_method": "GET",
-        "_source": "demo2.yaml.1",
+        "_source": "demo2.yaml.2",
         "clusters": [
             {
                 "name": "cluster_demo2",

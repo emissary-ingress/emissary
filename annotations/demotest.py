@@ -47,6 +47,7 @@ def test_from_yaml(base, yaml_path):
     url = spec['url'].replace('{BASE}', base)
 
     test_num = 0
+    rc = True
 
     for test in spec['tests']:
         test_num += 1
@@ -55,7 +56,7 @@ def test_from_yaml(base, yaml_path):
         headers = test.get('headers', None)
         host = test.get('host', None)
         versions = test.get('versions', None)
-        iterations = test.get('iterations', 1)
+        iterations = test.get('iterations', 100)
 
         if not versions:
             print("missing versions in %s?" % name)
@@ -68,12 +69,29 @@ def test_from_yaml(base, yaml_path):
 
             headers['Host'] = host
 
-        print("%s: headers %s" % (name, headers))
-        
-        got = call(url, headers=headers, iterations=iterations)
-        print("%s: %s" % (name, json.dumps(got)))
+        # print("%s: headers %s" % (name, headers))
 
-    return True
+        got = call(url, headers=headers, iterations=iterations)
+
+        # print("%s: %s" % (name, json.dumps(got)))
+
+        test_ok = True
+
+        for version, wanted_count in versions.items():
+            got_count = got.get(version, 0)
+
+            print("%s %s: wanted %d, got %d" % (name, version, wanted_count, got_count))
+
+            if abs(got_count - wanted_count) > 2:
+                rc = False
+                test_ok = False
+
+        if test_ok:
+            print("%s: passed" % name)
+        else:
+            print("%s: FAILED" % name)
+
+    return rc
 
 if __name__ == "__main__":
     base = sys.argv[1]
