@@ -23,7 +23,10 @@ class Mapping (object):
         method = route.get('method', 'GET')
         headers = route.get('headers', [])
 
-        return (len(prefix) + len(headers), prefix, method)
+        weight = [ len(prefix) + len(headers), prefix, method ]
+        weight += [ hdr['name'] for hdr in headers ]
+
+        return tuple(weight)
 
     TransparentRouteKeys = {
         "host_redirect": True,
