@@ -96,8 +96,20 @@
           {% for route in routes | sort(attribute = '_source') %}
           <div class="row">
             <div class="col-7">
-              <code>{{ route.get('_method', 'GET') }} {{ route['prefix'] }}</code> -> <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
-              <br/>
+
+              <a href="/ambassador/v0/diag/{{ route['_source'] }}">
+                <code>{{ route.get('_method', 'GET') }} {{ route['prefix'] }}</code> &rArr; <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
+                {% if route['headers'] %}
+                  <table>
+                    <tr>
+                      <th colspan="2">Headers</th>
+                    </tr>
+                    {% for hdr in route['headers'] %}
+                      <tr><td><code>{{ hdr['name'] }}</code></td><td><code>{{ hdr['value'] }}</code></td></tr>
+                    {% endfor %}
+                  </table>
+                {% endif %}
+              </a>
               created by <a href="/ambassador/v0/diag/{{ route['_source'] }}"><code>{{ route['_source'] }}</code></a>
             </div>
             <div class="col-5">
