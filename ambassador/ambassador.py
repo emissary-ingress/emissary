@@ -14,9 +14,9 @@ from scout import Scout
 
 from ambassador.config import Config
 
-import VERSION
+from ambassador.VERSION import Version
 
-__version__ = VERSION.Version
+__version__ = Version
 
 logging.basicConfig(
     level=logging.INFO, # if appDebug else logging.INFO,

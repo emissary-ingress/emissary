@@ -43,9 +43,11 @@ reg-check:
 	    exit 1 ;\
 	fi
 
-versions:
+version versions: ambassador/ambassador/VERSION.py
+
+ambassador/ambassador/VERSION.py:
 	@echo "Building $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/VERSION.py
+	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 
 artifacts: docker-images website
 
@@ -60,7 +62,7 @@ yaml-files:
 
 test: ambassador-test
 
-ambassador-test:
+ambassador-test: ambassador/ambassador/VERSION.py
 	cd ambassador && pytest --cov=ambassador --cov-report term-missing
 
 docker-images: ambassador-image statsd-image
@@ -77,8 +79,8 @@ website: yaml-files
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf app.json
-	rm -rf ambassador/__pycache__
-	rm -rf .cache ambassador/.cache
+	rm -rf ambassador/ambassador/VERSION.py
+	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find ambassador/tests \( -name '*.out' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 	rm -rf annotations/ambassador-deployment.yaml
 	find annotations \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f

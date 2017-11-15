@@ -12,7 +12,7 @@ import signal
 import time
 import uuid
 
-import VERSION
+from ambassador.VERSION import Version
 
 import clize
 from clize import Parameter
@@ -22,7 +22,7 @@ from ambassador.config import Config
 from EnvoyStats import EnvoyStats
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
-__version__ = VERSION.Version
+__version__ = Version
 boot_time = datetime.datetime.now()
 
 logging.basicConfig(
