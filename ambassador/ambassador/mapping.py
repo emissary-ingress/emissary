@@ -1,6 +1,6 @@
 import hashlib
 
-from utils import SourcedDict
+from .utils import SourcedDict
 
 class Mapping (object):
     @classmethod

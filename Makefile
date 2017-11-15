@@ -58,8 +58,10 @@ yaml-files:
 		< annotations/ambassador-deployment-template.yaml \
 		> annotations/ambassador-deployment.yaml
 
+test: ambassador-test
+
 ambassador-test:
-	pytest --cov=ambassador --cov-report term-missing
+	cd ambassador && pytest --cov=ambassador --cov-report term-missing
 
 docker-images: ambassador-image statsd-image
 

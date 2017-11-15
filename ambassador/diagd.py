@@ -18,7 +18,7 @@ import clize
 from clize import Parameter
 from flask import Flask, render_template, request, jsonify # Response
 
-from AmbassadorConfig import AmbassadorConfig
+from ambassador.config import Config
 from EnvoyStats import EnvoyStats
 from utils import RichStatus, SystemInfo, PeriodicTrigger
 
@@ -102,7 +102,7 @@ def aconf(app):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
     configs.sort(key=lambda x: int(x.split("-")[-1]))
     latest = configs[-1]
-    return AmbassadorConfig(latest)
+    return Config(latest)
 
 def td_format(td_object):
     seconds = int(td_object.total_seconds())

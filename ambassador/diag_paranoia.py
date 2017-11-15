@@ -6,7 +6,7 @@ import os
 
 from shell import shell
 
-from AmbassadorConfig import AmbassadorConfig
+from ambassador.config import Config
 
 def prettify(obj):
     return json.dumps(obj, indent=4, sort_keys=True)
@@ -34,7 +34,7 @@ Uniqifiers = {
 }
 
 def diag_paranoia(configdir, outputdir):
-    aconf = AmbassadorConfig(configdir)
+    aconf = Config(configdir)
     ov = aconf.diagnostic_overview()
 
     # print("==== OV")

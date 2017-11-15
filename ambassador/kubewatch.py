@@ -12,7 +12,7 @@ import traceback
 import yaml
 
 from kubernetes import client, config, watch
-from AmbassadorConfig import AmbassadorConfig
+from ambassador.config import Config
 
 KEY = "getambassador.io/config"
 
@@ -111,7 +111,7 @@ class Restarter(threading.Thread):
                 fd.write(config)
             print ("Wrote %s to %s" % (filename, path))
 
-        aconf = AmbassadorConfig(output)
+        aconf = Config(output)
         rc = aconf.generate_envoy_config()
 
         if rc:

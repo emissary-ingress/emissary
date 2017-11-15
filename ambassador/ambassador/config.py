@@ -9,11 +9,11 @@ import re
 import yaml
 
 from jinja2 import Environment, FileSystemLoader
-from utils import RichStatus, SourcedDict
+from .utils import RichStatus, SourcedDict
 
-from AmbassadorMapping import Mapping
+from .mapping import Mapping
 
-class AmbassadorConfig (object):
+class Config (object):
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
         self.schema_dir_path = schema_dir_path
@@ -865,6 +865,6 @@ class AmbassadorConfig (object):
         self.pretty(self.envoy_config)
 
 if __name__ == '__main__':
-    aconf = AmbassadorConfig(sys.argv[1])
+    aconf = Config(sys.argv[1])
     print(json.dumps(aconf.diagnostic_overview(), indent=4, sort_keys=True))
 

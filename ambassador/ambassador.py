@@ -12,7 +12,7 @@ import clize
 from clize import Parameter
 from scout import Scout
 
-from AmbassadorConfig import AmbassadorConfig
+from ambassador.config import Config
 
 import VERSION
 
@@ -113,8 +113,8 @@ def parse_config(config_dir_path, template_dir_path=None, schema_dir_path=None):
         logger.debug("CONFIG DIR   %s" % os.path.abspath(config_dir_path))
         logger.debug("TEMPLATE DIR %s" % os.path.abspath(template_dir_path))
         logger.debug("SCHEMA DIR   %s" % os.path.abspath(schema_dir_path))
-        return AmbassadorConfig(config_dir_path,
-                                template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
+        return Config(config_dir_path, 
+                      template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
     except Exception as e:
         handle_exception("EXCEPTION from parse_config", e, 
                          config_dir_path=config_dir_path, template_dir_path=template_dir_path,
