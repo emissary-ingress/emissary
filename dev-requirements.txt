@@ -3,3 +3,4 @@ gitpython
 docopt
 awscli
 pytest
+pytest-cov
