@@ -12,17 +12,20 @@ import signal
 import time
 import uuid
 
-from ambassador.VERSION import Version
+from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
 from flask import Flask, render_template, request, jsonify # Response
 
 from ambassador.config import Config
-from EnvoyStats import EnvoyStats
-from utils import RichStatus, SystemInfo, PeriodicTrigger
+from ambassador.VERSION import Version
+from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
+
+from .envoy import EnvoyStats
 
 __version__ = Version
+
 boot_time = datetime.datetime.now()
 
 logging.basicConfig(
@@ -100,8 +103,13 @@ app = Flask(__name__)
 # Next, various helpers.
 def aconf(app):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
-    configs.sort(key=lambda x: int(x.split("-")[-1]))
-    latest = configs[-1]
+
+    if configs:
+        configs.sort(key=lambda x: int(x.split("-")[-1]))
+        latest = configs[-1]
+    else:
+        latest = app.config_dir_prefix
+
     return Config(latest)
 
 def td_format(td_object):
@@ -248,7 +256,7 @@ def pretty_json(obj):
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
-def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
+def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
     """
     Run the diagnostic daemon.
 
@@ -279,5 +287,8 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
 
     app.run(host='0.0.0.0', port=aconf(app).diag_port(), debug=app.debugging)
 
+def main():
+    clize.run(_main)
+
 if __name__ == "__main__":
-    clize.run(main)
+    main()

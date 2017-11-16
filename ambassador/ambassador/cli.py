@@ -8,15 +8,18 @@ import time
 import traceback
 import uuid
 
+from pkg_resources import Requirement, resource_filename
+
 import clize
 from clize import Parameter
 from scout import Scout
 
-from ambassador.config import Config
-
-from ambassador.VERSION import Version
+from .config import Config
+from .VERSION import Version
 
 __version__ = Version
+
+runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
 
 logging.basicConfig(
     level=logging.INFO, # if appDebug else logging.INFO,
@@ -28,52 +31,7 @@ logging.basicConfig(
 logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
 
-rootdir = os.path.dirname(os.path.abspath(sys.argv[0]))
-# logger.debug("ROOT %s" % rootdir)
-
-# Weird stuff. The build version looks like
-#
-# 0.12.0                    for a prod build, or
-# 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
-#
-# Now: 
-# - Scout needs a build number (semver "+something") to flag a non-prod release;
-#   but
-# - DockerHub cannot use a build number at all; but
-# - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
-# 
-# FFS.
-#
-# We cope with this by transforming e.g.
-#
-# 0.12.1-b2.da5d895.DIRTY into 0.12.1-b2+da5d895.DIRTY
-#
-# for Scout.
-
-scout_version = __version__
-
-if '-' in scout_version:
-    # Dev build!
-    v, p = scout_version.split('-')
-    p, b = p.split('.', 1) if ('.' in p) else (0, p)
-
-    scout_version = "%s-%s+%s" % (v, p, b)
-
-logger.debug("Scout version %s" % scout_version)
-
 scout = None
-
-runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
-logger.debug("runtime: %s" % runtime)
-
-try:
-    namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
-
-    scout = Scout(app="ambassador", version=scout_version, 
-                  id_plugin=Scout.configmap_install_id_plugin, 
-                  id_plugin_args={ "namespace": namespace })
-except OSError as e:
-    logger.warning("couldn't do version check: %s" % str(e))
 
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
@@ -104,10 +62,10 @@ def showid():
 
 def parse_config(config_dir_path, template_dir_path=None, schema_dir_path=None):
     if not template_dir_path:
-        template_dir_path = os.path.join(rootdir, "templates")
+        template_dir_path = resource_filename(Requirement.parse("ambassador"),"templates")
 
     if not schema_dir_path:
-        schema_dir_path = os.path.join(rootdir, "schemas")
+        schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
 
     try:
         logger.debug("CONFIG DIR   %s" % os.path.abspath(config_dir_path))
@@ -249,7 +207,50 @@ def get_semver(what, version_string):
 
     return semver
 
-if __name__ == "__main__":
+def main():
+    crap = resource_filename(Requirement.parse("ambassador"),"templates")
+    logger.info("templates path: %s" % crap)
+
+    # Weird stuff. The build version looks like
+    #
+    # 0.12.0                    for a prod build, or
+    # 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
+    #
+    # Now: 
+    # - Scout needs a build number (semver "+something") to flag a non-prod release;
+    #   but
+    # - DockerHub cannot use a build number at all; but
+    # - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
+    # 
+    # FFS.
+    #
+    # We cope with this by transforming e.g.
+    #
+    # 0.12.1-b2.da5d895.DIRTY into 0.12.1-b2+da5d895.DIRTY
+    #
+    # for Scout.
+
+    scout_version = __version__
+
+    if '-' in scout_version:
+        # Dev build!
+        v, p = scout_version.split('-')
+        p, b = p.split('.', 1) if ('.' in p) else (0, p)
+
+        scout_version = "%s-%s+%s" % (v, p, b)
+
+    logger.debug("Scout version %s" % scout_version)
+    logger.debug("runtime: %s" % runtime)
+
+    try:
+        namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+
+        scout = Scout(app="ambassador", version=scout_version, 
+                      id_plugin=Scout.configmap_install_id_plugin, 
+                      id_plugin_args={ "namespace": namespace })
+    except OSError as e:
+        logger.warning("couldn't do version check: %s" % str(e))
+
     clize.run([config, dump], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
@@ -262,3 +263,6 @@ if __name__ == "__main__":
 
               to see Ambassador's version.
               """)
+
+if __name__ == "__main__":
+    main()
