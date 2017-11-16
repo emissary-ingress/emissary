@@ -152,19 +152,15 @@
             },
             "name": "extauth",
             "type": "decoder"
-        },
-        {
-            "_source": "--internal--",
-            "config": {},
-            "name": "router",
-            "type": "decoder"
         }
     ],
-    "listeners": {
-        "_source": "ambassador.yaml.1",
-        "admin_port": 8001,
-        "service_port": 443
-    },
+    "listeners": [
+        {
+            "_source": "ambassador.yaml.1",
+            "admin_port": 8001,
+            "service_port": 443
+        }
+    ],
     "outliers": [
         {
             "_referenced_by": [
@@ -179,42 +175,6 @@
     "routes": [
         {
             "_method": "GET",
-            "_source": "ambassador.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_127_0_0_1_8877",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/ambassador/v0/check_ready",
-            "prefix_rewrite": "/ambassador/v0/check_ready"
-        },
-        {
-            "_method": "GET",
-            "_source": "ambassador.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_127_0_0_1_8877",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/ambassador/v0/check_alive",
-            "prefix_rewrite": "/ambassador/v0/check_alive"
-        },
-        {
-            "_method": "GET",
-            "_source": "ambassador.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_127_0_0_1_8877",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/ambassador/v0/",
-            "prefix_rewrite": "/ambassador/v0/"
-        },
-        {
-            "_method": "GET",
             "_source": "mapping-qotm.yaml.2",
             "clusters": [
                 {
@@ -222,20 +182,9 @@
                     "weight": 100.0
                 }
             ],
+            "group_id": "054dcb9a73b21dd73353675bb7f490de5ac76959",
             "prefix": "/qotm/quote/",
             "prefix_rewrite": "/quote/"
-        },
-        {
-            "_method": "GET",
-            "_source": "mapping-qotm.yaml.3",
-            "clusters": [
-                {
-                    "name": "cluster_qotm_cb_default_od_default",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/service/",
-            "prefix_rewrite": "/"
         },
         {
             "_method": "GET",
@@ -246,53 +195,49 @@
                     "weight": 100.0
                 }
             ],
+            "group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
             "host_rewrite": "httpbin.org",
             "prefix": "/httpbin/",
             "prefix_rewrite": "/"
         },
         {
             "_method": "GET",
-            "_source": "mapping-qotm2.yaml.1",
+            "_source": "ambassador.yaml.1",
             "clusters": [
                 {
-                    "name": "cluster_qotm_tspace",
+                    "name": "cluster_127_0_0_1_8877",
                     "weight": 100.0
                 }
             ],
-            "prefix": "/tspace/",
+            "group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+            "prefix": "/ambassador/v0/check_ready",
+            "prefix_rewrite": "/ambassador/v0/check_ready"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-grpc.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_192_168_0_1_45",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "23cf4cd84c4d7fe0fc55f4a1574d2251379b7d44",
+            "prefix": "/grpc/",
             "prefix_rewrite": "/"
         },
         {
             "_method": "GET",
-            "_source": "mapping-google.yaml.1",
+            "_source": "ambassador.yaml.1",
             "clusters": [
                 {
-                    "name": "cluster_google_com_80",
+                    "name": "cluster_127_0_0_1_8877",
                     "weight": 100.0
                 }
             ],
-            "host_rewrite": "google.com",
-            "prefix": "/google/",
-            "prefix_rewrite": "/"
-        },
-        {
-            "_method": "GET",
-            "_source": "mapping-evil.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_qotm",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": ":method",
-                    "regex": false,
-                    "value": "GET"
-                }
-            ],
-            "prefix": "/evil/",
-            "prefix_rewrite": "/"
+            "group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+            "prefix": "/ambassador/v0/check_alive",
+            "prefix_rewrite": "/ambassador/v0/check_alive"
         },
         {
             "_method": "PUT",
@@ -303,6 +248,7 @@
                     "weight": 100.0
                 }
             ],
+            "group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
             "headers": [
                 {
                     "name": ":method",
@@ -322,27 +268,91 @@
                     "weight": 100.0
                 }
             ],
+            "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "prefix": "/qotm/",
             "prefix_rewrite": "/"
         },
         {
             "_method": "GET",
-            "_source": "mapping-grpc.yaml.1",
+            "_source": "mapping-qotm2.yaml.1",
             "clusters": [
                 {
-                    "name": "cluster_192_168_0_1_45",
+                    "name": "cluster_qotm_tspace",
                     "weight": 100.0
                 }
             ],
-            "prefix": "/grpc/",
+            "group_id": "aa98509407ace64e627bcd96f0a28d5017c86797",
+            "prefix": "/tspace/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+            "prefix": "/ambassador/v0/",
+            "prefix_rewrite": "/ambassador/v0/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-qotm.yaml.3",
+            "clusters": [
+                {
+                    "name": "cluster_qotm_cb_default_od_default",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "b78bdfc87593475aa2d8dd0279048a613388f8e3",
+            "prefix": "/service/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-google.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_google_com_80",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "c843e9bd6b289899e7c47653d36a1343b747440e",
+            "host_rewrite": "google.com",
+            "prefix": "/google/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-evil.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_qotm",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "d644030a1f5e96f97bc89d21be3ae749c0ee192c",
+            "headers": [
+                {
+                    "name": ":method",
+                    "regex": false,
+                    "value": "GET"
+                }
+            ],
+            "prefix": "/evil/",
             "prefix_rewrite": "/"
         }
     ],
-    "tls": {
-        "_source": "ambassador.yaml.1",
-        "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-        "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-        "cert_required": true,
-        "private_key_file": "/etc/ambassador-config/certs/tls.key"
-    }
+    "tls": [
+        {
+            "_source": "ambassador.yaml.1",
+            "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
+            "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+            "cert_required": true,
+            "private_key_file": "/etc/ambassador-config/certs/tls.key"
+        }
+    ]
 }

@@ -90,6 +90,7 @@ class Mapping (object):
     def new_route(self, cluster_name):
         route = SourcedDict(
             _source=self['_source'],
+            group_id=self.group_id,
             prefix=self.prefix,
             prefix_rewrite=self.get('rewrite', '/'),
             clusters=[ { "name": cluster_name,

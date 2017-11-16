@@ -10,7 +10,7 @@ import pytest
 
 from shell import shell
 
-from diag_paranoia import diag_paranoia
+from diag_paranoia import diag_paranoia, filtered_overview
 
 VALIDATOR_IMAGE = "dwflynn/ambassador-envoy:v1.4.0-49-g008635a04"
 
@@ -76,16 +76,28 @@ def test_config(testname, dirpath, configdir):
     if ambassador.code != 0:
         errors.append('ambassador dump failed! %s' % ambassador.code)
     else:
-        current_path = os.path.join(dirpath, "intermediate.json")
-        open(current_path, "w").write(ambassador.output(raw=True))
+        current_raw = ambassador.output(raw=True)
+        current = None
+        gold = None
 
-        gold_path = os.path.join(dirpath, "gold.intermediate.json")
+        try:
+            current = json.loads(current_raw)
+        except json.decoder.JSONDecodeError as e:
+            errors.append("current intermediate was unparseable?")
 
-        if os.path.exists(gold_path):
-            udiff = unified_diff(gold_path, current_path)
+        if current:
+            current = filtered_overview(current)
 
-            if udiff:
-                errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+            current_path = os.path.join(dirpath, "intermediate.json")
+            json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
+
+            gold_path = os.path.join(dirpath, "gold.intermediate.json")
+
+            if os.path.exists(gold_path):
+                udiff = unified_diff(gold_path, current_path)
+
+                if udiff:
+                    errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
 
     envoy_json_out = os.path.join(dirpath, "envoy.json")
 
