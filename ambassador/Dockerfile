@@ -29,13 +29,10 @@ COPY requirements.txt .
 # Install application dependencies
 RUN pip3 install -r requirements.txt
 
-# COPY the app code and configuration into place, then perform any final
-# configuration steps.
-
-COPY ambassador.py AmbassadorConfig.py AmbassadorMapping.py EnvoyStats.py utils.py VERSION.py ./
-COPY templates/ ./templates
-COPY schemas/ ./schemas
-COPY diagd.py ./
+# Install the application itself
+COPY ./ ambassador
+RUN cd ambassador && python3 setup.py install
+RUN rm -rf ./ambassador
 
 # MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no
 # trouble, or you can let annotations do the right thing.
