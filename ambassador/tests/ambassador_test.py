@@ -16,9 +16,9 @@ VALIDATOR_IMAGE = "dwflynn/ambassador-envoy:v1.4.0-49-g008635a04"
 DIR = os.path.dirname(__file__)
 EXCLUDES = [ "__pycache__" ] 
 
-AMBASSADOR = os.path.join(DIR, "ambassador.py")
-TESTDIR = os.path.join(DIR, "tests")
-DEFAULT_CONFIG = os.path.join(DIR, "default-config")
+# TESTDIR = os.path.join(DIR, "tests")
+TESTDIR = DIR
+DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
 MATCHES = [ n for n in os.listdir(TESTDIR) if (os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
 
 #### decorators
@@ -55,7 +55,7 @@ def test_config(testname, dirpath, configdir):
 
     envoy_json_out = os.path.join(dirpath, "envoy.json")
 
-    ambassador = shell([ 'python', AMBASSADOR, 'config', configdir, envoy_json_out],
+    ambassador = shell([ 'ambassador', 'config', configdir, envoy_json_out ],
                        verbose=True)
 
     if ambassador.code != 0:

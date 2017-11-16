@@ -1,5 +1,7 @@
 *.pyc
 *~
+.cache
+.coverage
 .python-version
 .DS_Store
 venv
