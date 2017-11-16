@@ -8,8 +8,6 @@ import time
 import traceback
 import uuid
 
-from pkg_resources import Requirement, resource_filename
-
 import clize
 from clize import Parameter
 from scout import Scout
@@ -62,16 +60,7 @@ def showid():
         print("unknown")
 
 def parse_config(config_dir_path, template_dir_path=None, schema_dir_path=None):
-    if not template_dir_path:
-        template_dir_path = resource_filename(Requirement.parse("ambassador"),"templates")
-
-    if not schema_dir_path:
-        schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
-
     try:
-        logger.debug("CONFIG DIR   %s" % os.path.abspath(config_dir_path))
-        logger.debug("TEMPLATE DIR %s" % os.path.abspath(template_dir_path))
-        logger.debug("SCHEMA DIR   %s" % os.path.abspath(schema_dir_path))
         return Config(config_dir_path, 
                       template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
     except Exception as e:

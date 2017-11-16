@@ -8,18 +8,31 @@ import os
 import re
 import yaml
 
+from pkg_resources import Requirement, resource_filename
+
 from jinja2 import Environment, FileSystemLoader
 from .utils import RichStatus, SourcedDict
 
 from .mapping import Mapping
 
 class Config (object):
-    def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
+    def __init__(self, config_dir_path, schema_dir_path=None, template_dir_path=None):
         self.config_dir_path = config_dir_path
+
+        if not template_dir_path:
+            template_dir_path = resource_filename(Requirement.parse("ambassador"),"templates")
+
+        if not schema_dir_path:
+            schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
+
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
 
         self.logger = logging.getLogger("ambassador.config")
+
+        self.logger.debug("CONFIG DIR   %s" % os.path.abspath(self.config_dir_path))
+        self.logger.debug("TEMPLATE DIR %s" % os.path.abspath(self.template_dir_path))
+        self.logger.debug("SCHEMA DIR   %s" % os.path.abspath(self.schema_dir_path))
 
         self.schemas = {}
         self.config = {}
