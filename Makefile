@@ -60,9 +60,12 @@ yaml-files:
 		< annotations/ambassador-deployment-template.yaml \
 		> annotations/ambassador-deployment.yaml
 
+setup-develop:
+	cd ambassador && python setup.py develop
+
 test: ambassador-test
 
-ambassador-test: ambassador/ambassador/VERSION.py
+ambassador-test: setup-develop ambassador/ambassador/VERSION.py
 	cd ambassador && pytest --cov=ambassador --cov-report term-missing
 
 docker-images: ambassador-image statsd-image
