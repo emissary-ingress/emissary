@@ -1,6 +1,7 @@
 import sys
 
 import difflib
+import errno
 import json
 import logging
 import functools
@@ -19,7 +20,10 @@ EXCLUDES = [ "__pycache__" ]
 # TESTDIR = os.path.join(DIR, "tests")
 TESTDIR = DIR
 DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
-MATCHES = [ n for n in os.listdir(TESTDIR) if (os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+MATCHES = [ n for n in os.listdir(TESTDIR) 
+            if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+
+os.environ['SCOUT_DISABLE'] = "1"
 
 #### decorators
 
@@ -43,6 +47,19 @@ def standard_setup(f):
 
     return wrapper
 
+#### Utilities
+
+def unified_diff(gold_path, current_path):
+    gold = json.dumps(json.load(open(gold_path, "r")), indent=4, sort_keys=True)
+    current = json.dumps(json.load(open(current_path, "r")), indent=4, sort_keys=True)
+
+    udiff = list(difflib.unified_diff(gold.split("\n"), current.split("\n"),
+                                      fromfile=os.path.basename(gold_path),
+                                      tofile=os.path.basename(current_path),
+                                      lineterm=""))
+
+    return udiff
+
 #### Test functions
 
 @pytest.mark.parametrize("directory", MATCHES)
@@ -53,9 +70,32 @@ def test_config(testname, dirpath, configdir):
     if not os.path.isdir(configdir):
         errors.append("configdir %s is not a directory" % configdir)
 
+    ambassador = shell([ 'ambassador', 'dump', configdir ],
+                       verbose=True)
+
+    if ambassador.code != 0:
+        errors.append('ambassador dump failed! %s' % ambassador.code)
+    else:
+        current_path = os.path.join(dirpath, "intermediate.json")
+        open(current_path, "w").write(ambassador.output(raw=True))
+
+        gold_path = os.path.join(dirpath, "gold.intermediate.json")
+
+        if os.path.exists(gold_path):
+            udiff = unified_diff(gold_path, current_path)
+
+            if udiff:
+                errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+
     envoy_json_out = os.path.join(dirpath, "envoy.json")
 
-    ambassador = shell([ 'ambassador', 'config', configdir, envoy_json_out ],
+    try:
+        os.unlink(envoy_json_out)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ],
                        verbose=True)
 
     if ambassador.code != 0:
@@ -87,15 +127,19 @@ def test_config(testname, dirpath, configdir):
         gold_path = os.path.join(dirpath, "gold.json")
 
         if os.path.exists(gold_path):
-            gold = json.dumps(json.load(open(gold_path, "r")), indent=4, sort_keys=True)
-            current = json.dumps(json.load(open(envoy_json_out, "r")), indent=4, sort_keys=True)
-
-            udiff = list(difflib.unified_diff(gold.split("\n"), current.split("\n"),
-                                              fromfile="gold.json", tofile="envoy.json",
-                                              lineterm=""))
+            udiff = unified_diff(gold_path, envoy_json_out)
 
             if udiff:
                 errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
+
+    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ],
+                       verbose=True)
+
+    if ambassador.code != 0:
+        errors.append('ambassador repeat check failed! %s' % ambassador.code)
+
+    if 'Output file exists' not in ambassador.errors(raw=True):
+        errors.append('ambassador repeat check did not short circuit??')
 
     if errors:
         print("---- ERRORS")

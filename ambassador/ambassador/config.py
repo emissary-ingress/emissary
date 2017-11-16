@@ -657,17 +657,17 @@ class Config (object):
         # Finally! Render the template to JSON...
         envoy_json = self.to_json(template=template, template_dir=template_dir)
         return RichStatus.OK(msg="Envoy configuration OK", envoy_config=envoy_json)
-#        rc = RichStatus.fromError("impossible")
+        # rc = RichStatus.fromError("impossible")
 
-        # ...and use the JSON parser as a final sanity check.
-#        try:
-#            obj = json.loads(envoy_json)
-#            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
-#        except json.decoder.JSONDecodeError as e:
-#            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
-#                                      raw=envoy_json, exception=e)
+        # # ...and use the JSON parser as a final sanity check.
+        # try:
+        #     obj = json.loads(envoy_json)
+        #     rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
+        # except json.decoder.JSONDecodeError as e:
+        #     rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
+        #                               raw=envoy_json, exception=e)
 
-        return rc
+        # return rc
 
     def set_config_ambassador(self, module, key, value, merge=False):
         if not merge:

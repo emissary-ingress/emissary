@@ -85,7 +85,7 @@ clean:
 	rm -rf ambassador/ambassador/VERSION.py*
 	rm -rf ambassador/build ambassador/dist
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
-	find ambassador/tests \( -name '*.out' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
+	find ambassador/tests \( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 | xargs -0 rm -f
 	rm -rf annotations/ambassador-deployment.yaml
 	find annotations \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 

@@ -32,6 +32,7 @@ logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
 
 scout = None
+scout_version = __version__
 
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
@@ -148,12 +149,14 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
                 logger.error("Raw template output:")
                 logger.error("%s" % rc.raw)
+        else:
+            rc = True
 
-            if scout:
-                result = scout.report(action="config", result=bool(rc),
-                                      runtime=runtime, check=check, generated=(not output_exists))
-            else:
-                result = {"scout": "inactive"}
+        if scout:
+            result = scout.report(action="config", result=bool(rc),
+                                  runtime=runtime, check=check, generated=(not output_exists))
+        else:
+            result = {"scout": "inactive"}
 
         logger.debug("Scout reports %s" % json.dumps(result))
 
@@ -208,8 +211,8 @@ def get_semver(what, version_string):
     return semver
 
 def main():
-    crap = resource_filename(Requirement.parse("ambassador"),"templates")
-    logger.info("templates path: %s" % crap)
+    # Ew.
+    global scout, scout_version
 
     # Weird stuff. The build version looks like
     #
@@ -244,10 +247,19 @@ def main():
 
     try:
         namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+        scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', None)
 
-        scout = Scout(app="ambassador", version=scout_version, 
-                      id_plugin=Scout.configmap_install_id_plugin, 
-                      id_plugin_args={ "namespace": namespace })
+        scout_args = dict(
+            app="ambassador", version=scout_version,
+        )
+
+        if scout_install_id:
+            scout_args['install_id'] = scout_install_id
+        else:
+            scout_args['id_plugin'] = Scout.configmap_install_id_plugin 
+            scout_args['id_plugin_args'] = { "namespace": namespace }
+
+        scout = Scout(**scout_args)
     except OSError as e:
         logger.warning("couldn't do version check: %s" % str(e))
 

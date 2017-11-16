@@ -1,0 +1,122 @@
+{
+    "breakers": [],
+    "clusters": [
+        {
+            "_referenced_by": [
+                "ambassador.yaml.1",
+                "--internal--"
+            ],
+            "_source": "ambassador.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_127_0_0_1_8877",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "demo1.yaml.1"
+            ],
+            "_source": "demo1.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_demo1",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://demo1:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "demo2.yaml.1"
+            ],
+            "_source": "demo2.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_demo2",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://demo2:80"
+            ]
+        }
+    ],
+    "filters": [
+        {
+            "_source": "--internal--",
+            "config": {},
+            "name": "router",
+            "type": "decoder"
+        }
+    ],
+    "listeners": {
+        "_source": "--internal--",
+        "admin_port": 8001,
+        "service_port": 80
+    },
+    "outliers": [],
+    "routes": [
+        {
+            "_method": "GET",
+            "_source": "--internal--",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/v0/check_ready",
+            "prefix_rewrite": "/ambassador/v0/check_ready"
+        },
+        {
+            "_method": "GET",
+            "_source": "--internal--",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/v0/check_alive",
+            "prefix_rewrite": "/ambassador/v0/check_alive"
+        },
+        {
+            "_method": "GET",
+            "_source": "--internal--",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/v0/",
+            "prefix_rewrite": "/ambassador/v0/"
+        },
+        {
+            "_method": "GET",
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/",
+            "prefix_rewrite": "/ambassador/"
+        },
+        {
+            "_method": "GET",
+            "_source": "demo1.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_demo1",
+                    "weight": 50.0
+                },
+                {
+                    "name": "cluster_demo2",
+                    "weight": 50
+                }
+            ],
+            "prefix": "/demo/",
+            "prefix_rewrite": "/"
+        }
+    ]
+}

@@ -1,0 +1,348 @@
+{
+    "breakers": [
+        {
+            "_referenced_by": [
+                "mapping-qotm.yaml.2",
+                "mapping-qotm.yaml.3"
+            ],
+            "_source": "default-breaker.yaml.1",
+            "apiVersion": "ambassador/v0",
+            "kind": "CircuitBreaker",
+            "name": "default"
+        }
+    ],
+    "clusters": [
+        {
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
+            "_source": "ambassador.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_127_0_0_1_8877",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-grpc.yaml.1"
+            ],
+            "_source": "mapping-grpc.yaml.1",
+            "features": "http2",
+            "lb_type": "round_robin",
+            "name": "cluster_192_168_0_1_45",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://192.168.0.1:45"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "auth.yaml.1"
+            ],
+            "_source": "auth.yaml.1",
+            "lb_type": "random",
+            "name": "cluster_ext_auth",
+            "type": "logical_dns",
+            "urls": [
+                "tcp://example-auth:3000"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-google.yaml.1"
+            ],
+            "_source": "mapping-google.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_google_com_80",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://google.com:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-httpbin.yaml.1"
+            ],
+            "_source": "mapping-httpbin.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_httpbin_org",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://httpbin.org:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-evil.yaml.1",
+                "mapping-evil.yaml.2",
+                "mapping-qotm.yaml.1"
+            ],
+            "_source": "mapping-evil.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_qotm",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://qotm:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-qotm.yaml.2"
+            ],
+            "_source": "mapping-qotm.yaml.2",
+            "circuit_breakers": {
+                "apiVersion": "ambassador/v0",
+                "kind": "CircuitBreaker",
+                "name": "default"
+            },
+            "lb_type": "round_robin",
+            "name": "cluster_qotm_cb_default",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://qotm:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-qotm.yaml.3"
+            ],
+            "_source": "mapping-qotm.yaml.3",
+            "circuit_breakers": {
+                "apiVersion": "ambassador/v0",
+                "kind": "CircuitBreaker",
+                "name": "default"
+            },
+            "lb_type": "round_robin",
+            "name": "cluster_qotm_cb_default_od_default",
+            "outlier_detection": {
+                "apiVersion": "ambassador/v0",
+                "kind": "OutlierDetection",
+                "name": "default"
+            },
+            "type": "strict_dns",
+            "urls": [
+                "tcp://qotm:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-qotm2.yaml.1"
+            ],
+            "_source": "mapping-qotm2.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_qotm_tspace",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://qotm.tspace:80"
+            ]
+        }
+    ],
+    "filters": [
+        {
+            "_source": "auth.yaml.1",
+            "config": {
+                "allowed_headers": [
+                    "x-qotm-session"
+                ],
+                "cluster": "cluster_ext_auth",
+                "path_prefix": "/extauth",
+                "timeout_ms": 5000
+            },
+            "name": "extauth",
+            "type": "decoder"
+        },
+        {
+            "_source": "--internal--",
+            "config": {},
+            "name": "router",
+            "type": "decoder"
+        }
+    ],
+    "listeners": {
+        "_source": "ambassador.yaml.1",
+        "admin_port": 8001,
+        "service_port": 443
+    },
+    "outliers": [
+        {
+            "_referenced_by": [
+                "mapping-qotm.yaml.3"
+            ],
+            "_source": "default-outlier.yaml.1",
+            "apiVersion": "ambassador/v0",
+            "kind": "OutlierDetection",
+            "name": "default"
+        }
+    ],
+    "routes": [
+        {
+            "_method": "GET",
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/v0/check_ready",
+            "prefix_rewrite": "/ambassador/v0/check_ready"
+        },
+        {
+            "_method": "GET",
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/v0/check_alive",
+            "prefix_rewrite": "/ambassador/v0/check_alive"
+        },
+        {
+            "_method": "GET",
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/ambassador/v0/",
+            "prefix_rewrite": "/ambassador/v0/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-qotm.yaml.2",
+            "clusters": [
+                {
+                    "name": "cluster_qotm_cb_default",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/qotm/quote/",
+            "prefix_rewrite": "/quote/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-qotm.yaml.3",
+            "clusters": [
+                {
+                    "name": "cluster_qotm_cb_default_od_default",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/service/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-httpbin.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_httpbin_org",
+                    "weight": 100.0
+                }
+            ],
+            "host_rewrite": "httpbin.org",
+            "prefix": "/httpbin/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-qotm2.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_qotm_tspace",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/tspace/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-google.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_google_com_80",
+                    "weight": 100.0
+                }
+            ],
+            "host_rewrite": "google.com",
+            "prefix": "/google/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-evil.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_qotm",
+                    "weight": 100.0
+                }
+            ],
+            "headers": [
+                {
+                    "name": ":method",
+                    "regex": false,
+                    "value": "GET"
+                }
+            ],
+            "prefix": "/evil/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "PUT",
+            "_source": "mapping-evil.yaml.2",
+            "clusters": [
+                {
+                    "name": "cluster_qotm",
+                    "weight": 100.0
+                }
+            ],
+            "headers": [
+                {
+                    "name": ":method",
+                    "regex": false,
+                    "value": "PUT"
+                }
+            ],
+            "prefix": "/evil/",
+            "prefix_rewrite": "/qotm/quote/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-qotm.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_qotm",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/qotm/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_source": "mapping-grpc.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_192_168_0_1_45",
+                    "weight": 100.0
+                }
+            ],
+            "prefix": "/grpc/",
+            "prefix_rewrite": "/"
+        }
+    ],
+    "tls": {
+        "_source": "ambassador.yaml.1",
+        "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
+        "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+        "cert_required": true,
+        "private_key_file": "/etc/ambassador-config/certs/tls.key"
+    }
+}
