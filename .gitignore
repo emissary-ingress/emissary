@@ -6,6 +6,10 @@ venv
 __pycache__
 VERSION.py
 
+ambassador.egg-info
+build
+dist
+
 *.out
 envoy.json
 

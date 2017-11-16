@@ -80,7 +80,7 @@ clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf app.json
 	rm -rf ambassador/ambassador/VERSION.py*
-	rm -rf ambassador/build
+	rm -rf ambassador/build ambassador/dist
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find ambassador/tests \( -name '*.out' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 	rm -rf annotations/ambassador-deployment.yaml
