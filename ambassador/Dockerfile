@@ -31,7 +31,7 @@ RUN pip3 install -r requirements.txt
 
 # Install the application itself
 COPY ./ ambassador
-RUN cd ambassador && python3 setup.py install
+RUN cd ambassador && python3 setup.py --quiet install
 RUN rm -rf ./ambassador
 
 # MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no

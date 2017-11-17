@@ -61,7 +61,7 @@ yaml-files:
 		> annotations/ambassador-deployment.yaml
 
 setup-develop:
-	cd ambassador && python setup.py develop
+	cd ambassador && python setup.py --quiet develop
 
 test: ambassador-test
 
