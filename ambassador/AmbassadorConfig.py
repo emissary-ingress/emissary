@@ -98,11 +98,11 @@ class AmbassadorConfig (object):
             # ignore that, we end up trying to read the same config files twice, which
             # triggers the collision checks. Sigh.
 
-            dirnames[:] = [ d for d in dirnames if not d.startswith('.') ]
+            dirnames[:] = sorted([ d for d in dirnames if not d.startswith('.') ])
 
             # self.logger.debug("WALK %s: dirs %s, files %s" % (dirpath, dirnames, filenames))
 
-            for filename in [ x for x in filenames if x.endswith(".yaml") ]:
+            for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
                 self.filename = filename
 
                 filepath = os.path.join(dirpath, filename)
