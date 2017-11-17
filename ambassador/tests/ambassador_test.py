@@ -70,8 +70,9 @@ def test_config(testname, dirpath, configdir):
     if not os.path.isdir(configdir):
         errors.append("configdir %s is not a directory" % configdir)
 
-    ambassador = shell([ 'ambassador', 'dump', configdir ],
-                       verbose=True)
+    print("==== checking intermediate output")
+
+    ambassador = shell([ 'ambassador', 'dump', configdir ])
 
     if ambassador.code != 0:
         errors.append('ambassador dump failed! %s' % ambassador.code)
@@ -99,6 +100,8 @@ def test_config(testname, dirpath, configdir):
                 if udiff:
                     errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
 
+    print("==== checking config generation")
+
     envoy_json_out = os.path.join(dirpath, "envoy.json")
 
     try:
@@ -107,8 +110,9 @@ def test_config(testname, dirpath, configdir):
         if e.errno != errno.ENOENT:
             raise
 
-    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ],
-                       verbose=True)
+    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+
+    print(ambassador.errors(raw=True))    
 
     if ambassador.code != 0:
         errors.append('ambassador failed! %s' % ambassador.code)
@@ -124,8 +128,6 @@ def test_config(testname, dirpath, configdir):
                       verbose=True)
 
         envoy_succeeded = (envoy.code == 0)
-        print("envoy code %d" % envoy.code)
-        print("envoy succeeded %d" % envoy_succeeded)
 
         if not envoy_succeeded:
             errors.append('envoy failed! %s' % envoy.code)
@@ -144,8 +146,11 @@ def test_config(testname, dirpath, configdir):
             if udiff:
                 errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
 
-    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ],
-                       verbose=True)
+    print("==== checking short-circuit with existing config")
+
+    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+
+    print(ambassador.errors(raw=True))
 
     if ambassador.code != 0:
         errors.append('ambassador repeat check failed! %s' % ambassador.code)

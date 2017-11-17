@@ -66,7 +66,7 @@ setup-develop:
 test: ambassador-test
 
 ambassador-test: setup-develop ambassador/ambassador/VERSION.py
-	cd ambassador && pytest --cov=ambassador --cov-report term-missing
+	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
 docker-images: ambassador-image statsd-image
 
