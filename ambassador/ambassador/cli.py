@@ -138,7 +138,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
                 logger.error("Raw template output:")
                 logger.error("%s" % rc.raw)
-        else
+        else:
             result = Config.scout_report(action="config", result=True,
                                          mode="cli", generated=False, check=check)
 
