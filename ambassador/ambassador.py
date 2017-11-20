@@ -10,9 +10,9 @@ import uuid
 
 import clize
 from clize import Parameter
-from scout import Scout
 
 from AmbassadorConfig import AmbassadorConfig
+from utils import RichStatus
 
 import VERSION
 
@@ -31,57 +31,15 @@ logger.setLevel(logging.DEBUG)
 rootdir = os.path.dirname(os.path.abspath(sys.argv[0]))
 # logger.debug("ROOT %s" % rootdir)
 
-# Weird stuff. The build version looks like
-#
-# 0.12.0                    for a prod build, or
-# 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
-#
-# Now: 
-# - Scout needs a build number (semver "+something") to flag a non-prod release;
-#   but
-# - DockerHub cannot use a build number at all; but
-# - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
-# 
-# FFS.
-#
-# We cope with this by transforming e.g.
-#
-# 0.12.1-b2.da5d895.DIRTY into 0.12.1-b2+da5d895.DIRTY
-#
-# for Scout.
-
-scout_version = __version__
-
-if '-' in scout_version:
-    # Dev build!
-    v, p = scout_version.split('-')
-    p, b = p.split('.', 1) if ('.' in p) else (0, p)
-
-    scout_version = "%s-%s+%s" % (v, p, b)
-
-logger.debug("Scout version %s" % scout_version)
-
-scout = None
-
-runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
-logger.debug("runtime: %s" % runtime)
-
-try:
-    namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
-
-    scout = Scout(app="ambassador", version=scout_version, 
-                  id_plugin=Scout.configmap_install_id_plugin, 
-                  id_plugin_args={ "namespace": namespace })
-except OSError as e:
-    logger.warning("couldn't do version check: %s" % str(e))
-
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
-    if scout:
-        result = scout.report(action=what, exception=str(e), traceback=tb,
-                              runtime=runtime, **kwargs)
-        logger.debug("Scout %s, result: %s" % ("disabled" if scout.disabled else "enabled", result))
+    if AmbassadorConfig.scout:
+        result = AmbassadorConfig.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
+                                               runtime=AmbassadorConfig.runtime, **kwargs)
+
+        logger.debug("Scout %s, result: %s" %
+                     ("disabled" if AmbassadorConfig.scout.disabled else "enabled", result))
 
     logger.error("%s: %s\n%s" % (what, e, tb))
 
@@ -97,8 +55,8 @@ def showid():
     Show Ambassador's installation ID
     """
 
-    if scout:
-        print("%s" % scout.install_id)
+    if AmbassadorConfig.scout:
+        print("%s" % AmbassadorConfig.scout.install_id)
     else:
         print("unknown")
 
@@ -177,12 +135,14 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
 
             logger.info("Output file %s" % ("exists" if output_exists else "does not exist"))
 
+        rc = RichStatus.fromError("impossible error")
+
         if not output_exists:
             # Either we didn't need to check, or the check didn't turn up
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
             aconf = parse_config(config_dir_path)
-            rc = aconf.generate_envoy_config()
+            rc = aconf.generate_envoy_config(mode="cli", check=check)
 
             if rc:
                 aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))   
@@ -190,22 +150,21 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
                 logger.error("Raw template output:")
                 logger.error("%s" % rc.raw)
+        elif AmbassadorConfig.scout:
+            result = AmbassadorConfig.scout_report(action="config", result=True, 
+                                                   mode="cli", generated=False, check=check)
 
-            if scout:
-                result = scout.report(action="config", result=bool(rc),
-                                      runtime=runtime, check=check, generated=(not output_exists))
-            else:
-                result = {"scout": "inactive"}
+            rc = RichStatus.OK(scout_result=result)
+        else:
+            rc = RichStatus.OK(scout_result={ "scout": "unavailable" })
 
-        logger.debug("Scout reports %s" % json.dumps(result))
+        if 'latest_version' in rc.scout_result:
+            latest_semver = get_semver("latest", rc.scout_result['latest_version'])
 
-        if 'latest_version' in result:
-            latest_semver = get_semver("latest", result['latest_version'])
-
-            # Use scout_version here, not __version__, because the version 
-            # coming back from Scout will use build numbers for dev builds,
-            # but __version__ 
-            current_semver = get_semver("current", scout_version)
+            # Use AmbassadorConfig.scout_version here, not __version__, because the
+            # version coming back from Scout will use build numbers for dev builds,
+            # but __version__ won't.
+            current_semver = get_semver("current", AmbassadorConfig.scout_version)
 
             if latest_semver and current_semver:
                 logger.debug("Version check: cur %s, latest %s, out of date %s" % 
@@ -214,8 +173,8 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 if latest_semver > current_semver:
                     logger.warning("Upgrade available! to Ambassador version %s" % latest_semver)
 
-        if 'notices' in result:
-            for notice in result['notices']:
+        if 'notices' in rc.scout_result:
+            for notice in rc.scout_result['notices']:
                 try:
                     if isinstance(notice, str):
                         logger.warning(notice)

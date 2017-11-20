@@ -46,10 +46,10 @@ for route in x.get('routes', []):
         route_headers.sort()
 
         if headers != route_headers:
-            print("missed route_headers %s" % route_headers)
+            # print("missed route_headers %s" % route_headers)
             continue
 
-        print("hit route_headers %s" % route_headers)
+        # print("hit route_headers %s" % route_headers)
 
         for cluster in route['clusters']:
             clusters[cluster['name']] = cluster['weight']
@@ -57,7 +57,7 @@ for route in x.get('routes', []):
 x = [ int(clusters[name]) for name in sorted(clusters.keys()) ]
 
 print("weights: %s" % x)
-print("wanted:  %s" % wanted)
+# print("wanted:  %s" % wanted)
 
 if x != wanted:
     sys.exit(1)

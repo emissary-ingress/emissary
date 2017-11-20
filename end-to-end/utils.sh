@@ -1,3 +1,9 @@
+if [ -n "$MACHINE_READABLE" ]; then
+    LINE_END="\n"
+else
+    LINE_END="\r"
+fi
+
 step () {
     echo "==== $@"
 }
@@ -24,7 +30,7 @@ wait_for_pods () {
             break
         fi
 
-        printf "try %02d: %d not running\r" $attempts $pending
+        printf "try %02d: %d not running${LINE_END}" $attempts $pending
         attempts=$(( $attempts - 1 ))
         sleep 2
     done
@@ -49,7 +55,7 @@ wait_for_ready () {
             break
         fi
 
-        printf "try %02d: not ready\r" $attempts
+        printf "try %02d: not ready${LINE_END}" $attempts
         attempts=$(( $attempts - 1 ))
         sleep 2
     done
@@ -74,7 +80,7 @@ wait_for_extauth_running () {
             break
         fi
 
-        printf "try %02d: not ready\r" $attempts
+        printf "try %02d: not ready${LINE_END}" $attempts
         attempts=$(( $attempts - 1 ))
         sleep 5
     done
@@ -99,7 +105,7 @@ wait_for_extauth_enabled () {
             break
         fi
 
-        printf "try %02d: not enabled\r" $attempts
+        printf "try %02d: not enabled${LINE_END}" $attempts
         attempts=$(( $attempts - 1 ))
         sleep 5
     done
@@ -120,7 +126,7 @@ wait_for_demo_weights () {
             break
         fi
 
-        printf "try %02d: misweighted\r" $attempts
+        printf "try %02d: misweighted${LINE_END}" $attempts
         attempts=$(( $attempts - 1 ))
         sleep 5
     done

@@ -33,7 +33,7 @@ def test_demo(base, v2_wanted):
 
     print(got)
     v2_seen = got.get('2.0.0', 0)
-    rc = (abs(v2_seen - v2_wanted) < 2)
+    rc = (abs(v2_seen - v2_wanted) <= 2)
 
     print("wanted v2_wanted %d" % v2_wanted)
     print("saw    v2_seen   %d" % v2_seen)
@@ -69,27 +69,37 @@ def test_from_yaml(base, yaml_path):
 
             headers['Host'] = host
 
-        # print("%s: headers %s" % (name, headers))
+        attempts = 3
 
-        got = call(url, headers=headers, iterations=iterations)
+        while attempts > 0:
+            print("%s: attempts left %d" % (name, attempts))
+            print("%s: headers %s" % (name, headers))
 
-        # print("%s: %s" % (name, json.dumps(got)))
+            got = call(url, headers=headers, iterations=iterations)
 
-        test_ok = True
+            print("%s: %s" % (name, json.dumps(got)))
 
-        for version, wanted_count in versions.items():
-            got_count = got.get(version, 0)
+            test_ok = True
 
-            print("%s %s: wanted %d, got %d" % (name, version, wanted_count, got_count))
+            for version, wanted_count in versions.items():
+                got_count = got.get(version, 0)
+                delta = abs(got_count - wanted_count)
 
-            if abs(got_count - wanted_count) > 2:
-                rc = False
-                test_ok = False
+                print("%s %s: wanted %d, got %d (delta %d)" % 
+                      (name, version, wanted_count, got_count, delta))
 
-        if test_ok:
-            print("%s: passed" % name)
-        else:
-            print("%s: FAILED" % name)
+                if delta > 2:
+                    test_ok = False
+
+            if test_ok:
+                print("%s: passed" % name)
+                break
+            else:
+                attempts -= 1
+
+                if attempts <= 0:
+                    print("%s: FAILED" % name)
+                    rc = False
 
     return rc
 
