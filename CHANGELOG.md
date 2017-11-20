@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.18.0] November 20, 2017
+[0.18.0]: https://github.com/datawire/ambassador/compare/v0.17.0...v0.18.0
+
+### Changed
+
+- The Host header is no longer overwritten when Ambassador talks to an external auth service. It will now retain whatever value the client passes there.
+
+### Fixed
+
+- Checks for updates weren’t working, and they have been restored. At present you’ll only see them in the Kubernetes logs if you’re using annotations to configure Ambassador — they’ll start showing up in the diagnostics service in the next release or so.
+
 ## [0.17.0] November 14, 2017
 [0.17.0]: https://github.com/datawire/ambassador/compare/v0.16.0...v0.17.0
 
