@@ -2,6 +2,10 @@
 
 set -e
 
+HERE=$(cd $(dirname $0); pwd)
+
+cd "$HERE"
+
 for dir in 0*; do
     echo "========"
     echo "${dir}..."
