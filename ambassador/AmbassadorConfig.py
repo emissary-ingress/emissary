@@ -11,15 +11,74 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from utils import RichStatus, SourcedDict
 
+from scout import Scout
+
 from AmbassadorMapping import Mapping
 
+import VERSION
+
+__version__ = VERSION.Version
+
 class AmbassadorConfig (object):
+    # Weird stuff. The build version looks like
+    #
+    # 0.12.0                    for a prod build, or
+    # 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
+    #
+    # Now: 
+    # - Scout needs a build number (semver "+something") to flag a non-prod release;
+    #   but
+    # - DockerHub cannot use a build number at all; but
+    # - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
+    # 
+    # FFS.
+    #
+    # We cope with this by transforming e.g.
+    #
+    # 0.12.1-b2.da5d895.DIRTY into 0.12.1-b2+da5d895.DIRTY
+    #
+    # for Scout.
+
+    scout_version = __version__
+
+    if '-' in scout_version:
+        # Dev build!
+        v, p = scout_version.split('-')
+        p, b = p.split('.', 1) if ('.' in p) else (0, p)
+
+        scout_version = "%s-%s+%s" % (v, p, b)
+
+    runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
+    namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+    scout = None
+
+    @classmethod
+    def scout_report(klass, **kwargs):
+        if AmbassadorConfig.scout:
+            result = AmbassadorConfig.scout.report(**kwargs)
+        else:
+            result = {"scout": "inactive"}    
+
+        return result
+
     def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
         self.config_dir_path = config_dir_path
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
 
         self.logger = logging.getLogger("ambassador.config")
+
+        if not AmbassadorConfig.scout:
+            self.logger.debug("Scout version %s" % AmbassadorConfig.scout_version)
+            self.logger.debug("runtime: %s" % AmbassadorConfig.runtime)
+
+        try:
+            AmbassadorConfig.scout = Scout(app="ambassador",
+                                           version=AmbassadorConfig.scout_version, 
+                                           id_plugin=Scout.configmap_install_id_plugin, 
+                                           id_plugin_args={ "namespace": AmbassadorConfig.namespace })
+        except OSError as e:
+            self.logger.warning("couldn't do version check: %s" % str(e))
 
         self.schemas = {}
         self.config = {}
@@ -653,19 +712,29 @@ class AmbassadorConfig (object):
 
         return result
 
-    def generate_envoy_config(self, template=None, template_dir=None):
+    def generate_envoy_config(self, template=None, template_dir=None, **kwargs):
         # Finally! Render the template to JSON...
         envoy_json = self.to_json(template=template, template_dir=template_dir)
-        return RichStatus.OK(msg="Envoy configuration OK", envoy_config=envoy_json)
-#        rc = RichStatus.fromError("impossible")
 
-        # ...and use the JSON parser as a final sanity check.
-#        try:
-#            obj = json.loads(envoy_json)
-#            rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
-#        except json.decoder.JSONDecodeError as e:
-#            rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
-#                                      raw=envoy_json, exception=e)
+        # We used to use the JSON parser as a final sanity check here. That caused
+        # Forge some issues, so it's turned off for now.
+
+       # rc = RichStatus.fromError("impossible")
+
+       # # ...and use the JSON parser as a final sanity check.
+       # try:
+       #     obj = json.loads(envoy_json)
+       #     rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
+       # except json.decoder.JSONDecodeError as e:
+       #     rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
+       #                               raw=envoy_json, exception=e)
+
+        # Go ahead and report that we generated an Envoy config, if we can.    
+        scout_result = AmbassadorConfig.scout_report(action="config", result=True, generated=True, **kwargs)
+
+        rc = RichStatus.OK(envoy_config=envoy_json, scout_result=scout_result)
+
+        self.logger.debug("Scout reports %s" % json.dumps(rc.scout_result))
 
         return rc
 
