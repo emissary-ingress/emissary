@@ -11,12 +11,6 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-step "Building images"
-docker build -t dwflynn/demo:1.0.0 --build-arg VERSION=1.0.0 demo-service
-docker build -t dwflynn/demo:2.0.0 --build-arg VERSION=2.0.0 demo-service
-docker push dwflynn/demo:1.0.0
-docker push dwflynn/demo:2.0.0
-
 step "Dropping old cluster"
 kubernaut discard
 

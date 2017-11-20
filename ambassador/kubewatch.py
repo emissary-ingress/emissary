@@ -2,6 +2,7 @@ import sys
 
 import binascii
 import click
+import json
 import os
 import shutil
 import signal
@@ -9,6 +10,7 @@ import subprocess
 import threading
 import time
 import traceback
+
 import yaml
 
 from kubernetes import client, config, watch
@@ -112,7 +114,9 @@ class Restarter(threading.Thread):
             print ("Wrote %s to %s" % (filename, path))
 
         aconf = Config(output)
-        rc = aconf.generate_envoy_config()
+        rc = aconf.generate_envoy_config(mode="kubewatch")
+
+        print("Scout reports %s" % json.dumps(rc.scout_result))       
 
         if rc:
             envoy_config = "%s-%s" % (output, "envoy.json")

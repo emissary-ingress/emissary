@@ -57,8 +57,8 @@ tag:
 yaml-files:
 	VERSION=$(VERSION) sh scripts/build-yaml.sh
 	VERSION=$(VERSION) python scripts/template.py \
-		< annotations/ambassador-deployment-template.yaml \
-		> annotations/ambassador-deployment.yaml
+		< end-to-end/ambassador-deployment-template.yaml \
+		> end-to-end/ambassador-deployment.yaml
 
 setup-develop:
 	cd ambassador && python setup.py --quiet develop
@@ -67,6 +67,9 @@ test: ambassador-test
 
 ambassador-test: setup-develop ambassador/ambassador/VERSION.py
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
+
+e2e end-to-end:
+	sh end-to-end/testall.sh
 
 docker-images: ambassador-image statsd-image
 
@@ -83,9 +86,10 @@ clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf app.json
 	rm -rf ambassador/ambassador/VERSION.py*
-	rm -rf ambassador/build ambassador/dist
+	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
-	find ambassador/tests \( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 | xargs -0 rm -f
-	rm -rf annotations/ambassador-deployment.yaml
-	find annotations \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
-
+    find ambassador/tests \
+        \( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
+        | xargs -0 rm -f
+	rm -rf end-to-end/ambassador-deployment.yaml
+	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
