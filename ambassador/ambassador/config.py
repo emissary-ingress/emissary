@@ -52,7 +52,21 @@ class Config (object):
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
     scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', None)
 
-    scout = None
+    _scout_args = dict(
+        app="ambassador", version=scout_version,
+    )
+
+    if scout_install_id:
+        _scout_args['install_id'] = scout_install_id
+    else:
+        _scout_args['id_plugin'] = Scout.configmap_install_id_plugin
+        _scout_args['id_plugin_args'] = { "namespace": namespace }
+
+    try:
+        scout = Scout(**_scout_args)
+        scout_error = None
+    except OSError as e:
+        scout_error = e
 
     @classmethod
     def scout_report(klass, **kwargs):
@@ -77,28 +91,15 @@ class Config (object):
 
         self.logger = logging.getLogger("ambassador.config")
 
-        self.logger.debug("CONFIG DIR   %s" % os.path.abspath(self.config_dir_path))
-        self.logger.debug("TEMPLATE DIR %s" % os.path.abspath(self.template_dir_path))
-        self.logger.debug("SCHEMA DIR   %s" % os.path.abspath(self.schema_dir_path))
+        self.logger.debug("Scout version %s" % Config.scout_version)
+        self.logger.debug("Runtime       %s" % Config.runtime)
 
-        if not AmbassadorConfig.scout:
-            self.logger.debug("Scout version %s" % AmbassadorConfig.scout_version)
-            self.logger.debug("runtime: %s" % AmbassadorConfig.runtime)
+        self.logger.debug("CONFIG DIR    %s" % os.path.abspath(self.config_dir_path))
+        self.logger.debug("TEMPLATE DIR  %s" % os.path.abspath(self.template_dir_path))
+        self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
 
-            scout_args = dict(
-                app="ambassador", version=Config.scout_version,
-            )
-    
-            if Config.scout_install_id:
-                scout_args['install_id'] = Config.scout_install_id
-            else:
-                scout_args['id_plugin'] = Scout.configmap_install_id_plugin
-                scout_args['id_plugin_args'] = { "namespace": Config.namespace }
-    
-            try:
-                Config.scout = Scout(**scout_args)
-            except OSError as e:
-                logger.warning("couldn't do version check: %s" % str(e))
+        if Config.scout_error:
+            self.logger.warning("Couldn't do version check: %s" % str(Config.scout_error))
 
         self.schemas = {}
         self.config = {}
