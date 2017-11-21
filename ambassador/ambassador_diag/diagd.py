@@ -124,7 +124,8 @@ def aconf(app):
         hr_uptime = td_format(uptime)
 
         result = Config.scout_report(mode="diagd", runtime=Config.runtime,
-                                     uptime=uptime, hr_uptime=hr_uptime)
+                                     uptime=int(uptime.total_seconds()),
+                                     hr_uptime=hr_uptime)
 
         app.logger.debug("Scout reports %s" % json.dumps(result))
 
