@@ -150,7 +150,12 @@ def td_format(td_object):
             strings.append("%d %s%s" % 
                            (period_value, period_name, "" if (period_value == 1) else "s"))
 
-    return ", ".join(strings)
+    formatted = ", ".join(strings)
+
+    if not formatted:
+        formatted = "0s"
+
+    return formatted
 
 def interval_format(seconds, normal_format, now_message):
     if seconds >= 1:
