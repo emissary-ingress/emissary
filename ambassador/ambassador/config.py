@@ -2,10 +2,12 @@ import sys
 
 import collections
 import json
-import jsonschema
 import logging
 import os
 import re
+
+import jsonschema
+import semantic_version
 import yaml
 
 from pkg_resources import Requirement, resource_filename
@@ -18,6 +20,16 @@ from .mapping import Mapping
 from scout import Scout
 
 from .VERSION import Version
+
+def get_semver(what, version_string):
+    semver = None
+
+    try:
+        semver = semantic_version.Version(version_string)
+    except ValueError:
+        pass
+
+    return semver
 
 class Config (object):
     # Weird stuff. The build version looks like
@@ -48,6 +60,11 @@ class Config (object):
 
         scout_version = "%s-%s+%s" % (v, p, b)
 
+    # Use scout_version here, not __version__, because the version
+    # coming back from Scout will use build numbers for dev builds, but
+    # __version__ won't, and we need to be consistent for comparison.
+    current_semver = get_semver("current", scout_version)
+
     runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
     scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', None)
@@ -68,12 +85,54 @@ class Config (object):
     except OSError as e:
         scout_error = e
 
+    scout_latest_version = None
+    scout_latest_semver = None
+    scout_notices = []
+
     @classmethod
-    def scout_report(klass, **kwargs):
-        if Config.scout:
-            result = Config.scout.report(**kwargs)
-        else:
-            result = { "scout": "unavailable" }
+    def scout_report(klass, force_result=None, **kwargs):
+        result = force_result
+
+        if not result:
+            if Config.scout:
+                result = Config.scout.report(**kwargs)
+            else:
+                result = { "scout": "unavailable" }
+
+        _notices = []
+
+        if not Config.current_semver:
+            _notices.append({
+                "level": "warning",
+                "message": "Ambassador has bad version '%s'??!" % Config.scout_version
+            })
+
+        # Do version & notices stuff.      
+        if 'latest_version' in result:
+            latest_version = result['latest_version']
+            latest_semver = get_semver("latest", latest_version)
+
+            if latest_semver:
+                Config.scout_latest_version = latest_version
+                Config.scout_latest_semver = latest_semver
+            else:
+                _notices.append({
+                    "level": "warning",
+                    "message": "Scout returned bad version '%s'??!" % latest_version
+                })
+
+        if (Config.scout_latest_semver and 
+            ((not Config.current_semver) or
+             (Config.scout_latest_semver > Config.current_semver))):
+            _notices.append({
+                "level": "info",
+                "message": "Upgrade available! to Ambassador version %s" % Config.scout_latest_semver
+            })
+
+        if 'notices' in result:
+            _notices.extend(result['notices'])
+
+        Config.scout_notices = _notices
 
         return result
 
@@ -755,7 +814,7 @@ class Config (object):
 
         rc = RichStatus.OK(envoy_config=envoy_json, scout_result=scout_result)
 
-        self.logger.debug("Scout reports %s" % json.dumps(rc.scout_result))
+        # self.logger.debug("Scout reports %s" % json.dumps(rc.scout_result))
 
         return rc
 
