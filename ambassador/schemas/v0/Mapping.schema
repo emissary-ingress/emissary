@@ -16,6 +16,7 @@
         "circuit_breaker": { "type": "string" },
         "outlier_detection": { "type": "string" },
         "grpc": { "type": "boolean" },
+        "originate_tls": { "type": "string" },
         "modules": {
             "type": "array",
             "items": {

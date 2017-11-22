@@ -162,6 +162,8 @@ class Config (object):
 
         self.schemas = {}
         self.config = {}
+        self.tls_contexts = {}
+
         self.envoy_config = {}
         self.envoy_clusters = {}
         self.envoy_routes = {}
@@ -209,6 +211,11 @@ class Config (object):
             "rewrite": "/ambassador/v0/",
             # "service" gets added later
         }
+
+        # 'server' and 'client' are special contexts. Others
+        # use cert_chain_file defaulting to context.crt, 
+        # private_key_file (context.key), and cacert_chain_file
+        # (context.pem).
 
         self.default_tls_config = {
             "server": {
@@ -274,6 +281,23 @@ class Config (object):
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
         self.generate_intermediate_config()
+
+    def clean_and_copy(self, d):
+        out = []
+
+        for key in sorted(d.keys()):
+            original = d[key]
+            copy = dict(**original)
+
+            if '_source' in original:
+                del(original['_source'])
+
+            if '_referenced_by' in original:
+                del(original['_referenced_by'])
+
+            out.append(copy)
+
+        return out
 
     def current_source_key(self):
         return("%s.%d" % (self.filename, self.ocount))
@@ -417,7 +441,8 @@ class Config (object):
 
     def add_intermediate_cluster(self, _source, name, urls, 
                                  type="strict_dns", lb_type="round_robin",
-                                 cb_name=None, od_name=None, grpc=False):
+                                 cb_name=None, od_name=None, originate_tls=None,
+                                 grpc=False):
         if name not in self.envoy_clusters:
             cluster = SourcedDict(
                 _source=_source,
@@ -436,6 +461,19 @@ class Config (object):
                 cluster['outlier_detection'] = self.outliers[od_name]
                 self.outliers[od_name]._mark_referenced_by(_source)
 
+            if originate_tls and (originate_tls in self.tls_contexts):
+                cluster['tls_context'] = self.tls_contexts[originate_tls]
+                self.tls_contexts[originate_tls]._mark_referenced_by(_source)
+
+                tls_array = []
+
+                for key, value in cluster['tls_context'].items():
+                    if key.startswith('_'):
+                        continue
+
+                    tls_array.append({ 'key': key, 'value': value })
+
+                cluster['tls_array'] = tls_array
             if grpc:
                 cluster['features'] = 'http2'
 
@@ -451,6 +489,7 @@ class Config (object):
             # route's set of weighted clusters.
             route["clusters"].append( { "name": cluster_name,
                                         "weight": mapping.attrs.get("weight", None) } )
+            route._mark_referenced_by(_source)
             return
 
         # OK, if here, we don't have an extent route group for this Mapping. Make a
@@ -611,6 +650,15 @@ class Config (object):
                     self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
                                   (od_name, mapping_name))
 
+            originate_tls = mapping.get('originate_tls', None)
+
+            if originate_tls:
+                if originate_tls in self.tls_contexts:
+                    cluster_name_fields.append("otls_%s" % originate_tls)
+                else:
+                    self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
+                                      (originate_tls, mapping_name))
+
             cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
@@ -625,7 +673,8 @@ class Config (object):
             # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
 
             self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
-                                          cb_name=cb_name, od_name=od_name, grpc=grpc)
+                                          cb_name=cb_name, od_name=od_name, grpc=grpc,
+                                          originate_tls=originate_tls)
 
             self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
 
@@ -706,23 +755,6 @@ class Config (object):
 
         self.envoy_config['breakers'] = self.clean_and_copy(self.breakers)
         self.envoy_config['outliers'] = self.clean_and_copy(self.outliers)
-
-    def clean_and_copy(self, d):
-        out = []
-
-        for key in sorted(d.keys()):
-            original = d[key]
-            copy = dict(**original)
-
-            if '_source' in original:
-                del(original['_source'])
-
-            if '_referenced_by' in original:
-                del(original['_referenced_by'])
-
-            out.append(copy)
-
-        return out
 
     def _get_intermediate_for(self, element_list, source_keys, value):
         if not isinstance(value, dict):
@@ -833,26 +865,40 @@ class Config (object):
         tmp_config = SourcedDict(_from=amod)
         some_enabled = False
 
-        if ('server' in tmod) and tmod['server'].get('enabled', True):
-            # Server-side TLS is enabled. 
-            self.logger.debug("TLS termination enabled!")
-            some_enabled = True
+        for context_name in tmod.keys():
+            if context_name.startswith('_'):
+                continue
 
-            # Yes. Switch to port 443 by default...
-            self.set_config_ambassador(amod, 'service_port', 443)
+            context = tmod[context_name]
 
-            # ...and merge in the server-side defaults.
-            tmp_config.update(self.default_tls_config['server'])
-            tmp_config.update(tmod['server'])
+            self.logger.debug("context %s -- %s" % (context_name, json.dumps(context)))
 
-        if ('client' in tmod) and tmod['client'].get('enabled', True):
-            # Client-side TLS is enabled. 
-            self.logger.debug("TLS client certs enabled!")
-            some_enabled = True
+            if context.get('enabled', True):
+                if context_name == 'server':
+                    # Server-side TLS is enabled. 
+                    self.logger.debug("TLS termination enabled!")
+                    some_enabled = True
 
-            # Merge in the client-side defaults.
-            tmp_config.update(self.default_tls_config['client'])
-            tmp_config.update(tmod['client'])
+                    # Switch to port 443 by default...
+                    self.set_config_ambassador(amod, 'service_port', 443)
+
+                    # ...and merge in the server-side defaults.
+                    tmp_config.update(self.default_tls_config['server'])
+                    tmp_config.update(tmod['server'])
+                elif context_name == 'client':
+                    # Client-side TLS is enabled. 
+                    self.logger.debug("TLS client certs enabled!")
+                    some_enabled = True
+
+                    # Merge in the client-side defaults.
+                    tmp_config.update(self.default_tls_config['client'])
+                    tmp_config.update(tmod['client'])
+                else:
+                    # This is a wholly new thing.
+                    self.tls_contexts[context_name] = SourcedDict(
+                        _from=tmod, 
+                        **context
+                    )
 
         if some_enabled:
             if 'enabled' in tmp_config:
@@ -862,6 +908,7 @@ class Config (object):
             self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
         self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
+        self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts))
 
         return some_enabled
 
@@ -1016,4 +1063,3 @@ class Config (object):
 if __name__ == '__main__':
     aconf = Config(sys.argv[1])
     print(json.dumps(aconf.diagnostic_overview(), indent=4, sort_keys=True))
-

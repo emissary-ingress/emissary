@@ -103,6 +103,11 @@
           "consecutive_5xx": {{ cluster.outlier_detection.consecutive_5xx or 5 }},
           "max_ejection_percent": {{ cluster.outlier_detection.max_ejection or 100 }},
           "interval_ms": {{ cluster.outlier_detection.interval_ms or 3000 }}
+        }{%- endif -%}{%- if cluster.tls_array -%},
+        "ssl_context": {
+          {% for entry in cluster.tls_array %}
+          "{{ entry.key }}": "{{ entry.value }}"{{ "," if not loop.last }}
+          {% endfor %}
         }{%- endif -%}
       }{{ "," if not loop.last }}
       {% endfor %}
