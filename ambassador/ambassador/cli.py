@@ -31,8 +31,8 @@ def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
     if Config.scout:
-        Config.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
-                            runtime=Config.runtime, **kwargs)
+        result = Config.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
+                                     runtime=Config.runtime, **kwargs)
 
         logger.debug("Scout %s, result: %s" %
                      ("disabled" if Config.scout.disabled else "enabled", result))

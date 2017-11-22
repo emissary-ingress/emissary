@@ -106,6 +106,9 @@ class Mapping (object):
 
         route['_method'] = self.method
 
+        # We refer to this route, of course.
+        route._mark_referenced_by(self['_source'])
+
         # There's a slew of things we'll just copy over transparently; handle
         # those.
 

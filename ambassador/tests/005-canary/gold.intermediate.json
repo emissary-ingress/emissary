@@ -48,6 +48,10 @@
     "routes": [
         {
             "_method": "GET",
+            "_referenced_by": [
+                "demo1.yaml.1",
+                "demo2.yaml.1"
+            ],
             "_source": "demo1.yaml.1",
             "clusters": [
                 {
@@ -65,6 +69,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
             "_source": "ambassador.yaml.1",
             "clusters": [
                 {
