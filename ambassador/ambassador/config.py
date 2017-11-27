@@ -650,11 +650,14 @@ class Config (object):
                     self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
                                   (od_name, mapping_name))
 
+            default_port = 80
+
             originate_tls = mapping.get('originate_tls', None)
 
             if originate_tls:
                 if originate_tls in self.tls_contexts:
                     cluster_name_fields.append("otls_%s" % originate_tls)
+                    default_port = 443
                 else:
                     self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
                                       (originate_tls, mapping_name))
@@ -667,7 +670,7 @@ class Config (object):
             url = 'tcp://%s' % svc
 
             if ':' not in svc:
-                url += ':80'
+                url = '%s:%d' % (url, default_port)
 
             grpc = mapping.get('grpc', False)
             # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
@@ -956,12 +959,24 @@ class Config (object):
         if 'ext_auth_cluster' not in self.envoy_clusters:
             svc = module.get('auth_service', '127.0.0.1:5000')
 
+            default_port = 80
+
+            originate_tls = module.get('originate_tls', None)
+
+            if originate_tls:
+                if originate_tls in self.tls_contexts:
+                    default_port = 443
+                else:
+                    self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
+                                      (originate_tls, mapping_name))
+
             if ':' not in svc:
-                svc = "%s:80" % svc
+                svc = "%s:%d" % (svc, default_port)
 
             self.add_intermediate_cluster(module['_source'],
                                           'cluster_ext_auth', [ "tcp://%s" % svc ],
-                                          type="logical_dns", lb_type="random")
+                                          type="logical_dns", lb_type="random",
+                                          originate_tls=originate_tls)
 
     ### DIAGNOSTICS
     def diagnostic_overview(self):
