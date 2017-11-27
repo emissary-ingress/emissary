@@ -102,7 +102,7 @@
         "lb_type": "round_robin",        
         "hosts": [
           {
-            "url": "tcp://qotm:80"
+            "url": "tcp://qotm:443"
           }
           
         ],

@@ -1,7 +1,10 @@
 [
     {
         "_method": "GET",
-        "_source": "--internal--",
+        "_referenced_by": [
+            "ambassador.yaml.2"
+        ],
+        "_source": "ambassador.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -14,7 +17,10 @@
     },
     {
         "_method": "GET",
-        "_source": "--internal--",
+        "_referenced_by": [
+            "ambassador.yaml.2"
+        ],
+        "_source": "ambassador.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -27,7 +33,10 @@
     },
     {
         "_method": "GET",
-        "_source": "--internal--",
+        "_referenced_by": [
+            "ambassador.yaml.2"
+        ],
+        "_source": "ambassador.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -40,6 +49,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "ambassador.yaml.1"
+        ],
         "_source": "ambassador.yaml.1",
         "clusters": [
             {
@@ -53,10 +65,13 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "demo1.yaml.2"
+        ],
         "_source": "demo1.yaml.2",
         "clusters": [
             {
-                "name": "cluster_demo1",
+                "name": "cluster_demo1_443",
                 "weight": 100.0
             }
         ],
@@ -73,10 +88,13 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "demo2.yaml.1"
+        ],
         "_source": "demo2.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo2",
+                "name": "cluster_demo2_443",
                 "weight": 100.0
             }
         ],
@@ -93,6 +111,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "demo1.yaml.1"
+        ],
         "_source": "demo1.yaml.1",
         "clusters": [
             {

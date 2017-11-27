@@ -11,7 +11,17 @@ metadata:
       name:  demo_with_host_mapping
       prefix: /demo/
       host: demo2.datawire.io
-      service: demo2      
+      originate_tls: upstream     
+      service: demo2:443
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_x_mapping
+      prefix: /good/
+      headers:
+        "x-hurkle": true
+      originate_tls: upstream     
+      service: demo2:443
 spec:
   selector:
     app: demo2
@@ -35,7 +45,7 @@ spec:
     spec:
       containers:
       - name: demo2
-        image: dwflynn/demo:2.0.0
+        image: dwflynn/demo:2.0.0tls
         imagePullPolicy: Always
         ports:
         - name: http-api

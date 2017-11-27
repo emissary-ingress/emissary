@@ -9,6 +9,11 @@ tests:
     x-demo-mode: canary
   versions:
     1.0.0: 100
+- name: cleartext header
+  headers:
+    x-demo-mode: cleartext
+  versions:
+    1.0.0: 100
 - name: host
   host: demo2.datawire.io
   versions:

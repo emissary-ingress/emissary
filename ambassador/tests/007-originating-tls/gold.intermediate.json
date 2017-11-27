@@ -39,7 +39,7 @@
             },
             "type": "strict_dns",
             "urls": [
-                "tcp://qotm:80"
+                "tcp://qotm:443"
             ]
         }
     ],

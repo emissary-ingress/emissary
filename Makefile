@@ -57,8 +57,11 @@ tag:
 yaml-files:
 	VERSION=$(VERSION) sh scripts/build-yaml.sh
 	VERSION=$(VERSION) python scripts/template.py \
-		< end-to-end/ambassador-deployment-template.yaml \
+		< end-to-end/ambassador-no-mounts.yaml \
 		> end-to-end/ambassador-deployment.yaml
+	VERSION=$(VERSION) python scripts/template.py \
+		< end-to-end/ambassador-with-mounts.yaml \
+		> end-to-end/ambassador-deployment-mounts.yaml
 
 setup-develop:
 	cd ambassador && python setup.py --quiet develop
@@ -91,5 +94,5 @@ clean:
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -rf end-to-end/ambassador-deployment.yaml
+	rm -rf end-to-end/ambassador-deployment.yaml end-to-end/ambassador-deployment-mounts.yaml
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f

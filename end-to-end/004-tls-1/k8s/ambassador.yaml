@@ -12,11 +12,41 @@ metadata:
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
+      ---
+      apiVersion: ambassador/v0
+      kind:  Module
+      name:  tls
+      config:
+        server:
+          enabled: True
+          # These are optional.
+          cert_chain_file: /etc/certs/termination/tls.crt
+          private_key_file: /etc/certs/termination/tls.key
+
+        # client:
+        #   enabled: True,
+        #   # These are optional.
+        #   cert_required: True
+        #   cacert_chain_file: /etc/ca_cert_chain/tls.crt
+
+        # This is an upstream context. Use originate_tls: upstream in a 
+        # mapping to reference it.
+        upstream:
+          cert_chain_file: /etc/certs/upstream/tls.crt
+          private_key_file: /etc/certs/upstream/tls.key
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name:  authentication
+      config:
+        auth_service: "auth"
+        originate_tls: upstream
+        allowed_headers:
+        - "x-hurkle"
 spec:
   selector:
     app: ambassador
   ports:
-    # The name is still "http", to match up with ambassador-deployment.yaml
     - name: http
       protocol: TCP
       port: 443

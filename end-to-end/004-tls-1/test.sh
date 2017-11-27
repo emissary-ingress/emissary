@@ -20,10 +20,14 @@ export KUBECONFIG=${HOME}/.kube/kubernaut
 
 kubectl cluster-info
 
+kubectl create secret tls ambassador-certs-termination --cert=certs/termination.crt --key=certs/termination.key
+kubectl create secret tls ambassador-certs-upstream --cert=certs/upstream.crt --key=certs/upstream.key
+
+kubectl apply -f k8s/authsvc.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/demo1.yaml
 kubectl apply -f k8s/demo2.yaml
-kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f ${ROOT}/ambassador-deployment-mounts.yaml
 
 set +e +o pipefail
 
@@ -32,7 +36,7 @@ wait_for_pods
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
 
-BASEURL="http://${CLUSTER}:${APORT}"
+BASEURL="https://${CLUSTER}:${APORT}"
 
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"

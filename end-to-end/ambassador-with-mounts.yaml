@@ -1,0 +1,85 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ambassador
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  revisionHistoryLimit: 1
+  template:
+    metadata:
+      labels:
+        app: ambassador
+      name: ambassador
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - image: {AMREG}ambassador:{VERSION}
+        imagePullPolicy: Always
+        name: ambassador
+        resources:
+          requests:
+            memory: 0.1G
+            cpu: 0.1
+          limits:
+            memory: 0.25G
+            cpu: 0.25
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - name: termination-certs
+          mountPath: /etc/certs/termination
+        - name: upstream-certs
+          mountPath: /etc/certs/upstream
+      # - name: statsd-exporter
+      #   image: prom/statsd-exporter
+      volumes:
+      - name: termination-certs
+        secret:
+          secretName: ambassador-certs-termination
+      - name: upstream-certs
+        secret:
+          secretName: ambassador-certs-upstream
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
