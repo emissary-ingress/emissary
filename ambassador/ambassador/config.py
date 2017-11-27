@@ -95,7 +95,7 @@ class Config (object):
 
         if not result:
             if Config.scout:
-                result = Config.scout.report(**kwargs)
+                result = Config.scout.report(runtime=Config.runtime, **kwargs)
             else:
                 result = { "scout": "unavailable" }
 
