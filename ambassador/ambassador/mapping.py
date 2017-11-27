@@ -59,7 +59,10 @@ class Mapping (object):
         self.headers = []
 
         for name, value in self.get('headers', {}).items():
-            self.headers.append({ "name": name, "value": value, "regex": False })
+            if value == True:
+                self.headers.append({ "name": name })
+            else:
+                self.headers.append({ "name": name, "value": value, "regex": False })
 
         for name, value in self.get('regex_headers', []):
             self.headers.append({ "name": name, "value": value, "regex": True })

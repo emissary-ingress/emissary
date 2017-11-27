@@ -32,7 +32,7 @@
     "definitions": {
         "mapStrStr": {
             "type": "object",
-            "additionalProperties": { "type": "string" }
+            "additionalProperties": { "type": [ "string", "boolean" ] }
         }
     },
     "required": [ "apiVersion", "kind", "name", "prefix", "service" ],
