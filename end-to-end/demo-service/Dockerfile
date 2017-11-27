@@ -32,7 +32,7 @@ RUN pip3 install -r requirements.txt
 # COPY the app code and configuration into place, then perform any final
 # configuration steps.
 
-COPY demo.py ./
+COPY demo.py demosvc.crt demosvc.key ./
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .
@@ -41,4 +41,7 @@ RUN chmod 755 entrypoint.sh
 ARG VERSION="?.?.?"
 ENV VERSION=${VERSION}
 
-ENTRYPOINT ./entrypoint.sh ${VERSION}
+ARG TLS=""
+ENV TLS=${TLS}
+
+ENTRYPOINT ./entrypoint.sh ${VERSION} ${TLS}
