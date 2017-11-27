@@ -316,7 +316,8 @@ def watch_loop(restarter):
     if v1:
         w = watch.Watch()
         for evt in w.stream(v1.list_service_for_all_namespaces):
-            print("Event: %s %s" % (evt["type"], evt["object"].metadata.name))
+            print("Event: %s %s/%s" % (evt["type"], 
+                                       evt["object"].metadata.namespace, evt["object"].metadata.name))
             sys.stdout.flush()
 
             if evt["type"] == "DELETED":
