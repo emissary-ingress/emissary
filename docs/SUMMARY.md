@@ -21,7 +21,6 @@
 ## Reference
 
 * [Configuring Ambassador](reference/configuration.md)
-* [TLS and Auth](reference/tls-auth.md)
 * [Auth with an external auth service](how-to/auth-external.md)
 * [Running Ambassador](user-guide/running.md)
 
