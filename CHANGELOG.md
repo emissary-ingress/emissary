@@ -1,7 +1,7 @@
 # Changelog
 
-## [0.18.1] November 20, 2017
-[0.18.1]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.1
+## [0.18.2] November 20, 2017
+[0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
 
 ### Changed
 
