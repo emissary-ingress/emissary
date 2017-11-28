@@ -20,6 +20,7 @@ export KUBECONFIG=${HOME}/.kube/kubernaut
 
 kubectl cluster-info
 
+kubectl create namespace other
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
 
