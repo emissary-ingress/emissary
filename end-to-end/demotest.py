@@ -29,17 +29,26 @@ def call(url, headers=None, iterations=1):
 def test_demo(base, v2_wanted):
     url = "%s/demo/" % base
 
-    got = call(url, iterations=100)
+    attempts = 3
 
-    print(got)
-    v2_seen = got.get('2.0.0', 0)
-    rc = (abs(v2_seen - v2_wanted) <= 2)
+    while attempts > 0:
+        print("2.0.0: attempts left %d" % attempts)
+        got = call(url, iterations=100)
 
-    print("wanted v2_wanted %d" % v2_wanted)
-    print("saw    v2_seen   %d" % v2_seen)
-    print("returning %s" % rc)
+        print(got)
+        v2_seen = got.get('2.0.0', 0)
+        delta = abs(v2_seen - v2_wanted)
+        rc = (delta <= 2)
 
-    return rc
+        print("2.0.0: wanted %d, got %d (delta %d) => %s" % 
+              (v2_wanted, v2_seen, delta, "pass" if rc else "FAIL"))
+
+        if rc:
+            return rc
+
+        attempts -= 1
+
+    return False
 
 def test_from_yaml(base, yaml_path):
     spec = yaml.safe_load(open(yaml_path, "r"))
