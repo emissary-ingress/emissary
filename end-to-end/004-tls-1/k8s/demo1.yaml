@@ -19,7 +19,7 @@ metadata:
       prefix: /demo/
       headers:
         x-demo-mode: canary
-      originate_tls: upstream     
+      originate_tls: True     
       service: demo1:443
 spec:
   selector:

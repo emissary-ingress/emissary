@@ -503,7 +503,7 @@ class Config (object):
                 self.outliers[od_name]._mark_referenced_by(_source)
 
             if originate_tls == True:
-                cluster['tls_context'] = {}
+                cluster['tls_context'] = { '_ambassador_enabled': True }
                 cluster['tls_array'] = []
             elif (originate_tls and (originate_tls in self.tls_contexts)):
                 cluster['tls_context'] = self.tls_contexts[originate_tls]
@@ -699,12 +699,17 @@ class Config (object):
             originate_tls = mapping.get('originate_tls', None)
 
             if originate_tls:
-                if originate_tls in self.tls_contexts:
-                    cluster_name_fields.append("otls_%s" % originate_tls)
-                    default_port = 443
-                else:
+                if (originate_tls != True) and (originate_tls not in self.tls_contexts):
                     self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
                                       (originate_tls, mapping_name))
+                else:
+                    subfields = [ "otls" ]
+
+                    if originate_tls != True:
+                        subfields.append(originate_tls)
+
+                    cluster_name_fields.append("_".join(subfields))
+                    default_port = 443
 
             cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
@@ -1008,11 +1013,11 @@ class Config (object):
             originate_tls = module.get('originate_tls', None)
 
             if originate_tls:
-                if originate_tls in self.tls_contexts:
-                    default_port = 443
-                else:
+                if (originate_tls != True) and (originate_tls not in self.tls_contexts):
                     self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
                                       (originate_tls, mapping_name))
+                else:
+                    default_port = 443
 
             if ':' not in svc:
                 svc = "%s:%d" % (svc, default_port)

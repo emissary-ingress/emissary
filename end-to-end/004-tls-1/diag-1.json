@@ -66,12 +66,33 @@
     {
         "_method": "GET",
         "_referenced_by": [
+            "demo2.yaml.2"
+        ],
+        "_source": "demo2.yaml.2",
+        "clusters": [
+            {
+                "name": "cluster_demo2_443_otls_upstream",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "81c30041a28889c980ed140f21b9b58ea6fae31d",
+        "headers": [
+            {
+                "name": "x-hurkle"
+            }
+        ],
+        "prefix": "/good/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
+        "_referenced_by": [
             "demo1.yaml.2"
         ],
         "_source": "demo1.yaml.2",
         "clusters": [
             {
-                "name": "cluster_demo1_443",
+                "name": "cluster_demo1_443_otls",
                 "weight": 100.0
             }
         ],
@@ -94,7 +115,7 @@
         "_source": "demo2.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo2_443",
+                "name": "cluster_demo2_443_otls_upstream",
                 "weight": 100.0
             }
         ],
@@ -117,12 +138,28 @@
         "_source": "demo1.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo1",
+                "name": "cluster_demo1_otls_upstream",
                 "weight": 100.0
             }
         ],
         "group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
         "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
+        "_referenced_by": [
+            "auth.yaml.1"
+        ],
+        "_source": "auth.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_auth_443_otls",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "7a30e6cf8c1b641891732457951c0aeee3dc5a2e",
+        "prefix": "/auth/",
         "prefix_rewrite": "/"
     }
 ]

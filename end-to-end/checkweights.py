@@ -5,6 +5,11 @@ import sys
 import json
 import requests
 
+# Yes, it's a terrible idea to use skip cert verification for TLS.
+# We really don't care for this test though.
+import urllib3
+urllib3.disable_warnings()
+
 import dpath.util
 
 headers = []
@@ -29,7 +34,7 @@ headers.sort()
 print("Headers: %s" % headers)
 print("Wanted:  %s" % wanted)
 
-r = requests.get("%s/ambassador/v0/diag/?json=true" % base_url)
+r = requests.get("%s/ambassador/v0/diag/?json=true" % base_url, verify=False)
 
 if r.status_code != 200:
     print("couldn't load diagnostics: %d" % r.status_code)

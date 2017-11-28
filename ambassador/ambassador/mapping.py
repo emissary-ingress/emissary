@@ -13,7 +13,9 @@ class Mapping (object):
 
         for hdr in headers:
             h.update(hdr['name'].encode('utf-8'))
-            h.update(hdr['value'].encode('utf-8'))
+
+            if 'value' in hdr:
+                h.update(hdr['value'].encode('utf-8'))
 
         return h.hexdigest()
 
