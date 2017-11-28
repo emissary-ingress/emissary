@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1] November 20, 2017
+[0.18.1]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.1
+
+### Changed
+
+- The diagnostics service will now tell you when updates are available.
+
 ## [0.18.0] November 20, 2017
 [0.18.0]: https://github.com/datawire/ambassador/compare/v0.17.0...v0.18.0
 
