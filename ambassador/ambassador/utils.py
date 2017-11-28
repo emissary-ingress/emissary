@@ -6,7 +6,7 @@ import socket
 import threading
 import time
 
-import VERSION
+from .VERSION import Version
 
 class SystemInfo (object):
     MyHostName = socket.gethostname()
@@ -18,7 +18,7 @@ class RichStatus (object):
         self.info = kwargs
         self.info['hostname'] = SystemInfo.MyHostName
         self.info['resolvedname'] = SystemInfo.MyResolvedName
-        self.info['version'] = VERSION.Version
+        self.info['version'] = Version
 
     # Remember that __getattr__ is called only as a last resort if the key
     # isn't a normal attr.

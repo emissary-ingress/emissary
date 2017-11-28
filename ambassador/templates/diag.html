@@ -45,6 +45,22 @@
         </div>
       </div>
 
+      {% if notices %}
+        <div class="row">
+          <div class="col-12">
+            {% for notice in notices %}
+              <span 
+              {% if notice.level == 'WARNING' %}
+              style="color:red"
+              {% elif notice.level == 'INFO' %}
+              style="color:green"
+              {% endif %}
+            >{{ notice.level }}</span>: {{ notice.message }}<br/>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
       {% if error %}
         <div class="row">
           <div class="col-12">

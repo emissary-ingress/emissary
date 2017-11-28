@@ -43,9 +43,11 @@ reg-check:
 	    exit 1 ;\
 	fi
 
-versions:
+version versions: ambassador/ambassador/VERSION.py
+
+ambassador/ambassador/VERSION.py:
 	@echo "Building $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/VERSION.py
+	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 
 artifacts: docker-images website
 
@@ -58,8 +60,13 @@ yaml-files:
 		< end-to-end/ambassador-deployment-template.yaml \
 		> end-to-end/ambassador-deployment.yaml
 
-ambassador-test:
-	pytest
+setup-develop:
+	cd ambassador && python setup.py --quiet develop
+
+test: ambassador-test
+
+ambassador-test: setup-develop ambassador/ambassador/VERSION.py
+	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
 e2e end-to-end:
 	sh end-to-end/testall.sh
@@ -78,10 +85,11 @@ website: yaml-files
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf app.json
+	rm -rf ambassador/ambassador/VERSION.py*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
-	rm -rf .cache ambassador/.cache ambassador/.coverage
+	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find ambassador/tests \
-	     \( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
-	     | xargs -0 rm -f
+		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
+		| xargs -0 rm -f
 	rm -rf end-to-end/ambassador-deployment.yaml
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f

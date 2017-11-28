@@ -12,18 +12,22 @@ import signal
 import time
 import uuid
 
-import VERSION
+from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
 from flask import Flask, render_template, request, jsonify # Response
 
-from AmbassadorConfig import AmbassadorConfig
-from EnvoyStats import EnvoyStats
-from utils import RichStatus, SystemInfo, PeriodicTrigger
+from ambassador.config import Config
+from ambassador.VERSION import Version
+from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
 
-__version__ = VERSION.Version
+from .envoy import EnvoyStats
+
+__version__ = Version
+
 boot_time = datetime.datetime.now()
+last_scout_update = datetime.datetime.now() - datetime.timedelta(hours=24)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -95,14 +99,37 @@ def standard_handler(f):
     return wrapper
 
 # Get the Flask app defined early.
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
 # Next, various helpers.
 def aconf(app):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
-    configs.sort(key=lambda x: int(x.split("-")[-1]))
-    latest = configs[-1]
-    return AmbassadorConfig(latest)
+
+    if configs:
+        configs.sort(key=lambda x: int(x.split("-")[-1]))
+        latest = configs[-1]
+    else:
+        latest = app.config_dir_prefix
+
+    aconf = Config(latest)
+
+    # How long since the last Scout update? If it's been more than an hour, 
+    # check Scout again.
+
+    now = datetime.datetime.now()
+
+    if (now - last_scout_update) > datetime.timedelta(hours=1):
+        uptime = now - boot_time
+        hr_uptime = td_format(uptime)
+
+        result = Config.scout_report(mode="diagd", runtime=Config.runtime,
+                                     uptime=int(uptime.total_seconds()),
+                                     hr_uptime=hr_uptime)
+
+        app.logger.debug("Scout reports %s" % json.dumps(result))
+
+    return aconf
 
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
@@ -123,7 +150,12 @@ def td_format(td_object):
             strings.append("%d %s%s" % 
                            (period_value, period_name, "" if (period_value == 1) else "s"))
 
-    return ", ".join(strings)
+    formatted = ", ".join(strings)
+
+    if not formatted:
+        formatted = "0s"
+
+    return formatted
 
 def interval_format(seconds, normal_format, now_message):
     if seconds >= 1:
@@ -161,6 +193,25 @@ def envoy_status(estats):
         "since_update": since_update
     }
 
+def clean_notices(notices):
+    cleaned = []
+
+    for notice in notices:
+        try:
+            if isinstance(notice, str):
+                cleaned.append({ "level": "WARNING", "message": notice })
+            else:
+                lvl = notice['level'].upper()
+                msg = notice['message']
+
+                cleaned.append({ "level": lvl, "message": msg })
+        except KeyError:
+            cleaned.append({ "level": "WARNING", "message": json.dumps(notice) })
+        except:
+            cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
+
+    return cleaned
+
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
     status = envoy_status(app.estats)
@@ -195,12 +246,13 @@ def show_overview(reqid=None):
     tvars = dict(system=system_info(), 
                  envoy_status=envoy_status(app.estats), 
                  cluster_stats=cstats,
+                 notices=clean_notices(Config.scout_notices),
                  **ov)
 
     if request.args.get('json', None):
         result = jsonify(tvars)
     else:
-        result = render_template('overview.html', **tvars)
+        return render_template("overview.html", **tvars)
 
     # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
 
@@ -228,12 +280,13 @@ def show_intermediate(source=None, reqid=None):
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  method=method, resource=resource,
+                 notices=clean_notices(Config.scout_notices),
                  **result)
 
     if request.args.get('json', None):
         return jsonify(tvars)
     else:
-        return render_template('diag.html', **tvars)
+        return render_template("diag.html", **tvars)
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
@@ -248,7 +301,7 @@ def pretty_json(obj):
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
-def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
+def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
     """
     Run the diagnostic daemon.
 
@@ -279,5 +332,8 @@ def main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=Fa
 
     app.run(host='0.0.0.0', port=aconf(app).diag_port(), debug=app.debugging)
 
+def main():
+    clize.run(_main)
+
 if __name__ == "__main__":
-    clize.run(main)
+    main()

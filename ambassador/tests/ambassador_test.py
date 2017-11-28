@@ -1,6 +1,7 @@
 import sys
 
 import difflib
+import errno
 import json
 import logging
 import functools
@@ -9,17 +10,20 @@ import pytest
 
 from shell import shell
 
-from diag_paranoia import diag_paranoia
+from diag_paranoia import diag_paranoia, filtered_overview
 
 VALIDATOR_IMAGE = "dwflynn/ambassador-envoy:v1.4.0-49-g008635a04"
 
 DIR = os.path.dirname(__file__)
 EXCLUDES = [ "__pycache__" ] 
 
-AMBASSADOR = os.path.join(DIR, "ambassador.py")
-TESTDIR = os.path.join(DIR, "tests")
-DEFAULT_CONFIG = os.path.join(DIR, "default-config")
-MATCHES = [ n for n in os.listdir(TESTDIR) if (os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+# TESTDIR = os.path.join(DIR, "tests")
+TESTDIR = DIR
+DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
+MATCHES = [ n for n in os.listdir(TESTDIR) 
+            if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+
+os.environ['SCOUT_DISABLE'] = "1"
 
 #### decorators
 
@@ -43,6 +47,19 @@ def standard_setup(f):
 
     return wrapper
 
+#### Utilities
+
+def unified_diff(gold_path, current_path):
+    gold = json.dumps(json.load(open(gold_path, "r")), indent=4, sort_keys=True)
+    current = json.dumps(json.load(open(current_path, "r")), indent=4, sort_keys=True)
+
+    udiff = list(difflib.unified_diff(gold.split("\n"), current.split("\n"),
+                                      fromfile=os.path.basename(gold_path),
+                                      tofile=os.path.basename(current_path),
+                                      lineterm=""))
+
+    return udiff
+
 #### Test functions
 
 @pytest.mark.parametrize("directory", MATCHES)
@@ -53,10 +70,49 @@ def test_config(testname, dirpath, configdir):
     if not os.path.isdir(configdir):
         errors.append("configdir %s is not a directory" % configdir)
 
+    print("==== checking intermediate output")
+
+    ambassador = shell([ 'ambassador', 'dump', configdir ])
+
+    if ambassador.code != 0:
+        errors.append('ambassador dump failed! %s' % ambassador.code)
+    else:
+        current_raw = ambassador.output(raw=True)
+        current = None
+        gold = None
+
+        try:
+            current = json.loads(current_raw)
+        except json.decoder.JSONDecodeError as e:
+            errors.append("current intermediate was unparseable?")
+
+        if current:
+            current = filtered_overview(current)
+
+            current_path = os.path.join(dirpath, "intermediate.json")
+            json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
+
+            gold_path = os.path.join(dirpath, "gold.intermediate.json")
+
+            if os.path.exists(gold_path):
+                udiff = unified_diff(gold_path, current_path)
+
+                if udiff:
+                    errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+
+    print("==== checking config generation")
+
     envoy_json_out = os.path.join(dirpath, "envoy.json")
 
-    ambassador = shell([ 'python', AMBASSADOR, 'config', configdir, envoy_json_out],
-                       verbose=True)
+    try:
+        os.unlink(envoy_json_out)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+
+    print(ambassador.errors(raw=True))    
 
     if ambassador.code != 0:
         errors.append('ambassador failed! %s' % ambassador.code)
@@ -72,8 +128,6 @@ def test_config(testname, dirpath, configdir):
                       verbose=True)
 
         envoy_succeeded = (envoy.code == 0)
-        print("envoy code %d" % envoy.code)
-        print("envoy succeeded %d" % envoy_succeeded)
 
         if not envoy_succeeded:
             errors.append('envoy failed! %s' % envoy.code)
@@ -87,15 +141,22 @@ def test_config(testname, dirpath, configdir):
         gold_path = os.path.join(dirpath, "gold.json")
 
         if os.path.exists(gold_path):
-            gold = json.dumps(json.load(open(gold_path, "r")), indent=4, sort_keys=True)
-            current = json.dumps(json.load(open(envoy_json_out, "r")), indent=4, sort_keys=True)
-
-            udiff = list(difflib.unified_diff(gold.split("\n"), current.split("\n"),
-                                              fromfile="gold.json", tofile="envoy.json",
-                                              lineterm=""))
+            udiff = unified_diff(gold_path, envoy_json_out)
 
             if udiff:
                 errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
+
+    print("==== checking short-circuit with existing config")
+
+    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+
+    print(ambassador.errors(raw=True))
+
+    if ambassador.code != 0:
+        errors.append('ambassador repeat check failed! %s' % ambassador.code)
+
+    if 'Output file exists' not in ambassador.errors(raw=True):
+        errors.append('ambassador repeat check did not short circuit??')
 
     if errors:
         print("---- ERRORS")

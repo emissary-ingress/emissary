@@ -2,24 +2,36 @@ import sys
 
 import collections
 import json
-import jsonschema
 import logging
 import os
 import re
+
+import jsonschema
+import semantic_version
 import yaml
 
+from pkg_resources import Requirement, resource_filename
+
 from jinja2 import Environment, FileSystemLoader
-from utils import RichStatus, SourcedDict
+
+from .utils import RichStatus, SourcedDict
+from .mapping import Mapping
 
 from scout import Scout
 
-from AmbassadorMapping import Mapping
+from .VERSION import Version
 
-import VERSION
+def get_semver(what, version_string):
+    semver = None
 
-__version__ = VERSION.Version
+    try:
+        semver = semantic_version.Version(version_string)
+    except ValueError:
+        pass
 
-class AmbassadorConfig (object):
+    return semver
+
+class Config (object):
     # Weird stuff. The build version looks like
     #
     # 0.12.0                    for a prod build, or
@@ -39,7 +51,7 @@ class AmbassadorConfig (object):
     #
     # for Scout.
 
-    scout_version = __version__
+    scout_version = Version
 
     if '-' in scout_version:
         # Dev build!
@@ -48,37 +60,108 @@ class AmbassadorConfig (object):
 
         scout_version = "%s-%s+%s" % (v, p, b)
 
+    # Use scout_version here, not __version__, because the version
+    # coming back from Scout will use build numbers for dev builds, but
+    # __version__ won't, and we need to be consistent for comparison.
+    current_semver = get_semver("current", scout_version)
+
     runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
-    scout = None
+    scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', None)
+
+    _scout_args = dict(
+        app="ambassador", version=scout_version,
+    )
+
+    if scout_install_id:
+        _scout_args['install_id'] = scout_install_id
+    else:
+        _scout_args['id_plugin'] = Scout.configmap_install_id_plugin
+        _scout_args['id_plugin_args'] = { "namespace": namespace }
+
+    try:
+        scout = Scout(**_scout_args)
+        scout_error = None
+    except OSError as e:
+        scout_error = e
+
+    scout_latest_version = None
+    scout_latest_semver = None
+    scout_notices = []
 
     @classmethod
-    def scout_report(klass, **kwargs):
-        if AmbassadorConfig.scout:
-            result = AmbassadorConfig.scout.report(**kwargs)
-        else:
-            result = {"scout": "inactive"}    
+    def scout_report(klass, force_result=None, **kwargs):
+        result = force_result
+
+        if not result:
+            if Config.scout:
+                if 'runtime' not in kwargs:
+                    kwargs['runtime'] = Config.runtime
+
+                result = Config.scout.report(**kwargs)
+            else:
+                result = { "scout": "unavailable" }
+
+        _notices = []
+
+        if not Config.current_semver:
+            _notices.append({
+                "level": "warning",
+                "message": "Ambassador has bad version '%s'??!" % Config.scout_version
+            })
+
+        # Do version & notices stuff.      
+        if 'latest_version' in result:
+            latest_version = result['latest_version']
+            latest_semver = get_semver("latest", latest_version)
+
+            if latest_semver:
+                Config.scout_latest_version = latest_version
+                Config.scout_latest_semver = latest_semver
+            else:
+                _notices.append({
+                    "level": "warning",
+                    "message": "Scout returned bad version '%s'??!" % latest_version
+                })
+
+        if (Config.scout_latest_semver and 
+            ((not Config.current_semver) or
+             (Config.scout_latest_semver > Config.current_semver))):
+            _notices.append({
+                "level": "info",
+                "message": "Upgrade available! to Ambassador version %s" % Config.scout_latest_semver
+            })
+
+        if 'notices' in result:
+            _notices.extend(result['notices'])
+
+        Config.scout_notices = _notices
 
         return result
 
-    def __init__(self, config_dir_path, schema_dir_path="schemas", template_dir_path="templates"):
+    def __init__(self, config_dir_path, schema_dir_path=None, template_dir_path=None):
         self.config_dir_path = config_dir_path
+
+        if not template_dir_path:
+            template_dir_path = resource_filename(Requirement.parse("ambassador"),"templates")
+
+        if not schema_dir_path:
+            schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
+
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
 
         self.logger = logging.getLogger("ambassador.config")
 
-        if not AmbassadorConfig.scout:
-            self.logger.debug("Scout version %s" % AmbassadorConfig.scout_version)
-            self.logger.debug("runtime: %s" % AmbassadorConfig.runtime)
+        self.logger.debug("Scout version %s" % Config.scout_version)
+        self.logger.debug("Runtime       %s" % Config.runtime)
 
-        try:
-            AmbassadorConfig.scout = Scout(app="ambassador",
-                                           version=AmbassadorConfig.scout_version, 
-                                           id_plugin=Scout.configmap_install_id_plugin, 
-                                           id_plugin_args={ "namespace": AmbassadorConfig.namespace })
-        except OSError as e:
-            self.logger.warning("couldn't do version check: %s" % str(e))
+        self.logger.debug("CONFIG DIR    %s" % os.path.abspath(self.config_dir_path))
+        self.logger.debug("TEMPLATE DIR  %s" % os.path.abspath(self.template_dir_path))
+        self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
+
+        if Config.scout_error:
+            self.logger.warning("Couldn't do version check: %s" % str(Config.scout_error))
 
         self.schemas = {}
         self.config = {}
@@ -719,22 +802,22 @@ class AmbassadorConfig (object):
         # We used to use the JSON parser as a final sanity check here. That caused
         # Forge some issues, so it's turned off for now.
 
-       # rc = RichStatus.fromError("impossible")
+        # rc = RichStatus.fromError("impossible")
 
-       # # ...and use the JSON parser as a final sanity check.
-       # try:
-       #     obj = json.loads(envoy_json)
-       #     rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
-       # except json.decoder.JSONDecodeError as e:
-       #     rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
-       #                               raw=envoy_json, exception=e)
+        # # ...and use the JSON parser as a final sanity check.
+        # try:
+        #     obj = json.loads(envoy_json)
+        #     rc = RichStatus.OK(msg="Envoy configuration OK", envoy_config=obj)
+        # except json.decoder.JSONDecodeError as e:
+        #     rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
+        #                               raw=envoy_json, exception=e)
 
         # Go ahead and report that we generated an Envoy config, if we can.    
-        scout_result = AmbassadorConfig.scout_report(action="config", result=True, generated=True, **kwargs)
+        scout_result = Config.scout_report(action="config", result=True, generated=True, **kwargs)
 
         rc = RichStatus.OK(envoy_config=envoy_json, scout_result=scout_result)
 
-        self.logger.debug("Scout reports %s" % json.dumps(rc.scout_result))
+        # self.logger.debug("Scout reports %s" % json.dumps(rc.scout_result))
 
         return rc
 
@@ -934,6 +1017,6 @@ class AmbassadorConfig (object):
         self.pretty(self.envoy_config)
 
 if __name__ == '__main__':
-    aconf = AmbassadorConfig(sys.argv[1])
+    aconf = Config(sys.argv[1])
     print(json.dumps(aconf.diagnostic_overview(), indent=4, sort_keys=True))
 

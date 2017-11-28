@@ -1,10 +1,16 @@
 *.pyc
 *~
+.cache
+.coverage
 .python-version
 .DS_Store
 venv
 __pycache__
 VERSION.py
+
+ambassador.egg-info
+build
+dist
 
 *.out
 envoy.json

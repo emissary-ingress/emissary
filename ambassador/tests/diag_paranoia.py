@@ -6,7 +6,7 @@ import os
 
 from shell import shell
 
-from AmbassadorConfig import AmbassadorConfig
+from ambassador.config import Config
 
 def prettify(obj):
     return json.dumps(obj, indent=4, sort_keys=True)
@@ -33,8 +33,41 @@ Uniqifiers = {
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if ('index' in x) else x['filename']
 }
 
+def filtered_overview(ov):
+    filtered = {}
+
+    for key in ov.keys():
+        if not ov[key]:
+            continue
+
+        uniqifier = Uniqifiers.get(key, lambda x: x.get('name', None))
+
+        filtered_element = []
+
+        if isinstance(ov[key], list):
+            for obj in ov[key]:
+                if obj.get('_source', None) == '--internal--':
+                    continue
+
+                if '_referenced_by' in obj:
+                    obj['_referenced_by'] = sorted([ x for x in obj['_referenced_by'] if x != '--internal--' ])
+
+                filtered_element.append(obj)
+
+            filtered[key] = sorted(filtered_element, key=uniqifier)
+        else:
+            # Make this a single-element list to match the reconstition.
+            obj = ov[key]
+
+            if '_referenced_by' in obj:
+                obj['_referenced_by'].sort()
+
+            filtered[key] = [ obj ]
+
+    return filtered
+
 def diag_paranoia(configdir, outputdir):
-    aconf = AmbassadorConfig(configdir)
+    aconf = Config(configdir)
     ov = aconf.diagnostic_overview()
 
     # print("==== OV")
@@ -173,39 +206,11 @@ def diag_paranoia(configdir, outputdir):
     if 'filters' not in reconstituted_lists:
         reconstituted_lists['filters'] = []
 
-    # OK. Next, filter out the '--internal--' stuff from our overview.
+    # OK. Next, filter out the '--internal--' stuff from our overview, and sort
+    # _referenced_by.
+    filtered = filtered_overview(ov)
 
-    filtered_overview = {}
-
-    for key in ov.keys():
-        if not ov[key]:
-            continue
-
-        uniqifier = Uniqifiers.get(key, lambda x: x.get('name', None))
-
-        filtered = []
-
-        if isinstance(ov[key], list):
-            for obj in ov[key]:
-                if obj.get('_source', None) == '--internal--':
-                    continue
-
-                if '_referenced_by' in obj:
-                    obj['_referenced_by'] = sorted([ x for x in obj['_referenced_by'] if x != '--internal--' ])
-
-                filtered.append(obj)
-
-            filtered_overview[key] = sorted(filtered, key=uniqifier)
-        else:
-            # Make this a single-element list to match the reconstition.
-            obj = ov[key]
-
-            if '_referenced_by' in obj:
-                obj['_referenced_by'].sort()
-
-            filtered_overview[key] = [ obj ]
-
-    pretty_filtered_overview = prettify(filtered_overview)
+    pretty_filtered_overview = prettify(filtered)
     pretty_reconstituted_lists = prettify(reconstituted_lists)
 
     udiff = list(difflib.unified_diff(pretty_filtered_overview.split("\n"),
