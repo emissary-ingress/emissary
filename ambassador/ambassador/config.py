@@ -139,7 +139,7 @@ class Config (object):
 
         return result
 
-    def __init__(self, config_dir_path, schema_dir_path=None, template_dir_path=None):
+    def __init__(self, config_dir_path, k8s=False, schema_dir_path=None, template_dir_path=None):
         self.config_dir_path = config_dir_path
 
         if not template_dir_path:
@@ -252,29 +252,9 @@ class Config (object):
             # self.logger.debug("WALK %s: dirs %s, files %s" % (dirpath, dirnames, filenames))
 
             for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
-                self.filename = filename
-
                 filepath = os.path.join(dirpath, filename)
 
-                try:
-                    # XXX This is a bit of a hack -- yaml.safe_load_all returns a
-                    # generator, and if we don't use list() here, any exception
-                    # dealing with the actual object gets deferred 
-                    objects = list(yaml.safe_load_all(open(filepath, "r")))
-                except Exception as e:
-                    self.logger.error("%s: could not parse YAML: %s" % (filepath, e))
-                    self.fatal_errors += 1
-                    continue
-
-                self.ocount = 0
-                for obj in objects:
-                    self.ocount += 1
-
-                    rc = self.process_object(obj)
-
-                    if not rc:
-                        # Object error. Not good but we'll allow the system to start.
-                        self.post_error(rc)
+                self.process_yaml(filename, open(filepath, "r").read(), k8s=k8s)
 
         if self.fatal_errors:
             # Kaboom.
@@ -284,6 +264,61 @@ class Config (object):
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
         self.generate_intermediate_config()
+
+    def process_yaml(self, filename, serialization, k8s=False):
+        all_objects = []
+
+        try:
+            # XXX This is a bit of a hack -- yaml.safe_load_all returns a
+            # generator, and if we don't use list() here, any exception
+            # dealing with the actual object gets deferred 
+            ocount = 1
+
+            for obj in yaml.safe_load_all(serialization):
+                all_objects.append((filename, ocount, obj))
+                ocount += 1
+        except Exception as e:
+            self.logger.error("%s: could not parse YAML: %s" % (filename, e))
+            self.fatal_errors += 1
+
+        for filename, ocount, obj in all_objects:
+            self.filename = filename
+            self.ocount = ocount
+
+            if k8s:
+                kind = obj.get('kind', None)
+
+                if kind != "Service":
+                    self.logger.info("%s/%s: ignoring K8s %s object" % 
+                                     (self.filename, self.ocount, kind))
+                    continue
+
+                metadata = obj.get('metadata', None)
+
+                if not metadata:
+                    self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
+                                     (self.filename, self.ocount, kind))
+                    continue
+
+                annotations = metadata.get('annotations', None)
+
+                if annotations:
+                    annotations = annotations.get('getambassador.io/config', None)
+
+                # self.logger.info("annotations %s" % annotations)
+
+                if not annotations:
+                    self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
+                                     (self.filename, self.ocount, kind))
+                    continue
+
+                self.process_yaml(filename + ":annotation", annotations)
+            else:
+                rc = self.process_object(obj)
+
+                if not rc:
+                    # Object error. Not good but we'll allow the system to start.
+                    self.post_error(rc)        
 
     def clean_and_copy(self, d):
         out = []
@@ -314,9 +349,12 @@ class Config (object):
         self.logger.error("%s: %s" % (self.current_source_key(), rc))
 
     def process_object(self, obj):
-        obj_version = obj['apiVersion']
-        obj_kind = obj['kind']
-        obj_name = obj['name']
+        try:
+            obj_version = obj['apiVersion']
+            obj_kind = obj['kind']
+            obj_name = obj['name']
+        except KeyError:
+            return RichStatus.fromError("need apiVersion, kind, and name")
 
         # ...save the source info...
         source_key = "%s.%d" % (self.filename, self.ocount)
@@ -464,7 +502,10 @@ class Config (object):
                 cluster['outlier_detection'] = self.outliers[od_name]
                 self.outliers[od_name]._mark_referenced_by(_source)
 
-            if originate_tls and (originate_tls in self.tls_contexts):
+            if originate_tls == True:
+                cluster['tls_context'] = {}
+                cluster['tls_array'] = []
+            elif (originate_tls and (originate_tls in self.tls_contexts)):
                 cluster['tls_context'] = self.tls_contexts[originate_tls]
                 self.tls_contexts[originate_tls]._mark_referenced_by(_source)
 
