@@ -29,7 +29,7 @@ metadata:
         #   cert_required: True
         #   cacert_chain_file: /etc/ca_cert_chain/tls.crt
 
-        # This is an upstream context. Use originate_tls: upstream in a 
+        # This is an upstream context. Use tls: upstream in a 
         # mapping to reference it.
         upstream:
           cert_chain_file: /etc/certs/upstream/tls.crt
@@ -39,8 +39,7 @@ metadata:
       kind: Module
       name:  authentication
       config:
-        auth_service: "auth"
-        originate_tls: upstream
+        auth_service: https://auth
         allowed_headers:
         - "x-hurkle"
 spec:

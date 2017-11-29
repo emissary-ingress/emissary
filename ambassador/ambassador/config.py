@@ -541,6 +541,42 @@ class Config (object):
         route = mapping.new_route(cluster_name)
         self.envoy_routes[mapping.group_id] = route
 
+    def service_tls_check(self, svc, context):
+        originate_tls = False
+        name_fields = None
+
+        if svc.lower().startswith("http://"):
+            originate_tls = False
+            svc = svc[len("http://"):]
+        elif svc.lower().startswith("https://"):
+            originate_tls = True
+            name_fields = [ 'otls' ]
+            svc = svc[len("https://"):]
+        elif context == True:
+            originate_tls = True
+            name_fields = [ 'otls' ]
+
+        # Separate if here because you need to be able to specify a context
+        # even after you say "https://" for the service.
+
+        if context and (context != True):
+            if context in self.tls_contexts:
+                name_fields = [ 'otls', context ]
+                originate_tls = context
+            else:
+                self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
+                                  (context, mapping_name))
+
+        port = 443 if originate_tls else 80
+        context_name = "_".join(name_fields) if name_fields else None
+
+        svc_url = 'tcp://%s' % svc
+
+        if ':' not in svc:
+            svc_url = '%s:%d' % (svc_url, port)
+
+        return (svc, svc_url, originate_tls, context_name)
+
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
         # default values now.
@@ -676,6 +712,13 @@ class Config (object):
 
             cluster_name_fields =[ svc ]
 
+            tls_context = mapping.get('tls', None)
+
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+
+            if otls_name:
+                cluster_name_fields.append(otls_name)
+
             cb_name = mapping.get('circuit_breaker', None)
 
             if cb_name:
@@ -694,32 +737,10 @@ class Config (object):
                     self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
                                   (od_name, mapping_name))
 
-            default_port = 80
-
-            originate_tls = mapping.get('originate_tls', None)
-
-            if originate_tls:
-                if (originate_tls != True) and (originate_tls not in self.tls_contexts):
-                    self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
-                                      (originate_tls, mapping_name))
-                else:
-                    subfields = [ "otls" ]
-
-                    if originate_tls != True:
-                        subfields.append(originate_tls)
-
-                    cluster_name_fields.append("_".join(subfields))
-                    default_port = 443
-
             cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
             cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
             self.logger.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
-
-            url = 'tcp://%s' % svc
-
-            if ':' not in svc:
-                url = '%s:%d' % (url, default_port)
 
             grpc = mapping.get('grpc', False)
             # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
@@ -1007,23 +1028,12 @@ class Config (object):
 
         if 'ext_auth_cluster' not in self.envoy_clusters:
             svc = module.get('auth_service', '127.0.0.1:5000')
+            tls_context = module.get('tls', None)
 
-            default_port = 80
-
-            originate_tls = module.get('originate_tls', None)
-
-            if originate_tls:
-                if (originate_tls != True) and (originate_tls not in self.tls_contexts):
-                    self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
-                                      (originate_tls, mapping_name))
-                else:
-                    default_port = 443
-
-            if ':' not in svc:
-                svc = "%s:%d" % (svc, default_port)
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
 
             self.add_intermediate_cluster(module['_source'],
-                                          'cluster_ext_auth', [ "tcp://%s" % svc ],
+                                          'cluster_ext_auth', [ url ],
                                           type="logical_dns", lb_type="random",
                                           originate_tls=originate_tls)
 

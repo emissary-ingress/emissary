@@ -10,7 +10,7 @@ metadata:
       kind:  Mapping
       name:  auth_mapping
       prefix: /auth/
-      originate_tls: True
+      tls: True
       service: auth:443
 spec:
   selector:

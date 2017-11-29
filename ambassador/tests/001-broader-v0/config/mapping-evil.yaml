@@ -12,4 +12,4 @@ name: evil_put_mapping
 prefix: /evil/
 rewrite: /qotm/quote/
 method: PUT
-service: qotm
+service: http://qotm

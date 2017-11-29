@@ -3,7 +3,7 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  authentication
 config:
-  auth_service: "example-auth:3000"
+  auth_service: "http://example-auth:3000"
   path_prefix: "/extauth"
   allowed_headers:
   - "x-qotm-session"

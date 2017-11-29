@@ -3,5 +3,5 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/
-service: httpbin.org
+service: http://httpbin.org
 host_rewrite: httpbin.org

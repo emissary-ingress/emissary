@@ -10,7 +10,7 @@ metadata:
       kind:  Mapping
       name:  demo_default_mapping
       prefix: /demo/
-      originate_tls: upstream     
+      tls: upstream     
       service: demo1
       ---
       apiVersion: ambassador/v0
@@ -19,8 +19,7 @@ metadata:
       prefix: /demo/
       headers:
         x-demo-mode: canary
-      originate_tls: True     
-      service: demo1:443
+      service: https://demo1:443
 spec:
   selector:
     app: demo1

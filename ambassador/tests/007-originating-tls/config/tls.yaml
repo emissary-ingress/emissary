@@ -15,7 +15,7 @@ config:
   #   cert_required: True
   #   cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt
 
-  # This is an upstream context. Use originate_tls: upstream in a 
+  # This is an upstream context. Use tls: upstream in a 
   # mapping to reference it.
   upstream:
     cert_chain_file: /etc/ambassador-config/certs/outbound.crt

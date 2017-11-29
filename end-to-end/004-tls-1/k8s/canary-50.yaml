@@ -11,7 +11,7 @@ metadata:
       name:  demo_with_host_mapping
       prefix: /demo/
       host: demo2.datawire.io
-      originate_tls: upstream     
+      tls: upstream     
       service: demo2:443
       ---
       apiVersion: ambassador/v0
@@ -20,7 +20,7 @@ metadata:
       prefix: /good/
       headers:
         "x-hurkle": true
-      originate_tls: upstream     
+      tls: upstream     
       service: demo2:443
       ---
       apiVersion: ambassador/v0
@@ -29,8 +29,8 @@ metadata:
       prefix: /demo/
       headers:
         x-demo-mode: canary
-      originate_tls: upstream    
-      service: demo2
+      tls: upstream    
+      service: https://demo2
       weight: 50
 spec:
   selector:

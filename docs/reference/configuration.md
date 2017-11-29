@@ -166,7 +166,7 @@ Each mapping can also specify, among other things:
 
 ### Defining Mappings
 
-Mapping definitions are fairly straightforward. Here's an example for a REST service:
+Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
 
 ```yaml
 ---
@@ -174,17 +174,24 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
-service: qotm
+service: http://qotm
+```
+
+and a REST service which Ambassador will contact using HTTPS:
+
+```
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  quote_mapping
 prefix: /qotm/quote/
-service: qotm
 rewrite: /quotation/
+service: https://qotm
 ```
 
-and an example for a CQRS service:
+(Note that the 'http://' prefix for an HTTP service is optional.)
+
+Here's an example for a CQRS service (using HTTP):
 
 ```yaml
 ---
@@ -219,6 +226,7 @@ Common optional attributes for mappings:
 - `weight`: if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `headers`: if present, specifies a dictionary of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
+- `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
 
 Less-common optional attributes for mappings:
 
@@ -321,6 +329,12 @@ Internally:
 - the `method` attribute becomes a `header` match on the `:method` header.
 
 You will see these headers in the diagnostic service if you use the `method` or `host` attributes.
+
+#### Using `tls`
+
+In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
+
+If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to specify TLS origination certificates. 
 
 #### Using `envoy_override`
 

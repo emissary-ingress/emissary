@@ -10,7 +10,7 @@ metadata:
       kind:  Mapping
       name:  demo_default_mapping
       prefix: /demo/
-      originate_tls: upstream     
+      tls: upstream     
       service: demo1
 spec:
   selector:
@@ -32,7 +32,7 @@ metadata:
       name:  demo_with_host_mapping
       prefix: /demo/
       host: demo2.datawire.io
-      originate_tls: upstream     
+      tls: upstream     
       service: demo2:443
       ---
       apiVersion: ambassador/v0
@@ -41,7 +41,7 @@ metadata:
       prefix: /good/
       headers:
         "x-hurkle": true
-      originate_tls: upstream     
+      tls: upstream     
       service: demo2:443
       ---
       apiVersion: ambassador/v0
@@ -50,7 +50,7 @@ metadata:
       prefix: /demo/
       headers:
         x-demo-mode: canary
-      originate_tls: upstream    
+      tls: upstream    
       service: demo2
 spec:
   selector:
@@ -90,7 +90,7 @@ metadata:
         #   cert_required: True
         #   cacert_chain_file: /etc/ca_cert_chain/tls.crt
 
-        # This is an upstream context. Use originate_tls: upstream in a 
+        # This is an upstream context. Use tls: upstream in a 
         # mapping to reference it.
         upstream:
           cert_chain_file: /etc/certs/upstream/tls.crt
@@ -101,7 +101,7 @@ metadata:
       name:  authentication
       config:
         auth_service: "auth"
-        originate_tls: True
+        tls: True
         allowed_headers:
         - "x-hurkle"
 spec:
