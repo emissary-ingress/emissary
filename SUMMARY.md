@@ -23,12 +23,11 @@
 * [Configuring Ambassador](reference/configuration.md)
 * [Auth with an external auth service](how-to/auth-external.md)
 * [Running Ambassador](user-guide/running.md)
+* [Istio and Ambassador](user-guide/with-istio.md)
 
 ## Developers
 
 * [Building Ambassador (GitHub)](https://github.com/datawire/ambassador/blob/master/BUILDING.md)
-* [Istio and Ambassador](user-guide/with-istio.md)
-
 
 ## Need Help?
 
