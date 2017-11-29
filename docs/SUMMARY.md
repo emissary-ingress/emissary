@@ -14,12 +14,14 @@
 
 * [Getting Started](user-guide/getting-started.md)
 * [Adding Authentication](user-guide/auth-tutorial.md)
-* [The QotM Demo in Detail](user-guide/demo-in-detail.md)
+* [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
 * [Statistics and Monitoring](how-to/statistics.md)
 
 ## Reference
 
+* [Running Ambassador](user-guide/running.md)
+* [Upgrading Ambassador](user-guide/upgrading.md)
 * [Configuring Ambassador](reference/configuration.md)
 * [Auth with an external auth service](how-to/auth-external.md)
 * [Running Ambassador](user-guide/running.md)

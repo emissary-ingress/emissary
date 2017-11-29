@@ -74,7 +74,7 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-/usr/bin/python3 "$APPDIR/diagd.py" --no-debugging "$CONFIG_DIR" &
+diagd --no-debugging "$CONFIG_DIR" &
 pids+=("$!;diagd")
 
 echo "AMBASSADOR: starting Envoy"

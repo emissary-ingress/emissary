@@ -1,4 +1,17 @@
-FROM dwflynn/ambassador-envoy:v1.4.0-49-g008635a04
+# Our base image was built from https://github.com/datawire/envoy, commit
+# b2629d084, on the flynn/feature/extauth branch. We need this instead of
+# the official Envoy image so that we can support Ambassador's ability to
+# use an external authentication service.
+#
+# To reproduce the base image,
+#
+# git clone https://github.com/datawire/envoy.git datawire-envoy
+# cd datawire-envoy
+# git checkout flynn/feature/extauth
+# 
+# and then read DATAWIRE/README.md.
+
+FROM datawire/ambassador-envoy:vtest_docs_tag3-60-gb2629d084
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -29,13 +42,10 @@ COPY requirements.txt .
 # Install application dependencies
 RUN pip3 install -r requirements.txt
 
-# COPY the app code and configuration into place, then perform any final
-# configuration steps.
-
-COPY ambassador.py AmbassadorConfig.py EnvoyStats.py utils.py VERSION.py ./
-COPY templates/ ./templates
-COPY schemas/ ./schemas
-COPY diagd.py ./
+# Install the application itself
+COPY ./ ambassador
+RUN cd ambassador && python3 setup.py --quiet install
+RUN rm -rf ./ambassador
 
 # MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no
 # trouble, or you can let annotations do the right thing.

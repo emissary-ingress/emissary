@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.18.2] November 20, 2017
+[0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
+
+### Changed
+
+- The diagnostics service will now tell you when updates are available.
+
+## [0.18.0] November 20, 2017
+[0.18.0]: https://github.com/datawire/ambassador/compare/v0.17.0...v0.18.0
+
+### Changed
+
+- The Host header is no longer overwritten when Ambassador talks to an external auth service. It will now retain whatever value the client passes there.
+
+### Fixed
+
+- Checks for updates weren’t working, and they have been restored. At present you’ll only see them in the Kubernetes logs if you’re using annotations to configure Ambassador — they’ll start showing up in the diagnostics service in the next release or so.
+
+## [0.17.0] November 14, 2017
+[0.17.0]: https://github.com/datawire/ambassador/compare/v0.16.0...v0.17.0
+
+### Changed
+
+- Allow Mappings to require matches on HTTP headers and `Host`
+- Update tests, docs, and diagnostic service for header matching
+
+### Fixed
+
+- Published YAML resource files will no longer overwrite annotations on the Ambassador `service` when creating the Ambassador `deployment`
+
+## [0.16.0] November 10, 2017
+[0.16.0]: https://github.com/datawire/ambassador/compare/v0.15.0...v0.16.0
+
+### Changed
+
+- Support configuring Ambassador via `annotations` on Kubernetes `service`s
+- No need for volume mounts! Ambassador can read configuration and TLS-certificate information directly from Kubernetes to simplify your Kubernetes YAML
+- Expose more configuration elements for Envoy `route`s: `host_redirect`, `path_redirect`, `host_rewrite`, `auto_host_rewrite`, `case_sensitive`, `use_websocket`, `timeout_ms`, and `priority` get transparently copied
+
+### Fixed
+
+- Reenable support for gRPC
+
 ## [0.15.0] October 16, 2017
 [0.15.0]: https://github.com/datawire/ambassador/compare/v0.14.2...v0.15.0
 

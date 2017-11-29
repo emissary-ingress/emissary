@@ -114,13 +114,13 @@ kubectl apply -f ambassador-service.yaml
 Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use
 
 ```shell
-kubectl apply -f http://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
 ```
 
 Without RBAC, you can use
 
 ```shell
-kubectl apply -f http://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
 When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
@@ -235,4 +235,5 @@ We've just done a quick tour of some of the core features of Ambassador: diagnos
 
 - Join us on [Gitter](https://gitter.im/datawire/ambassador);
 - Learn how to [add authentication](auth-tutorial.md) to existing services; or
+- Learn how to [use gRPC with Ambassador](/how-to/grpc.md); or
 - Read about [configuring Ambassador](/reference/configuration.md).

@@ -2,6 +2,7 @@ import sys
 
 import binascii
 import click
+import json
 import os
 import shutil
 import signal
@@ -9,10 +10,11 @@ import subprocess
 import threading
 import time
 import traceback
+
 import yaml
 
 from kubernetes import client, config, watch
-from AmbassadorConfig import AmbassadorConfig
+from ambassador.config import Config
 
 KEY = "getambassador.io/config"
 
@@ -111,8 +113,10 @@ class Restarter(threading.Thread):
                 fd.write(config)
             print ("Wrote %s to %s" % (filename, path))
 
-        aconf = AmbassadorConfig(output)
-        rc = aconf.generate_envoy_config()
+        aconf = Config(output)
+        rc = aconf.generate_envoy_config(mode="kubewatch")
+
+        print("Scout reports %s" % json.dumps(rc.scout_result))       
 
         if rc:
             envoy_config = "%s-%s" % (output, "envoy.json")
@@ -312,7 +316,8 @@ def watch_loop(restarter):
     if v1:
         w = watch.Watch()
         for evt in w.stream(v1.list_service_for_all_namespaces):
-            print("Event: %s %s" % (evt["type"], evt["object"].metadata.name))
+            print("Event: %s %s/%s" % (evt["type"], 
+                                       evt["object"].metadata.namespace, evt["object"].metadata.name))
             sys.stdout.flush()
 
             if evt["type"] == "DELETED":
