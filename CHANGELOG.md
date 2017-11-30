@@ -9,6 +9,7 @@
   - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to do this.
 - HTTP access logs appear in the normal Kubernetes logs for Ambassador.
 - It’s now possible to tell `ambassador config` to read Kubernetes manifests from the filesystem and build a configuration from the annotations in them (use the `--k8s` switch).
+- Documentation on using Ambassador with Istio now reflects Ambassador 0.19.0 and Istio 0.2.12.
 
 ## [0.18.2] November 20, 2017
 [0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
