@@ -36,6 +36,9 @@
     "routes": [
         {
             "_method": "GET",
+            "_referenced_by": [
+                "tls.yaml.1"
+            ],
             "_source": "tls.yaml.1",
             "clusters": [
                 {
@@ -49,6 +52,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "tls.yaml.1"
+            ],
             "_source": "tls.yaml.1",
             "clusters": [
                 {
@@ -62,6 +68,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.1"
+            ],
             "_source": "mapping-qotm.yaml.1",
             "clusters": [
                 {
@@ -75,6 +84,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "tls.yaml.1"
+            ],
             "_source": "tls.yaml.1",
             "clusters": [
                 {

@@ -1,0 +1,22 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+  server:
+    enabled: True
+    # These are optional.
+    cert_chain_file: /etc/ambassador-config/certs/tls.crt
+    private_key_file: /etc/ambassador-config/certs/tls.key
+
+  # client:
+  #   enabled: True,
+  #   # These are optional.
+  #   cert_required: True
+  #   cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt
+
+  # This is an upstream context. Use tls: upstream in a 
+  # mapping to reference it.
+  upstream:
+    cert_chain_file: /etc/ambassador-config/certs/outbound.crt
+    private_key_file: /etc/ambassador-config/certs/outbound.key

@@ -139,7 +139,7 @@ class Config (object):
 
         return result
 
-    def __init__(self, config_dir_path, schema_dir_path=None, template_dir_path=None):
+    def __init__(self, config_dir_path, k8s=False, schema_dir_path=None, template_dir_path=None):
         self.config_dir_path = config_dir_path
 
         if not template_dir_path:
@@ -165,6 +165,8 @@ class Config (object):
 
         self.schemas = {}
         self.config = {}
+        self.tls_contexts = {}
+
         self.envoy_config = {}
         self.envoy_clusters = {}
         self.envoy_routes = {}
@@ -213,6 +215,11 @@ class Config (object):
             # "service" gets added later
         }
 
+        # 'server' and 'client' are special contexts. Others
+        # use cert_chain_file defaulting to context.crt, 
+        # private_key_file (context.key), and cacert_chain_file
+        # (context.pem).
+
         self.default_tls_config = {
             "server": {
                 "cert_chain_file": "/etc/certs/tls.crt",
@@ -245,29 +252,9 @@ class Config (object):
             # self.logger.debug("WALK %s: dirs %s, files %s" % (dirpath, dirnames, filenames))
 
             for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
-                self.filename = filename
-
                 filepath = os.path.join(dirpath, filename)
 
-                try:
-                    # XXX This is a bit of a hack -- yaml.safe_load_all returns a
-                    # generator, and if we don't use list() here, any exception
-                    # dealing with the actual object gets deferred 
-                    objects = list(yaml.safe_load_all(open(filepath, "r")))
-                except Exception as e:
-                    self.logger.error("%s: could not parse YAML: %s" % (filepath, e))
-                    self.fatal_errors += 1
-                    continue
-
-                self.ocount = 0
-                for obj in objects:
-                    self.ocount += 1
-
-                    rc = self.process_object(obj)
-
-                    if not rc:
-                        # Object error. Not good but we'll allow the system to start.
-                        self.post_error(rc)
+                self.process_yaml(filename, open(filepath, "r").read(), k8s=k8s)
 
         if self.fatal_errors:
             # Kaboom.
@@ -277,6 +264,78 @@ class Config (object):
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
         self.generate_intermediate_config()
+
+    def process_yaml(self, filename, serialization, k8s=False):
+        all_objects = []
+
+        try:
+            # XXX This is a bit of a hack -- yaml.safe_load_all returns a
+            # generator, and if we don't use list() here, any exception
+            # dealing with the actual object gets deferred 
+            ocount = 1
+
+            for obj in yaml.safe_load_all(serialization):
+                all_objects.append((filename, ocount, obj))
+                ocount += 1
+        except Exception as e:
+            self.logger.error("%s: could not parse YAML: %s" % (filename, e))
+            self.fatal_errors += 1
+
+        for filename, ocount, obj in all_objects:
+            self.filename = filename
+            self.ocount = ocount
+
+            if k8s:
+                kind = obj.get('kind', None)
+
+                if kind != "Service":
+                    self.logger.info("%s/%s: ignoring K8s %s object" % 
+                                     (self.filename, self.ocount, kind))
+                    continue
+
+                metadata = obj.get('metadata', None)
+
+                if not metadata:
+                    self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
+                                     (self.filename, self.ocount, kind))
+                    continue
+
+                annotations = metadata.get('annotations', None)
+
+                if annotations:
+                    annotations = annotations.get('getambassador.io/config', None)
+
+                # self.logger.info("annotations %s" % annotations)
+
+                if not annotations:
+                    self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
+                                     (self.filename, self.ocount, kind))
+                    continue
+
+                self.process_yaml(filename + ":annotation", annotations)
+            else:
+                rc = self.process_object(obj)
+
+                if not rc:
+                    # Object error. Not good but we'll allow the system to start.
+                    self.post_error(rc)        
+
+    def clean_and_copy(self, d):
+        out = []
+
+        for key in sorted(d.keys()):
+            original = d[key]
+            copy = dict(**original)
+
+            if '_source' in original:
+                del(original['_source'])
+
+            if '_referenced_by' in original:
+                del(original['_referenced_by'])
+
+            out.append(copy)
+
+        return out
 
     def current_source_key(self):
         return("%s.%d" % (self.filename, self.ocount))
@@ -290,9 +349,12 @@ class Config (object):
         self.logger.error("%s: %s" % (self.current_source_key(), rc))
 
     def process_object(self, obj):
-        obj_version = obj['apiVersion']
-        obj_kind = obj['kind']
-        obj_name = obj['name']
+        try:
+            obj_version = obj['apiVersion']
+            obj_kind = obj['kind']
+            obj_name = obj['name']
+        except KeyError:
+            return RichStatus.fromError("need apiVersion, kind, and name")
 
         # ...save the source info...
         source_key = "%s.%d" % (self.filename, self.ocount)
@@ -420,7 +482,8 @@ class Config (object):
 
     def add_intermediate_cluster(self, _source, name, urls, 
                                  type="strict_dns", lb_type="round_robin",
-                                 cb_name=None, od_name=None, grpc=False):
+                                 cb_name=None, od_name=None, originate_tls=None,
+                                 grpc=False):
         if name not in self.envoy_clusters:
             cluster = SourcedDict(
                 _source=_source,
@@ -439,6 +502,22 @@ class Config (object):
                 cluster['outlier_detection'] = self.outliers[od_name]
                 self.outliers[od_name]._mark_referenced_by(_source)
 
+            if originate_tls == True:
+                cluster['tls_context'] = { '_ambassador_enabled': True }
+                cluster['tls_array'] = []
+            elif (originate_tls and (originate_tls in self.tls_contexts)):
+                cluster['tls_context'] = self.tls_contexts[originate_tls]
+                self.tls_contexts[originate_tls]._mark_referenced_by(_source)
+
+                tls_array = []
+
+                for key, value in cluster['tls_context'].items():
+                    if key.startswith('_'):
+                        continue
+
+                    tls_array.append({ 'key': key, 'value': value })
+
+                cluster['tls_array'] = tls_array
             if grpc:
                 cluster['features'] = 'http2'
 
@@ -454,12 +533,49 @@ class Config (object):
             # route's set of weighted clusters.
             route["clusters"].append( { "name": cluster_name,
                                         "weight": mapping.attrs.get("weight", None) } )
+            route._mark_referenced_by(_source)
             return
 
         # OK, if here, we don't have an extent route group for this Mapping. Make a
         # new one.
         route = mapping.new_route(cluster_name)
         self.envoy_routes[mapping.group_id] = route
+
+    def service_tls_check(self, svc, context):
+        originate_tls = False
+        name_fields = None
+
+        if svc.lower().startswith("http://"):
+            originate_tls = False
+            svc = svc[len("http://"):]
+        elif svc.lower().startswith("https://"):
+            originate_tls = True
+            name_fields = [ 'otls' ]
+            svc = svc[len("https://"):]
+        elif context == True:
+            originate_tls = True
+            name_fields = [ 'otls' ]
+
+        # Separate if here because you need to be able to specify a context
+        # even after you say "https://" for the service.
+
+        if context and (context != True):
+            if context in self.tls_contexts:
+                name_fields = [ 'otls', context ]
+                originate_tls = context
+            else:
+                self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
+                                  (context, mapping_name))
+
+        port = 443 if originate_tls else 80
+        context_name = "_".join(name_fields) if name_fields else None
+
+        svc_url = 'tcp://%s' % svc
+
+        if ':' not in svc:
+            svc_url = '%s:%d' % (svc_url, port)
+
+        return (svc, svc_url, originate_tls, context_name)
 
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
@@ -596,6 +712,13 @@ class Config (object):
 
             cluster_name_fields =[ svc ]
 
+            tls_context = mapping.get('tls', None)
+
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+
+            if otls_name:
+                cluster_name_fields.append(otls_name)
+
             cb_name = mapping.get('circuit_breaker', None)
 
             if cb_name:
@@ -619,16 +742,12 @@ class Config (object):
 
             self.logger.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
 
-            url = 'tcp://%s' % svc
-
-            if ':' not in svc:
-                url += ':80'
-
             grpc = mapping.get('grpc', False)
             # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
 
             self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
-                                          cb_name=cb_name, od_name=od_name, grpc=grpc)
+                                          cb_name=cb_name, od_name=od_name, grpc=grpc,
+                                          originate_tls=originate_tls)
 
             self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
 
@@ -709,23 +828,6 @@ class Config (object):
 
         self.envoy_config['breakers'] = self.clean_and_copy(self.breakers)
         self.envoy_config['outliers'] = self.clean_and_copy(self.outliers)
-
-    def clean_and_copy(self, d):
-        out = []
-
-        for key in sorted(d.keys()):
-            original = d[key]
-            copy = dict(**original)
-
-            if '_source' in original:
-                del(original['_source'])
-
-            if '_referenced_by' in original:
-                del(original['_referenced_by'])
-
-            out.append(copy)
-
-        return out
 
     def _get_intermediate_for(self, element_list, source_keys, value):
         if not isinstance(value, dict):
@@ -836,26 +938,40 @@ class Config (object):
         tmp_config = SourcedDict(_from=amod)
         some_enabled = False
 
-        if ('server' in tmod) and tmod['server'].get('enabled', True):
-            # Server-side TLS is enabled. 
-            self.logger.debug("TLS termination enabled!")
-            some_enabled = True
+        for context_name in tmod.keys():
+            if context_name.startswith('_'):
+                continue
 
-            # Yes. Switch to port 443 by default...
-            self.set_config_ambassador(amod, 'service_port', 443)
+            context = tmod[context_name]
 
-            # ...and merge in the server-side defaults.
-            tmp_config.update(self.default_tls_config['server'])
-            tmp_config.update(tmod['server'])
+            self.logger.debug("context %s -- %s" % (context_name, json.dumps(context)))
 
-        if ('client' in tmod) and tmod['client'].get('enabled', True):
-            # Client-side TLS is enabled. 
-            self.logger.debug("TLS client certs enabled!")
-            some_enabled = True
+            if context.get('enabled', True):
+                if context_name == 'server':
+                    # Server-side TLS is enabled. 
+                    self.logger.debug("TLS termination enabled!")
+                    some_enabled = True
 
-            # Merge in the client-side defaults.
-            tmp_config.update(self.default_tls_config['client'])
-            tmp_config.update(tmod['client'])
+                    # Switch to port 443 by default...
+                    self.set_config_ambassador(amod, 'service_port', 443)
+
+                    # ...and merge in the server-side defaults.
+                    tmp_config.update(self.default_tls_config['server'])
+                    tmp_config.update(tmod['server'])
+                elif context_name == 'client':
+                    # Client-side TLS is enabled. 
+                    self.logger.debug("TLS client certs enabled!")
+                    some_enabled = True
+
+                    # Merge in the client-side defaults.
+                    tmp_config.update(self.default_tls_config['client'])
+                    tmp_config.update(tmod['client'])
+                else:
+                    # This is a wholly new thing.
+                    self.tls_contexts[context_name] = SourcedDict(
+                        _from=tmod, 
+                        **context
+                    )
 
         if some_enabled:
             if 'enabled' in tmp_config:
@@ -865,6 +981,7 @@ class Config (object):
             self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
         self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
+        self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts))
 
         return some_enabled
 
@@ -911,13 +1028,14 @@ class Config (object):
 
         if 'ext_auth_cluster' not in self.envoy_clusters:
             svc = module.get('auth_service', '127.0.0.1:5000')
+            tls_context = module.get('tls', None)
 
-            if ':' not in svc:
-                svc = "%s:80" % svc
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
 
             self.add_intermediate_cluster(module['_source'],
-                                          'cluster_ext_auth', [ "tcp://%s" % svc ],
-                                          type="logical_dns", lb_type="random")
+                                          'cluster_ext_auth', [ url ],
+                                          type="logical_dns", lb_type="random",
+                                          originate_tls=originate_tls)
 
     ### DIAGNOSTICS
     def diagnostic_overview(self):
@@ -1019,4 +1137,3 @@ class Config (object):
 if __name__ == '__main__':
     aconf = Config(sys.argv[1])
     print(json.dumps(aconf.diagnostic_overview(), indent=4, sort_keys=True))
-

@@ -5,11 +5,8 @@ export LANG=C.UTF-8
 
 APPDIR=${APPDIR:-/application}
 
-ARG="$1"
-shift
-
 env | grep V
-echo "DEMO: version $ARG, args $@"
+echo "DEMO: args $@"
 
 pids=()
 
@@ -40,7 +37,7 @@ trap "handle_chld" CHLD
 ROOT=$$
 
 echo "DEMO: starting demo service"
-/usr/bin/python3 "$APPDIR/demo.py" "$VERSION" &
+/usr/bin/python3 "$APPDIR/demo.py" "$@" &
 pids+=("$!;demo")
 
 echo "DEMO: waiting"

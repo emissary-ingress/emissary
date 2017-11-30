@@ -36,6 +36,9 @@
     "routes": [
         {
             "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
             "_source": "ambassador.yaml.1",
             "clusters": [
                 {
@@ -49,6 +52,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.1"
+            ],
             "_source": "mapping-qotm.yaml.1",
             "clusters": [
                 {
@@ -62,6 +68,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
             "_source": "ambassador.yaml.1",
             "clusters": [
                 {

@@ -51,23 +51,11 @@
         },
         {
             "_referenced_by": [
-                "mapping-google.yaml.1"
-            ],
-            "_source": "mapping-google.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_google_com_80",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://google.com:80"
-            ]
-        },
-        {
-            "_referenced_by": [
                 "mapping-httpbin.yaml.1"
             ],
             "_source": "mapping-httpbin.yaml.1",
             "lb_type": "round_robin",
-            "name": "cluster_httpbin_org",
+            "name": "cluster_http___httpbin_org",
             "type": "strict_dns",
             "urls": [
                 "tcp://httpbin.org:80"
@@ -75,8 +63,35 @@
         },
         {
             "_referenced_by": [
+                "mapping-evil.yaml.2"
+            ],
+            "_source": "mapping-evil.yaml.2",
+            "lb_type": "round_robin",
+            "name": "cluster_http___qotm",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://qotm:80"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-google.yaml.1"
+            ],
+            "_source": "mapping-google.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_https___google_com_otls",
+            "tls_array": [],
+            "tls_context": {
+                "_ambassador_enabled": true
+            },
+            "type": "strict_dns",
+            "urls": [
+                "tcp://google.com:443"
+            ]
+        },
+        {
+            "_referenced_by": [
                 "mapping-evil.yaml.1",
-                "mapping-evil.yaml.2",
                 "mapping-qotm.yaml.1"
             ],
             "_source": "mapping-evil.yaml.1",
@@ -175,6 +190,9 @@
     "routes": [
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.2"
+            ],
             "_source": "mapping-qotm.yaml.2",
             "clusters": [
                 {
@@ -188,10 +206,13 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-httpbin.yaml.1"
+            ],
             "_source": "mapping-httpbin.yaml.1",
             "clusters": [
                 {
-                    "name": "cluster_httpbin_org",
+                    "name": "cluster_http___httpbin_org",
                     "weight": 100.0
                 }
             ],
@@ -202,6 +223,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
             "_source": "ambassador.yaml.1",
             "clusters": [
                 {
@@ -215,6 +239,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-grpc.yaml.1"
+            ],
             "_source": "mapping-grpc.yaml.1",
             "clusters": [
                 {
@@ -228,6 +255,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
             "_source": "ambassador.yaml.1",
             "clusters": [
                 {
@@ -241,10 +271,13 @@
         },
         {
             "_method": "PUT",
+            "_referenced_by": [
+                "mapping-evil.yaml.2"
+            ],
             "_source": "mapping-evil.yaml.2",
             "clusters": [
                 {
-                    "name": "cluster_qotm",
+                    "name": "cluster_http___qotm",
                     "weight": 100.0
                 }
             ],
@@ -261,6 +294,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.1"
+            ],
             "_source": "mapping-qotm.yaml.1",
             "clusters": [
                 {
@@ -274,6 +310,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm2.yaml.1"
+            ],
             "_source": "mapping-qotm2.yaml.1",
             "clusters": [
                 {
@@ -287,6 +326,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
             "_source": "ambassador.yaml.1",
             "clusters": [
                 {
@@ -300,6 +342,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.3"
+            ],
             "_source": "mapping-qotm.yaml.3",
             "clusters": [
                 {
@@ -313,10 +358,13 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-google.yaml.1"
+            ],
             "_source": "mapping-google.yaml.1",
             "clusters": [
                 {
-                    "name": "cluster_google_com_80",
+                    "name": "cluster_https___google_com_otls",
                     "weight": 100.0
                 }
             ],
@@ -327,6 +375,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-evil.yaml.1"
+            ],
             "_source": "mapping-evil.yaml.1",
             "clusters": [
                 {

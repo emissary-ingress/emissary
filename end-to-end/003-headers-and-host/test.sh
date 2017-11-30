@@ -20,7 +20,9 @@ export KUBECONFIG=${HOME}/.kube/kubernaut
 
 kubectl cluster-info
 
-kubectl apply -f k8s
+kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f k8s/demo1.yaml
+kubectl apply -f k8s/demo2.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
 
 set +e +o pipefail

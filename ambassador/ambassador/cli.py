@@ -31,8 +31,8 @@ def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
     if Config.scout:
-        Config.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
-                            runtime=Config.runtime, **kwargs)
+        result = Config.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
+                                     runtime=Config.runtime, **kwargs)
 
         logger.debug("Scout %s, result: %s" %
                      ("disabled" if Config.scout.disabled else "enabled", result))
@@ -86,9 +86,9 @@ def showid():
     else:
         print("unknown")
 
-def parse_config(config_dir_path, template_dir_path=None, schema_dir_path=None):
+def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_path=None):
     try:
-        return Config(config_dir_path, 
+        return Config(config_dir_path, k8s=k8s,
                       template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
     except Exception as e:
         handle_exception("EXCEPTION from parse_config", e, 
@@ -115,13 +115,15 @@ def dump(config_dir_path:Parameter.REQUIRED):
         # This is fatal.
         sys.exit(1)
 
-def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *, check=False):
+def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *, 
+           check=False, k8s=False):
     """
     Generate an Envoy configuration
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param output_json_path: Path to output envoy.json
     :param check: If set, generate configuration only if it doesn't already exist
+    :param k8s: If set, assume configuration files are annotated K8s manifests
     """
 
     try:
@@ -158,7 +160,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # Either we didn't need to check, or the check didn't turn up
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
-            aconf = parse_config(config_dir_path)
+            aconf = parse_config(config_dir_path, k8s=k8s)
             rc = aconf.generate_envoy_config(mode="cli", check=check)
 
             if rc:

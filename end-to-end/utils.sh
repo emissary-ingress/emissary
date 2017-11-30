@@ -47,7 +47,7 @@ wait_for_ready () {
     ready=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl $baseurl/ambassador/v0/check_ready 2>&1 | grep -c 'readiness check OK')
+        OK=$(curl -k $baseurl/ambassador/v0/check_ready 2>&1 | grep -c 'readiness check OK')
 
         if [ $OK -gt 0 ]; then
             printf "ambassador ready           \n"
@@ -72,7 +72,7 @@ wait_for_extauth_running () {
     ready=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl -s $baseurl/example-auth/ready | egrep -c '^OK ')
+        OK=$(curl -k -s $baseurl/example-auth/ready | egrep -c '^OK ')
 
         if [ $OK -gt 0 ]; then
             printf "extauth ready              \n"
@@ -97,7 +97,7 @@ wait_for_extauth_enabled () {
     enabled=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl -s $baseurl/ambassador/v0/diag/ambassador.yaml.1?json=true | jget.py /filters/0/name 2>&1 | egrep -c 'extauth')
+        OK=$(curl -k -s $baseurl/ambassador/v0/diag/ambassador.yaml.1?json=true | jget.py /filters/0/name 2>&1 | egrep -c 'extauth')
 
         if [ $OK -gt 0 ]; then
             printf "extauth enabled            \n"
@@ -144,7 +144,7 @@ check_diag () {
 
     rc=1
 
-    curl -s ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json
+    curl -k -s ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json
 
     if ! cmp -s check-$index.json diag-$index.json; then
         echo "check_diag $index: mismatch for $desc"

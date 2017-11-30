@@ -23,7 +23,8 @@
             "stat_prefix": "ingress_http",
             "access_log": [
               {
-                "path": "/tmp/access_log"
+                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                "path": "/dev/fd/1"
               }
             ],
             "route_config": {
@@ -103,6 +104,11 @@
           "consecutive_5xx": {{ cluster.outlier_detection.consecutive_5xx or 5 }},
           "max_ejection_percent": {{ cluster.outlier_detection.max_ejection or 100 }},
           "interval_ms": {{ cluster.outlier_detection.interval_ms or 3000 }}
+        }{%- endif -%}{%- if cluster.tls_context -%},
+        "ssl_context": {
+          {% for entry in cluster.tls_array %}
+          "{{ entry.key }}": "{{ entry.value }}"{{ "," if not loop.last }}
+          {% endfor %}
         }{%- endif -%}
       }{{ "," if not loop.last }}
       {% endfor %}

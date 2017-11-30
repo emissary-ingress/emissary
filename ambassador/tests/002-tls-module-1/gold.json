@@ -1,118 +1,115 @@
 {
-    "admin":{
-        "access_log_path":"/tmp/admin_access_log",
-        "address":"tcp://127.0.0.1:4242"
-    },
-    "cluster_manager":{
-        "clusters":[
-            {
-                "connect_timeout_ms":3000,
-                "hosts":[
-                    {
-                        "url":"tcp://127.0.0.1:8877"
-                    }
-                ],
-                "lb_type":"round_robin",
-                "name":"cluster_127_0_0_1_8877",
-                "type":"strict_dns"
-            },
-            {
-                "connect_timeout_ms":3000,
-                "hosts":[
-                    {
-                        "url":"tcp://qotm:80"
-                    }
-                ],
-                "lb_type":"round_robin",
-                "name":"cluster_qotm",
-                "type":"strict_dns"
-            }
-        ]
-    },
-    "listeners":[
+  "listeners": [
+    {
+      "address": "tcp://0.0.0.0:443",
+      "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+          "private_key_file": "/etc/ambassador-config/certs/tls.key","ca_cert_file": "/etc/ambassador-config/ca_cert_chain/tls.crt","require_client_certificate": true
+      },"filters": [
         {
-            "address":"tcp://0.0.0.0:443",
-            "filters":[
-                {
-                    "config":{
-                        "access_log":[
-                            {
-                                "path":"/tmp/access_log"
-                            }
-                        ],
-                        "codec_type":"auto",
-                        "filters":[
-                            {
-                                "config":{},
-                                "name":"router",
-                                "type":"decoder"
-                            }
-                        ],
-                        "route_config":{
-                            "virtual_hosts":[
-                                {
-                                    "domains":[
-                                        "*"
-                                    ],
-                                    "name":"backend",
-                                    "routes":[
-                                        {
-                                            "prefix":"/ambassador/v0/check_ready",
-                                            "prefix_rewrite":"/ambassador/v0/check_ready",
-                                            "timeout_ms":10000,
-                                            "weighted_clusters":{
-                                                "clusters":[
-                                                    {
-                                                        "name":"cluster_127_0_0_1_8877",
-                                                        "weight":100.0
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "prefix":"/ambassador/v0/",
-                                            "prefix_rewrite":"/ambassador/v0/",
-                                            "timeout_ms":10000,
-                                            "weighted_clusters":{
-                                                "clusters":[
-                                                    {
-                                                        "name":"cluster_127_0_0_1_8877",
-                                                        "weight":100.0
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "prefix":"/qotm/",
-                                            "prefix_rewrite":"/",
-                                            "timeout_ms":10000,
-                                            "weighted_clusters":{
-                                                "clusters":[
-                                                    {
-                                                        "name":"cluster_qotm",
-                                                        "weight":100.0
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        "stat_prefix":"ingress_http"
-                    },
-                    "name":"http_connection_manager",
-                    "type":"read"
-                }
+          "type": "read",
+          "name": "http_connection_manager",
+          "config": {
+            "codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "access_log": [
+              {
+                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                "path": "/dev/fd/1"
+              }
             ],
-            "ssl_context":{
-                "ca_cert_file":"/etc/ambassador-config/ca_cert_chain/tls.crt",
-                "cert_chain_file":"/etc/ambassador-config/certs/tls.crt",
-                "private_key_file":"/etc/ambassador-config/certs/tls.key",
-                "require_client_certificate":true
-            }
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "name": "backend",
+                  "domains": ["*"],
+                  "routes": [
+                    
+                    {
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/",
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_qotm", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    
+                    
+                  ]
+                }
+              ]
+            },
+            "filters": [
+              { 
+                "type": "decoder",
+                "name": "router",
+                "config": {}
+              }
+            ]
+          }
         }
-    ],
-    "stats_flush_interval_ms":1000,
-    "statsd_udp_ip_address":"127.0.0.1:8125"
+      ]
+    }    
+  ],
+  "admin": {
+    "address": "tcp://127.0.0.1:4242",
+    "access_log_path": "/tmp/admin_access_log"
+  },
+  "cluster_manager": {
+    "clusters": [
+      {
+        "name": "cluster_127_0_0_1_8877",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://127.0.0.1:8877"
+          }
+          
+        ]},
+      {
+        "name": "cluster_qotm",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://qotm:80"
+          }
+          
+        ]}
+      
+    ]
+  },
+  "statsd_udp_ip_address": "127.0.0.1:8125",
+  "stats_flush_interval_ms": 1000
 }

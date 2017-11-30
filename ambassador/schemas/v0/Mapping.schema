@@ -16,6 +16,7 @@
         "circuit_breaker": { "type": "string" },
         "outlier_detection": { "type": "string" },
         "grpc": { "type": "boolean" },
+        "tls": { "type": [ "string", "boolean" ] },
         "modules": {
             "type": "array",
             "items": {
@@ -31,7 +32,7 @@
     "definitions": {
         "mapStrStr": {
             "type": "object",
-            "additionalProperties": { "type": "string" }
+            "additionalProperties": { "type": [ "string", "boolean" ] }
         }
     },
     "required": [ "apiVersion", "kind", "name", "prefix", "service" ],

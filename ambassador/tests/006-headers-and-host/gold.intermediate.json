@@ -89,6 +89,9 @@
     "routes": [
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.1"
+            ],
             "_source": "mapping-qotm.yaml.1",
             "clusters": [
                 {
@@ -109,6 +112,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-diag.yaml.1"
+            ],
             "_source": "mapping-diag.yaml.1",
             "clusters": [
                 {
@@ -122,6 +128,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.2"
+            ],
             "_source": "mapping-qotm.yaml.2",
             "clusters": [
                 {
@@ -142,6 +151,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.3"
+            ],
             "_source": "mapping-qotm.yaml.3",
             "clusters": [
                 {
@@ -168,6 +180,9 @@
         },
         {
             "_method": "GET",
+            "_referenced_by": [
+                "mapping-httpbin.yaml.1"
+            ],
             "_source": "mapping-httpbin.yaml.1",
             "clusters": [
                 {

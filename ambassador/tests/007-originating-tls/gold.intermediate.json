@@ -1,0 +1,111 @@
+{
+    "clusters": [
+        {
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
+            "_source": "ambassador.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_127_0_0_1_8877",
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        {
+            "_referenced_by": [
+                "mapping-qotm.yaml.1"
+            ],
+            "_source": "mapping-qotm.yaml.1",
+            "lb_type": "round_robin",
+            "name": "cluster_qotm_otls_upstream",
+            "tls_array": [
+                {
+                    "key": "cert_chain_file",
+                    "value": "/etc/ambassador-config/certs/outbound.crt"
+                },
+                {
+                    "key": "private_key_file",
+                    "value": "/etc/ambassador-config/certs/outbound.key"
+                }
+            ],
+            "tls_context": {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_source": "tls.yaml.1",
+                "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
+                "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+            },
+            "type": "strict_dns",
+            "urls": [
+                "tcp://qotm:443"
+            ]
+        }
+    ],
+    "filters": [],
+    "listeners": [
+        {
+            "_source": "ambassador.yaml.1",
+            "admin_port": 4242,
+            "service_port": 443
+        }
+    ],
+    "routes": [
+        {
+            "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+            "prefix": "/ambassador/v0/check_ready",
+            "prefix_rewrite": "/ambassador/v0/check_ready"
+        },
+        {
+            "_method": "GET",
+            "_referenced_by": [
+                "mapping-qotm.yaml.1"
+            ],
+            "_source": "mapping-qotm.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_qotm_otls_upstream",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
+            "prefix": "/qotm/",
+            "prefix_rewrite": "/"
+        },
+        {
+            "_method": "GET",
+            "_referenced_by": [
+                "ambassador.yaml.1"
+            ],
+            "_source": "ambassador.yaml.1",
+            "clusters": [
+                {
+                    "name": "cluster_127_0_0_1_8877",
+                    "weight": 100.0
+                }
+            ],
+            "group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+            "prefix": "/ambassador/v0/",
+            "prefix_rewrite": "/ambassador/v0/"
+        }
+    ],
+    "tls": [
+        {
+            "_source": "tls.yaml.1",
+            "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+            "private_key_file": "/etc/ambassador-config/certs/tls.key"
+        }
+    ]
+}

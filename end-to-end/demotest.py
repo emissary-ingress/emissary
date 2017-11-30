@@ -7,12 +7,22 @@ import os
 import requests
 import yaml
 
+# Yes, it's a terrible idea to use skip cert verification for TLS.
+# We really don't care for this test though.
+import urllib3
+urllib3.disable_warnings()
+
 def call(url, headers=None, iterations=1):
     got = {}
 
     for x in range(iterations):
-        result = requests.get(url, headers=headers)
+        # Yes, it's a terrible idea to use skip cert verification for TLS.
+        # We really don't care for this test though.
+        result = requests.get(url, headers=headers, verify=False)
         version = 'unknown'
+
+        sys.stdout.write('.')
+        sys.stdout.flush()
 
         if result.status_code != 200:
             version='failure %d' % result.status_code
@@ -24,6 +34,9 @@ def call(url, headers=None, iterations=1):
         got.setdefault(version, 0)
         got[version] += 1
 
+    sys.stdout.write("\n")
+    sys.stdout.flush()
+    
     return got
 
 def test_demo(base, v2_wanted):
@@ -115,7 +128,7 @@ def test_from_yaml(base, yaml_path):
 if __name__ == "__main__":
     base = sys.argv[1]
 
-    if not base.startswith("http://"):
+    if not (base.startswith("http://") or base.startswith("https://")):
         base = "http://%s" % base
 
     v2_percent = None
