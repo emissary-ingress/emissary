@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.19.0] November 20, 2017
+[0.19.0]: https://github.com/datawire/ambassador/compare/v0.18.2...v0.19.0
+
+### Changed
+
+- Ambassador can now use HTTPS upstream services: just use a `service` that starts with `https://` to enable it.
+  - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to do this.
+- HTTP access logs appear in the normal Kubernetes logs for Ambassador.
+
 ## [0.18.2] November 20, 2017
 [0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
 
