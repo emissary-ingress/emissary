@@ -92,7 +92,7 @@
         "_source": "demo1.yaml.2",
         "clusters": [
             {
-                "name": "cluster_demo1_443_otls",
+                "name": "cluster_https___demo1_443_otls",
                 "weight": 100.0
             }
         ],
@@ -115,7 +115,7 @@
         "_source": "demo2.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo2_443_otls_upstream",
+                "name": "cluster_https___demo2_443_otls",
                 "weight": 100.0
             }
         ],
