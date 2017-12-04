@@ -147,7 +147,11 @@
             <div class="col-7">
               <code>{{ cluster['name'] }}</code> -- 
               {% if cluster_stats[cluster.name].valid %}
-                {{ cluster_stats[cluster.name].healthy_percent }}% healthy
+                {% if cluster_stats[cluster.name].healthy_percent != None %}
+                  {{ cluster_stats[cluster.name].healthy_percent }}% healthy
+                {% else %}
+                  no requests yet
+                {% endif %}
               {% else %}
                 unknown health ({{ cluster_stats[cluster.name].reason }})
               {% endif %}
