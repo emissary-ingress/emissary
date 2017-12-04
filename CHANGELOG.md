@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.19.1] December 4, 2017
+[0.19.1]: https://github.com/datawire/ambassador/compare/v0.19.0...v0.19.1
+
+### Changed
+
+- Allow the diag service to look good (well, OK, not too horrible anyway) when Ambassador is running with TLS termination.
+- Show clusters on the overview page again.
+- The diag service now shows you the "health" of a cluster by computing it from the number of requests to a given service that didn't involve a 5xx status code, rather than just forwarding Envoy's stat, since we don't configure Envoy's stat in a meaningful way yet.
+- Make sure that the tests correctly reported failures (sigh).
+- Allow updating out-of-date diagnostic reports without requiring multiple test runs.
+
 ## [0.19.0] November 20, 2017
 [0.19.0]: https://github.com/datawire/ambassador/compare/v0.18.2...v0.19.0
 
