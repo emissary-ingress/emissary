@@ -1,6 +1,9 @@
 [
     {
         "_method": "GET",
+        "_referenced_by": [
+            "--internal--"
+        ],
         "_source": "--internal--",
         "clusters": [
             {
@@ -14,6 +17,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "--internal--"
+        ],
         "_source": "--internal--",
         "clusters": [
             {
@@ -27,6 +33,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "--internal--"
+        ],
         "_source": "--internal--",
         "clusters": [
             {
@@ -40,6 +49,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "ambassador.yaml.1"
+        ],
         "_source": "ambassador.yaml.1",
         "clusters": [
             {
@@ -53,6 +65,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "demo1.yaml.2"
+        ],
         "_source": "demo1.yaml.2",
         "clusters": [
             {
@@ -73,6 +88,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "demo2.yaml.1"
+        ],
         "_source": "demo2.yaml.1",
         "clusters": [
             {
@@ -93,6 +111,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "demo1.yaml.1"
+        ],
         "_source": "demo1.yaml.1",
         "clusters": [
             {

@@ -148,6 +148,11 @@ check_diag () {
 
     if ! cmp -s check-$index.json diag-$index.json; then
         echo "check_diag $index: mismatch for $desc"
+
+        if diag-diff.sh $index; then
+            diag-fix.sh $index
+            rc=0
+        fi
     else
         echo "check_diag $index: OK"
         rc=0
