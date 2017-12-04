@@ -168,7 +168,7 @@ class EnvoyStats (object):
 
                     upstream_4xx = cluster.get('upstream_rq_4xx', 0)
                     upstream_5xx = cluster.get('upstream_rq_5xx', 0)
-                    upstream_bad = upstream_4xx + upstream_5xx
+                    upstream_bad = upstream_5xx # used to include 4XX here, but that seems wrong.
 
                     upstream_ok = upstream_total - upstream_bad
 
