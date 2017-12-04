@@ -1,6 +1,9 @@
 [
     {
         "_method": "GET",
+        "_referenced_by": [
+            "--internal--"
+        ],
         "_source": "--internal--",
         "clusters": [
             {
@@ -14,6 +17,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "--internal--"
+        ],
         "_source": "--internal--",
         "clusters": [
             {
@@ -27,6 +33,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "--internal--"
+        ],
         "_source": "--internal--",
         "clusters": [
             {
@@ -40,6 +49,9 @@
     },
     {
         "_method": "GET",
+        "_referenced_by": [
+            "base-config.yaml.1"
+        ],
         "_source": "base-config.yaml.1",
         "clusters": [
             {

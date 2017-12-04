@@ -152,7 +152,7 @@ class EnvoyStats (object):
                     # mapping_name = active_cluster_map[cluster_name]
                     # active_mappings[mapping_name] = {}
 
-                    # logging.info("SVC %s has cluster" % mapping_name)
+                    # logging.info("cluster %s stats: %s" % (cluster_name, cluster))
 
                     healthy_members = cluster['membership_healthy']
                     total_members = cluster['membership_total']
@@ -162,12 +162,24 @@ class EnvoyStats (object):
                     update_successes = cluster['update_success']
                     update_percent = percentage(update_successes, update_attempts)
 
-                    upstream_ok = cluster.get('upstream_rq_2xx', 0)
+                    # Weird.
+                    # upstream_ok = cluster.get('upstream_rq_2xx', 0)
+                    upstream_total = cluster.get('upstream_rq_pending_total', 0)
+
                     upstream_4xx = cluster.get('upstream_rq_4xx', 0)
                     upstream_5xx = cluster.get('upstream_rq_5xx', 0)
-                    upstream_bad = upstream_4xx + upstream_5xx
+                    upstream_bad = upstream_5xx # used to include 4XX here, but that seems wrong.
 
-                    # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
+                    upstream_ok = upstream_total - upstream_bad
+
+                    # logging.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
+
+                    if upstream_total > 0:
+                        healthy_percent = percentage(upstream_ok, upstream_total)
+                        logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
+                    else:
+                        healthy_percent = None
+                        logging.debug("cluster %s has had no requests" % cluster_name)
 
                     # active_mappings[mapping_name] = {
                     active_clusters[cluster_name] = {

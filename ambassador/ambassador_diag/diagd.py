@@ -237,7 +237,7 @@ def show_overview(reqid=None):
 
     ov = aconf(app).diagnostic_overview()
     cstats = cluster_stats(ov['clusters'])
-    del(ov['clusters'])
+    # del(ov['clusters'])
 
     for source in ov['sources']:
         for obj in source['objects'].values():

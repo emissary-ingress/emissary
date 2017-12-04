@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+set -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
 
