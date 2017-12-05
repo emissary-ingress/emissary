@@ -10,7 +10,7 @@ You'll need to follow the steps in the [Ambassador TLS Termination](/how-to/tls-
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
 ```
 
-to create the HTTPS Ambassador service. 
+to create the HTTPS Ambassador service.
 
 ### Creating the Ambassador Service Without TLS
 
@@ -55,3 +55,15 @@ for the diagnostics overview. Some of the most important information - your Amba
 If needed, you can get JSON output from the diagnostic service, instead of HTML:
 
 `curl http://localhost:8877/ambassador/v0/diag/?json=true`
+
+## Debugging
+
+If you're running into an issue and the diagnostics service does not provie sufficient information, you can increase the debug level of Envoy. To do so:
+
+* get a shell on your Ambassador pod with `kubectl exec`
+* Turn Envoy’s debug logging on with `curl localhost:8001/logging?level=debug`
+* Issue your request
+* Turn Envoy’s logging back to normal with `curl localhost:8001/logging?level=warning`
+* View Envoy's logs with `kubectl logs`
+
+Envoy’s debug logging is very verbose. You can do `localhost:8001/logging?level=debug; sleep 5; curl localhost:8001/logging?level=warning` and then issue the request right after pressing RETURN on that.
