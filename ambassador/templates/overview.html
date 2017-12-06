@@ -22,7 +22,7 @@
       <h1>Ambassador Diagnostic Overview</h1>
 
       <div class="row">
-        <div class="col-12">
+        <div class="col-7">
           Ambassador version {{ system.version }}
           <br/>
           Hostname {{ system.hostname }}
@@ -36,6 +36,41 @@
           {% else %}
           Envoy not running!!
           {% endif %}
+        </div>
+        <div class="col-5">
+          {% if loginfo %}
+            {% if loginfo.all %}
+              Current log level: {{ loginfo.all }}
+            {% else %}
+              Current log levels:
+              <ul>
+                {% for level, elements in loginfo.items() | sort %}
+                <li>{{ level }}: {{ ", ".join(elements) }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% else %}
+            Current log levels: unknown
+          {% endif %}
+
+          <div class="row">
+            <table border="0" width="100%">
+              <tbody>
+                <tr>
+                  <td width="50%" align="center">
+                    <a href="/ambassador/v0/diag/?loglevel=debug">
+                      <button type="button" class="btn btn-warning">Set Debug On</button>
+                    </a>
+                  </td>
+                  <td width="50%" align="center">
+                    <a href="/ambassador/v0/diag/?loglevel=info">
+                      <button type="button" class="btn btn-warning">Set Debug Off</button>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>        
         </div>
       </div>
 

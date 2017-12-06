@@ -14,6 +14,7 @@ class EnvoyStats (object):
         self.update_errors = 0
         self.max_live_age = max_live_age
         self.max_ready_age = max_ready_age
+        self.loginfo = None
 
         self.stats = {
             "created": time.time(),
@@ -88,14 +89,48 @@ class EnvoyStats (object):
 
         return cstat
 
-    # def update(self, active_mapping_names):
-    def update(self):
-        # Remember how many update errors we had before...
-        update_errors = self.stats['update_errors']
+    def update_log_levels(self, last_attempt, level=None):
+        try:
+            url = "http://127.0.0.1:8001/logging"
 
-        # ...and remember when we started.
-        last_attempt = time.time()
+            if level:
+                url += "?level=%s" % level
 
+            r = requests.get(url)
+        except OSError as e:
+            logging.warning("EnvoyStats.update_log_levels failed: %s" % e)
+            self.stats['update_errors'] += 1
+            return False
+
+        # OMFG. Querying log levels returns with a 404 code.
+        if (r.status_code != 200) and (r.status_code != 404):
+            logging.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
+            self.stats['update_errors'] += 1
+            return False   
+
+        levels = {}
+
+        for line in r.text.split("\n"):
+            if not line:
+                continue
+
+            if line.startswith('  '):
+                ( logtype, level ) = line[2:].split(": ")
+
+                x = levels.setdefault(level, {})
+                x[logtype] = True
+
+        # logging.info("levels: %s" % levels)
+
+        if len(levels.keys()) == 1:
+            self.loginfo = { 'all': list(levels.keys())[0] }
+        else:
+            self.loginfo = { x: levels[x] for x in sorted(levels.keys()) }
+
+        # logging.info("loginfo: %s" % self.loginfo)
+        return True
+        
+    def update_envoy_stats(self, last_attempt):
         try:
             r = requests.get("http://127.0.0.1:8001/stats")
         except OSError as e:
@@ -203,8 +238,17 @@ class EnvoyStats (object):
         self.stats.update({
             "last_update": last_update,
             "last_attempt": last_attempt,
-            "update_errors": update_errors,
-            # "mappings": active_mappings,
             "clusters": active_clusters,
             "envoy": envoy_stats
         })
+
+    # def update(self, active_mapping_names):
+    def update(self):
+        try:
+            # Remember when we started.
+            last_attempt = time.time()
+
+            self.update_log_levels(last_attempt)
+            self.update_envoy_stats(last_attempt)
+        except Exception as e:
+            logging.error("could not update Envoy stats: %s" % e)

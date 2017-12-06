@@ -16,7 +16,7 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, request, jsonify # Response
+from flask import Flask, render_template, request, jsonify, redirect # Response
 
 from ambassador.config import Config
 from ambassador.VERSION import Version
@@ -235,9 +235,21 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
+    notices = []
+    loglevel = request.args.get('loglevel', None)
+
+    if loglevel:
+        app.logger.debug("OV %s -- requesting loglevel %s" % (reqid, loglevel))
+
+        if not app.estats.update_log_levels(time.time(), level=loglevel):
+            notices = [ "Could not update log level!" ]
+        # else:
+        #     return redirect("/ambassador/v0/diag/", code=302)
+
     ov = aconf(app).diagnostic_overview()
     cstats = cluster_stats(ov['clusters'])
-    # del(ov['clusters'])
+
+    notices.extend(clean_notices(Config.scout_notices))
 
     for source in ov['sources']:
         for obj in source['objects'].values():
@@ -245,8 +257,9 @@ def show_overview(reqid=None):
 
     tvars = dict(system=system_info(), 
                  envoy_status=envoy_status(app.estats), 
+                 loginfo=app.estats.loginfo,
                  cluster_stats=cstats,
-                 notices=clean_notices(Config.scout_notices),
+                 notices=notices,
                  **ov)
 
     if request.args.get('json', None):
@@ -279,6 +292,7 @@ def show_intermediate(source=None, reqid=None):
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
+                 loginfo=app.estats.loginfo,
                  method=method, resource=resource,
                  notices=clean_notices(Config.scout_notices),
                  **result)
