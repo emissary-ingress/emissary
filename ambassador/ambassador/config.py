@@ -1076,8 +1076,8 @@ class Config (object):
         source_files = {}
     
         for filename, source_keys in self.source_map.items():
-            self.logger.debug("overview -- filename %s, source_keys %d" %
-                              (filename, len(source_keys)))
+            # self.logger.debug("overview -- filename %s, source_keys %d" %
+            #                   (filename, len(source_keys)))
 
             # Skip '--internal--' etc.
             if filename.startswith('--'):
@@ -1096,7 +1096,7 @@ class Config (object):
             )
 
             for source_key in source_keys:
-                self.logger.debug("overview --- source_key %s" % source_key)
+                # self.logger.debug("overview --- source_key %s" % source_key)
 
                 source = self.sources[source_key]
                 raw_errors = self.errors.get(source_key, [])
@@ -1139,7 +1139,7 @@ class Config (object):
                         routes=routes,
                         **configuration)
 
-        self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
+        # self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
 
         return overview
 
