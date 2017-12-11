@@ -1,6 +1,7 @@
 import sys
 
 import collections
+import datetime
 import json
 import logging
 import os
@@ -89,26 +90,58 @@ class Config (object):
     scout_latest_semver = None
     scout_notices = []
 
+    scout_last_response = None
+    scout_last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
+    scout_update_frequency = datetime.timedelta(hours=4)
+
     @classmethod
     def scout_report(klass, force_result=None, **kwargs):
+        _notices = []
+
+        env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
+        if env_result:
+            force_result = json.loads(env_result)
+
         result = force_result
+        result_timestamp = None
+        result_was_cached = False
 
         if not result:
             if Config.scout:
                 if 'runtime' not in kwargs:
                     kwargs['runtime'] = Config.runtime
 
-                result = Config.scout.report(**kwargs)
+                # How long since the last Scout update? If it's been more than an hour, 
+                # check Scout again.
+
+                now = datetime.datetime.now()
+
+                if (now - Config.scout_last_update) > Config.scout_update_frequency:
+                    result = Config.scout.report(**kwargs)
+
+                    Config.scout_last_update = now
+                    Config.scout_last_result = dict(**result)
+                else:
+                    # _notices.append({ "level": "debug", "message": "Returning cached result" })
+                    result = dict(**Config.scout_last_result)
+                    result_was_cached = True
+
+                result_timestamp = Config.scout_last_update
             else:
                 result = { "scout": "unavailable" }
-
-        _notices = []
+                result_timestamp = datetime.datetime.now()
+        else:
+            _notices.append({ "level": "debug", "message": "Returning forced result" })
+            result_timestamp = datetime.datetime.now()
 
         if not Config.current_semver:
             _notices.append({
                 "level": "warning",
                 "message": "Ambassador has bad version '%s'??!" % Config.scout_version
             })
+
+        result['cached'] = result_was_cached
+        result['timestamp'] = result_timestamp.timestamp()
 
         # Do version & notices stuff.      
         if 'latest_version' in result:
