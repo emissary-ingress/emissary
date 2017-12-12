@@ -27,7 +27,6 @@ from .envoy import EnvoyStats
 __version__ = Version
 
 boot_time = datetime.datetime.now()
-last_scout_update = datetime.datetime.now() - datetime.timedelta(hours=24)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -114,20 +113,14 @@ def aconf(app):
 
     aconf = Config(latest)
 
-    # How long since the last Scout update? If it's been more than an hour, 
-    # check Scout again.
+    uptime = datetime.datetime.now() - boot_time
+    hr_uptime = td_format(uptime)
 
-    now = datetime.datetime.now()
+    result = Config.scout_report(mode="diagd", runtime=Config.runtime,
+                                 uptime=int(uptime.total_seconds()),
+                                 hr_uptime=hr_uptime)
 
-    if (now - last_scout_update) > datetime.timedelta(hours=1):
-        uptime = now - boot_time
-        hr_uptime = td_format(uptime)
-
-        result = Config.scout_report(mode="diagd", runtime=Config.runtime,
-                                     uptime=int(uptime.total_seconds()),
-                                     hr_uptime=hr_uptime)
-
-        app.logger.debug("Scout reports %s" % json.dumps(result))
+    app.logger.info("Scout reports %s" % json.dumps(result))
 
     return aconf
 

@@ -3,18 +3,32 @@ import sys
 import binascii
 import click
 import json
+import logging
 import os
 import shutil
 import signal
 import subprocess
 import threading
 import time
-import traceback
 
 import yaml
 
 from kubernetes import client, config, watch
 from ambassador.config import Config
+
+from ambassador.VERSION import Version
+
+__version__ = Version
+
+logging.basicConfig(
+    level=logging.INFO, # if appDebug else logging.INFO,
+    format="%%(asctime)s kubewatch %s %%(levelname)s: %%(message)s" % __version__,
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+# logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
+logger = logging.getLogger("kubewatch")
+logger.setLevel(logging.DEBUG)
 
 KEY = "getambassador.io/config"
 
@@ -64,14 +78,14 @@ class Restarter(threading.Thread):
 
     def read_fs(self, path):
         if os.path.exists(path):
-            print("Merging config inputs from %s" % path)
+            logger.info("Merging config inputs from %s" % path)
 
             for name in os.listdir(path):
                 if name.endswith(".yaml"):
                     with open(os.path.join(path, name)) as fd:
                         self.configs[name] = fd.read()
 
-                    print ("Loaded %s" % os.path.join(path, name))
+                    logger.info("Loaded %s" % os.path.join(path, name))
 
     def changes(self):
         with self.mutex:
@@ -85,11 +99,12 @@ class Restarter(threading.Thread):
             with self.mutex:
                 changes = self.changes()
                 if changes > 0:
-                    print("Processing %s changes" % (changes))
+                    logger.info("Processing %s changes" % (changes))
                     try:
                         self.restart()
                     except:
-                        traceback.print_exc()
+                        logging.exception("could not restart Envoy")
+
                     self.processed += changes
 
     def restart(self):
@@ -99,7 +114,7 @@ class Restarter(threading.Thread):
         base, ext = os.path.splitext(self.envoy_config_file)
         target = "%s-%s%s" % (base, self.restart_count, ext)
         os.rename(config, target)
-        print ("Moved valid configuration %s to %s" % (config, target))
+        logger.info("Moved valid configuration %s to %s" % (config, target))
         if self.pid:
             os.kill(self.pid, signal.SIGHUP)
 
@@ -111,12 +126,15 @@ class Restarter(threading.Thread):
             path = os.path.join(output, filename)
             with open(path, "w") as fd:
                 fd.write(config)
-            print ("Wrote %s to %s" % (filename, path))
+            logger.info("Wrote %s to %s" % (filename, path))
+
+        logger.info("generating config with gencount %d" % self.restart_count)
 
         aconf = Config(output)
-        rc = aconf.generate_envoy_config(mode="kubewatch")
+        rc = aconf.generate_envoy_config(mode="kubewatch",
+                                         generation_count=self.restart_count)
 
-        print("Scout reports %s" % json.dumps(rc.scout_result))       
+        logger.info("Scout reports %s" % json.dumps(rc.scout_result))       
 
         if rc:
             envoy_config = "%s-%s" % (output, "envoy.json")
@@ -125,16 +143,16 @@ class Restarter(threading.Thread):
                 result = subprocess.check_output(["/usr/local/bin/envoy", "--base-id", "1", "--mode", "validate",
                                                   "-c", envoy_config])
                 if result.strip().endswith(b" OK"):
-                    print ("Configuration %s valid" % envoy_config)
+                    logger.info("Configuration %s valid" % envoy_config)
                     return envoy_config
             except subprocess.CalledProcessError:
-                print ("Invalid envoy config")
+                logger.info("Invalid envoy config")
                 with open(envoy_config) as fd:
-                    print(fd.read())
+                    logger.info(fd.read())
         else:
-            print("Could not generate new Envoy configuration: %s" % rc.error)
-            print("Raw template output:")
-            print("%s" % rc.raw)
+            logger.info("Could not generate new Envoy configuration: %s" % rc.error)
+            logger.info("Raw template output:")
+            logger.info("%s" % rc.raw)
 
         raise ValueError("Unable to generate config")
 
@@ -147,7 +165,7 @@ class Restarter(threading.Thread):
             self.update(key, config)
 
     def update(self, key, config):
-        print("update: including key %s" % key)
+        logger.info("update: including key %s" % key)
 
         with self.mutex:
             need_update = False
@@ -171,7 +189,7 @@ class Restarter(threading.Thread):
     def poke(self):
         with self.mutex:
             if self.processed == self.pokes:
-                print ("Scheduling restart")
+                logger.info("Scheduling restart")
             self.pokes += 1
 
 
@@ -194,7 +212,7 @@ def kube_v1():
             k8s_api = client.CoreV1Api()
         except FileNotFoundError:
             # Meh, just ride through.
-            print("No K8s")
+            logger.info("No K8s")
             pass
 
     return k8s_api
@@ -225,7 +243,7 @@ def read_cert_secret(k8s_api, secret_name, namespace):
         if e.reason == "Not Found":
             pass
         else:
-            print("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
+            logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
 
     if cert_data and cert_data.data:
         cert_data = cert_data.data
@@ -263,7 +281,7 @@ def sync(restarter):
 
             if config_data:
                 for key, config_yaml in config_data.data.items():
-                    # print("ambassador-config: found %s" % key)
+                    # logger.info("ambassador-config: found %s" % key)
                     restarter.update(key, config_yaml)
 
         # If we don't already see a TLS server key in its usual spot...
@@ -307,7 +325,7 @@ def sync(restarter):
         for svc in v1.list_namespaced_service(restarter.namespace).items:
             restarter.update_from_service(svc)
 
-    print ("Changes detected, regenerating envoy config.")
+    logger.info("Changes detected, regenerating envoy config.")
     restarter.restart()
 
 def watch_loop(restarter):
@@ -316,7 +334,7 @@ def watch_loop(restarter):
     if v1:
         w = watch.Watch()
         for evt in w.stream(v1.list_service_for_all_namespaces):
-            print("Event: %s %s/%s" % (evt["type"], 
+            logger.info("Event: %s %s/%s" % (evt["type"], 
                                        evt["object"].metadata.namespace, evt["object"].metadata.name))
             sys.stdout.flush()
 
@@ -325,7 +343,7 @@ def watch_loop(restarter):
             else:
                 restarter.update_from_service(evt["object"])
     else:
-        print("No K8s, idling")
+        logger.info("No K8s, idling")
         while True:
             time.sleep(60)
 
@@ -408,7 +426,6 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     elif mode == "watch":
         restarter.start()
 
-
         while True:
             try:
                 # this is in a loop because sometimes the auth expires
@@ -417,7 +434,7 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
             except KeyboardInterrupt:
                 raise
             except:
-                traceback.print_exc()
+                logging.exception("could not watch for Kubernetes service changes")
     else:
          raise ValueError(mode)
 
