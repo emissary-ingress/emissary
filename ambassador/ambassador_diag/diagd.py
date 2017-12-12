@@ -120,7 +120,7 @@ def aconf(app):
                                  uptime=int(uptime.total_seconds()),
                                  hr_uptime=hr_uptime)
 
-    app.logger.debug("Scout reports %s" % json.dumps(result))
+    app.logger.info("Scout reports %s" % json.dumps(result))
 
     return aconf
 

@@ -128,8 +128,11 @@ class Restarter(threading.Thread):
                 fd.write(config)
             logger.info("Wrote %s to %s" % (filename, path))
 
+        logger.info("generating config with gencount %d" % self.restart_count)
+
         aconf = Config(output)
-        rc = aconf.generate_envoy_config(mode="kubewatch")
+        rc = aconf.generate_envoy_config(mode="kubewatch",
+                                         generation_count=self.restart_count)
 
         logger.info("Scout reports %s" % json.dumps(rc.scout_result))       
 
