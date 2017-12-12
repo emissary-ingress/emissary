@@ -92,7 +92,114 @@
 
       <div class="row">
         <div class="col-12">
-          YAML input files -- these are the files that Ambassador is currently using for its configuration.
+          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html">Routes</a>
+
+          {% for route in routes | sort(attribute = '_source') %}
+          <div class="row">
+            <div class="col-7">
+              <a href="/ambassador/v0/diag/{{ route['_source'] }}">
+                <code>{{ route.get('_method', 'GET') }} {{ route['prefix'] }}</code> &rArr; <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
+                {% if route['headers'] %}
+                  <table>
+                    <tr>
+                      <th colspan="2">Headers</th>
+                    </tr>
+                    {% for hdr in route['headers'] %}
+                      <tr><td><code>{{ hdr['name'] }}</code></td><td><code>{{ hdr['value'] }}</code></td></tr>
+                    {% endfor %}
+                  </table>
+                {% endif %}
+              </a>
+            </div>
+            <div class="col-5">
+              created by <a href="/ambassador/v0/diag/{{ route['_source'] }}"><code>{{ route['_source'] }}</code></a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html">Clusters</a>
+
+          {% for cluster in clusters | sort(attribute = 'name') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ cluster['name'] }}</code>
+              <br/>
+              referenced by
+                {% for ref in cluster['_referenced_by'] | sort %}
+                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
+                {% endfor %}
+            </div>
+            <div class="col-5">
+              {% if cluster_stats[cluster.name].valid %}
+                {% if cluster_stats[cluster.name].healthy_percent != None %}
+                  {{ cluster_stats[cluster.name].healthy_percent }}% healthy
+                {% else %}
+                  no requests yet
+                {% endif %}
+              {% else %}
+                unknown health ({{ cluster_stats[cluster.name].reason }})
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% if breakers %}
+      <div class="row">
+        <div class="col-12">
+          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_circuit_breakers.html">Circuit Breakers</a>
+
+          {% for breaker in breakers | sort(attribute = 'name') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ breaker['name'] }}</code>
+              <br/>
+              referenced by
+                {% for ref in breaker['_referenced_by'] | sort %}
+                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
+                {% endfor %}
+            </div>
+            <div class="col-5">
+              &nbsp;
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if outliers %}
+      <div class="row">
+        <div class="col-12">
+          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_outlier_detection.html">Outlier Detection</a> configuration
+
+          {% for outlier in outliers | sort(attribute = 'name') %}
+          <div class="row">
+            <div class="col-7">
+              <code>{{ outlier['name'] }}</code>
+              <br/>
+              referenced by
+                {% for ref in outlier['_referenced_by'] | sort %}
+                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
+                {% endfor %}
+            </div>
+            <div class="col-5">
+              &nbsp;
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row">
+        <div class="col-12">
+          YAML input documents -- these are what Ambassador is currently using for its configuration.
 
           {% for source in sources %}
           <div class="row">
@@ -128,113 +235,6 @@
           {% endfor %}
         </div>
       </div>
-
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html">Routes</a> generated from the input files above
-
-          {% for route in routes | sort(attribute = '_source') %}
-          <div class="row">
-            <div class="col-7">
-              <a href="/ambassador/v0/diag/{{ route['_source'] }}">
-                <code>{{ route.get('_method', 'GET') }} {{ route['prefix'] }}</code> &rArr; <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
-                {% if route['headers'] %}
-                  <table>
-                    <tr>
-                      <th colspan="2">Headers</th>
-                    </tr>
-                    {% for hdr in route['headers'] %}
-                      <tr><td><code>{{ hdr['name'] }}</code></td><td><code>{{ hdr['value'] }}</code></td></tr>
-                    {% endfor %}
-                  </table>
-                {% endif %}
-              </a>
-            </div>
-            <div class="col-5">
-              created by <a href="/ambassador/v0/diag/{{ route['_source'] }}"><code>{{ route['_source'] }}</code></a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html">Clusters</a> generated from the input files above
-
-          {% for cluster in clusters | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-7">
-              <code>{{ cluster['name'] }}</code>
-              <br/>
-              referenced by
-                {% for ref in cluster['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
-                {% endfor %}
-            </div>
-            <div class="col-5">
-              {% if cluster_stats[cluster.name].valid %}
-                {% if cluster_stats[cluster.name].healthy_percent != None %}
-                  {{ cluster_stats[cluster.name].healthy_percent }}% healthy
-                {% else %}
-                  no requests yet
-                {% endif %}
-              {% else %}
-                unknown health ({{ cluster_stats[cluster.name].reason }})
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      {% if breakers %}
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_circuit_breakers.html">Circuit Breakers</a> generated from the input files above
-
-          {% for breaker in breakers | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-7">
-              <code>{{ breaker['name'] }}</code>
-              <br/>
-              referenced by
-                {% for ref in breaker['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
-                {% endfor %}
-            </div>
-            <div class="col-5">
-              &nbsp;
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      {% if outliers %}
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_outlier_detection.html">Outlier Detection</a> configuration generated from the input files above
-
-          {% for outlier in outliers | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-7">
-              <code>{{ outlier['name'] }}</code>
-              <br/>
-              referenced by
-                {% for ref in outlier['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
-                {% endfor %}
-            </div>
-            <div class="col-5">
-              &nbsp;
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
     </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript
