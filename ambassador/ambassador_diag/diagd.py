@@ -16,7 +16,7 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, request, jsonify, redirect # Response
+from flask import Flask, render_template, send_from_directory, request, jsonify # Response
 
 from ambassador.config import Config
 from ambassador.VERSION import Version
@@ -204,6 +204,12 @@ def clean_notices(notices):
             cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
 
     return cleaned
+
+@app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
+def favicon():
+    template_path = resource_filename(Requirement.parse("ambassador"), "templates")
+
+    return send_from_directory(template_path, "favicon.ico")
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
