@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.2] December 12, 2017
+[0.19.2]: https://github.com/datawire/ambassador/compare/v0.19.1...v0.19.2
+
+### Changed
+
+- Arrange for logs from the subsystem that watches for Kubernetes service changes (kubewatch) to have timestamps and such.
+- Only do new-version checks every four hours.
+
 ## [0.19.1] December 4, 2017
 [0.19.1]: https://github.com/datawire/ambassador/compare/v0.19.0...v0.19.1
 
