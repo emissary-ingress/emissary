@@ -37,6 +37,10 @@ logging.basicConfig(
 # Shut up Werkzeug's standard request logs -- they're just too noisy.
 logging.getLogger("werkzeug").setLevel(logging.CRITICAL)
 
+# Likewise make requests a bit quieter.
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.WARNING)
+
 ambassador_targets = {
     'mapping': 'https://www.getambassador.io/reference/configuration#mappings',
     'module': 'https://www.getambassador.io/reference/configuration#modules',

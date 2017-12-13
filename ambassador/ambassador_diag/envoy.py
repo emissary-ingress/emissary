@@ -211,10 +211,10 @@ class EnvoyStats (object):
 
                     if upstream_total > 0:
                         healthy_percent = percentage(upstream_ok, upstream_total)
-                        logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
+                        # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
                     else:
                         healthy_percent = None
-                        logging.debug("cluster %s has had no requests" % cluster_name)
+                        # logging.debug("cluster %s has had no requests" % cluster_name)
 
                     # active_mappings[mapping_name] = {
                     active_clusters[cluster_name] = {
