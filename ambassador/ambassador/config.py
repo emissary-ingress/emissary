@@ -513,7 +513,7 @@ class Config (object):
     def diag_service(self):
         return "127.0.0.1:%d" % self.diag_port()
 
-    def add_intermediate_cluster(self, _source, name, urls, 
+    def add_intermediate_cluster(self, _source, name, _service, urls, 
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None, originate_tls=None,
                                  grpc=False):
@@ -521,6 +521,7 @@ class Config (object):
             cluster = SourcedDict(
                 _source=_source,
                 _referenced_by=[ _source ],
+                _service=_service,
                 name=name,
                 type=type,
                 lb_type=lb_type,
@@ -743,7 +744,7 @@ class Config (object):
             # detection settings.
             svc = mapping['service']
 
-            cluster_name_fields =[ svc ]
+            cluster_name_fields = [ svc ]
 
             tls_context = mapping.get('tls', None)
 
@@ -778,7 +779,8 @@ class Config (object):
             grpc = mapping.get('grpc', False)
             # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
 
-            self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
+            self.add_intermediate_cluster(mapping['_source'], cluster_name,
+                                          svc, [ url ],
                                           cb_name=cb_name, od_name=od_name, grpc=grpc,
                                           originate_tls=originate_tls)
 
@@ -1065,8 +1067,8 @@ class Config (object):
 
             (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
 
-            self.add_intermediate_cluster(module['_source'],
-                                          'cluster_ext_auth', [ url ],
+            self.add_intermediate_cluster(module['_source'], 'cluster_ext_auth',
+                                          svc, [ url ],
                                           type="logical_dns", lb_type="random",
                                           originate_tls=originate_tls)
 
@@ -1127,8 +1129,9 @@ class Config (object):
 
         for route in self.envoy_config['routes']:
             if route['_source'] != "--diagnostics--":
-                route['group_id'] = Mapping.group_id(route.get('method', 'GET'),
-                                                     route['prefix'], route.get('headers', []))
+                route['_group_id'] = Mapping.group_id(route.get('method', 'GET'),
+                                                      route['prefix'],
+                                                      route.get('headers', []))
 
                 routes.append(route)
 

@@ -1,5 +1,6 @@
 [
     {
+        "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
         "_method": "GET",
         "_referenced_by": [
             "--internal--"
@@ -11,11 +12,11 @@
                 "weight": 100.0
             }
         ],
-        "group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
         "prefix": "/ambassador/v0/check_ready",
         "prefix_rewrite": "/ambassador/v0/check_ready"
     },
     {
+        "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
         "_method": "GET",
         "_referenced_by": [
             "--internal--"
@@ -27,11 +28,11 @@
                 "weight": 100.0
             }
         ],
-        "group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
         "prefix": "/ambassador/v0/check_alive",
         "prefix_rewrite": "/ambassador/v0/check_alive"
     },
     {
+        "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
         "_method": "GET",
         "_referenced_by": [
             "--internal--"
@@ -43,11 +44,11 @@
                 "weight": 100.0
             }
         ],
-        "group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
         "prefix": "/ambassador/v0/",
         "prefix_rewrite": "/ambassador/v0/"
     },
     {
+        "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
         "_method": "GET",
         "_referenced_by": [
             "base-config.yaml.1"
@@ -59,11 +60,11 @@
                 "weight": 100.0
             }
         ],
-        "group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
         "prefix": "/ambassador/",
         "prefix_rewrite": "/ambassador/"
     },
     {
+        "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
         "_method": "GET",
         "_referenced_by": [
             "qotm.yaml.1"
@@ -75,7 +76,6 @@
                 "weight": 100.0
             }
         ],
-        "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
         "prefix": "/qotm/",
         "prefix_rewrite": "/"
     }

@@ -171,6 +171,99 @@ def cluster_stats(clusters):
 def sorted_sources(sources):
     return sorted(sources, key=lambda x: "%s.%d" % (x['filename'], x['index']))
 
+def route_and_cluster_info(request, overview, clusters, cstats):
+    request_host = request.headers.get('Host', '*')
+    request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
+    tls_active = request_scheme == 'https'
+
+    cluster_info = { cluster['name']: cluster for cluster in clusters }
+
+    for cluster_name, cstat in cstats.items():
+        hstr = "no stats yet"
+        hmetric = "startup"
+
+        if cstat['valid']:
+            pct = cstats[cluster_name]['healthy_percent']
+
+            if pct != None:
+                hstr = "%d%% healthy" % pct
+                hmetric = int(pct)
+            else:
+                hstr = "no requests yet"
+                hmetric = "waiting"
+ 
+        c_info = cluster_info.setdefault(cluster_name, {
+            '_service': 'unknown service!'
+        })
+
+        c_info['health'] = hstr
+        c_info['hmetric'] = hmetric
+
+    route_info = []
+
+    if 'routes' in overview:
+        for route in overview['routes']:
+            prefix = route['prefix']
+            rewrite = route.get('prefix_rewrite', "/")
+            method = '*'
+            host = None
+
+            route_clusters = {}
+
+            for cluster in route['clusters']:
+                c_name = cluster['name']
+                c_info = cluster_info.get(c_name, {
+                    '_service': 'unknown cluster!',
+                    'health': 'bad'
+                })
+
+                c_service = c_info.get('_service', 'unknown service!')
+                c_health = c_info.get('hmetric', 'unknown')
+
+                c_weight = cluster['weight']
+
+                route_clusters[c_name] = {
+                    'weight': c_weight,
+                    'health': c_health,
+                    'service': c_service
+                }
+
+            headers = []
+
+            for header in route.get('headers', []):
+                hdr_name = header.get('name', None)
+                hdr_value = header.get('value', None)
+
+                if hdr_name == ':authority':
+                    host = hdr_value
+                elif hdr_name == ':method':
+                    method = hdr_value
+                else:
+                    headers.append((hdr_name, hdr_value))
+
+            sep = "" if prefix.startswith("/") else "/"
+
+            route_key = "%s://%s%s%s" % (request_scheme, host if host else request_host, sep, prefix)
+
+            route_info.append({
+                '_source': route['_source'],
+                'key': route_key,
+                'prefix': prefix,
+                'rewrite': rewrite,
+                'method': method,
+                'headers': headers,
+                'clusters': route_clusters,
+                'host': host if host else '*'
+            })
+
+        app.logger.info("route_info")
+        app.logger.info(json.dumps(route_info, indent=4, sort_keys=True))
+
+        # app.logger.info("cstats")
+        # app.logger.info(json.dumps(cstats, indent=4, sort_keys=True))
+
+    return route_info, cluster_info
+
 def envoy_status(estats):
     since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
 
@@ -246,9 +339,15 @@ def show_overview(reqid=None):
         #     return redirect("/ambassador/v0/diag/", code=302)
 
     ov = aconf(app).diagnostic_overview()
-    cstats = cluster_stats(ov['clusters'])
+    clusters = ov['clusters']
+    cstats = cluster_stats(clusters)
+
+    route_info, cluster_info = route_and_cluster_info(request, ov, clusters, cstats)
 
     notices.extend(clean_notices(Config.scout_notices))
+
+    app.logger.debug("headers:")
+    app.logger.info(request.headers)
 
     for source in ov['sources']:
         for obj in source['objects'].values():
@@ -259,6 +358,7 @@ def show_overview(reqid=None):
                  loginfo=app.estats.loginfo,
                  cluster_stats=cstats,
                  notices=notices,
+                 route_info=route_info,
                  **ov)
 
     if request.args.get('json', None):
@@ -277,13 +377,16 @@ def show_intermediate(source=None, reqid=None):
 
     result = aconf(app).get_intermediate_for(source)
 
-    # app.logger.debug(json.dumps(result, indent=4))
+    clusters = result['clusters']
+    cstats = cluster_stats(clusters)
+
+    route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
     if "error" not in result:
-        result['cluster_stats'] = cluster_stats(result['clusters'])
+        result['cluster_stats'] = cstats
         result['sources'] = sorted_sources(result['sources'])
 
         for source in result['sources']:
@@ -293,6 +396,7 @@ def show_intermediate(source=None, reqid=None):
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
+                 route_info=route_info,
                  notices=clean_notices(Config.scout_notices),
                  **result)
 
@@ -313,6 +417,10 @@ def pretty_json(obj):
             del(obj['_referenced_by'])
 
     return json.dumps(obj, indent=4, sort_keys=True)
+
+@app.template_filter('sort_clusters_by_service')
+def sort_clusters_by_service(clusters):
+    return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
 
 def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
     """

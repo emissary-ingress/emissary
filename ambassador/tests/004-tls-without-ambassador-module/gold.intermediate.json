@@ -4,6 +4,7 @@
             "_referenced_by": [
                 "tls.yaml.1"
             ],
+            "_service": "127.0.0.1:8877",
             "_source": "tls.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_127_0_0_1_8877",
@@ -16,6 +17,7 @@
             "_referenced_by": [
                 "mapping-qotm.yaml.1"
             ],
+            "_service": "qotm",
             "_source": "mapping-qotm.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_qotm",
@@ -35,6 +37,7 @@
     ],
     "routes": [
         {
+            "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
             "_method": "GET",
             "_referenced_by": [
                 "tls.yaml.1"
@@ -46,11 +49,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
             "prefix": "/ambassador/v0/check_ready",
             "prefix_rewrite": "/ambassador/v0/check_ready"
         },
         {
+            "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
             "_method": "GET",
             "_referenced_by": [
                 "tls.yaml.1"
@@ -62,11 +65,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
             "prefix": "/ambassador/v0/check_alive",
             "prefix_rewrite": "/ambassador/v0/check_alive"
         },
         {
+            "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-qotm.yaml.1"
@@ -78,11 +81,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "prefix": "/qotm/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
             "_method": "GET",
             "_referenced_by": [
                 "tls.yaml.1"
@@ -94,7 +97,6 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
             "prefix": "/ambassador/v0/",
             "prefix_rewrite": "/ambassador/v0/"
         }
