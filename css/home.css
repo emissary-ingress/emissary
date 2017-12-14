@@ -378,7 +378,6 @@ h1, h2, h3, h4, h5, h6, strong {
     margin-bottom: 25px;
 }
 
-
 .mailing-list-signup .hbspt-form {
     max-width: 680px;
     margin: 30px auto 0;
@@ -427,6 +426,7 @@ h1, h2, h3, h4, h5, h6, strong {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    border-radius: 0;
 }
 .mailing-list-signup .hs_submit .hs-button:hover {
     opacity: 0.95;
