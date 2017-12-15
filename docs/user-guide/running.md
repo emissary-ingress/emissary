@@ -44,13 +44,15 @@ Ambassador provides a diagnostics overview on port 8877 by default. This is deli
 kubectl port-forward ambassador-xxxx-yyy 8877
 ```
 
-where, obviously, you'll have to fill in the actual pod name of one of your Ambassador pods (any will do).
-
-Once you have that, you'll be able to point a web browser at
+where you'll have to fill in the actual pod name of one of your Ambassador pods (any will do). Once you have that, you'll be able to point a web browser at
 
 `http://localhost:8877/ambassador/v0/diag/`
 
-for the diagnostics overview. Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
+for the diagnostics overview.
+
+![Diagnostics](/images/diagnostics.png)
+
+ Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 
 If needed, you can get JSON output from the diagnostic service, instead of HTML:
 
