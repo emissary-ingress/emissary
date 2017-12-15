@@ -9,10 +9,10 @@ docker build -q -t dwflynn/auth:0.0.1 auth-service
 docker build -q -t dwflynn/auth:0.0.1tls --build-arg TLS=--tls auth-service
 
 # seriously? there's no docker push --quiet???
-docker push dwflynn/demo:1.0.0
-docker push dwflynn/demo:2.0.0
-docker push dwflynn/demo:1.0.0tls
-docker push dwflynn/demo:2.0.0tls
-docker push dwflynn/auth:0.0.1
-docker push dwflynn/auth:0.0.1tls
+docker push dwflynn/demo:1.0.0 | python linify.py push.log
+docker push dwflynn/demo:2.0.0 | python linify.py push.log
+docker push dwflynn/demo:1.0.0tls | python linify.py push.log
+docker push dwflynn/demo:2.0.0tls | python linify.py push.log
+docker push dwflynn/auth:0.0.1 | python linify.py push.log
+docker push dwflynn/auth:0.0.1tls | python linify.py push.log
 set +x
