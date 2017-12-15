@@ -90,6 +90,18 @@
         </div>
       {% endif %}
 
+      {% if errors %}
+        <div class="row">
+          <div class="col-12">
+            <span style="color:red">CONFIGURATION ERRORS</span>
+            <br/>
+            {% for error in errors | sort %}
+              <span style="color:red">{{ error[0] }}: {{ error[1] }}</span><br/>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
       <div class="row">
         <div class="col-12">
           Ambassador Route Table

@@ -346,15 +346,22 @@ def show_overview(reqid=None):
     app.logger.debug("headers:")
     app.logger.info(request.headers)
 
+    errors = []
+
     for source in ov['sources']:
         for obj in source['objects'].values():
             obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
+
+            if obj['errors']:
+                errors.extend([ (obj['key'], error['summary'])
+                                 for error in obj['errors'] ])
 
     tvars = dict(system=system_info(), 
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
                  cluster_stats=cstats,
                  notices=notices,
+                 errors=errors,
                  route_info=route_info,
                  **ov)
 
