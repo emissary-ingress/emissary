@@ -185,12 +185,11 @@ def route_and_cluster_info(request, overview, clusters, cstats):
     for cluster_name, cstat in cstats.items():
         c_info = cluster_info.setdefault(cluster_name, {
             '_service': 'unknown service!',
-            '_health': 'unknown service!',
-            '_hmetric': 'unknown service!'
         })
 
         c_info['_health'] = cstat['health']
         c_info['_hmetric'] = cstat['hmetric']
+        c_info['_hcolor'] = cstat['hcolor']
 
     route_info = []
 
@@ -207,17 +206,20 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                 c_name = cluster['name']
                 c_info = cluster_info.get(c_name, {
                     '_service': 'unknown cluster!',
-                    '_health': 'bad'
+                    '_health': 'unknown cluster!',
+                    '_hmetric': 'unknown',
+                    '_hcolor': 'orange'
                 })
 
                 c_service = c_info.get('_service', 'unknown service!')
                 c_health = c_info.get('_hmetric', 'unknown')
-
+                c_color = c_info.get('_hcolor', 'orange')
                 c_weight = cluster['weight']
 
                 route_clusters[c_name] = {
                     'weight': c_weight,
                     '_health': c_health,
+                    '_hcolor': c_color,
                     'service': c_service
                 }
 

@@ -146,23 +146,7 @@
                 <code>{{ cluster['name'] }}</code>
               </a>
               <br/><br/>
-              <span style=" 
-                {% if cluster._hmetric == 'bad' %}
-                  color:red;
-                {% elif cluster._hmetric == 'unknown' %}
-                  color:red;
-                {% elif cluster._hmetric == 'waiting' %}
-                  color:grey;
-                {% elif cluster._hmetric == 'startup' %}
-                  color:grey;
-                {% elif cluster._hmetric < 70 %}
-                  color:red;
-                {% elif cluster._hmetric < 90 %}
-                  color:yellow;
-                {% else %}
-                  color:green;
-                {% endif %}
-              ">
+              <span style="color:{{ cluster._hcolor }}">
                 {% if cluster_stats[cluster.name].valid %}
                   {{ 'Unknown health: ' if cluster._hmetric is not number }}
                   {{ cluster._health }}

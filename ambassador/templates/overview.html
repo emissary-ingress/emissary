@@ -124,23 +124,9 @@
                       <td>
                         {% for cluster in route.clusters| sort_clusters_by_service %}
                           <a href="/ambassador/v0/diag/{{ route['_source'] }}">
-                            <code><span style=" 
-                              {% if cluster._health == 'bad' %}
-                                color:red;
-                              {% elif cluster._health == 'unknown' %}
-                                color:red;
-                              {% elif cluster._health == 'waiting' %}
-                                color:grey;
-                              {% elif cluster._health == 'startup' %}
-                                color:grey;
-                              {% elif cluster._health < 70 %}
-                                color:red;
-                              {% elif cluster._health < 90 %}
-                                color:yellow;
-                              {% else %}
-                                color:green;
-                              {% endif %}
-                            ">{{ cluster.service }}</span></code>
+                            <code><span style="color:{{ cluster._hcolor }}">
+                              {{ cluster.service }}
+                            </span></code>
                           </a>
                           {% if not loop.last %}
                           <br/>
