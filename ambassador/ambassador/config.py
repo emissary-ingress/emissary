@@ -908,8 +908,6 @@ class Config (object):
 
             for route in self.envoy_config['routes']:
                 if route['_group_id'] == group_id:
-                    self.logger.info("get_intermediate_for found route:\n%s" %
-                                     json.dumps(route, sort_keys=True, indent=4))
                     source_keys.append(route['_source'])
 
                     for reference_key in route['_referenced_by']:
@@ -935,8 +933,8 @@ class Config (object):
 
         source_keys = set(source_keys)
 
-        self.logger.info("get_intermediate_for: source_keys %s" % source_keys)
-        self.logger.info("get_intermediate_for: errors %s" % self.errors)
+        # self.logger.debug("get_intermediate_for: source_keys %s" % source_keys)
+        # self.logger.debug("get_intermediate_for: errors %s" % self.errors)
 
         sources = []
 
@@ -956,7 +954,7 @@ class Config (object):
             "sources": sources
         }
 
-        self.logger.info("get_intermediate_for: initial result %s" % result)
+        # self.logger.debug("get_intermediate_for: initial result %s" % result)
 
         for key in self.envoy_config.keys():
             result[key] = []
