@@ -8,6 +8,7 @@ Ambassador is a Kubernetes-native API Gateway for microservices built on [Envoy]
 * First class gRPC and HTTP/2 support
 * Istio integration
 * Authentication
+* Integrated diagnostics
 * Robust TLS support, including TLS client-certificate authentication
 * Simple setup and configuration
 * Integrated monitoring
@@ -39,3 +40,7 @@ Ambassador integrates with the [Istio](https://istio.io) service mesh as the edg
 ## Authentication
 
 Ambassador supports authenticating incoming requests. When configured, Ambassador will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication tutorial](/user-guide/auth-tutorial).
+
+## Integrated diagnostics
+
+Ambassador includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador](https://www.getambassador.io/user-guide/running).
