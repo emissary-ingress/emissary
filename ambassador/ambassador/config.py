@@ -311,8 +311,9 @@ class Config (object):
                 all_objects.append((filename, ocount, obj))
                 ocount += 1
         except Exception as e:
-            self.logger.error("%s: could not parse YAML: %s" % (filename, e))
-            self.fatal_errors += 1
+            # ALLOW THIS. No sense letting one attribute with bad YAML take 
+            # down the whole gateway.
+            self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
         for filename, ocount, obj in all_objects:
             self.filename = filename
