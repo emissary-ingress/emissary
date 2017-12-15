@@ -322,7 +322,7 @@ def sync(restarter):
                 restarter.update("tls.yaml", yaml.safe_dump(tls_mod))
 
         # Next, check for annotations and such.
-        for svc in v1.list_namespaced_service(restarter.namespace).items:
+        for svc in v1.list_service_for_all_namespaces().items:
             restarter.update_from_service(svc)
 
     logger.info("Changes detected, regenerating envoy config.")
