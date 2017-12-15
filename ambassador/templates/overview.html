@@ -96,7 +96,10 @@
             <span style="color:red">CONFIGURATION ERRORS</span>
             <br/>
             {% for error in errors | sort %}
-              <span style="color:red">{{ error[0] }}: {{ error[1] }}</span><br/>
+              <a href="/ambassador/v0/diag/{{ error[0] }}">
+                <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+              </a>
+              <br/>
             {% endfor %}
           </div>
         </div>
