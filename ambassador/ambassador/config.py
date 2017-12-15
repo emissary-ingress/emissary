@@ -304,7 +304,7 @@ class Config (object):
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
-            # dealing with the actual object gets deferred 
+            # dealing with the actual object gets deferred             
             ocount = 1
 
             for obj in yaml.safe_load_all(serialization):
@@ -313,6 +313,9 @@ class Config (object):
         except Exception as e:
             # ALLOW THIS. No sense letting one attribute with bad YAML take 
             # down the whole gateway.
+            self.filename = filename
+            self.ocount = ocount
+
             self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
         for filename, ocount, obj in all_objects:
@@ -375,12 +378,25 @@ class Config (object):
         return("%s.%d" % (self.filename, self.ocount))
 
     def post_error(self, rc):
-        source_map = self.source_map.setdefault(self.filename, {})
-        source_map[self.current_source_key()] = True
+        key = self.current_source_key()
 
-        errors = self.errors.setdefault(self.current_source_key(), [])
+        if key not in self.sources:
+            # Save a fake source record.
+            self.sources[key] = {
+                'kind': 'error',
+                'version': 'error',
+                'name': 'error',
+                'filename': self.filename,
+                'index': self.ocount,
+                'yaml': 'error'
+            }
+
+        source_map = self.source_map.setdefault(self.filename, {})
+        source_map[key] = True
+
+        errors = self.errors.setdefault(key, [])
         errors.append(rc.toDict())
-        self.logger.error("%s: %s" % (self.current_source_key(), rc))
+        self.logger.error("%s: %s" % (key, rc))
 
     def process_object(self, obj):
         try:
@@ -391,7 +407,7 @@ class Config (object):
             return RichStatus.fromError("need apiVersion, kind, and name")
 
         # ...save the source info...
-        source_key = "%s.%d" % (self.filename, self.ocount)
+        source_key = self.current_source_key()
         self.sources[source_key] = {
             'kind': obj_kind,
             'version': obj_version,
@@ -920,6 +936,7 @@ class Config (object):
         source_keys = set(source_keys)
 
         self.logger.info("get_intermediate_for: source_keys %s" % source_keys)
+        self.logger.info("get_intermediate_for: errors %s" % self.errors)
 
         sources = []
 
