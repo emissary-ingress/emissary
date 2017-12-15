@@ -386,6 +386,7 @@ def show_intermediate(source=None, reqid=None):
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
     route_info = None
+    errors = []
 
     if "error" not in result:
         clusters = result['clusters']
@@ -399,11 +400,16 @@ def show_intermediate(source=None, reqid=None):
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
+            if source['errors']:
+                errors.extend([ (source['filename'], error['summary'])
+                                 for error in source['errors'] ])
+
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
                  route_info=route_info,
+                 errors=errors,
                  notices=clean_notices(Config.scout_notices),
                  **result)
 

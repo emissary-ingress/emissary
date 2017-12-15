@@ -99,6 +99,19 @@
           </div>
         </div>
       {% else %}
+
+      {% if errors %}
+        <div class="row">
+          <div class="col-12">
+            <span style="color:red">CONFIGURATION ERRORS</span>
+            <br/>
+            {% for error in errors | sort %}
+              <span style="color:red">{{ error[0] }}: {{ error[1] }}</span><br/>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
       <div class="row">
         <div class="col-12">
           Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html">Routes</a>
@@ -256,7 +269,7 @@
 
                 {% if source.errors %}
                   {% for error in source.errors %}
-                  <br/>ERROR: {{ error.summary }}
+                  <br/><span style="color:red">ERROR:</span> {{ error.text }}
                   {% endfor %}
                 {% endif %}
               {% endif %}
