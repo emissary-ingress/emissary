@@ -60,21 +60,7 @@ So far, we've used a demo configuration, and run everything in our local Docker 
 
 ### 5.1 Defining the Ambassador Service
 
-We'll start by using a Kubernetes `annotation` to define the following `Mapping`:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  httpbin_mapping
-prefix: /httpbin/
-service: httpbin.org:80
-host_rewrite: httpbin.org
-```
-
-(Note the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services.)
-
-Getting Ambassador to pick up the mapping definition is as simple as placing the YAML above into an annotation named `getambassador.io/config` on a Kubernetes service. In this example, we're going to include it in the actual Ambassador manifest. More commonly, you'll wait to place the annotation directly with your service. Here's an appropriate service definition for HTTP-only Ambassador:
+Ambassador is deployed as a Kubernetes service. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -103,11 +89,18 @@ spec:
     service: ambassador
 ```
 
-Create the service by putting the YAML above in a file called `ambassador-service.yaml` and applying it with `kubectl`:
+Then, apply it to the Kubernetes with `kubectl`:
 
 ```shell
 kubectl apply -f ambassador-service.yaml
 ```
+
+The YAML above does several things:
+
+* It creates a Kubernetes service for Ambassador, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
+* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
+
+Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
 
 ### 5.2 Deploying Ambassador
 
