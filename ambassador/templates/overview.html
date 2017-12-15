@@ -94,13 +94,15 @@
         <div class="row">
           <div class="col-12">
             <span style="color:red">CONFIGURATION ERRORS</span>
-            <br/>
+            <ul>
             {% for error in errors | sort %}
-              <a href="/ambassador/v0/diag/{{ error[0] }}">
-                <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
-              </a>
-              <br/>
+              <li>
+                <a href="/ambassador/v0/diag/{{ error[0] }}">
+                  <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                </a>
+              </li>
             {% endfor %}
+            </ul>
           </div>
         </div>
       {% endif %}

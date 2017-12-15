@@ -19,13 +19,13 @@
   <body>
     <div class="container">
 
-      <h1>Ambassador Diagnostics 
+      <h1><a href="/ambassador/v0/diag/">Ambassador Diagnostics
         {% if method or resource %} for <code>
           {% if method %}{{ method }}{% endif %}
           {% if resource %}{{ resource }}{% endif %}
           </code>
         {% endif %}
-      </h1>
+      </a></h1>
 
       <div class="row">
         <div class="col-7">
@@ -104,13 +104,15 @@
         <div class="row">
           <div class="col-12">
             <span style="color:red">CONFIGURATION ERRORS</span>
-            <br/>
+            <ul>
             {% for error in errors | sort %}
-              <a href="/ambassador/v0/diag/{{ error[0] }}">
-                <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
-              </a>
-              <br/>
+              <li>
+                <a href="/ambassador/v0/diag/{{ error[0] }}">
+                  <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                </a>
+              </li>
             {% endfor %}
+            </ul>
           </div>
         </div>
       {% endif %}
@@ -271,9 +273,13 @@
                 {% if source['target'] %}</a>{% endif %}
 
                 {% if source.errors %}
-                  {% for error in source.errors %}
-                  <br/><span style="color:red">ERROR:</span> {{ error.text }}
-                  {% endfor %}
+                  <ul>
+                    {% for error in source.errors %}
+                    <li>
+                      <span style="color:red">ERROR:</span> {{ error.text }}
+                    </li>
+                    {% endfor %}
+                  </ul>
                 {% endif %}
               {% endif %}
             </div>
