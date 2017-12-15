@@ -110,7 +110,7 @@
                       {% endif %}
                       >
                       <td>
-                        <a href="/ambassador/v0/diag/{{ route['_source'] }}">
+                        <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
                           <code>{{ route.key }}
                           {% if route['headers'] %}
                             {% for hdr in route['headers'] %}
@@ -125,17 +125,17 @@
                         {% for cluster in route.clusters| sort_clusters_by_service %}
                           <a href="/ambassador/v0/diag/{{ route['_source'] }}">
                             <code><span style=" 
-                              {% if cluster.health == 'bad' %}
+                              {% if cluster._health == 'bad' %}
                                 color:red;
-                              {% elif cluster.health == 'unknown' %}
+                              {% elif cluster._health == 'unknown' %}
                                 color:red;
-                              {% elif cluster.health == 'waiting' %}
+                              {% elif cluster._health == 'waiting' %}
                                 color:grey;
-                              {% elif cluster.health == 'startup' %}
+                              {% elif cluster._health == 'startup' %}
                                 color:grey;
-                              {% elif cluster.health < 70 %}
+                              {% elif cluster._health < 70 %}
                                 color:red;
-                              {% elif cluster.health < 90 %}
+                              {% elif cluster._health < 90 %}
                                 color:yellow;
                               {% else %}
                                 color:green;

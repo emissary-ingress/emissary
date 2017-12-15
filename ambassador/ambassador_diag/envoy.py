@@ -75,17 +75,43 @@ class EnvoyStats (object):
     def cluster_stats(self, name):
         if not self.stats['last_update']:
             # No updates.
-            return { 'valid': False, 'reason': "No stats updates have succeeded" }
+            return { 
+                'valid': False,
+                'reason': "No stats updates have succeeded",
+                'health': "no stats yet",
+                'hmetric': 'startup'
+            }
 
         # OK, we should be OK.
         when = self.stats['last_update']
         cstat = self.stats['clusters']
 
         if name not in cstat:
-            return { 'valid': False, 'reason': "Cluster %s is not defined" % name }
+            return {
+                'valid': False,
+                'reason': "Cluster %s is not defined" % name,
+                'health': "undefined cluster",
+                'hmetric': 'undefined cluster'
+            }
 
         cstat = dict(**cstat[name])
-        cstat.update({ 'valid': True, 'reason': "Cluster %s updated at %d" % (name, when) })
+        cstat.update({
+            'valid': True,
+            'reason': "Cluster %s updated at %d" % (name, when)
+        })
+
+        pct = cstat.get('healthy_percent', None)
+
+        if pct != None:
+            cstat.update({
+                'health': "%d%% healthy" % pct,
+                'hmetric': int(pct)
+            })
+        else:
+            cstat.update({
+                'health': "no requests yet",
+                'hmetric': 'waiting'
+            })
 
         return cstat
 

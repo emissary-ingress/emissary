@@ -183,25 +183,14 @@ def route_and_cluster_info(request, overview, clusters, cstats):
     cluster_info = { cluster['name']: cluster for cluster in clusters }
 
     for cluster_name, cstat in cstats.items():
-        hstr = "no stats yet"
-        hmetric = "startup"
-
-        if cstat['valid']:
-            pct = cstats[cluster_name]['healthy_percent']
-
-            if pct != None:
-                hstr = "%d%% healthy" % pct
-                hmetric = int(pct)
-            else:
-                hstr = "no requests yet"
-                hmetric = "waiting"
- 
         c_info = cluster_info.setdefault(cluster_name, {
-            '_service': 'unknown service!'
+            '_service': 'unknown service!',
+            '_health': 'unknown service!',
+            '_hmetric': 'unknown service!'
         })
 
-        c_info['health'] = hstr
-        c_info['hmetric'] = hmetric
+        c_info['_health'] = cstat['health']
+        c_info['_hmetric'] = cstat['hmetric']
 
     route_info = []
 
@@ -218,17 +207,17 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                 c_name = cluster['name']
                 c_info = cluster_info.get(c_name, {
                     '_service': 'unknown cluster!',
-                    'health': 'bad'
+                    '_health': 'bad'
                 })
 
                 c_service = c_info.get('_service', 'unknown service!')
-                c_health = c_info.get('hmetric', 'unknown')
+                c_health = c_info.get('_hmetric', 'unknown')
 
                 c_weight = cluster['weight']
 
                 route_clusters[c_name] = {
                     'weight': c_weight,
-                    'health': c_health,
+                    '_health': c_health,
                     'service': c_service
                 }
 
@@ -250,7 +239,9 @@ def route_and_cluster_info(request, overview, clusters, cstats):
             route_key = "%s://%s%s%s" % (request_scheme, host if host else request_host, sep, prefix)
 
             route_info.append({
+                '_route': route,
                 '_source': route['_source'],
+                '_group_id': route['_group_id'],
                 'key': route_key,
                 'prefix': prefix,
                 'rewrite': rewrite,
@@ -414,11 +405,16 @@ def pretty_json(obj):
     if isinstance(obj, dict):
         obj = dict(**obj)
 
-        if '_source' in obj:
-            del(obj['_source'])
+        keys_to_drop = [ key for key in obj.keys() if key.startswith('_') ]
 
-        if '_referenced_by' in obj:
-            del(obj['_referenced_by'])
+        for key in keys_to_drop:
+            del(obj[key])
+
+        # if '_source' in obj:
+        #     del(obj['_source'])
+
+        # if '_referenced_by' in obj:
+        #     del(obj['_referenced_by'])
 
     return json.dumps(obj, indent=4, sort_keys=True)
 

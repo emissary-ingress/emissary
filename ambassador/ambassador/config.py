@@ -886,20 +886,39 @@ class Config (object):
     def get_intermediate_for(self, source_key):
         source_keys = []
 
-        if source_key in self.source_map:
-            # Exact match for a file in the source map: include all the objects
-            # in the file.
-            source_keys = self.source_map[source_key]
-        elif source_key in self.sources:
-            # Exact match for an object in a file: include only that object.
-            source_keys.append(source_key)
-        else: 
-            # No match at all. Weird.
-            return {
-                "error": "No source matches %s" % source_key
-            }
+        if source_key.startswith("grp-"):
+            group_id = source_key[4:]
+
+            for route in self.envoy_config['routes']:
+                if route['_group_id'] == group_id:
+                    self.logger.info("get_intermediate_for found route:\n%s" %
+                                     json.dumps(route, sort_keys=True, indent=4))
+                    source_keys.append(route['_source'])
+
+                    for reference_key in route['_referenced_by']:
+                        source_keys.append(reference_key)
+
+            if not source_keys:
+                return {
+                    "error": "No group matches %s" % group_id
+                }                
+        else:
+            if source_key in self.source_map:
+                # Exact match for a file in the source map: include all the objects
+                # in the file.
+                source_keys = self.source_map[source_key]
+            elif source_key in self.sources:
+                # Exact match for an object in a file: include only that object.
+                source_keys.append(source_key)
+            else: 
+                # No match at all. Weird.
+                return {
+                    "error": "No source matches %s" % source_key
+                }
 
         source_keys = set(source_keys)
+
+        self.logger.info("get_intermediate_for: source_keys %s" % source_keys)
 
         sources = []
 
@@ -918,6 +937,8 @@ class Config (object):
         result = {
             "sources": sources
         }
+
+        self.logger.info("get_intermediate_for: initial result %s" % result)
 
         for key in self.envoy_config.keys():
             result[key] = []

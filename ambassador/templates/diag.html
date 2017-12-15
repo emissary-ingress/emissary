@@ -105,9 +105,9 @@
 
           {% for route in route_info %}
           <div class="row">
-            <div class="col-7">
+            <div class="col-5">
 
-              <a href="/ambassador/v0/diag/{{ route['_source'] }}">
+              <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
                 <code>{{ route.key }}
                 {% if route['headers'] %}
                   {% for hdr in route['headers'] %}
@@ -117,12 +117,17 @@
                 {% endif %}
                 </code>
               </a>
-              <br/>
-              created by <a href="/ambassador/v0/diag/{{ route['_source'] }}"><code>{{ route['_source'] }}</code></a>
+              <br/><br/>
+              sources:
+              <ul>
+                {% for ref in route._route._referenced_by | sort %}
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                {% endfor %}
+              </ul>
             </div>
-            <div class="col-5">
+            <div class="col-7">
               <div class="row">
-                <code><pre>{{ route | pretty_json }}</pre></code>
+                <code><pre>{{ route._route | pretty_json }}</pre></code>
               </div>
             </div>
           </div>
@@ -136,8 +141,11 @@
 
           {% for cluster in clusters | sort(attribute = 'name') %}
           <div class="row">
-            <div class="col-7">
-              <code>{{ cluster['name'] }}</code> -- 
+            <div class="col-5">
+              <a href="/ambassador/v0/diag/{{ cluster['_source'] }}">
+                <code>{{ cluster['name'] }}</code>
+              </a>
+              <br/> 
               {% if cluster_stats[cluster.name].valid %}
                 {% if cluster_stats[cluster.name].healthy_percent != None %}
                   {{ cluster_stats[cluster.name].healthy_percent }}% healthy
@@ -148,12 +156,14 @@
                 unknown health ({{ cluster_stats[cluster.name].reason }})
               {% endif %}
               <br/>
-              referenced by
-                {% for ref in cluster['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
+              sources:
+              <ul>
+                {% for ref in cluster._referenced_by | sort %}
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
                 {% endfor %}
+              </ul>
             </div>
-            <div class="col-5">
+            <div class="col-7">
               <div class="row">
                 <code><pre>{{ cluster | pretty_json }}</pre></code>
               </div>
@@ -170,7 +180,7 @@
 
           {% for breaker in breakers | sort(attribute = 'name') %}
           <div class="row">
-            <div class="col-7">
+            <div class="col-5">
               <code>{{ breaker['name'] }}</code>
               <br/>
               referenced by
@@ -178,7 +188,7 @@
                   <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
                 {% endfor %}
             </div>
-            <div class="col-5">
+            <div class="col-7">
               <div class="row">
                 <code><pre>{{ breaker | pretty_json }}</pre></code>
               </div>
@@ -196,7 +206,7 @@
 
           {% for outlier in outliers | sort(attribute = 'name') %}
           <div class="row">
-            <div class="col-7">
+            <div class="col-5">
               <code>{{ outlier['name'] }}</code>
               <br/>
               referenced by
@@ -204,7 +214,7 @@
                   <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
                 {% endfor %}
             </div>
-            <div class="col-5">
+            <div class="col-7">
               <div class="row">
                 <code><pre>{{ outlier | pretty_json }}</pre></code>
               </div>
@@ -221,7 +231,7 @@
 
           {% for source in sources %}
           <div class="row">
-            <div class="col-7">
+            <div class="col-5">
               <code>{{ source['filename'] }}{%- if not source.description -%}.{{ source['index'] }}{%- endif -%}</code>
               {% if not source.description %}
                 -- object {{ source.index }} in <a href="/ambassador/v0/diag/{{ source.filename }}"><code>{{ source.filename }}</code></a>
@@ -238,7 +248,7 @@
                 {% endif %}
               {% endif %}
             </div>
-            <div class="col-5">
+            <div class="col-7">
               <div class="row">
               {% if not source.description %}
                 <code><pre>{{ source['yaml'] }}</pre></code>
