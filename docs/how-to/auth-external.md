@@ -39,4 +39,4 @@ Additionally, Ambassador can be configured to allow headers from the auth servic
 
 ## Example
 
-See [the Ambassador Authentication Tutorial](#../user-guide/auth-tutorial.md) for an example.
+See [the Ambassador Authentication Tutorial](../user-guide/auth-tutorial.md) for an example.

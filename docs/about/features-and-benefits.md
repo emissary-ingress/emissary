@@ -25,7 +25,7 @@ For more information, check out the [concepts](concepts.md) section of the Ambas
 
 ## TLS
 
-Ambassador supports inbound TLS and inbound TLS client-certificate authentication. We **strongly** recommend using TLS with Ambassador, and encourage you to carefully read the [TLS](../reference/tls-auth.md) section of the Ambassador documentation for more.
+Ambassador supports inbound TLS and inbound TLS client-certificate authentication. We **strongly** recommend using TLS with Ambassador, and encourage you to carefully read the [TLS](../how-to/tls-termination.md) section of the Ambassador documentation for more.
 
 At present, a resource can be mapped to only one service, but the same service can be used behind as many different resources as you want. There's no hard limit to the number of mappings Ambassador can handle (though eventually you'll run out of memory).
 

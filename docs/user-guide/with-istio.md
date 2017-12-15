@@ -17,7 +17,7 @@ Getting Ambassador working with Istio is straightforward. In this example, we'll
 
 By default, the Bookinfo application uses the Istio ingress. To use Ambassador, we need to:
 
-1. Install Ambassador. See the [quickstart](https://www.getambassador.io/user-guide/getting-started) guide.
+1. Install Ambassador. See the [quickstart](getting-started.md) guide.
 
 2. Update the `bookinfo.yaml` manifest to include the necessary Ambassador annotations. See below.
 
