@@ -185,12 +185,11 @@ def route_and_cluster_info(request, overview, clusters, cstats):
     for cluster_name, cstat in cstats.items():
         c_info = cluster_info.setdefault(cluster_name, {
             '_service': 'unknown service!',
-            '_health': 'unknown service!',
-            '_hmetric': 'unknown service!'
         })
 
         c_info['_health'] = cstat['health']
         c_info['_hmetric'] = cstat['hmetric']
+        c_info['_hcolor'] = cstat['hcolor']
 
     route_info = []
 
@@ -207,17 +206,20 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                 c_name = cluster['name']
                 c_info = cluster_info.get(c_name, {
                     '_service': 'unknown cluster!',
-                    '_health': 'bad'
+                    '_health': 'unknown cluster!',
+                    '_hmetric': 'unknown',
+                    '_hcolor': 'orange'
                 })
 
                 c_service = c_info.get('_service', 'unknown service!')
                 c_health = c_info.get('_hmetric', 'unknown')
-
+                c_color = c_info.get('_hcolor', 'orange')
                 c_weight = cluster['weight']
 
                 route_clusters[c_name] = {
                     'weight': c_weight,
                     '_health': c_health,
+                    '_hcolor': c_color,
                     'service': c_service
                 }
 
@@ -251,8 +253,8 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                 'host': host if host else '*'
             })
 
-        app.logger.info("route_info")
-        app.logger.info(json.dumps(route_info, indent=4, sort_keys=True))
+        # app.logger.info("route_info")
+        # app.logger.info(json.dumps(route_info, indent=4, sort_keys=True))
 
         # app.logger.info("cstats")
         # app.logger.info(json.dumps(cstats, indent=4, sort_keys=True))
@@ -341,18 +343,22 @@ def show_overview(reqid=None):
 
     notices.extend(clean_notices(Config.scout_notices))
 
-    app.logger.debug("headers:")
-    app.logger.info(request.headers)
+    errors = []
 
     for source in ov['sources']:
         for obj in source['objects'].values():
             obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
+
+            if obj['errors']:
+                errors.extend([ (obj['key'], error['summary'])
+                                 for error in obj['errors'] ])
 
     tvars = dict(system=system_info(), 
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
                  cluster_stats=cstats,
                  notices=notices,
+                 errors=errors,
                  route_info=route_info,
                  **ov)
 
@@ -372,26 +378,35 @@ def show_intermediate(source=None, reqid=None):
 
     result = aconf(app).get_intermediate_for(source)
 
-    clusters = result['clusters']
-    cstats = cluster_stats(clusters)
-
-    route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+    # app.logger.debug("result\n%s" % json.dumps(result, indent=4, sort_keys=True))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
+    route_info = None
+    errors = []
 
     if "error" not in result:
+        clusters = result['clusters']
+        cstats = cluster_stats(clusters)
+
+        route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+
         result['cluster_stats'] = cstats
         result['sources'] = sorted_sources(result['sources'])
 
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
+            if source['errors']:
+                errors.extend([ (source['filename'], error['summary'])
+                                 for error in source['errors'] ])
+
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
                  route_info=route_info,
+                 errors=errors,
                  notices=clean_notices(Config.scout_notices),
                  **result)
 
@@ -443,6 +458,8 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
     if app.debugging or verbose:
         app.logger.setLevel(logging.DEBUG)
         logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger("ambassador.config").setLevel(logging.INFO)
 
     if not no_checks:
         app.health_checks = True

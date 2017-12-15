@@ -79,7 +79,8 @@ class EnvoyStats (object):
                 'valid': False,
                 'reason': "No stats updates have succeeded",
                 'health': "no stats yet",
-                'hmetric': 'startup'
+                'hmetric': 'startup',
+                'hcolor': 'grey'
             }
 
         # OK, we should be OK.
@@ -91,7 +92,8 @@ class EnvoyStats (object):
                 'valid': False,
                 'reason': "Cluster %s is not defined" % name,
                 'health': "undefined cluster",
-                'hmetric': 'undefined cluster'
+                'hmetric': 'undefined cluster',
+                'hcolor': 'orange',
             }
 
         cstat = dict(**cstat[name])
@@ -103,14 +105,23 @@ class EnvoyStats (object):
         pct = cstat.get('healthy_percent', None)
 
         if pct != None:
+            color = 'green'
+
+            if pct < 70:
+                color = 'red'
+            elif pct < 90:
+                color = 'yellow'
+
             cstat.update({
                 'health': "%d%% healthy" % pct,
-                'hmetric': int(pct)
+                'hmetric': int(pct),
+                'hcolor': color
             })
         else:
             cstat.update({
                 'health': "no requests yet",
-                'hmetric': 'waiting'
+                'hmetric': 'waiting',
+                'hcolor': 'grey'
             })
 
         return cstat

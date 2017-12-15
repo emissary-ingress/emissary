@@ -45,7 +45,7 @@ reg-check:
 
 version versions: ambassador/ambassador/VERSION.py
 
-ambassador/ambassador/VERSION.py:
+ambassador/ambassador/VERSION.py: .ALWAYS
 	@echo "Building $(VERSION)"
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 

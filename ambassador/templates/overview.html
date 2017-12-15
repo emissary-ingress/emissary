@@ -27,7 +27,7 @@
           <br/>
           Hostname {{ system.hostname }}
           <br/>
-          Configuration from {{ system.boot_time }} -- {{ system.hr_uptime }} ago
+          Configuration from {{ system.boot_time }} &mdash; {{ system.hr_uptime }} ago
           <br/>
           {% if envoy_status.ready %}
           Envoy ready, last status reported {{ envoy_status.since_update }}
@@ -90,6 +90,23 @@
         </div>
       {% endif %}
 
+      {% if errors %}
+        <div class="row">
+          <div class="col-12">
+            <span style="color:red">CONFIGURATION ERRORS</span>
+            <ul>
+            {% for error in errors | sort %}
+              <li>
+                <a href="/ambassador/v0/diag/{{ error[0] }}">
+                  <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                </a>
+              </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
       <div class="row">
         <div class="col-12">
           Ambassador Route Table
@@ -124,23 +141,9 @@
                       <td>
                         {% for cluster in route.clusters| sort_clusters_by_service %}
                           <a href="/ambassador/v0/diag/{{ route['_source'] }}">
-                            <code><span style=" 
-                              {% if cluster._health == 'bad' %}
-                                color:red;
-                              {% elif cluster._health == 'unknown' %}
-                                color:red;
-                              {% elif cluster._health == 'waiting' %}
-                                color:grey;
-                              {% elif cluster._health == 'startup' %}
-                                color:grey;
-                              {% elif cluster._health < 70 %}
-                                color:red;
-                              {% elif cluster._health < 90 %}
-                                color:yellow;
-                              {% else %}
-                                color:green;
-                              {% endif %}
-                            ">{{ cluster.service }}</span></code>
+                            <code><span style="color:{{ cluster._hcolor }}">
+                              {{ cluster.service }}
+                            </span></code>
                           </a>
                           {% if not loop.last %}
                           <br/>
