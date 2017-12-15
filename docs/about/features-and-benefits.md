@@ -1,36 +1,46 @@
 # Features and Benefits
 
-Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). Key features in Ambassador include:
+Ambassador is a Kubernetes-native API Gateway for microservices built on [Envoy](https://www.envoyproxy.io). Key features in Ambassador include:
 
 * Self-service mapping of public URLs to services running inside a Kubernetes cluster
+* Flexible canary deployments
+* Kubernetes-native architecture
+* First class gRPC and HTTP/2 support
+* Istio integration
+* Authentication
+* Integrated diagnostics
 * Robust TLS support, including TLS client-certificate authentication
 * Simple setup and configuration
 * Integrated monitoring
 
 Check out the [Ambassador roadmap](roadmap.md) for what's coming up in the future.
 
-## Self-Service
+## Self-Service via Kubernetes annotations
 
-Ambassador is built from the start to support _self-service_ deployments -- a developer working on a new service doesn't have to go to Operations to get their service added to the mesh, they can do it themselves in a matter of seconds. Likewise, a developer can remove their service from the mesh, or merge services, or separate services, as needed, at their convenience.
+Ambassador is built from the start to support _self-service_ deployments -- a developer working on a new service doesn't have to go to Operations to get their service added to the mesh, they can do it themselves in a matter of seconds. Likewise, a developer can remove their service from the mesh, or merge services, or separate services, as needed, at their convenience. All of these operations are performed via Kubernetes annotations, so it can easily integrate with your existing development workflow.
 
-## Resource Mapping
+## Flexible canary deployments
 
-At the heart of Ambassador is the idea of mapping _resources_ (in the REST sense) to _services_ (in the Kubernetes sense).
+Canary deployments are an essential component of cloud-native development workflows. In a canary deployment, a small percentage of production traffic is routed to a new version of a service to test it under real-world conditions. Ambassador allows developers to easily control and manage the amount of traffic routed to a given service through annotations. [This tutorial](https://www.datawire.io/faster/canary-workflow/) covers a complete canary workflow using Ambassador.
 
-* A `resource` is identified by a URL prefix -- for example, you might declare that any URL beginning with `/user/` identifies a "user" resource.
+## Kubernetes-native architecture
 
-* A `service` is code running in Kubernetes that can handle the resource you want to map.
+Ambassador relies entirely on Kubernetes for reliability, availability, and scalability. For example, Ambassador persists all state in Kubernetes, instead of requiring a separate database. Scaling Ambassador is as simple as changing the replicas in your deployment, or using a [horizontal pod autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
 
-For more information, check out the [concepts](concepts.md) section of the Ambassador documentation.
+Ambassador uses [Envoy](https://www.envoyproxy.io) for all traffic routing and proxying. Envoy is a modern L7 proxy that is used in production at companies including Lyft, Apple, Google, and Stripe.
 
-## TLS
+## gRPC and HTTP/2 support
 
-Ambassador supports inbound TLS and inbound TLS client-certificate authentication. We **strongly** recommend using TLS with Ambassador, and encourage you to carefully read the [TLS](../how-to/tls-termination.md) section of the Ambassador documentation for more.
+Ambassador fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and Ambassador](/how-to/grpc) for more information.
 
-At present, a resource can be mapped to only one service, but the same service can be used behind as many different resources as you want. There's no hard limit to the number of mappings Ambassador can handle (though eventually you'll run out of memory).
+## Istio integration
 
-### CAVEATS
+Ambassador integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, Ambassador routes external traffic to the internal Istio service mesh. See [Istio and Ambassador](/user-guide/with-istio) for details.
 
-Ambassador is ALPHA SOFTWARE. In particular, in version 0.8.0, there is no authentication mechanism, so anyone who can reach the administrative interface can map or unmap resources -- great for self service, of course, but possibly dangerous. For this reason, the administrative requires a Kubernetes port-forward.
+## Authentication
 
-Ambassador is under active development; check frequently for updates, and please file issues for things you'd like to see!
+Ambassador supports authenticating incoming requests. When configured, Ambassador will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication tutorial](/user-guide/auth-tutorial).
+
+## Integrated diagnostics
+
+Ambassador includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador](https://www.getambassador.io/user-guide/running).
