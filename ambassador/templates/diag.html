@@ -33,7 +33,7 @@
           <br/>
           Hostname {{ system.hostname }}
           <br/>
-          Configuration from {{ system.boot_time }} -- {{ system.hr_uptime }} ago
+          Configuration from {{ system.boot_time }} &mdash; {{ system.hr_uptime }} ago
           <br/>
           {% if envoy_status.ready %}
           Envoy ready, last status report {{ envoy_status.since_update }}
@@ -252,7 +252,7 @@
 
       <div class="row">
         <div class="col-12">
-          YAML input documents -- these are what Ambassador is currently using for its configuration.
+          YAML input documents &mdash; these are what Ambassador is currently reading for its configuration.
 
           {% for source in sources %}
           <div class="row">
