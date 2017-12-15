@@ -374,15 +374,18 @@ def show_intermediate(source=None, reqid=None):
 
     result = aconf(app).get_intermediate_for(source)
 
-    clusters = result['clusters']
-    cstats = cluster_stats(clusters)
-
-    route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+    app.logger.debug("result\n%s" % json.dumps(result, indent=4, sort_keys=True))
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
+    route_info = None
 
     if "error" not in result:
+        clusters = result['clusters']
+        cstats = cluster_stats(clusters)
+
+        route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+
         result['cluster_stats'] = cstats
         result['sources'] = sorted_sources(result['sources'])
 
