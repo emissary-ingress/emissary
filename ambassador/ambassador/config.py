@@ -417,6 +417,9 @@ class Config (object):
             'yaml': yaml.safe_dump(obj, default_flow_style=False)
         }
 
+        if 'source' in obj:
+            self.sources[source_key]['source'] = obj['source']
+
         source_map = self.source_map.setdefault(self.filename, {})
         source_map[source_key] = True
 
@@ -947,6 +950,7 @@ class Config (object):
                 }
                 for error in self.errors.get(key, [])
             ]
+            source_dict['source_key'] = key
 
             sources.append(source_dict)
 
@@ -1138,6 +1142,10 @@ class Config (object):
                 # self.logger.debug("overview --- source_key %s" % source_key)
 
                 source = self.sources[source_key]
+
+                if ('source' in source) and not ('source' in source_dict):
+                    source_dict['source'] = source['source']
+
                 raw_errors = self.errors.get(source_key, [])
 
                 errors = []

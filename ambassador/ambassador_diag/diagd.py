@@ -172,8 +172,11 @@ def cluster_stats(clusters):
     cluster_names = [ x['name'] for x in clusters ]
     return { name: app.estats.cluster_stats(name) for name in cluster_names }
 
+def source_key(source):
+    return "%s.%d" % (source['filename'], source['index'])
+
 def sorted_sources(sources):
-    return sorted(sources, key=lambda x: "%s.%d" % (x['filename'], x['index']))
+    return sorted(sources, key=source_key)
 
 def route_and_cluster_info(request, overview, clusters, cstats):
     request_host = request.headers.get('Host', '*')
@@ -393,6 +396,8 @@ def show_intermediate(source=None, reqid=None):
 
         result['cluster_stats'] = cstats
         result['sources'] = sorted_sources(result['sources'])
+        result['source_dict'] = { source_key(source): source 
+                                  for source in result['sources']}
 
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
@@ -436,6 +441,16 @@ def pretty_json(obj):
 @app.template_filter('sort_clusters_by_service')
 def sort_clusters_by_service(clusters):
     return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
+
+@app.template_filter('source_lookup')
+def source_lookup(name, sources):
+    app.logger.info("%s => sources %s" % (name, sources))
+
+    source = sources.get(name, {})
+
+    app.logger.info("%s => source %s" % (name, source))
+
+    return source.get('source', name)
 
 def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
     """
