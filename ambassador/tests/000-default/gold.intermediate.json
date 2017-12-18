@@ -1,179 +1,274 @@
 {
-    "clusters": [
-        {
-            "_referenced_by": [
-                "mapping-diag.yaml.1"
-            ],
-            "_service": "127.0.0.1:8877",
-            "_source": "mapping-diag.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_127_0_0_1_8877",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://127.0.0.1:8877"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "mapping-cqrs.yaml.1",
-                "mapping-cqrs.yaml.2",
-                "mapping-qotm.yaml.1"
-            ],
-            "_service": "demo.getambassador.io",
-            "_source": "mapping-cqrs.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_demo_getambassador_io",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://demo.getambassador.io:80"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "auth.yaml.1"
-            ],
-            "_service": "demo.getambassador.io",
-            "_source": "auth.yaml.1",
-            "lb_type": "random",
-            "name": "cluster_ext_auth",
-            "type": "logical_dns",
-            "urls": [
-                "tcp://demo.getambassador.io:80"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "mapping-httpbin.yaml.1"
-            ],
-            "_service": "httpbin.org:80",
-            "_source": "mapping-httpbin.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_httpbin_org_80",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://httpbin.org:80"
-            ]
-        }
-    ],
-    "filters": [
-        {
-            "_source": "auth.yaml.1",
-            "config": {
-                "allowed_headers": [
-                    "x-extauth-required",
-                    "x-authenticated-as",
-                    "x-qotm-session"
+    "envoy_config": {
+        "clusters": [
+            {
+                "_referenced_by": [
+                    "mapping-diag.yaml.1"
                 ],
-                "cluster": "cluster_ext_auth",
-                "path_prefix": "/auth/v0",
-                "timeout_ms": 5000
+                "_service": "127.0.0.1:8877",
+                "_source": "mapping-diag.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_127_0_0_1_8877",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://127.0.0.1:8877"
+                ]
             },
-            "name": "extauth",
-            "type": "decoder"
+            {
+                "_referenced_by": [
+                    "mapping-cqrs.yaml.1",
+                    "mapping-cqrs.yaml.2",
+                    "mapping-qotm.yaml.1"
+                ],
+                "_service": "demo.getambassador.io",
+                "_source": "mapping-cqrs.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_demo_getambassador_io",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://demo.getambassador.io:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
+                "_service": "demo.getambassador.io",
+                "_source": "auth.yaml.1",
+                "lb_type": "random",
+                "name": "cluster_ext_auth",
+                "type": "logical_dns",
+                "urls": [
+                    "tcp://demo.getambassador.io:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-httpbin.yaml.1"
+                ],
+                "_service": "httpbin.org:80",
+                "_source": "mapping-httpbin.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_httpbin_org_80",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://httpbin.org:80"
+                ]
+            }
+        ],
+        "filters": [
+            {
+                "_source": "auth.yaml.1",
+                "config": {
+                    "allowed_headers": [
+                        "x-extauth-required",
+                        "x-authenticated-as",
+                        "x-qotm-session"
+                    ],
+                    "cluster": "cluster_ext_auth",
+                    "path_prefix": "/auth/v0",
+                    "timeout_ms": 5000
+                },
+                "name": "extauth",
+                "type": "decoder"
+            }
+        ],
+        "listeners": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001,
+                "service_port": 80
+            }
+        ],
+        "routes": [
+            {
+                "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-httpbin.yaml.1"
+                ],
+                "_source": "mapping-httpbin.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_httpbin_org_80",
+                        "weight": 100.0
+                    }
+                ],
+                "host_rewrite": "httpbin.org",
+                "prefix": "/httpbin/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "3e935e6af2ad12df1441fee5d2cf17a69303b2ad",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-cqrs.yaml.1"
+                ],
+                "_source": "mapping-cqrs.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_demo_getambassador_io",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "GET"
+                    }
+                ],
+                "prefix": "/cqrs/",
+                "prefix_rewrite": "/qotm/quote/"
+            },
+            {
+                "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-diag.yaml.1"
+                ],
+                "_source": "mapping-diag.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/",
+                "prefix_rewrite": "/ambassador/"
+            },
+            {
+                "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_source": "mapping-qotm.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_demo_getambassador_io",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/qotm/",
+                "prefix_rewrite": "/qotm/"
+            },
+            {
+                "_group_id": "c78d3e3dc6c4a44ace22414fd99b17305dd29a37",
+                "_method": "PUT",
+                "_referenced_by": [
+                    "mapping-cqrs.yaml.2"
+                ],
+                "_source": "mapping-cqrs.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_demo_getambassador_io",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "PUT"
+                    }
+                ],
+                "prefix": "/cqrs/",
+                "prefix_rewrite": "/qotm/quote/"
+            }
+        ]
+    },
+    "source_map": {
+        "--internal--": {
+            "--internal--": true
+        },
+        "auth.yaml": {
+            "auth.yaml.1": true
+        },
+        "mapping-cqrs.yaml": {
+            "mapping-cqrs.yaml.1": true,
+            "mapping-cqrs.yaml.2": true
+        },
+        "mapping-diag.yaml": {
+            "mapping-diag.yaml.1": true
+        },
+        "mapping-httpbin.yaml": {
+            "mapping-httpbin.yaml.1": true
+        },
+        "mapping-qotm.yaml": {
+            "mapping-qotm.yaml.1": true
         }
-    ],
-    "listeners": [
-        {
-            "_source": "--internal--",
-            "admin_port": 8001,
-            "service_port": 80
+    },
+    "sources": {
+        "--diagnostics--": {
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "filename": "--diagnostics--",
+            "index": 0,
+            "kind": "diagnostics",
+            "name": "Ambassador Diagnostics",
+            "version": "v0"
+        },
+        "--internal--": {
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "filename": "--internal--",
+            "index": 0,
+            "kind": "Internal",
+            "name": "Ambassador Internals",
+            "version": "v0"
+        },
+        "auth.yaml.1": {
+            "_source": "auth.yaml",
+            "filename": "auth.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "authentication",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  allowed_headers:\n  - x-extauth-required\n  - x-authenticated-as\n  - x-qotm-session\n  auth_service: demo.getambassador.io\n  path_prefix: /auth/v0\nkind: Module\nname: authentication\n"
+        },
+        "mapping-cqrs.yaml.1": {
+            "_source": "mapping-cqrs.yaml",
+            "filename": "mapping-cqrs.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "cqrs_get_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: cqrs_get_mapping\nprefix: /cqrs/\nrewrite: /qotm/quote/\nservice: demo.getambassador.io\n"
+        },
+        "mapping-cqrs.yaml.2": {
+            "_source": "mapping-cqrs.yaml",
+            "filename": "mapping-cqrs.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "cqrs_put_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: cqrs_put_mapping\nprefix: /cqrs/\nrewrite: /qotm/quote/\nservice: demo.getambassador.io\n"
+        },
+        "mapping-diag.yaml.1": {
+            "_source": "mapping-diag.yaml",
+            "filename": "mapping-diag.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "diag_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: diag_mapping\nprefix: /ambassador/\nrewrite: /ambassador/\nservice: 127.0.0.1:8877\n"
+        },
+        "mapping-httpbin.yaml.1": {
+            "_source": "mapping-httpbin.yaml",
+            "filename": "mapping-httpbin.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "httpbin_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: httpbin.org:80\n"
+        },
+        "mapping-qotm.yaml.1": {
+            "_source": "mapping-qotm.yaml",
+            "filename": "mapping-qotm.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "qotm_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nrewrite: /qotm/\nservice: demo.getambassador.io\n"
         }
-    ],
-    "routes": [
-        {
-            "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-httpbin.yaml.1"
-            ],
-            "_source": "mapping-httpbin.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_httpbin_org_80",
-                    "weight": 100.0
-                }
-            ],
-            "host_rewrite": "httpbin.org",
-            "prefix": "/httpbin/",
-            "prefix_rewrite": "/"
-        },
-        {
-            "_group_id": "3e935e6af2ad12df1441fee5d2cf17a69303b2ad",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-cqrs.yaml.1"
-            ],
-            "_source": "mapping-cqrs.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_demo_getambassador_io",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": ":method",
-                    "regex": false,
-                    "value": "GET"
-                }
-            ],
-            "prefix": "/cqrs/",
-            "prefix_rewrite": "/qotm/quote/"
-        },
-        {
-            "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-diag.yaml.1"
-            ],
-            "_source": "mapping-diag.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_127_0_0_1_8877",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/ambassador/",
-            "prefix_rewrite": "/ambassador/"
-        },
-        {
-            "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-qotm.yaml.1"
-            ],
-            "_source": "mapping-qotm.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_demo_getambassador_io",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/qotm/",
-            "prefix_rewrite": "/qotm/"
-        },
-        {
-            "_group_id": "c78d3e3dc6c4a44ace22414fd99b17305dd29a37",
-            "_method": "PUT",
-            "_referenced_by": [
-                "mapping-cqrs.yaml.2"
-            ],
-            "_source": "mapping-cqrs.yaml.2",
-            "clusters": [
-                {
-                    "name": "cluster_demo_getambassador_io",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": ":method",
-                    "regex": false,
-                    "value": "PUT"
-                }
-            ],
-            "prefix": "/cqrs/",
-            "prefix_rewrite": "/qotm/quote/"
-        }
-    ]
+    }
 }

@@ -6,7 +6,6 @@
     "properties": {
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
-        "source": { "type": "string" },
         "name": { "type": "string" },
         "max_connections": { "type": "integer" },
         "max_pending": { "type": "integer" },
