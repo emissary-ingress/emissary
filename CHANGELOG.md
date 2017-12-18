@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.20.0] December 18, 2017
+[0.20.0]: https://github.com/datawire/ambassador/compare/v0.19.2...v0.20.0
+
+### Changed
+
+- Switch to Envoy 1.5 under the hood.
+- Refocus the diagnostic service to better reflect what's actually visible when you're working at Ambassador's level.
+- Allow the diagnostic service to display, and change, the Envoy log level.
+
 ## [0.19.2] December 12, 2017
 [0.19.2]: https://github.com/datawire/ambassador/compare/v0.19.1...v0.19.2
 
