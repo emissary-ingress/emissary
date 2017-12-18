@@ -87,7 +87,7 @@ def test_config(testname, dirpath, configdir):
             errors.append("current intermediate was unparseable?")
 
         if current:
-            current = filtered_overview(current)
+            current['envoy_config'] = filtered_overview(current['envoy_config'])
 
             current_path = os.path.join(dirpath, "intermediate.json")
             json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)

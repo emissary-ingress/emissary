@@ -107,7 +107,14 @@ def dump(config_dir_path:Parameter.REQUIRED):
 
     try:
         aconf = parse_config(config_dir_path)
-        json.dump(aconf.envoy_config, sys.stdout, indent=4, sort_keys=True)
+
+        diag_object = {
+            'envoy_config': aconf.envoy_config,
+            'sources': aconf.sources,
+            'source_map': aconf.source_map
+        }
+
+        json.dump(diag_object, sys.stdout, indent=4, sort_keys=True)
     except Exception as e:
         handle_exception("EXCEPTION from dump", e, 
                          config_dir_path=config_dir_path)

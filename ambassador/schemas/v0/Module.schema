@@ -6,7 +6,6 @@
     "properties": {
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
-        "source": { "type": "string" },
         "name": { "type": "string" },
         "config": { "type": "object" }
     },

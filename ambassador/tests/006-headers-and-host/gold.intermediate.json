@@ -1,211 +1,304 @@
 {
-    "clusters": [
-        {
-            "_referenced_by": [
-                "mapping-diag.yaml.1"
-            ],
-            "_service": "127.0.0.1:8877",
-            "_source": "mapping-diag.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_127_0_0_1_8877",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://127.0.0.1:8877"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "mapping-qotm.yaml.1"
-            ],
-            "_service": "demo.getambassador.io",
-            "_source": "mapping-qotm.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_demo_getambassador_io",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://demo.getambassador.io:80"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "auth.yaml.1"
-            ],
-            "_service": "example-auth:3000",
-            "_source": "auth.yaml.1",
-            "lb_type": "random",
-            "name": "cluster_ext_auth",
-            "type": "logical_dns",
-            "urls": [
-                "tcp://example-auth:3000"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "mapping-httpbin.yaml.1",
-                "mapping-qotm.yaml.3"
-            ],
-            "_service": "httpbin.org:80",
-            "_source": "mapping-httpbin.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_httpbin_org_80",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://httpbin.org:80"
-            ]
-        },
-        {
-            "_referenced_by": [
-                "mapping-qotm.yaml.2"
-            ],
-            "_service": "qotm",
-            "_source": "mapping-qotm.yaml.2",
-            "lb_type": "round_robin",
-            "name": "cluster_qotm",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://qotm:80"
-            ]
-        }
-    ],
-    "filters": [
-        {
-            "_source": "auth.yaml.1",
-            "config": {
-                "allowed_headers": [
-                    "x-extauth-required",
-                    "x-authenticated-as",
-                    "x-qotm-session"
+    "envoy_config": {
+        "clusters": [
+            {
+                "_referenced_by": [
+                    "mapping-diag.yaml.1"
                 ],
-                "cluster": "cluster_ext_auth",
-                "path_prefix": "/extauth",
-                "timeout_ms": 5000
+                "_service": "127.0.0.1:8877",
+                "_source": "mapping-diag.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_127_0_0_1_8877",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://127.0.0.1:8877"
+                ]
             },
-            "name": "extauth",
-            "type": "decoder"
-        }
-    ],
-    "listeners": [
-        {
-            "_source": "--internal--",
-            "admin_port": 8001,
-            "service_port": 80
-        }
-    ],
-    "routes": [
-        {
-            "_group_id": "3d6174456a466eb4f342d4aa4165bd8c2b99ce1e",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-qotm.yaml.1"
-            ],
-            "_source": "mapping-qotm.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_demo_getambassador_io",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": "x-demo-mode",
-                    "regex": false,
-                    "value": "cloud"
-                }
-            ],
-            "prefix": "/qotm/",
-            "prefix_rewrite": "/qotm/"
-        },
-        {
-            "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-diag.yaml.1"
-            ],
-            "_source": "mapping-diag.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_127_0_0_1_8877",
-                    "weight": 100.0
-                }
-            ],
-            "prefix": "/ambassador/",
-            "prefix_rewrite": "/ambassador/"
-        },
-        {
-            "_group_id": "c208ab7e4e146b9a8bbdebadc7b33f99bc635ab7",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-qotm.yaml.2"
-            ],
-            "_source": "mapping-qotm.yaml.2",
-            "clusters": [
-                {
-                    "name": "cluster_qotm",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": "x-demo-mode",
-                    "regex": false,
-                    "value": "local"
-                }
-            ],
-            "prefix": "/qotm/",
-            "prefix_rewrite": "/"
-        },
-        {
-            "_group_id": "d3a3d2ab986037ba30b790afabf48a43485c6b1f",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-qotm.yaml.3"
-            ],
-            "_source": "mapping-qotm.yaml.3",
-            "clusters": [
-                {
-                    "name": "cluster_httpbin_org_80",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": "x-demo-mode",
-                    "regex": false,
-                    "value": "host"
+            {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_service": "demo.getambassador.io",
+                "_source": "mapping-qotm.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_demo_getambassador_io",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://demo.getambassador.io:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
+                "_service": "example-auth:3000",
+                "_source": "auth.yaml.1",
+                "lb_type": "random",
+                "name": "cluster_ext_auth",
+                "type": "logical_dns",
+                "urls": [
+                    "tcp://example-auth:3000"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-httpbin.yaml.1",
+                    "mapping-qotm.yaml.3"
+                ],
+                "_service": "httpbin.org:80",
+                "_source": "mapping-httpbin.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_httpbin_org_80",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://httpbin.org:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.2"
+                ],
+                "_service": "qotm",
+                "_source": "mapping-qotm.yaml.2",
+                "lb_type": "round_robin",
+                "name": "cluster_qotm",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://qotm:80"
+                ]
+            }
+        ],
+        "filters": [
+            {
+                "_source": "auth.yaml.1",
+                "config": {
+                    "allowed_headers": [
+                        "x-extauth-required",
+                        "x-authenticated-as",
+                        "x-qotm-session"
+                    ],
+                    "cluster": "cluster_ext_auth",
+                    "path_prefix": "/extauth",
+                    "timeout_ms": 5000
                 },
-                {
-                    "name": ":authority",
-                    "regex": false,
-                    "value": "httpbin.org"
-                }
-            ],
-            "host_rewrite": "httpbin.org",
-            "prefix": "/qotm/",
-            "prefix_rewrite": "/"
+                "name": "extauth",
+                "type": "decoder"
+            }
+        ],
+        "listeners": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001,
+                "service_port": 80
+            }
+        ],
+        "routes": [
+            {
+                "_group_id": "3d6174456a466eb4f342d4aa4165bd8c2b99ce1e",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_source": "mapping-qotm.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_demo_getambassador_io",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": "x-demo-mode",
+                        "regex": false,
+                        "value": "cloud"
+                    }
+                ],
+                "prefix": "/qotm/",
+                "prefix_rewrite": "/qotm/"
+            },
+            {
+                "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-diag.yaml.1"
+                ],
+                "_source": "mapping-diag.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/",
+                "prefix_rewrite": "/ambassador/"
+            },
+            {
+                "_group_id": "c208ab7e4e146b9a8bbdebadc7b33f99bc635ab7",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-qotm.yaml.2"
+                ],
+                "_source": "mapping-qotm.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_qotm",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": "x-demo-mode",
+                        "regex": false,
+                        "value": "local"
+                    }
+                ],
+                "prefix": "/qotm/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "d3a3d2ab986037ba30b790afabf48a43485c6b1f",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-qotm.yaml.3"
+                ],
+                "_source": "mapping-qotm.yaml.3",
+                "clusters": [
+                    {
+                        "name": "cluster_httpbin_org_80",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": "x-demo-mode",
+                        "regex": false,
+                        "value": "host"
+                    },
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "httpbin.org"
+                    }
+                ],
+                "host_rewrite": "httpbin.org",
+                "prefix": "/qotm/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "dc5d22df356f9df8439ed418ef194c061e57c68f",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-httpbin.yaml.1"
+                ],
+                "_source": "mapping-httpbin.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_httpbin_org_80",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "test.datawire.io"
+                    }
+                ],
+                "host_rewrite": "httpbin.org",
+                "prefix": "/httpbin/",
+                "prefix_rewrite": "/"
+            }
+        ]
+    },
+    "source_map": {
+        "--internal--": {
+            "--internal--": true
         },
-        {
-            "_group_id": "dc5d22df356f9df8439ed418ef194c061e57c68f",
-            "_method": "GET",
-            "_referenced_by": [
-                "mapping-httpbin.yaml.1"
-            ],
-            "_source": "mapping-httpbin.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_httpbin_org_80",
-                    "weight": 100.0
-                }
-            ],
-            "headers": [
-                {
-                    "name": ":authority",
-                    "regex": false,
-                    "value": "test.datawire.io"
-                }
-            ],
-            "host_rewrite": "httpbin.org",
-            "prefix": "/httpbin/",
-            "prefix_rewrite": "/"
+        "auth.yaml": {
+            "auth.yaml.1": true
+        },
+        "mapping-diag.yaml": {
+            "mapping-diag.yaml.1": true
+        },
+        "mapping-httpbin.yaml": {
+            "mapping-httpbin.yaml.1": true
+        },
+        "mapping-qotm.yaml": {
+            "mapping-qotm.yaml.1": true,
+            "mapping-qotm.yaml.2": true,
+            "mapping-qotm.yaml.3": true
         }
-    ]
+    },
+    "sources": {
+        "--diagnostics--": {
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "filename": "--diagnostics--",
+            "index": 0,
+            "kind": "diagnostics",
+            "name": "Ambassador Diagnostics",
+            "version": "v0"
+        },
+        "--internal--": {
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "filename": "--internal--",
+            "index": 0,
+            "kind": "Internal",
+            "name": "Ambassador Internals",
+            "version": "v0"
+        },
+        "auth.yaml.1": {
+            "_source": "auth.yaml",
+            "filename": "auth.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "authentication",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  allowed_headers:\n  - x-extauth-required\n  - x-authenticated-as\n  - x-qotm-session\n  auth_service: example-auth:3000\n  path_prefix: /extauth\nkind: Module\nname: authentication\n"
+        },
+        "mapping-diag.yaml.1": {
+            "_source": "mapping-diag.yaml",
+            "filename": "mapping-diag.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "diag_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: diag_mapping\nprefix: /ambassador/\nrewrite: /ambassador/\nservice: 127.0.0.1:8877\n"
+        },
+        "mapping-httpbin.yaml.1": {
+            "_source": "mapping-httpbin.yaml",
+            "filename": "mapping-httpbin.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "httpbin_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost: test.datawire.io\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: httpbin.org:80\n"
+        },
+        "mapping-qotm.yaml.1": {
+            "_source": "mapping-qotm.yaml",
+            "filename": "mapping-qotm.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "qotm_cloud_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nheaders:\n  x-demo-mode: cloud\nkind: Mapping\nname: qotm_cloud_mapping\nprefix: /qotm/\nrewrite: /qotm/\nservice: demo.getambassador.io\n"
+        },
+        "mapping-qotm.yaml.2": {
+            "_source": "mapping-qotm.yaml",
+            "filename": "mapping-qotm.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "qotm_local_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nheaders:\n  x-demo-mode: local\nkind: Mapping\nname: qotm_local_mapping\nprefix: /qotm/\nrewrite: /\nservice: qotm\n"
+        },
+        "mapping-qotm.yaml.3": {
+            "_source": "mapping-qotm.yaml",
+            "filename": "mapping-qotm.yaml",
+            "index": 3,
+            "kind": "Mapping",
+            "name": "qotm_host_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
+        }
+    }
 }

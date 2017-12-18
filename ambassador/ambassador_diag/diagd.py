@@ -450,7 +450,7 @@ def source_lookup(name, sources):
 
     app.logger.info("%s => source %s" % (name, source))
 
-    return source.get('source', name)
+    return source.get('_source', name)
 
 def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
     """
