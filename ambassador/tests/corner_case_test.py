@@ -63,8 +63,7 @@ def test_bad_dump_input():
 def test_bad_yaml():
     shell_command("test_bad_yaml",
                   [ 'ambassador', 'config', CORNER_CASE_DIR, 'no-such-file' ],
-                  must_fail=True,
-                  need_stderr='Exception: ERROR ERROR ERROR')
+                  need_stderr='ERROR ERROR ERROR Starting with configuration errors')
 
 def test_version():
     shell_command("test_version",

@@ -11,12 +11,7 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-step "Dropping old cluster"
-kubernaut discard
-
-step "Claiming new cluster"
-kubernaut claim 
-export KUBECONFIG=${HOME}/.kube/kubernaut
+shred_and_reclaim
 
 kubectl cluster-info
 
