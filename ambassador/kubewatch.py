@@ -39,6 +39,9 @@ def is_annotated(svc):
 def get_annotation(svc):
     return svc.metadata.annotations[KEY] if is_annotated(svc) else None
 
+def get_source(svc):
+    return "service %s, namespace %s" % (svc.metadata.name, svc.metadata.namespace)
+
 def get_filename(svc):
     return "%s.yaml" % svc.metadata.name
 
@@ -66,7 +69,6 @@ class Restarter(threading.Thread):
         self.read_fs(self.ambassador_config_dir)
 
         # ...then pull in anything updated by the restarter logic.
-
         while True:
             if not os.path.exists("%s-%s" % (self.ambassador_config_dir, self.restart_count + 1)):
                 break
@@ -82,10 +84,12 @@ class Restarter(threading.Thread):
 
             for name in os.listdir(path):
                 if name.endswith(".yaml"):
-                    with open(os.path.join(path, name)) as fd:
-                        self.configs[name] = fd.read()
+                    filepath = os.path.join(path, name)
 
-                    logger.info("Loaded %s" % os.path.join(path, name))
+                    with open(filepath) as fd:
+                        self.configs[name] = self.read_yaml(fd.read(), "file %s" % filepath)
+
+                    logger.info("Loaded %s" % filepath)
 
     def changes(self):
         with self.mutex:
@@ -111,9 +115,11 @@ class Restarter(threading.Thread):
         self.restart_count += 1
         output = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
         config = self.generate_config(output)
+
         base, ext = os.path.splitext(self.envoy_config_file)
         target = "%s-%s%s" % (base, self.restart_count, ext)
         os.rename(config, target)
+
         logger.info("Moved valid configuration %s to %s" % (config, target))
         if self.pid:
             os.kill(self.pid, signal.SIGHUP)
@@ -157,12 +163,35 @@ class Restarter(threading.Thread):
         raise ValueError("Unable to generate config")
 
     def update_from_service(self, svc):
+        key = get_filename(svc)
+        source = get_source(svc)
         config = get_annotation(svc)
+
         if config is None:
             self.delete(svc)
         else:
-            key = get_filename(svc)
-            self.update(key, config)
+            self.update(key, self.read_yaml(config, source))
+
+    def read_yaml(self, raw_yaml, source):
+        all_objects = []
+        yaml_to_return = raw_yaml
+
+        try:
+            # XXX This is a bit of a hack -- yaml.safe_load_all returns a
+            # generator, and if we don't use list() here, any exception
+            # dealing with the actual object gets deferred             
+            for obj in yaml.safe_load_all(raw_yaml):
+                if 'source' not in obj:
+                    obj['source'] = source
+
+                all_objects.append(obj)
+
+            yaml_to_return = "---\n" + yaml.safe_dump_all(all_objects)
+        except Exception as e:
+            # Ooops.
+            logger.error("could not parse YAML from %s: %s" % (source, e))
+
+        return yaml_to_return
 
     def update(self, key, config):
         logger.info("update: including key %s" % key)
@@ -322,7 +351,7 @@ def sync(restarter):
                 restarter.update("tls.yaml", yaml.safe_dump(tls_mod))
 
         # Next, check for annotations and such.
-        for svc in v1.list_namespaced_service(restarter.namespace).items:
+        for svc in v1.list_service_for_all_namespaces().items:
             restarter.update_from_service(svc)
 
     logger.info("Changes detected, regenerating envoy config.")

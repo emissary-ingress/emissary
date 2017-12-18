@@ -6,6 +6,7 @@
     "properties": {
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
+        "source": { "type": "string" },
         "name": { "type": "string" },
         "consecutive_5xx": { "type": "integer" },
         "max_ejection": { "type": "integer" },

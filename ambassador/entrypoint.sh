@@ -73,17 +73,23 @@ if [ $STATUS -ne 0 ]; then
     diediedie "kubewatch sync" "$STATUS"
 fi
 
-echo "AMBASSADOR: starting diagd"
-diagd --no-debugging "$CONFIG_DIR" &
-pids+=("$!;diagd")
+if [ -z "$AMBASSADOR_NO_DIAGD" ]; then
+    echo "AMBASSADOR: starting diagd"
+    diagd --no-debugging "$CONFIG_DIR" &
+    pids+=("$!;diagd")
+fi
 
-echo "AMBASSADOR: starting Envoy"
-/usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
-RESTARTER_PID="$!"
-pids+=("${RESTARTER_PID};envoy")
+if [ -z "$AMBASSADOR_NO_ENVOY" ]; then
+    echo "AMBASSADOR: starting Envoy"
+    /usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
+    RESTARTER_PID="$!"
+    pids+=("${RESTARTER_PID};envoy")
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
-pids+=("$!;kubewatch")
+    if [ -z "$AMBASSADOR_NO_KUBEWATCH" ]; then
+        /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
+        pids+=("$!;kubewatch")
+    fi
+fi
 
 echo "AMBASSADOR: waiting"
 wait

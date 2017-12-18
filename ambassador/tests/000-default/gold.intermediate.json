@@ -4,6 +4,7 @@
             "_referenced_by": [
                 "mapping-diag.yaml.1"
             ],
+            "_service": "127.0.0.1:8877",
             "_source": "mapping-diag.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_127_0_0_1_8877",
@@ -18,6 +19,7 @@
                 "mapping-cqrs.yaml.2",
                 "mapping-qotm.yaml.1"
             ],
+            "_service": "demo.getambassador.io",
             "_source": "mapping-cqrs.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_demo_getambassador_io",
@@ -30,6 +32,7 @@
             "_referenced_by": [
                 "auth.yaml.1"
             ],
+            "_service": "demo.getambassador.io",
             "_source": "auth.yaml.1",
             "lb_type": "random",
             "name": "cluster_ext_auth",
@@ -42,6 +45,7 @@
             "_referenced_by": [
                 "mapping-httpbin.yaml.1"
             ],
+            "_service": "httpbin.org:80",
             "_source": "mapping-httpbin.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_httpbin_org_80",
@@ -77,6 +81,7 @@
     ],
     "routes": [
         {
+            "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-httpbin.yaml.1"
@@ -88,12 +93,12 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
             "host_rewrite": "httpbin.org",
             "prefix": "/httpbin/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "3e935e6af2ad12df1441fee5d2cf17a69303b2ad",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-cqrs.yaml.1"
@@ -105,7 +110,6 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "3e935e6af2ad12df1441fee5d2cf17a69303b2ad",
             "headers": [
                 {
                     "name": ":method",
@@ -117,6 +121,7 @@
             "prefix_rewrite": "/qotm/quote/"
         },
         {
+            "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-diag.yaml.1"
@@ -128,11 +133,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
             "prefix": "/ambassador/",
             "prefix_rewrite": "/ambassador/"
         },
         {
+            "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-qotm.yaml.1"
@@ -144,11 +149,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "prefix": "/qotm/",
             "prefix_rewrite": "/qotm/"
         },
         {
+            "_group_id": "c78d3e3dc6c4a44ace22414fd99b17305dd29a37",
             "_method": "PUT",
             "_referenced_by": [
                 "mapping-cqrs.yaml.2"
@@ -160,7 +165,6 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "c78d3e3dc6c4a44ace22414fd99b17305dd29a37",
             "headers": [
                 {
                     "name": ":method",

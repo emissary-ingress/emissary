@@ -4,6 +4,7 @@
             "_referenced_by": [
                 "ambassador.yaml.1"
             ],
+            "_service": "127.0.0.1:8877",
             "_source": "ambassador.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_127_0_0_1_8877",
@@ -16,6 +17,7 @@
             "_referenced_by": [
                 "demo1.yaml.1"
             ],
+            "_service": "demo1",
             "_source": "demo1.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_demo1",
@@ -28,6 +30,7 @@
             "_referenced_by": [
                 "demo2.yaml.1"
             ],
+            "_service": "demo2",
             "_source": "demo2.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_demo2",
@@ -47,6 +50,7 @@
     ],
     "routes": [
         {
+            "_group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
             "_method": "GET",
             "_referenced_by": [
                 "demo1.yaml.1",
@@ -63,11 +67,11 @@
                     "weight": 50
                 }
             ],
-            "group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
             "prefix": "/demo/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
             "_method": "GET",
             "_referenced_by": [
                 "ambassador.yaml.1"
@@ -79,7 +83,6 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
             "prefix": "/ambassador/",
             "prefix_rewrite": "/ambassador/"
         }

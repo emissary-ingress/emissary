@@ -16,6 +16,7 @@
             "_referenced_by": [
                 "ambassador.yaml.1"
             ],
+            "_service": "127.0.0.1:8877",
             "_source": "ambassador.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_127_0_0_1_8877",
@@ -28,6 +29,7 @@
             "_referenced_by": [
                 "mapping-grpc.yaml.1"
             ],
+            "_service": "192.168.0.1:45",
             "_source": "mapping-grpc.yaml.1",
             "features": "http2",
             "lb_type": "round_robin",
@@ -41,6 +43,7 @@
             "_referenced_by": [
                 "auth.yaml.1"
             ],
+            "_service": "example-auth:3000",
             "_source": "auth.yaml.1",
             "lb_type": "random",
             "name": "cluster_ext_auth",
@@ -53,6 +56,7 @@
             "_referenced_by": [
                 "mapping-httpbin.yaml.1"
             ],
+            "_service": "httpbin.org",
             "_source": "mapping-httpbin.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_http___httpbin_org",
@@ -65,6 +69,7 @@
             "_referenced_by": [
                 "mapping-evil.yaml.2"
             ],
+            "_service": "qotm",
             "_source": "mapping-evil.yaml.2",
             "lb_type": "round_robin",
             "name": "cluster_http___qotm",
@@ -77,6 +82,7 @@
             "_referenced_by": [
                 "mapping-google.yaml.1"
             ],
+            "_service": "google.com",
             "_source": "mapping-google.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_https___google_com_otls",
@@ -94,6 +100,7 @@
                 "mapping-evil.yaml.1",
                 "mapping-qotm.yaml.1"
             ],
+            "_service": "qotm",
             "_source": "mapping-evil.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_qotm",
@@ -106,6 +113,7 @@
             "_referenced_by": [
                 "mapping-qotm.yaml.2"
             ],
+            "_service": "qotm",
             "_source": "mapping-qotm.yaml.2",
             "circuit_breakers": {
                 "apiVersion": "ambassador/v0",
@@ -123,6 +131,7 @@
             "_referenced_by": [
                 "mapping-qotm.yaml.3"
             ],
+            "_service": "qotm",
             "_source": "mapping-qotm.yaml.3",
             "circuit_breakers": {
                 "apiVersion": "ambassador/v0",
@@ -145,6 +154,7 @@
             "_referenced_by": [
                 "mapping-qotm2.yaml.1"
             ],
+            "_service": "qotm.tspace",
             "_source": "mapping-qotm2.yaml.1",
             "lb_type": "round_robin",
             "name": "cluster_qotm_tspace",
@@ -189,6 +199,7 @@
     ],
     "routes": [
         {
+            "_group_id": "054dcb9a73b21dd73353675bb7f490de5ac76959",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-qotm.yaml.2"
@@ -200,11 +211,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "054dcb9a73b21dd73353675bb7f490de5ac76959",
             "prefix": "/qotm/quote/",
             "prefix_rewrite": "/quote/"
         },
         {
+            "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-httpbin.yaml.1"
@@ -216,12 +227,12 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
             "host_rewrite": "httpbin.org",
             "prefix": "/httpbin/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
             "_method": "GET",
             "_referenced_by": [
                 "ambassador.yaml.1"
@@ -233,11 +244,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
             "prefix": "/ambassador/v0/check_ready",
             "prefix_rewrite": "/ambassador/v0/check_ready"
         },
         {
+            "_group_id": "23cf4cd84c4d7fe0fc55f4a1574d2251379b7d44",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-grpc.yaml.1"
@@ -249,11 +260,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "23cf4cd84c4d7fe0fc55f4a1574d2251379b7d44",
             "prefix": "/grpc/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
             "_method": "GET",
             "_referenced_by": [
                 "ambassador.yaml.1"
@@ -265,11 +276,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
             "prefix": "/ambassador/v0/check_alive",
             "prefix_rewrite": "/ambassador/v0/check_alive"
         },
         {
+            "_group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
             "_method": "PUT",
             "_referenced_by": [
                 "mapping-evil.yaml.2"
@@ -281,7 +292,6 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
             "headers": [
                 {
                     "name": ":method",
@@ -293,6 +303,7 @@
             "prefix_rewrite": "/qotm/quote/"
         },
         {
+            "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-qotm.yaml.1"
@@ -304,11 +315,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
             "prefix": "/qotm/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "aa98509407ace64e627bcd96f0a28d5017c86797",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-qotm2.yaml.1"
@@ -320,11 +331,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "aa98509407ace64e627bcd96f0a28d5017c86797",
             "prefix": "/tspace/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
             "_method": "GET",
             "_referenced_by": [
                 "ambassador.yaml.1"
@@ -336,11 +347,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
             "prefix": "/ambassador/v0/",
             "prefix_rewrite": "/ambassador/v0/"
         },
         {
+            "_group_id": "b78bdfc87593475aa2d8dd0279048a613388f8e3",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-qotm.yaml.3"
@@ -352,11 +363,11 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "b78bdfc87593475aa2d8dd0279048a613388f8e3",
             "prefix": "/service/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "c843e9bd6b289899e7c47653d36a1343b747440e",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-google.yaml.1"
@@ -368,12 +379,12 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "c843e9bd6b289899e7c47653d36a1343b747440e",
             "host_rewrite": "google.com",
             "prefix": "/google/",
             "prefix_rewrite": "/"
         },
         {
+            "_group_id": "d644030a1f5e96f97bc89d21be3ae749c0ee192c",
             "_method": "GET",
             "_referenced_by": [
                 "mapping-evil.yaml.1"
@@ -385,7 +396,6 @@
                     "weight": 100.0
                 }
             ],
-            "group_id": "d644030a1f5e96f97bc89d21be3ae749c0ee192c",
             "headers": [
                 {
                     "name": ":method",
