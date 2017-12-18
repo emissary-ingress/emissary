@@ -139,7 +139,7 @@
               sources:
               <ul>
                 {% for ref in route._route._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
                 {% endfor %}
               </ul>
             </div>
@@ -176,7 +176,7 @@
               sources:
               <ul>
                 {% for ref in cluster._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
                 {% endfor %}
               </ul>
             </div>
@@ -205,7 +205,7 @@
               sources:
               <ul>
                 {% for ref in breaker._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
                 {% endfor %}
               </ul>
             </div>
@@ -235,7 +235,7 @@
               sources:
               <ul>
                 {% for ref in outlier._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
                 {% endfor %}
               </ul>
             </div>
@@ -264,7 +264,7 @@
                 <br/>
                 (object {{ source.index }} in 
                 <a href="/ambassador/v0/diag/{{ source.filename }}">
-                  <code>{{ source.filename }}</code>
+                  <code>{{ source.source_key | source_lookup(source_dict) }}</code>
                 </a>
                 )<br/>
                 Ambassador 
