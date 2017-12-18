@@ -227,6 +227,8 @@ class Config (object):
             '--internal--': { '--internal--': True }
         }
 
+        self.source_overrides = {}
+
         self.default_liveness_probe = {
             "enabled": True,
             "prefix": "/ambassador/v0/check_alive",
@@ -304,19 +306,33 @@ class Config (object):
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
-            # dealing with the actual object gets deferred 
+            # dealing with the actual object gets deferred             
             ocount = 1
 
             for obj in yaml.safe_load_all(serialization):
                 all_objects.append((filename, ocount, obj))
                 ocount += 1
         except Exception as e:
-            self.logger.error("%s: could not parse YAML: %s" % (filename, e))
-            self.fatal_errors += 1
+            # ALLOW THIS. No sense letting one attribute with bad YAML take 
+            # down the whole gateway.
+            self.filename = filename
+            self.ocount = ocount
+
+            self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
         for filename, ocount, obj in all_objects:
             self.filename = filename
             self.ocount = ocount
+
+            if self.filename in self.source_overrides:
+                # Let Pragma objects override source information for this filename.
+                override = self.source_overrides[self.filename]
+
+                self.source = override.get('source', self.filename)
+                self.ocount += override.get('ocount_delta', 0)
+            else:
+                # No pragma involved here; just default to the filename.
+                self.source = self.filename
 
             if k8s:
                 kind = obj.get('kind', None)
@@ -374,23 +390,48 @@ class Config (object):
         return("%s.%d" % (self.filename, self.ocount))
 
     def post_error(self, rc):
-        source_map = self.source_map.setdefault(self.filename, {})
-        source_map[self.current_source_key()] = True
+        key = self.current_source_key()
 
-        errors = self.errors.setdefault(self.current_source_key(), [])
+        if key not in self.sources:
+            # Save a fake source record.
+            self.sources[key] = {
+                'kind': 'error',
+                'version': 'error',
+                'name': 'error',
+                'filename': self.filename,
+                'index': self.ocount,
+                'yaml': 'error'
+            }
+
+        source_map = self.source_map.setdefault(self.filename, {})
+        source_map[key] = True
+
+        errors = self.errors.setdefault(key, [])
         errors.append(rc.toDict())
-        self.logger.error("%s: %s" % (self.current_source_key(), rc))
+        self.logger.error("%s: %s" % (key, rc))
 
     def process_object(self, obj):
+        # Cache the source key first thing...
+        source_key = self.current_source_key()
+
         try:
             obj_version = obj['apiVersion']
             obj_kind = obj['kind']
-            obj_name = obj['name']
         except KeyError:
-            return RichStatus.fromError("need apiVersion, kind, and name")
+            return RichStatus.fromError("need apiVersion, kind")
 
-        # ...save the source info...
-        source_key = "%s.%d" % (self.filename, self.ocount)
+        # Is this a pragma object?
+        if obj_kind == 'Pragma':
+            # Yes. Handle this inline and be done.
+            return self.handle_pragma(source_key, obj)
+
+        # Not a pragma. It needs a name...
+        if 'name' not in obj:
+            return RichStatus.fromError("need name")
+
+        obj_name = obj['name']
+
+        # ...and off we go. Save the source info...
         self.sources[source_key] = {
             'kind': obj_kind,
             'version': obj_version,
@@ -400,15 +441,20 @@ class Config (object):
             'yaml': yaml.safe_dump(obj, default_flow_style=False)
         }
 
-        source_map = self.source_map.setdefault(self.filename, {})
-        source_map[source_key] = True
-
-        # OK. What is this thing?
+        # ...and figure out if this thing is OK.
         rc = self.validate_object(obj)
 
         if not rc:
             # Well that's no good.
             return rc
+
+        # Make sure it has a source: use what's in the object if present, 
+        # otherwise use self.source.
+        self.sources[source_key]['_source'] = obj.get('source', self.source)
+        self.logger.debug("source for %s is %s" % (source_key, self.sources[source_key]['_source']))
+
+        source_map = self.source_map.setdefault(self.filename, {})
+        source_map[source_key] = True
 
         # OK, so far so good. Grab the handler for this object type.
         handler_name = "handle_%s" % obj_kind.lower()
@@ -495,6 +541,28 @@ class Config (object):
         return self.safe_store(source_key, obj_kind, obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj))
 
+    def handle_pragma(self, source_key, obj):
+        keylist = sorted([x for x in sorted(obj.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
+
+        self.logger.debug("PRAGMA: %s" % keylist)
+
+        for key in keylist:
+            if key == 'source':
+                override = self.source_overrides.setdefault(self.filename, {})
+                override['source'] = obj['source']
+
+                self.logger.debug("PRAGMA: override %s to %s" %
+                                  (self.filename, self.source_overrides[self.filename]['source']))
+            elif key == 'autogenerated':
+                override = self.source_overrides.setdefault(self.filename, {})
+                override['ocount_delta'] = -1
+
+                self.logger.debug("PRAGMA: autogenerated, setting ocount_delta to -1")
+            else:
+                self.logger.debug("PRAGMA: skip %s" % key)
+
+        return RichStatus.OK(msg="handled pragma object")
+
     def handle_module(self, source_key, obj, obj_name, obj_kind, obj_version):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj['config']))
@@ -513,7 +581,7 @@ class Config (object):
     def diag_service(self):
         return "127.0.0.1:%d" % self.diag_port()
 
-    def add_intermediate_cluster(self, _source, name, urls, 
+    def add_intermediate_cluster(self, _source, name, _service, urls, 
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None, originate_tls=None,
                                  grpc=False):
@@ -521,6 +589,7 @@ class Config (object):
             cluster = SourcedDict(
                 _source=_source,
                 _referenced_by=[ _source ],
+                _service=_service,
                 name=name,
                 type=type,
                 lb_type=lb_type,
@@ -743,7 +812,7 @@ class Config (object):
             # detection settings.
             svc = mapping['service']
 
-            cluster_name_fields =[ svc ]
+            cluster_name_fields = [ svc ]
 
             tls_context = mapping.get('tls', None)
 
@@ -778,7 +847,8 @@ class Config (object):
             grpc = mapping.get('grpc', False)
             # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
 
-            self.add_intermediate_cluster(mapping['_source'], cluster_name, [ url ],
+            self.add_intermediate_cluster(mapping['_source'], cluster_name,
+                                          svc, [ url ],
                                           cb_name=cb_name, od_name=od_name, grpc=grpc,
                                           originate_tls=originate_tls)
 
@@ -884,20 +954,38 @@ class Config (object):
     def get_intermediate_for(self, source_key):
         source_keys = []
 
-        if source_key in self.source_map:
-            # Exact match for a file in the source map: include all the objects
-            # in the file.
-            source_keys = self.source_map[source_key]
-        elif source_key in self.sources:
-            # Exact match for an object in a file: include only that object.
-            source_keys.append(source_key)
-        else: 
-            # No match at all. Weird.
-            return {
-                "error": "No source matches %s" % source_key
-            }
+        if source_key.startswith("grp-"):
+            group_id = source_key[4:]
+
+            for route in self.envoy_config['routes']:
+                if route['_group_id'] == group_id:
+                    source_keys.append(route['_source'])
+
+                    for reference_key in route['_referenced_by']:
+                        source_keys.append(reference_key)
+
+            if not source_keys:
+                return {
+                    "error": "No group matches %s" % group_id
+                }                
+        else:
+            if source_key in self.source_map:
+                # Exact match for a file in the source map: include all the objects
+                # in the file.
+                source_keys = self.source_map[source_key]
+            elif source_key in self.sources:
+                # Exact match for an object in a file: include only that object.
+                source_keys.append(source_key)
+            else: 
+                # No match at all. Weird.
+                return {
+                    "error": "No source matches %s" % source_key
+                }
 
         source_keys = set(source_keys)
+
+        # self.logger.debug("get_intermediate_for: source_keys %s" % source_keys)
+        # self.logger.debug("get_intermediate_for: errors %s" % self.errors)
 
         sources = []
 
@@ -910,12 +998,15 @@ class Config (object):
                 }
                 for error in self.errors.get(key, [])
             ]
+            source_dict['source_key'] = key
 
             sources.append(source_dict)
 
         result = {
             "sources": sources
         }
+
+        # self.logger.debug("get_intermediate_for: initial result %s" % result)
 
         for key in self.envoy_config.keys():
             result[key] = []
@@ -1065,8 +1156,8 @@ class Config (object):
 
             (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
 
-            self.add_intermediate_cluster(module['_source'],
-                                          'cluster_ext_auth', [ url ],
+            self.add_intermediate_cluster(module['_source'], 'cluster_ext_auth',
+                                          svc, [ url ],
                                           type="logical_dns", lb_type="random",
                                           originate_tls=originate_tls)
 
@@ -1099,6 +1190,10 @@ class Config (object):
                 # self.logger.debug("overview --- source_key %s" % source_key)
 
                 source = self.sources[source_key]
+
+                if ('source' in source) and not ('source' in source_dict):
+                    source_dict['source'] = source['source']
+
                 raw_errors = self.errors.get(source_key, [])
 
                 errors = []
@@ -1127,8 +1222,9 @@ class Config (object):
 
         for route in self.envoy_config['routes']:
             if route['_source'] != "--diagnostics--":
-                route['group_id'] = Mapping.group_id(route.get('method', 'GET'),
-                                                     route['prefix'], route.get('headers', []))
+                route['_group_id'] = Mapping.group_id(route.get('method', 'GET'),
+                                                      route['prefix'],
+                                                      route.get('headers', []))
 
                 routes.append(route)
 

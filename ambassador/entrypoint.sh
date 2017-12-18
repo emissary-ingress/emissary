@@ -11,27 +11,34 @@ fi
 
 APPDIR=${APPDIR:-/application}
 
+VERSION=$(python3 -c 'from ambassador.VERSION import Version; print(Version)')
+
 pids=()
+
+log () {
+    now=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "$now AMBASSADOR: $@"
+}
 
 diediedie() {
     NAME=$1
     STATUS=$2
 
     if [ $STATUS -eq 0 ]; then
-        echo "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
+        log "$NAME claimed success, but exited \?\?\?\?"
     else
-        echo "AMBASSADOR: $NAME exited with status $STATUS"
+        log "$NAME exited with status $STATUS"
     fi
 
-    echo "Here's the envoy.json we were trying to run with:"
+    log "Here's the envoy.json we were trying to run with:"
     LATEST="$(ls -v /etc/envoy*.json | tail -1)"
     if [ -e "$LATEST" ]; then
         cat $LATEST
     else
-        echo "No config generated."
+        log "No config generated."
     fi
 
-    echo "AMBASSADOR: shutting down"
+    log "shutting down"
     exit 1
 }
 
@@ -46,8 +53,6 @@ handle_chld() {
         if [ ! -d /proc/$pid ]; then
             wait $pid
             STATUS=$?
-            # echo "AMBASSADOR: $name exited: $STATUS"
-            # echo "AMBASSADOR: shutting down"
             diediedie "$name" "$STATUS"
         else
             tmp+=(${pids[i]})
@@ -58,12 +63,14 @@ handle_chld() {
 }
 
 handle_int() {
-    echo "Exiting due to Control-C"
+    log "Exiting due to Control-C"
 }
 
 set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
+
+log "starting initial sync"
 
 /usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" /etc/envoy.json 
 
@@ -73,17 +80,26 @@ if [ $STATUS -ne 0 ]; then
     diediedie "kubewatch sync" "$STATUS"
 fi
 
-echo "AMBASSADOR: starting diagd"
-diagd --no-debugging "$CONFIG_DIR" &
-pids+=("$!;diagd")
+if [ -z "$AMBASSADOR_NO_DIAGD" ]; then
+    log "starting diagd"
+    diagd --no-debugging "$CONFIG_DIR" &
+    pids+=("$!;diagd")
+fi
 
-echo "AMBASSADOR: starting Envoy"
-/usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
-RESTARTER_PID="$!"
-pids+=("${RESTARTER_PID};envoy")
+if [ -z "$AMBASSADOR_NO_ENVOY" ]; then
+    log "starting Envoy"
+    /usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
+    RESTARTER_PID="$!"
+    pids+=("${RESTARTER_PID};envoy")
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
-pids+=("$!;kubewatch")
+    log "restarter PID $RESTARTER_PID"
+    log "starting kubewatch"
 
-echo "AMBASSADOR: waiting"
+    if [ -z "$AMBASSADOR_NO_KUBEWATCH" ]; then
+        /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
+        pids+=("$!;kubewatch")
+    fi
+fi
+
+log "ready for action"
 wait

@@ -89,13 +89,16 @@ class Mapping (object):
     def __getitem__(self, key):
         return self.attrs[key]
 
-    def get(self, key, default):
-        return self.attrs.get(key, default)
+    def get(self, key, *args):
+        if len(args) > 0:
+            return self.attrs.get(key, args[0])
+        else:
+            return self.attrs.get(key)
 
     def new_route(self, cluster_name):
         route = SourcedDict(
             _source=self['_source'],
-            group_id=self.group_id,
+            _group_id=self.group_id,
             prefix=self.prefix,
             prefix_rewrite=self.get('rewrite', '/'),
             clusters=[ { "name": cluster_name,

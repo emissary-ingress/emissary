@@ -8,6 +8,15 @@ step () {
     echo "==== $@"
 }
 
+shred_and_reclaim () {
+    step "Dropping old cluster"
+    kubernaut discard
+
+    step "Claiming new cluster"
+    kubernaut claim
+    export KUBECONFIG=${HOME}/.kube/kubernaut
+}
+
 cluster_ip () {
     kubectl cluster-info | fgrep master | python -c 'import sys; print(sys.stdin.readlines()[0].split()[5].split(":")[1].lstrip("/"))'
 }

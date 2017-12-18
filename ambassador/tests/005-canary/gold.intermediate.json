@@ -1,87 +1,151 @@
 {
-    "clusters": [
-        {
-            "_referenced_by": [
-                "ambassador.yaml.1"
-            ],
-            "_source": "ambassador.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_127_0_0_1_8877",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://127.0.0.1:8877"
-            ]
+    "envoy_config": {
+        "clusters": [
+            {
+                "_referenced_by": [
+                    "ambassador.yaml.1"
+                ],
+                "_service": "127.0.0.1:8877",
+                "_source": "ambassador.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_127_0_0_1_8877",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://127.0.0.1:8877"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "demo1.yaml.1"
+                ],
+                "_service": "demo1",
+                "_source": "demo1.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_demo1",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://demo1:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "demo2.yaml.1"
+                ],
+                "_service": "demo2",
+                "_source": "demo2.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_demo2",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://demo2:80"
+                ]
+            }
+        ],
+        "filters": [],
+        "listeners": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001,
+                "service_port": 80
+            }
+        ],
+        "routes": [
+            {
+                "_group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
+                "_method": "GET",
+                "_referenced_by": [
+                    "demo1.yaml.1",
+                    "demo2.yaml.1"
+                ],
+                "_source": "demo1.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_demo1",
+                        "weight": 50.0
+                    },
+                    {
+                        "name": "cluster_demo2",
+                        "weight": 50
+                    }
+                ],
+                "prefix": "/demo/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
+                "_method": "GET",
+                "_referenced_by": [
+                    "ambassador.yaml.1"
+                ],
+                "_source": "ambassador.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/",
+                "prefix_rewrite": "/ambassador/"
+            }
+        ]
+    },
+    "source_map": {
+        "--internal--": {
+            "--internal--": true
         },
-        {
-            "_referenced_by": [
-                "demo1.yaml.1"
-            ],
-            "_source": "demo1.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_demo1",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://demo1:80"
-            ]
+        "ambassador.yaml": {
+            "ambassador.yaml.1": true
         },
-        {
-            "_referenced_by": [
-                "demo2.yaml.1"
-            ],
-            "_source": "demo2.yaml.1",
-            "lb_type": "round_robin",
-            "name": "cluster_demo2",
-            "type": "strict_dns",
-            "urls": [
-                "tcp://demo2:80"
-            ]
-        }
-    ],
-    "filters": [],
-    "listeners": [
-        {
-            "_source": "--internal--",
-            "admin_port": 8001,
-            "service_port": 80
-        }
-    ],
-    "routes": [
-        {
-            "_method": "GET",
-            "_referenced_by": [
-                "demo1.yaml.1",
-                "demo2.yaml.1"
-            ],
-            "_source": "demo1.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_demo1",
-                    "weight": 50.0
-                },
-                {
-                    "name": "cluster_demo2",
-                    "weight": 50
-                }
-            ],
-            "group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
-            "prefix": "/demo/",
-            "prefix_rewrite": "/"
+        "demo1.yaml": {
+            "demo1.yaml.1": true
         },
-        {
-            "_method": "GET",
-            "_referenced_by": [
-                "ambassador.yaml.1"
-            ],
-            "_source": "ambassador.yaml.1",
-            "clusters": [
-                {
-                    "name": "cluster_127_0_0_1_8877",
-                    "weight": 100.0
-                }
-            ],
-            "group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
-            "prefix": "/ambassador/",
-            "prefix_rewrite": "/ambassador/"
+        "demo2.yaml": {
+            "demo2.yaml.1": true
         }
-    ]
+    },
+    "sources": {
+        "--diagnostics--": {
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "filename": "--diagnostics--",
+            "index": 0,
+            "kind": "diagnostics",
+            "name": "Ambassador Diagnostics",
+            "version": "v0"
+        },
+        "--internal--": {
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "filename": "--internal--",
+            "index": 0,
+            "kind": "Internal",
+            "name": "Ambassador Internals",
+            "version": "v0"
+        },
+        "ambassador.yaml.1": {
+            "_source": "ambassador.yaml",
+            "filename": "ambassador.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "diag_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: diag_mapping\nprefix: /ambassador/\nrewrite: /ambassador/\nservice: 127.0.0.1:8877\n"
+        },
+        "demo1.yaml.1": {
+            "_source": "demo1.yaml",
+            "filename": "demo1.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "demo1_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: demo1_mapping\nprefix: /demo/\nservice: demo1\n"
+        },
+        "demo2.yaml.1": {
+            "_source": "demo2.yaml",
+            "filename": "demo2.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "demo2_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: demo2_mapping\nprefix: /demo/\nservice: demo2\nweight: 50\n"
+        }
+    }
 }
