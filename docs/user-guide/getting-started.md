@@ -123,7 +123,7 @@ When Ambassador starts, it will notice the `getambassador.io/config` annotation 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
 ```shell
-kubectl get svc ambassador
+kubectl get svc -o wide ambassador
 ```
 
 Eventually, this should give you something like:
