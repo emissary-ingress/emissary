@@ -104,19 +104,27 @@ Also, note that we are using the `host_rewrite` attribute for the `httpbin_mappi
 
 ### 5.2 Deploying Ambassador
 
-Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use
+Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use:
 
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
 ```
 
-Without RBAC, you can use
+Without RBAC, you can use:
 
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
 When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
+
+```
+$ gcloud info | grep Account
+Account: [username@example.org]
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=username@example.org
+```
 
 ### 5.3 Testing the Mapping
 
