@@ -108,7 +108,7 @@ or, as always, you can use a local file instead.
 Now you should be able to access your service. We'll need the hostname for the Ambassador service, which you can get with
 
 ```shell
-kubectl get svc ambassador
+kubectl get svc -o wide ambassador
 ```
 
 This should give you something like
