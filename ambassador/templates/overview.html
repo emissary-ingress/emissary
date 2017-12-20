@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <!-- <link rel="icon" href="http://getbootstrap.com/favicon.ico"> -->
+    <link rel="icon" href="/ambassador/v0/favicon.ico">
 
     <title>Ambassador Diagnostic Overview</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="http://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
+    <link href="//getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
   </head>
 
   <body>
@@ -22,12 +22,12 @@
       <h1>Ambassador Diagnostic Overview</h1>
 
       <div class="row">
-        <div class="col-12">
+        <div class="col-7">
           Ambassador version {{ system.version }}
           <br/>
           Hostname {{ system.hostname }}
           <br/>
-          Configuration from {{ system.boot_time }} -- {{ system.hr_uptime }} ago
+          Configuration from {{ system.boot_time }} &mdash; {{ system.hr_uptime }} ago
           <br/>
           {% if envoy_status.ready %}
           Envoy ready, last status reported {{ envoy_status.since_update }}
@@ -37,143 +37,142 @@
           Envoy not running!!
           {% endif %}
         </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          YAML input files -- these are the files that Ambassador is currently using for its configuration.
-
-          {% for source in sources %}
-          <div class="row">
-            <div class="col-7">
-              <a href="/ambassador/v0/diag/{{ source.filename }}"><code>{{ source.filename }}</code></a>
-              {% if not source.description %}
-              -- {{ source.count }} {{ source.plural }},
-              {{ source.error_count }} {{ source.error_plural}}
-              {% endif %}
-            </div>
-
-            <div class="col-5">
-              {% if not source.description %}
-                {% for object in source.objects.values() | sort(attribute = 'key') %}
-                  <a href="/ambassador/v0/diag/{{ object.key }}"><code>{{ object.key }}</code></a>
-                -- Ambassador {% if object.target %}<a href={{ object.target }}>{% endif %}
-                  {{ object.kind }}
-                  {% if object.target %}</a>{% endif %}
-
-                  {% if object.errors %}
-                    {% for error in object.errors %}
-                    <br/>ERROR: {{ error.summary }}
-                    {% endfor %}
-                  {% endif %}
-
-                  {% if not loop.last %}<br/>{% endif %}
+        <div class="col-5">
+          {% if loginfo %}
+            {% if loginfo.all %}
+              Current log level: {{ loginfo.all }}
+            {% else %}
+              Current log levels:
+              <ul>
+                {% for level, elements in loginfo.items() | sort %}
+                <li>{{ level }}: {{ ", ".join(elements) }}</li>
                 {% endfor %}
-              {% else %}
-                {{ source.description }}
+              </ul>
+            {% endif %}
+          {% else %}
+            Current log levels: unknown
+          {% endif %}
+
+          <div class="row">
+            <table border="0" width="100%">
+              <tbody>
+                <tr>
+                  <td width="50%" align="center">
+                    <a href="/ambassador/v0/diag/?loglevel=debug">
+                      <button type="button" class="btn btn-warning">Set Debug On</button>
+                    </a>
+                  </td>
+                  <td width="50%" align="center">
+                    <a href="/ambassador/v0/diag/?loglevel=info">
+                      <button type="button" class="btn btn-warning">Set Debug Off</button>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>        
+        </div>
+      </div>
+
+      {% if notices %}
+        <div class="row">
+          <div class="col-12">
+            {% for notice in notices %}
+              <span 
+              {% if notice.level == 'WARNING' %}
+              style="color:red"
+              {% elif notice.level == 'INFO' %}
+              style="color:green"
               {% endif %}
-            </div>
+            >{{ notice.level }}</span>: {{ notice.message }}<br/>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html">Routes</a> generated from the input files above
-
-          {% for route in routes | sort(attribute = '_source') %}
-          <div class="row">
-            <div class="col-7">
-              <code>{{ route.get('method', 'GET') }} {{ route['prefix'] }}</code> -> <code>{{ route['cluster'] }}{{ "/" if not route['prefix_rewrite'].startswith('/') }}{{ route['prefix_rewrite'] }}</code>
-            </div>
-            <div class="col-5">
-              created by <a href="/ambassador/v0/diag/{{ route['_source'] }}"><code>{{ route['_source'] }}</code></a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html">Clusters</a> generated from the input files above
-
-          {% for cluster in clusters | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-7">
-              <code>{{ cluster['name'] }}</code>
-              <br/>
-              referenced by
-                {% for ref in cluster['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
-                {% endfor %}
-            </div>
-            <div class="col-5">
-              {% if cluster_stats[cluster.name].valid %}
-                {{ cluster_stats[cluster.name].healthy_percent }}% healthy
-              {% else %}
-                unknown health ({{ cluster_stats[cluster.name].reason }})
-              {% endif %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      {% if breakers %}
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_circuit_breakers.html">Circuit Breakers</a> generated from the input files above
-
-          {% for breaker in breakers | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-7">
-              <code>{{ breaker['name'] }}</code>
-              <br/>
-              referenced by
-                {% for ref in breaker['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
-                {% endfor %}
-            </div>
-            <div class="col-5">
-              &nbsp;
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
       {% endif %}
 
-      {% if outliers %}
+      {% if errors %}
+        <div class="row">
+          <div class="col-12">
+            <span style="color:red">CONFIGURATION ERRORS</span>
+            <ul>
+            {% for error in errors | sort %}
+              <li>
+                <a href="/ambassador/v0/diag/{{ error[0] }}">
+                  <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                </a>
+              </li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+      {% endif %}
+
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_outlier_detection.html">Outlier Detection</a> configuration generated from the input files above
+          Ambassador Route Table
 
-          {% for outlier in outliers | sort(attribute = 'name') %}
           <div class="row">
-            <div class="col-7">
-              <code>{{ outlier['name'] }}</code>
-              <br/>
-              referenced by
-                {% for ref in outlier['_referenced_by'] | sort %}
-                  <a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a>{{ "," if not loop.last }}
-                {% endfor %}
-            </div>
-            <div class="col-5">
-              &nbsp;
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td>URL</td>
+                  <td>Service</td>
+                  <td>Weight</td>
+                </thead>
+                <tbody>
+                  {% for route in route_info %}
+                    <tr 
+                      {% if loop.index % 2 %}
+                        style="background: rgba(86,61,124,.05);"
+                      {% endif %}
+                      >
+                      <td>
+                        <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
+                          <code>{{ route.key }}
+                          {% if route['headers'] %}
+                            {% for hdr in route['headers'] %}
+                              <br/>
+                              {{ hdr['name'] }}: {{ hdr['value'] }}
+                            {% endfor %}
+                          {% endif %}
+                          </code>
+                        </a>
+                      </td>
+                      <td>
+                        {% for cluster in route.clusters| sort_clusters_by_service %}
+                          <a href="/ambassador/v0/diag/{{ route['_source'] }}">
+                            <code><span style="color:{{ cluster._hcolor }}">
+                              {{ cluster.service }}
+                            </span></code>
+                          </a>
+                          {% if not loop.last %}
+                          <br/>
+                          {% endif %}
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for cluster in route.clusters| sort_clusters_by_service %}
+                          {{ ((cluster.weight * 10.0) + 0.9) // 10 }}%
+                          {% if not loop.last %}
+                          <br/>
+                          {% endif %}
+                        {% endfor %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
           </div>
-          {% endfor %}
         </div>
       </div>
-      {% endif %}
+
     </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="http://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="//getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
   </body>
 </html>

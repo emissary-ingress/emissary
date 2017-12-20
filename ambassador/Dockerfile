@@ -1,4 +1,18 @@
-FROM dwflynn/ambassador-envoy:v1.4.0-49-g008635a04
+# Our base image was built from https://github.com/datawire/envoy, commit
+# 6b197c85c, on the flynn/feature/extauth branch. We need this instead of
+# the official Envoy image so that we can support Ambassador's ability to
+# use an external authentication service.
+#
+# To reproduce the base image,
+#
+# git clone https://github.com/datawire/envoy.git datawire-envoy
+# cd datawire-envoy
+# git checkout flynn/feature/extauth
+# 
+# and then read DATAWIRE/README.md.
+
+# FROM datawire/ambassador-envoy:vtest_docs_tag3-60-gb2629d084
+FROM datawire/ambassador-envoy:v1.5.0-47-g6b197c85c
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -29,19 +43,23 @@ COPY requirements.txt .
 # Install application dependencies
 RUN pip3 install -r requirements.txt
 
-# COPY the app code and configuration into place, then perform any final
-# configuration steps.
+# Install the application itself
+COPY ./ ambassador
+RUN cd ambassador && python3 setup.py --quiet install
+RUN rm -rf ./ambassador
 
-COPY ambassador.py AmbassadorConfig.py envoy.py utils.py VERSION.py ./
-COPY templates/ ./templates
-COPY schemas/ ./schemas
-COPY diagd.py ./
+# MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no
+# trouble, or you can let annotations do the right thing.
+RUN mkdir /etc/ambassador-config
 
-# COPY in a default config. You can dump a configmap over this with no trouble.
-COPY default-config/ /etc/ambassador-config
+# COPY in a default config for use with --demo.
+COPY default-config/ /etc/ambassador-demo-config
 
 # COPY the entrypoint script and make it runnable.
+COPY kubewatch.py .
+COPY hot-restarter.py .
+COPY start-envoy.sh .
 COPY entrypoint.sh .
-RUN chmod 755 entrypoint.sh
+RUN chmod 755 start-envoy.sh entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]

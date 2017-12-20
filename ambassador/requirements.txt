@@ -5,3 +5,5 @@ jsonschema==2.6.0
 pyyaml==3.12
 scout.py==0.3.0
 semantic-version==2.6.0
+kubernetes==3.0.0
+click==6.7

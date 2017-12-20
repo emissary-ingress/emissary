@@ -1,12 +1,19 @@
+*.pyc
 *~
+.cache
+.coverage
 .python-version
 .DS_Store
-certs/
 venv
 __pycache__
 VERSION.py
 
-docker-demo/Dockerfile
+ambassador.egg-info
+build
+dist
+
+*.out
+envoy.json
 
 docs/yaml
 docs/_book
@@ -14,6 +21,9 @@ docs/_site
 docs/Gemfile.lock
 docs/node_modules
 .netlify
+
+.forge
+forge.yaml
 
 # Editor nonsense
 .vscode

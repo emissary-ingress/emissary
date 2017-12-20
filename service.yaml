@@ -1,0 +1,9 @@
+name: ambassador
+
+max_memory: 0.25G # maximum memory to be allocated to the service
+max_cpu: 0.25     # max cpu to be allocated to the service
+min_memory: 0.1G  # minimum amount of memory to run the service
+min_cpu: 0.1      # min CPU to run the service
+
+containers:
+ - ambassador/Dockerfile

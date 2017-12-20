@@ -7,7 +7,7 @@ Ambassador is a microservices API Gateway. We'll do a quick tour of Ambassador w
 By default, Ambassador uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador on port 8080:
 
 ```shell
-docker run -it -p 8080:80 --name=ambassador --rm datawire/ambassador:{VERSION}
+docker run -it -p 8080:80 --name=ambassador --rm datawire/ambassador:{VERSION} --demo
 ```
 
 ## 2. Ambassador's Diagnostics
@@ -54,38 +54,13 @@ will succeed. (Note that that's literally "username" and "password" -- the demo 
 
 Note that it's up to the auth service to decide what needs authentication -- teaming Ambassador with an authentication service can be as flexible or strict as you need it to be.
 
-## 5. Configuring Ambassador
+## 5. Ambassador in Kubernetes
 
-So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now create a custom configuration for Ambassador that maps `/httpbin/` to `httpbin.org`. Create a `config.yaml` file with the following contents:
+So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now switch to Kubernetes, using service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-rewrite: /qotm/
-service: demo.getambassador.io
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  httpbin_mapping
-prefix: /httpbin/
-service: httpbin.org:80
-host_rewrite: httpbin.org
-```
+### 5.1 Defining the Ambassador Service
 
-(Note the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services.)
-
-We can deploy this configuration into a `ConfigMap` for Ambassador.
-
-```shell
-kubectl create configmap ambassador-config --from-file config.yaml
-```
-
-## 6. Deploying Ambassador in Kubernetes
-
-Now, we need to deploy Ambassador in Kubernetes. Create a Kubernetes manifest in a file called `ambassador.yaml` that looks like the following:
+Ambassador is deployed as a Kubernetes service. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -95,6 +70,15 @@ metadata:
   labels:
     service: ambassador
   name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  httpbin_mapping
+      prefix: /httpbin/
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
 spec:
   type: LoadBalancer
   ports:
@@ -103,64 +87,131 @@ spec:
     targetPort: 80
   selector:
     service: ambassador
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: ambassador
-spec:
-  replicas: 2
-  template:
-    metadata:
-      labels:
-        service: ambassador
-    spec:
-      containers:
-      - name: ambassador
-        image: datawire/ambassador:{VERSION}
-        imagePullPolicy: Always
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
-        volumeMounts:
-        - mountPath: /etc/ambassador-config
-          name: config-map
-      volumes:
-      - name: config-map
-        configMap:
-          name: ambassador-config
-      restartPolicy: Always
 ```
 
-Then, deploy Ambassador into Kubernetes:
+Then, apply it to the Kubernetes with `kubectl`:
+
+```shell
+kubectl apply -f ambassador-service.yaml
+```
+
+The YAML above does several things:
+
+* It creates a Kubernetes service for Ambassador, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
+* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
+
+Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
+
+### 5.2 Deploying Ambassador
+
+Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use:
+
+```shell
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+```
+
+Without RBAC, you can use:
+
+```shell
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
+```
+
+When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
 
 ```
-kubectl apply -f ambassador.yaml
+$ gcloud info | grep Account
+Account: [username@example.org]
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=username@example.org
 ```
+
+### 5.3 Testing the Mapping
 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
 ```shell
-kubectl get svc ambassador
+kubectl get svc -o wide ambassador
 ```
 
-which should, eventually, give you something like:
+Eventually, this should give you something like:
 
 ```
 NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
 
-You should now be able to use `curl` to both `qotm` and `httpbin` (don't forget the trailing `/`):
+You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`):
+
+```shell
+$ curl 35.36.37.38/httpbin/
+```
+
+## 6. Adding a Service
+
+You can add a service just by deploying it with an appropriate annotation. For example, we can deploy the QoTM service locally in this cluster and automatically map it through Ambassador by creating `qotm.yaml` with the following:
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotm
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      service: qotm
+spec:
+  type: ClusterIP
+  selector:
+    app: qotm
+  ports:
+  - port: 80
+    name: http-qotm
+    targetPort: http-api
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: qotm
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: qotm
+    spec:
+      containers:
+      - name: qotm
+        image: datawire/qotm:1.1
+        ports:
+        - name: http-api
+          containerPort: 5000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+```
+
+and then applying it with
+
+```
+kubectl apply -f qotm.yaml
+```
+
+A few seconds after the QoTM service is running, Ambassador should be configured for it. Try it with
 
 ```shell
 $ curl 35.36.37.38/qotm/
-$ curl 35.36.37.38/httpbin/
 ```
+
+## 7. The Diagnostics Service in Kubernetes
 
 Note that we did not expose the diagnostics port for Ambassador, since we don't want to expose it on the Internet. To view it, we'll need to get the name of one of the ambassador pods:
 
@@ -179,28 +230,11 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 7. Updating Ambassador configuration
-
-To change the Ambassador configuration, you need to do two things:
-
-1. Update your ConfigMap in Kubernetes. The following will regenerate and replace your `ambassador-config` ConfigMap using the current contents of your `conf.yaml` file:
-
-```
-kubectl create configmap ambassador-config --from-file conf.yaml -o yaml --dry-run | \
-  kubectl replace -f -
-```
-
-2. Use Kubernetes to redeploy Ambassador, so that it can reread the ConfigMap:
-
-```
-kubectl patch deployment ambassador -p \
-  "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
-```
-
 ## 8. Next
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
 - Join us on [Gitter](https://gitter.im/datawire/ambassador);
 - Learn how to [add authentication](auth-tutorial.md) to existing services; or
+- Learn how to [use gRPC with Ambassador](/how-to/grpc.md); or
 - Read about [configuring Ambassador](/reference/configuration.md).

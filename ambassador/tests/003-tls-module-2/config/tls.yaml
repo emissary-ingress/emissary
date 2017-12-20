@@ -1,0 +1,17 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+  server:
+    enabled: True
+    # These are optional.
+    cert_chain_file: /badbadbad/ambassador-config/certs/tls.crt
+    private_key_file: /badbadbad/ambassador-config/certs/tls.key
+
+  client:
+    enabled: True,
+    # These are optional.
+    cert_required: True
+    cacert_chain_file: /badbadbad/ambassador-config/ca_cert_chain/tls.crt
+

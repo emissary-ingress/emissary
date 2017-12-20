@@ -1,0 +1,6 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm

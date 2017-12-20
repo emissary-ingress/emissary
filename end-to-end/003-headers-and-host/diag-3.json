@@ -1,0 +1,107 @@
+[
+    {
+        "_method": "GET",
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+        "prefix": "/ambassador/v0/check_ready",
+        "prefix_rewrite": "/ambassador/v0/check_ready"
+    },
+    {
+        "_method": "GET",
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+        "prefix": "/ambassador/v0/check_alive",
+        "prefix_rewrite": "/ambassador/v0/check_alive"
+    },
+    {
+        "_method": "GET",
+        "_source": "--internal--",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+        "prefix": "/ambassador/v0/",
+        "prefix_rewrite": "/ambassador/v0/"
+    },
+    {
+        "_method": "GET",
+        "_source": "ambassador.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_127_0_0_1_8877",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
+        "prefix": "/ambassador/",
+        "prefix_rewrite": "/ambassador/"
+    },
+    {
+        "_method": "GET",
+        "_source": "demo2.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_demo2",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "d3f94625e5cbd5e4148bc41aafa23fd17e66306a",
+        "headers": [
+            {
+                "name": "x-demo-mode",
+                "regex": false,
+                "value": "canary"
+            }
+        ],
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
+        "_source": "demo2.yaml.2",
+        "clusters": [
+            {
+                "name": "cluster_demo2",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "680712f1da5009382c1987e04b84df2cdfe25649",
+        "headers": [
+            {
+                "name": ":authority",
+                "regex": false,
+                "value": "demo2.datawire.io"
+            }
+        ],
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_method": "GET",
+        "_source": "demo1.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_demo1",
+                "weight": 100.0
+            }
+        ],
+        "group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
+        "prefix": "/demo/",
+        "prefix_rewrite": "/"
+    }
+]

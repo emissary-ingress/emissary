@@ -1,5 +1,87 @@
 # Changelog
 
+## [0.20.0] December 18, 2017
+[0.20.0]: https://github.com/datawire/ambassador/compare/v0.19.2...v0.20.0
+
+### Changed
+
+- Switch to Envoy 1.5 under the hood.
+- Refocus the diagnostic service to better reflect what's actually visible when you're working at Ambassador's level.
+- Allow the diagnostic service to display, and change, the Envoy log level.
+
+## [0.19.2] December 12, 2017
+[0.19.2]: https://github.com/datawire/ambassador/compare/v0.19.1...v0.19.2
+
+### Changed
+
+- Arrange for logs from the subsystem that watches for Kubernetes service changes (kubewatch) to have timestamps and such.
+- Only do new-version checks every four hours.
+
+## [0.19.1] December 4, 2017
+[0.19.1]: https://github.com/datawire/ambassador/compare/v0.19.0...v0.19.1
+
+### Changed
+
+- Allow the diag service to look good (well, OK, not too horrible anyway) when Ambassador is running with TLS termination.
+- Show clusters on the overview page again.
+- The diag service now shows you the "health" of a cluster by computing it from the number of requests to a given service that didn't involve a 5xx status code, rather than just forwarding Envoy's stat, since we don't configure Envoy's stat in a meaningful way yet.
+- Make sure that the tests correctly reported failures (sigh).
+- Allow updating out-of-date diagnostic reports without requiring multiple test runs.
+
+## [0.19.0] November 20, 2017
+[0.19.0]: https://github.com/datawire/ambassador/compare/v0.18.2...v0.19.0
+
+### Changed
+
+- Ambassador can now use HTTPS upstream services: just use a `service` that starts with `https://` to enable it.
+  - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to do this.
+- HTTP access logs appear in the normal Kubernetes logs for Ambassador.
+- It’s now possible to tell `ambassador config` to read Kubernetes manifests from the filesystem and build a configuration from the annotations in them (use the `--k8s` switch).
+- Documentation on using Ambassador with Istio now reflects Ambassador 0.19.0 and Istio 0.2.12.
+
+## [0.18.2] November 20, 2017
+[0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
+
+### Changed
+
+- The diagnostics service will now tell you when updates are available.
+
+## [0.18.0] November 20, 2017
+[0.18.0]: https://github.com/datawire/ambassador/compare/v0.17.0...v0.18.0
+
+### Changed
+
+- The Host header is no longer overwritten when Ambassador talks to an external auth service. It will now retain whatever value the client passes there.
+
+### Fixed
+
+- Checks for updates weren’t working, and they have been restored. At present you’ll only see them in the Kubernetes logs if you’re using annotations to configure Ambassador — they’ll start showing up in the diagnostics service in the next release or so.
+
+## [0.17.0] November 14, 2017
+[0.17.0]: https://github.com/datawire/ambassador/compare/v0.16.0...v0.17.0
+
+### Changed
+
+- Allow Mappings to require matches on HTTP headers and `Host`
+- Update tests, docs, and diagnostic service for header matching
+
+### Fixed
+
+- Published YAML resource files will no longer overwrite annotations on the Ambassador `service` when creating the Ambassador `deployment`
+
+## [0.16.0] November 10, 2017
+[0.16.0]: https://github.com/datawire/ambassador/compare/v0.15.0...v0.16.0
+
+### Changed
+
+- Support configuring Ambassador via `annotations` on Kubernetes `service`s
+- No need for volume mounts! Ambassador can read configuration and TLS-certificate information directly from Kubernetes to simplify your Kubernetes YAML
+- Expose more configuration elements for Envoy `route`s: `host_redirect`, `path_redirect`, `host_rewrite`, `auto_host_rewrite`, `case_sensitive`, `use_websocket`, `timeout_ms`, and `priority` get transparently copied
+
+### Fixed
+
+- Reenable support for gRPC
+
 ## [0.15.0] October 16, 2017
 [0.15.0]: https://github.com/datawire/ambassador/compare/v0.14.2...v0.15.0
 

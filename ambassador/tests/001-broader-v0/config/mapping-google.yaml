@@ -1,0 +1,13 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  google_mapping
+prefix: /google/
+service: https://google.com
+host_rewrite: google.com
+envoy_override:
+  request_headers_to_add:
+  - key: test
+    value: "%PROTOCOL%"
+  - key: test-2
+    value: testing
