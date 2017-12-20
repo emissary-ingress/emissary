@@ -8,7 +8,31 @@ You need to choose up front whether you want to use TLS or not. (If you want mor
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
 ```
 
-This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this README -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin, check out our [TLS Overview](../reference/tls-auth.md), and check out [Let's Encrypt](https://letsencrypt.org/) if you're shopping for a new CA.)
+This will create an L4 load balancer that will later be used to talk to Ambassador. Once created, you'll be able to set up your DNS to associate a DNS name with this service, which will let you request the cert. Sadly, setting up your DNS and requesting a cert are a bit outside the scope of this README -- if you don't know how to do this, check with your local DNS administrator! (If you _are_ the domain admin, check out our [TLS Overview](../reference/tls-auth.md), and check out [Let's Encrypt](#using-lets-encrypt) if you're shopping for a new CA.)
+
+### Using Let's Encrypt
+
+Instead of manually issuing SSL certificates and updating a Kubernetes secret, you can use [kube-cert-manager](https://github.com/PalmStoneGames/kube-cert-manager) to automatically create and renew SSL certificates from [Let's Encrypt](https://letsencrypt.org/)
+
+### Example Let's Encrypt Certificate
+
+This is an example of a Let's Encrypt certificate resource which will create the `ambassador-certs` secret.
+
+```yaml
+apiVersion: "stable.k8s.psg.io/v1"
+kind: "Certificate"
+metadata:
+  name: "api-example-com"
+  labels:
+    stable.k8s.psg.io/kcm.class: "default"
+spec:
+  domain: "api.example.com"
+  email: "me@example.com"
+  provider: "googlecloud"
+  secretName: ambassador-certs
+```
+
+### Using a different CA
 
 Once you have the cert, you can run
 
