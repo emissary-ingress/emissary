@@ -51,9 +51,9 @@
         "_group_id": "62215a890b67ef83c91f83122f7b64884276848f",
         "_method": "GET",
         "_referenced_by": [
-            "example-auth.yaml.1"
+            "example-auth-default.yaml.1"
         ],
-        "_source": "example-auth.yaml.1",
+        "_source": "example-auth-default.yaml.1",
         "clusters": [
             {
                 "name": "cluster_example_auth_3000",
@@ -83,9 +83,9 @@
         "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
         "_method": "GET",
         "_referenced_by": [
-            "qotm.yaml.1"
+            "qotm-default.yaml.1"
         ],
-        "_source": "qotm.yaml.1",
+        "_source": "qotm-default.yaml.1",
         "clusters": [
             {
                 "name": "cluster_qotm",
