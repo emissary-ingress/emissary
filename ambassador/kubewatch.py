@@ -43,7 +43,7 @@ def get_source(svc):
     return "service %s, namespace %s" % (svc.metadata.name, svc.metadata.namespace)
 
 def get_filename(svc):
-    return "%s.yaml" % svc.metadata.name
+    return "%s-%s.yaml" % (svc.metadata.name, svc.metadata.namespace)
 
 class Restarter(threading.Thread):
 
