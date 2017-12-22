@@ -271,6 +271,8 @@ class Config (object):
         self.fatal_errors = 0
         self.object_errors = 0
 
+        self.objects_to_process = []
+
         if not os.path.isdir(self.config_dir_path):
             raise Exception("ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
 
@@ -289,7 +291,9 @@ class Config (object):
             for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
                 filepath = os.path.join(dirpath, filename)
 
-                self.process_yaml(filename, open(filepath, "r").read(), k8s=k8s)
+                self.load_yaml(filename, open(filepath, "r").read(), k8s=k8s)
+
+        self.process_all_objects()
 
         if self.fatal_errors:
             # Kaboom.
@@ -300,9 +304,7 @@ class Config (object):
 
         self.generate_intermediate_config()
 
-    def process_yaml(self, filename, serialization, k8s=False):
-        all_objects = []
-
+    def load_yaml(self, filename, serialization, k8s=False):
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
@@ -310,17 +312,51 @@ class Config (object):
             ocount = 1
 
             for obj in yaml.safe_load_all(serialization):
-                all_objects.append((filename, ocount, obj))
+                if k8s:
+                    self.prep_k8s(filename, ocount, obj)
+                else:
+                    self.objects_to_process.append((filename, ocount, obj))
                 ocount += 1
         except Exception as e:
-            # ALLOW THIS. No sense letting one attribute with bad YAML take 
-            # down the whole gateway.
+            # No sense letting one attribute with bad YAML take down the whole
+            # gateway, so post the error but keep any objects we were able to 
+            # parse before hitting the error.
             self.filename = filename
             self.ocount = ocount
 
             self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
-        for filename, ocount, obj in all_objects:
+    def prep_k8s(self, filename, ocount, obj, k8s):
+        kind = obj.get('kind', None)
+
+        if kind != "Service":
+            self.logger.info("%s/%s: ignoring K8s %s object" % 
+                             (self.filename, self.ocount, kind))
+            return
+
+        metadata = obj.get('metadata', None)
+
+        if not metadata:
+            self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
+                             (self.filename, self.ocount, kind))
+            return
+
+        annotations = metadata.get('annotations', None)
+
+        if annotations:
+            annotations = annotations.get('getambassador.io/config', None)
+
+        # self.logger.info("annotations %s" % annotations)
+
+        if not annotations:
+            self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
+                             (self.filename, self.ocount, kind))
+            return
+
+        self.load_yaml(filename + ":annotation", annotations)
+
+    def process_all_objects(self):
+        for filename, ocount, obj in sorted(self.objects_to_process):
             self.filename = filename
             self.ocount = ocount
 
@@ -334,40 +370,13 @@ class Config (object):
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
 
-            if k8s:
-                kind = obj.get('kind', None)
+            self.logger.info("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
 
-                if kind != "Service":
-                    self.logger.info("%s/%s: ignoring K8s %s object" % 
-                                     (self.filename, self.ocount, kind))
-                    continue
+            rc = self.process_object(obj)
 
-                metadata = obj.get('metadata', None)
-
-                if not metadata:
-                    self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
-                                     (self.filename, self.ocount, kind))
-                    continue
-
-                annotations = metadata.get('annotations', None)
-
-                if annotations:
-                    annotations = annotations.get('getambassador.io/config', None)
-
-                # self.logger.info("annotations %s" % annotations)
-
-                if not annotations:
-                    self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
-                                     (self.filename, self.ocount, kind))
-                    continue
-
-                self.process_yaml(filename + ":annotation", annotations)
-            else:
-                rc = self.process_object(obj)
-
-                if not rc:
-                    # Object error. Not good but we'll allow the system to start.
-                    self.post_error(rc)        
+            if not rc:
+                # Object error. Not good but we'll allow the system to start.
+                self.post_error(rc)        
 
     def clean_and_copy(self, d):
         out = []
@@ -413,6 +422,10 @@ class Config (object):
     def process_object(self, obj):
         # Cache the source key first thing...
         source_key = self.current_source_key()
+
+        # This should be impossible.
+        if not obj:
+            return RichStatus.fromError("undefined object???")
 
         try:
             obj_version = obj['apiVersion']
@@ -586,6 +599,8 @@ class Config (object):
                                  cb_name=None, od_name=None, originate_tls=None,
                                  grpc=False):
         if name not in self.envoy_clusters:
+            self.logger.info("CLUSTER %s: new from %s" % (name, _source))
+
             cluster = SourcedDict(
                 _source=_source,
                 _referenced_by=[ _source ],
@@ -619,12 +634,15 @@ class Config (object):
 
                     tls_array.append({ 'key': key, 'value': value })
 
-                cluster['tls_array'] = tls_array
+                cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
+
             if grpc:
                 cluster['features'] = 'http2'
 
             self.envoy_clusters[name] = cluster
         else:
+            self.logger.info("CLUSTER %s: referenced by %s" % (name, _source))
+
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
     def add_intermediate_route(self, _source, mapping, cluster_name):
@@ -804,7 +822,7 @@ class Config (object):
         # OK! We have all the mappings we need. Process them (don't worry about sorting
         # yet, we'll do that on routes).
 
-        for mapping_name in mappings.keys():
+        for mapping_name in sorted(mappings.keys()):
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
@@ -910,8 +928,7 @@ class Config (object):
                 for c in clusters:
                     c["weight"] *= 100.0/total
 
-        # OK. When all is said and done, sort the list of routes by descending 
-        # length of prefix, then prefix itself, then method...
+        # OK. When all is said and done, sort the list of routes by route weight...
         self.envoy_config['routes'] = sorted([
             route for group_id, route in self.envoy_routes.items()
         ], reverse=True, key=Mapping.route_weight)

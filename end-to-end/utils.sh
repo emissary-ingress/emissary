@@ -106,7 +106,7 @@ wait_for_extauth_enabled () {
     enabled=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl -k -s $baseurl/ambassador/v0/diag/ambassador.yaml.1?json=true | jget.py /filters/0/name 2>&1 | egrep -c 'extauth')
+        OK=$(curl -k -s $baseurl/ambassador/v0/diag/ambassador-default.yaml.1?json=true | jget.py /filters/0/name 2>&1 | egrep -c 'extauth')
 
         if [ $OK -gt 0 ]; then
             printf "extauth enabled            \n"

@@ -101,11 +101,11 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "cloud"}],
+                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/","headers": [{"name": "x-demo-mode", "regex": false, "value": "local"}],
                       "weighted_clusters": {
                           "clusters": [
                               
-                                 { "name": "cluster_demo_getambassador_io", "weight": 100.0 }
+                                 { "name": "cluster_qotm", "weight": 100.0 }
                               
                           ]
                       }
@@ -114,11 +114,11 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/","headers": [{"name": "x-demo-mode", "regex": false, "value": "local"}],
+                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "cloud"}],
                       "weighted_clusters": {
                           "clusters": [
                               
-                                 { "name": "cluster_qotm", "weight": 100.0 }
+                                 { "name": "cluster_demo_getambassador_io", "weight": 100.0 }
                               
                           ]
                       }

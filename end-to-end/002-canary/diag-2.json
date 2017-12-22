@@ -51,9 +51,9 @@
         "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
         "_method": "GET",
         "_referenced_by": [
-            "ambassador.yaml.1"
+            "ambassador-default.yaml.1"
         ],
-        "_source": "ambassador.yaml.1",
+        "_source": "ambassador-default.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -67,9 +67,9 @@
         "_group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
         "_method": "GET",
         "_referenced_by": [
-            "demo1.yaml.1"
+            "demo1-default.yaml.1"
         ],
-        "_source": "demo1.yaml.1",
+        "_source": "demo1-default.yaml.1",
         "clusters": [
             {
                 "name": "cluster_demo1",
