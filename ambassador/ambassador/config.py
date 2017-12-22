@@ -414,6 +414,10 @@ class Config (object):
         # Cache the source key first thing...
         source_key = self.current_source_key()
 
+        # This should be impossible.
+        if not obj:
+            return RichStatus.fromError("undefined object???")
+
         try:
             obj_version = obj['apiVersion']
             obj_kind = obj['kind']
