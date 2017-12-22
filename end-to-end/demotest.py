@@ -5,6 +5,7 @@ import sys
 import json
 import os
 import requests
+import time
 import yaml
 
 # Yes, it's a terrible idea to use skip cert verification for TLS.
@@ -60,6 +61,8 @@ def test_demo(base, v2_wanted):
             return rc
 
         attempts -= 1
+        print("waiting for retry")
+        time.sleep(5)
 
     return False
 
