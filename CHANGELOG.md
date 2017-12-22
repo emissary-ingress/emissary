@@ -28,7 +28,7 @@
 - Make sure that the tests correctly reported failures (sigh).
 - Allow updating out-of-date diagnostic reports without requiring multiple test runs.
 
-## [0.19.0] November 20, 2017
+## [0.19.0] November 30, 2017
 [0.19.0]: https://github.com/datawire/ambassador/compare/v0.18.2...v0.19.0
 
 ### Changed
@@ -39,7 +39,7 @@
 - It’s now possible to tell `ambassador config` to read Kubernetes manifests from the filesystem and build a configuration from the annotations in them (use the `--k8s` switch).
 - Documentation on using Ambassador with Istio now reflects Ambassador 0.19.0 and Istio 0.2.12.
 
-## [0.18.2] November 20, 2017
+## [0.18.2] November 28, 2017
 [0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
 
 ### Changed
