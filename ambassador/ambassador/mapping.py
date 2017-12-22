@@ -26,7 +26,7 @@ class Mapping (object):
         headers = route.get('headers', [])
 
         weight = [ len(prefix) + len(headers), prefix, method ]
-        weight += [ hdr['name'] + '-' + hdr['value'] for hdr in headers ]
+        weight += [ hdr['name'] + '-' + hdr.get('value', '*') for hdr in headers ]
 
         return tuple(weight)
 

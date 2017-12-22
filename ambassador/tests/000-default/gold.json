@@ -88,7 +88,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "timeout_ms": 10000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -101,7 +101,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "timeout_ms": 10000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
                       "weighted_clusters": {
                           "clusters": [
                               
