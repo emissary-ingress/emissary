@@ -129,11 +129,11 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
                               
-                                 { "name": "cluster_qotm", "weight": 100.0 }
+                                 { "name": "cluster_http___qotm", "weight": 100.0 }
                               
                           ]
                       }
@@ -142,11 +142,11 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
                       "weighted_clusters": {
                           "clusters": [
                               
-                                 { "name": "cluster_http___qotm", "weight": 100.0 }
+                                 { "name": "cluster_qotm", "weight": 100.0 }
                               
                           ]
                       }
