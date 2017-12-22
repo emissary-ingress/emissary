@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.20.1] December 22, 2017
+[0.20.1]: https://github.com/datawire/ambassador/compare/v0.20.0...v0.20.1
+
+### Changed
+
+- If Ambassador finds an empty YAML document, it will now ignore it rather than raising an exception.
+- Includes the namespace of a service from an annotation in the name of its generated YAML file.
+- Always process inputs in the same order from run to run.
+
 ## [0.20.0] December 18, 2017
 [0.20.0]: https://github.com/datawire/ambassador/compare/v0.19.2...v0.20.0
 
