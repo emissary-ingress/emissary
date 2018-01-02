@@ -21,7 +21,7 @@ kind: ServiceMonitor
 metadata:
   name: ambassador-monitor
   labels:
-    team: frontend
+    ambassador: monitoring
 spec:
   selector:
     matchLabels:

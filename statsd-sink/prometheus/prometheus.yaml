@@ -5,7 +5,7 @@ metadata:
 spec:
   serviceMonitorSelector:
     matchLabels:
-      team: frontend
+      ambassador: monitoring
   resources:
     requests:
       memory: 400Mi
