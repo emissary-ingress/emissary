@@ -163,6 +163,19 @@
                 "urls": [
                     "tcp://qotm.tspace:80"
                 ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-websocket.yaml.1"
+                ],
+                "_service": "slack.com",
+                "_source": "mapping-websocket.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_slack_com",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://slack.com:80"
+                ]
             }
         ],
         "filters": [
@@ -336,6 +349,23 @@
                 "prefix_rewrite": "/"
             },
             {
+                "_group_id": "ab0d6f12046e8aa9b3f585f5369cd5ece5136bf6",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-websocket.yaml.1"
+                ],
+                "_source": "mapping-websocket.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_slack_com",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/slack/",
+                "prefix_rewrite": "/",
+                "use_websocket": true
+            },
+            {
                 "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
                 "_method": "GET",
                 "_referenced_by": [
@@ -454,6 +484,9 @@
         },
         "mapping-qotm2.yaml": {
             "mapping-qotm2.yaml.1": true
+        },
+        "mapping-websocket.yaml": {
+            "mapping-websocket.yaml.1": true
         }
     },
     "sources": {
@@ -589,6 +622,15 @@
             "name": "qotm2_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm2_mapping\nprefix: /tspace/\nservice: qotm.tspace\n"
+        },
+        "mapping-websocket.yaml.1": {
+            "_source": "mapping-websocket.yaml",
+            "filename": "mapping-websocket.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "websocket_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: websocket_mapping\nprefix: /slack/\nservice: slack.com\nuse_websocket: true\n"
         }
     }
 }

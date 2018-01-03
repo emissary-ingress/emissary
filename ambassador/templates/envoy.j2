@@ -38,7 +38,14 @@
                       "timeout_ms": {{ route.timeout_ms or 10000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
+                      {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
+                      {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
+                      {%- if route.host_redirect -%}"host_redirect": "{{ route.host_redirect }}",{% endif %}
                       {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
+                      {%- if route.path_redirect -%}"path_redirect": "{{ route.path_redirect }}",{% endif %}
+                      {%- if route.priority -%}"priority": "{{ route.priority }}",{% endif %}
+                      {%- if route.timeout_ms -%}"timeout_ms": "{{ route.timeout_ms }}",{% endif %}
+                      {%- if route.use_websocket -%}"use_websocket": {{ route.use_websocket | tojson }},{% endif %}
                       {%- if route.headers -%}"headers": {{ route.headers | tojson }},{% endif %}
                       "weighted_clusters": {
                           "clusters": [
