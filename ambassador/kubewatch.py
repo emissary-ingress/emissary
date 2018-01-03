@@ -346,8 +346,16 @@ def sync(restarter):
                 restarter.update("tls.yaml", yaml.safe_dump(tls_mod))
 
         # Next, check for annotations and such.
-        for svc in v1.list_service_for_all_namespaces().items:
-            restarter.update_from_service(svc)
+        svc_list = None
+
+        if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
+            svc_list = v1.list_namespaced_service(restarter.namespace)
+        else:
+            svc_list = v1.list_service_for_all_namespaces()
+
+        if svc_list:
+            for svc in svc_list.items:
+                restarter.update_from_service(svc)
 
     logger.info("Changes detected, regenerating envoy config.")
     restarter.restart()
@@ -357,7 +365,13 @@ def watch_loop(restarter):
 
     if v1:
         w = watch.Watch()
-        for evt in w.stream(v1.list_service_for_all_namespaces):
+
+        if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
+            watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
+        else:
+            watched = w.stream(v1.list_service_for_all_namespaces)
+
+        for evt in watched:
             logger.info("Event: %s %s/%s" % (evt["type"], 
                                        evt["object"].metadata.namespace, evt["object"].metadata.name))
             sys.stdout.flush()
