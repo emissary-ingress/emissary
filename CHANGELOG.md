@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0] January 3, 2017
+[0.21.0]: https://github.com/datawire/ambassador/compare/v0.20.1...v0.21.0
+
+### Changed
+
+- If `AMBASSADOR_SINGLE_NAMESPACE` is present in the environment, Ambassador will only look for services in its own namespace.
+- Ambassador `Mapping` objects now correctly support `host_redirect`, `path_redirect`, `host_rewrite`, `auto_host_rewrite`, `case_sensitive`, `use_websocket`, `timeout_ms`, and `priority`.
+
 ## [0.20.1] December 22, 2017
 [0.20.1]: https://github.com/datawire/ambassador/compare/v0.20.0...v0.20.1
 
