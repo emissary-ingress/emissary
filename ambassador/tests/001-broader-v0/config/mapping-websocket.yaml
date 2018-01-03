@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: websocket_mapping
+prefix: /slack/
+use_websocket: true
+service: slack.com
