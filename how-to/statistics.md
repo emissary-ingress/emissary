@@ -24,26 +24,24 @@ This sets up the `statsd-sink` service and a deployment that contains Graphite a
 
 This sets up Graphite access at `http://localhost:8080/`.
 
-
 ## Prometheus
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you already use Prometheus, use the sample StatsD Exporter YAML file to get started:
+[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you should deploy a StatsD exporter as a sidecar on each of your Ambassador pods as shown in this [example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/ambassador-rbac-statsd.yaml).
 
-    kubectl apply -f statsd-sink/prometheus/prom-statsd-sink.yaml
+The `statsd-sink` service referenced in this example is built on the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter), and configured in this [Dockerfile](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-exporter/Dockerfile).
 
-This sets up the `statsd-sink` service and a deployment of the Prometheus StatsD Exporter in your cluster. The deployment is based on the Docker image defined in the same directory. Add a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration.
+Add a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration.
 
-If you don't already have a Prometheus setup, spin up an example in your cluster using [Helm](https://github.com/kubernetes/helm):
+### the Prometheus Operator
 
-    helm install stable/prometheus --name prom -f statsd-sink/prometheus/helm-prom-config.yaml
+If you don't already have a Prometheus setup, the [Prometheus operator](https://github.com/coreos/prometheus-operator) is a powerful way to create and deploy Prometheus instances. Once you've installed and configured the Prometheus operator, the following files can be useful:
 
-The supplied configuration file `helm-prom-config.yaml` includes `statsd-sink` as a Prometheus target. Once Prometheus is running, set up port forwarding:
+* `[statsd-sink-svc.yaml](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/statsd-sink-svc.yaml)` creates a `service` that points to the sidecar `statsd-sink` on the Ambassador pod, and a `ServiceMonitor` that adds the `statsd-sink` as a Prometheus target
+* `[prometheus.yaml](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prometheus.yaml)` creates a `Prometheus` object that collects data from the `ServiceMonitor` specified
 
-    PROMPOD=$(kubectl get pod -l service=prom-prometheus-server -o jsonpath="{.items[0].metadata.name}")
-    kubectl port-forward $PROMPOD 9090
+### StatsD as an independent deployment
 
-Now you can access the Prometheus web interface on `http://localhost:9090/`.
-
+If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
 
 ## Datadog
 
