@@ -28,4 +28,3 @@ spec:
       service: ambassador-monitor
   endpoints:
   - port: prometheus-metrics
----
