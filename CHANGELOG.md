@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1] January 11, 2017
+[0.21.1]: https://github.com/datawire/ambassador/compare/v0.21.0...v0.21.1
+
+### Changed
+
+- Ambassador will no longer generate cluster names that exceed Envoy's 60-character limit.
+
 ## [0.21.0] January 3, 2017
 [0.21.0]: https://github.com/datawire/ambassador/compare/v0.20.1...v0.21.0
 
