@@ -267,8 +267,6 @@ class Config (object):
 
         self.tls_config = None
 
-        self._current_source = None
-
         self.errors = {}
         self.fatal_errors = 0
         self.object_errors = 0
@@ -398,9 +396,6 @@ class Config (object):
         return out
 
     def current_source_key(self):
-        if self._current_source:
-            return self._current_source
-
         return("%s.%d" % (self.filename, self.ocount))
 
     def post_error(self, rc):
@@ -829,7 +824,6 @@ class Config (object):
 
         for mapping_name in sorted(mappings.keys()):
             mapping = mappings[mapping_name]
-            self._current_source = mapping['_source']
 
             # OK. We need a cluster for this service. Derive it from the 
             # service name, plus things like circuit breaker and outlier 
