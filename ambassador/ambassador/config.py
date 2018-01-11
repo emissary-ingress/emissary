@@ -267,6 +267,8 @@ class Config (object):
 
         self.tls_config = None
 
+        self._current_source = None
+
         self.errors = {}
         self.fatal_errors = 0
         self.object_errors = 0
@@ -396,6 +398,9 @@ class Config (object):
         return out
 
     def current_source_key(self):
+        if self._current_source:
+            return self._current_source
+
         return("%s.%d" % (self.filename, self.ocount))
 
     def post_error(self, rc):
@@ -824,6 +829,7 @@ class Config (object):
 
         for mapping_name in sorted(mappings.keys()):
             mapping = mappings[mapping_name]
+            self._current_source = mapping['_source']
 
             # OK. We need a cluster for this service. Derive it from the 
             # service name, plus things like circuit breaker and outlier 
@@ -908,13 +914,47 @@ class Config (object):
         #     'cluster_diagnostics'
         # )
 
+        # OK. Walk the set of clusters and normalize names...
+        collisions = {}
+        mangled = {}
+
+        for name in sorted(self.envoy_clusters.keys()):
+            if len(name) > 60:
+                # Too long.
+                short_name = name[0:40]
+
+                collision_list = collisions.setdefault(short_name, [])
+                collision_list.append(name)
+
+        for short_name in sorted(collisions.keys()):
+            name_list = collisions[short_name]
+
+            i = 0
+
+            for name in sorted(name_list):
+                mangled_name = "%s-%d" % (short_name, i)
+                i += 1
+
+                self.logger.info("%s => %s" % (name, mangled_name))
+
+                mangled[name] = mangled_name
+                self.envoy_clusters[name]['name'] = mangled_name
+
         # We need to default any unspecified weights and renormalize to 100
         for group_id, route in self.envoy_routes.items():
             clusters = route["clusters"]
+
             total = 0.0
             unspecified = 0
 
             for c in clusters:
+                # Mangle the name, if need be.
+                c_name = c["name"]
+
+                if c_name in mangled:
+                    c["name"] = mangled[c_name]
+                    # self.logger.info("%s: mangling cluster %s to %s" % (group_id, c_name, c["name"]))
+
                 if c["weight"] is None:
                     unspecified += 1
                 else:
@@ -935,7 +975,7 @@ class Config (object):
 
         # ...then map clusters back into a list...
         self.envoy_config['clusters'] = [
-            self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
+            self.envoy_clusters[cluster_key] for cluster_key in sorted(self.envoy_clusters.keys())
         ]
 
         # ...and finally repeat for breakers and outliers, but copy them in the process so we
