@@ -166,6 +166,32 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-long.yaml.1"
+                ],
+                "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service",
+                "_source": "mapping-long.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_really_really_really_long_no_i_m-0",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://really-really-really-long-no-i-mean-really-really-really-really-long-service:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-long.yaml.2"
+                ],
+                "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service-two",
+                "_source": "mapping-long.yaml.2",
+                "lb_type": "round_robin",
+                "name": "cluster_really_really_really_long_no_i_m-1",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://really-really-really-long-no-i-mean-really-really-really-really-long-service-two:80"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-websocket.yaml.1"
                 ],
                 "_service": "slack.com",
@@ -278,6 +304,29 @@
                 "prefix_rewrite": "/"
             },
             {
+                "_group_id": "30f39d42f27d9bfc42f090a4398d77cb7c33cb3a",
+                "_method": "PUT",
+                "_referenced_by": [
+                    "mapping-long.yaml.2"
+                ],
+                "_source": "mapping-long.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-1",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "PUT"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/qotm/quote/"
+            },
+            {
                 "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
                 "_method": "GET",
                 "_referenced_by": [
@@ -292,6 +341,29 @@
                 ],
                 "prefix": "/ambassador/v0/check_alive",
                 "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
+                "_group_id": "6f6f65520e4e9992c6dd345d2028ea7c979a082e",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-long.yaml.1"
+                ],
+                "_source": "mapping-long.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-0",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "GET"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/"
             },
             {
                 "_group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
@@ -477,6 +549,10 @@
         "mapping-httpbin.yaml": {
             "mapping-httpbin.yaml.1": true
         },
+        "mapping-long.yaml": {
+            "mapping-long.yaml.1": true,
+            "mapping-long.yaml.2": true
+        },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true,
             "mapping-qotm.yaml.2": true,
@@ -586,6 +662,24 @@
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\n"
+        },
+        "mapping-long.yaml.1": {
+            "_source": "test source",
+            "filename": "mapping-long.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "long_get_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
+        },
+        "mapping-long.yaml.2": {
+            "_source": "test source",
+            "filename": "mapping-long.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "long_put_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
