@@ -142,6 +142,32 @@
                     ,
                     
                     {
+                      "timeout_ms": 10000,"prefix": "/long/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_really_really_really_long_no_i_m-1", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 10000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_really_really_really_long_no_i_m-0", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
                       "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
@@ -348,6 +374,28 @@
         "hosts": [
           {
             "url": "tcp://qotm.tspace:80"
+          }
+          
+        ]},
+      {
+        "name": "cluster_really_really_really_long_no_i_m-0",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://really-really-really-long-no-i-mean-really-really-really-really-long-service:80"
+          }
+          
+        ]},
+      {
+        "name": "cluster_really_really_really_long_no_i_m-1",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://really-really-really-long-no-i-mean-really-really-really-really-long-service-two:80"
           }
           
         ]},
