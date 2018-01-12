@@ -12,7 +12,8 @@
 # and then read DATAWIRE/README.md.
 
 # FROM datawire/ambassador-envoy:vtest_docs_tag3-60-gb2629d084
-FROM datawire/ambassador-envoy:v1.5.0-47-g6b197c85c
+# FROM datawire/ambassador-envoy:v1.5.0-47-g6b197c85c
+FROM datawire/ambassador-envoy-alpine:ambassador-envoy-v1.5.0-47-g6b197c85c-68-g3e4bfeb1d
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -27,11 +28,7 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-# We need curl, pip, and dnsutils (for nslookup).
-RUN apt-get update && apt-get -q install -y \
-    curl \
-    python3-pip \
-    dnsutils
+RUN apk --no-cache add curl python3
 
 # Set WORKDIR to /application which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a
