@@ -47,6 +47,8 @@ if ! check_diag "$BASEURL" 2 "demo1 annotated"; then
     exit 1
 fi
 
+sleep 5
+
 if ! demotest.py $BASEURL 0; then
     exit 1
 fi
@@ -59,6 +61,8 @@ wait_for_demo_weights "$BASEURL" 100
 # if ! check_diag "$BASEURL" 3 "demo2 annotated"; then
 #     exit 1
 # fi
+
+sleep 5
 
 if ! demotest.py $BASEURL 0; then
     exit 1
@@ -73,6 +77,8 @@ wait_for_demo_weights "$BASEURL" 90 10
 #     exit 1
 # fi
 
+sleep 5
+
 if ! demotest.py $BASEURL 10; then
     exit 1
 fi
@@ -85,6 +91,8 @@ wait_for_demo_weights "$BASEURL" 50 50
 # if ! check_diag "$BASEURL" 3 "demo2 annotated"; then
 #     exit 1
 # fi
+
+sleep 5
 
 if ! demotest.py $BASEURL 50; then
     exit 1
@@ -99,6 +107,8 @@ wait_for_demo_weights "$BASEURL" 10 90
 #     exit 1
 # fi
 
+sleep 5
+
 if ! demotest.py $BASEURL 90; then
     exit 1
 fi
@@ -111,6 +121,8 @@ wait_for_demo_weights "$BASEURL" 100
 # if ! check_diag "$BASEURL" 3 "demo2 annotated"; then
 #     exit 1
 # fi
+
+sleep 5
 
 if ! demotest.py $BASEURL 100; then
     exit 1
