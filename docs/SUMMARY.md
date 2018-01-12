@@ -24,7 +24,6 @@
 * [Upgrading Ambassador](user-guide/upgrading.md)
 * [Configuring Ambassador](reference/configuration.md)
 * [Auth with an external auth service](how-to/auth-external.md)
-* [Running Ambassador](user-guide/running.md)
 * [Istio and Ambassador](user-guide/with-istio.md)
 
 ## Developers
