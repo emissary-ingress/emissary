@@ -28,4 +28,5 @@ forge.yaml
 # Editor nonsense
 .vscode
 .idea
+*.iml
 tags
