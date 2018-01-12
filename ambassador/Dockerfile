@@ -1,5 +1,5 @@
 # Our base image was built from https://github.com/datawire/envoy, commit
-# 6b197c85c, on the flynn/feature/extauth branch. We need this instead of
+# 7ccb25882, on the flynn/feature/extauth branch. We need this instead of
 # the official Envoy image so that we can support Ambassador's ability to
 # use an external authentication service.
 #
@@ -11,14 +11,12 @@
 # 
 # and then read DATAWIRE/README.md.
 
-# FROM datawire/ambassador-envoy:vtest_docs_tag3-60-gb2629d084
-# FROM datawire/ambassador-envoy:v1.5.0-47-g6b197c85c
-FROM datawire/ambassador-envoy-alpine:ambassador-envoy-v1.5.0-47-g6b197c85c-68-g3e4bfeb1d
+FROM datawire/ambassador-envoy-alpine:v1.5.0-116-g7ccb25882
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
-      DESCRIPTION              = "Ambassador REST Service" \
+      DESCRIPTION              = "Ambassador" \
       VENDOR                   = "Datawire" \
       VENDOR_URL               = "https://datawire.io/"
 
