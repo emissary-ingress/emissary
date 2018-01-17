@@ -5,6 +5,7 @@ import click
 import json
 import logging
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -118,6 +119,13 @@ class Restarter(threading.Thread):
 
         base, ext = os.path.splitext(self.envoy_config_file)
         target = "%s-%s%s" % (base, self.restart_count, ext)
+
+        # This has happened sometimes. Hmmmm.
+        m = re.match(r'^envoy-\d+\.json$', os.path.basename(target))
+
+        if not m:
+            raise Exception("Impossible? would be writing %s" % target)
+
         os.rename(config, target)
 
         logger.info("Moved valid configuration %s to %s" % (config, target))

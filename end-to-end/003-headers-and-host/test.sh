@@ -51,6 +51,8 @@ wait_for_demo_weights "$BASEURL" x-demo-mode=canary 50 50
 #     exit 1
 # fi
 
+sleep 5
+
 if ! demotest.py "$BASEURL" demo-2.yaml; then
     exit 1
 fi
@@ -63,6 +65,8 @@ wait_for_demo_weights "$BASEURL" x-demo-mode=canary 100
 # if ! check_diag "$BASEURL" 3 "Canary 100"; then
 #     exit 1
 # fi
+
+sleep 5
 
 if ! demotest.py "$BASEURL" demo-3.yaml; then
     exit 1
