@@ -1,5 +1,18 @@
 # Changelog
 
+## As of 0.22.0, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
+
+## [0.22.0] January 17, 2017
+[0.22.0]: https://github.com/datawire/ambassador/compare/v0.21.1...v0.22.0
+
+### Changed
+
+- Switched to using `quay.io` rather than DockerHub. **If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!**
+- Switched to building over Alpine rather than Ubuntu. (We're still using an unstripped Envoy; that'll change soon.)
+- Switched to a proper production configuration for the `statsd` pod, so that it hopefully chews up less memory.
+- Make sure that Ambassador won't generate cluster names that are too long for Envoy.
+- Fix a bug where Ambassador could crash if there were too many egregious errors in its configuration.
+
 ## [0.21.1] January 11, 2017
 [0.21.1]: https://github.com/datawire/ambassador/compare/v0.21.0...v0.21.1
 
