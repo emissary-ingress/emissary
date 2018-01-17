@@ -47,10 +47,10 @@ def test_demo(base, v2_wanted):
 
     while attempts > 0:
         print("2.0.0: attempts left %d" % attempts)
-        got = call(url, iterations=100)
+        got = call(url, iterations=1000)
 
         print(got)
-        v2_seen = got.get('2.0.0', 0)
+        v2_seen = ((got.get('2.0.0', 0) + 5) // 10)
         delta = abs(v2_seen - v2_wanted)
         rc = (delta <= 2)
 
