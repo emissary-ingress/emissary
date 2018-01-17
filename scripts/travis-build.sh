@@ -66,7 +66,7 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         git checkout ${TRAVIS_BRANCH}
 
         # ...make sure we're interacting with our official Docker repo...
-        DOCKER_REGISTRY="datawire"
+        DOCKER_REGISTRY="quay.io/datawire"
 
         set +x
         echo "+docker login..."
