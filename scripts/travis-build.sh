@@ -70,7 +70,7 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
 
         set +x
         echo "+docker login..."
-        $ECHO docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+        $ECHO docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" quay.io
         set -x
 
         # We _won't_ try to figure out a magic prebuild number for real builds.
