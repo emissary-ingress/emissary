@@ -1,7 +1,7 @@
 Run `testall.sh` in this directory to descend into each 0* directory and run the tests.
 
-TESTS REQUIRE:
-
-kubernaut
-Python 3
-everything in dev-requirements.txt
+#### Requires:
+* Python 3
+* [kubernaut](https://github.com/datawire/kubernaut#installation)
+* kubernaut token from https://kubernaut.io/token
+* A build pushed to a public DOCKER_REGISTRY. See [building instructions](../BUILDING.md).
