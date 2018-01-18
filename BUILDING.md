@@ -9,7 +9,7 @@ TL;DR
 ```
 git clone https://github.com/datawire/ambassador
 cd ambassador
-# best to activate a virtualenv here!
+# best to activate a Python 3 virtualenv here!
 pip install -r dev-requirements.txt
 DOCKER_REGISTRY=- make
 ```

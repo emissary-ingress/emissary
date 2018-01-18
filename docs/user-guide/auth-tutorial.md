@@ -130,7 +130,7 @@ or, again, apply it from a local file if you prefer.
 
 Ambassador will see the annotations and reconfigure itself within a few seconds.
 
-## 4. Test authentication
+## 3. Test authentication
 
 If we `curl` to a protected URL:
 
