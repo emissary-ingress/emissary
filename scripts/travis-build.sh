@@ -128,7 +128,7 @@ if [ $doc_changes -gt 0 ]; then
     # Yes, so we'll run a doc build, for which we always use the Datawire registry.
     # (why? 'cause there's no way to figure out WTF domain name Netlify will push to
     # at this point)
-    DOCKER_REGISTRY=datawire
+    DOCKER_REGISTRY=quay.io/datawire
 
     if onmaster; then
         # If on master, we publish instead of just leaving everything in draft mode.
