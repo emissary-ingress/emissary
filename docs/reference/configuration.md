@@ -230,10 +230,11 @@ Common optional attributes for mappings:
 
 Less-common optional attributes for mappings:
 
-- `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route
-- `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True
-- `host_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `host_redirect` value
-- `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value
+- `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route.
+- `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True.
+- `host_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `host_redirect` value.
+- `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value.
+- `request_headers_to_add`: if present, specifies a list of HTTP headers (`key` and `value` objects) that should be added to each request when talking to the service. Envoy dynamic `value`s `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static `value`s.
 - `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
 - `use_websocket`: if present with a true value, tells Ambassador that this service will use websockets.
 - `envoy_override`: supplies raw configuration data to be included with the generated Envoy route entry.
