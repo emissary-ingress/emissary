@@ -39,6 +39,7 @@ class Mapping (object):
         "use_websocket": True,
         "timeout_ms": True,
         "priority": True,
+        "request_headers_to_add": True,
     }
 
     def __init__(self, _source="--internal--", _from=None, **kwargs):
