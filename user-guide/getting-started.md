@@ -7,7 +7,7 @@ Ambassador is a microservices API Gateway. We'll do a quick tour of Ambassador w
 By default, Ambassador uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador on port 8080:
 
 ```shell
-docker run -it -p 8080:80 --name=ambassador --rm datawire/ambassador:{VERSION} --demo
+docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VERSION} --demo
 ```
 
 ## 2. Ambassador's Diagnostics
