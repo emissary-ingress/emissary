@@ -81,7 +81,10 @@
               ]
             },
             "filters": [
-              { 
+              {
+                "name": "cors",
+                "config": {}
+              },{
                 "type": "decoder",
                 "name": "router",
                 "config": {}
