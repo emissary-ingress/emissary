@@ -236,7 +236,7 @@ Less-common optional attributes for mappings:
 - `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value.
 - `request_headers_to_add`: if present, specifies a list of HTTP headers (`key` and `value` objects) that should be added to each request when talking to the service. Envoy dynamic `value`s `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static `value`s.
 - `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
-- `use_websocket`: if present with a true value, tells Ambassador that this service will used for websockets
+- `use_websocket`: if present with a true value, tells Ambassador that this service will use websockets.
 - `envoy_override`: supplies raw configuration data to be included with the generated Envoy route entry.
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
