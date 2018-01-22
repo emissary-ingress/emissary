@@ -1,3 +1,8 @@
+if [ -z "$ROOT" ]; then
+    echo "ROOT must be set to the root of the end-to-end tests" >&2
+    exit 1
+fi
+
 if [ -n "$MACHINE_READABLE" ]; then
     LINE_END="\n"
 else
@@ -8,12 +13,50 @@ step () {
     echo "==== $@"
 }
 
+get_kubernaut () {
+    KUBERNAUT="$ROOT/kubernaut"
+
+    if [ ! -x "$KUBERNAUT" ]; then
+        echo "Fetching Kubernaut..."
+        curl -q -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+        chmod +x "$KUBERNAUT"
+    fi
+
+    echo "$KUBERNAUT"
+}
+
+check_kubernaut_token () {
+    KUBERNAUT="$1"
+    
+    if [ $("$KUBERNAUT" kubeconfig | grep -c 'Token not found') -gt 0 ]; then
+        echo "You need a Kubernaut token. Go to"
+        echo ""
+        echo "https://kubernaut.io/token"
+        echo ""
+        echo "to get one, then run"
+        echo ""
+        echo "sh $ROOT/save-token \"\$token\""
+        echo ""
+        echo "to save it before trying again."
+
+        return 1
+    fi
+
+    return 0
+}
+
 shred_and_reclaim () {
+    KUBERNAUT=$(get_kubernaut)
+
+    if ! check_kubernaut_token "$KUBERNAUT"; then
+        exit 1
+    fi
+
     step "Dropping old cluster"
-    kubernaut discard
+    "$KUBERNAUT" discard
 
     step "Claiming new cluster"
-    kubernaut claim
+    "$KUBERNAUT" claim
     export KUBECONFIG=${HOME}/.kube/kubernaut
 }
 
@@ -71,6 +114,7 @@ wait_for_ready () {
 
     if [ -z "$ready" ]; then
         echo 'Ambassador not yet ready?' >&2
+        kubectl get pods >&2
         exit 1
     fi
 }
