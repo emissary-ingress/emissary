@@ -312,7 +312,7 @@
             "kind": "Mapping",
             "name": "qotm_host_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrequest_headers_to_add:\n- key: x-test-proto\n  value: '%PROTOCOL%'\n- key: x-test-ip\n  value: '%CLIENT_IP%'\n- key: x-test-static\n  value: testing\nrewrite: /\nservice: httpbin.org:80\n"
+            "yaml": "add_request_headers:\n  x-test-ip: '%CLIENT_IP%'\n  x-test-proto: '%PROTOCOL%'\n  x-test-static: testing\napiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
         }
     }
 }

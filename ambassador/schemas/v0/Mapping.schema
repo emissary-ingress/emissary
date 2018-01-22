@@ -10,6 +10,7 @@
         "prefix": { "type": "string" },
         "service": { "type": "string" },
 
+        "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
         "circuit_breaker": { "type": "string" },
@@ -20,18 +21,6 @@
         "outlier_detection": { "type": "string" },
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
-        "request_headers_to_add": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "key":  { "type": "string" },
-                    "value":  { "type": "string" }
-                },
-                "required": [ "key", "value" ],
-                "additionalProperties": false
-            }
-        },
         "rewrite": { "type": "string" },
         "timeout_ms": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
