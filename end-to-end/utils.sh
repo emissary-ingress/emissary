@@ -14,20 +14,15 @@ step () {
 }
 
 get_kubernaut () {
-    KUBERNAUT="$ROOT/kubernaut"
-
     if [ ! -x "$KUBERNAUT" ]; then
-        echo "Fetching Kubernaut..."
-        curl -q -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+        echo "Fetching kubernaut..."
+        # curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+        curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/0.1.39/kubernaut
         chmod +x "$KUBERNAUT"
     fi
-
-    echo "$KUBERNAUT"
 }
 
 check_kubernaut_token () {
-    KUBERNAUT="$1"
-    
     if [ $("$KUBERNAUT" kubeconfig | grep -c 'Token not found') -gt 0 ]; then
         echo "You need a Kubernaut token. Go to"
         echo ""
@@ -35,22 +30,19 @@ check_kubernaut_token () {
         echo ""
         echo "to get one, then run"
         echo ""
-        echo "sh $ROOT/save-token \"\$token\""
+        echo "sh $ROOT/save-token.sh \"\$token\""
         echo ""
         echo "to save it before trying again."
 
-        return 1
+        exit 1
     fi
-
-    return 0
 }
 
 shred_and_reclaim () {
-    KUBERNAUT=$(get_kubernaut)
+    KUBERNAUT="$ROOT/kubernaut"
 
-    if ! check_kubernaut_token "$KUBERNAUT"; then
-        exit 1
-    fi
+    get_kubernaut
+    check_kubernaut_token
 
     step "Dropping old cluster"
     "$KUBERNAUT" discard
