@@ -84,6 +84,7 @@ wait_for_ready () {
 
     if [ -z "$ready" ]; then
         echo 'Ambassador not yet ready?' >&2
+        kubectl get pods >&2
         exit 1
     fi
 }
