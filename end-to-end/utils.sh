@@ -1,3 +1,8 @@
+if [ -z "$ROOT" ]; then
+    echo "ROOT must be set to the root of the end-to-end tests" >&2
+    exit 1
+fi
+
 if [ -n "$MACHINE_READABLE" ]; then
     LINE_END="\n"
 else
@@ -9,11 +14,19 @@ step () {
 }
 
 shred_and_reclaim () {
+    KUBERNAUT="$ROOT/kubernaut"
+
+    if [ ! -x "$KUBERNAUT" ]; then
+        echo "Fetching Kubernaut..."
+        curl -q -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+        chmod +x "$KUBERNAUT"
+    fi
+
     step "Dropping old cluster"
-    kubernaut discard
+    "$KUBERNAUT" discard
 
     step "Claiming new cluster"
-    kubernaut claim
+    "$KUBERNAUT" claim
     export KUBECONFIG=${HOME}/.kube/kubernaut
 }
 
