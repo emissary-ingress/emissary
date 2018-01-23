@@ -46,7 +46,7 @@ onmaster () {
 
 # Do we have any non-doc changes?
 DIFF_RANGE=${TRAVIS_COMMIT_RANGE:-HEAD^}
-echo "DIFF_RANGE ${DIFF_RANGE}"
+# echo "DIFF_RANGE ${DIFF_RANGE}"
 
 echo "======== Diff summary"
 git diff --stat "$DIFF_RANGE"
