@@ -8,6 +8,8 @@ import requests
 import time
 import yaml
 
+DEFAULT_ITERATIONS=500
+
 # Yes, it's a terrible idea to use skip cert verification for TLS.
 # We really don't care for this test though.
 import urllib3
@@ -40,17 +42,22 @@ def call(url, headers=None, iterations=1):
     
     return got
 
+def to_percentage(count, iterations):
+    bias = iterations // 2
+    return ((count * 100) + bias) // iterations
+
 def test_demo(base, v2_wanted):
     url = "%s/demo/" % base
 
     attempts = 3
+    iterations = DEFAULT_ITERATIONS
 
     while attempts > 0:
         print("2.0.0: attempts left %d" % attempts)
-        got = call(url, iterations=1000)
+        got = call(url, iterations=iterations)
 
         print(got)
-        v2_seen = ((got.get('2.0.0', 0) + 5) // 10)
+        v2_seen = to_percentage(got.get('2.0.0', 0), iterations)
         delta = abs(v2_seen - v2_wanted)
         rc = (delta <= 2)
 
@@ -81,7 +88,7 @@ def test_from_yaml(base, yaml_path):
         headers = test.get('headers', None)
         host = test.get('host', None)
         versions = test.get('versions', None)
-        iterations = test.get('iterations', 100)
+        iterations = test.get('iterations', DEFAULT_ITERATIONS)
 
         if not versions:
             print("missing versions in %s?" % name)
@@ -107,7 +114,8 @@ def test_from_yaml(base, yaml_path):
             test_ok = True
 
             for version, wanted_count in versions.items():
-                got_count = got.get(version, 0)
+                # Convert iterations to percent.
+                got_count = to_percentage(got.get(version, 0), iterations)
                 delta = abs(got_count - wanted_count)
 
                 print("%s %s: wanted %d, got %d (delta %d)" % 
