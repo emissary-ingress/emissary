@@ -62,13 +62,15 @@ Ambassador supports multiple namespaces within Kubernetes. To make this work cor
 
 ```yaml
         env:
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace          
 ```
 
-Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](#mappings) can operate within the same namespace, or across namespaces.
+Given that `AMBASSADOR_SINGLE_NAMESPACE` is set, Ambassador [mappings](#mappings) will operate within the same namespace. To operate across all namespaces in the Kubernetes cluster, omit the `AMBASSADOR_SINGLE_NAMESPACE` environment variable.
 
 ## Modules
 
