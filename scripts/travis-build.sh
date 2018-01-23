@@ -46,9 +46,8 @@ onmaster () {
 
 # Do we have any non-doc changes?
 DIFF_RANGE=${TRAVIS_COMMIT_RANGE:-HEAD^}
-# echo "DIFF_RANGE ${DIFF_RANGE}"
 
-echo "======== Diff summary"
+echo "======== Diff summary ($DIFF_RANGE)"
 git diff --stat "$DIFF_RANGE"
 
 nondoc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
