@@ -110,6 +110,35 @@
         "prefix_rewrite": "/"
     },
     {
+        "_group_id": "964ecffbd05a7525b02c39c3709668a5875365b8",
+        "_method": "GET",
+        "_referenced_by": [
+            "cors-default.yaml.1"
+        ],
+        "_source": "cors-default.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_cors",
+                "weight": 100.0
+            }
+        ],
+        "cors": {
+            "allow_origin": [
+                "*"
+            ],
+            "enabled": true
+        },
+        "headers": [
+            {
+                "name": ":authority",
+                "regex": false,
+                "value": "cors.datawire.io"
+            }
+        ],
+        "prefix": "/cors/",
+        "prefix_rewrite": "/"
+    },
+    {
         "_group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
         "_method": "GET",
         "_referenced_by": [
