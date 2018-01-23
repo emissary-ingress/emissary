@@ -45,11 +45,14 @@ onmaster () {
 }
 
 # Do we have any non-doc changes?
-echo "======== Diff summary"
-git diff --stat "$TRAVIS_COMMIT_RANGE"
+DIFF_RANGE=${TRAVIS_COMMIT_RANGE:-HEAD^}
+echo "DIFF_RANGE ${DIFF_RANGE}"
 
-nondoc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
-doc_changes=$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
+echo "======== Diff summary"
+git diff --stat "$DIFF_RANGE"
+
+nondoc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
+doc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
 # Default VERSION to _the current version of Ambassador._
 VERSION=$(python scripts/versioner.py)
