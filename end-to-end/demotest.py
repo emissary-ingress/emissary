@@ -81,7 +81,7 @@ def test_from_yaml(base, yaml_path):
         headers = test.get('headers', None)
         host = test.get('host', None)
         versions = test.get('versions', None)
-        iterations = test.get('iterations', 100)
+        iterations = test.get('iterations', 1000)
 
         if not versions:
             print("missing versions in %s?" % name)
