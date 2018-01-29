@@ -2,6 +2,19 @@
 
 ## As of 0.22.0, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
+## [0.23.0] January 17, 2017
+[0.23.0]: https://github.com/datawire/ambassador/compare/v0.23.0...v0.22.0
+
+### Changed
+
+- Clean up build docs (thanks @alexgervais!)
+- Support `add_request_headers` for, uh, adding requests headers (thanks @alexgervais!)
+- Make end-to-end tests and Travis build process a bit more robust
+- Pin to Kubernaut 0.1.39
+- Document the use of the `develop` branch
+- Don't default to `imagePullAlways`
+- Switch to Alpine base with a stripped Envoy image
+
 ## [0.22.0] January 17, 2017
 [0.22.0]: https://github.com/datawire/ambassador/compare/v0.21.1...v0.22.0
 
