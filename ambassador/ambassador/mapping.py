@@ -31,14 +31,14 @@ class Mapping (object):
         return tuple(weight)
 
     TransparentRouteKeys = {
-        "host_redirect": True,
-        "path_redirect": True,
-        "host_rewrite": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
-        "use_websocket": True,
-        "timeout_ms": True,
+        "host_redirect": True,
+        "host_rewrite": True,
+        "path_redirect": True,
         "priority": True,
+        "timeout_ms": True,
+        "use_websocket": True,
     }
 
     def __init__(self, _source="--internal--", _from=None, **kwargs):
@@ -107,6 +107,12 @@ class Mapping (object):
 
         if self.headers:
             route['headers'] = self.headers
+
+        add_request_headers = self.get('add_request_headers')
+        if add_request_headers:
+            route['request_headers_to_add'] = []
+            for key, value in add_request_headers.items():
+              route['request_headers_to_add'].append({"key": key, "value": value})
 
         # Even though we don't use it for generating the Envoy config, go ahead
         # and make sure that any ':method' header match gets saved under the

@@ -4,10 +4,13 @@ set -e
 set -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
+BUILD_ALL=${BUILD_ALL:-false}
 
 cd "$HERE"
 
-sh buildall.sh
+if [ "$BUILD_ALL" = true ]; then
+  sh buildall.sh
+fi
 
 # For linify
 export MACHINE_READABLE=yes

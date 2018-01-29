@@ -89,6 +89,7 @@
                     
                     {
                       "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/","host_rewrite": "httpbin.org","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],
+                      "request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%CLIENT_IP%"}, {"key": "x-test-static", "value": "testing"}],
                       "weighted_clusters": {
                           "clusters": [
                               

@@ -119,7 +119,7 @@
 
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html">Routes</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/route_config/route.html">Routes</a>
 
           {% for route in route_info %}
           <div class="row">
@@ -155,7 +155,7 @@
 
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html">Clusters</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/cluster.html">Clusters</a>
 
           {% for cluster in clusters | sort(attribute = 'name') %}
           <div class="row">
@@ -193,7 +193,7 @@
       {% if breakers %}
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_circuit_breakers.html">Circuit Breakers</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/cluster_circuit_breakers">Circuit Breakers</a>
 
           {% for breaker in breakers | sort(attribute = 'name') %}
           <div class="row">
@@ -223,7 +223,7 @@
       {% if outliers %}
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster_outlier_detection.html">Outlier Detection</a> configuration
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/outlier">Outlier Detection</a> configuration
 
           {% for outlier in outliers | sort(attribute = 'name') %}
           <div class="row">

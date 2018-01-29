@@ -8,8 +8,11 @@ TL;DR
 
 ```
 git clone https://github.com/datawire/ambassador
+# Development should be on branches based on the `develop` branch
+git checkout develop
+git checkout -b dev/my-branch-here
 cd ambassador
-# best to activate a virtualenv here!
+# best to activate a Python 3 virtualenv here!
 pip install -r dev-requirements.txt
 DOCKER_REGISTRY=- make
 ```
@@ -17,6 +20,17 @@ DOCKER_REGISTRY=- make
 That will build an Ambassador Docker image for you but not push it anywhere. To actually push the image into a registry so that you can use it for Kubernetes, set `DOCKER_REGISTRY` to a registry that you have permissions to push to.
 
 **It is important to use `make` rather than trying to just do a `docker build`.** Actually assembling a Docker image for Ambassador involves quite a few steps before the image can be built.
+
+Branching
+---------
+
+1. `master` is the branch from which Ambassador releases are cut. There should be no other activity on `master`.
+
+2. `develop` is the default branch for the repo, and is the base from which all development should happen. 
+
+3. **All development should be on branches cut from `develop`.** When you have things working and tested, submit a pull request back to `develop`.
+
+This implies that `master` must _always_ be shippable and tagged, and `develop` _should_ always be shippable.
 
 Unit Tests
 ----------
@@ -57,9 +71,9 @@ Normal Workflow
 
    You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY` and `STATSD_REGISTRY`. See the files in `templates` for more here.
 
-1. Be on a branch that isn't `master`.
+1. Use a private branch cut from `develop` for your work.
 
-   At Datawire, committing to `master` triggers the CI pipeline to do an actual release. Even if you're not at Datawire, it's better to do you Ambassador development on a feature branch.
+   Committing to `master` triggers the CI pipeline to do an actual release. The base branch for development work is `develop` -- and you should always create a new branch from `develop` for your changes.
 
 2. Hack away, then `make`. This will:
 
@@ -75,9 +89,9 @@ Normal Workflow
 
 3. Commit to your feature branch.
 
-   Remember: _not to `master`_.
+   Remember: _not to `develop` or `master`_.
 
-4. Open a pull request against `master` when you're ready to ship.
+4. Open a pull request against `develop` when you're ready to ship.
 
 What if I Don't Want to Push My Images?
 ---------------------------------------

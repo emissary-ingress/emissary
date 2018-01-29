@@ -182,7 +182,21 @@
                 ],
                 "host_rewrite": "httpbin.org",
                 "prefix": "/qotm/",
-                "prefix_rewrite": "/"
+                "prefix_rewrite": "/",
+                "request_headers_to_add": [
+                    {
+                        "key": "x-test-proto",
+                        "value": "%PROTOCOL%"
+                    },
+                    {
+                        "key": "x-test-ip",
+                        "value": "%CLIENT_IP%"
+                    },
+                    {
+                        "key": "x-test-static",
+                        "value": "testing"
+                    }
+                ]
             },
             {
                 "_group_id": "dc5d22df356f9df8439ed418ef194c061e57c68f",
@@ -298,7 +312,7 @@
             "kind": "Mapping",
             "name": "qotm_host_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
+            "yaml": "add_request_headers:\n  x-test-ip: '%CLIENT_IP%'\n  x-test-proto: '%PROTOCOL%'\n  x-test-static: testing\napiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
         }
     }
 }

@@ -47,6 +47,7 @@
                       {%- if route.timeout_ms -%}"timeout_ms": "{{ route.timeout_ms }}",{% endif %}
                       {%- if route.use_websocket -%}"use_websocket": {{ route.use_websocket | tojson }},{% endif %}
                       {%- if route.headers -%}"headers": {{ route.headers | tojson }},{% endif %}
+                      {%- if route.request_headers_to_add -%}"request_headers_to_add": {{ route.request_headers_to_add | tojson }},{% endif %}
                       "weighted_clusters": {
                           "clusters": [
                               {% for wc in route.clusters %}

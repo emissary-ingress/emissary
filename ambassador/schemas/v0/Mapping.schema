@@ -10,6 +10,7 @@
         "prefix": { "type": "string" },
         "service": { "type": "string" },
 
+        "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
         "circuit_breaker": { "type": "string" },
