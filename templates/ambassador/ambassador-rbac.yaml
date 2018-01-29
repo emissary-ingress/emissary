@@ -65,7 +65,6 @@ spec:
       containers:
       - name: ambassador
         image: {AMREG}ambassador:{VERSION}
-        imagePullPolicy: Always
         resources:
           limits:
             cpu: 1
