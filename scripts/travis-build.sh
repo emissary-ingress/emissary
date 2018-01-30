@@ -8,6 +8,8 @@ if [ $(echo "$TRAVIS_BRANCH" | egrep -c '^v[0-9][0-9\.]*$') -gt 0 ]; then
     exit 0
 fi
 
+export AWS_DEFAULT_REGION=us-east-1
+
 env | grep TRAVIS | sort
 npm version
 aws --version
@@ -100,18 +102,25 @@ if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         # ...and, if we're on master, tag this version...
         $ECHO make VERSION=${VERSION} tag
 
-        # ...and push the tag.
+        # ...push the tag...
         $ECHO git push --tags https://d6e-automation:${GH_TOKEN}@github.com/datawire/ambassador.git master
+
+        # ...and update our stable.txt.
+        printf "${VERSION}" > stable.txt
+
+        $ECHO aws s3api put-object \
+            --bucket datawire-static-files \
+            --key ambassador/stable.txt \
+            --body stable.txt
     else
         # If not on master, don't tag...
         echo "not on master; not tagging"
 
         # ...and push app.json to testapp.json for later examination.
-        SCOUT_KEY=testapp.json
+        SCOUT_KEY=testapp.json 
     fi
 
     # Push new info to AWS
-    export AWS_DEFAULT_REGION=us-east-1
     $ECHO aws s3api put-object \
         --bucket scout-datawire-io \
         --key ambassador/$SCOUT_KEY \
