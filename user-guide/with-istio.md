@@ -79,16 +79,26 @@ You can see if the two Ambassador services are running correctly (and also obtai
 
 ```shell
 $ kubectl get svc
-NAME               TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)          AGE
-ambassador         LoadBalancer   10.63.252.13    35.224.41.XX   80:32474/TCP     52s
-ambassador-admin   NodePort       10.63.240.197   <none>         8877:32425/TCP   41s
-kubernetes         ClusterIP      10.63.240.1     <none>         443/TCP          8m
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
+ambassador         LoadBalancer   10.63.247.1     35.224.41.XX     80:32171/TCP     11m
+ambassador-admin   NodePort       10.63.250.17    <none>           8877:32107/TCP   12m
+details            ClusterIP      10.63.241.224   <none>           9080/TCP         16m
+kubernetes         ClusterIP      10.63.240.1     <none>           443/TCP          24m
+productpage        ClusterIP      10.63.248.184   <none>           9080/TCP         16m
+ratings            ClusterIP      10.63.255.72    <none>           9080/TCP         16m
+reviews            ClusterIP      10.63.252.192   <none>           9080/TCP         16m
 
 $ kubectl get pods
-NAME                          READY     STATUS    RESTARTS   AGE
-ambassador-2680035017-2vzlt   2/2       Running   0          38s
-ambassador-2680035017-qx769   2/2       Running   0          38s
-ambassador-2680035017-vr2cd   2/2       Running   0          38s
+NAME                             READY     STATUS    RESTARTS   AGE
+ambassador-2680035017-092rk      2/2       Running   0          13m
+ambassador-2680035017-9mr97      2/2       Running   0          13m
+ambassador-2680035017-thcpr      2/2       Running   0          13m
+details-v1-3842766915-3bjwx      2/2       Running   0          17m
+productpage-v1-449428215-dwf44   2/2       Running   0          16m
+ratings-v1-555398331-80zts       2/2       Running   0          17m
+reviews-v1-217127373-s3d91       2/2       Running   0          17m
+reviews-v2-2104781143-2nxqf      2/2       Running   0          16m
+reviews-v3-3240307257-xl1l6      2/2       Running   0          16m
 ```
 
 Above we see that external IP assigned to our LoadBalancer is 35.224.41.XX (XX is used to mask the actual value), and that all ambassador pods are running (Ambassador relies on Kubernetes to provide high availability, and so there should be two small pods running on each node within the cluster).
@@ -134,10 +144,10 @@ spec:
 
 The annotation above implements an Ambassador mapping from the '/productpage/' URI to the Kubernetes productpage service running on port 9080 ('productpage:9080'). The 'prefix' mapping URI is taken from the context of the root of your Ambassador service that is acting as the ingress point (exposed externally via port 80 because it is a LoadBalancer) e.g. '35.224.41.XX/productpage/'.
 
-You can now apply this manifest from the root of the Istio GitHub repo on your local file system:
+You can now apply this manifest from the root of the Istio GitHub repo on your local file system (taking care to wrap the apply with istioctl kube-inject):
 
 ```shell
-kubectl apply -f samples/bookinfo/kube/bookinfo.yaml
+kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 ```
 
 3. Optionally, delete the Ingress controller from the `bookinfo.yaml` manifest by typing `kubectl delete ingress gateway`.
