@@ -38,6 +38,9 @@ if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1
 fi
 
+# kubectl run -it --rm atest --image=dwflynn/ambassador:0.23.1-b1.f6d3728.DIRTY --command /bin/sh
+# exit 0
+
 if ! demotest.py "$BASEURL" demo-1.yaml; then
     exit 1
 fi

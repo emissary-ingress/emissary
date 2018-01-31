@@ -33,7 +33,7 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "demo.getambassador.io",
+                "_service": "extauth",
                 "_source": "auth.yaml.1",
                 "lb_type": "random",
                 "name": "cluster_ext_auth",

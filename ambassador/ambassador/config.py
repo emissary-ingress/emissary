@@ -580,6 +580,10 @@ class Config (object):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj['config']))
 
+    def handle_authentication(self, source_key, obj, obj_name, obj_kind, obj_version):
+        return self.safe_store(source_key, "auth_configs", obj_name, obj_kind, 
+                               SourcedDict(_source=source_key, **obj))
+
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
         mapping = Mapping(source_key, **obj)
 
@@ -705,36 +709,23 @@ class Config (object):
             service_port = 80,
             admin_port = 8001,
             diag_port = 8877,
+            auth_enabled = None,
             liveness_probe = { "enabled": True },
             readiness_probe = { "enabled": True },
             diagnostics = { "enabled": True },
             tls_config = None
         )
 
-        # Now we look at user-defined modules from our config...
-        modules = self.config.get('modules', {})
-
-        # ...most notably the 'ambassador' and 'tls' modules, which are handled first.
-        amod = modules.get('ambassador', None)
-        tmod = modules.get('tls', None)
-
-        if amod or tmod:
-            self.module_config_ambassador("ambassador", amod, tmod)
-
         # Next up: let's define initial clusters, routes, and filters.
         #
-        # Our initial set of clusters just contains the one for our Courier container.
-        # We start with the empty set and use add_intermediate_cluster() to make sure 
-        # that all the source-tracking stuff works out.
+        # Our set of clusters starts out empty; we use add_intermediate_cluster()
+        # to build it up while making sure that all the source-tracking stuff
+        # works out.
         #
         # Note that we use a map for clusters, not a list -- the reason is that
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.envoy_clusters = {}
-        # self.add_intermediate_cluster('--diagnostics--',
-        #                               'cluster_diagnostics', 
-        #                               [ "tcp://%s" % self.diag_service() ],
-        #                               type="logical_dns", lb_type="random")
 
         # Our initial set of routes is empty...
         self.envoy_routes = {}
@@ -747,6 +738,22 @@ class Config (object):
         self.envoy_config['filters'] = [
             SourcedDict(type="decoder", name="router", config={})
         ]
+
+        # Now we look at user-defined modules from our config...
+        modules = self.config.get('modules', {})
+
+        # ...most notably the 'ambassador' and 'tls' modules, which are handled first.
+        amod = modules.get('ambassador', None)
+        tmod = modules.get('tls', None)
+
+        if amod or tmod:
+            self.module_config_ambassador("ambassador", amod, tmod)
+
+        # Next up: deal with authentication.
+        auth_mod = modules.get('authentication', None)
+        auth_configs = self.config.get('authentication', None)
+        self.module_config_authentication("authentication", amod,
+                                          auth_mod, auth_configs)
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
@@ -763,7 +770,9 @@ class Config (object):
 
         # OK. Given those initial sets, let's look over our global modules.
         for module_name in modules.keys():
-            if (module_name == 'ambassador') or (module_name == 'tls'):
+            if ((module_name == 'ambassador') or
+                (module_name == 'tls') or
+                (module_name == 'authentication')):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -1171,46 +1180,94 @@ class Config (object):
         if not have_amod_tls and tmod:
             self.tls_config_helper(name, tmod, tmod)
 
-        # After that, check for port definitions and probes, and copy them in as we find them.
+        # After that, check for port definitions, probes, etc., and copy them in
+        # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
-                     'liveness_probe', 'readiness_probe' ]:
+                     'liveness_probe', 'readiness_probe', 'auth_enabled' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
 
-    def module_config_authentication(self, name, module):
+    def auth_helper(self, sources, config, cluster_hosts, module):
+        sources.append(module['_source'])
+
+        for key in [ 'path_prefix', 'allowed_headers', 'timeout_ms',
+                     'cluster' ]:
+            value = module.get(key, None)
+
+            if value != None:
+                config[key] = value
+
+        auth_service = module.get("auth_service", None)
+        weight = module.get("weight", 100)
+
+        if auth_service:
+            cluster_hosts[auth_service] = ( weight, module.get('tls', None) )
+
+    def module_config_authentication(self, name, amod, auth_mod, auth_configs):
+        filter_config = {
+            "cluster": "cluster_ext_auth",
+            "timeout_ms": 5000
+        }
+
+        cluster_hosts = {}
+        sources = []
+
+        if auth_mod:
+            self.auth_helper(sources, filter_config, cluster_hosts, auth_mod)
+
+        if auth_configs:
+            for config in auth_configs:
+                self.auth_helper(sources, filter_config, cluster_hosts, config)
+
+        if not sources:
+            return
+
+        first_source = sources.pop(0)
+
         filter = SourcedDict(
-            _from=module,
+            _source=first_source,
             type="decoder",
             name="extauth",
-            config={
-                "cluster": "cluster_ext_auth",
-                "timeout_ms": 5000
-            }
+            config=filter_config
         )
 
-        path_prefix = module.get("path_prefix", None)
+        cluster_name = filter_config['cluster']
 
-        if path_prefix:
-            filter['config']['path_prefix'] = path_prefix
+        if cluster_name not in self.envoy_clusters:
+            if not cluster_hosts:
+                cluster_hosts = { '127.0.0.1:5000': 100 }
 
-        allowed_headers = module.get("allowed_headers", None)
+            urls = []
+            use_tls = False
+            protocols = {}
 
-        if allowed_headers:
-            filter['config']['allowed_headers'] = allowed_headers
+            for svc in sorted(cluster_hosts.keys()):
+                weight, tls_context = cluster_hosts[svc]
+
+                (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+
+                if originate_tls:
+                    use_tls = True
+                    protocols['https'] = True
+                else:
+                    protocols['http'] = True
+
+                urls.append(url)
+
+            if len(protocols.keys()) != 1:
+                raise Exception("auth config cannot try to use both HTTP and HTTPS")
+
+            self.add_intermediate_cluster(first_source, cluster_name,
+                                          'extauth', urls,
+                                          type="logical_dns", lb_type="random",
+                                          originate_tls=use_tls)
+
+        for source in sources:
+            filter._mark_referenced_by(source)
+            self.envoy_clusters[cluster_name]._mark_referenced_by(source)
 
         self.envoy_config['filters'].insert(0, filter)
-
-        if 'ext_auth_cluster' not in self.envoy_clusters:
-            svc = module.get('auth_service', '127.0.0.1:5000')
-            tls_context = module.get('tls', None)
-
-            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
-
-            self.add_intermediate_cluster(module['_source'], 'cluster_ext_auth',
-                                          svc, [ url ],
-                                          type="logical_dns", lb_type="random",
-                                          originate_tls=originate_tls)
 
     ### DIAGNOSTICS
     def diagnostic_overview(self):
