@@ -20,7 +20,14 @@ def before():
 
 @app.route('/', methods=[ 'GET' ])
 def demo():
-    return "VERSION %s" % __version__
+    # Return the version both in the body and in the X-Demo-Version
+    # header (returning as a header allows us to use this service as
+    # an extauth filter that allows everything, but still identifies
+    # itself).
+
+    resp = Response("VERSION %s" % __version__)
+    resp.headers['X-Demo-Version'] = __version__
+    return resp
 
 if __name__ == "__main__":
     __version__ = sys.argv[1]
