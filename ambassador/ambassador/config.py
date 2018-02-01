@@ -326,19 +326,19 @@ class Config (object):
 
             self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
-    def prep_k8s(self, filename, ocount, obj, k8s):
+    def prep_k8s(self, filename, ocount, obj):
         kind = obj.get('kind', None)
 
         if kind != "Service":
             self.logger.info("%s/%s: ignoring K8s %s object" % 
-                             (self.filename, self.ocount, kind))
+                             (filename, ocount, kind))
             return
 
         metadata = obj.get('metadata', None)
 
         if not metadata:
             self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
-                             (self.filename, self.ocount, kind))
+                             (filename, ocount, kind))
             return
 
         annotations = metadata.get('annotations', None)
@@ -350,7 +350,7 @@ class Config (object):
 
         if not annotations:
             self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
-                             (self.filename, self.ocount, kind))
+                             (filename, ocount, kind))
             return
 
         self.load_yaml(filename + ":annotation", annotations)
