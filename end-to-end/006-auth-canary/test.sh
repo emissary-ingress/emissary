@@ -34,16 +34,9 @@ echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL"
 
-# if ! check_diag "$BASEURL" 1 "No annotated services"; then
-#     exit 1
-# fi
-
-# kubectl apply -f k8s/qotm.yaml
-
-
-# if ! check_diag "$BASEURL" 2 "QoTM annotated"; then
-#     exit 1
-# fi
+if ! check_diag "$BASEURL" 1 "No auth"; then
+    exit 1
+fi
 
 if ! python auth-test.py $CLUSTER:$APORT "none:100"; then
     exit 1
@@ -53,9 +46,9 @@ kubectl apply -f k8s/auth-1-enable.yaml
 
 wait_for_extauth_enabled "$BASEURL"
 
-# if ! check_diag "$BASEURL" 3 "Auth annotated"; then
-#     exit 1
-# fi
+if ! check_diag "$BASEURL" 2 "Auth 1"; then
+    exit 1
+fi
 
 if ! python auth-test.py $CLUSTER:$APORT "1.0.0:100"; then
     exit 1
@@ -67,9 +60,9 @@ wait_for_pods
 
 wait_for_extauth_enabled "$BASEURL"
 
-# if ! check_diag "$BASEURL" 3 "Auth annotated"; then
-#     exit 1
-# fi
+if ! check_diag "$BASEURL" 3 "Auth 1 and 2"; then
+    exit 1
+fi
 
 if ! python auth-test.py $CLUSTER:$APORT "1.0.0:50" "2.0.0:50"; then
     exit 1
@@ -83,9 +76,9 @@ wait_for_pods
 
 wait_for_extauth_enabled "$BASEURL"
 
-# if ! check_diag "$BASEURL" 3 "Auth annotated"; then
-#     exit 1
-# fi
+if ! check_diag "$BASEURL" 4 "Auth 2 only"; then
+    exit 1
+fi
 
 if ! python auth-test.py $CLUSTER:$APORT "2.0.0:100"; then
     exit 1
