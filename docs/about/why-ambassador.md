@@ -1,6 +1,6 @@
 # Why Ambassador?
 
-Ambassador is a Kubernetes-native [microservices API Gateway](microservices-api-gateways) built on the [Envoy Proxy](https://envoyproxy.github.io). Ambassador is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users.
+Ambassador is an open source, Kubernetes-native [microservices API Gateway](microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). Ambassador is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users.
 
 Ambassador is:
 
