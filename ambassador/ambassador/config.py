@@ -751,7 +751,7 @@ class Config (object):
 
         # Next up: deal with authentication.
         auth_mod = modules.get('authentication', None)
-        auth_configs = self.config.get('authentication', None)
+        auth_configs = self.config.get('auth_configs', None)
         self.module_config_authentication("authentication", amod,
                                           auth_mod, auth_configs)
 
@@ -1217,7 +1217,8 @@ class Config (object):
             self.auth_helper(sources, filter_config, cluster_hosts, auth_mod)
 
         if auth_configs:
-            for config in auth_configs:
+            # self.logger.debug("auth_configs: %s" % auth_configs)
+            for config in auth_configs.values():
                 self.auth_helper(sources, filter_config, cluster_hosts, config)
 
         if not sources:
@@ -1260,7 +1261,7 @@ class Config (object):
 
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extauth', urls,
-                                          type="logical_dns", lb_type="random",
+                                          type="strict_dns", lb_type="round_robin",
                                           originate_tls=use_tls)
 
         for source in sources:
