@@ -1,6 +1,6 @@
 # Getting Started with Ambassador
 
-Ambassador is a microservices API Gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
+Ambassador is an open source, Kubernetes-native API Gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
 
 ## 1. Running the demo configuration
 
