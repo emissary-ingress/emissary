@@ -40,6 +40,7 @@
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
                       {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
+                      {%- if route.cors -%}"cors": {{ route.cors | tojson }},{% endif %}
                       {%- if route.host_redirect -%}"host_redirect": "{{ route.host_redirect }}",{% endif %}
                       {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
                       {%- if route.path_redirect -%}"path_redirect": "{{ route.path_redirect }}",{% endif %}
@@ -70,7 +71,7 @@
             "filters": [
               {% for filter in filters -%}
               { 
-                "type": "{{ filter.type }}",
+                {%- if filter.type -%}"type": "{{ filter.type }}",{% endif %}
                 "name": "{{ filter.name }}",
                 "config": {{ filter.config | tojson }}
               }{{ "," if not loop.last }}

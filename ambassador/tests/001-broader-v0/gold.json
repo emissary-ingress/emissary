@@ -224,11 +224,14 @@
               ]
             },
             "filters": [
-              { 
+              {
                 "type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_ext_auth", "path_prefix": "/extauth", "timeout_ms": 5000}
-              },{ 
+              },{
+                "name": "cors",
+                "config": {}
+              },{
                 "type": "decoder",
                 "name": "router",
                 "config": {}

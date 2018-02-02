@@ -17,6 +17,7 @@ urllib3.disable_warnings()
 
 def call(url, headers=None, iterations=1):
     got = {}
+    response_headers = {}
 
     for x in range(iterations):
         # Yes, it's a terrible idea to use skip cert verification for TLS.
@@ -36,11 +37,12 @@ def call(url, headers=None, iterations=1):
 
         got.setdefault(version, 0)
         got[version] += 1
+        response_headers = result.headers
 
     sys.stdout.write("\n")
     sys.stdout.flush()
-    
-    return got
+
+    return got, response_headers
 
 def to_percentage(count, iterations):
     bias = iterations // 2
@@ -54,7 +56,7 @@ def test_demo(base, v2_wanted):
 
     while attempts > 0:
         print("2.0.0: attempts left %d" % attempts)
-        got = call(url, iterations=iterations)
+        got, _ = call(url, iterations=iterations)
 
         print(got)
         v2_seen = to_percentage(got.get('2.0.0', 0), iterations)
@@ -88,10 +90,11 @@ def test_from_yaml(base, yaml_path):
         headers = test.get('headers', None)
         host = test.get('host', None)
         versions = test.get('versions', None)
+        expect_response_headers = test.get('expect_response_headers', None)
         iterations = test.get('iterations', DEFAULT_ITERATIONS)
 
-        if not versions:
-            print("missing versions in %s?" % name)
+        if not versions and not expect_response_headers:
+            print("missing versions or expect_response_headers in %s?" % name)
             print("%s" % yaml.safe_dump(test))
             return False
 
@@ -107,22 +110,34 @@ def test_from_yaml(base, yaml_path):
             print("%s: attempts left %d" % (name, attempts))
             print("%s: headers %s" % (name, headers))
 
-            got = call(url, headers=headers, iterations=iterations)
+            got, response_headers = call(url, headers=headers, iterations=iterations)
 
             print("%s: %s" % (name, json.dumps(got)))
 
             test_ok = True
 
-            for version, wanted_count in versions.items():
-                # Convert iterations to percent.
-                got_count = to_percentage(got.get(version, 0), iterations)
-                delta = abs(got_count - wanted_count)
+            if versions:
+                for version, wanted_count in versions.items():
+                    # Convert iterations to percent.
+                    got_count = to_percentage(got.get(version, 0), iterations)
+                    delta = abs(got_count - wanted_count)
 
-                print("%s %s: wanted %d, got %d (delta %d)" % 
-                      (name, version, wanted_count, got_count, delta))
+                    print("%s %s: wanted %d, got %d (delta %d)" % 
+                          (name, version, wanted_count, got_count, delta))
 
-                if delta > 2:
-                    test_ok = False
+                    if delta > 2:
+                        test_ok = False
+
+            if expect_response_headers:
+                for expect_header, header_value in expect_response_headers.items():
+                    if expect_header in response_headers:
+                        if response_headers[expect_header] != header_value:
+                            print("Response header %s was expected with value %s but got %s" % 
+                                  (expect_header, header_value, response_headers[expect_header]))
+                            test_ok = False
+                    else:
+                        print("Response header %s was not returned" % (expect_header))
+                        test_ok = False
 
             if test_ok:
                 print("%s: passed" % name)

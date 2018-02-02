@@ -16,6 +16,7 @@ shred_and_reclaim
 kubectl cluster-info
 
 kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f k8s/cors.yaml
 kubectl apply -f k8s/demo1.yaml
 kubectl apply -f k8s/demo2.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
@@ -38,8 +39,14 @@ if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1
 fi
 
+<<<<<<< HEAD
 # kubectl run -it --rm atest --image=dwflynn/ambassador:0.23.1-b1.f6d3728.DIRTY --command /bin/sh
 # exit 0
+=======
+if ! demotest.py "$BASEURL" cors.yaml; then
+    exit 1
+fi
+>>>>>>> develop
 
 if ! demotest.py "$BASEURL" demo-1.yaml; then
     exit 1

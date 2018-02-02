@@ -60,6 +60,28 @@
                       
                     }
                     ,
+
+                    {
+                      "timeout_ms": 10000,"prefix": "/cors-creds/","prefix_rewrite": "/",
+                      "cors": {
+                        "enabled": true,
+                        "allow_origin": ["http://foo.example", "http://bar.example"],
+                        "allow_methods": "POST, GET, OPTIONS",
+                        "allow_headers": "Content-Type",
+                        "allow_credentials": true,
+                        "expose_headers": "X-Custom-Header",
+                        "max_age": "86400"
+                      },
+                      "weighted_clusters": {
+                        "clusters": [
+
+                          { "name": "cluster_cors_8080", "weight": 100.0 }
+
+                        ]
+                      }
+
+                    }
+                    ,
                     
                     {
                       "timeout_ms": 10000,"prefix": "/ambassador/","prefix_rewrite": "/ambassador/",
@@ -84,6 +106,23 @@
                           ]
                       }
                       
+                    }
+                    ,
+
+                    {
+                      "timeout_ms": 10000,"prefix": "/cors-all/","prefix_rewrite": "/",
+                      "cors": {
+                        "enabled": true,
+                        "allow_origin": ["*"]
+                      },
+                      "weighted_clusters": {
+                        "clusters": [
+
+                          { "name": "cluster_cors_8080", "weight": 100.0 }
+
+                        ]
+                      }
+
                     }
                     ,
                     
@@ -125,17 +164,19 @@
                       
                     }
                     
-                    
                   ]
                 }
               ]
             },
             "filters": [
-              { 
+              {
                 "type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-extauth-required", "x-authenticated-as", "x-qotm-session"], "cluster": "cluster_ext_auth", "path_prefix": "/extauth", "timeout_ms": 5000}
-              },{ 
+              },{
+                "name": "cors",
+                "config": {}
+              },{
                 "type": "decoder",
                 "name": "router",
                 "config": {}
@@ -160,6 +201,17 @@
         "hosts": [
           {
             "url": "tcp://127.0.0.1:8877"
+          }
+          
+        ]},
+      {
+        "name": "cluster_cors_8080",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://cors:8080"
           }
           
         ]},

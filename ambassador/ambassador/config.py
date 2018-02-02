@@ -737,6 +737,7 @@ class Config (object):
         # We're kind of punting on that so far since we'll only ever add one filter
         # right now.
         self.envoy_config['filters'] = [
+            SourcedDict(name="cors", config={}),
             SourcedDict(type="decoder", name="router", config={})
         ]
 
