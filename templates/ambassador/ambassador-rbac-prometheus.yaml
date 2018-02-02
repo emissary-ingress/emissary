@@ -64,7 +64,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: datawire/ambassador:0.20.0
+        image: {AMREG}ambassador:{VERSION}
         imagePullPolicy: Always
         resources:
           limits:
