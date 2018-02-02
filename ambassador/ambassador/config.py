@@ -581,7 +581,7 @@ class Config (object):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj['config']))
 
-    def handle_authentication(self, source_key, obj, obj_name, obj_kind, obj_version):
+    def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
         return self.safe_store(source_key, "auth_configs", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj))
 
@@ -1201,7 +1201,7 @@ class Config (object):
 
                 if previous and (previous != value):
                     errstr = (
-                        "authentication cannot support multiple %s values; using %s" % 
+                        "AuthService cannot support multiple %s values; using %s" % 
                         (key, previous)
                     )
 

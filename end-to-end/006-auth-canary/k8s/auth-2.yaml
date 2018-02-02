@@ -13,7 +13,7 @@ metadata:
       service: auth-2:3000
       ---
       apiVersion: ambassador/v0
-      kind: Authentication
+      kind: AuthService
       name: auth-2
       auth_service: "auth-2:3000"
       path_prefix: "/auth-2"
