@@ -166,6 +166,25 @@ Each mapping can also specify, among other things:
 - a [_host_](#host) specifying a required value for the HTTP `Host` header; and
 - other [_headers_](#headers) which must appear in the HTTP request.
 
+### Mapping Evaluation Order
+
+Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account.
+
+#### Fallback Mapping
+
+In order to avoid Ambassador responding with `404 Not Found`, it is a common practice to define a fallback "catch-all" mapping so all unmatched requests will be sent to an upstream service.
+
+For example, defining a mapping with only a `/` prefix will catch all requests previously unhandled and forward them to an external service:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: catch-all
+prefix: /
+service: https://www.getambassador.io
+```
+
 ### Defining Mappings
 
 Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
