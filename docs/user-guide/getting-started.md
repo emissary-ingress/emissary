@@ -1,6 +1,6 @@
 # Getting Started with Ambassador
 
-Ambassador is a microservices API Gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
+Ambassador is an open source, Kubernetes-native API Gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
 
 ## 1. Running the demo configuration
 
@@ -121,9 +121,7 @@ When Ambassador starts, it will notice the `getambassador.io/config` annotation 
 Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
 
 ```
-$ gcloud info | grep Account
-Account: [username@example.org]
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=username@example.org
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
 ### 5.3 Testing the Mapping
