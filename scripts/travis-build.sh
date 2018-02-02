@@ -159,10 +159,10 @@ if [ $doc_changes -gt 0 ]; then
 
     $ECHO make VERSION=${VERSION} travis-website
 
-    $ECHO docs/node_modules/.bin/netlify --access-token ${NETLIFY_TOKEN} \
+    $ECHO docs/node_modules/.bin/netlify --access-token "${NETLIFY_TOKEN}" \
         deploy --path docs/_book \
                --site-id datawire-ambassador \
-               ${NETLIFY_DRAFT}
+               "${NETLIFY_DRAFT}"
 else
     echo "Not building docs for $VERSION; no doc changes"
 fi
