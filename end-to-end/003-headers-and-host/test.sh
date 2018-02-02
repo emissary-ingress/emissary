@@ -16,6 +16,7 @@ shred_and_reclaim
 kubectl cluster-info
 
 kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f k8s/cors.yaml
 kubectl apply -f k8s/demo1.yaml
 kubectl apply -f k8s/demo2.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
@@ -35,6 +36,10 @@ echo "Diag URL $BASEURL/ambassador/v0/diag/"
 wait_for_ready "$BASEURL"
 
 if ! check_diag "$BASEURL" 1 "No canary active"; then
+    exit 1
+fi
+
+if ! demotest.py "$BASEURL" cors.yaml; then
     exit 1
 fi
 

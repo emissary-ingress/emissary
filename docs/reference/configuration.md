@@ -248,6 +248,7 @@ Common optional attributes for mappings:
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `headers`: if present, specifies a dictionary of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
 - `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
+- `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
 
 Less-common optional attributes for mappings:
 
@@ -358,6 +359,34 @@ You will see these headers in the diagnostic service if you use the `method` or 
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to specify TLS origination certificates.
+
+#### Using `cors`
+
+A mapping that specifies the `cors` attribute will automatically enable the CORS filter. An example:
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  cors_mapping
+prefix: /cors/
+service: cors-example
+cors:
+  origins: http://foo.example,http://bar.example
+  methods: POST, GET, OPTIONS
+  headers: Content-Type
+  credentials: true
+  exposed_headers: X-Custom-Header
+  max_age: "86400"
+```
+
+CORS settings:
+
+- `origins`: Specifies a comma-separated list of allowed domains for the `Access-Control-Allow-Origin` header. To allow all origins, use the wildcard `"*"` value.
+- `methods`: if present, specifies a comma-separated list of allowed methods for the `Access-Control-Allow-Methods` header.
+- `headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Allow-Headers` header.
+- `credentials`: if present with a true value (boolean), will send a `true` value for the `Access-Control-Allow-Credentials` header.
+- `exposed_headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Expose-Headers` header.
+- `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
 
 #### Using `envoy_override`
 

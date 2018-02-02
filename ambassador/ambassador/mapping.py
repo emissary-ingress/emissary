@@ -112,7 +112,19 @@ class Mapping (object):
         if add_request_headers:
             route['request_headers_to_add'] = []
             for key, value in add_request_headers.items():
-              route['request_headers_to_add'].append({"key": key, "value": value})
+                route['request_headers_to_add'].append({"key": key, "value": value})
+
+        cors = self.get('cors')
+        if cors:
+            route['cors'] = {key: value for key, value in {
+                "allow_origin": cors['origins'].split(',') if cors['origins'] else None,
+                "allow_methods": cors.get('methods'),
+                "allow_headers": cors.get('headers'),
+                "expose_headers": cors.get('exposed_headers'),
+                "allow_credentials": cors.get('credentials'),
+                "max_age": cors.get('max_age'),
+                "enabled": True
+            }.items() if value}
 
         # Even though we don't use it for generating the Envoy config, go ahead
         # and make sure that any ':method' header match gets saved under the
