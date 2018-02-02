@@ -36,6 +36,8 @@ spec:
             cpu: 200m
             memory: 100Mi
         env:
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
