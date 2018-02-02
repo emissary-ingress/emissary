@@ -398,8 +398,9 @@ class Config (object):
     def current_source_key(self):
         return("%s.%d" % (self.filename, self.ocount))
 
-    def post_error(self, rc):
-        key = self.current_source_key()
+    def post_error(self, rc, key=None):
+        if not key:
+            key = self.current_source_key()
 
         if key not in self.sources:
             # Save a fake source record.
@@ -1191,15 +1192,36 @@ class Config (object):
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
 
-        for key in [ 'path_prefix', 'allowed_headers', 'timeout_ms',
-                     'cluster' ]:
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
             value = module.get(key, None)
 
             if value != None:
-                config[key] = value
+                previous = config.get(key, None)
+
+                if previous and (previous != value):
+                    errstr = (
+                        "authentication cannot support multiple %s values; using %s" % 
+                        (key, previous)
+                    )
+
+                    self.post_error(RichStatus.fromError(errstr), key=module['_source'])
+                else:
+                    config[key] = value
+
+        headers = module.get('allowed_headers', None)
+
+        if headers:
+            allowed_headers = config.get('allowed_headers', [])
+
+            for hdr in headers:
+                if hdr not in allowed_headers:
+                    allowed_headers.append(hdr)
+
+            config['allowed_headers'] = allowed_headers
 
         auth_service = module.get("auth_service", None)
-        weight = module.get("weight", 100)
+        # weight = module.get("weight", 100)
+        weight = 100    # Can't support arbitrary weights right now.
 
         if auth_service:
             cluster_hosts[auth_service] = ( weight, module.get('tls', None) )
