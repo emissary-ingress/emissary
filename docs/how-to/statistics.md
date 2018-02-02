@@ -39,6 +39,8 @@ If you don't already have a Prometheus setup, the [Prometheus operator](https://
 * `[statsd-sink-svc.yaml](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/statsd-sink-svc.yaml)` creates a `service` that points to the sidecar `statsd-sink` on the Ambassador pod, and a `ServiceMonitor` that adds the `statsd-sink` as a Prometheus target
 * `[prometheus.yaml](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prometheus.yaml)` creates a `Prometheus` object that collects data from the `ServiceMonitor` specified
 
+* `[ambassador-rbac-prometheus.yaml](https://getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml)` is an example Ambassador deployment that includes the Prometheus `statsd` exporter. The statsd exporter collects the stats data from Ambassador, translates it to Prometheus metrics, and is picked up by the Operator using the configurations above.
+
 ### StatsD as an independent deployment
 
 If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
