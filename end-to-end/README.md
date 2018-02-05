@@ -5,4 +5,3 @@ Run `testall.sh` in this directory to descend into each 0* directory and run the
 - The tests will not work unless you've pushed your build to a public `DOCKER_REGISTRY`. See [building instructions](../BUILDING.md).
 
 If you're working with this stuff, we'd love to see you in our [Gitter channel](https://gitter.im/datawire/ambassador)!
-
