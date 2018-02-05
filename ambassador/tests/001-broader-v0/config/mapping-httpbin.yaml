@@ -5,3 +5,4 @@ name:  httpbin_mapping
 prefix: /httpbin/
 service: http://httpbin.org
 host_rewrite: httpbin.org
+timeout_ms: 50
