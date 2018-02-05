@@ -23,7 +23,7 @@
                   "routes": [
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -36,7 +36,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -49,7 +49,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -62,7 +62,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/","prefix_rewrite": "/ambassador/",
+                      "timeout_ms": 3000,"prefix": "/ambassador/","prefix_rewrite": "/ambassador/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -75,7 +75,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/httpbin/","prefix_rewrite": "/","host_rewrite": "httpbin.org",
+                      "timeout_ms": 3000,"prefix": "/httpbin/","prefix_rewrite": "/","host_rewrite": "httpbin.org",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -88,7 +88,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "timeout_ms": 3000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -101,7 +101,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "timeout_ms": 3000,"prefix": "/cqrs/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -114,7 +114,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/qotm/",
+                      "timeout_ms": 3000,"prefix": "/qotm/","prefix_rewrite": "/qotm/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -131,15 +131,13 @@
               ]
             },
             "filters": [
-              {
-                "type": "decoder",
+              {"type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-extauth-required", "x-authenticated-as", "x-qotm-session"], "cluster": "cluster_ext_auth", "path_prefix": "/auth/v0", "timeout_ms": 5000}
               },{
                 "name": "cors",
                 "config": {}
-              },{
-                "type": "decoder",
+              },{"type": "decoder",
                 "name": "router",
                 "config": {}
               }

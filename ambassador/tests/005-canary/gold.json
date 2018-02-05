@@ -23,7 +23,7 @@
                   "routes": [
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -36,7 +36,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -49,7 +49,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -62,7 +62,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/","prefix_rewrite": "/ambassador/",
+                      "timeout_ms": 3000,"prefix": "/ambassador/","prefix_rewrite": "/ambassador/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -75,7 +75,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/demo/","prefix_rewrite": "/",
+                      "timeout_ms": 3000,"prefix": "/demo/","prefix_rewrite": "/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -97,8 +97,7 @@
               {
                 "name": "cors",
                 "config": {}
-              },{
-                "type": "decoder",
+              },{"type": "decoder",
                 "name": "router",
                 "config": {}
               }

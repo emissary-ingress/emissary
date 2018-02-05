@@ -34,7 +34,7 @@
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
         "rewrite": { "type": "string" },
-        "timeout_ms": { "type": "string" },
+        "timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
         "weight": { "type": "integer" },
