@@ -101,7 +101,7 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  Module
+      kind:  AuthService
       name:  authentication
       config:
         auth_service: "example-auth:3000"
