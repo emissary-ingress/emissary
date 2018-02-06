@@ -1,12 +1,12 @@
 # Ambassador Configuration
 
-At the heart of Ambassador are the ideas of [_modules_](#modules), [_mappings_](#mappings), and [_resources_](#resources).
+Ambassador is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, Ambassador's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `ambassador/v0`; currently-supported `kind`s are:
 
-- [Modules](#modules) let you enable and configure special behaviors for Ambassador, in ways which may apply to Ambassador as a whole or which may apply only to some mappings. For example, the `authentication` module allows Ambassador to require authentication per mapping.
+- `[Module](#module)` manifests configure things with can apply to Ambassador as a whole. For example, the `ambassador` module can define listener ports, and the `tls` module can configure TLS termination for Ambassador.
 
-- [Mappings](#mappings) associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
+- `[AuthService](#authservice)` manifests configures the external authentication service[s] that Ambassador will use.
 
-- [Resources](#resources) are as defined in REST: effectively groups of one or more URLs that all share a common prefix in the URL path.
+- `[Mapping](#mapping)` manifiests associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
 ## Ambassador Configuration
 
@@ -68,17 +68,17 @@ Ambassador supports multiple namespaces within Kubernetes. To make this work cor
               fieldPath: metadata.namespace          
 ```
 
-Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](#mappings) can operate within the same namespace, or across namespaces.
+Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](#mapping) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explictly include the namespace with the service to cross namespaces; see the [mapping](#mappings) documentation for more information.
 
 If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
 ## Modules
 
-Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module: at present, the only supported modules are the `ambassador` module and the `authentication` module.
+Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module.
 
 ### The `ambassador` Module
 
-If present, the `ambassador` module defines system-wide configuration. **You will not normally need this file.** The defaults in the `ambassador` module are, roughly:
+If present, the `ambassador` module defines system-wide configuration. **You will not normally need this module.** The defaults in the `ambassador` module are, roughly:
 
 ```yaml
 ---
@@ -137,12 +137,16 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 ### The `authentication` Module
 
-The [`authentication` module](../how-to/auth-http-basic.md) configures Ambassador to use an external service to check authentication and authorization for incoming requests:
+The [`authentication` module](../how-to/auth-http-basic.md) is now deprecated. Use the `[AuthService](#authservice)` manifest type instead.
+
+## AuthService
+
+An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests:
 
 ```yaml
 ---
 apiVersion: ambassador/v0
-kind:  Module
+kind:  AuthService
 name:  authentication
 config:
   auth_service: "example-auth:3000"
@@ -154,6 +158,8 @@ config:
 - `auth_service` gives the URL of the authentication service
 - `path_prefix` (optional) gives a prefix prepended to every request going to the auth service
 - `allowed_headers` (optional) gives an array of headers that will be incorporated into the upstream request if the auth service supplies them.
+
+You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and `allowed_headers`;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
 
 ## Mappings
 
@@ -172,7 +178,7 @@ Ambassador sorts mappings such that those that are more highly constrained are e
 
 If there's any question about how Ambassador is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
 
-#### Fallback Mapping
+### Optional Fallback Mapping
 
 Ambassador will respond with a `404 Not Found` to any request for which no mapping exists. If desired, you can define a fallback "catch-all" mapping so all unmatched requests will be sent to an upstream service.
 
@@ -237,7 +243,7 @@ Required attributes for mappings:
 
 - `name` is a string identifying the `Mapping` (e.g. in diagnostics)
 - `prefix` is the URL prefix identifying your [resource](#resources)
-- `service` is the name of the [service](#services) handling the resource
+- `service` is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador
 
 Common optional attributes for mappings:
 

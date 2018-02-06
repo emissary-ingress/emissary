@@ -45,11 +45,11 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "example-auth:3000",
+                "_service": "extauth",
                 "_source": "auth.yaml.1",
-                "lb_type": "random",
+                "lb_type": "round_robin",
                 "name": "cluster_ext_auth",
-                "type": "logical_dns",
+                "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
                 ]
