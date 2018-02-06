@@ -47,6 +47,7 @@
         },
         "host": { "type": "string" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
+        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "envoy_override": { 
             "type": "object"
         }
