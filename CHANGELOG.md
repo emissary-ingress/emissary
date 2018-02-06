@@ -2,6 +2,23 @@
 
 ## As of 0.22.0, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
+## [0.25.0] February 6, 2018
+[0.25.0]: https://github.com/datawire/ambassador/compare/v0.25.0...v0.23.0
+
+(Note that 0.24.0 was an internal release.)
+
+### Changed
+
+- CORS support (thanks @alexgervais!)
+- Updated docs for
+  - GKE
+  - Ambassador + Istio
+  - Ordering of `Mappings`
+  - Prometheus with Ambassador
+- Support multiple external authentication service instances, so that canarying `extauth` services is possible
+- Correctly support `timeout_ms` in a `Mapping`
+- Various build tweaks and end-to-end test speedups
+
 ## [0.23.0] January 17, 2017
 [0.23.0]: https://github.com/datawire/ambassador/compare/v0.23.0...v0.22.0
 
