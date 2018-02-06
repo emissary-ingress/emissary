@@ -45,6 +45,7 @@ fi
 kubectl apply -f k8s/auth-1-enable.yaml
 
 wait_for_extauth_enabled "$BASEURL"
+sleep 5 # Not sure why this is sometimes relevant.
 
 if ! check_diag "$BASEURL" 2 "Auth 1"; then
     exit 1
@@ -59,6 +60,7 @@ kubectl apply -f k8s/auth-2.yaml
 wait_for_pods
 
 wait_for_extauth_enabled "$BASEURL"
+sleep 5 # Not sure why this is sometimes relevant.
 
 if ! check_diag "$BASEURL" 3 "Auth 1 and 2"; then
     exit 1
@@ -75,6 +77,7 @@ kubectl delete deployment auth-1
 wait_for_pods
 
 wait_for_extauth_enabled "$BASEURL"
+sleep 5 # Not sure why this is sometimes relevant.
 
 if ! check_diag "$BASEURL" 4 "Auth 2 only"; then
     exit 1
