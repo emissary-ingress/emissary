@@ -16,6 +16,20 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-cors.yaml.1",
+                    "mapping-cors.yaml.2"
+                ],
+                "_service": "cors:8080",
+                "_source": "mapping-cors.yaml.2",
+                "lb_type": "round_robin",
+                "name": "cluster_cors_8080",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://cors:8080"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
                 "_service": "demo.getambassador.io",
@@ -31,11 +45,11 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "example-auth:3000",
+                "_service": "extauth",
                 "_source": "auth.yaml.1",
-                "lb_type": "random",
+                "lb_type": "round_robin",
                 "name": "cluster_ext_auth",
-                "type": "logical_dns",
+                "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
                 ]
@@ -133,6 +147,31 @@
                 "prefix_rewrite": "/ambassador/"
             },
             {
+                "_group_id": "ac37c2861c386e18591032460dad7c77ce4fc8ac",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-cors.yaml.1"
+                ],
+                "_source": "mapping-cors.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_cors_8080",
+                        "weight": 100.0
+                    }
+                ],
+                "cors": {
+                    "expose_headers": "X-Custom-Header",
+                    "allow_headers": "Content-Type",
+                    "max_age": "86400",
+                    "allow_methods": "POST, GET, OPTIONS",
+                    "allow_origin": ["http://foo.example", "http://bar.example"],
+                    "allow_credentials": true,
+                    "enabled": true
+                },
+                "prefix": "/cors-creds/",
+                "prefix_rewrite": "/"
+            },
+            {
                 "_group_id": "c208ab7e4e146b9a8bbdebadc7b33f99bc635ab7",
                 "_method": "GET",
                 "_referenced_by": [
@@ -221,6 +260,26 @@
                 "host_rewrite": "httpbin.org",
                 "prefix": "/httpbin/",
                 "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "e75a3faa8eb4d60b982096024a9d118ca00322c8",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-cors.yaml.2"
+                ],
+                "_source": "mapping-cors.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_cors_8080",
+                        "weight": 100.0
+                    }
+                ],
+                "cors": {
+                    "allow_origin": ["*"],
+                    "enabled": true
+                },
+                "prefix": "/cors-all/",
+                "prefix_rewrite": "/"
             }
         ]
     },
@@ -230,6 +289,10 @@
         },
         "auth.yaml": {
             "auth.yaml.1": true
+        },
+        "mapping-cors.yaml": {
+            "mapping-cors.yaml.1": true,
+            "mapping-cors.yaml.2": true
         },
         "mapping-diag.yaml": {
             "mapping-diag.yaml.1": true
@@ -268,6 +331,24 @@
             "name": "authentication",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nconfig:\n  allowed_headers:\n  - x-extauth-required\n  - x-authenticated-as\n  - x-qotm-session\n  auth_service: example-auth:3000\n  path_prefix: /extauth\nkind: Module\nname: authentication\n"
+        },
+        "mapping-cors.yaml.1": {
+            "_source": "mapping-cors.yaml",
+            "filename": "mapping-cors.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "cors_creds_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\ncors:\n  credentials: true\n  exposed_headers: X-Custom-Header\n  headers: Content-Type\n  max_age: '86400'\n  methods: POST, GET, OPTIONS\n  origins: http://foo.example,http://bar.example\nkind: Mapping\nname: cors_creds_mapping\nprefix: /cors-creds/\nservice: cors:8080\n"
+        },
+        "mapping-cors.yaml.2": {
+            "_source": "mapping-cors.yaml",
+            "filename": "mapping-cors.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "cors_all_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\ncors:\n  origins: '*'\nkind: Mapping\nname: cors_all_mapping\nprefix: /cors-all/\nservice: cors:8080\n"
         },
         "mapping-diag.yaml.1": {
             "_source": "mapping-diag.yaml",

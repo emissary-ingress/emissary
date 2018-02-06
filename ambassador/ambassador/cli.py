@@ -98,7 +98,7 @@ def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_
         # This is fatal.
         sys.exit(1)
 
-def dump(config_dir_path:Parameter.REQUIRED):
+def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
     """
     Dump the intermediate form of an Ambassador configuration for debugging
 
@@ -106,7 +106,7 @@ def dump(config_dir_path:Parameter.REQUIRED):
     """
 
     try:
-        aconf = parse_config(config_dir_path)
+        aconf = parse_config(config_dir_path, k8s=k8s)
 
         diag_object = {
             'envoy_config': aconf.envoy_config,

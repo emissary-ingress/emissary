@@ -64,20 +64,35 @@
         "prefix_rewrite": "/ambassador/"
     },
     {
-        "_group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
+        "_group_id": "717c3fa8665a9491dfc3dc4a802996b50b47f269",
         "_method": "GET",
         "_referenced_by": [
-            "demo1-default.yaml.1"
+            "auth-2-default.yaml.1"
         ],
-        "_source": "demo1-default.yaml.1",
+        "_source": "auth-2-default.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo1",
+                "name": "cluster_auth_2_3000",
                 "weight": 100.0
             }
         ],
-        "prefix": "/demo/",
-        "prefix_rewrite": "/",
-        "timeout_ms": 1000
+        "prefix": "/auth-2/",
+        "prefix_rewrite": "/"
+    },
+    {
+        "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
+        "_method": "GET",
+        "_referenced_by": [
+            "qotm-default.yaml.1"
+        ],
+        "_source": "qotm-default.yaml.1",
+        "clusters": [
+            {
+                "name": "cluster_qotm",
+                "weight": 100.0
+            }
+        ],
+        "prefix": "/qotm/",
+        "prefix_rewrite": "/"
     }
 ]

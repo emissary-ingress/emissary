@@ -14,6 +14,18 @@
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
         "circuit_breaker": { "type": "string" },
+        "cors": {
+            "type": "object",
+            "properties": {
+                "origins":  { "type": "string" },
+                "methods": { "type": "string" },
+                "headers": { "type": "string" },
+                "credentials": { "type": "boolean" },
+                "exposed_headers": { "type": "string" },
+                "max_age": { "type": "string" }
+            },
+            "additionalProperties": false
+        },
         "grpc": { "type": "boolean" },
         "host_redirect": { "type": "string" },
         "host_rewrite": { "type": "string" },
@@ -22,7 +34,7 @@
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
         "rewrite": { "type": "string" },
-        "timeout_ms": { "type": "string" },
+        "timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
         "weight": { "type": "integer" },

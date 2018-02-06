@@ -20,6 +20,7 @@ python fix_env.py ../ambassador-deployment.yaml k8s/ambassador-deployment.yaml
 kubectl create namespace other
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
+kubectl run demotest --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
@@ -27,6 +28,7 @@ wait_for_pods
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
+DEMOTEST_POD=$(kubectl get pods  | grep demotest | awk ' { print $1 }')
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -49,7 +51,7 @@ fi
 
 sleep 5
 
-if ! demotest.py $BASEURL 0; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 0; then
     exit 1
 fi
 
@@ -64,7 +66,7 @@ wait_for_demo_weights "$BASEURL" 100
 
 sleep 5
 
-if ! demotest.py $BASEURL 0; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 0; then
     exit 1
 fi
 
@@ -79,7 +81,7 @@ wait_for_demo_weights "$BASEURL" 90 10
 
 sleep 5
 
-if ! demotest.py $BASEURL 10; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 10; then
     exit 1
 fi
 
@@ -94,7 +96,7 @@ wait_for_demo_weights "$BASEURL" 50 50
 
 sleep 5
 
-if ! demotest.py $BASEURL 50; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 50; then
     exit 1
 fi
 
@@ -109,7 +111,7 @@ wait_for_demo_weights "$BASEURL" 10 90
 
 sleep 5
 
-if ! demotest.py $BASEURL 90; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 90; then
     exit 1
 fi
 
@@ -124,7 +126,7 @@ wait_for_demo_weights "$BASEURL" 100
 
 sleep 5
 
-if ! demotest.py $BASEURL 100; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 100; then
     exit 1
 fi
 

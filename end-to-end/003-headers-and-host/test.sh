@@ -16,9 +16,11 @@ shred_and_reclaim
 kubectl cluster-info
 
 kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f k8s/cors.yaml
 kubectl apply -f k8s/demo1.yaml
 kubectl apply -f k8s/demo2.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl run demotest --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
@@ -26,6 +28,7 @@ wait_for_pods
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
+DEMOTEST_POD=$(kubectl get pods  | grep demotest | awk ' { print $1 }')
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -38,7 +41,13 @@ if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1
 fi
 
-if ! demotest.py "$BASEURL" demo-1.yaml; then
+set -x
+
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < cors.yaml; then
+    exit 1
+fi
+
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-1.yaml; then
     exit 1
 fi
 
@@ -53,7 +62,7 @@ wait_for_demo_weights "$BASEURL" x-demo-mode=canary 50 50
 
 sleep 5
 
-if ! demotest.py "$BASEURL" demo-2.yaml; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-2.yaml; then
     exit 1
 fi
 
@@ -68,7 +77,7 @@ wait_for_demo_weights "$BASEURL" x-demo-mode=canary 100
 
 sleep 5
 
-if ! demotest.py "$BASEURL" demo-3.yaml; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-3.yaml; then
     exit 1
 fi
 

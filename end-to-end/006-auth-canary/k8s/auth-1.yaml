@@ -2,28 +2,28 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo1
+  name: auth-1
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
-      name:  demo1_mapping
-      prefix: /demo/
-      service: demo1
-      timeout_ms: 1000
+      name:  auth_1_mapping
+      prefix: /auth-1/
+      service: auth-1:3000
 spec:
   selector:
-    app: demo1
+    app: auth-1
   ports:
-    - port: 80
-      targetPort: http-api
+  - port: 3000
+    name: http-auth-1
+    targetPort: http-api
   type: ClusterIP
 ---
-apiVersion: apps/v1beta1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: demo1
+  name: auth-1
 spec:
   replicas: 1
   strategy:
@@ -31,12 +31,16 @@ spec:
   template:
     metadata:
       labels:
-        app: demo1
+        app: auth-1
     spec:
       containers:
-      - name: demo1
+      - name: auth-1
         image: dwflynn/demo:1.0.0
         imagePullPolicy: Always
         ports:
         - name: http-api
           containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi

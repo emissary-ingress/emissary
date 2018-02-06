@@ -25,7 +25,7 @@
                   "routes": [
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -38,7 +38,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -51,7 +51,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -64,7 +64,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/qotm/quote/","prefix_rewrite": "/quote/",
+                      "timeout_ms": 3000,"prefix": "/qotm/quote/","prefix_rewrite": "/quote/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -77,7 +77,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/service/","prefix_rewrite": "/",
+                      "timeout_ms": 3000,"prefix": "/service/","prefix_rewrite": "/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -90,7 +90,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/httpbin/","prefix_rewrite": "/","host_rewrite": "httpbin.org",
+                      "timeout_ms": 50,"prefix": "/httpbin/","prefix_rewrite": "/","host_rewrite": "httpbin.org",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -103,7 +103,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/tspace/","prefix_rewrite": "/",
+                      "timeout_ms": 3000,"prefix": "/tspace/","prefix_rewrite": "/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -116,7 +116,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/google/","prefix_rewrite": "/","host_rewrite": "google.com",
+                      "timeout_ms": 3000,"prefix": "/google/","prefix_rewrite": "/","host_rewrite": "google.com",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -129,7 +129,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/slack/","prefix_rewrite": "/","use_websocket": true,
+                      "timeout_ms": 3000,"prefix": "/slack/","prefix_rewrite": "/","use_websocket": true,
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -142,7 +142,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/long/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -155,7 +155,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -168,7 +168,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "timeout_ms": 3000,"prefix": "/evil/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -181,7 +181,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/evil/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "timeout_ms": 3000,"prefix": "/evil/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -194,7 +194,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/qotm/","prefix_rewrite": "/",
+                      "timeout_ms": 3000,"prefix": "/qotm/","prefix_rewrite": "/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -207,7 +207,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 10000,"prefix": "/grpc/","prefix_rewrite": "/",
+                      "timeout_ms": 3000,"prefix": "/grpc/","prefix_rewrite": "/",
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -224,12 +224,13 @@
               ]
             },
             "filters": [
-              { 
-                "type": "decoder",
+              {"type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_ext_auth", "path_prefix": "/extauth", "timeout_ms": 5000}
-              },{ 
-                "type": "decoder",
+              },{
+                "name": "cors",
+                "config": {}
+              },{"type": "decoder",
                 "name": "router",
                 "config": {}
               }
@@ -270,8 +271,8 @@
       {
         "name": "cluster_ext_auth",
         "connect_timeout_ms": 3000,
-        "type": "logical_dns",
-        "lb_type": "random",        
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
         "hosts": [
           {
             "url": "tcp://example-auth:3000"

@@ -44,11 +44,11 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "example-auth:3000",
+                "_service": "extauth",
                 "_source": "auth.yaml.1",
-                "lb_type": "random",
+                "lb_type": "round_robin",
                 "name": "cluster_ext_auth",
-                "type": "logical_dns",
+                "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
                 ]
@@ -269,7 +269,8 @@
                 ],
                 "host_rewrite": "httpbin.org",
                 "prefix": "/httpbin/",
-                "prefix_rewrite": "/"
+                "prefix_rewrite": "/",
+                "timeout_ms": 50
             },
             {
                 "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
@@ -661,7 +662,7 @@
             "kind": "Mapping",
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\ntimeout_ms: 50\n"
         },
         "mapping-long.yaml.1": {
             "_source": "test source",
