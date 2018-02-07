@@ -2,7 +2,7 @@
 
 Ambassador is an open source, Kubernetes-native API Gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
 
-## 1. Running the demo configuration
+## 1. Running the Demo Configuration
 
 By default, Ambassador uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador on port 8080:
 
@@ -18,7 +18,7 @@ Ambassador provides live diagnostics viewable with a web browser. While this wou
 
 Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 
-## 3. The Quote of the Moment service
+## 3. The Quote of the Moment Service
 
 Since Ambassador is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out here:
 

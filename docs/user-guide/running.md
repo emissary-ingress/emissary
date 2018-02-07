@@ -2,7 +2,7 @@
 
 The simplest way to run Ambassador is **not** to build it! Instead, just use the YAML files published at https://www.getambassador.io, and start by deciding whether you want to use TLS or not. (If you want more information on TLS, check out our [TLS Overview](../how-to/tls-termination.md).) It's possible to switch this later, but it's a pain, and may well involve mucking about with your DNS and such to do it, so it's better to decide up front.
 
-### Creating the Ambassador Service With TLS
+### Creating the Ambassador Service with TLS
 
 You'll need to follow the steps in the [Ambassador TLS Termination](/how-to/tls-termination.md) guide to configure TLS certificates, including using
 

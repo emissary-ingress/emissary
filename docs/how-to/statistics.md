@@ -32,7 +32,7 @@ The `statsd-sink` service referenced in this example is built on the [Prometheus
 
 Add a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration.
 
-### the Prometheus Operator
+### The Prometheus Operator
 
 If you don't already have a Prometheus setup, the [Prometheus operator](https://github.com/coreos/prometheus-operator) is a powerful way to create and deploy Prometheus instances. Once you've installed and configured the Prometheus operator, the following files can be useful:
 
@@ -40,7 +40,7 @@ If you don't already have a Prometheus setup, the [Prometheus operator](https://
 - [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prometheus.yaml) creates a `Prometheus` object that collects data from the `ServiceMonitor` specified
 - [`ambassador-rbac-prometheus.yaml`](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml) is an example Ambassador deployment that includes the Prometheus `statsd` exporter. The statsd exporter collects the stats data from Ambassador, translates it to Prometheus metrics, and is picked up by the Operator using the configurations above.
 
-### StatsD as an independent deployment
+### StatsD as an Independent Deployment
 
 If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
 
