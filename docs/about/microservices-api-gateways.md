@@ -2,7 +2,7 @@
 
 A microservices API gateway is an API gateway designed to accelerate the development workflow of independent services teams. A microservices API gateway provides all the functionality for a team to independently publish, monitor, and update a microservice.
 
-This focus on accelerating the development workflow is distinct from the purpose of traditional API gateways, which focus on the challenges of managing APIs. Over the past decade, organizations have worked to expose internal systems through well-defined APIs. The challenge of safely exposing hundreds or thousands of APIs to end users (both internal and external) led to the emergence of API Gateways. Over time, API Gateways have become centralized, mission critical pieces of infrastructure that control access to these APIs.
+This focus on accelerating the development workflow is distinct from the purpose of traditional API gateways, which focus on the challenges of managing APIs. Over the past decade, organizations have worked to expose internal systems through well-defined APIs. The challenge of safely exposing hundreds or thousands of APIs to end users (both internal and external) led to the emergence of API gateways. Over time, API gateways have become centralized, mission critical pieces of infrastructure that control access to these APIs.
 
 In this article, we'll discuss how the difference in business objective (productivity vs management) results in a very different API gateway.
 
@@ -24,9 +24,9 @@ A microservices API gateway supports dynamically routing user requests to differ
 
 ## Microservices API Gateways vs. Traditional API Gateways
 
-At first blush, the use case described above may be fulfilled with a traditional API Gateway. Let's look at the differences a little more closely.
+At first blush, the use case described above may be fulfilled with a traditional API gateway. Let's look at the differences a little more closely.
 
-| Use case      | API Gateway       | Microservices API gateway                |
+| Use case      | API gateway       | Microservices API gateway                |
 |---------------|-------------------|------------------------------|
 | Publishing    | Operations registers/updates new services | Service team registers/updates new services |
 | Monitoring    | Measure API calls per consumer, for metering | Measure L7 latency, throughput, availability |

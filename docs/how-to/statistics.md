@@ -1,6 +1,6 @@
 # Statistics and Monitoring
 
-Ambassador is an API Gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). A key feature of Envoy is the observability it enables by exposing a multitude of statistics about its own operations. Ambassador makes it easy to direct this information to a statistics and monitoring tool of your choice.
+Ambassador is an API gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). A key feature of Envoy is the observability it enables by exposing a multitude of statistics about its own operations. Ambassador makes it easy to direct this information to a statistics and monitoring tool of your choice.
 
 As an example, for a given service `usersvc`, here are some interesting statistics to investigate:
 
