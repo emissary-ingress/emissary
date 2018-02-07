@@ -33,7 +33,7 @@ At first blush, the use case described above may be fulfilled with a traditional
 | Rate limiting | Cut off API calls per consumer when a consumer exceeds its quota | Limit API calls when service is not responding, for resilience |
 | Test & Update | API versioning for stability | Canary routing for dynamic testing
 
-## Self-service Publishing
+## Self-Service Publishing
 
 A service team needs to be able to publish a new service to customers without requiring an operations team ("self-service"). While a traditional API gateway may provide a simple mechanism (e.g., REST API) for publishing a new service, in practice, the usage is limited to operations. The primary reason for limiting publication to operations teams is to provide an additional (human) safety mechanism: an errant API call could have potentially disastrous effects on production. microservices API gateways utilize mechanisms that enable service teams to easily *and* safely publish new services. One example approach is to attach the routing metadata directly to service objects, which eliminate the possibility that a service team will inadvertently affect another service.
 
