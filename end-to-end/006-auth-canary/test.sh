@@ -11,7 +11,7 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-shred_and_reclaim
+initialize_cluster
 
 kubectl cluster-info
 

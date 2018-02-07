@@ -11,7 +11,7 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-shred_and_reclaim
+initialize_cluster
 
 kubectl cluster-info
 
@@ -28,7 +28,7 @@ wait_for_pods
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
-DEMOTEST_POD=$(kubectl get pods  | grep demotest | awk ' { print $1 }')
+DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -40,8 +40,6 @@ wait_for_ready "$BASEURL"
 if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1
 fi
-
-set -x
 
 if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < cors.yaml; then
     exit 1
@@ -77,7 +75,7 @@ wait_for_demo_weights "$BASEURL" x-demo-mode=canary 100
 
 sleep 5
 
-if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-3.yaml; then
+if ! kubectl exec -i "$DEMOTEST_POD" -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-3.yaml; then
     exit 1
 fi
 

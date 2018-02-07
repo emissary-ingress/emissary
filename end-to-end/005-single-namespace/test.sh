@@ -11,7 +11,7 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-shred_and_reclaim
+initialize_cluster
 
 kubectl cluster-info
 
@@ -28,7 +28,7 @@ wait_for_pods
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
-DEMOTEST_POD=$(kubectl get pods  | grep demotest | awk ' { print $1 }')
+DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
