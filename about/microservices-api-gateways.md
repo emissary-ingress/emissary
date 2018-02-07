@@ -47,7 +47,7 @@ A microservice also requires monitoring and rate limiting, but for different rea
 
 A microservices application has multiple services, each of which is being independently updated. Synthetic testing of a moving target is necessary but not sufficient for microservices. Canary testing, where a small percentage of traffic is routed to a new service version, is an important tool to help test an update. By limiting a new service version to a small percentage of users, the impact of a service failure is limited.
 
-In a traditional API gateway, routing is used to manage changing API versions. microservices API gateways integrate canary routing directly into the routing rules so that service teams can quickly and safely rollout new versions of their service.
+In a traditional API gateway, routing is used to manage changing API versions. Microservices API gateways integrate canary routing directly into the routing rules so that service teams can quickly and safely rollout new versions of their service.
 
 # Summary
 

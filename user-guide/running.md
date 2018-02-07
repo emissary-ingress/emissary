@@ -60,7 +60,7 @@ If needed, you can get JSON output from the diagnostic service, instead of HTML:
 
 ## Debugging
 
-If you're running into an issue and the diagnostics service does not provie sufficient information, you can increase the debug level of Envoy. To do so:
+If you're running into an issue and the diagnostics service does not provide sufficient information, you can increase the debug level of Envoy. To do so:
 
 * get a shell on your Ambassador pod with `kubectl exec`
 * Turn Envoy’s debug logging on with `curl localhost:8001/logging?level=debug`
