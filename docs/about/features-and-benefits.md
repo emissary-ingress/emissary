@@ -23,7 +23,7 @@ Ambassador is built from the start to support _self-service_ deployments -- a de
 
 Canary deployments are an essential component of cloud-native development workflows. In a canary deployment, a small percentage of production traffic is routed to a new version of a service to test it under real-world conditions. Ambassador allows developers to easily control and manage the amount of traffic routed to a given service through annotations. [This tutorial](https://www.datawire.io/faster/canary-workflow/) covers a complete canary workflow using Ambassador.
 
-## Kubernetes-native Architecture
+## Kubernetes-Native Architecture
 
 Ambassador relies entirely on Kubernetes for reliability, availability, and scalability. For example, Ambassador persists all state in Kubernetes, instead of requiring a separate database. Scaling Ambassador is as simple as changing the replicas in your deployment, or using a [horizontal pod autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
 

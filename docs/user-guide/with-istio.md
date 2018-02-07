@@ -8,7 +8,7 @@ Ambassador and Istio can be deployed together on Kubernetes. In this configurati
 
 This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador) combined with a state-of-the-art service mesh (Istio). Istio's basic [ingress controller](https://istio.io/docs/tasks/traffic-management/ingress.html) is very limited, and has no support for authentication or many of the other features of Ambassador.
 
-## Getting Ambassador Working with Istio
+## Getting Ambassador Working With Istio
 
 Getting Ambassador working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
