@@ -6,7 +6,7 @@ Ambassador is configured in a declarative fashion, using YAML manifests to descr
 
 - [`AuthService`](#authservice) manifests configures the external authentication service[s] that Ambassador will use.
 
-- [`Mapping`](#mapping) manifiests associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
+- [`Mapping`](#mapping) manifests associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
 ## Ambassador Configuration
 
