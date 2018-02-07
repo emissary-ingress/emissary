@@ -7,26 +7,38 @@ HERE=$(cd $(dirname $0); pwd)
 BUILD_ALL=${BUILD_ALL:-false}
 
 cd "$HERE"
+source "$HERE/kubernaut_utils.sh"
 
 if [ "$BUILD_ALL" = true ]; then
   sh buildall.sh
+fi
+
+if [ -z "$SKIP_KUBERNAUT" ]; then
+    get_kubernaut_cluster
 fi
 
 # For linify
 export MACHINE_READABLE=yes
 
 for dir in 0*; do
-    echo
-    echo "================================================================"
-    echo "${dir}..."
+    attempt=0
 
-    if sh $dir/test.sh 2>&1 | python linify.py test.log; then
-        echo "${dir} PASSED"
-    else
-        echo "${dir} FAILED"
+    while [ $attempt -lt 2 ]; do
+        echo
+        echo "================================================================"
+        echo "${attempt}: ${dir}..."
 
-        echo "================ start captured output"
-        cat test.log
-        echo "================ end captured output"
-    fi
+        attempt=$(( $attempt + 1 ))
+
+        if sh $dir/test.sh 2>&1 | python linify.py test.log; then
+            echo "${dir} PASSED"
+            break
+        else
+            echo "${dir} FAILED"
+
+            echo "================ start captured output"
+            cat test.log
+            echo "================ end captured output"
+        fi
+    done
 done
