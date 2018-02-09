@@ -206,6 +206,11 @@
         ],
         "filters": [
             {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
                 "_source": "auth.yaml.1",
                 "config": {
                     "allowed_headers": [
@@ -216,6 +221,12 @@
                     "timeout_ms": 5000
                 },
                 "name": "extauth",
+                "type": "decoder"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
                 "type": "decoder"
             }
         ],
@@ -568,6 +579,7 @@
     },
     "sources": {
         "--diagnostics--": {
+            "_source": "--diagnostics--",
             "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
             "filename": "--diagnostics--",
             "index": 0,
@@ -576,6 +588,7 @@
             "version": "v0"
         },
         "--internal--": {
+            "_source": "--internal--",
             "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
             "filename": "--internal--",
             "index": 0,
