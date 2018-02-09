@@ -206,6 +206,7 @@ class Config (object):
 
         self.sources = {
             "--internal--": {
+                "_source": "--internal--",
                 "kind": "Internal",
                 "version": "v0",
                 "name": "Ambassador Internals",
@@ -214,6 +215,7 @@ class Config (object):
                 "description": "The '--internal--' source marks objects created by Ambassador's internal logic."
             },
             "--diagnostics--": {
+                "_source": "--diagnostics--",
                 "kind": "diagnostics",
                 "version": "v0",
                 "name": "Ambassador Diagnostics",
@@ -1302,9 +1304,9 @@ class Config (object):
             # self.logger.debug("overview -- filename %s, source_keys %d" %
             #                   (filename, len(source_keys)))
 
-            # Skip '--internal--' etc.
-            if filename.startswith('--'):
-                continue
+            # # Skip '--internal--' etc.
+            # if filename.startswith('--'):
+            #     continue
 
             source_dict = source_files.setdefault(
                 filename,
