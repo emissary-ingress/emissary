@@ -4,11 +4,7 @@ If you want to use TLS client-certificate authentication, you'll first need to e
 
 Once that's done, you'll need to tell Ambassador about the CA certificate chain to use to validate client certificates. Start by collecting the chain - including all necessary intermediate certificates - into a single file.
 
-## RECOMMENDED: Configuring Using Annotations
-
-**This is the easiest way to use TLS, and as such is highly recommended.** If you're unfamiliar with using annotations to configure Ambassador, check out the [Ambassador Getting Started](/user-guide/getting-started.html).
-
-If you're using annotations, all you need to do is store your certificate in a Kubernetes `secret` named `ambassador-certs`:
+Assuming you're using annotations to configure Ambassador, all you need to do to enable TLS client-certificate authentication is store to store your CA certificate chain in a Kubernetes `secret` named `ambassador-cacert`:
 
 ```shell
 kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
@@ -24,49 +20,9 @@ kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
 
 When Ambassador starts, it will notice the `ambassador-cacert` secret and turn TLS client-certificate auth on (assuming that TLS termination is enabled).
 
-## Configuring Using a `ConfigMap`
+You can also configure TLS client-certificate authentication using the `tls` module. For details here, see the documentation on [TLS termination](tls-termination.html).
 
-If you're using the `ambassador-config` Kubernetes `ConfigMap` that was required in earlier versions of Ambassador, you'll need to create the `ambassador-cacert` Kubernetes `secret` as above, but you'll also need to make sure that the `ambassador` [module](../about/concepts.md#modules) is configured for TLS client-cert auth:
+## Legacy configuration options
 
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Module
-name:  ambassador
-config:
-  tls:
-    # The 'server' block configures TLS termination. 'enabled' is the only required element.
-    server:
-      enabled: True
-    client:
-      enabled: True
-      # cert_required: True   # Optional -- leave this off if you don't need to require client certs
-```
+It's still possible - but not recommended! - to configure Ambassador using a `ConfigMap`, or with YAML files on the container filesystem. If you think you'll need to do this, please contact us on [Gitter](https://gitter.im/datawire/ambassador).
 
-Included `cert_required: True` will require client certs for every connection. If not present, client certs will be validated if present, but not required.
-
-Earlier versions of Ambassador required the `secret` to be mounted as a volume. This is **no longer required**, but should still work if you're already using it.
-
-## Configuring Using Files in an Image
-
-Finally, if you're building your own custom Ambassador image, you'll need to copy the certificate files into your image, and make sure your `ambassador` [module](../about/concepts.md#modules) is configured properly:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Module
-name:  ambassador
-config:
-  tls:
-    # The 'server' block configures TLS termination. 'enabled' is the only required element.
-    server:
-      enabled: True
-    client:
-      enabled: True
-      # cert_required: True   # Optional -- leave this off if you don't need to require client certs
-      # cacert_chain_file: /etc/cacert/fullchain.pem
-```
-
-`cacert_chain_file` is optional: if you copy your certificate chain into `/etc/cacert/fullchain` as shown above, you needn't include it. If you put the certificate chain somewhere else, you'll need to update the path to match.
-
-**NOTE WELL** that the default is "fullchain.pem", not "tls.crt", for historical reasons. Ambassador doesn't care about the actual name, as long as you set the `cacert_chain_file` path to match where the chain was actually copied.
