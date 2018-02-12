@@ -788,23 +788,46 @@ class Config (object):
 
             handler(module_name, modules[module_name])
 
-        # # Once modules are handled, we can set up our listeners...
-        self.envoy_config['listeners'] = SourcedDict(
+        # Once modules are handled, we can set up our admin config...
+        self.envoy_config['admin'] = SourcedDict(
             _from=self.ambassador_module,
-            service_port=self.ambassador_module["service_port"],
             admin_port=self.ambassador_module["admin_port"]
         )
+
+        # ...and our listeners.
+        primary_listener = SourcedDict(
+            _from=self.ambassador_module,
+            service_port=self.ambassador_module["service_port"],
+            require_tls=False
+        )
+
+        redirect_cleartext_from = None
+        tmod = self.ambassador_module.get('tls_config', None)
+           
+        # ...TLS config, if necessary...
+        if tmod:
+            # self.logger.debug("USING TLS")
+            primary_listener['tls'] = tmod
+            redirect_cleartext_from = tmod.get('redirect_cleartext_from')
+
+        self.envoy_config['listeners'] = [ primary_listener ]
+
+        if redirect_cleartext_from:
+            primary_listener['require_tls'] = True
+
+            self.envoy_config['listeners'].append(SourcedDict(
+                _from=self.ambassador_module,
+                service_port=redirect_cleartext_from,
+                require_tls=True
+                # Note: no TLS context here, this is a cleartext listener.
+                # We can set require_tls True because we can let the upstream
+                # tell us about that.
+            ))
 
         self.default_liveness_probe['service'] = self.diag_service()
         self.default_readiness_probe['service'] = self.diag_service()
         self.default_diagnostics['service'] = self.diag_service()
 
-        # ...TLS config, if necessary...
-        if self.ambassador_module['tls_config']:
-            # self.logger.debug("USING TLS")
-            self.envoy_config['tls'] = self.ambassador_module['tls_config']
-
-        # ...and probes, if configured.
         for name, cur, dflt in [ 
             ("liveness",    self.ambassador_module['liveness_probe'],
                             self.default_liveness_probe),
