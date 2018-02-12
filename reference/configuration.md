@@ -107,18 +107,9 @@ config:
   # readiness probe defaults on, but you can disable it.
   # readiness_probe:
   #   enabled: false
-
-  # TLS configuration defaults to configuration based on certificate discovery.
-  # See below for more.
-  # tls:
-  #   ...
 ```
 
 Everything in this file has a default that should cover most situations; it should only be necessary to include them to override the defaults in highly-custom situations.
-
-#### TLS
-
-When running in Kubernetes, Ambassador will look for the existence of certificate `secret`s for default configuration. When running using filesystem-based configuration, TLS must be explicitly configured. This process is examined in detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
 
 #### Probes
 
@@ -134,6 +125,27 @@ readiness_probe:
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](#mappings). Additionally, the `enabled` boolean may be set to `false` (as an the commented-out examples above) to disable support for the probe entirely.
 
 **Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
+
+### The `tls` Module
+
+If present, the `tls` module defines system-wide configuration for TLS. 
+
+When running in Kubernetes, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret, so many Kubernetes installations of Ambassador will not need a `tls` module at all.
+
+The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following `tls` module:
+
+```
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+  server:
+    enabled: True
+    redirect_cleartext_from: 80
+```
+
+TLS configuration is examined in more detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authenticationHey, ](../how-to/auth-tls-certs.md).
 
 ### The `authentication` Module
 
