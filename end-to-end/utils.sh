@@ -18,7 +18,7 @@ initialize_cluster () {
         echo "Deleting everything in $namespace..."
 
         if [ "$namespace" = "default" ]; then
-            kubectl delete pods,services,deployments,configmaps --all
+            kubectl delete pods,secrets,services,deployments,configmaps --all
         else
             kubectl delete namespace "$namespace"
         fi
@@ -36,7 +36,9 @@ cluster_ip () {
 }
 
 service_port() {
-    kubectl get services "$1" -ojsonpath={.spec.ports[0].nodePort}
+    instance=${2:-0}
+
+    kubectl get services "$1" -ojsonpath="{.spec.ports[$instance].nodePort}"
 }
 
 demotest_pod() {
