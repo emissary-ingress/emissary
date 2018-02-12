@@ -1,5 +1,11 @@
 {
     "envoy_config": {
+        "admin": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001
+            }
+        ],
         "clusters": [
             {
                 "_referenced_by": [
@@ -88,7 +94,7 @@
         "listeners": [
             {
                 "_source": "--internal--",
-                "admin_port": 8001,
+                "require_tls": false,
                 "service_port": 80
             }
         ],

@@ -1,5 +1,11 @@
 {
     "envoy_config": {
+        "admin": [
+            {
+                "_source": "ambassador.yaml.1",
+                "admin_port": 8001
+            }
+        ],
         "breakers": [
             {
                 "_referenced_by": [
@@ -233,8 +239,15 @@
         "listeners": [
             {
                 "_source": "ambassador.yaml.1",
-                "admin_port": 8001,
-                "service_port": 443
+                "require_tls": false,
+                "service_port": 443,
+                "tls": {
+                    "_source": "ambassador.yaml.1",
+                    "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+                    "cert_required": true,
+                    "private_key_file": "/etc/ambassador-config/certs/tls.key"
+                }
             }
         ],
         "outliers": [
@@ -520,15 +533,6 @@
                 ],
                 "prefix": "/evil/",
                 "prefix_rewrite": "/"
-            }
-        ],
-        "tls": [
-            {
-                "_source": "ambassador.yaml.1",
-                "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-                "cert_required": true,
-                "private_key_file": "/etc/ambassador-config/certs/tls.key"
             }
         ]
     },
