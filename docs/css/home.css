@@ -215,21 +215,43 @@ h1, h2, h3, h4, h5, h6, strong {
     padding-bottom: 75px;
 }
 
-.main-navigation {
-    display: flex;
-    padding: 20px 5px;
+.datawire-link {
+    display: block;
+    padding: 15px 0 5px;
+    width: 110px;
+    margin-left: 16px;
 }
+.datawire-link > img {
+    display: block;
+    width: 100%;
+}
+
 @media screen and (min-width: 768px) {
-    .main-navigation {
-        padding: 30px;
+    .datawire-link {
+        padding: 15px 0;
+        width: 130px;
+        margin-left: 40px;
     }
 }
+
+.main-navigation {
+    display: flex;
+    padding: 10px 5px;
+}
+
+@media screen and (min-width: 768px) {
+    .main-navigation {
+        padding: 0 30px;
+    }
+}
+
 .main-navigation li a {
     margin: 0 10px;
     color: #222222;
     text-decoration: none;
     text-transform: uppercase;
 }
+
 @media screen and (min-width: 768px) {
     .main-navigation li a {
         font-size: 1.125em;
