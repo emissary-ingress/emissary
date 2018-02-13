@@ -4,7 +4,7 @@ kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
 service: qotm
-# circuit_breaker: default
+circuit_breaker: custom
 ---
 apiVersion: ambassador/v0.12
 kind:  Mapping
