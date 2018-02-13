@@ -2,6 +2,15 @@
 
 ## As of 0.22.0, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
+## [0.26.0] February 13, 2018
+[0.26.0]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.25.0
+
+### Changed
+
+- Support redirecting cleartext connections on port 80 to HTTPS on port 443
+- Streamline end-to-end tests and, hopefully, allow them to work well without Kubernaut
+- Clean up some documentation (thanks @lavoiedn!)
+
 ## [0.25.0] February 6, 2018
 [0.25.0]: https://github.com/datawire/ambassador/compare/v0.25.0...v0.23.0
 
