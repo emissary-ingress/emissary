@@ -10,9 +10,13 @@ You'll need a certificate for TLS. With the certificate:
 
 Instead of manually issuing SSL certificates and updating a Kubernetes secret, you can use [kube-cert-manager](https://github.com/PalmStoneGames/kube-cert-manager) to automatically create and renew SSL certificates from [Let's Encrypt](https://letsencrypt.org/)
 
+To deploy `kube-cert-manager`, follow their [deployment guide](https://github.com/PalmStoneGames/kube-cert-manager/blob/master/docs/deployment-guide.md)
+
+`kube-cert-manager` uses [CustomResourceDefinitions](https://kubernetes.io/docs/concepts/api-extension/custom-resources/) to manage TLS certificates in a Kubernetes cluster
+
 ### Example Let's Encrypt Certificate
 
-This is an example of a Let's Encrypt certificate resource which will create the `ambassador-certs` secret.
+This is an example of a Let's Encrypt `Certificate` resource which will cause `kube-cert-manager` to create the `ambassador-certs` secret.
 
 ```yaml
 apiVersion: "stable.k8s.psg.io/v1"
@@ -27,6 +31,8 @@ spec:
   provider: "googlecloud"
   secretName: ambassador-certs
 ```
+
+When Ambassador starts, it will notice the `ambassador-certs` secret and turn TLS on.
 
 ### Using a different CA
 
