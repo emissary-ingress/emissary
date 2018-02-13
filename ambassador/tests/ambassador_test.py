@@ -186,5 +186,9 @@ def test_diag(testname, dirpath, configdir):
     if errors:
         print("---- ERRORS")
         print("%s" % "\n".join(errors))
-
+        print("---- OVERVIEW ----")
+        print("%s" % results['overview'])
+        print("---- RECONSTITUTED ----")
+        print("%s" % results['reconstituted'])
+    
     assert errorcount == 0, ("failing, errors: %d" % errorcount)

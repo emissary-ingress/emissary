@@ -11,7 +11,7 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-shred_and_reclaim
+initialize_cluster
 
 kubectl cluster-info
 
@@ -31,11 +31,13 @@ wait_for_pods
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
-DEMOTEST_POD=$(kubectl get pods  | grep demotest | awk ' { print $1 }')
+DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="https://${CLUSTER}:${APORT}"
+HTTPURL="http://${CLUSTER}:$(service_port ambassador 1)"
 
 echo "Base URL $BASEURL"
+echo "HTTP URL $HTTPURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL"
@@ -43,6 +45,29 @@ wait_for_ready "$BASEURL"
 if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1
 fi
+
+status=$(curl -s --write-out "%{http_code} %{redirect_url}" "$HTTPURL/demo/")
+rc=$?
+
+if [ $rc -ne 0 ]; then
+    echo "HTTP redirect check failed ($rc): $status" >&2
+    exit 1
+fi
+
+code=$(echo "$status" | cut -d' ' -f1)
+redirect_url=$(echo "$status" | cut -d' ' -f2-)
+
+if [ "$code" != "301" ]; then
+    echo "HTTP redirect check got $code instead of 301: $status" >&2
+    exit 1
+fi
+
+if [ $(echo "$redirect_url" | grep -s -c "^https://${CLUSTER}[/:]") -ne 1 ]; then
+    echo "HTTP redirect check goes somewhere weird: $status" >&2
+    exit 1
+fi
+
+echo "HTTP redirect check passed"
 
 if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-1.yaml; then
     exit 1

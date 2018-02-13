@@ -13,51 +13,36 @@ step () {
     echo "==== $@"
 }
 
-get_kubernaut () {
-    if [ ! -x "$KUBERNAUT" ]; then
-        echo "Fetching kubernaut..."
-        # curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
-        curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/0.1.39/kubernaut
-        chmod +x "$KUBERNAUT"
-    fi
-}
+initialize_cluster () {
+    for namespace in $(kubectl get namespaces | egrep -v '^(NAME|kube-)' | awk ' { print $1 }'); do
+        echo "Deleting everything in $namespace..."
 
-check_kubernaut_token () {
-    if [ $("$KUBERNAUT" kubeconfig | grep -c 'Token not found') -gt 0 ]; then
-        echo "You need a Kubernaut token. Go to"
-        echo ""
-        echo "https://kubernaut.io/token"
-        echo ""
-        echo "to get one, then run"
-        echo ""
-        echo "sh $ROOT/save-token.sh \"\$token\""
-        echo ""
-        echo "to save it before trying again."
-
-        exit 1
-    fi
-}
-
-shred_and_reclaim () {
-    KUBERNAUT="$ROOT/kubernaut"
-
-    get_kubernaut
-    check_kubernaut_token
-
-    step "Dropping old cluster"
-    "$KUBERNAUT" discard
-
-    step "Claiming new cluster"
-    "$KUBERNAUT" claim
-    export KUBECONFIG=${HOME}/.kube/kubernaut
+        if [ "$namespace" = "default" ]; then
+            kubectl delete pods,secrets,services,deployments,configmaps --all
+        else
+            kubectl delete namespace "$namespace"
+        fi
+    done
 }
 
 cluster_ip () {
-    kubectl cluster-info | fgrep master | python -c 'import sys; print(sys.stdin.readlines()[0].split()[5].split(":")[1].lstrip("/"))'
+    IP=$(kubectl get nodes -ojsonpath="{.items[0].status.addresses[?(@.type==\"ExternalIP\")].address}")
+
+    if [ -z "$IP" ]; then
+        IP=$(kubectl cluster-info | fgrep master | python -c 'import sys; print(sys.stdin.readlines()[0].split()[5].split(":")[1].lstrip("/"))')
+    fi
+
+    echo "$IP"
 }
 
 service_port() {
-    kubectl get services "$1" -ojsonpath={.spec.ports[0].nodePort}
+    instance=${2:-0}
+
+    kubectl get services "$1" -ojsonpath="{.spec.ports[$instance].nodePort}"
+}
+
+demotest_pod() {
+    kubectl get pods -l run=demotest -o 'jsonpath={.items[0].metadata.name}'
 }
 
 wait_for_pods () {
@@ -66,7 +51,8 @@ wait_for_pods () {
     running=
 
     while [ $attempts -gt 0 ]; do
-        pending=$(kubectl --namespace $namespace get pod -o json | grep phase | grep -c -v Running)
+        # pending=$(kubectl --namespace $namespace get pod -o json | grep phase | grep -c -v Running)
+        pending=$(kubectl --namespace $namespace describe pods | grep '^Status:' | grep -c -v Running)
 
         if [ $pending -eq 0 ]; then
             printf "Pods running.              \n"
@@ -186,6 +172,8 @@ check_diag () {
     baseurl=$1
     index=$2
     desc=$3
+
+    sleep 5
 
     rc=1
 

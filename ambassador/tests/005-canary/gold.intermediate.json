@@ -1,8 +1,15 @@
 {
     "envoy_config": {
+        "admin": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001
+            }
+        ],
         "clusters": [
             {
                 "_referenced_by": [
+                    "--internal--",
                     "ambassador.yaml.1"
                 ],
                 "_service": "127.0.0.1:8877",
@@ -41,15 +48,43 @@
                 ]
             }
         ],
-        "filters": [],
+        "filters": [
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
+                "type": "decoder"
+            }
+        ],
         "listeners": [
             {
                 "_source": "--internal--",
-                "admin_port": 8001,
+                "require_tls": false,
                 "service_port": 80
             }
         ],
         "routes": [
+            {
+                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+                "_method": "GET",
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready"
+            },
             {
                 "_group_id": "16fb9d91fbd83c170f865b77420a902000b27841",
                 "_method": "GET",
@@ -72,6 +107,22 @@
                 "prefix_rewrite": "/"
             },
             {
+                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+                "_method": "GET",
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
                 "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
                 "_method": "GET",
                 "_referenced_by": [
@@ -86,6 +137,22 @@
                 ],
                 "prefix": "/ambassador/",
                 "prefix_rewrite": "/ambassador/"
+            },
+            {
+                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_method": "GET",
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/",
+                "prefix_rewrite": "/ambassador/v0/"
             }
         ]
     },
@@ -105,6 +172,7 @@
     },
     "sources": {
         "--diagnostics--": {
+            "_source": "--diagnostics--",
             "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
             "filename": "--diagnostics--",
             "index": 0,
@@ -113,6 +181,7 @@
             "version": "v0"
         },
         "--internal--": {
+            "_source": "--internal--",
             "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
             "filename": "--internal--",
             "index": 0,

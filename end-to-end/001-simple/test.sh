@@ -11,7 +11,7 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-shred_and_reclaim
+initialize_cluster
 
 kubectl cluster-info
 
@@ -45,6 +45,8 @@ if ! check_diag "$BASEURL" 2 "QoTM annotated"; then
     exit 1
 fi
 
+sleep 5  # ???
+
 if ! qtest.py $CLUSTER:$APORT test-1.yaml; then
     exit 1
 fi
@@ -62,6 +64,8 @@ wait_for_extauth_enabled "$BASEURL"
 if ! check_diag "$BASEURL" 3 "Auth annotated"; then
     exit 1
 fi
+
+sleep 5  # ???
 
 if ! qtest.py $CLUSTER:$APORT test-2.yaml; then
     exit 1

@@ -1,6 +1,7 @@
 # Table of Contents
 
 * [Ambassador](INDEX.md)
+* [Blog](https://blog.getambassador.io)
 
 ----
 
@@ -23,7 +24,7 @@
 * [Running Ambassador](user-guide/running.md)
 * [Upgrading Ambassador](user-guide/upgrading.md)
 * [Configuring Ambassador](reference/configuration.md)
-* [Auth with an external auth service](how-to/auth-external.md)
+* [Auth With an External Auth Service](how-to/auth-external.md)
 * [Istio and Ambassador](user-guide/with-istio.md)
 
 ## Developers
