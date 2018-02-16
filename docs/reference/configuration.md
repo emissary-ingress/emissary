@@ -128,7 +128,7 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 ### The `tls` Module
 
-If present, the `tls` module defines system-wide configuration for TLS. 
+If present, the `tls` module defines system-wide configuration for TLS.
 
 When running in Kubernetes, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret, so many Kubernetes installations of Ambassador will not need a `tls` module at all.
 
@@ -145,11 +145,11 @@ config:
     redirect_cleartext_from: 80
 ```
 
-TLS configuration is examined in more detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authenticationHey, ](../how-to/auth-tls-certs.md).
+TLS configuration is examined in more detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
 
 ### The `authentication` Module
 
-The [`authentication` module](../how-to/auth-http-basic.md) is now deprecated. Use the `[AuthService](#authservice)` manifest type instead.
+The `authentication` module is now deprecated. Use the `AuthService` manifest type instead.
 
 ## AuthService
 
