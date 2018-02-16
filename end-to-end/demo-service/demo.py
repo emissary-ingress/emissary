@@ -18,9 +18,24 @@ def before():
     for header in sorted(request.headers.keys()):
         logging.debug("=>>   %s: %s" % (header, request.headers[header]))
 
-@app.route('/', methods=[ 'GET' ])
-def demo():
-    return "VERSION %s" % __version__
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def demo(path):
+    # Return the version both in the body and in the X-Demo-Version
+    # header (returning as a header allows us to use this service as
+    # an extauth filter that allows everything, but still identifies
+    # itself). We also use the X-QOTM-Session header, since our QOTM
+    # service knows how to pass that all the way to the client.
+
+    if not path.startswith('/'):
+        path = '/' + path
+
+    logging.debug("desired path: %s" % path)
+
+    resp = Response("VERSION %s" % __version__)
+    resp.headers['X-Demo-Version'] = __version__
+    resp.headers['X-QOTM-Session'] = __version__
+    return resp
 
 if __name__ == "__main__":
     __version__ = sys.argv[1]

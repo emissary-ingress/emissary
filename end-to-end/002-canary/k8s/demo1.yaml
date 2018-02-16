@@ -11,6 +11,7 @@ metadata:
       name:  demo1_mapping
       prefix: /demo/
       service: demo1
+      timeout_ms: 1000
 spec:
   selector:
     app: demo1

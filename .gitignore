@@ -13,7 +13,6 @@ build
 dist
 
 *.out
-envoy.json
 
 docs/yaml
 docs/_book
@@ -28,4 +27,16 @@ forge.yaml
 # Editor nonsense
 .vscode
 .idea
+*.iml
 tags
+
+# Test outputs
+no-such-file
+envoy.json
+intermediate.json
+check-*.json
+end-to-end/ambassador-deployment-mounts.yaml
+end-to-end/ambassador-deployment.yaml
+end-to-end/005-single-namespace/k8s/ambassador-deployment.yaml
+end-to-end/kubernaut
+end-to-end/*.log

@@ -206,6 +206,7 @@ class Config (object):
 
         self.sources = {
             "--internal--": {
+                "_source": "--internal--",
                 "kind": "Internal",
                 "version": "v0",
                 "name": "Ambassador Internals",
@@ -214,6 +215,7 @@ class Config (object):
                 "description": "The '--internal--' source marks objects created by Ambassador's internal logic."
             },
             "--diagnostics--": {
+                "_source": "--diagnostics--",
                 "kind": "diagnostics",
                 "version": "v0",
                 "name": "Ambassador Diagnostics",
@@ -271,6 +273,8 @@ class Config (object):
         self.fatal_errors = 0
         self.object_errors = 0
 
+        self.objects_to_process = []
+
         if not os.path.isdir(self.config_dir_path):
             raise Exception("ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
 
@@ -289,7 +293,9 @@ class Config (object):
             for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
                 filepath = os.path.join(dirpath, filename)
 
-                self.process_yaml(filename, open(filepath, "r").read(), k8s=k8s)
+                self.load_yaml(filename, open(filepath, "r").read(), k8s=k8s)
+
+        self.process_all_objects()
 
         if self.fatal_errors:
             # Kaboom.
@@ -300,9 +306,7 @@ class Config (object):
 
         self.generate_intermediate_config()
 
-    def process_yaml(self, filename, serialization, k8s=False):
-        all_objects = []
-
+    def load_yaml(self, filename, serialization, k8s=False):
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
@@ -310,17 +314,51 @@ class Config (object):
             ocount = 1
 
             for obj in yaml.safe_load_all(serialization):
-                all_objects.append((filename, ocount, obj))
+                if k8s:
+                    self.prep_k8s(filename, ocount, obj)
+                else:
+                    self.objects_to_process.append((filename, ocount, obj))
                 ocount += 1
         except Exception as e:
-            # ALLOW THIS. No sense letting one attribute with bad YAML take 
-            # down the whole gateway.
+            # No sense letting one attribute with bad YAML take down the whole
+            # gateway, so post the error but keep any objects we were able to 
+            # parse before hitting the error.
             self.filename = filename
             self.ocount = ocount
 
             self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
-        for filename, ocount, obj in all_objects:
+    def prep_k8s(self, filename, ocount, obj):
+        kind = obj.get('kind', None)
+
+        if kind != "Service":
+            self.logger.info("%s/%s: ignoring K8s %s object" % 
+                             (filename, ocount, kind))
+            return
+
+        metadata = obj.get('metadata', None)
+
+        if not metadata:
+            self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
+                             (filename, ocount, kind))
+            return
+
+        annotations = metadata.get('annotations', None)
+
+        if annotations:
+            annotations = annotations.get('getambassador.io/config', None)
+
+        # self.logger.info("annotations %s" % annotations)
+
+        if not annotations:
+            self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
+                             (filename, ocount, kind))
+            return
+
+        self.load_yaml(filename + ":annotation", annotations)
+
+    def process_all_objects(self):
+        for filename, ocount, obj in sorted(self.objects_to_process):
             self.filename = filename
             self.ocount = ocount
 
@@ -334,40 +372,13 @@ class Config (object):
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
 
-            if k8s:
-                kind = obj.get('kind', None)
+            self.logger.info("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
 
-                if kind != "Service":
-                    self.logger.info("%s/%s: ignoring K8s %s object" % 
-                                     (self.filename, self.ocount, kind))
-                    continue
+            rc = self.process_object(obj)
 
-                metadata = obj.get('metadata', None)
-
-                if not metadata:
-                    self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
-                                     (self.filename, self.ocount, kind))
-                    continue
-
-                annotations = metadata.get('annotations', None)
-
-                if annotations:
-                    annotations = annotations.get('getambassador.io/config', None)
-
-                # self.logger.info("annotations %s" % annotations)
-
-                if not annotations:
-                    self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
-                                     (self.filename, self.ocount, kind))
-                    continue
-
-                self.process_yaml(filename + ":annotation", annotations)
-            else:
-                rc = self.process_object(obj)
-
-                if not rc:
-                    # Object error. Not good but we'll allow the system to start.
-                    self.post_error(rc)        
+            if not rc:
+                # Object error. Not good but we'll allow the system to start.
+                self.post_error(rc)        
 
     def clean_and_copy(self, d):
         out = []
@@ -389,8 +400,9 @@ class Config (object):
     def current_source_key(self):
         return("%s.%d" % (self.filename, self.ocount))
 
-    def post_error(self, rc):
-        key = self.current_source_key()
+    def post_error(self, rc, key=None):
+        if not key:
+            key = self.current_source_key()
 
         if key not in self.sources:
             # Save a fake source record.
@@ -413,6 +425,10 @@ class Config (object):
     def process_object(self, obj):
         # Cache the source key first thing...
         source_key = self.current_source_key()
+
+        # This should be impossible.
+        if not obj:
+            return RichStatus.fromError("undefined object???")
 
         try:
             obj_version = obj['apiVersion']
@@ -451,7 +467,7 @@ class Config (object):
         # Make sure it has a source: use what's in the object if present, 
         # otherwise use self.source.
         self.sources[source_key]['_source'] = obj.get('source', self.source)
-        self.logger.debug("source for %s is %s" % (source_key, self.sources[source_key]['_source']))
+        # self.logger.debug("source for %s is %s" % (source_key, self.sources[source_key]['_source']))
 
         source_map = self.source_map.setdefault(self.filename, {})
         source_map[source_key] = True
@@ -464,9 +480,9 @@ class Config (object):
             handler = self.save_object
             self.logger.warning("%s[%d]: no handler for %s, just saving" %
                                 (self.filename, self.ocount, obj_kind))
-        else:
-            self.logger.debug("%s[%d]: handling %s..." %
-                              (self.filename, self.ocount, obj_kind))
+        # else:
+        #     self.logger.debug("%s[%d]: handling %s..." %
+        #                       (self.filename, self.ocount, obj_kind))
 
         try:
             handler(source_key, obj, obj_name, obj_kind, obj_version)
@@ -544,7 +560,7 @@ class Config (object):
     def handle_pragma(self, source_key, obj):
         keylist = sorted([x for x in sorted(obj.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
 
-        self.logger.debug("PRAGMA: %s" % keylist)
+        # self.logger.debug("PRAGMA: %s" % keylist)
 
         for key in keylist:
             if key == 'source':
@@ -557,15 +573,19 @@ class Config (object):
                 override = self.source_overrides.setdefault(self.filename, {})
                 override['ocount_delta'] = -1
 
-                self.logger.debug("PRAGMA: autogenerated, setting ocount_delta to -1")
-            else:
-                self.logger.debug("PRAGMA: skip %s" % key)
+            #     self.logger.debug("PRAGMA: autogenerated, setting ocount_delta to -1")
+            # else:
+            #     self.logger.debug("PRAGMA: skip %s" % key)
 
         return RichStatus.OK(msg="handled pragma object")
 
     def handle_module(self, source_key, obj, obj_name, obj_kind, obj_version):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj['config']))
+
+    def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
+        return self.safe_store(source_key, "auth_configs", obj_name, obj_kind, 
+                               SourcedDict(_source=source_key, **obj))
 
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
         mapping = Mapping(source_key, **obj)
@@ -586,6 +606,8 @@ class Config (object):
                                  cb_name=None, od_name=None, originate_tls=None,
                                  grpc=False):
         if name not in self.envoy_clusters:
+            self.logger.info("CLUSTER %s: new from %s" % (name, _source))
+
             cluster = SourcedDict(
                 _source=_source,
                 _referenced_by=[ _source ],
@@ -619,12 +641,15 @@ class Config (object):
 
                     tls_array.append({ 'key': key, 'value': value })
 
-                cluster['tls_array'] = tls_array
+                cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
+
             if grpc:
                 cluster['features'] = 'http2'
 
             self.envoy_clusters[name] = cluster
         else:
+            self.logger.info("CLUSTER %s: referenced by %s" % (name, _source))
+
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
     def add_intermediate_route(self, _source, mapping, cluster_name):
@@ -687,11 +712,36 @@ class Config (object):
             service_port = 80,
             admin_port = 8001,
             diag_port = 8877,
+            auth_enabled = None,
             liveness_probe = { "enabled": True },
             readiness_probe = { "enabled": True },
             diagnostics = { "enabled": True },
             tls_config = None
         )
+
+        # Next up: let's define initial clusters, routes, and filters.
+        #
+        # Our set of clusters starts out empty; we use add_intermediate_cluster()
+        # to build it up while making sure that all the source-tracking stuff
+        # works out.
+        #
+        # Note that we use a map for clusters, not a list -- the reason is that
+        # multiple mappings can use the same service, and we don't want multiple
+        # clusters.
+        self.envoy_clusters = {}
+
+        # Our initial set of routes is empty...
+        self.envoy_routes = {}
+
+        # ...and our initial set of filters is just the 'router' filter.
+        #
+        # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
+        # We're kind of punting on that so far since we'll only ever add one filter
+        # right now.
+        self.envoy_config['filters'] = [
+            SourcedDict(name="cors", config={}),
+            SourcedDict(type="decoder", name="router", config={})
+        ]
 
         # Now we look at user-defined modules from our config...
         modules = self.config.get('modules', {})
@@ -703,32 +753,11 @@ class Config (object):
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
 
-        # Next up: let's define initial clusters, routes, and filters.
-        #
-        # Our initial set of clusters just contains the one for our Courier container.
-        # We start with the empty set and use add_intermediate_cluster() to make sure 
-        # that all the source-tracking stuff works out.
-        #
-        # Note that we use a map for clusters, not a list -- the reason is that
-        # multiple mappings can use the same service, and we don't want multiple
-        # clusters.
-        self.envoy_clusters = {}
-        # self.add_intermediate_cluster('--diagnostics--',
-        #                               'cluster_diagnostics', 
-        #                               [ "tcp://%s" % self.diag_service() ],
-        #                               type="logical_dns", lb_type="random")
-
-        # Our initial set of routes is empty...
-        self.envoy_routes = {}
-
-        # ...and our initial set of filters is just the 'router' filter.
-        #
-        # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
-        # We're kind of punting on that so far since we'll only ever add one filter
-        # right now.
-        self.envoy_config['filters'] = [
-            SourcedDict(type="decoder", name="router", config={})
-        ]
+        # Next up: deal with authentication.
+        auth_mod = modules.get('authentication', None)
+        auth_configs = self.config.get('auth_configs', None)
+        self.module_config_authentication("authentication", amod,
+                                          auth_mod, auth_configs)
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
@@ -745,7 +774,9 @@ class Config (object):
 
         # OK. Given those initial sets, let's look over our global modules.
         for module_name in modules.keys():
-            if (module_name == 'ambassador') or (module_name == 'tls'):
+            if ((module_name == 'ambassador') or
+                (module_name == 'tls') or
+                (module_name == 'authentication')):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -757,23 +788,46 @@ class Config (object):
 
             handler(module_name, modules[module_name])
 
-        # # Once modules are handled, we can set up our listeners...
-        self.envoy_config['listeners'] = SourcedDict(
+        # Once modules are handled, we can set up our admin config...
+        self.envoy_config['admin'] = SourcedDict(
             _from=self.ambassador_module,
-            service_port=self.ambassador_module["service_port"],
             admin_port=self.ambassador_module["admin_port"]
         )
+
+        # ...and our listeners.
+        primary_listener = SourcedDict(
+            _from=self.ambassador_module,
+            service_port=self.ambassador_module["service_port"],
+            require_tls=False
+        )
+
+        redirect_cleartext_from = None
+        tmod = self.ambassador_module.get('tls_config', None)
+           
+        # ...TLS config, if necessary...
+        if tmod:
+            # self.logger.debug("USING TLS")
+            primary_listener['tls'] = tmod
+            redirect_cleartext_from = tmod.get('redirect_cleartext_from')
+
+        self.envoy_config['listeners'] = [ primary_listener ]
+
+        if redirect_cleartext_from:
+            primary_listener['require_tls'] = True
+
+            self.envoy_config['listeners'].append(SourcedDict(
+                _from=self.ambassador_module,
+                service_port=redirect_cleartext_from,
+                require_tls=True
+                # Note: no TLS context here, this is a cleartext listener.
+                # We can set require_tls True because we can let the upstream
+                # tell us about that.
+            ))
 
         self.default_liveness_probe['service'] = self.diag_service()
         self.default_readiness_probe['service'] = self.diag_service()
         self.default_diagnostics['service'] = self.diag_service()
 
-        # ...TLS config, if necessary...
-        if self.ambassador_module['tls_config']:
-            self.logger.debug("USING TLS")
-            self.envoy_config['tls'] = self.ambassador_module['tls_config']
-
-        # ...and probes, if configured.
         for name, cur, dflt in [ 
             ("liveness",    self.ambassador_module['liveness_probe'],
                             self.default_liveness_probe),
@@ -799,12 +853,12 @@ class Config (object):
                     service=service
                 )
 
-                self.logger.debug("PROBE %s: %s -> %s%s" % (name, prefix, service, rewrite))
+                # self.logger.debug("PROBE %s: %s -> %s%s" % (name, prefix, service, rewrite))
 
         # OK! We have all the mappings we need. Process them (don't worry about sorting
         # yet, we'll do that on routes).
 
-        for mapping_name in mappings.keys():
+        for mapping_name in sorted(mappings.keys()):
             mapping = mappings[mapping_name]
 
             # OK. We need a cluster for this service. Derive it from the 
@@ -890,13 +944,47 @@ class Config (object):
         #     'cluster_diagnostics'
         # )
 
+        # OK. Walk the set of clusters and normalize names...
+        collisions = {}
+        mangled = {}
+
+        for name in sorted(self.envoy_clusters.keys()):
+            if len(name) > 60:
+                # Too long.
+                short_name = name[0:40]
+
+                collision_list = collisions.setdefault(short_name, [])
+                collision_list.append(name)
+
+        for short_name in sorted(collisions.keys()):
+            name_list = collisions[short_name]
+
+            i = 0
+
+            for name in sorted(name_list):
+                mangled_name = "%s-%d" % (short_name, i)
+                i += 1
+
+                self.logger.info("%s => %s" % (name, mangled_name))
+
+                mangled[name] = mangled_name
+                self.envoy_clusters[name]['name'] = mangled_name
+
         # We need to default any unspecified weights and renormalize to 100
         for group_id, route in self.envoy_routes.items():
             clusters = route["clusters"]
+
             total = 0.0
             unspecified = 0
 
             for c in clusters:
+                # Mangle the name, if need be.
+                c_name = c["name"]
+
+                if c_name in mangled:
+                    c["name"] = mangled[c_name]
+                    # self.logger.info("%s: mangling cluster %s to %s" % (group_id, c_name, c["name"]))
+
                 if c["weight"] is None:
                     unspecified += 1
                 else:
@@ -910,15 +998,14 @@ class Config (object):
                 for c in clusters:
                     c["weight"] *= 100.0/total
 
-        # OK. When all is said and done, sort the list of routes by descending 
-        # length of prefix, then prefix itself, then method...
+        # OK. When all is said and done, sort the list of routes by route weight...
         self.envoy_config['routes'] = sorted([
             route for group_id, route in self.envoy_routes.items()
         ], reverse=True, key=Mapping.route_weight)
 
         # ...then map clusters back into a list...
         self.envoy_config['clusters'] = [
-            self.envoy_clusters[name] for name in sorted(self.envoy_clusters.keys())
+            self.envoy_clusters[cluster_key] for cluster_key in sorted(self.envoy_clusters.keys())
         ]
 
         # ...and finally repeat for breakers and outliers, but copy them in the process so we
@@ -1068,7 +1155,7 @@ class Config (object):
 
             context = tmod[context_name]
 
-            self.logger.debug("context %s -- %s" % (context_name, json.dumps(context)))
+            # self.logger.debug("context %s -- %s" % (context_name, json.dumps(context)))
 
             if context.get('enabled', True):
                 if context_name == 'server':
@@ -1120,46 +1207,116 @@ class Config (object):
         if not have_amod_tls and tmod:
             self.tls_config_helper(name, tmod, tmod)
 
-        # After that, check for port definitions and probes, and copy them in as we find them.
+        # After that, check for port definitions, probes, etc., and copy them in
+        # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
-                     'liveness_probe', 'readiness_probe' ]:
+                     'liveness_probe', 'readiness_probe', 'auth_enabled' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
 
-    def module_config_authentication(self, name, module):
+    def auth_helper(self, sources, config, cluster_hosts, module):
+        sources.append(module['_source'])
+
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
+            value = module.get(key, None)
+
+            if value != None:
+                previous = config.get(key, None)
+
+                if previous and (previous != value):
+                    errstr = (
+                        "AuthService cannot support multiple %s values; using %s" % 
+                        (key, previous)
+                    )
+
+                    self.post_error(RichStatus.fromError(errstr), key=module['_source'])
+                else:
+                    config[key] = value
+
+        headers = module.get('allowed_headers', None)
+
+        if headers:
+            allowed_headers = config.get('allowed_headers', [])
+
+            for hdr in headers:
+                if hdr not in allowed_headers:
+                    allowed_headers.append(hdr)
+
+            config['allowed_headers'] = allowed_headers
+
+        auth_service = module.get("auth_service", None)
+        # weight = module.get("weight", 100)
+        weight = 100    # Can't support arbitrary weights right now.
+
+        if auth_service:
+            cluster_hosts[auth_service] = ( weight, module.get('tls', None) )
+
+    def module_config_authentication(self, name, amod, auth_mod, auth_configs):
+        filter_config = {
+            "cluster": "cluster_ext_auth",
+            "timeout_ms": 5000
+        }
+
+        cluster_hosts = {}
+        sources = []
+
+        if auth_mod:
+            self.auth_helper(sources, filter_config, cluster_hosts, auth_mod)
+
+        if auth_configs:
+            # self.logger.debug("auth_configs: %s" % auth_configs)
+            for config in auth_configs.values():
+                self.auth_helper(sources, filter_config, cluster_hosts, config)
+
+        if not sources:
+            return
+
+        first_source = sources.pop(0)
+
         filter = SourcedDict(
-            _from=module,
+            _source=first_source,
             type="decoder",
             name="extauth",
-            config={
-                "cluster": "cluster_ext_auth",
-                "timeout_ms": 5000
-            }
+            config=filter_config
         )
 
-        path_prefix = module.get("path_prefix", None)
+        cluster_name = filter_config['cluster']
 
-        if path_prefix:
-            filter['config']['path_prefix'] = path_prefix
+        if cluster_name not in self.envoy_clusters:
+            if not cluster_hosts:
+                cluster_hosts = { '127.0.0.1:5000': 100 }
 
-        allowed_headers = module.get("allowed_headers", None)
+            urls = []
+            use_tls = False
+            protocols = {}
 
-        if allowed_headers:
-            filter['config']['allowed_headers'] = allowed_headers
+            for svc in sorted(cluster_hosts.keys()):
+                weight, tls_context = cluster_hosts[svc]
+
+                (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+
+                if originate_tls:
+                    use_tls = True
+                    protocols['https'] = True
+                else:
+                    protocols['http'] = True
+
+                urls.append(url)
+
+            if len(protocols.keys()) != 1:
+                raise Exception("auth config cannot try to use both HTTP and HTTPS")
+
+            self.add_intermediate_cluster(first_source, cluster_name,
+                                          'extauth', urls,
+                                          type="strict_dns", lb_type="round_robin",
+                                          originate_tls=use_tls)
+
+        for source in sources:
+            filter._mark_referenced_by(source)
+            self.envoy_clusters[cluster_name]._mark_referenced_by(source)
 
         self.envoy_config['filters'].insert(0, filter)
-
-        if 'ext_auth_cluster' not in self.envoy_clusters:
-            svc = module.get('auth_service', '127.0.0.1:5000')
-            tls_context = module.get('tls', None)
-
-            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
-
-            self.add_intermediate_cluster(module['_source'], 'cluster_ext_auth',
-                                          svc, [ url ],
-                                          type="logical_dns", lb_type="random",
-                                          originate_tls=originate_tls)
 
     ### DIAGNOSTICS
     def diagnostic_overview(self):
@@ -1170,9 +1327,9 @@ class Config (object):
             # self.logger.debug("overview -- filename %s, source_keys %d" %
             #                   (filename, len(source_keys)))
 
-            # Skip '--internal--' etc.
-            if filename.startswith('--'):
-                continue
+            # # Skip '--internal--' etc.
+            # if filename.startswith('--'):
+            #     continue
 
             source_dict = source_files.setdefault(
                 filename,

@@ -12,7 +12,7 @@ from shell import shell
 
 from diag_paranoia import diag_paranoia, filtered_overview
 
-VALIDATOR_IMAGE = "dwflynn/ambassador-envoy:v1.4.0-49-g008635a04"
+VALIDATOR_IMAGE = "datawire/ambassador-envoy-alpine:v1.5.0-116-g7ccb25882"
 
 DIR = os.path.dirname(__file__)
 EXCLUDES = [ "__pycache__" ] 
@@ -186,5 +186,9 @@ def test_diag(testname, dirpath, configdir):
     if errors:
         print("---- ERRORS")
         print("%s" % "\n".join(errors))
-
+        print("---- OVERVIEW ----")
+        print("%s" % results['overview'])
+        print("---- RECONSTITUTED ----")
+        print("%s" % results['reconstituted'])
+    
     assert errorcount == 0, ("failing, errors: %d" % errorcount)

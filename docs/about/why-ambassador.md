@@ -1,6 +1,6 @@
 # Why Ambassador?
 
-Ambassador is a Kubernetes-native [microservices API Gateway](microservices-api-gateways) built on the [Envoy Proxy](https://envoyproxy.github.io). Ambassador is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users.
+Ambassador is an open source, Kubernetes-native [microservices API gateway](microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). Ambassador is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users.
 
 Ambassador is:
 
@@ -12,20 +12,20 @@ Ambassador is:
 
 Alternatives to Ambassador fall in three basic categories.
 
-* Hosted API Gateways, such as the [Amazon API Gateway](https://aws.amazon.com/api-gateway/).
-* Traditional API Gateways, such as [Kong](https://getkong.org/).
+* Hosted API gateways, such as the [Amazon API gateway](https://aws.amazon.com/api-gateway/).
+* Traditional API gateways, such as [Kong](https://getkong.org/).
 * L7 proxies, such as [Traefik](https://traefik.io/), [NGINX](http://nginx.org/), [HAProxy](http://www.haproxy.org/), or [Envoy](https://envoyproxy.github.io).
 
-Both hosted API Gateways and traditional API gateways are:
+Both hosted API gateways and traditional API gateways are:
 
 * Not self-service. The management interfaces on traditional API gateways are not designed for developer self-service, and provide limited safety and usability for developers.
 * [Designed for API management, versus microservices](microservices-api-gateways).
 
-A Layer 7 proxy can be used as an API Gateway, but typically requires additional bespoke development to support microservices use cases. In fact, many API Gateways package the additional features needed for an API Gateway on top of a L7 proxy. Ambassador uses Envoy, while Kong uses NGINX. If you're interested in deploying Envoy directly, we've written an [introductory tutorial](https://www.datawire.io/guide/traffic/getting-started-lyft-envoy-microservices-resilience/).
+A Layer 7 proxy can be used as an API gateway, but typically requires additional bespoke development to support microservices use cases. In fact, many API gateways package the additional features needed for an API gateway on top of a L7 proxy. Ambassador uses Envoy, while Kong uses NGINX. If you're interested in deploying Envoy directly, we've written an [introductory tutorial](https://www.datawire.io/guide/traffic/getting-started-lyft-envoy-microservices-resilience/).
 
 ### Istio
 
-[Istio](https://istio.io) is an open source service mesh, built an Envoy. A service mesh is designed to manage east/west traffic, while an API gateway manages north/south traffic. Documentation on how to deploy Ambassador with Istio is [here](../user-guide/with-istio.md).
+[Istio](https://istio.io) is an open source service mesh, built on Envoy. A service mesh is designed to manage east/west traffic, while an API gateway manages north/south traffic. Documentation on how to deploy Ambassador with Istio is [here](../user-guide/with-istio.md).
 
 ## Roadmap
 

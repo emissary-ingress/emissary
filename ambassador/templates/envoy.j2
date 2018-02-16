@@ -1,16 +1,17 @@
 {
   "listeners": [
+    {% for listener in listeners %}
     {
-      "address": "tcp://0.0.0.0:{{ listeners.service_port }}",
-      {% if tls -%}
+      "address": "tcp://0.0.0.0:{{ listener.service_port }}",
+      {% if listener.tls -%}
       "ssl_context": {
-        {%- if tls.cert_chain_file -%}
-          "cert_chain_file": "{{ tls.cert_chain_file }}",
-          "private_key_file": "{{ tls.private_key_file }}"{{ "," if tls.cacert_chain_file }}
+        {%- if listener.tls.cert_chain_file -%}
+          "cert_chain_file": "{{ listener.tls.cert_chain_file }}",
+          "private_key_file": "{{ listener.tls.private_key_file }}"{{ "," if listener.tls.cacert_chain_file }}
         {%- endif -%}
-        {%- if tls.cacert_chain_file -%}
-          "ca_cert_file": "{{ tls.cacert_chain_file }}"{{ "," if tls.cert_required }}
-          {%- if tls.cert_required -%}"require_client_certificate": true{%- endif %}
+        {%- if listener.tls.cacert_chain_file -%}
+          "ca_cert_file": "{{ listener.tls.cacert_chain_file }}"{{ "," if listener.tls.cert_required }}
+          {%- if listener.tls.cert_required -%}"require_client_certificate": true{%- endif %}
         {%- endif %}
       },
       {%- endif -%}
@@ -32,14 +33,25 @@
                 {
                   "name": "backend",
                   "domains": ["*"],
+                  {%- if listener.require_tls -%}
+                  "require_ssl": "all",
+                  {%- endif -%}
                   "routes": [
                     {% for route in routes %}
                     {
-                      "timeout_ms": {{ route.timeout_ms or 10000 }},
+                      "timeout_ms": {{ route.timeout_ms or 3000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
+                      {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
+                      {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
+                      {%- if route.cors -%}"cors": {{ route.cors | tojson }},{% endif %}
+                      {%- if route.host_redirect -%}"host_redirect": "{{ route.host_redirect }}",{% endif %}
                       {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
+                      {%- if route.path_redirect -%}"path_redirect": "{{ route.path_redirect }}",{% endif %}
+                      {%- if route.priority -%}"priority": "{{ route.priority }}",{% endif %}
+                      {%- if route.use_websocket -%}"use_websocket": {{ route.use_websocket | tojson }},{% endif %}
                       {%- if route.headers -%}"headers": {{ route.headers | tojson }},{% endif %}
+                      {%- if route.request_headers_to_add -%}"request_headers_to_add": {{ route.request_headers_to_add | tojson }},{% endif %}
                       "weighted_clusters": {
                           "clusters": [
                               {% for wc in route.clusters %}
@@ -62,7 +74,7 @@
             "filters": [
               {% for filter in filters -%}
               { 
-                "type": "{{ filter.type }}",
+                {%- if filter.type -%}"type": "{{ filter.type }}",{% endif %}
                 "name": "{{ filter.name }}",
                 "config": {{ filter.config | tojson }}
               }{{ "," if not loop.last }}
@@ -71,10 +83,11 @@
           }
         }
       ]
-    }    
+    }{{ "," if not loop.last }}
+    {%- endfor %}
   ],
   "admin": {
-    "address": "tcp://127.0.0.1:{{ listeners.admin_port }}",
+    "address": "tcp://127.0.0.1:{{ admin.admin_port }}",
     "access_log_path": "/tmp/admin_access_log"
   },
   "cluster_manager": {
@@ -95,8 +108,9 @@
         ]{%- if cluster.circuit_breakers -%},
         "circuit_breakers": {
           "default": {
-            "max_connections": {{ cluster.circuit_breakers.max_connections or 1 }},
-            "max_pending_requests": {{ cluster.circuit_breakers.max_pending or 1 }},
+            "max_connections": {{ cluster.circuit_breakers.max_connections or 1024 }},
+            "max_pending_requests": {{ cluster.circuit_breakers.max_pending or 1024 }},
+            "max_requests": {{ cluster.circuit_breakers.max_requests or 1024 }},
             "max_retries": {{ cluster.circuit_breakers.max_retries or 3 }}
           }
         }{%- endif -%}{%- if cluster.outlier_detection -%},

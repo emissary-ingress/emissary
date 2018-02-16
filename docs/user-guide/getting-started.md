@@ -1,13 +1,13 @@
-# Getting Started with Ambassador
+# Getting Started With Ambassador
 
-Ambassador is a microservices API Gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
+Ambassador is an open source, Kubernetes-native API gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
 
-## 1. Running the demo configuration
+## 1. Running the Demo Configuration
 
 By default, Ambassador uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador on port 8080:
 
 ```shell
-docker run -it -p 8080:80 --name=ambassador --rm datawire/ambassador:{VERSION} --demo
+docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VERSION} --demo
 ```
 
 ## 2. Ambassador's Diagnostics
@@ -18,7 +18,7 @@ Ambassador provides live diagnostics viewable with a web browser. While this wou
 
 Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 
-## 3. The Quote of the Moment service
+## 3. The Quote of the Moment Service
 
 Since Ambassador is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out here:
 
@@ -121,9 +121,7 @@ When Ambassador starts, it will notice the `getambassador.io/config` annotation 
 Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
 
 ```
-$ gcloud info | grep Account
-Account: [username@example.org]
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=username@example.org
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
 ### 5.3 Testing the Mapping

@@ -1,6 +1,25 @@
 {
     "envoy_config": {
+        "admin": [
+            {
+                "_source": "ambassador.yaml.1",
+                "admin_port": 8001
+            }
+        ],
         "breakers": [
+            {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_source": "custom-breaker.yaml.1",
+                "apiVersion": "ambassador/v0",
+                "kind": "CircuitBreaker",
+                "max_connections": 1,
+                "max_pending": 3,
+                "max_requests": 2,
+                "max_retries": 4,
+                "name": "custom"
+            },
             {
                 "_referenced_by": [
                     "mapping-qotm.yaml.2",
@@ -44,11 +63,11 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "example-auth:3000",
+                "_service": "extauth",
                 "_source": "auth.yaml.1",
-                "lb_type": "random",
+                "lb_type": "round_robin",
                 "name": "cluster_ext_auth",
-                "type": "logical_dns",
+                "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
                 ]
@@ -98,13 +117,34 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-evil.yaml.1",
-                    "mapping-qotm.yaml.1"
+                    "mapping-evil.yaml.1"
                 ],
                 "_service": "qotm",
                 "_source": "mapping-evil.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_qotm",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://qotm:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_service": "qotm",
+                "_source": "mapping-qotm.yaml.1",
+                "circuit_breakers": {
+                    "apiVersion": "ambassador/v0",
+                    "kind": "CircuitBreaker",
+                    "max_connections": 1,
+                    "max_pending": 3,
+                    "max_requests": 2,
+                    "max_retries": 4,
+                    "name": "custom"
+                },
+                "lb_type": "round_robin",
+                "name": "cluster_qotm_cb_custom",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://qotm:80"
@@ -163,9 +203,53 @@
                 "urls": [
                     "tcp://qotm.tspace:80"
                 ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-long.yaml.1"
+                ],
+                "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service",
+                "_source": "mapping-long.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_really_really_really_long_no_i_m-0",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://really-really-really-long-no-i-mean-really-really-really-really-long-service:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-long.yaml.2"
+                ],
+                "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service-two",
+                "_source": "mapping-long.yaml.2",
+                "lb_type": "round_robin",
+                "name": "cluster_really_really_really_long_no_i_m-1",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://really-really-really-long-no-i-mean-really-really-really-really-long-service-two:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-websocket.yaml.1"
+                ],
+                "_service": "slack.com",
+                "_source": "mapping-websocket.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_slack_com",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://slack.com:80"
+                ]
             }
         ],
         "filters": [
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
             {
                 "_source": "auth.yaml.1",
                 "config": {
@@ -178,13 +262,26 @@
                 },
                 "name": "extauth",
                 "type": "decoder"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
+                "type": "decoder"
             }
         ],
         "listeners": [
             {
                 "_source": "ambassador.yaml.1",
-                "admin_port": 8001,
-                "service_port": 443
+                "require_tls": false,
+                "service_port": 443,
+                "tls": {
+                    "_source": "ambassador.yaml.1",
+                    "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+                    "cert_required": true,
+                    "private_key_file": "/etc/ambassador-config/certs/tls.key"
+                }
             }
         ],
         "outliers": [
@@ -230,7 +327,8 @@
                 ],
                 "host_rewrite": "httpbin.org",
                 "prefix": "/httpbin/",
-                "prefix_rewrite": "/"
+                "prefix_rewrite": "/",
+                "timeout_ms": 50
             },
             {
                 "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
@@ -265,6 +363,29 @@
                 "prefix_rewrite": "/"
             },
             {
+                "_group_id": "30f39d42f27d9bfc42f090a4398d77cb7c33cb3a",
+                "_method": "PUT",
+                "_referenced_by": [
+                    "mapping-long.yaml.2"
+                ],
+                "_source": "mapping-long.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-1",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "PUT"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/qotm/quote/"
+            },
+            {
                 "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
                 "_method": "GET",
                 "_referenced_by": [
@@ -279,6 +400,29 @@
                 ],
                 "prefix": "/ambassador/v0/check_alive",
                 "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
+                "_group_id": "6f6f65520e4e9992c6dd345d2028ea7c979a082e",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-long.yaml.1"
+                ],
+                "_source": "mapping-long.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-0",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "GET"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/"
             },
             {
                 "_group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
@@ -312,7 +456,7 @@
                 "_source": "mapping-qotm.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_qotm",
+                        "name": "cluster_qotm_cb_custom",
                         "weight": 100.0
                     }
                 ],
@@ -334,6 +478,23 @@
                 ],
                 "prefix": "/tspace/",
                 "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "ab0d6f12046e8aa9b3f585f5369cd5ece5136bf6",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-websocket.yaml.1"
+                ],
+                "_source": "mapping-websocket.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_slack_com",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/slack/",
+                "prefix_rewrite": "/",
+                "use_websocket": true
             },
             {
                 "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
@@ -407,15 +568,6 @@
                 "prefix": "/evil/",
                 "prefix_rewrite": "/"
             }
-        ],
-        "tls": [
-            {
-                "_source": "ambassador.yaml.1",
-                "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-                "cert_required": true,
-                "private_key_file": "/etc/ambassador-config/certs/tls.key"
-            }
         ]
     },
     "source_map": {
@@ -427,6 +579,9 @@
         },
         "auth.yaml": {
             "auth.yaml.1": true
+        },
+        "custom-breaker.yaml": {
+            "custom-breaker.yaml.1": true
         },
         "default-breaker.yaml": {
             "default-breaker.yaml.1": true
@@ -447,6 +602,10 @@
         "mapping-httpbin.yaml": {
             "mapping-httpbin.yaml.1": true
         },
+        "mapping-long.yaml": {
+            "mapping-long.yaml.1": true,
+            "mapping-long.yaml.2": true
+        },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true,
             "mapping-qotm.yaml.2": true,
@@ -454,10 +613,14 @@
         },
         "mapping-qotm2.yaml": {
             "mapping-qotm2.yaml.1": true
+        },
+        "mapping-websocket.yaml": {
+            "mapping-websocket.yaml.1": true
         }
     },
     "sources": {
         "--diagnostics--": {
+            "_source": "--diagnostics--",
             "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
             "filename": "--diagnostics--",
             "index": 0,
@@ -466,6 +629,7 @@
             "version": "v0"
         },
         "--internal--": {
+            "_source": "--internal--",
             "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
             "filename": "--internal--",
             "index": 0,
@@ -490,6 +654,15 @@
             "name": "authentication",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nconfig:\n  allowed_headers:\n  - x-qotm-session\n  auth_service: http://example-auth:3000\n  path_prefix: /extauth\nkind: Module\nname: authentication\n"
+        },
+        "custom-breaker.yaml.1": {
+            "_source": "custom-breaker.yaml",
+            "filename": "custom-breaker.yaml",
+            "index": 1,
+            "kind": "CircuitBreaker",
+            "name": "custom",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: CircuitBreaker\nmax_connections: 1\nmax_pending: 3\nmax_requests: 2\nmax_retries: 4\nname: custom\n"
         },
         "default-breaker.yaml.1": {
             "_source": "default-breaker.yaml",
@@ -552,7 +725,25 @@
             "kind": "Mapping",
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\ntimeout_ms: 50\n"
+        },
+        "mapping-long.yaml.1": {
+            "_source": "test source",
+            "filename": "mapping-long.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "long_get_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
+        },
+        "mapping-long.yaml.2": {
+            "_source": "test source",
+            "filename": "mapping-long.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "long_put_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
@@ -561,7 +752,7 @@
             "kind": "Mapping",
             "name": "qotm_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nservice: qotm\n"
+            "yaml": "apiVersion: ambassador/v0\ncircuit_breaker: custom\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nservice: qotm\n"
         },
         "mapping-qotm.yaml.2": {
             "_source": "mapping-qotm.yaml",
@@ -589,6 +780,15 @@
             "name": "qotm2_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm2_mapping\nprefix: /tspace/\nservice: qotm.tspace\n"
+        },
+        "mapping-websocket.yaml.1": {
+            "_source": "mapping-websocket.yaml",
+            "filename": "mapping-websocket.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "websocket_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: websocket_mapping\nprefix: /slack/\nservice: slack.com\nuse_websocket: true\n"
         }
     }
 }

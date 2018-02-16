@@ -27,3 +27,7 @@ headers:
   x-demo-mode: host
 host: httpbin.org
 host_rewrite: httpbin.org
+add_request_headers:
+  x-test-proto: "%PROTOCOL%"
+  x-test-ip: "%CLIENT_IP%"
+  x-test-static: testing

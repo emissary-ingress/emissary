@@ -1,5 +1,5 @@
 # Our base image was built from https://github.com/datawire/envoy, commit
-# 6b197c85c, on the flynn/feature/extauth branch. We need this instead of
+# 6557e9ea7, on the flynn/feature/extauth branch. We need this instead of
 # the official Envoy image so that we can support Ambassador's ability to
 # use an external authentication service.
 #
@@ -11,13 +11,12 @@
 # 
 # and then read DATAWIRE/README.md.
 
-# FROM datawire/ambassador-envoy:vtest_docs_tag3-60-gb2629d084
-FROM datawire/ambassador-envoy:v1.5.0-47-g6b197c85c
+FROM datawire/ambassador-envoy-alpine-stripped:v1.5.0-232-g6557e9ea7
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
-      DESCRIPTION              = "Ambassador REST Service" \
+      DESCRIPTION              = "Ambassador" \
       VENDOR                   = "Datawire" \
       VENDOR_URL               = "https://datawire.io/"
 
@@ -27,11 +26,7 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-# We need curl, pip, and dnsutils (for nslookup).
-RUN apt-get update && apt-get -q install -y \
-    curl \
-    python3-pip \
-    dnsutils
+RUN apk --no-cache add curl python3
 
 # Set WORKDIR to /application which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a

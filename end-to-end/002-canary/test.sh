@@ -11,13 +11,14 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-shred_and_reclaim
+initialize_cluster
 
 kubectl cluster-info
 
 kubectl create namespace other
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl run demotest --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
@@ -25,6 +26,7 @@ wait_for_pods
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador)
+DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -45,7 +47,7 @@ if ! check_diag "$BASEURL" 2 "demo1 annotated"; then
     exit 1
 fi
 
-if ! demotest.py $BASEURL 0; then
+if ! kubectl exec $DEMOTEST_POD -- python3 demotest.py $BASEURL 0; then
     exit 1
 fi
 
@@ -58,7 +60,7 @@ wait_for_demo_weights "$BASEURL" 90 10
 #     exit 1
 # fi
 
-if ! demotest.py $BASEURL 10; then
+if ! kubectl exec $DEMOTEST_POD -- python3 demotest.py $BASEURL 10; then
     exit 1
 fi
 
@@ -71,7 +73,7 @@ wait_for_demo_weights "$BASEURL" 50 50
 #     exit 1
 # fi
 
-if ! demotest.py $BASEURL 50; then
+if ! kubectl exec $DEMOTEST_POD -- python3 demotest.py $BASEURL 50; then
     exit 1
 fi
 
@@ -84,7 +86,7 @@ wait_for_demo_weights "$BASEURL" 10 90
 #     exit 1
 # fi
 
-if ! demotest.py $BASEURL 90; then
+if ! kubectl exec $DEMOTEST_POD -- python3 demotest.py $BASEURL 90; then
     exit 1
 fi
 
@@ -97,7 +99,7 @@ wait_for_demo_weights "$BASEURL" 100
 #     exit 1
 # fi
 
-if ! demotest.py $BASEURL 100; then
+if ! kubectl exec $DEMOTEST_POD -- python3 demotest.py $BASEURL 100; then
     exit 1
 fi
 

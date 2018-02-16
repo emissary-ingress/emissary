@@ -1,5 +1,81 @@
 # Changelog
 
+## As of 0.22.0, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
+
+## [0.26.0] February 13, 2018
+[0.26.0]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.25.0
+
+### Changed
+
+- Support redirecting cleartext connections on port 80 to HTTPS on port 443
+- Streamline end-to-end tests and, hopefully, allow them to work well without Kubernaut
+- Clean up some documentation (thanks @lavoiedn!)
+
+## [0.25.0] February 6, 2018
+[0.25.0]: https://github.com/datawire/ambassador/compare/v0.25.0...v0.23.0
+
+(Note that 0.24.0 was an internal release.)
+
+### Changed
+
+- CORS support (thanks @alexgervais!)
+- Updated docs for
+  - GKE
+  - Ambassador + Istio
+  - Ordering of `Mappings`
+  - Prometheus with Ambassador
+- Support multiple external authentication service instances, so that canarying `extauth` services is possible
+- Correctly support `timeout_ms` in a `Mapping`
+- Various build tweaks and end-to-end test speedups
+
+## [0.23.0] January 17, 2017
+[0.23.0]: https://github.com/datawire/ambassador/compare/v0.23.0...v0.22.0
+
+### Changed
+
+- Clean up build docs (thanks @alexgervais!)
+- Support `add_request_headers` for, uh, adding requests headers (thanks @alexgervais!)
+- Make end-to-end tests and Travis build process a bit more robust
+- Pin to Kubernaut 0.1.39
+- Document the use of the `develop` branch
+- Don't default to `imagePullAlways`
+- Switch to Alpine base with a stripped Envoy image
+
+## [0.22.0] January 17, 2017
+[0.22.0]: https://github.com/datawire/ambassador/compare/v0.21.1...v0.22.0
+
+### Changed
+
+- Switched to using `quay.io` rather than DockerHub. **If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!**
+- Switched to building over Alpine rather than Ubuntu. (We're still using an unstripped Envoy; that'll change soon.)
+- Switched to a proper production configuration for the `statsd` pod, so that it hopefully chews up less memory.
+- Make sure that Ambassador won't generate cluster names that are too long for Envoy.
+- Fix a bug where Ambassador could crash if there were too many egregious errors in its configuration.
+
+## [0.21.1] January 11, 2017
+[0.21.1]: https://github.com/datawire/ambassador/compare/v0.21.0...v0.21.1
+
+### Changed
+
+- Ambassador will no longer generate cluster names that exceed Envoy's 60-character limit.
+
+## [0.21.0] January 3, 2017
+[0.21.0]: https://github.com/datawire/ambassador/compare/v0.20.1...v0.21.0
+
+### Changed
+
+- If `AMBASSADOR_SINGLE_NAMESPACE` is present in the environment, Ambassador will only look for services in its own namespace.
+- Ambassador `Mapping` objects now correctly support `host_redirect`, `path_redirect`, `host_rewrite`, `auto_host_rewrite`, `case_sensitive`, `use_websocket`, `timeout_ms`, and `priority`.
+
+## [0.20.1] December 22, 2017
+[0.20.1]: https://github.com/datawire/ambassador/compare/v0.20.0...v0.20.1
+
+### Changed
+
+- If Ambassador finds an empty YAML document, it will now ignore it rather than raising an exception.
+- Includes the namespace of a service from an annotation in the name of its generated YAML file.
+- Always process inputs in the same order from run to run.
+
 ## [0.20.0] December 18, 2017
 [0.20.0]: https://github.com/datawire/ambassador/compare/v0.19.2...v0.20.0
 
@@ -28,7 +104,7 @@
 - Make sure that the tests correctly reported failures (sigh).
 - Allow updating out-of-date diagnostic reports without requiring multiple test runs.
 
-## [0.19.0] November 20, 2017
+## [0.19.0] November 30, 2017
 [0.19.0]: https://github.com/datawire/ambassador/compare/v0.18.2...v0.19.0
 
 ### Changed
@@ -39,7 +115,7 @@
 - It’s now possible to tell `ambassador config` to read Kubernetes manifests from the filesystem and build a configuration from the annotations in them (use the `--k8s` switch).
 - Documentation on using Ambassador with Istio now reflects Ambassador 0.19.0 and Istio 0.2.12.
 
-## [0.18.2] November 20, 2017
+## [0.18.2] November 28, 2017
 [0.18.2]: https://github.com/datawire/ambassador/compare/v0.18.0...v0.18.2
 
 ### Changed

@@ -1,3 +1,8 @@
+if [ -z "$ROOT" ]; then
+    echo "ROOT must be set to the root of the end-to-end tests" >&2
+    exit 1
+fi
+
 if [ -n "$MACHINE_READABLE" ]; then
     LINE_END="\n"
 else
@@ -8,21 +13,36 @@ step () {
     echo "==== $@"
 }
 
-shred_and_reclaim () {
-    step "Dropping old cluster"
-    kubernaut discard
+initialize_cluster () {
+    for namespace in $(kubectl get namespaces | egrep -v '^(NAME|kube-)' | awk ' { print $1 }'); do
+        echo "Deleting everything in $namespace..."
 
-    step "Claiming new cluster"
-    kubernaut claim
-    export KUBECONFIG=${HOME}/.kube/kubernaut
+        if [ "$namespace" = "default" ]; then
+            kubectl delete pods,secrets,services,deployments,configmaps --all
+        else
+            kubectl delete namespace "$namespace"
+        fi
+    done
 }
 
 cluster_ip () {
-    kubectl cluster-info | fgrep master | python -c 'import sys; print(sys.stdin.readlines()[0].split()[5].split(":")[1].lstrip("/"))'
+    IP=$(kubectl get nodes -ojsonpath="{.items[0].status.addresses[?(@.type==\"ExternalIP\")].address}")
+
+    if [ -z "$IP" ]; then
+        IP=$(kubectl cluster-info | fgrep master | python -c 'import sys; print(sys.stdin.readlines()[0].split()[5].split(":")[1].lstrip("/"))')
+    fi
+
+    echo "$IP"
 }
 
 service_port() {
-    kubectl get services "$1" -ojsonpath={.spec.ports[0].nodePort}
+    instance=${2:-0}
+
+    kubectl get services "$1" -ojsonpath="{.spec.ports[$instance].nodePort}"
+}
+
+demotest_pod() {
+    kubectl get pods -l run=demotest -o 'jsonpath={.items[0].metadata.name}'
 }
 
 wait_for_pods () {
@@ -31,7 +51,8 @@ wait_for_pods () {
     running=
 
     while [ $attempts -gt 0 ]; do
-        pending=$(kubectl --namespace $namespace get pod -o json | grep phase | grep -c -v Running)
+        # pending=$(kubectl --namespace $namespace get pod -o json | grep phase | grep -c -v Running)
+        pending=$(kubectl --namespace $namespace describe pods | grep '^Status:' | grep -c -v Running)
 
         if [ $pending -eq 0 ]; then
             printf "Pods running.              \n"
@@ -71,6 +92,7 @@ wait_for_ready () {
 
     if [ -z "$ready" ]; then
         echo 'Ambassador not yet ready?' >&2
+        kubectl get pods >&2
         exit 1
     fi
 }
@@ -106,7 +128,7 @@ wait_for_extauth_enabled () {
     enabled=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl -k -s $baseurl/ambassador/v0/diag/ambassador.yaml.1?json=true | jget.py /filters/0/name 2>&1 | egrep -c 'extauth')
+        OK=$(curl -k -s $baseurl/ambassador/v0/diag/?json=true | jget.py /filters/0/name 2>&1 | egrep -c 'extauth')
 
         if [ $OK -gt 0 ]; then
             printf "extauth enabled            \n"
@@ -150,6 +172,8 @@ check_diag () {
     baseurl=$1
     index=$2
     desc=$3
+
+    sleep 5
 
     rc=1
 

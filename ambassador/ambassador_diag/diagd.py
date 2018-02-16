@@ -8,6 +8,7 @@ import glob
 import json
 import logging
 import os
+import re
 import signal
 import time
 import uuid
@@ -72,7 +73,6 @@ def standard_handler(f):
 
         try:
             result = f(*args, reqid=reqid, **kwds)
-
             if not isinstance(result, tuple):
                 result = (result, 200)
 
@@ -109,8 +109,16 @@ app = Flask(__name__,
 def aconf(app):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
 
+    # # Test crap
+    # configs.append("%s-87-envoy.json" % app.config_dir_prefix)
+
     if configs:
-        configs.sort(key=lambda x: int(x.split("-")[-1]))
+        keyfunc = lambda x: x.split("-")[-1]
+        key_match = lambda x: re.match('^\d+$', keyfunc(x))
+        key_as_int = lambda x: int(keyfunc(x))
+
+        configs = sorted(filter(key_match, configs), key=key_as_int)
+
         latest = configs[-1]
     else:
         latest = app.config_dir_prefix

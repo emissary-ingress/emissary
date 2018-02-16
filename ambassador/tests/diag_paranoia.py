@@ -24,13 +24,14 @@ def mark_referenced_by(obj, refby):
         return False
 
 Uniqifiers = {
+    'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
     'outliers': lambda x: x['name'],
     'filters': lambda x: x['name'],
     'tls': lambda x: "TLS",
-    'listeners': lambda x: '%s-%s' % (x['service_port'], x['admin_port']),
+    'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
-    'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if ('index' in x) else x['filename']
+    'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename']
 }
 
 def filtered_overview(ov):
@@ -46,11 +47,11 @@ def filtered_overview(ov):
 
         if isinstance(ov[key], list):
             for obj in ov[key]:
-                if obj.get('_source', None) == '--internal--':
-                    continue
+                # if obj.get('_source', None) == '--internal--':
+                #     continue
 
                 if '_referenced_by' in obj:
-                    obj['_referenced_by'] = sorted([ x for x in obj['_referenced_by'] if x != '--internal--' ])
+                    obj['_referenced_by'] = sorted([ x for x in obj['_referenced_by'] ])
 
                 filtered_element.append(obj)
 
@@ -70,18 +71,28 @@ def diag_paranoia(configdir, outputdir):
     aconf = Config(configdir)
     ov = aconf.diagnostic_overview()
 
-    # print("==== OV")
-    # print(prettify(ov))
-
     reconstituted = {}
     errors = []
     warnings = []
     missing_uniqifiers = {}
 
-    for source in ov['sources']:
-        source_filename = source['filename']
+    source_info = [
+        {
+            "filename": x['filename'],
+            "sources": [ key for key in x['objects'].keys() ]
+        }
+        for x in ov['sources']
+    ]
 
-        for source_key in source['objects'].keys():
+    source_info.insert(0, {
+        "filename": "--internal--",
+        "sources": [ "--internal--" ]
+    })
+
+    for si in source_info:
+        source_filename = si['filename']
+
+        for source_key in si['sources']:
             intermediate = aconf.get_intermediate_for(source_key)
 
             # print("==== %s" % source_key)
@@ -104,7 +115,7 @@ def diag_paranoia(configdir, outputdir):
                             rcluster = rclusters[cname]
                             # print("%s: extant cluster %s" % (source_key, prettify(rclusters[cname])))
 
-                            if not mark_referenced_by(rcluster, source_key):
+                            if not mark_referenced_by(rcluster, source_key) and (source_key != "--internal--"):
                                 errors.append('%s: already appears in cluster %s?' %
                                               (source_key, rcluster['name']))
 
@@ -133,6 +144,7 @@ def diag_paranoia(configdir, outputdir):
                         continue
 
                     for obj in intermediate[key]:
+                        # print(obj)
                         u = uniqifier(obj)
 
                         rcon = reconstituted.setdefault(key, {})
@@ -187,18 +199,14 @@ def diag_paranoia(configdir, outputdir):
 
             reconstituted_lists[key] = sorted(reconstituted[key].values(), key=uniqifier)
 
-    # If there's no listener block in the reconstituted set, that implies that 
-    # the configuration doesn't override the listener state. Go ahead and add the
-    # default in.
+    # # If there's no listener block in the reconstituted set, that implies that 
+    # # the configuration doesn't override the listener state. Go ahead and add the
+    # # default in.
 
-    if 'listeners' not in reconstituted_lists:
-        reconstituted_lists['listeners'] = [
-            {
-                "_source": "--internal--",
-                "admin_port": 8001,
-                "service_port": 80
-            }
-        ]
+    # l = reconstituted_lists.get('listeners', [])
+
+    # if not l:
+    #     reconstituted_lists['listeners'] = []
 
     # If there're no 'filters' in the reconstituted set, uh, there were no filters
     # defined. Create an empty list.
@@ -219,17 +227,22 @@ def diag_paranoia(configdir, outputdir):
                                       lineterm=""))
 
     if udiff:
-        errors.append("%s\n-- DIFF --\n%s\n-- OVERVIEW --\n%s\n\n-- RECONSTITUTED --\n%s\n" %
+        errors.append("%s\n-- DIFF --\n%s\n" %
                       ("mismatch between overview and reconstituted diagnostics",
-                       "\n".join(udiff), pretty_filtered_overview, pretty_reconstituted_lists))
+                       "\n".join(udiff)))
 
     return {
         'errors': errors,
-        'warnings': warnings
+        'warnings': warnings,
+        'overview': pretty_filtered_overview,
+        'reconstituted': pretty_reconstituted_lists
     }
 
 if __name__ == "__main__":
     results = diag_paranoia(sys.argv[1], ".")
+
+    open("ov", "w").write(results['overview'])
+    open("rl", "w").write(results['reconstituted'])
 
     if (results['warnings']):
         print("\n".join(['WARNING: %s' % x for x in results['warnings']]))

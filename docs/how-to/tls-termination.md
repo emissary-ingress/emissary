@@ -1,10 +1,13 @@
 # TLS Termination
 
-You need to choose up front whether you want to use TLS or not. It's possible to switch this later, but you'll likely need to muck about with your DNS and such to do it, so it's a pain.
+To enable TLS termination for Ambassador you'll need a few things:
 
-## 1. Get a certificate, and store it in Kubernetes
+1. You'll need a TLS certificate.
+2. For any production use, you'll need a DNS record that matches your TLS certificate's `Common Name`.
+3. You'll need to store the certificate in a Kubernetes `secret`.
+4. You may need to configure other Ambassador TLS options using the `tls` module.
 
-You'll need a certificate for TLS. With the certificate:
+All these requirements mean that it's easiest to decide to enable TLS _before_ you configure Ambassador the first time. It's possible to switch after setting up Ambassador, but it's annoying.
 
 ### Using Let's Encrypt
 
@@ -39,6 +42,26 @@ When Ambassador starts, it will notice the `ambassador-certs` secret and turn TL
 * Make sure that the `CN` matches the DNS name of your service.
 * Ambassador needs the full certificate chain, so concatenate the server certificate and any intermediate certificates into a single file.
 
+## 1. You'll need a TLS certificate.
+
+There are a great many ways to get a certificate; [Let's Encrypt](https://www.letsencrypt.org) is a good option if you're not already working with something else. 
+
+Note that requesting a certificate _requires_ a `Common Name` (`CN`) for your Ambassador. The `CN` becomes very important when you try to use HTTPS in practice: if the `CN` does not match the DNS name you use to reach the Ambassador, most TLS libraries will refuse to make the connection. So use a DNS name for the `CN`, and in step 2 make sure everything matches.
+
+## 2. You'll need a DNS name.
+
+As noted above, the DNS name must match the `CN` in the certificate. The simplest way to manage this is to create an `ambassador` Kubernetes service up front, before you do anything else, so that you can point DNS to whatever Kubernetes gives you for it -- then don't delete the `ambassador` service, even if you later need to update it or delete and recreate the `ambassador` deployment.
+
+```shell
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
+```
+
+will create a minimal `ambassador` service for this purpose; you can then use its external appearance to configure either a `CNAME` or an `A` record in DNS. Make sure that there's a matching `PTR` record, too.
+
+It's OK to include annotations on the `ambassador` service at this point, if you need to configure additional TLS options (see below for more on this).
+
+## 3. You'll need to store the certificate in a Kubernetes `secret`.
+
 Create a Kubernetes `secret` named `ambassador-certs`:
 
 ```shell
@@ -47,55 +70,70 @@ kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY
 
 where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
 
-When Ambassador starts, it will notice the `ambassador-certs` secret and turn TLS on.
+## 4. You may need to configure other Ambassador TLS options.
 
-## 2. Create the Ambassador service
+When Ambassador starts, it will notice the `ambassador-certs` secret and turn TLS on. If you don't need anything else, you're good to go.
 
-1. Create the `ambassador` service in Kubernetes, and don't delete it even if you need to delete and recreate the `ambassador` deployment. This will give you a stable external appearance that you can use for DNS records.
-
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
-```
-
-2. Either a `CNAME` or an `A` is fine.
-3. Make sure that there's a valid `PTR` record.
-
-## (Legacy) Configuring Using a `ConfigMap`
-
-If you're using the `ambassador-config` Kubernetes `ConfigMap` that was required in earlier versions of Ambassador, you'll need to create the `ambassador-certs` Kubernetes `secret` as above, but you'll also need to make sure that the `ambassador` [module](../about/concepts.md#modules) is configured to allow TLS:
+However, you may also configure other options using Ambassador's `tls` module:
 
 ```yaml
 ---
 apiVersion: ambassador/v0
 kind:  Module
-name:  ambassador
+name:  tls
 config:
-  tls:
-    # The 'server' block configures TLS termination. 'enabled' is the only required element.
-    server:
-      enabled: True
+  # The 'server' block configures TLS termination. 'enabled' is the only
+  # required element.
+  server:
+    # If 'enabled' is not True, TLS termination will not happen.
+    enabled: True
+
+    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic 
+    # to that port will be redirected to HTTPS traffic. Typically you would
+    # use port 80, of course.
+    # redirect_cleartext_from: 80
+
+    # These are optional. They should not be present unless you are using
+    # a custom Docker build to install certificates onto the container
+    # filesystem.
+    # cert_chain_file: /etc/certs/tls.crt
+    # private_key_file: /etc/certs/tls.key
+
+  # The 'client' block configures TLS client-certificate authentication.
+  # 'enabled' is the only required element.
+  client:
+    # If 'enabled' is not True, TLS client-certificate authentication will
+    # not happen.
+    enabled: False
+
+    # If 'cert_required' is True, TLS client certificates will be required
+    # for every connection.
+    # cert_required: False
+
+    # This is optional. It should not be present unless you are using
+    # a custom Docker build to install certificates onto the container
+    # filesystem.
+    # cacert_chain_file: /etc/cacert/fullchain.pem
 ```
 
-Earlier versions of Ambassador required the `secret` to be mounted as a volume; this is **no longer required**, but should still function.
-
-## Configuring Using Files in an Image
-
-If you're building your own custom Ambassador image, you'll need to copy the certificate files into your image, and make sure your `ambassador` [module](../about/concepts.md#modules) is configured properly:
+Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443, you _must_ use the `tls` module:
 
 ```yaml
 ---
 apiVersion: ambassador/v0
 kind:  Module
-name:  ambassador
+name:  tls
 config:
-  tls:
-    # The 'server' block configures TLS termination. 'enabled' is the only required element.
-    server:
-      enabled: True
-      # These are optional: if not present, they take the values listed here,
-      # which match what's in ambassador-proxy.yaml.
-      # cert_chain_file: /etc/certs/tls.crt
-      # private_key_file: /etc/certs/tls.key
+  server:
+    enabled: True
+    redirect_cleartext_from: 80
 ```
 
-`cert_chain_file` and `private_key_file` are optional: if you copy your certificate files into `/etc/certs` as shown above, you needn't include them. If you put the certificate files somewhere else, you'll need to update the paths to match.
+is the minimal YAML to do this.
+
+If you need a `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself. 
+
+## Legacy configuration options
+
+It's still possible - but not recommended! - to configure Ambassador using a `ConfigMap`, or with YAML files on the container filesystem. If you think you'll need to do this, please contact us on [Gitter](https://gitter.im/datawire/ambassador).
+
