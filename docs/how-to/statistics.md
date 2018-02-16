@@ -26,7 +26,7 @@ This sets up Graphite access at `http://localhost:8080/`.
 
 ## Prometheus
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you should deploy a StatsD exporter as a sidecar on each of your Ambassador pods as shown in this [example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/ambassador-rbac-statsd.yaml).
+[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you should deploy a StatsD exporter as a sidecar on each of your Ambassador pods as shown in this [example](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml).
 
 The `statsd-sink` service referenced in this example is built on the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter), and configured in this [Dockerfile](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-exporter/Dockerfile).
 

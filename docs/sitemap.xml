@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+  <loc>https://www.getambassador.io/</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/user-guide/getting-started</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/about/why-ambassador</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/user-guide/auth-tutorial</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/about/microservices-api-gateways</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/about/features-and-benefits</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/about/roadmap</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/how-to/grpc</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/how-to/tls-termination</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/how-to/statistics</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/user-guide/running</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/user-guide/upgrading</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/configuration</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/how-to/auth-external</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/user-guide/with-istio</loc>
+  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+
+
+</urlset>
