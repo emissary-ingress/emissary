@@ -55,6 +55,11 @@ git diff --stat "$DIFF_RANGE"
 nondoc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
 doc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
 
+# # Use this hack to force a doc-only build. Ew.
+# nondoc_changes=0
+# doc_changes=1
+# TRAVIS_COMMIT_RANGE=some
+
 # Default VERSION to _the current version of Ambassador._
 VERSION=$(python scripts/versioner.py)
 
@@ -160,9 +165,8 @@ if [ $doc_changes -gt 0 ]; then
     $ECHO make VERSION=${VERSION} travis-website
 
     $ECHO docs/node_modules/.bin/netlify --access-token "${NETLIFY_TOKEN}" \
-        deploy --path docs/_book \
-               --site-id datawire-ambassador \
-               "${NETLIFY_DRAFT}"
+        deploy $NETLIFY_DRAFT --path docs/_book \
+               --site-id datawire-ambassador
 else
     echo "Not building docs for $VERSION; no doc changes"
 fi

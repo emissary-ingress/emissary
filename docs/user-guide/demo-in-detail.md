@@ -1,6 +1,6 @@
 # Demo in Detail
 
-Ambassador is an API Gateway for microservices, so to get started, it's helpful to actually have a running service to use it with. We'll use Datawire's "Quote of the Moment" service (`qotm`) for this; you can deploy it into Kubernetes with
+Ambassador is an API gateway for microservices, so to get started, it's helpful to actually have a running service to use it with. We'll use Datawire's "Quote of the Moment" service (`qotm`) for this; you can deploy it into Kubernetes with
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/demo/demo-qotm.yaml
@@ -167,7 +167,7 @@ We don't actually need to change any mappings, since the auth service is respons
 curl $AMBASSADORURL/qotm/quote/10
 ```
 
-...then you'll see that it works, even though it seems like it should need authentication! 
+...then you'll see that it works, even though it seems like it should need authentication!
 
 The problem is that we only changed the Ambassador config on the local disk -- we need to update the `ConfigMap`, and we need to force a new rollout of Ambassador so that it can reconfigure everything.
 

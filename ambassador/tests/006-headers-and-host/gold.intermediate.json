@@ -1,8 +1,15 @@
 {
     "envoy_config": {
+        "admin": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001
+            }
+        ],
         "clusters": [
             {
                 "_referenced_by": [
+                    "--internal--",
                     "mapping-diag.yaml.1"
                 ],
                 "_service": "127.0.0.1:8877",
@@ -84,6 +91,11 @@
         ],
         "filters": [
             {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
                 "_source": "auth.yaml.1",
                 "config": {
                     "allowed_headers": [
@@ -97,16 +109,38 @@
                 },
                 "name": "extauth",
                 "type": "decoder"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
+                "type": "decoder"
             }
         ],
         "listeners": [
             {
                 "_source": "--internal--",
-                "admin_port": 8001,
+                "require_tls": false,
                 "service_port": 80
             }
         ],
         "routes": [
+            {
+                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+                "_method": "GET",
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready"
+            },
             {
                 "_group_id": "3d6174456a466eb4f342d4aa4165bd8c2b99ce1e",
                 "_method": "GET",
@@ -129,6 +163,22 @@
                 ],
                 "prefix": "/qotm/",
                 "prefix_rewrite": "/qotm/"
+            },
+            {
+                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+                "_method": "GET",
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive"
             },
             {
                 "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
@@ -160,16 +210,35 @@
                     }
                 ],
                 "cors": {
-                    "expose_headers": "X-Custom-Header",
-                    "allow_headers": "Content-Type",
-                    "max_age": "86400",
-                    "allow_methods": "POST, GET, OPTIONS",
-                    "allow_origin": ["http://foo.example", "http://bar.example"],
                     "allow_credentials": true,
-                    "enabled": true
+                    "allow_headers": "Content-Type",
+                    "allow_methods": "POST, GET, OPTIONS",
+                    "allow_origin": [
+                        "http://foo.example",
+                        "http://bar.example"
+                    ],
+                    "enabled": true,
+                    "expose_headers": "X-Custom-Header",
+                    "max_age": "86400"
                 },
                 "prefix": "/cors-creds/",
                 "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_method": "GET",
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/",
+                "prefix_rewrite": "/ambassador/v0/"
             },
             {
                 "_group_id": "c208ab7e4e146b9a8bbdebadc7b33f99bc635ab7",
@@ -275,7 +344,9 @@
                     }
                 ],
                 "cors": {
-                    "allow_origin": ["*"],
+                    "allow_origin": [
+                        "*"
+                    ],
                     "enabled": true
                 },
                 "prefix": "/cors-all/",
@@ -308,6 +379,7 @@
     },
     "sources": {
         "--diagnostics--": {
+            "_source": "--diagnostics--",
             "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
             "filename": "--diagnostics--",
             "index": 0,
@@ -316,6 +388,7 @@
             "version": "v0"
         },
         "--internal--": {
+            "_source": "--internal--",
             "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
             "filename": "--internal--",
             "index": 0,

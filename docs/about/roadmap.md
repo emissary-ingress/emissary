@@ -1,6 +1,6 @@
 # Roadmap
 
-Ambassador is an API Gateway for microservices built on [Envoy](https://www.envoyproxy.io). Planned features for future releases include the following:
+Ambassador is an API gateway for microservices built on [Envoy](https://www.envoyproxy.io). Planned features for future releases include the following:
 
 * Enhanced diagnostics service
 * Advanced integration with Istio

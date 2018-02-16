@@ -1,5 +1,11 @@
 {
     "envoy_config": {
+        "admin": [
+            {
+                "_source": "ambassador.yaml.1",
+                "admin_port": 4242
+            }
+        ],
         "clusters": [
             {
                 "_referenced_by": [
@@ -28,12 +34,31 @@
                 ]
             }
         ],
-        "filters": [],
+        "filters": [
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
+                "type": "decoder"
+            }
+        ],
         "listeners": [
             {
                 "_source": "ambassador.yaml.1",
-                "admin_port": 4242,
-                "service_port": 443
+                "require_tls": false,
+                "service_port": 443,
+                "tls": {
+                    "_source": "tls.yaml.1",
+                    "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
+                    "cert_required": true,
+                    "private_key_file": "/etc/ambassador-config/certs/tls.key"
+                }
             }
         ],
         "routes": [
@@ -85,15 +110,6 @@
                 "prefix": "/ambassador/v0/",
                 "prefix_rewrite": "/ambassador/v0/"
             }
-        ],
-        "tls": [
-            {
-                "_source": "tls.yaml.1",
-                "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-                "cert_required": true,
-                "private_key_file": "/etc/ambassador-config/certs/tls.key"
-            }
         ]
     },
     "source_map": {
@@ -112,6 +128,7 @@
     },
     "sources": {
         "--diagnostics--": {
+            "_source": "--diagnostics--",
             "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
             "filename": "--diagnostics--",
             "index": 0,
@@ -120,6 +137,7 @@
             "version": "v0"
         },
         "--internal--": {
+            "_source": "--internal--",
             "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
             "filename": "--internal--",
             "index": 0,

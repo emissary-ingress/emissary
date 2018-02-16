@@ -19,6 +19,7 @@ metadata:
       config:
         server:
           enabled: True
+          redirect_cleartext_from: 80
           # These are optional.
           cert_chain_file: /etc/certs/termination/tls.crt
           private_key_file: /etc/certs/termination/tls.key
@@ -46,8 +47,12 @@ spec:
   selector:
     app: ambassador
   ports:
-    - name: http
+    - name: https
       protocol: TCP
       port: 443
       targetPort: 443
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
   type: NodePort

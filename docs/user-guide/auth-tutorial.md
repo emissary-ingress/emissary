@@ -2,7 +2,7 @@
 
 Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service.
 
-## Before you get started
+## Before You Get Started
 
 This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
 
@@ -79,7 +79,7 @@ Wait for the pod to be running before continuing. The best test here is to use `
 kubectl port-forward $example-auth-pod-name 3000
 ```
 
-then in another 
+then in another
 
 ```shell
 $ curl http://localhost:3000/ready
@@ -118,9 +118,9 @@ spec:
     targetPort: http-api
 ```
 
-This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional. 
+This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
 
-You can apply this file from getambassdor.io with
+You can apply this file from getambassador.io with
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
