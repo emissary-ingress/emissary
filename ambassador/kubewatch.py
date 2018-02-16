@@ -29,7 +29,7 @@ logging.basicConfig(
 
 # logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
 logger = logging.getLogger("kubewatch")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 KEY = "getambassador.io/config"
 
@@ -81,7 +81,7 @@ class Restarter(threading.Thread):
 
     def read_fs(self, path):
         if os.path.exists(path):
-            logger.info("Merging config inputs from %s" % path)
+            logger.debug("Merging config inputs from %s" % path)
 
             for name in os.listdir(path):
                 if name.endswith(".yaml"):
@@ -90,7 +90,7 @@ class Restarter(threading.Thread):
                     with open(filepath) as fd:
                         self.configs[name] = self.read_yaml(fd.read(), "file %s" % filepath)
 
-                    logger.info("Loaded %s" % filepath)
+                    logger.debug("Loaded %s" % filepath)
 
     def changes(self):
         with self.mutex:
@@ -104,7 +104,7 @@ class Restarter(threading.Thread):
             with self.mutex:
                 changes = self.changes()
                 if changes > 0:
-                    logger.info("Processing %s changes" % (changes))
+                    logger.debug("Processing %s changes" % (changes))
                     try:
                         self.restart()
                     except:
@@ -128,7 +128,7 @@ class Restarter(threading.Thread):
 
         os.rename(config, target)
 
-        logger.info("Moved valid configuration %s to %s" % (config, target))
+        logger.debug("Moved valid configuration %s to %s" % (config, target))
         if self.pid:
             os.kill(self.pid, signal.SIGHUP)
 
@@ -140,9 +140,13 @@ class Restarter(threading.Thread):
             path = os.path.join(output, filename)
             with open(path, "w") as fd:
                 fd.write(config)
-            logger.info("Wrote %s to %s" % (filename, path))
+            logger.debug("Wrote %s to %s" % (filename, path))
 
-        logger.info("generating config with gencount %d" % self.restart_count)
+        changes = self.changes()
+        plural = "" if (changes == 1) else "s"
+
+        logger.info("generating config with gencount %d (%d change%s)" % 
+                    (self.restart_count, changes, plural))
 
         aconf = Config(output)
         rc = aconf.generate_envoy_config(mode="kubewatch",
@@ -157,7 +161,7 @@ class Restarter(threading.Thread):
                 result = subprocess.check_output(["/usr/local/bin/envoy", "--base-id", "1", "--mode", "validate",
                                                   "-c", envoy_config])
                 if result.strip().endswith(b" OK"):
-                    logger.info("Configuration %s valid" % envoy_config)
+                    logger.debug("Configuration %s valid" % envoy_config)
                     return envoy_config
             except subprocess.CalledProcessError:
                 logger.info("Invalid envoy config")
@@ -197,7 +201,7 @@ class Restarter(threading.Thread):
         return metadata + "\n" + sep + raw_yaml
 
     def update(self, key, config):
-        logger.info("update: including key %s" % key)
+        logger.debug("update: including key %s" % key)
 
         with self.mutex:
             need_update = False
@@ -221,7 +225,7 @@ class Restarter(threading.Thread):
     def poke(self):
         with self.mutex:
             if self.processed == self.pokes:
-                logger.info("Scheduling restart")
+                logger.debug("Scheduling restart")
             self.pokes += 1
 
 
@@ -365,7 +369,7 @@ def sync(restarter):
             for svc in svc_list.items:
                 restarter.update_from_service(svc)
 
-    logger.info("Changes detected, regenerating envoy config.")
+    logger.debug("Changes detected, regenerating envoy config.")
     restarter.restart()
 
 def watch_loop(restarter):
@@ -380,8 +384,9 @@ def watch_loop(restarter):
             watched = w.stream(v1.list_service_for_all_namespaces)
 
         for evt in watched:
-            logger.info("Event: %s %s/%s" % (evt["type"], 
-                                       evt["object"].metadata.namespace, evt["object"].metadata.name))
+            logger.debug("Event: %s %s/%s" % 
+                         (evt["type"], 
+                          evt["object"].metadata.namespace, evt["object"].metadata.name))
             sys.stdout.flush()
 
             if evt["type"] == "DELETED":

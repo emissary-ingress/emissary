@@ -332,15 +332,15 @@ class Config (object):
         kind = obj.get('kind', None)
 
         if kind != "Service":
-            self.logger.info("%s/%s: ignoring K8s %s object" % 
+            self.logger.debug("%s/%s: ignoring K8s %s object" % 
                              (filename, ocount, kind))
             return
 
         metadata = obj.get('metadata', None)
 
         if not metadata:
-            self.logger.info("%s/%s: ignoring unannotated K8s %s" % 
-                             (filename, ocount, kind))
+            self.logger.debug("%s/%s: ignoring unannotated K8s %s" % 
+                              (filename, ocount, kind))
             return
 
         annotations = metadata.get('annotations', None)
@@ -348,11 +348,11 @@ class Config (object):
         if annotations:
             annotations = annotations.get('getambassador.io/config', None)
 
-        # self.logger.info("annotations %s" % annotations)
+        # self.logger.debug("annotations %s" % annotations)
 
         if not annotations:
-            self.logger.info("%s/%s: ignoring K8s %s without Ambassador annotation" % 
-                             (filename, ocount, kind))
+            self.logger.debug("%s/%s: ignoring K8s %s without Ambassador annotation" % 
+                              (filename, ocount, kind))
             return
 
         self.load_yaml(filename + ":annotation", annotations)
@@ -372,7 +372,7 @@ class Config (object):
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
 
-            self.logger.info("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
+            self.logger.debug("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
 
             rc = self.process_object(obj)
 
@@ -606,7 +606,7 @@ class Config (object):
                                  cb_name=None, od_name=None, originate_tls=None,
                                  grpc=False):
         if name not in self.envoy_clusters:
-            self.logger.info("CLUSTER %s: new from %s" % (name, _source))
+            self.logger.debug("CLUSTER %s: new from %s" % (name, _source))
 
             cluster = SourcedDict(
                 _source=_source,
@@ -648,7 +648,7 @@ class Config (object):
 
             self.envoy_clusters[name] = cluster
         else:
-            self.logger.info("CLUSTER %s: referenced by %s" % (name, _source))
+            self.logger.debug("CLUSTER %s: referenced by %s" % (name, _source))
 
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
