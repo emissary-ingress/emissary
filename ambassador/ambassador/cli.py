@@ -122,6 +122,15 @@ def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
         # This is fatal.
         sys.exit(1)
 
+def validate(config_dir_path:Parameter.REQUIRED, *, k8s=False):
+    """
+    Validate an Ambassador configuration
+
+    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param k8s: If set, assume configuration files are annotated K8s manifests
+    """
+    config(config_dir_path, os.devnull, k8s=k8s, exit_on_error=True)
+
 def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *,
            check=False, k8s=False, exit_on_error=False):
     """
@@ -200,7 +209,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
         sys.exit(1)
 
 def main():
-    clize.run([config, dump], alt=[version, showid],
+    clize.run([config, dump, validate], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
