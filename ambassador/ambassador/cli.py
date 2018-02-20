@@ -181,11 +181,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
 
             # If exit_on_error is set, log errors and exit with status 1
             if exit_on_error and aconf.errors:
-                # Configuration errors were already logged, only indicate their location
-                logger.error("Configuration errors in: {0}".format(', '.join(aconf.errors.keys())))
-
-                # exit_on_error was specified
-                sys.exit(1)
+                raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
             rc = aconf.generate_envoy_config(mode="cli", check=check)
 
