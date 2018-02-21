@@ -158,7 +158,7 @@ An `AuthService` manifest configures Ambassador to use an external service to ch
 ```yaml
 ---
 apiVersion: ambassador/v0
-kind:  AuthService
+kind:  Module
 name:  authentication
 config:
   auth_service: "example-auth:3000"
