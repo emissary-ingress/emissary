@@ -74,7 +74,8 @@
                     "_source": "tls.yaml.1",
                     "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "private_key_file": "/etc/ambassador-config/certs/tls.key"
-                }
+                },
+                "use_proto_proxy": false
             }
         ],
         "routes": [

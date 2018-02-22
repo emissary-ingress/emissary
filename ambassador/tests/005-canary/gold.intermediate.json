@@ -65,7 +65,8 @@
             {
                 "_source": "--internal--",
                 "require_tls": false,
-                "service_port": 80
+                "service_port": 80,
+                "use_proto_proxy": false
             }
         ],
         "routes": [
