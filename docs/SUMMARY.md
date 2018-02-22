@@ -9,7 +9,6 @@
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-* [Roadmap](about/roadmap.md)
 
 ## Tutorials
 
@@ -18,6 +17,7 @@
 * [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
 * [Statistics and Monitoring](how-to/statistics.md)
+* [More tutorials](https://blog.getambassador.io/howto/home)
 
 ## Reference
 
