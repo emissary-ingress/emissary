@@ -59,7 +59,7 @@
                     "cert_required": true,
                     "private_key_file": "/etc/ambassador-config/certs/tls.key"
                 },
-                "use_proto_proxy": false
+                "use_proxy_proto": false
             }
         ],
         "routes": [

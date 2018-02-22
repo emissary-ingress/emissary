@@ -3,7 +3,7 @@
     {% for listener in listeners %}
     {
       "address": "tcp://0.0.0.0:{{ listener.service_port }}",
-      {% if listener.use_proxy_proto -%}use_proxy_proto: true,{%- endif %}
+      {% if listener.use_proxy_proto -%}"use_proxy_proto": true,{%- endif %}
       {% if listener.tls -%}
       "ssl_context": {
         {%- if listener.tls.cert_chain_file -%}

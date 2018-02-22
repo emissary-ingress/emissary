@@ -1,7 +1,9 @@
 {
   "listeners": [
+    
     {
       "address": "tcp://0.0.0.0:443",
+      "use_proxy_proto": true,
       "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
           "private_key_file": "/etc/ambassador-config/certs/tls.key","ca_cert_file": "/etc/ambassador-config/ca_cert_chain/tls.crt","require_client_certificate": true
       },"filters": [
@@ -21,8 +23,7 @@
               "virtual_hosts": [
                 {
                   "name": "backend",
-                  "domains": ["*"],
-                  "routes": [
+                  "domains": ["*"],"routes": [
                     
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
@@ -238,7 +239,7 @@
           }
         }
       ]
-    }    
+    }
   ],
   "admin": {
     "address": "tcp://127.0.0.1:8001",
@@ -327,6 +328,16 @@
           
         ]},
       {
+        "name": "cluster_qotm_cb_custom",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://qotm:80"
+          }
+          
+        ],
         "circuit_breakers": {
           "default": {
             "max_connections": 1,
@@ -334,17 +345,7 @@
             "max_requests": 2,
             "max_retries": 4
           }
-        },
-        "connect_timeout_ms": 3000,
-        "hosts": [
-          {
-            "url": "tcp://qotm:80"
-          }
-        ],
-        "lb_type": "round_robin",
-        "name": "cluster_qotm_cb_custom",
-        "type": "strict_dns"
-      },
+        }},
       {
         "name": "cluster_qotm_cb_default",
         "connect_timeout_ms": 3000,

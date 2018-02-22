@@ -800,7 +800,7 @@ class Config (object):
             _from=self.ambassador_module,
             service_port=self.ambassador_module["service_port"],
             require_tls=False,
-            use_proto_proxy=self.ambassador_module['use_proxy_proto']
+            use_proxy_proto=self.ambassador_module['use_proxy_proto']
         )
 
         redirect_cleartext_from = None
@@ -824,7 +824,7 @@ class Config (object):
                 # Note: no TLS context here, this is a cleartext listener.
                 # We can set require_tls True because we can let the upstream
                 # tell us about that.
-                use_proto_proxy=self.ambassador_module['use_proxy_proto']
+                use_proxy_proto=self.ambassador_module['use_proxy_proto']
             ))
 
         self.default_liveness_probe['service'] = self.diag_service()
