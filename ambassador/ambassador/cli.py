@@ -91,7 +91,7 @@ def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_
         return Config(config_dir_path, k8s=k8s,
                       template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
     except Exception as e:
-        handle_exception("EXCEPTION from parse_config", e, 
+        handle_exception("EXCEPTION from parse_config", e,
                          config_dir_path=config_dir_path, template_dir_path=template_dir_path,
                          schema_dir_path=schema_dir_path)
 
@@ -116,14 +116,23 @@ def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
 
         json.dump(diag_object, sys.stdout, indent=4, sort_keys=True)
     except Exception as e:
-        handle_exception("EXCEPTION from dump", e, 
+        handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
 
         # This is fatal.
         sys.exit(1)
 
-def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *, 
-           check=False, k8s=False):
+def validate(config_dir_path:Parameter.REQUIRED, *, k8s=False):
+    """
+    Validate an Ambassador configuration
+
+    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param k8s: If set, assume configuration files are annotated K8s manifests
+    """
+    config(config_dir_path, os.devnull, k8s=k8s, exit_on_error=True)
+
+def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *,
+           check=False, k8s=False, exit_on_error=False):
     """
     Generate an Envoy configuration
 
@@ -131,6 +140,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
     :param output_json_path: Path to output envoy.json
     :param check: If set, generate configuration only if it doesn't already exist
     :param k8s: If set, assume configuration files are annotated K8s manifests
+    :param exit_on_error: If set, will exit with status 1 on any configuration error
     """
 
     try:
@@ -168,10 +178,15 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
             aconf = parse_config(config_dir_path, k8s=k8s)
+
+            # If exit_on_error is set, log errors and exit with status 1
+            if exit_on_error and aconf.errors:
+                raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
+
             rc = aconf.generate_envoy_config(mode="cli", check=check)
 
             if rc:
-                aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))   
+                aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))
             else:
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
                 logger.error("Raw template output:")
@@ -183,22 +198,22 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
 
         show_notices()
     except Exception as e:
-        handle_exception("EXCEPTION from config", e, 
+        handle_exception("EXCEPTION from config", e,
                          config_dir_path=config_dir_path, output_json_path=output_json_path)
 
         # This is fatal.
         sys.exit(1)
 
 def main():
-    clize.run([config, dump], alt=[version, showid],
+    clize.run([config, dump, validate], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
-              ambassador.py command --help 
+              ambassador.py command --help
 
-              for more help, or 
+              for more help, or
 
-              ambassador.py --version               
+              ambassador.py --version
 
               to see Ambassador's version.
               """)
