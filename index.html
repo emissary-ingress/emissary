@@ -15,6 +15,7 @@
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,900" type="text/css" media="all" />
     <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
     <link rel="stylesheet" href="/css/home.css">
 
     <!-- Google Tag Manager -->
@@ -132,6 +133,26 @@
                 </div>
             </div>
         </section>
+        <section id="quotes" class="bg-gray padding-top-75 padding-bottom-60">
+            <div class="container">
+                <div class="quote-container">
+                    <div class="quotes bg-white border-gray box-shadow content-box">
+                        <div>
+                            <div class="quote">
+                                <img class="logo hidden-xs" src="/images/quote.svg">
+                                <div class="quote-content">
+                                    <p>"Ambassador seemed like the only solution that makes dynamically adding routes
+                                        easy and the fact that I can do that just by creating a service and annotating
+                                        it is awesome! Without Ambassador I don’t know how we would have easily made
+                                        all the different web services comprising Kubeflow available to users."</p>
+                                    <p><span class="author">Jeremy Lewi, Software Engineer, Google</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
         <section id="get-started" class="bg-gray padding-top-75">
             <h1 class="text-lg text-uppercase text-center padding-bottom-75">It's easy to get started:</h1>
             <div class="container">
@@ -206,6 +227,7 @@ docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VE
         </footer>
         <script async defer src="https://buttons.github.io/buttons.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
         <script>
             $(document).ready(function() {
                 changeTab($('.about-tabs li.tab:first-child').data('tabid'));
@@ -221,6 +243,8 @@ docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VE
                     $('.tab-content div').hide();
                     $('#' + tabId).show();
                 }
+
+                $('.quotes').slick();
 
                 $('.alert .close').click(function(e) {
                    $(this).parent().hide();
