@@ -9,6 +9,8 @@ kind: Mapping
 name: long_get_mapping
 prefix: /long/
 method: GET
+regex_headers:
+  foo: "^bar\\.example\\.com$"
 service: really-really-really-long-no-i-mean-really-really-really-really-long-service
 ---
 apiVersion: ambassador/v0

@@ -66,7 +66,7 @@ class Mapping (object):
             else:
                 self.headers.append({ "name": name, "value": value, "regex": False })
 
-        for name, value in self.get('regex_headers', []):
+        for name, value in self.get('regex_headers', {}).items():
             self.headers.append({ "name": name, "value": value, "regex": True })
 
         if 'host' in self.attrs:

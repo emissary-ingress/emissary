@@ -1,5 +1,6 @@
 {
   "listeners": [
+    
     {
       "address": "tcp://0.0.0.0:443",
       "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
@@ -21,8 +22,7 @@
               "virtual_hosts": [
                 {
                   "name": "backend",
-                  "domains": ["*"],
-                  "routes": [
+                  "domains": ["*"],"routes": [
                     
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
@@ -116,6 +116,19 @@
                     ,
                     
                     {
+                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": "foo", "regex": true, "value": "^bar\\.example\\.com$"}, {"name": ":method", "regex": false, "value": "GET"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_really_really_really_long_no_i_m-0", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
                       "timeout_ms": 3000,"prefix": "/google/","prefix_rewrite": "/","host_rewrite": "google.com",
                       "weighted_clusters": {
                           "clusters": [
@@ -147,19 +160,6 @@
                           "clusters": [
                               
                                  { "name": "cluster_really_really_really_long_no_i_m-1", "weight": 100.0 }
-                              
-                          ]
-                      }
-                      
-                    }
-                    ,
-                    
-                    {
-                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
-                      "weighted_clusters": {
-                          "clusters": [
-                              
-                                 { "name": "cluster_really_really_really_long_no_i_m-0", "weight": 100.0 }
                               
                           ]
                       }
@@ -238,7 +238,7 @@
           }
         }
       ]
-    }    
+    }
   ],
   "admin": {
     "address": "tcp://127.0.0.1:8001",
@@ -327,6 +327,16 @@
           
         ]},
       {
+        "name": "cluster_qotm_cb_custom",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://qotm:80"
+          }
+          
+        ],
         "circuit_breakers": {
           "default": {
             "max_connections": 1,
@@ -334,17 +344,7 @@
             "max_requests": 2,
             "max_retries": 4
           }
-        },
-        "connect_timeout_ms": 3000,
-        "hosts": [
-          {
-            "url": "tcp://qotm:80"
-          }
-        ],
-        "lb_type": "round_robin",
-        "name": "cluster_qotm_cb_custom",
-        "type": "strict_dns"
-      },
+        }},
       {
         "name": "cluster_qotm_cb_default",
         "connect_timeout_ms": 3000,
