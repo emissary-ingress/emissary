@@ -5,14 +5,16 @@
 
 ----
 
-* [Microservices API Gateways](about/microservices-api-gateways.md)
+## Getting Started
+
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
+* [Five minute quickstart](user-guide/quickstart.md)
+* [Deploying to Kubernetes](user-guide/getting-started.md)
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
 ## Guides
 
-* [Getting Started](user-guide/getting-started.md)
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
@@ -26,10 +28,10 @@
   * [Mappings](reference/mappings.md)
   * [Advanced configuration topics](references/advanced.md)
 * [Running Ambassador](user-guide/running.md)
-* [Statistics and Monitoring](how-to/statistics.md)
 * [Upgrading Ambassador](user-guide/upgrading.md)
-
+* [Statistics and Monitoring](how-to/statistics.md)
 * [Auth With an External Auth Service](how-to/auth-external.md)
+* [Microservices API Gateways](about/microservices-api-gateways.md)
 
 ## Developers
 
