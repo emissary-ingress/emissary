@@ -11,13 +11,14 @@
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 * [Roadmap](about/roadmap.md)
 
-## Tutorials
+## Guides
 
 * [Getting Started](user-guide/getting-started.md)
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
-* [More tutorials](https://blog.getambassador.io/howto/home)
+* [Istio and Ambassador](user-guide/with-istio.md)
+* [More guides](https://blog.getambassador.io/howto/home)
 
 ## Reference
 
@@ -25,8 +26,9 @@
 * [Statistics and Monitoring](how-to/statistics.md)
 * [Upgrading Ambassador](user-guide/upgrading.md)
 * [Configuring Ambassador](reference/configuration.md)
+  * [Modules and AuthService](reference/modules.md)
+  * [Mappings](reference/mappings.md)
 * [Auth With an External Auth Service](how-to/auth-external.md)
-* [Istio and Ambassador](user-guide/with-istio.md)
 
 ## Developers
 
