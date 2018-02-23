@@ -1,44 +1,16 @@
 # Running Ambassador
 
-The simplest way to run Ambassador is **not** to build it! Instead, just use the YAML files published at https://www.getambassador.io, and start by deciding whether you want to use TLS or not. (If you want more information on TLS, check out our [TLS Overview](../how-to/tls-termination.md).) It's possible to switch this later, but it's a pain, and may well involve mucking about with your DNS and such to do it, so it's better to decide up front.
+## Ambassador and Kubernetes
 
-### Creating the Ambassador Service With TLS
+Ambassador relies on Kubernetes for reliability, availability, and scalability. This means that features such as Kubernetes readiness and liveness probes, rolling updates, and the Horizontal Pod Autoscaling should be utilized to manage Ambassador.
 
-You'll need to follow the steps in the [Ambassador TLS Termination](/how-to/tls-termination.md) guide to configure TLS certificates, including using
+## Default configuration
 
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
-```
-
-to create the HTTPS Ambassador service.
-
-### Creating the Ambassador Service Without TLS
-
-**We recommend using TLS**, but if for some reason you can't, you create the HTTP-only Ambassador service with
-
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-http.yaml
-```
-
-### Deploying Ambassador After Creating the Service
-
-Once the Ambassador service is creating, to actually deploy Ambassador you can use
-
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-```
-
-if Kubernetes Role Based Access Control (RBAC) is enabled, or
-
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
-```
-
-if not.
+The default configuration of Ambassador includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
 
 ## Diagnostics
 
-Ambassador provides a diagnostics overview on port 8877 by default. This is deliberately not exposed to the outside world; you'll need to use `kubectl port-forward` for access, something like
+If Ambassador is not routing your services as you'd expect, your first step should be the Ambassador Diagnostics service. This is exposed on port 8877 by default. You'll need to use `kubectl port-forward` for access, e.g.,
 
 ```shell
 kubectl port-forward ambassador-xxxx-yyy 8877
@@ -58,14 +30,15 @@ If needed, you can get JSON output from the diagnostic service, instead of HTML:
 
 `curl http://localhost:8877/ambassador/v0/diag/?json=true`
 
-## Debugging
+## Troubleshooting
 
-If you're running into an issue and the diagnostics service does not provide sufficient information, you can increase the debug level of Envoy. To do so:
+If the diagnostics service does not provide sufficient information, Kubernetes and Envoy provide additional debugging information.
 
-* get a shell on your Ambassador pod with `kubectl exec`
-* Turn Envoy’s debug logging on with `curl localhost:8001/logging?level=debug`
-* Issue your request
-* Turn Envoy’s logging back to normal with `curl localhost:8001/logging?level=warning`
-* View Envoy's logs with `kubectl logs`
+If Ambassador isn't working at all, start by looking at the data from the following:
 
-Envoy’s debug logging is very verbose. You can do `localhost:8001/logging?level=debug; sleep 5; curl localhost:8001/logging?level=warning` and then issue the request right after pressing RETURN on that.
+* `kubectl describe pod <ambassador-pod>` will give you a list of all events on the Ambassador pod
+* `kubectl logs <ambassador-pod> ambassador` will give you a log from Ambassador itself
+
+If you need additional help, feel free to join our Gitter chat with the above information (along with your Kubernetes manifest).
+
+You can also increase the debug of Envoy through the button in the diagnostics panel. Turn on debug logging, issue a request, and capture the log output from the Ambassador pod using `kubectl logs` as described above.
