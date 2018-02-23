@@ -16,12 +16,12 @@
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
-* [Statistics and Monitoring](how-to/statistics.md)
 * [More tutorials](https://blog.getambassador.io/howto/home)
 
 ## Reference
 
 * [Running Ambassador](user-guide/running.md)
+* [Statistics and Monitoring](how-to/statistics.md)
 * [Upgrading Ambassador](user-guide/upgrading.md)
 * [Configuring Ambassador](reference/configuration.md)
 * [Auth With an External Auth Service](how-to/auth-external.md)
