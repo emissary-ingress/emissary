@@ -2,7 +2,7 @@
 
 So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now switch to Kubernetes, using service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
-## 1 Defining the Ambassador Service
+## 1. Defining the Ambassador Service
 
 Ambassador is deployed as a Kubernetes service. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
