@@ -22,12 +22,14 @@
 
 ## Reference
 
-* [Running Ambassador](user-guide/running.md)
-* [Statistics and Monitoring](how-to/statistics.md)
-* [Upgrading Ambassador](user-guide/upgrading.md)
 * [Configuring Ambassador](reference/configuration.md)
   * [Modules and AuthService](reference/modules.md)
   * [Mappings](reference/mappings.md)
+  * [Advanced configuration topics](references/advanced.md)
+* [Running Ambassador](user-guide/running.md)
+* [Statistics and Monitoring](how-to/statistics.md)
+* [Upgrading Ambassador](user-guide/upgrading.md)
+
 * [Auth With an External Auth Service](how-to/auth-external.md)
 
 ## Developers
