@@ -44,6 +44,10 @@ If you don't already have a Prometheus setup, the [Prometheus operator](https://
 
 If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
 
+## Grafana
+
+If you're using Grafana, Alex Gervais has written a template [Grafana dashboard for Ambassador](https://grafana.com/dashboards/4698).
+
 ## Datadog
 
 If you are a user of the [Datadog](https://www.datadoghq.com/) monitoring system, pulling in Ambassador statistics is very easy. Replace the sample API key in the YAML file with your own, then launch the DogStatsD agent:
