@@ -1,64 +1,8 @@
-# Getting Started With Ambassador
-
-Ambassador is an open source, Kubernetes-native API gateway. We'll do a quick tour of Ambassador with a demo configuration, before walking through how to deploy Ambassador in Kubernetes with a custom configuration.
-
-## 1. Running the Demo Configuration
-
-By default, Ambassador uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador on port 8080:
-
-```shell
-docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VERSION} --demo
-```
-
-## 2. Ambassador's Diagnostics
-
-Ambassador provides live diagnostics viewable with a web browser. While this would normally not be exposed to the public network, the Docker demo publishes the diagnostics service at the following URL:
-
-`http://localhost:8080/ambassador/v0/diag/`
-
-Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
-
-## 3. The Quote of the Moment Service
-
-Since Ambassador is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out here:
-
-```shell
-curl http://localhost:8080/qotm/
-```
-
-This request will route to the `qotm` service at `demo.getambassador.io`, and return a quote in a JSON object.
-
-You can also see the mapping by clicking the `mapping-qotm.yaml` link from the diagnostic overview, or by opening
-
-`http://localhost:8080/ambassador/v0/diag/mapping-qotm.yaml`
-
-## 4. Authentication
-
-On the diagnostic overview, you can also see that Ambassador is configured to do authentication -- click the `auth.yaml` link, or open
-
-`http://localhost:8080/ambassador/v0/diag/auth.yaml`
-
-for more here. Ambassador uses a demo authentication service at `demo.getambassador.io` to mediate access to the Quote of the Moment: simply getting a random quote is allowed without authentication, but to get a specific quote, you'll have to authenticate:
-
-```shell
-curl -v http://localhost:8080/qotm/quote/5
-```
-
-will return a 401, but
-
-```shell
-curl -v -u username:password http://localhost:8080/qotm/quote/5
-```
-
-will succeed. (Note that that's literally "username" and "password" -- the demo auth service is deliberately not very secure!)
-
-Note that it's up to the auth service to decide what needs authentication -- teaming Ambassador with an authentication service can be as flexible or strict as you need it to be.
-
-## 5. Ambassador in Kubernetes
+# Deploying Ambassador to Kubernetes
 
 So far, we've used a demo configuration, and run everything in our local Docker instance. We'll now switch to Kubernetes, using service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
-### 5.1 Defining the Ambassador Service
+## 1. Defining the Ambassador Service
 
 Ambassador is deployed as a Kubernetes service. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
@@ -102,7 +46,7 @@ The YAML above does several things:
 
 Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
 
-### 5.2 Deploying Ambassador
+## 2. Deploying Ambassador
 
 Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use:
 
@@ -124,7 +68,7 @@ Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant p
 $ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-### 5.3 Testing the Mapping
+## 3. Testing the Mapping
 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
@@ -145,7 +89,7 @@ You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`
 $ curl 35.36.37.38/httpbin/
 ```
 
-## 6. Adding a Service
+## 4. Adding a Service
 
 You can add a service just by deploying it with an appropriate annotation. For example, we can deploy the QoTM service locally in this cluster and automatically map it through Ambassador by creating `qotm.yaml` with the following:
 
@@ -209,7 +153,7 @@ A few seconds after the QoTM service is running, Ambassador should be configured
 $ curl 35.36.37.38/qotm/
 ```
 
-## 7. The Diagnostics Service in Kubernetes
+## 5. The Diagnostics Service in Kubernetes
 
 Note that we did not expose the diagnostics port for Ambassador, since we don't want to expose it on the Internet. To view it, we'll need to get the name of one of the ambassador pods:
 
@@ -228,7 +172,7 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 8. Next
+## 6. Next
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
