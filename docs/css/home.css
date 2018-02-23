@@ -172,6 +172,12 @@ h1, h2, h3, h4, h5, h6, strong {
     text-transform: uppercase;
 }
 
+@media screen and (max-width: 767px) {
+    .hidden-xs {
+        display: none !important;
+    }
+}
+
 .btn {
     padding: 15px 30px;
     text-transform: uppercase;
@@ -543,4 +549,64 @@ footer {
         padding-right: 15px;
         text-align: center;
     }
+}
+
+.quotes {
+    max-width: 100%;
+}
+.slick-arrow {
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0 10px;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    height: 37px;
+    width: 20px;
+    position: absolute;
+    top: 50%;
+    text-indent: -999999px;
+}
+.slick-prev {
+    background: url('/images/left-arrow.svg');
+    left: -50px;
+}
+.slick-next {
+    background: url('/images/right-arrow.svg');
+    right: -50px;
+}
+.quotes.content-box {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+.quote {
+    display: flex;
+    align-items: flex-start;
+}
+
+.quote p {
+    font-size: 20px;
+    font-weight: 300;
+    font-style: italic;
+}
+@media screen and (min-width: 768px) {
+    .quote p {
+        font-size: 30px;
+    }
+}
+
+.quote p .author {
+    font-weight: 400;
+    font-size: 20px;
+    color: #222222;
+}
+
+.quote img {
+    margin: 30px 100px 0 40px;
+}
+.quote img.logo {
+    margin: 10px 50px 0 30px;
+    max-width: 120px;
 }
