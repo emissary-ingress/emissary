@@ -30,7 +30,7 @@ Ambassador uses [Envoy](https://www.envoyproxy.io) for all traffic routing and p
 
 ## gRPC and HTTP/2 Support
 
-Ambassador fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and Ambassador](/how-to/grpc) for more information.
+Ambassador fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and Ambassador](/user-guide/grpc) for more information.
 
 ## Istio Integration
 
