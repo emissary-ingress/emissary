@@ -3,6 +3,7 @@
     {% for listener in listeners %}
     {
       "address": "tcp://0.0.0.0:{{ listener.service_port }}",
+      {% if listener.use_proxy_proto -%}"use_proxy_proto": true,{%- endif %}
       {% if listener.tls -%}
       "ssl_context": {
         {%- if listener.tls.cert_chain_file -%}
@@ -20,6 +21,9 @@
           "type": "read",
           "name": "http_connection_manager",
           "config": {
+            {%- if "use_remote_address" in listener -%}
+              "use_remote_address": {{ listener.use_remote_address | tojson }},
+            {%- endif -%}
             "codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [

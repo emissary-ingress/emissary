@@ -23,6 +23,9 @@ config:
   #   prefix: /ambassador/v0/are_you_ready_yet
   #   service: omg.omg:7777
 
+  use_proxy_proto: True
+  use_remote_address: True
+  
   # TLS defaults to unconfigured. Here's the simplest way.
   tls:
     server:
