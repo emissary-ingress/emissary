@@ -5,27 +5,33 @@
 
 ----
 
-* [Microservices API Gateways](about/microservices-api-gateways.md)
+## Getting Started
+
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
+* [Five minute quickstart](user-guide/quickstart.md)
+* [Deploying to Kubernetes](user-guide/getting-started.md)
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
-## Tutorials
+## Guides
 
-* [Getting Started](user-guide/getting-started.md)
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Use gRPC with Ambassador](how-to/grpc.md)
 * [TLS Termination](how-to/tls-termination.md)
-* [Statistics and Monitoring](how-to/statistics.md)
-* [More tutorials](https://blog.getambassador.io/howto/home)
+* [Istio and Ambassador](user-guide/with-istio.md)
+* [More guides](https://blog.getambassador.io/howto/home)
 
 ## Reference
 
+* [Configuring Ambassador](reference/configuration.md)
+  * [Modules and AuthService](reference/modules.md)
+  * [Mappings](reference/mappings.md)
+  * [Advanced configuration topics](references/advanced.md)
 * [Running Ambassador](user-guide/running.md)
 * [Upgrading Ambassador](user-guide/upgrading.md)
-* [Configuring Ambassador](reference/configuration.md)
+* [Statistics and Monitoring](how-to/statistics.md)
 * [Auth With an External Auth Service](how-to/auth-external.md)
-* [Istio and Ambassador](user-guide/with-istio.md)
+* [Microservices API Gateways](about/microservices-api-gateways.md)
 
 ## Developers
 

@@ -1,0 +1,29 @@
+## Ambassador configuration sequence
+
+When you run Ambassador within Kubernetes:
+
+1. At startup, Ambassador will look for the `ambassador-config` Kubernetes `ConfigMap`. If it exists, its contents will be used as the baseline Ambassador configuration.
+2. Ambassador will then scan Kubernetes `service`s in its namespace, looking for `annotation`s named `getambassador.io/config`. YAML from these `annotation`s will be merged into the baseline Ambassador configuration.
+3. Whenever any services change, Ambassador will update its `annotation`-based configuration.
+4. The baseline configuration, if present, will **never be updated** after Ambassador starts. To effect a change in the baseline configuration, use Kubernetes to force a redeployment of Ambassador.
+
+**Note:** the baseline configuration is not required. It is completely possible - indeed, recommended - to use _only_ `annotation`-based configuration.
+
+## Modifying Ambassador's Underlying Envoy Configuration
+
+Ambassador uses Envoy for the heavy lifting of proxying.
+
+If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use your own custom config template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
+
+Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary for a given use case (or better yet, submit a PR!) so that we can expose this in the future.
+
+## Configuring Ambassador via a Custom Image
+
+You can also run Ambassador by building a custom image that contains baked-in configuration:
+
+1. All the configuration data should be collected within a single directory on the filesystem.
+2. At image startup, run `ambassador config $configdir $envoy_json_out` where
+   - `$configdir` is the path of the directory containing the configuration data, and
+   - `$envoy_json_out` is the path to the `envoy.json` to be written.
+
+In this usage, Ambassador will not look for `annotation`-based configuration, and will not update any configuration after startup.

@@ -1,13 +1,14 @@
 {
   "listeners": [
+    
     {
       "address": "tcp://0.0.0.0:80",
+      
       "filters": [
         {
           "type": "read",
           "name": "http_connection_manager",
-          "config": {
-            "codec_type": "auto",
+          "config": {"codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [
               {
@@ -19,8 +20,7 @@
               "virtual_hosts": [
                 {
                   "name": "backend",
-                  "domains": ["*"],
-                  "routes": [
+                  "domains": ["*"],"routes": [
                     
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
@@ -145,7 +145,7 @@
           }
         }
       ]
-    }    
+    }
   ],
   "admin": {
     "address": "tcp://127.0.0.1:8001",
