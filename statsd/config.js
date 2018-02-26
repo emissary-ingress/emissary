@@ -1,6 +1,9 @@
 (function () {
     "use strict";
     return {
+        // Here's some documentation for this:
+        // https://github.com/etsy/statsd/blob/master/exampleConfig.js
+
         // Production configuration
         "backends": ["./backends/repeater"],
         "flushInterval": 10000,
