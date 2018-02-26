@@ -42,4 +42,4 @@ Ambassador supports authenticating incoming requests. When configured, Ambassado
 
 ## Integrated Diagnostics
 
-Ambassador includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador](https://www.getambassador.io/user-guide/running).
+Ambassador includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador](https://www.getambassador.io/reference/running).
