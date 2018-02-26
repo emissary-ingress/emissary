@@ -73,8 +73,14 @@ class Mapping (object):
             self.headers.append({
                 "name": ":authority",
                 "value": self['host'],
-                "regex": self.get('host_regex', False)
+                "regex": False
             })
+        elif 'host_regex' in self.attrs:
+            self.headers.append({
+                "name": ":authority",
+                "value": self['host_regex'],
+                "regex": True
+            })           
 
         if 'method' in self.attrs:
             self.headers.append({

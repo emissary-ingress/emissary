@@ -219,10 +219,11 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-long.yaml.2"
+                    "mapping-long.yaml.2",
+                    "mapping-long.yaml.3"
                 ],
                 "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service-two",
-                "_source": "mapping-long.yaml.2",
+                "_source": "mapping-long.yaml.3",
                 "lb_type": "round_robin",
                 "name": "cluster_really_really_really_long_no_i_m-1",
                 "type": "strict_dns",
@@ -363,12 +364,12 @@
                 "prefix_rewrite": "/"
             },
             {
-                "_group_id": "30f39d42f27d9bfc42f090a4398d77cb7c33cb3a",
-                "_method": "PUT",
+                "_group_id": "4d7f4c54aad81617d18e5eb02134d749b453ef86",
+                "_method": "DELETE",
                 "_referenced_by": [
-                    "mapping-long.yaml.2"
+                    "mapping-long.yaml.3"
                 ],
-                "_source": "mapping-long.yaml.2",
+                "_source": "mapping-long.yaml.3",
                 "clusters": [
                     {
                         "name": "cluster_really_really_really_long_no_i_m-1",
@@ -379,7 +380,7 @@
                     {
                         "name": ":method",
                         "regex": false,
-                        "value": "PUT"
+                        "value": "DELETE"
                     }
                 ],
                 "prefix": "/long/",
@@ -400,6 +401,67 @@
                 ],
                 "prefix": "/ambassador/v0/check_alive",
                 "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
+                "_group_id": "7b7b759ed935cd9a1734cb63061c7cd6144e2929",
+                "_method": "GET",
+                "_referenced_by": [
+                    "mapping-long.yaml.1"
+                ],
+                "_source": "mapping-long.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-0",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": "foo",
+                        "regex": true,
+                        "value": "^bar\\.example\\.com$"
+                    },
+                    {
+                        "name": ":authority",
+                        "regex": true,
+                        "value": "^bar\\.example\\.com$"
+                    },
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "GET"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "_group_id": "8392a1f94f4d0aee07ab986a072f9c0413a410e9",
+                "_method": "PUT",
+                "_referenced_by": [
+                    "mapping-long.yaml.2"
+                ],
+                "_source": "mapping-long.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-1",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": true,
+                        "value": "^bar\\.example\\.com$"
+                    },
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "PUT"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/qotm/quote/"
             },
             {
                 "_group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
@@ -423,34 +485,6 @@
                 ],
                 "prefix": "/evil/",
                 "prefix_rewrite": "/qotm/quote/"
-            },
-            {
-                "_group_id": "8e5061b4084be1992623f979fcca3e550ac03b39",
-                "_method": "GET",
-                "_referenced_by": [
-                    "mapping-long.yaml.1"
-                ],
-                "_source": "mapping-long.yaml.1",
-                "clusters": [
-                    {
-                        "name": "cluster_really_really_really_long_no_i_m-0",
-                        "weight": 100.0
-                    }
-                ],
-                "headers": [
-                    {
-                        "name": "foo",
-                        "regex": true,
-                        "value": "^bar\\.example\\.com$"
-                    },
-                    {
-                        "name": ":method",
-                        "regex": false,
-                        "value": "GET"
-                    }
-                ],
-                "prefix": "/long/",
-                "prefix_rewrite": "/"
             },
             {
                 "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
@@ -609,7 +643,8 @@
         },
         "mapping-long.yaml": {
             "mapping-long.yaml.1": true,
-            "mapping-long.yaml.2": true
+            "mapping-long.yaml.2": true,
+            "mapping-long.yaml.3": true
         },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true,
@@ -739,7 +774,7 @@
             "kind": "Mapping",
             "name": "long_get_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nregex_headers:\n  foo: ^bar\\.example\\.com$\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nregex_headers:\n  :authority: ^bar\\.example\\.com$\n  foo: ^bar\\.example\\.com$\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
         },
         "mapping-long.yaml.2": {
             "_source": "test source",
@@ -748,7 +783,16 @@
             "kind": "Mapping",
             "name": "long_put_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_regex: ^bar\\.example\\.com$\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
+        },
+        "mapping-long.yaml.3": {
+            "_source": "test source",
+            "filename": "mapping-long.yaml",
+            "index": 3,
+            "kind": "Mapping",
+            "name": "long_delete_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: DELETE\nname: long_delete_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",

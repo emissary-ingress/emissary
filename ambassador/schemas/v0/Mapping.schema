@@ -46,6 +46,7 @@
             }
         },
         "host": { "type": "string" },
+        "host_regex": { "type": "string" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "envoy_override": { 
