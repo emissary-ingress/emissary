@@ -10,8 +10,7 @@
         {
           "type": "read",
           "name": "http_connection_manager",
-          "config": {
-            "codec_type": "auto",
+          "config": {"use_remote_address": true,"codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [
               {

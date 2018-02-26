@@ -13,6 +13,8 @@ config:
   # override it, but just in case...
   admin_port: 4242
 
+  use_remote_address: false
+
   # liveness probe defaults on, but you can disable it.
   liveness_probe:
     enabled: false

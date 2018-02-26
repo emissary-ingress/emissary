@@ -21,6 +21,9 @@
           "type": "read",
           "name": "http_connection_manager",
           "config": {
+            {%- if "use_remote_address" in listener -%}
+              "use_remote_address": {{ listener.use_remote_address | tojson }},
+            {%- endif -%}
             "codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [

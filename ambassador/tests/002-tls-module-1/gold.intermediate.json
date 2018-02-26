@@ -59,7 +59,8 @@
                     "cert_required": true,
                     "private_key_file": "/etc/ambassador-config/certs/tls.key"
                 },
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": false
             }
         ],
         "routes": [
@@ -153,7 +154,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  admin_port: 4242\n  liveness_probe:\n    enabled: false\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  admin_port: 4242\n  liveness_probe:\n    enabled: false\n  use_remote_address: false\nkind: Module\nname: ambassador\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",

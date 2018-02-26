@@ -803,6 +803,9 @@ class Config (object):
             use_proxy_proto=self.ambassador_module['use_proxy_proto']
         )
 
+        if 'use_remote_address' in self.ambassador_module:
+            primary_listener['use_remote_address'] = self.ambassador_module['use_remote_address']
+
         redirect_cleartext_from = None
         tmod = self.ambassador_module.get('tls_config', None)
            
@@ -817,7 +820,7 @@ class Config (object):
         if redirect_cleartext_from:
             primary_listener['require_tls'] = True
 
-            self.envoy_config['listeners'].append(SourcedDict(
+            new_listener = SourcedDict(
                 _from=self.ambassador_module,
                 service_port=redirect_cleartext_from,
                 require_tls=True,
@@ -825,7 +828,12 @@ class Config (object):
                 # We can set require_tls True because we can let the upstream
                 # tell us about that.
                 use_proxy_proto=self.ambassador_module['use_proxy_proto']
-            ))
+            )
+
+            if 'use_remote_address' in self.ambassador_module:
+                new_listener['use_remote_address'] = self.ambassador_module['use_remote_address']    
+
+            self.envoy_config['listeners'].append(new_listener)
 
         self.default_liveness_probe['service'] = self.diag_service()
         self.default_readiness_probe['service'] = self.diag_service()
@@ -1214,7 +1222,7 @@ class Config (object):
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto' ]:
+                     'use_proxy_proto', 'use_remote_address' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
