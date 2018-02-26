@@ -9,7 +9,7 @@
 
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
-* [Five minute quickstart](user-guide/quickstart.md)
+* [Five minute quickstart](about/quickstart.md)
 * [Deploying to Kubernetes](user-guide/getting-started.md)
 * [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
@@ -27,10 +27,10 @@
   * [Modules and AuthService](reference/modules.md)
   * [Mappings](reference/mappings.md)
   * [Advanced configuration topics](references/advanced.md)
-* [Running Ambassador](user-guide/running.md)
-* [Upgrading Ambassador](user-guide/upgrading.md)
-* [Statistics and Monitoring](how-to/statistics.md)
-* [Auth With an External Auth Service](how-to/auth-external.md)
+* [Running Ambassador](reference/running.md)
+* [Upgrading Ambassador](reference/upgrading.md)
+* [Statistics and Monitoring](reference/statistics.md)
+* [Auth With an External Auth Service](reference/auth-external.md)
 * [Microservices API Gateways](about/microservices-api-gateways.md)
 
 ## Developers
