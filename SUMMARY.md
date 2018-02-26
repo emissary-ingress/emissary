@@ -31,6 +31,7 @@
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
 * [Auth With an External Auth Service](reference/auth-external.md)
+  * [Auth with TLS Client Ceritificates](reference/auth-tls-certs.md)
 * [Microservices API Gateways](about/microservices-api-gateways.md)
 
 ## Developers
