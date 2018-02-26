@@ -17,7 +17,7 @@
 
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Use gRPC with Ambassador](user-guide/grpc.md)
-* [TLS Termination](how-to/tls-termination.md)
+* [TLS Termination](user-guide/tls-termination.md)
 * [Istio and Ambassador](user-guide/with-istio.md)
 * [More guides](https://blog.getambassador.io/howto/home)
 
