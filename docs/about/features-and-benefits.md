@@ -1,6 +1,6 @@
 # Features and Benefits
 
-Ambassador is an open source, Kubernetes-native API gateway for microservices built on [Envoy](https://www.envoyproxy.io). Key features in Ambassador include:
+Key features in Ambassador include:
 
 * Self-service mapping of public URLs to services running inside a Kubernetes cluster
 * Flexible canary deployments
@@ -12,8 +12,7 @@ Ambassador is an open source, Kubernetes-native API gateway for microservices bu
 * Robust TLS support, including TLS client-certificate authentication
 * Simple setup and configuration
 * Integrated monitoring
-
-Check out the [Ambassador roadmap](roadmap.md) for what's coming up in the future.
+* Open source
 
 ## Self-Service via Kubernetes Annotations
 
