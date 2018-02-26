@@ -11,7 +11,6 @@
 * [Features and Benefits](about/features-and-benefits.md)
 * [Five minute quickstart](about/quickstart.md)
 * [Deploying to Kubernetes](user-guide/getting-started.md)
-* [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
 ## Guides
 
@@ -37,6 +36,7 @@
 ## Developers
 
 * [Building Ambassador (GitHub)](https://github.com/datawire/ambassador/blob/master/BUILDING.md)
+* [Changelog (GitHub)](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
 ## Need Help?
 
