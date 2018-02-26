@@ -70,7 +70,7 @@ config:
     redirect_cleartext_from: 80
 ```
 
-TLS configuration is examined in more detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
+TLS configuration is examined in more detail in the documentation on [TLS termination](/user-guide/tls-termination.md) and [TLS client certificate authentication](/reference/auth-tls-certs).
 
 ### The `authentication` Module
 

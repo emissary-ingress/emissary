@@ -1,11 +1,12 @@
 {
-    "title": "Ambassador: API Gateway for microservices and Kubernetes",
+    "title": "Ambassador: open source API Gateway for microservices and Kubernetes",
     "root": ".",
     "structure": {
         "readme": "INDEX.md"
     },
     "plugins": [
-        "gtm"
+        "gtm",
+        "redirect"
     ],
     "pluginsConfig": {
         "layout": {
