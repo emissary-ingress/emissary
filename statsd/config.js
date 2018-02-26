@@ -11,6 +11,6 @@
         // "flushInterval": 1000,
 
         "repeater": [ { "host": "statsd-sink", "port": 8125 } ],
-        "repeaterProtocol": "upd4"
+        "repeaterProtocol": "udp4"
     };
 })();
