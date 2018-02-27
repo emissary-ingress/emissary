@@ -1,4 +1,4 @@
-Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png)](https://travis-ci.org/datawire/ambassador)
+Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png?branch=master)](https://travis-ci.org/datawire/ambassador)
 ==========
 
 [Ambassador](https://www.getambassador.io) is an open source Kubernetes-native API Gateway built on [Envoy](https://www.envoyproxy.io), designed for microservices. Key features include:
