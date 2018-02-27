@@ -33,6 +33,7 @@
         "outlier_detection": { "type": "string" },
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
+        "precedence": { "type": "integer" },
         "rewrite": { "type": "string" },
         "timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
