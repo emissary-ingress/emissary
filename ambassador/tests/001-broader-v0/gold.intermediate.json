@@ -9,6 +9,19 @@
         "breakers": [
             {
                 "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_source": "custom-breaker.yaml.1",
+                "apiVersion": "ambassador/v0",
+                "kind": "CircuitBreaker",
+                "max_connections": 1,
+                "max_pending": 3,
+                "max_requests": 2,
+                "max_retries": 4,
+                "name": "custom"
+            },
+            {
+                "_referenced_by": [
                     "mapping-qotm.yaml.2",
                     "mapping-qotm.yaml.3"
                 ],
@@ -104,13 +117,34 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-evil.yaml.1",
-                    "mapping-qotm.yaml.1"
+                    "mapping-evil.yaml.1"
                 ],
                 "_service": "qotm",
                 "_source": "mapping-evil.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_qotm",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://qotm:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_service": "qotm",
+                "_source": "mapping-qotm.yaml.1",
+                "circuit_breakers": {
+                    "apiVersion": "ambassador/v0",
+                    "kind": "CircuitBreaker",
+                    "max_connections": 1,
+                    "max_pending": 3,
+                    "max_requests": 2,
+                    "max_retries": 4,
+                    "name": "custom"
+                },
+                "lb_type": "round_robin",
+                "name": "cluster_qotm_cb_custom",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://qotm:80"
@@ -247,7 +281,9 @@
                     "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "cert_required": true,
                     "private_key_file": "/etc/ambassador-config/certs/tls.key"
-                }
+                },
+                "use_proxy_proto": true,
+                "use_remote_address": true
             }
         ],
         "outliers": [
@@ -422,7 +458,7 @@
                 "_source": "mapping-qotm.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_qotm",
+                        "name": "cluster_qotm_cb_custom",
                         "weight": 100.0
                     }
                 ],
@@ -546,6 +582,9 @@
         "auth.yaml": {
             "auth.yaml.1": true
         },
+        "custom-breaker.yaml": {
+            "custom-breaker.yaml.1": true
+        },
         "default-breaker.yaml": {
             "default-breaker.yaml.1": true
         },
@@ -607,7 +646,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
         },
         "auth.yaml.1": {
             "_source": "auth.yaml",
@@ -617,6 +656,15 @@
             "name": "authentication",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nconfig:\n  allowed_headers:\n  - x-qotm-session\n  auth_service: http://example-auth:3000\n  path_prefix: /extauth\nkind: Module\nname: authentication\n"
+        },
+        "custom-breaker.yaml.1": {
+            "_source": "custom-breaker.yaml",
+            "filename": "custom-breaker.yaml",
+            "index": 1,
+            "kind": "CircuitBreaker",
+            "name": "custom",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: CircuitBreaker\nmax_connections: 1\nmax_pending: 3\nmax_requests: 2\nmax_retries: 4\nname: custom\n"
         },
         "default-breaker.yaml.1": {
             "_source": "default-breaker.yaml",
@@ -706,7 +754,7 @@
             "kind": "Mapping",
             "name": "qotm_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nservice: qotm\n"
+            "yaml": "apiVersion: ambassador/v0\ncircuit_breaker: custom\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nservice: qotm\n"
         },
         "mapping-qotm.yaml.2": {
             "_source": "mapping-qotm.yaml",

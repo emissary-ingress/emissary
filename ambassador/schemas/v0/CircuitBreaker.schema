@@ -8,6 +8,7 @@
         "kind": { "type": "string" },
         "name": { "type": "string" },
         "max_connections": { "type": "integer" },
+        "max_requests": { "type": "integer" },
         "max_pending": { "type": "integer" },
         "max_retries": { "type": "integer" }
     },

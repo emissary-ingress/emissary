@@ -1,0 +1,8 @@
+---
+apiVersion: ambassador/v0
+kind: CircuitBreaker
+name: custom
+max_connections: 1
+max_requests: 2
+max_pending: 3
+max_retries: 4

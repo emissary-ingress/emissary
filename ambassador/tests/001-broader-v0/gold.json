@@ -1,15 +1,16 @@
 {
   "listeners": [
+    
     {
       "address": "tcp://0.0.0.0:443",
+      "use_proxy_proto": true,
       "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
           "private_key_file": "/etc/ambassador-config/certs/tls.key","ca_cert_file": "/etc/ambassador-config/ca_cert_chain/tls.crt","require_client_certificate": true
       },"filters": [
         {
           "type": "read",
           "name": "http_connection_manager",
-          "config": {
-            "codec_type": "auto",
+          "config": {"use_remote_address": true,"codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [
               {
@@ -21,8 +22,7 @@
               "virtual_hosts": [
                 {
                   "name": "backend",
-                  "domains": ["*"],
-                  "routes": [
+                  "domains": ["*"],"routes": [
                     
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
@@ -198,7 +198,7 @@
                       "weighted_clusters": {
                           "clusters": [
                               
-                                 { "name": "cluster_qotm", "weight": 100.0 }
+                                 { "name": "cluster_qotm_cb_custom", "weight": 100.0 }
                               
                           ]
                       }
@@ -238,7 +238,7 @@
           }
         }
       ]
-    }    
+    }
   ],
   "admin": {
     "address": "tcp://127.0.0.1:8001",
@@ -327,7 +327,7 @@
           
         ]},
       {
-        "name": "cluster_qotm_cb_default",
+        "name": "cluster_qotm_cb_custom",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin",        
@@ -340,7 +340,27 @@
         "circuit_breakers": {
           "default": {
             "max_connections": 1,
-            "max_pending_requests": 1,
+            "max_pending_requests": 3,
+            "max_requests": 2,
+            "max_retries": 4
+          }
+        }},
+      {
+        "name": "cluster_qotm_cb_default",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://qotm:80"
+          }
+          
+        ],
+        "circuit_breakers": {
+          "default": {
+            "max_connections": 1024,
+            "max_pending_requests": 1024,
+            "max_requests": 1024,
             "max_retries": 3
           }
         }},
@@ -357,8 +377,9 @@
         ],
         "circuit_breakers": {
           "default": {
-            "max_connections": 1,
-            "max_pending_requests": 1,
+            "max_connections": 1024,
+            "max_pending_requests": 1024,
+            "max_requests": 1024,
             "max_retries": 3
           }
         },
