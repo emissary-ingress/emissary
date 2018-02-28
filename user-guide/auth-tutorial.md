@@ -186,4 +186,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring authentication, read the documentation on [external authentication](/how-to/auth-external).
+For more details about configuring authentication, read the documentation on [external authentication](/reference/auth-external).

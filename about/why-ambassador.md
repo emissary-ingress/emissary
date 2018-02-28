@@ -5,8 +5,10 @@ Ambassador is an open source, Kubernetes-native [microservices API gateway](micr
 Ambassador is:
 
 * Self-service. Ambassador is designed so that developers can manage services directly. This requires a system that is not only easy for developers to use, but provides safety and protection against inadvertent operational issues.
-* Operations friendly. Ambassador operates as a sidecar process to the [Envoy Proxy](https://envoyproxy.github.io), and integrates Envoy directly with Kubernetes. Thus, all routing, failover, health checking are handled by battle-tested, proven systems.
+* Operations friendly. Ambassador operates as a sidecar process to the [Envoy Proxy](https://www.envoyproxy.io), and integrates Envoy directly with Kubernetes. Thus, all routing, failover, health checking are handled by battle-tested, proven systems.
 * Designed for microservices. Ambassador integrates the features teams need for microservices, including authentication, observability, routing, TLS termination, and more.
+
+For more background on the motivations of Ambassador, read [this blog post](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844).
 
 ## Alternatives to Ambassador
 
@@ -26,7 +28,3 @@ A Layer 7 proxy can be used as an API gateway, but typically requires additional
 ### Istio
 
 [Istio](https://istio.io) is an open source service mesh, built on Envoy. A service mesh is designed to manage east/west traffic, while an API gateway manages north/south traffic. Documentation on how to deploy Ambassador with Istio is [here](../user-guide/with-istio.md).
-
-## Roadmap
-
-We have an ambitious roadmap for Ambassador, and would love for your help. Check out the [Ambassador roadmap](roadmap.md) for more.
