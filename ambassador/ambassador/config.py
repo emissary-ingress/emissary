@@ -72,14 +72,8 @@ class Config (object):
     # Default to using the Nil UUID unless the environment variable is set explicitly
     scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
 
-    _scout_args = dict(
-        app="ambassador", version=scout_version,
-    )
-
-    _scout_args['install_id'] = scout_install_id
-
     try:
-        scout = Scout(**_scout_args)
+        scout = Scout(app="ambassador", version=scout_version, install_id=scout_install_id)
         scout_error = None
     except OSError as e:
         scout_error = e
