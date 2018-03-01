@@ -1,0 +1,1 @@
+!REDIRECT "/reference/auth-external"
