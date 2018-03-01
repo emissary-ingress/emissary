@@ -126,6 +126,10 @@ To test `Hello World`, we can use the Docker image `enm10k/grpc-hello-world`:
 docker run -e ADDRESS=${AMBASSADORHOST}:${AMBASSADORPORT} enm10k/grpc-hello-world greeter_client
 ```
 
+## Using over TLS
+
+To enable grpc over TLS, ALPN protocol http2 `alpn_protocols: h2` must be added to the TLS module configuration. Refer to [TLS termination guide](/user-guide/tls-termination.html) for more information.
+
 ## Note
 
 Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador configuration.
