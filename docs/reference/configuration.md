@@ -40,7 +40,7 @@ Ambassador's configuration is assembled from multiple YAML blocks, to help enabl
 
 - Ambassador's configuration should be under version control.
 
-    While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, it's far better to have a master copy under git or the like. Ambassador doesn't do any versioning of its configuration.
+    While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, Ambassador will not do versioning for you. Tools like [Forge](https://forge.sh) can help you maintain proper version control for your services' routing configurations.
 
 - Be aware that Ambassador tries to not start with a broken configuration, but it's not perfect.
 
