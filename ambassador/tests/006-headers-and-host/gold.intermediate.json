@@ -127,8 +127,16 @@
         ],
         "routes": [
             {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
                 "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "--internal--"
                 ],
@@ -143,8 +151,17 @@
                 "prefix_rewrite": "/ambassador/v0/check_ready"
             },
             {
+                "__saved": [
+                    0,
+                    6,
+                    16,
+                    "/qotm/",
+                    "GET",
+                    "x-demo-mode-cloud"
+                ],
                 "_group_id": "3d6174456a466eb4f342d4aa4165bd8c2b99ce1e",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
@@ -166,8 +183,16 @@
                 "prefix_rewrite": "/qotm/"
             },
             {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
                 "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "--internal--"
                 ],
@@ -182,8 +207,16 @@
                 "prefix_rewrite": "/ambassador/v0/check_alive"
             },
             {
+                "__saved": [
+                    0,
+                    12,
+                    0,
+                    "/ambassador/",
+                    "GET"
+                ],
                 "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-diag.yaml.1"
                 ],
@@ -198,8 +231,16 @@
                 "prefix_rewrite": "/ambassador/"
             },
             {
+                "__saved": [
+                    0,
+                    12,
+                    0,
+                    "/cors-creds/",
+                    "GET"
+                ],
                 "_group_id": "ac37c2861c386e18591032460dad7c77ce4fc8ac",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-cors.yaml.1"
                 ],
@@ -226,8 +267,16 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    15,
+                    0,
+                    "/ambassador/v0/",
+                    "GET"
+                ],
                 "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "--internal--"
                 ],
@@ -242,8 +291,17 @@
                 "prefix_rewrite": "/ambassador/v0/"
             },
             {
+                "__saved": [
+                    0,
+                    6,
+                    16,
+                    "/qotm/",
+                    "GET",
+                    "x-demo-mode-local"
+                ],
                 "_group_id": "c208ab7e4e146b9a8bbdebadc7b33f99bc635ab7",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.2"
                 ],
@@ -265,8 +323,18 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    6,
+                    36,
+                    "/qotm/",
+                    "GET",
+                    "x-demo-mode-host",
+                    ":authority-httpbin.org"
+                ],
                 "_group_id": "d3a3d2ab986037ba30b790afabf48a43485c6b1f",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.3"
                 ],
@@ -308,8 +376,17 @@
                 ]
             },
             {
+                "__saved": [
+                    0,
+                    9,
+                    26,
+                    "/httpbin/",
+                    "GET",
+                    ":authority-test.datawire.io"
+                ],
                 "_group_id": "dc5d22df356f9df8439ed418ef194c061e57c68f",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-httpbin.yaml.1"
                 ],
@@ -332,8 +409,16 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    10,
+                    0,
+                    "/cors-all/",
+                    "GET"
+                ],
                 "_group_id": "e75a3faa8eb4d60b982096024a9d118ca00322c8",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-cors.yaml.2"
                 ],

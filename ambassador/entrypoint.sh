@@ -9,6 +9,8 @@ if [ "$1" == "--demo" ]; then
     CONFIG_DIR="/etc/ambassador-demo-config"
 fi
 
+DELAY=${AMBASSADOR_RESTART_TIME:-5}
+
 APPDIR=${APPDIR:-/application}
 
 pids=""
@@ -81,7 +83,7 @@ echo "AMBASSADOR: starting Envoy"
 RESTARTER_PID="$!"
 pids="${pids:+${pids} }${RESTARTER_PID}:envoy"
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" &
+/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"

@@ -10,7 +10,8 @@ metadata:
       kind:  Mapping
       name:  demo_with_host_mapping
       prefix: /demo/
-      host: demo2.datawire.io
+      host: "^[dh]emo[2-4]\\.datawire\\.io"
+      host_regex: true
       service: demo2      
 spec:
   selector:

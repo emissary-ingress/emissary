@@ -117,6 +117,46 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-with-precedence.yaml.1"
+                ],
+                "_service": "precedence_none",
+                "_source": "mapping-with-precedence.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_precedence_none",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://precedence_none:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-with-precedence.yaml.3",
+                    "mapping-with-precedence.yaml.4"
+                ],
+                "_service": "precedence_one",
+                "_source": "mapping-with-precedence.yaml.4",
+                "lb_type": "round_robin",
+                "name": "cluster_precedence_one",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://precedence_one:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-with-precedence.yaml.2"
+                ],
+                "_service": "precedence_zero",
+                "_source": "mapping-with-precedence.yaml.2",
+                "lb_type": "round_robin",
+                "name": "cluster_precedence_zero",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://precedence_zero:80"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-evil.yaml.1"
                 ],
                 "_service": "qotm",
@@ -219,10 +259,11 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-long.yaml.2"
+                    "mapping-long.yaml.2",
+                    "mapping-long.yaml.3"
                 ],
                 "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service-two",
-                "_source": "mapping-long.yaml.2",
+                "_source": "mapping-long.yaml.3",
                 "lb_type": "round_robin",
                 "name": "cluster_really_really_really_long_no_i_m-1",
                 "type": "strict_dns",
@@ -299,8 +340,16 @@
         ],
         "routes": [
             {
+                "__saved": [
+                    0,
+                    12,
+                    0,
+                    "/qotm/quote/",
+                    "GET"
+                ],
                 "_group_id": "054dcb9a73b21dd73353675bb7f490de5ac76959",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.2"
                 ],
@@ -315,8 +364,16 @@
                 "prefix_rewrite": "/quote/"
             },
             {
+                "__saved": [
+                    0,
+                    9,
+                    0,
+                    "/httpbin/",
+                    "GET"
+                ],
                 "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-httpbin.yaml.1"
                 ],
@@ -333,8 +390,16 @@
                 "timeout_ms": 50
             },
             {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
                 "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "ambassador.yaml.1"
                 ],
@@ -349,8 +414,16 @@
                 "prefix_rewrite": "/ambassador/v0/check_ready"
             },
             {
+                "__saved": [
+                    0,
+                    6,
+                    0,
+                    "/grpc/",
+                    "GET"
+                ],
                 "_group_id": "23cf4cd84c4d7fe0fc55f4a1574d2251379b7d44",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-grpc.yaml.1"
                 ],
@@ -365,12 +438,21 @@
                 "prefix_rewrite": "/"
             },
             {
-                "_group_id": "30f39d42f27d9bfc42f090a4398d77cb7c33cb3a",
-                "_method": "PUT",
-                "_referenced_by": [
-                    "mapping-long.yaml.2"
+                "__saved": [
+                    0,
+                    6,
+                    13,
+                    "/long/",
+                    "GET",
+                    ":method-DELETE"
                 ],
-                "_source": "mapping-long.yaml.2",
+                "_group_id": "4d7f4c54aad81617d18e5eb02134d749b453ef86",
+                "_method": "DELETE",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-long.yaml.3"
+                ],
+                "_source": "mapping-long.yaml.3",
                 "clusters": [
                     {
                         "name": "cluster_really_really_really_long_no_i_m-1",
@@ -381,15 +463,23 @@
                     {
                         "name": ":method",
                         "regex": false,
-                        "value": "PUT"
+                        "value": "DELETE"
                     }
                 ],
                 "prefix": "/long/",
                 "prefix_rewrite": "/qotm/quote/"
             },
             {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
                 "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "ambassador.yaml.1"
                 ],
@@ -404,8 +494,19 @@
                 "prefix_rewrite": "/ambassador/v0/check_alive"
             },
             {
-                "_group_id": "6f6f65520e4e9992c6dd345d2028ea7c979a082e",
+                "__saved": [
+                    0,
+                    6,
+                    63,
+                    "/long/",
+                    "GET",
+                    "foo-^bar\\.example\\.com$",
+                    ":authority-^bar\\.example\\.com$",
+                    ":method-GET"
+                ],
+                "_group_id": "7b7b759ed935cd9a1734cb63061c7cd6144e2929",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-long.yaml.1"
                 ],
@@ -418,6 +519,16 @@
                 ],
                 "headers": [
                     {
+                        "name": "foo",
+                        "regex": true,
+                        "value": "^bar\\.example\\.com$"
+                    },
+                    {
+                        "name": ":authority",
+                        "regex": true,
+                        "value": "^bar\\.example\\.com$"
+                    },
+                    {
                         "name": ":method",
                         "regex": false,
                         "value": "GET"
@@ -427,8 +538,55 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    6,
+                    40,
+                    "/long/",
+                    "GET",
+                    ":authority-^bar\\.example\\.com$",
+                    ":method-PUT"
+                ],
+                "_group_id": "8392a1f94f4d0aee07ab986a072f9c0413a410e9",
+                "_method": "PUT",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-long.yaml.2"
+                ],
+                "_source": "mapping-long.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_really_really_really_long_no_i_m-1",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": true,
+                        "value": "^bar\\.example\\.com$"
+                    },
+                    {
+                        "name": ":method",
+                        "regex": false,
+                        "value": "PUT"
+                    }
+                ],
+                "prefix": "/long/",
+                "prefix_rewrite": "/qotm/quote/"
+            },
+            {
+                "__saved": [
+                    0,
+                    6,
+                    10,
+                    "/evil/",
+                    "GET",
+                    ":method-PUT"
+                ],
                 "_group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
                 "_method": "PUT",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-evil.yaml.2"
                 ],
@@ -450,8 +608,48 @@
                 "prefix_rewrite": "/qotm/quote/"
             },
             {
+                "__saved": [
+                    0,
+                    1,
+                    23,
+                    "/",
+                    "GET",
+                    ":authority-n.datawire.io"
+                ],
+                "_group_id": "8bc7eef3a21219eb302f36a298c3ca2b9aa2790d",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-with-precedence.yaml.1"
+                ],
+                "_source": "mapping-with-precedence.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_precedence_none",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "n.datawire.io"
+                    }
+                ],
+                "prefix": "/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    0,
+                    6,
+                    0,
+                    "/qotm/",
+                    "GET"
+                ],
                 "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
@@ -466,8 +664,16 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    8,
+                    0,
+                    "/tspace/",
+                    "GET"
+                ],
                 "_group_id": "aa98509407ace64e627bcd96f0a28d5017c86797",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm2.yaml.1"
                 ],
@@ -482,8 +688,16 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    7,
+                    0,
+                    "/slack/",
+                    "GET"
+                ],
                 "_group_id": "ab0d6f12046e8aa9b3f585f5369cd5ece5136bf6",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-websocket.yaml.1"
                 ],
@@ -499,8 +713,16 @@
                 "use_websocket": true
             },
             {
+                "__saved": [
+                    0,
+                    15,
+                    0,
+                    "/ambassador/v0/",
+                    "GET"
+                ],
                 "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "ambassador.yaml.1"
                 ],
@@ -515,8 +737,48 @@
                 "prefix_rewrite": "/ambassador/v0/"
             },
             {
+                "__saved": [
+                    1,
+                    1,
+                    23,
+                    "/",
+                    "GET",
+                    ":authority-o.datawire.io"
+                ],
+                "_group_id": "b6f6231612e71d14ed2cd135ec0ca2100618d5b5",
+                "_method": "GET",
+                "_precedence": 1,
+                "_referenced_by": [
+                    "mapping-with-precedence.yaml.3"
+                ],
+                "_source": "mapping-with-precedence.yaml.3",
+                "clusters": [
+                    {
+                        "name": "cluster_precedence_one",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "o.datawire.io"
+                    }
+                ],
+                "prefix": "/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    0,
+                    9,
+                    0,
+                    "/service/",
+                    "GET"
+                ],
                 "_group_id": "b78bdfc87593475aa2d8dd0279048a613388f8e3",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.3"
                 ],
@@ -531,8 +793,48 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    1,
+                    23,
+                    "/",
+                    "GET",
+                    ":authority-z.datawire.io"
+                ],
+                "_group_id": "c14b056275ef724f9aaf189b8312548ee4f73ce9",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-with-precedence.yaml.2"
+                ],
+                "_source": "mapping-with-precedence.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_precedence_zero",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "z.datawire.io"
+                    }
+                ],
+                "prefix": "/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    0,
+                    8,
+                    0,
+                    "/google/",
+                    "GET"
+                ],
                 "_group_id": "c843e9bd6b289899e7c47653d36a1343b747440e",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-google.yaml.1"
                 ],
@@ -548,8 +850,17 @@
                 "prefix_rewrite": "/"
             },
             {
+                "__saved": [
+                    0,
+                    6,
+                    10,
+                    "/evil/",
+                    "GET",
+                    ":method-GET"
+                ],
                 "_group_id": "d644030a1f5e96f97bc89d21be3ae749c0ee192c",
                 "_method": "GET",
+                "_precedence": 0,
                 "_referenced_by": [
                     "mapping-evil.yaml.1"
                 ],
@@ -568,6 +879,38 @@
                     }
                 ],
                 "prefix": "/evil/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    100,
+                    1,
+                    23,
+                    "/",
+                    "GET",
+                    ":authority-h.datawire.io"
+                ],
+                "_group_id": "e6d94ed968ac5871c408ca42885d36c55961e529",
+                "_method": "GET",
+                "_precedence": 100,
+                "_referenced_by": [
+                    "mapping-with-precedence.yaml.4"
+                ],
+                "_source": "mapping-with-precedence.yaml.4",
+                "clusters": [
+                    {
+                        "name": "cluster_precedence_one",
+                        "weight": 100.0
+                    }
+                ],
+                "headers": [
+                    {
+                        "name": ":authority",
+                        "regex": false,
+                        "value": "h.datawire.io"
+                    }
+                ],
+                "prefix": "/",
                 "prefix_rewrite": "/"
             }
         ]
@@ -606,7 +949,8 @@
         },
         "mapping-long.yaml": {
             "mapping-long.yaml.1": true,
-            "mapping-long.yaml.2": true
+            "mapping-long.yaml.2": true,
+            "mapping-long.yaml.3": true
         },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true,
@@ -618,6 +962,12 @@
         },
         "mapping-websocket.yaml": {
             "mapping-websocket.yaml.1": true
+        },
+        "mapping-with-precedence.yaml": {
+            "mapping-with-precedence.yaml.1": true,
+            "mapping-with-precedence.yaml.2": true,
+            "mapping-with-precedence.yaml.3": true,
+            "mapping-with-precedence.yaml.4": true
         }
     },
     "sources": {
@@ -736,7 +1086,7 @@
             "kind": "Mapping",
             "name": "long_get_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nregex_headers:\n  :authority: ^bar\\.example\\.com$\n  foo: ^bar\\.example\\.com$\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
         },
         "mapping-long.yaml.2": {
             "_source": "test source",
@@ -745,7 +1095,16 @@
             "kind": "Mapping",
             "name": "long_put_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
+            "yaml": "apiVersion: ambassador/v0\nhost: ^bar\\.example\\.com$\nhost_regex: true\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
+        },
+        "mapping-long.yaml.3": {
+            "_source": "test source",
+            "filename": "mapping-long.yaml",
+            "index": 3,
+            "kind": "Mapping",
+            "name": "long_delete_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: DELETE\nname: long_delete_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
@@ -791,6 +1150,42 @@
             "name": "websocket_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: websocket_mapping\nprefix: /slack/\nservice: slack.com\nuse_websocket: true\n"
+        },
+        "mapping-with-precedence.yaml.1": {
+            "_source": "mapping-with-precedence.yaml",
+            "filename": "mapping-with-precedence.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "no_precedence_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost: n.datawire.io\nkind: Mapping\nname: no_precedence_mapping\nprefix: /\nservice: precedence_none\n"
+        },
+        "mapping-with-precedence.yaml.2": {
+            "_source": "mapping-with-precedence.yaml",
+            "filename": "mapping-with-precedence.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "precedence_0_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost: z.datawire.io\nkind: Mapping\nname: precedence_0_mapping\nprecedence: 0\nprefix: /\nservice: precedence_zero\n"
+        },
+        "mapping-with-precedence.yaml.3": {
+            "_source": "mapping-with-precedence.yaml",
+            "filename": "mapping-with-precedence.yaml",
+            "index": 3,
+            "kind": "Mapping",
+            "name": "precedence_1_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost: o.datawire.io\nkind: Mapping\nname: precedence_1_mapping\nprecedence: 1\nprefix: /\nservice: precedence_one\n"
+        },
+        "mapping-with-precedence.yaml.4": {
+            "_source": "mapping-with-precedence.yaml",
+            "filename": "mapping-with-precedence.yaml",
+            "index": 4,
+            "kind": "Mapping",
+            "name": "precedence_100_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost: h.datawire.io\nkind: Mapping\nname: precedence_100_mapping\nprecedence: 100\nprefix: /\nservice: precedence_one\n"
         }
     }
 }

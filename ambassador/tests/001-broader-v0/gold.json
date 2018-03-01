@@ -25,6 +25,32 @@
                   "domains": ["*"],"routes": [
                     
                     {
+                      "timeout_ms": 3000,"prefix": "/","prefix_rewrite": "/","headers": [{"name": ":authority", "regex": false, "value": "h.datawire.io"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_precedence_one", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 3000,"prefix": "/","prefix_rewrite": "/","headers": [{"name": ":authority", "regex": false, "value": "o.datawire.io"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_precedence_one", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
                       "weighted_clusters": {
                           "clusters": [
@@ -142,7 +168,20 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "PUT"}],
+                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": "foo", "regex": true, "value": "^bar\\.example\\.com$"}, {"name": ":authority", "regex": true, "value": "^bar\\.example\\.com$"}, {"name": ":method", "regex": false, "value": "GET"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_really_really_really_long_no_i_m-0", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":authority", "regex": true, "value": "^bar\\.example\\.com$"}, {"name": ":method", "regex": false, "value": "PUT"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -155,11 +194,11 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/","headers": [{"name": ":method", "regex": false, "value": "GET"}],
+                      "timeout_ms": 3000,"prefix": "/long/","prefix_rewrite": "/qotm/quote/","headers": [{"name": ":method", "regex": false, "value": "DELETE"}],
                       "weighted_clusters": {
                           "clusters": [
                               
-                                 { "name": "cluster_really_really_really_long_no_i_m-0", "weight": 100.0 }
+                                 { "name": "cluster_really_really_really_long_no_i_m-1", "weight": 100.0 }
                               
                           ]
                       }
@@ -212,6 +251,32 @@
                           "clusters": [
                               
                                  { "name": "cluster_192_168_0_1_45", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 3000,"prefix": "/","prefix_rewrite": "/","headers": [{"name": ":authority", "regex": false, "value": "z.datawire.io"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_precedence_zero", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 3000,"prefix": "/","prefix_rewrite": "/","headers": [{"name": ":authority", "regex": false, "value": "n.datawire.io"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_precedence_none", "weight": 100.0 }
                               
                           ]
                       }
@@ -315,6 +380,39 @@
         "ssl_context": {
           
         }},
+      {
+        "name": "cluster_precedence_none",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://precedence_none:80"
+          }
+          
+        ]},
+      {
+        "name": "cluster_precedence_one",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://precedence_one:80"
+          }
+          
+        ]},
+      {
+        "name": "cluster_precedence_zero",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://precedence_zero:80"
+          }
+          
+        ]},
       {
         "name": "cluster_qotm",
         "connect_timeout_ms": 3000,

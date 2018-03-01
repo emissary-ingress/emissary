@@ -1,13 +1,14 @@
 {
   "listeners": [
+    
     {
       "address": "tcp://0.0.0.0:80",
+      
       "filters": [
         {
           "type": "read",
           "name": "http_connection_manager",
-          "config": {
-            "codec_type": "auto",
+          "config": {"codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [
               {
@@ -19,8 +20,7 @@
               "virtual_hosts": [
                 {
                   "name": "backend",
-                  "domains": ["*"],
-                  "routes": [
+                  "domains": ["*"],"routes": [
                     
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
@@ -62,22 +62,13 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/cors-creds/","prefix_rewrite": "/",
-                      "cors": {
-                        "enabled": true,
-                        "allow_origin": ["http://foo.example", "http://bar.example"],
-                        "allow_methods": "POST, GET, OPTIONS",
-                        "allow_headers": "Content-Type",
-                        "allow_credentials": true,
-                        "expose_headers": "X-Custom-Header",
-                        "max_age": "86400"
-                      },
+                      "timeout_ms": 3000,"prefix": "/cors-creds/","prefix_rewrite": "/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
                       "weighted_clusters": {
-                        "clusters": [
-
-                          { "name": "cluster_cors_8080", "weight": 100.0 }
-
-                        ]
+                          "clusters": [
+                              
+                                 { "name": "cluster_cors_8080", "weight": 100.0 }
+                              
+                          ]
                       }
                       
                     }
@@ -89,6 +80,19 @@
                           "clusters": [
                               
                                  { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 3000,"prefix": "/cors-all/","prefix_rewrite": "/","cors": {"allow_origin": ["*"], "enabled": true},
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_cors_8080", "weight": 100.0 }
                               
                           ]
                       }
@@ -110,25 +114,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/cors-all/","prefix_rewrite": "/",
-                      "cors": {
-                        "enabled": true,
-                        "allow_origin": ["*"]
-                      },
-                      "weighted_clusters": {
-                        "clusters": [
-
-                          { "name": "cluster_cors_8080", "weight": 100.0 }
-
-                        ]
-                      }
-                      
-                    }
-                    ,
-                    
-                    {
-                      "timeout_ms": 3000,"prefix": "/qotm/","prefix_rewrite": "/","host_rewrite": "httpbin.org","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],
-                      "request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%CLIENT_IP%"}, {"key": "x-test-static", "value": "testing"}],
+                      "timeout_ms": 3000,"prefix": "/qotm/","prefix_rewrite": "/","host_rewrite": "httpbin.org","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%CLIENT_IP%"}, {"key": "x-test-static", "value": "testing"}],
                       "weighted_clusters": {
                           "clusters": [
                               
@@ -185,7 +171,7 @@
           }
         }
       ]
-    }    
+    }
   ],
   "admin": {
     "address": "tcp://127.0.0.1:8001",
