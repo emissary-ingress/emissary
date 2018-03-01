@@ -34,6 +34,18 @@ Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](#mapping) can op
 
 If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
+## Reconfiguration Timing Configuration
+
+Ambassador is constantly watching for changes to the service annotations. When changes are observed, Ambassador generates a new Envoy configuration and restarts the Envoy handling the heavy lifting of routing. Three environment variables provide control over the timing of this reconfiguration:
+
+- `AMBASSADOR_RESTART_TIME` (default 5) sets the minimum number of seconds between restarts. No matter how often services are changed, Ambassador will never restart Envoy more frequently than this.
+
+- `AMBASSADOR_DRAIN_TIME` (default 2) sets the number of seconds that the Envoy will wait for open connections to drain on a restart. Connections still open at the end of this time will be summarily dropped.
+
+- `AMBASSADOR_SHUTDOWN_TIME` (default 3) sets the number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart. **If Envoy is not able to shut down in this time, the Ambassador pod will exit.** If this happens, it is generally indicative of issues with restarts being attempted too often.
+
+These environment variables can be set much like `AMBASSADOR_NAMESPACE`, above.
+
 ## Best Practices for Configuration
 
 Ambassador's configuration is assembled from multiple YAML blocks, to help enable self-service routing and make it easier for multiple developers to collaborate on a single larger application. This implies a few things:
