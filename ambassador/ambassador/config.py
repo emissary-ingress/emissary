@@ -293,7 +293,7 @@ class Config (object):
             for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
                 filepath = os.path.join(dirpath, filename)
 
-                self.load_yaml(filename, open(filepath, "r").read(), k8s=k8s)
+                self.load_yaml(filename, open(filepath, "r").read(), ocount=1, k8s=k8s)
 
         self.process_all_objects()
 
@@ -306,19 +306,17 @@ class Config (object):
 
         self.generate_intermediate_config()
 
-    def load_yaml(self, filename, serialization, k8s=False):
+    def load_yaml(self, filename, serialization, ocount=1, k8s=False):
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
-            # dealing with the actual object gets deferred             
-            ocount = 1
-
+            # dealing with the actual object gets deferred
             for obj in yaml.safe_load_all(serialization):
                 if k8s:
-                    self.prep_k8s(filename, ocount, obj)
+                    ocount = self.prep_k8s(filename, ocount, obj)
                 else:
                     self.objects_to_process.append((filename, ocount, obj))
-                ocount += 1
+                    ocount += 1
         except Exception as e:
             # No sense letting one attribute with bad YAML take down the whole
             # gateway, so post the error but keep any objects we were able to 
@@ -328,20 +326,22 @@ class Config (object):
 
             self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
 
+        return ocount
+
     def prep_k8s(self, filename, ocount, obj):
         kind = obj.get('kind', None)
 
         if kind != "Service":
             self.logger.debug("%s/%s: ignoring K8s %s object" % 
                              (filename, ocount, kind))
-            return
+            return ocount
 
         metadata = obj.get('metadata', None)
 
         if not metadata:
             self.logger.debug("%s/%s: ignoring unannotated K8s %s" % 
                               (filename, ocount, kind))
-            return
+            return ocount
 
         annotations = metadata.get('annotations', None)
 
@@ -353,9 +353,9 @@ class Config (object):
         if not annotations:
             self.logger.debug("%s/%s: ignoring K8s %s without Ambassador annotation" % 
                               (filename, ocount, kind))
-            return
+            return ocount
 
-        self.load_yaml(filename + ":annotation", annotations)
+        return self.load_yaml(filename + ":annotation", annotations, ocount=ocount)
 
     def process_all_objects(self):
         for filename, ocount, obj in sorted(self.objects_to_process):
