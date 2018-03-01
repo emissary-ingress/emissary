@@ -99,12 +99,12 @@
         "__saved": [
             0,
             6,
-            27,
+            38,
             "/demo/",
             "GET",
-            ":authority-demo2.datawire.io"
+            ":authority-^[dh]emo[2-4]\\.datawire\\.io"
         ],
-        "_group_id": "680712f1da5009382c1987e04b84df2cdfe25649",
+        "_group_id": "192049622429f5955e118c5282beebe6563b695a",
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
@@ -120,8 +120,8 @@
         "headers": [
             {
                 "name": ":authority",
-                "regex": false,
-                "value": "demo2.datawire.io"
+                "regex": true,
+                "value": "^[dh]emo[2-4]\\.datawire\\.io"
             }
         ],
         "prefix": "/demo/",

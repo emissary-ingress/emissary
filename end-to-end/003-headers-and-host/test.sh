@@ -53,10 +53,9 @@ kubectl apply -f k8s/canary-50.yaml
 wait_for_pods
 wait_for_demo_weights "$BASEURL" x-demo-mode=canary 50 50
 
-# This needs sorting crap before it'll work. :P
-# if ! check_diag "$BASEURL" 2 "Canary 50/50"; then
-#     exit 1
-# fi
+if ! check_diag "$BASEURL" 2 "Canary 50/50"; then
+    exit 1
+fi
 
 sleep 5
 
@@ -68,10 +67,9 @@ kubectl apply -f k8s/canary-100.yaml
 wait_for_pods
 wait_for_demo_weights "$BASEURL" x-demo-mode=canary 100
 
-# This needs sorting crap before it'll work. :P
-# if ! check_diag "$BASEURL" 3 "Canary 100"; then
-#     exit 1
-# fi
+if ! check_diag "$BASEURL" 3 "Canary 100"; then
+    exit 1
+fi
 
 sleep 5
 

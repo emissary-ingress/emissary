@@ -19,7 +19,8 @@ kind: Mapping
 name: long_put_mapping
 prefix: /long/
 rewrite: /qotm/quote/
-host_regex: "^bar\\.example\\.com$"
+host: "^bar\\.example\\.com$"
+host_regex: true
 method: PUT
 service: really-really-really-long-no-i-mean-really-really-really-really-long-service-two
 ---

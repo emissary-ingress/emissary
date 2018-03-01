@@ -1095,7 +1095,7 @@
             "kind": "Mapping",
             "name": "long_put_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_regex: ^bar\\.example\\.com$\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
+            "yaml": "apiVersion: ambassador/v0\nhost: ^bar\\.example\\.com$\nhost_regex: true\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
         },
         "mapping-long.yaml.3": {
             "_source": "test source",

@@ -30,6 +30,7 @@
         "host_redirect": { "type": "string" },
         "host_rewrite": { "type": "string" },
         "method": { "type": "string" },
+        "method_regex": { "type": "boolean" },
         "outlier_detection": { "type": "string" },
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
@@ -47,7 +48,7 @@
             }
         },
         "host": { "type": "string" },
-        "host_regex": { "type": "string" },
+        "host_regex": { "type": "boolean" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "envoy_override": { 
