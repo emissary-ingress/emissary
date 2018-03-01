@@ -8,6 +8,7 @@ config:
     # These are optional.
     cert_chain_file: /etc/ambassador-config/certs/tls.crt
     private_key_file: /etc/ambassador-config/certs/tls.key
+    alpn_protocols: h2
 
   client:
     enabled: True,
