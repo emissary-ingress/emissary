@@ -1,0 +1,20 @@
+{
+    "redirects": [
+            {
+                "from": "/how-to/grpc",
+                "to": "/user-guide/grpc"
+            },
+            {
+                "from": "how-to/auth-external",
+                "to": "reference/auth-external"
+            },
+            {
+                "from": "how-to/statistics",
+                "to": "reference/statistics"
+            },
+            {
+                "from": "how-to/tls-termination",
+                "to": "user-guide/tls-termination"
+            }
+        ]
+}

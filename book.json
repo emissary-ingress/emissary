@@ -6,7 +6,7 @@
     },
     "plugins": [
         "gtm",
-        "redirect"
+        "bulk-redirect"
     ],
     "pluginsConfig": {
         "layout": {
@@ -15,6 +15,10 @@
         "gtm": {
             "token": "GTM-TPMQ838",
             "virtualPageViews": true
+        },
+        "bulk-redirect": {
+            "basepath": "/",
+            "redirectsFile": "redirects.json"
         }
     }
 }
