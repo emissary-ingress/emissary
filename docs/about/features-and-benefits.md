@@ -4,7 +4,7 @@ Key features in Ambassador include:
 
 * Self-service mapping of public URLs to services running inside a Kubernetes cluster
 * Flexible canary deployments
-* Kubernetes-native architecture
+* Kubernetes-native architecture (also, no need for a dedicated Kubernetes ingress controller)
 * First class gRPC and HTTP/2 support
 * Istio integration
 * Authentication
@@ -13,6 +13,7 @@ Key features in Ambassador include:
 * Simple setup and configuration
 * Integrated monitoring
 * Open source
+
 
 ## Self-Service via Kubernetes Annotations
 
