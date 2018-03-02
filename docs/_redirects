@@ -1,0 +1,5 @@
+# Redirects; parsed by Netlify
+/how-to/grpc               /user-guide/grpc
+/how-to/tls-termination    /user-guide/tls-termination
+/how-to/statistics         /reference/statistics
+/how-to/auth-external      /reference/auth-external
