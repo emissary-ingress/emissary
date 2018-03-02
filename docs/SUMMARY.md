@@ -25,7 +25,7 @@
 * [Configuring Ambassador](reference/configuration.md)
   * [Modules and AuthService](reference/modules.md)
   * [Mappings](reference/mappings.md)
-  * [Advanced configuration topics](references/advanced.md)
+  * [Advanced configuration topics](reference/advanced.md)
 * [Running Ambassador](reference/running.md)
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
