@@ -54,6 +54,7 @@
                 "service_port": 443,
                 "tls": {
                     "_source": "tls.yaml.1",
+                    "alpn_protocols": "h2",
                     "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
                     "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "cert_required": true,
@@ -196,7 +197,7 @@
             "kind": "Module",
             "name": "tls",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  client:\n    cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n    cert_required: true\n    enabled: True,\n  server:\n    cert_chain_file: /etc/ambassador-config/certs/tls.crt\n    enabled: true\n    private_key_file: /etc/ambassador-config/certs/tls.key\nkind: Module\nname: tls\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  client:\n    cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n    cert_required: true\n    enabled: True,\n  server:\n    alpn_protocols: h2\n    cert_chain_file: /etc/ambassador-config/certs/tls.crt\n    enabled: true\n    private_key_file: /etc/ambassador-config/certs/tls.key\nkind: Module\nname: tls\n"
         }
     }
 }
