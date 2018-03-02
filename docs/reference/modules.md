@@ -36,7 +36,7 @@ config:
 
   # use_proxy_protocol controls whether Envoy will honor the PROXY
   # protocol on incoming requests.
-  # use_proxy_protocol: false
+  # use_proxy_proto: false
 
   # use_remote_address controls whether Envoy will trust the remote
   # address of incoming connections or rely exclusively on the 
@@ -52,7 +52,7 @@ config:
 **Ambassador is very likely to change to default `use_remote_address` to `true`
 very soon**. At present, `use_remote_address` still defaults to `false`; consider setting it to `true` if your application wants to have the incoming source address available. See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) for more information here.
 
-#### `use_proxy_protocol`
+#### `use_proxy_proto`
 
 Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
 
