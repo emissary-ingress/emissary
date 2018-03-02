@@ -1,4 +1,4 @@
-# Five minute quickstrat
+# Five minute Quickstart
 
 In this section, we'll get Ambassador running locally with a demo configuration. In the next section, we'll then walk through how to deploy Ambassador in Kubernetes with a custom configuration.
 
