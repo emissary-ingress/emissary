@@ -66,6 +66,11 @@ config:
     # cert_chain_file: /etc/certs/tls.crt
     # private_key_file: /etc/certs/tls.key
 
+    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with 
+    # HTTP2 clients over TLS.
+    # This must be set to be able to use grpc over TLS.
+    # alpn_protocols: h2
+
   # The 'client' block configures TLS client-certificate authentication.
   # 'enabled' is the only required element.
   client:
