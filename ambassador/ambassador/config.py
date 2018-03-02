@@ -68,20 +68,12 @@ class Config (object):
 
     runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
-    scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', None)
 
-    _scout_args = dict(
-        app="ambassador", version=scout_version,
-    )
-
-    if scout_install_id:
-        _scout_args['install_id'] = scout_install_id
-    else:
-        _scout_args['id_plugin'] = Scout.configmap_install_id_plugin
-        _scout_args['id_plugin_args'] = { "namespace": namespace }
+    # Default to using the Nil UUID unless the environment variable is set explicitly
+    scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
 
     try:
-        scout = Scout(**_scout_args)
+        scout = Scout(app="ambassador", version=scout_version, install_id=scout_install_id)
         scout_error = None
     except OSError as e:
         scout_error = e
