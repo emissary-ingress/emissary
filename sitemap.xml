@@ -9,77 +9,97 @@
 
 <url>
   <loc>https://www.getambassador.io/</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
   <loc>https://www.getambassador.io/user-guide/getting-started</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.getambassador.io/about/why-ambassador</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://www.getambassador.io/user-guide/auth-tutorial</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://www.getambassador.io/about/microservices-api-gateways</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
   <loc>https://www.getambassador.io/about/features-and-benefits</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
-  <loc>https://www.getambassador.io/about/roadmap</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <loc>https://www.getambassador.io/about/quickstart</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
-  <loc>https://www.getambassador.io/how-to/grpc</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <loc>https://www.getambassador.io/user-guide/grpc</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
-  <loc>https://www.getambassador.io/how-to/tls-termination</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://www.getambassador.io/how-to/statistics</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://www.getambassador.io/user-guide/running</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://www.getambassador.io/user-guide/upgrading</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://www.getambassador.io/reference/configuration</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
-  <loc>https://www.getambassador.io/how-to/auth-external</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <loc>https://www.getambassador.io/user-guide/tls-termination</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://www.getambassador.io/user-guide/with-istio</loc>
-  <lastmod>2018-02-15T22:23:25+00:00</lastmod>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/configuration</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/modules</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/mappings</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/advanced</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/running</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/upgrading</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/statistics</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/auth-external</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/reference/auth-tls-certs</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://www.getambassador.io/about/microservices-api-gateways</loc>
+  <lastmod>2018-03-02T19:37:03+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 
