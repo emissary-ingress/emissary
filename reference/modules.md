@@ -73,7 +73,7 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 ### The `tls` Module
 
 If present, the `tls` module defines system-wide configuration for TLS.
-
+ 
 When running in Kubernetes, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret, so many Kubernetes installations of Ambassador will not need a `tls` module at all.
 
 The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following `tls` module:
