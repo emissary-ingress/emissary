@@ -54,7 +54,7 @@ very soon**. At present, `use_remote_address` still defaults to `false`; conside
 
 #### `use_proxy_proto`
 
-Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
+Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_proto` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
 
 #### Probes
 
