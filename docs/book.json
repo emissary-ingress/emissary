@@ -5,8 +5,7 @@
         "readme": "INDEX.md"
     },
     "plugins": [
-        "gtm",
-        "redirect"
+        "gtm"
     ],
     "pluginsConfig": {
         "layout": {
