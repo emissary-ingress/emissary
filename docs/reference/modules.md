@@ -4,7 +4,7 @@ Modules let you enable and configure special behaviors for Ambassador, in ways t
 
 ### The `ambassador` Module
 
-If present, the `ambassador` module defines system-wide configuration. **You will not normally need this module.** The defaults in the `ambassador` module are, roughly:
+If present, the `ambassador` module defines system-wide configuration. **You may very well not need this module.** The defaults in the `ambassador` module are, roughly:
 
 ```yaml
 ---
@@ -33,9 +33,28 @@ config:
   # readiness probe defaults on, but you can disable it.
   # readiness_probe:
   #   enabled: false
+
+  # use_proxy_protocol controls whether Envoy will honor the PROXY
+  # protocol on incoming requests.
+  # use_proxy_protocol: false
+
+  # use_remote_address controls whether Envoy will trust the remote
+  # address of incoming connections or rely exclusively on the 
+  # X-Forwarded_For header. 
+  #
+  # The current default is not to include any use_remote_address setting,
+  # but THAT IS LIKELY TO CHANGE SOON.
+  # use_remote_address: false
 ```
 
-Everything in this file has a default that should cover most situations; it should only be necessary to include them to override the defaults in highly-custom situations.
+#### `use_remote_address`
+
+**Ambassador is very likely to change to default `use_remote_address` to `true`
+very soon**. At present, `use_remote_address` still defaults to `false`; consider setting it to `true` if your application wants to have the incoming source address available. See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) for more information here.
+
+#### `use_proxy_protocol`
+
+Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
 
 #### Probes
 
@@ -70,11 +89,7 @@ config:
     redirect_cleartext_from: 80
 ```
 
-<<<<<<< HEAD
-TLS configuration is examined in more detail in the documentation on [TLS termination](../how-to/tls-termination.md) and [TLS client certificate authentication](../how-to/auth-tls-certs.md).
-=======
 TLS configuration is examined in more detail in the documentation on [TLS termination](/user-guide/tls-termination.md) and [TLS client certificate authentication](/reference/auth-tls-certs).
->>>>>>> develop
 
 ### The `authentication` Module
 
@@ -87,7 +102,7 @@ An `AuthService` manifest configures Ambassador to use an external service to ch
 ```yaml
 ---
 apiVersion: ambassador/v0
-kind:  Module
+kind:  AuthService
 name:  authentication
 config:
   auth_service: "example-auth:3000"
@@ -101,11 +116,3 @@ config:
 - `allowed_headers` (optional) gives an array of headers that will be incorporated into the upstream request if the auth service supplies them.
 
 You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and `allowed_headers`;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
-
-### Modifying Ambassador's Underlying Envoy Configuration
-
-Ambassador uses Envoy for the heavy lifting of proxying.
-
-If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use your own custom config template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
-
-Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary for a given use case (or better yet, submit a PR!) so that we can expose this in the future.

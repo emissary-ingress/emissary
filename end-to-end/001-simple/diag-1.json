@@ -1,7 +1,15 @@
 [
     {
+        "__saved": [
+            0,
+            26,
+            0,
+            "/ambassador/v0/check_ready",
+            "GET"
+        ],
         "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
         "_method": "GET",
+        "_precedence": 0,
         "_referenced_by": [
             "--internal--"
         ],
@@ -16,8 +24,16 @@
         "prefix_rewrite": "/ambassador/v0/check_ready"
     },
     {
+        "__saved": [
+            0,
+            26,
+            0,
+            "/ambassador/v0/check_alive",
+            "GET"
+        ],
         "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
         "_method": "GET",
+        "_precedence": 0,
         "_referenced_by": [
             "--internal--"
         ],
@@ -32,8 +48,16 @@
         "prefix_rewrite": "/ambassador/v0/check_alive"
     },
     {
+        "__saved": [
+            0,
+            15,
+            0,
+            "/ambassador/v0/",
+            "GET"
+        ],
         "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
         "_method": "GET",
+        "_precedence": 0,
         "_referenced_by": [
             "--internal--"
         ],
@@ -48,8 +72,16 @@
         "prefix_rewrite": "/ambassador/v0/"
     },
     {
+        "__saved": [
+            0,
+            12,
+            0,
+            "/ambassador/",
+            "GET"
+        ],
         "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
         "_method": "GET",
+        "_precedence": 0,
         "_referenced_by": [
             "base-config.yaml.1"
         ],

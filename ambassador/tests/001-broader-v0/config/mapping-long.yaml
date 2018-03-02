@@ -9,6 +9,9 @@ kind: Mapping
 name: long_get_mapping
 prefix: /long/
 method: GET
+regex_headers:
+  foo: "^bar\\.example\\.com$"
+  :authority: "^bar\\.example\\.com$"
 service: really-really-really-long-no-i-mean-really-really-really-really-long-service
 ---
 apiVersion: ambassador/v0
@@ -16,5 +19,15 @@ kind: Mapping
 name: long_put_mapping
 prefix: /long/
 rewrite: /qotm/quote/
+host: "^bar\\.example\\.com$"
+host_regex: true
 method: PUT
+service: really-really-really-long-no-i-mean-really-really-really-really-long-service-two
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: long_delete_mapping
+prefix: /long/
+rewrite: /qotm/quote/
+method: DELETE
 service: really-really-really-long-no-i-mean-really-really-really-really-long-service-two

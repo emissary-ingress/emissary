@@ -1,15 +1,16 @@
 {
   "listeners": [
+    
     {
       "address": "tcp://0.0.0.0:443",
+      
       "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
           "private_key_file": "/etc/ambassador-config/certs/tls.key","ca_cert_file": "/etc/ambassador-config/ca_cert_chain/tls.crt","require_client_certificate": true
       },"filters": [
         {
           "type": "read",
           "name": "http_connection_manager",
-          "config": {
-            "codec_type": "auto",
+          "config": {"codec_type": "auto",
             "stat_prefix": "ingress_http",
             "access_log": [
               {
@@ -21,8 +22,7 @@
               "virtual_hosts": [
                 {
                   "name": "backend",
-                  "domains": ["*"],
-                  "routes": [
+                  "domains": ["*"],"routes": [
                     
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
@@ -79,7 +79,7 @@
           }
         }
       ]
-    }    
+    }
   ],
   "admin": {
     "address": "tcp://127.0.0.1:4242",

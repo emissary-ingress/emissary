@@ -21,12 +21,21 @@ class Mapping (object):
 
     @classmethod
     def route_weight(klass, route):
+        precedence = route.get('_precedence', 0)
         prefix = route['prefix']
         method = route.get('method', 'GET')
         headers = route.get('headers', [])
 
-        weight = [ len(prefix) + len(headers), prefix, method ]
+        len_headers = 0
+
+        for hdr in headers:
+            len_headers += len(hdr['name']) + len(hdr.get('value', '*')) + (1 if hdr.get('regex', False) else 0)
+
+        weight = [ precedence, len(prefix), len_headers, prefix, method ]
         weight += [ hdr['name'] + '-' + hdr.get('value', '*') for hdr in headers ]
+
+        if not route.get('__saved', None):
+            route['__saved'] = weight
 
         return tuple(weight)
 
@@ -66,7 +75,7 @@ class Mapping (object):
             else:
                 self.headers.append({ "name": name, "value": value, "regex": False })
 
-        for name, value in self.get('regex_headers', []):
+        for name, value in self.get('regex_headers', {}).items():
             self.headers.append({ "name": name, "value": value, "regex": True })
 
         if 'host' in self.attrs:
@@ -99,6 +108,7 @@ class Mapping (object):
         route = SourcedDict(
             _source=self['_source'],
             _group_id=self.group_id,
+            _precedence=self.get('precedence', 0),
             prefix=self.prefix,
             prefix_rewrite=self.get('rewrite', '/'),
             clusters=[ { "name": cluster_name,

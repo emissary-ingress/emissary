@@ -1,0 +1,31 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  no_precedence_mapping
+prefix: /
+host: n.datawire.io
+service: precedence_none
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  precedence_0_mapping
+prefix: /
+service: precedence_zero
+host: z.datawire.io
+precedence: 0
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  precedence_1_mapping
+prefix: /
+service: precedence_one
+host: o.datawire.io
+precedence: 1
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  precedence_100_mapping
+prefix: /
+service: precedence_one
+host: h.datawire.io
+precedence: 100
