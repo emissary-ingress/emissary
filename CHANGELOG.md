@@ -24,6 +24,7 @@
 - Make logs a lot quieter
 - Reorganize and update documentation
 - Make sure that `ambassador dump --k8s` will work correctly
+- Remove a dependency on a `ConfigMap` for upgrade checks
 
 ## [0.26.0] February 13, 2018
 [0.26.0]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.25.0
