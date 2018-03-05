@@ -17,7 +17,7 @@
 
 - Support tuning Envoy restart parameters 
 - Support `host_regex`, `method_regex`, and `regex_headers` to allow regular expression matches in `Mappings`
-- Support `use_proxy_protocol` and `use_remote_address` in the `ambassador` module
+- Support `use_proxy_proto` and `use_remote_address` in the `ambassador` module
 - Fine-tune the way we sort a `Mapping` based on its constraints
 - Support manually setting the `precedence` of a `Mapping`, so that there's an escape hatch when the automagic sorting gets it wrong
 - Expose `alpn_protocols` in the `tls` module (thanks @technicianted!)
