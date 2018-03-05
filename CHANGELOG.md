@@ -2,16 +2,17 @@
 
 ## BREAKING NEWS
 
-- As of **0.28.0**, Ambassador supports Envoy`s 'use_remote_address` capability, as described in [the Envoy documentation]([Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
+- As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
 
 - As of **0.26.0**, the `authentication` module is deprecated in favor of the `AuthService` resource type, as discussed in [the Ambassador reference](https://getambassador.io/docs/reference/module).
 
 - As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
-## [0.28.0] March 2, 2018
-[0.28.0]: https://github.com/datawire/ambassador/compare/v0.28.0...v0.26.0
+## [0.28.1] March 5, 2018 (and [0.28.0] on March 2, 2018)
+[0.28.1]: https://github.com/datawire/ambassador/compare/v0.28.1...v0.26.0
+[0.28.0]: https://github.com/datawire/ambassador/compare/v0.28.1...v0.26.0
 
-(Note that 0.27.0 was an internal release.)
+(Note that 0.28.1 is identical to 0.28.0, and 0.27.0 was an internal release. These are related to the way CI generates tags, which we'll be revamping soon.)
 
 ### Changed
 
