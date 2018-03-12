@@ -1,11 +1,11 @@
-Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png?branch=master)](https://travis-ci.org/datawire/ambassador)
+Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png?branch=master)](https://travis-ci.org/datawire/ambassador) [![Docker Repository](https://quay.io/repository/datawire/ambassador/status "Docker Repository")](https://quay.io/repository/datawire/ambassador)
 ==========
 
 [Ambassador](https://www.getambassador.io) is an open source Kubernetes-native API Gateway built on [Envoy](https://www.envoyproxy.io), designed for microservices. Key features include:
 
 * Self-service configuration, via Kubernetes annotations
 * First class gRPC and HTTP/2 support
-* Support for CORS, timeouts, rate-limiting, weighted round robin (canary), and more
+* Support for CORS, timeouts, weighted round robin (canary), and more
 * Istio integration
 * Authentication
 * Robust TLS support, including TLS client-certificate authentication
@@ -21,6 +21,8 @@ Getting Started
 You can get Ambassador up and running in less than a minute by running it locally with Docker. Follow the instructions here: https://www.getambassador.io#get-started.
 
 For production usage, Ambassador runs in Kubernetes. For a Kubernetes deployment, follow the instructions at https://www.getambassador.io/user-guide/getting-started.
+
+If you are looking for a Kubernetes ingress controller, Ambassador provides a superset of the functionality of a typical ingress controller. (It does the traditional routing, and layers on a raft of configuration options.) This blog post covers [Kubernetes ingress](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
 Community
 =========
