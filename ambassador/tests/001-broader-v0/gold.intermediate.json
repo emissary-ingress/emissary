@@ -845,6 +845,18 @@
                         "weight": 100.0
                     }
                 ],
+                "envoy_override": {
+                    "request_headers_to_add": [
+                        {
+                            "key": "test",
+                            "value": "%PROTOCOL%"
+                        },
+                        {
+                            "key": "test-2",
+                            "value": "testing"
+                        }
+                    ]
+                },
                 "host_rewrite": "google.com",
                 "prefix": "/google/",
                 "prefix_rewrite": "/"

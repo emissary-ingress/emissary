@@ -42,6 +42,7 @@ class Mapping (object):
     TransparentRouteKeys = {
         "auto_host_rewrite": True,
         "case_sensitive": True,
+        "envoy_override": True,
         "host_redirect": True,
         "host_rewrite": True,
         "path_redirect": True,

@@ -149,7 +149,11 @@
                                  { "name": "cluster_https___google_com_otls", "weight": 100.0 }
                               
                           ]
-                      }
+                      },
+                      
+                        
+                        "request_headers_to_add": [{"key": "test", "value": "%PROTOCOL%"}, {"key": "test-2", "value": "testing"}]
+                        
                       
                     }
                     ,
