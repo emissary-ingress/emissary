@@ -1,0 +1,8 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  regex_mapping
+regex: ^\/http(bin)\/$
+rewrite: "/"
+service: http://httpbin.org
+host_rewrite: httpbin.org
