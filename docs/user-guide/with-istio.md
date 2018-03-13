@@ -4,7 +4,7 @@
 
 Ambassador is a Kubernetes-native API gateway for microservices. Ambassador is deployed at the edge of your network, and routes incoming traffic to your internal services (aka "north-south" traffic).  [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and Ambassador are built using [Envoy](https://www.envoyproxy.io).
 
-Ambassador and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through Ambassador, which then routes the traffic to Istio. Ambassador handles authentication, edge routing, TLS termination, and other traditional edge functions.
+Ambassador and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through Ambassador, which then routes the traffic to Istio-powered services. Ambassador handles authentication, edge routing, TLS termination, and other traditional edge functions.
 
 This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador) combined with a state-of-the-art service mesh (Istio). Istio's basic [ingress controller](https://istio.io/docs/tasks/traffic-management/ingress.html) is very limited, and has no support for authentication or many of the other features of Ambassador.
 
@@ -157,3 +157,7 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 ## Automatic Sidecar Injection
 
 Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). With Ambassador, you don't need to inject the Istio sidecar -- Ambassador's Envoy instance will automatically route to the appropriate service(s). If you're using automatic sidecar injection, you'll need to configure Istio to not inject the sidecar automatically for Ambassador pods. There are several approaches to doing this that are [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#configuration-options).
+
+## Roadmap
+
+There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in Ambassador, mTLS for end-to-end TLS encryption, and full propagation of request headers (e.g., Zipkin tracing) between Ambassador and Istio. If you're interested in contributing, we'd welcome the help!
