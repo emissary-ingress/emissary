@@ -47,8 +47,7 @@
                     {% for route in routes %}
                     {
                       "timeout_ms": {{ route.timeout_ms or 3000 }},
-                      {%- if route.regex -%}"prefix": "{{ route.regex }}",{% endif %}
-                      {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
+                      {%- if route.prefix -%}{%- if route.prefix_regex -%}"regex"{%- else %}"prefix"{% endif %}: "{{ route.prefix }}",{% endif %}
                       {%- if route.prefix_rewrite -%}"prefix_rewrite": "{{ route.prefix_rewrite }}",{% endif %}
                       {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}

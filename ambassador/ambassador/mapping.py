@@ -49,7 +49,7 @@ class Mapping (object):
         "priority": True,
         "timeout_ms": True,
         "use_websocket": True,
-        "regex": True
+        "prefix_regex": True
     }
 
     def __init__(self, _source="--internal--", _from=None, **kwargs):
