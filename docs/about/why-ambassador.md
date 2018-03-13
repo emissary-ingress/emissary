@@ -1,6 +1,6 @@
 # Why Ambassador?
 
-Ambassador is an open source, Kubernetes-native [microservices API gateway](microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). Ambassador is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. Ambassador can also be used to handle the functions of a Kubernetes ingress controller (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
+Ambassador is an open source, Kubernetes-native [microservices API gateway](microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). Ambassador is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. Ambassador can also be used to handle the functions of a Kubernetes ingress controller and load balancer (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
 
 Ambassador is:
 
@@ -16,7 +16,7 @@ Alternatives to Ambassador fall in three basic categories.
 
 * Hosted API gateways, such as the [Amazon API gateway](https://aws.amazon.com/api-gateway/).
 * Traditional API gateways, such as [Kong](https://getkong.org/).
-* L7 proxies, such as [Traefik](https://traefik.io/), [NGINX](http://nginx.org/), [HAProxy](http://www.haproxy.org/), or [Envoy](https://envoyproxy.github.io).
+* L7 proxies, such as [Traefik](https://traefik.io/), [NGINX](http://nginx.org/), [HAProxy](http://www.haproxy.org/), or [Envoy](https://www.envoyproxy.io), or Ingress controllers built on these proxies.
 
 Both hosted API gateways and traditional API gateways are:
 
