@@ -9,7 +9,7 @@ if [ "$1" == "--demo" ]; then
     CONFIG_DIR="/etc/ambassador-demo-config"
 fi
 
-DELAY=${AMBASSADOR_RESTART_TIME:-5}
+DELAY=${AMBASSADOR_RESTART_TIME:-15}
 
 APPDIR=${APPDIR:-/application}
 
