@@ -1,10 +1,11 @@
 {
     "envoy_config": {
-        "admin": {
-            "_source": "--internal--",
-            "admin_port": 8001
-        },
-        "breakers": [],
+        "admin": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001
+            }
+        ],
         "clusters": [
             {
                 "_referenced_by": [
@@ -54,7 +55,6 @@
                 "use_proxy_proto": false
             }
         ],
-        "outliers": [],
         "routes": [
             {
                 "__saved": [
@@ -79,30 +79,6 @@
                 ],
                 "prefix": "/ambassador/v0/check_ready",
                 "prefix_rewrite": "/ambassador/v0/check_ready"
-            },
-            {
-                "__saved": [
-                    0,
-                    26,
-                    0,
-                    "/ambassador/v0/check_alive",
-                    "GET"
-                ],
-                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "--internal--"
-                ],
-                "_source": "--internal--",
-                "clusters": [
-                    {
-                        "name": "cluster_127_0_0_1_8877",
-                        "weight": 100.0
-                    }
-                ],
-                "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
             },
             {
                 "__saved": [
@@ -137,6 +113,30 @@
                 "prefix": "^\\/http(bin)\\/$",
                 "prefix_regex": true,
                 "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
+                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive"
             },
             {
                 "__saved": [
