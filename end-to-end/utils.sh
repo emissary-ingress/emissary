@@ -173,7 +173,7 @@ check_diag () {
     index=$2
     desc=$3
 
-    sleep 5
+    sleep 20
 
     rc=1
 
