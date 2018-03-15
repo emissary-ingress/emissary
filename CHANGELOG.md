@@ -8,7 +8,7 @@
 
 - As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
-- The `statsd` is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
+- The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
 ## [0.29.0] March 15, 2018
 [0.29.0]: https://github.com/datawire/ambassador/compare/v0.29.0...v0.28.2
