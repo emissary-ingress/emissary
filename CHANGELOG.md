@@ -8,6 +8,18 @@
 
 - As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
+- The `statsd` is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
+
+## [0.29.0] March 15, 2018
+[0.29.0]: https://github.com/datawire/ambassador/compare/v0.29.0...v0.28.2
+
+### Changed
+
+- Default restart timings have been increased. **This will cause Ambassador to response to service changes less quickly**; by default, you'll see changes appear within 15 seconds.
+- Liveness and readiness checks are now enabled after 30 seconds, rather than 3 seconds, if you use our published YAML.
+- The `statsd` container is now based on `mhart/alpine-node:9` rather than `:7`.
+- `envoy_override` has been reenabled in `Mapping`s.
+
 ## [0.28.1] March 5, 2018 (and [0.28.0] on March 2, 2018)
 [0.28.1]: https://github.com/datawire/ambassador/compare/v0.28.1...v0.26.0
 [0.28.0]: https://github.com/datawire/ambassador/compare/v0.28.1...v0.26.0
