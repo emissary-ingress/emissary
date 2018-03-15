@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:7
+FROM mhart/alpine-node:9
 
 WORKDIR /application
 RUN npm install https://api.github.com/repos/etsy/statsd/tarball/8d5363c
