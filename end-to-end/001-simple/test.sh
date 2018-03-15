@@ -18,6 +18,7 @@ kubectl cluster-info
 kubectl create cm ambassador-config --from-file k8s/base-config.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f ${ROOT}/stats-test.yaml
 
 set +e +o pipefail
 
@@ -70,5 +71,31 @@ sleep 5  # ???
 if ! qtest.py $CLUSTER:$APORT test-2.yaml; then
     exit 1
 fi
+
+APOD=$(ambassador_pod)
+kubectl exec "$APOD" -c ambassador -- sh -c 'echo "DUMP" | nc -u -w 1 statsd-sink 8125' > stats.json
+
+rqt=$(jget.py envoy.cluster.cluster_qotm.upstream_rq_total < stats.json)
+
+rc=0
+
+if [ $rqt != 18 ]; then
+    echo "Upstream RQ total mismatch: wanted 18, got $rqt"
+    rc=1
+else
+    echo "Upstream RQ total stat good"
+fi
+
+rq200=$(jget.py envoy.cluster.cluster_qotm.upstream_rq_2xx < stats.json)
+
+if [ $rq200 != 12 ]; then
+    echo "Upstream RQ 200 mismatch: wanted 12, got $rq200"
+    rc=1
+else
+    echo "Upstream RQ 200 stat good"
+fi
+
+exit $rc
+
 
 # kubernaut discard
