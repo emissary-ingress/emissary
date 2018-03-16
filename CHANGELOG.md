@@ -15,7 +15,7 @@
 
 ### Changed
 
-- Default restart timings have been increased. **This will cause Ambassador to response to service changes less quickly**; by default, you'll see changes appear within 15 seconds.
+- Default restart timings have been increased. **This will cause Ambassador to respond to service changes less quickly**; by default, you'll see changes appear within 15 seconds.
 - Liveness and readiness checks are now enabled after 30 seconds, rather than 3 seconds, if you use our published YAML.
 - The `statsd` container is now based on `mhart/alpine-node:9` rather than `:7`.
 - `envoy_override` has been reenabled in `Mapping`s.
