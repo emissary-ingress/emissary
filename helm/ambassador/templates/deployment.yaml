@@ -48,13 +48,13 @@ spec:
             httpGet:
               path: /ambassador/v0/check_alive
               port: admin
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 3
           readinessProbe:
             httpGet:
               path: /ambassador/v0/check_ready
               port: admin
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 3
           resources:
 {{ toYaml .Values.resources | indent 12 }}
