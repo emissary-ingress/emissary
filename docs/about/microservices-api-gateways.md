@@ -24,14 +24,16 @@ A microservices API gateway supports dynamically routing user requests to differ
 
 ## Microservices API Gateways vs. Traditional API Gateways
 
-At first blush, the use case described above may be fulfilled with a traditional API gateway. Let's look at the differences a little more closely.
+At first blush, the use case described above may be fulfilled with a traditional API gateway. While this may be true, the actual emphasis of traditional API gateways and microservices API gateways are somewhat different:
 
 | Use case      | API gateway       | Microservices API gateway                |
 |---------------|-------------------|------------------------------|
-| Publishing    | Operations registers/updates new services | Service team registers/updates new services |
-| Monitoring    | Measure API calls per consumer, for metering | Measure L7 latency, throughput, availability |
-| Rate limiting | Cut off API calls per consumer when a consumer exceeds its quota | Limit API calls when service is not responding, for resilience |
-| Test & Update | API versioning for stability | Canary routing for dynamic testing
+| Primary Purpose  | Expose, compose, and manage internal business APIs | Expose and observe internal business services |
+| Publishing Functionality | API management team or service team registers / updates gateway via admin API | Service team registers / updates gateway via declarative code as part of the deployment process |
+| Monitoring | Admin and operations focused e.g. meter API calls per consumer, report errors (e.g. internal 5XX). | Developer focused e.g. latency, traffic, errors, saturation |
+| Handling and Debugging Issues | L7 error-handling (e.g. custom error page or payload). Run gateway/API with additional logging. Troubleshoot issue in staging environment | Configure more detailed monitoring. Enable traffic shadowing and / or canarying |
+| Testing | Operate multiple environments for QA, Staging and Production. Automated integration testing, and gated API deployment. Use client-driven API versioning for compatibility and stability (e.g. semver) | Facilitate canary routing for dynamic testing (taking care with data mutation side effects). Use developer-driven service versioning for upgrade management |
+| Local Development | Deploy gateway locally (via installation script, Vagrant or Docker), and attempt to mitigate infrastructure differences with production. Use language-specific gateway mocking and stubbing frameworks | Deploy gateway locally via service orchestration platform (e.g. Kubernetes) |
 
 ## Self-Service Publishing
 
