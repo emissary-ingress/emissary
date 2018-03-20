@@ -84,6 +84,7 @@ Required attributes for mappings:
 
 Common optional attributes for mappings:
 
+- `prefix_regex`: if present and true, tells the system to interpret the `prefix` as a regular expression
 - `rewrite` is what to [replace](#rewriting) the URL prefix with when talking to the service
 - `host_rewrite`: forces the HTTP `Host` header to a specific value when talking to the service
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
