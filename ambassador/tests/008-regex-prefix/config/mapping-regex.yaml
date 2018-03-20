@@ -1,0 +1,9 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  regex_mapping
+prefix: ^\/http(bin)\/$
+prefix_regex: true
+service: http://httpbin.org
+host_rewrite: httpbin.org
+host: test.datawire.io
