@@ -1,4 +1,4 @@
-# Microservices API Gateways vs. Traditional API Gateways
+# Microservices API Gateways vs. Traditional Enterprise API Gateways
 
 A microservices API gateway is an API gateway designed to accelerate the development workflow of independent services teams. A microservices API gateway provides all the functionality for a team to independently publish, monitor, and update a microservice.
 
@@ -8,23 +8,23 @@ In this article, we'll discuss how the difference in business objective (product
 
 ## Microservices Organization
 
-In a microservices organization, small teams of developers work independently from each other to rapidly deliver functionality to the customer. In order for a services team to work independently, with a productive workflow, a services team needs to be able to:
+In a microservices organization, small teams of developers work independently from each other to rapidly deliver functionality to the customer. In order for each service team to work independently, with a productive workflow, a services team needs to be able to:
 
 1. Publish their service, so that others can use the service
 2. Monitor their service, to see how well it's working
 3. Test and update their service, so they can keep on improving the service
 
-*without* requiring assistance from another team. (As soon as a services team requires another team, they're no longer working independently from another team, and creating bottlenecks.)
+The team needs to all of this *without* requiring assistance from another operations or platform team--as soon as a services team requires another team, they're no longer working independently, and this can lead to bottlenecks.
 
 For service publication, a microservices API gateway provides a static address for consumers, and dynamically route requests to the appropriate service address. In addition, providing authentication and TLS termination for security are typical considerations in exposing a service to other consumers.
 
 Understanding the end user experience of a service is crucial to improving the service. For example, a software update could inadvertently impact the latency of certain requests. A microservices API gateway is well situated to collect key observability metrics on end user traffic as it routes traffic to the end service.
 
-A microservices API gateway supports dynamically routing user requests to different service versions for canary testing. By routing a small fraction of end user requests to a new version of a service, service teams can safely test the impact of new updates to a small subset of users.
+A microservices API gateway also supports dynamically routing user requests to different service versions for canary testing. By routing a small fraction of end user requests to a new version of a service, service teams can safely test the impact of new updates to a small subset of users.
 
-## Microservices API Gateways vs. Traditional API Gateways
+## Microservices API Gateways vs. Enterprise API Gateways
 
-At first blush, the use case described above may be fulfilled with a traditional API gateway. While this may be true, the actual emphasis of traditional API gateways and microservices API gateways are somewhat different:
+At first glance, the use case described above may be fulfilled with a enterprise-focused API gateway. While this may be true, the actual emphasis of enterprise API gateways and microservices API gateways are somewhat different:
 
 | Use case      | API gateway       | Microservices API gateway                |
 |---------------|-------------------|------------------------------|
@@ -37,20 +37,24 @@ At first blush, the use case described above may be fulfilled with a traditional
 
 ## Self-Service Publishing
 
-A service team needs to be able to publish a new service to customers without requiring an operations team ("self-service"). While a traditional API gateway may provide a simple mechanism (e.g., REST API) for publishing a new service, in practice, the usage is limited to operations. The primary reason for limiting publication to operations teams is to provide an additional (human) safety mechanism: an errant API call could have potentially disastrous effects on production. microservices API gateways utilize mechanisms that enable service teams to easily *and* safely publish new services. One example approach is to attach the routing metadata directly to service objects, which eliminate the possibility that a service team will inadvertently affect another service.
+A team needs to be able to publish a new service to customers without requiring an operations or API management team. This ability to self-service for deployment and publication enables the team to keep the feature release velocity high. While a traditional enterprise API gateway may provide a simple mechanism (e.g., REST API) for publishing a new service, in practice, the usage is often limited to the use of a dedicated team that is responsible for the gateway. The primary reason for limiting publication to a single team is to provide an additional (human) safety mechanism: an errant API call could have potentially disastrous effects on production.
+
+Microservices API gateways utilize mechanisms that enable service teams to easily *and* safely publish new services, with the inherent understanding that the producing team are responsible for their service, and will fix an issue if one occurs. A microservices gateway provides configurable monitoring for issue detection, and provides hooks for debugging, such as inspecting traffic or traffic shifting/duplication.
 
 ## Monitoring & Rate Limiting
 
-A common business model for APIs is metering, where a consumer is charged different fees depending on API usage. Traditional API gateways excel in this use case: they provide functionality for monitoring per-client usage of an API, and the ability to limit usage when the client exceeds their quota.
+A common business model for APIs is metering, where a consumer is charged different fees depending on API usage. Traditional enterprise API gateways excel in this use case: they provide functionality for monitoring per-client usage of an API, and the ability to limit usage when the client exceeds their quota.
 
-A microservice also requires monitoring and rate limiting, but for different reasons. Monitoring user-visible metrics such as throughput, latency, and availability are important to insure that new updates don't impact the end user. Robust end user metrics are critical to allowing rapid, incremental updates. Rate limiting is used to improve the overall resilience of a service. When a service is not responding as expected, an API gateway can throttle incoming requests to allow a service to recover and prevent a cascade failure.
+A microservice gateway also requires monitoring and rate limiting, but for different reasons. Monitoring user-visible metrics such as throughput, latency, and availability are important to insure that new updates don't impact the end user. Robust end user metrics are critical to allowing rapid, incremental updates. Rate limiting is used to improve the overall resilience of a service. When a service is not responding as expected, an API gateway can throttle incoming requests to allow a service to recover and prevent a cascade failure.
 
 ## Testing and Updates
 
-A microservices application has multiple services, each of which is being independently updated. Synthetic testing of a moving target is necessary but not sufficient for microservices. Canary testing, where a small percentage of traffic is routed to a new service version, is an important tool to help test an update. By limiting a new service version to a small percentage of users, the impact of a service failure is limited.
+A microservices application has multiple services, each of which is being independently updated. Automated pre-production testing of a moving target is necessary but not sufficient for microservices. Canary testing, where a small percentage of production traffic is routed to a new service version, is an important tool to help test an update. By limiting a new service version to a small percentage of users, the impact of a service failure is limited.
 
-In a traditional API gateway, routing is used to manage changing API versions. Microservices API gateways integrate canary routing directly into the routing rules so that service teams can quickly and safely rollout new versions of their service.
+In a traditional enterprise API gateway, routing is used to isolate or compose/aggregate changing API versions. Automated pre-production testing and manual post-production verification and exploration is required.
 
 # Summary
 
-Traditional API gateways are designed to solve the challenges of API management. While they may appear to solve some of the challenges of adopting microservices, the reality is that a microservices workflow creates a different set of requirements. Integrating a microservices API gateway into your development workflow empowers service teams to self-publish, monitor, and update their service, quickly and safely. This will enable your organization to ship software faster than ever before.
+Traditional enterprise API gateways are designed to solve the challenges of API management. While they may appear to solve some of the challenges of adopting microservices, the reality is that a microservices workflow creates a different set of requirements. Integrating a microservices API gateway into your development workflow empowers service teams to self-publish, monitor, and update their service, quickly and safely. This will enable your organization to ship software more rapidly, and with more reliability than ever before.
+
+For further reading on how an API Gateway can accelerate continuous delivery, read [this blog post](https://blog.getambassador.io/continuous-delivery-how-can-an-api-gateway-help-or-hinder-1ff15224ec4d).
