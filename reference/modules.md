@@ -104,11 +104,10 @@ An `AuthService` manifest configures Ambassador to use an external service to ch
 apiVersion: ambassador/v0
 kind:  AuthService
 name:  authentication
-config:
-  auth_service: "example-auth:3000"
-  path_prefix: "/extauth"
-  allowed_headers:
-  - "x-qotm-session"
+auth_service: "example-auth:3000"
+path_prefix: "/extauth"
+allowed_headers:
+- "x-qotm-session"
 ```
 
 - `auth_service` gives the URL of the authentication service
