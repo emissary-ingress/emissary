@@ -8,6 +8,7 @@
         "kind": { "type": "string" },
         "name": { "type": "string" },
         "prefix": { "type": "string" },
+        "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },
 
         "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
@@ -61,6 +62,6 @@
             "additionalProperties": { "type": [ "string", "boolean" ] }
         }
     },
-    "required": [ "apiVersion", "kind", "name", "prefix", "service" ],
+    "required": [ "apiVersion", "kind", "name", "service", "prefix" ],
     "additionalProperties": false
 }
