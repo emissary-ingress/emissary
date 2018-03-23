@@ -22,7 +22,7 @@ Ambassador supports multiple namespaces within Kubernetes. To make this work cor
               fieldPath: metadata.namespace          
 ```
 
-Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](#mapping) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explictly include the namespace with the service to cross namespaces; see the [mapping](#mappings) documentation for more information.
+Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](reference/mappings) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explicitly include the namespace with the service to cross namespaces; see the [mapping](reference/mappings) documentation for more information.
 
 If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
