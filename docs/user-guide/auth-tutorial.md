@@ -117,7 +117,22 @@ spec:
     targetPort: http-api
 ```
 
-This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
+This configuration tells Ambassador about the auth service, notably that it
+needs the `/extauth` prefix, and that it's OK for it to pass back the
+`x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are
+optional.
+
+If the auth service uses a framework like
+[Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes
+as HTTP path separators, it is possible to end up with an infinite redirect
+where the auth service's framework redirects any request with non-conformant
+slashing. This would arise if the above example had
+```path_prefix: "/extauth/"```, the auth service would see a request for
+```/extauth//qotm/quote/1``` which would then be redirected to
+```/extauth/quotm/quote/1``` rather than actually be handled by the
+authentication handler. For this reason, remember that the full path of the
+incoming request including the leading slash, will be appended to
+```path_prefix``` regardless of non-conformant slashing.
 
 You can apply this file from getambassador.io with
 
