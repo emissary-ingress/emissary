@@ -10,6 +10,14 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.30.0] March 23, 2018
+[0.30.0]: https://github.com/datawire/ambassador/compare/v0.30.0...v0.29.0
+
+### Changed
+
+- Support regex matching for `prefix` (thanks @radu-c!)
+- Fix docs around `AuthService` usage
+
 ## [0.29.0] March 15, 2018
 [0.29.0]: https://github.com/datawire/ambassador/compare/v0.29.0...v0.28.2
 
