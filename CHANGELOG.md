@@ -10,6 +10,13 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.30.1] March 26, 2018
+[0.30.1]: https://github.com/datawire/ambassador/compare/v0.30.1...v0.30.0
+
+### Fixed
+
+- The `tls` module is now able to override TLS settings probed from the `ambassador-certs` secret
+
 ## [0.30.0] March 23, 2018
 [0.30.0]: https://github.com/datawire/ambassador/compare/v0.30.0...v0.29.0
 
