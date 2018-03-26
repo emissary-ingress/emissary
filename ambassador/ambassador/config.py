@@ -683,8 +683,7 @@ class Config (object):
                 name_fields = [ 'otls', context ]
                 originate_tls = context
             else:
-                self.logger.error("Originate-TLS context %s is not defined (mapping %s)" %
-                                  (context, mapping_name))
+                self.logger.error("Originate-TLS context %s is not defined" % context)
 
         port = 443 if originate_tls else 80
         context_name = "_".join(name_fields) if name_fields else None
@@ -742,6 +741,9 @@ class Config (object):
         # ...most notably the 'ambassador' and 'tls' modules, which are handled first.
         amod = modules.get('ambassador', None)
         tmod = modules.get('tls', None)
+
+        if not tmod:
+            tmod = modules.get('tls-from-ambassador-certs',)
 
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)

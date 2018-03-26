@@ -10,7 +10,7 @@ metadata:
       kind:  Mapping
       name:  demo_default_mapping
       prefix: /demo/
-      tls: upstream     
+      tls: True     
       service: demo1
 spec:
   selector:
@@ -32,7 +32,7 @@ metadata:
       name:  demo_with_host_mapping
       prefix: /demo/
       host: demo2.datawire.io
-      tls: upstream     
+      tls: True     
       service: demo2:443
       ---
       apiVersion: ambassador/v0
@@ -41,7 +41,7 @@ metadata:
       prefix: /good/
       headers:
         "x-hurkle": true
-      tls: upstream     
+      tls: True     
       service: demo2:443
       ---
       apiVersion: ambassador/v0
@@ -50,7 +50,7 @@ metadata:
       prefix: /demo/
       headers:
         x-demo-mode: canary
-      tls: upstream    
+      tls: True    
       service: demo2
 spec:
   selector:
@@ -73,28 +73,6 @@ metadata:
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
-      ---
-      apiVersion: ambassador/v0
-      kind:  Module
-      name:  tls
-      config:
-        server:
-          enabled: True
-          # These are optional.
-          cert_chain_file: /etc/certs/termination/tls.crt
-          private_key_file: /etc/certs/termination/tls.key
-
-        # client:
-        #   enabled: True,
-        #   # These are optional.
-        #   cert_required: True
-        #   cacert_chain_file: /etc/ca_cert_chain/tls.crt
-
-        # This is an upstream context. Use tls: upstream in a 
-        # mapping to reference it.
-        upstream:
-          cert_chain_file: /etc/certs/upstream/tls.crt
-          private_key_file: /etc/certs/upstream/tls.key
       ---
       apiVersion: ambassador/v0
       kind: Module

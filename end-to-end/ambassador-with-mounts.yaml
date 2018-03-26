@@ -92,8 +92,8 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace          
         volumeMounts:
-        - name: termination-certs
-          mountPath: /etc/certs/termination
+        # - name: termination-certs
+        #   mountPath: /etc/certs/termination
         - name: upstream-certs
           mountPath: /etc/certs/upstream
         terminationMessagePath: /dev/termination-log
@@ -101,9 +101,9 @@ spec:
         image: {STREG}statsd:{VERSION}
         imagePullPolicy: Always
       volumes:
-      - name: termination-certs
-        secret:
-          secretName: ambassador-certs-termination
+      # - name: termination-certs
+      #   secret:
+      #     secretName: ambassador-certs-termination
       - name: upstream-certs
         secret:
           secretName: ambassador-certs-upstream
