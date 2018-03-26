@@ -15,7 +15,7 @@ initialize_cluster
 
 kubectl cluster-info
 
-kubectl create secret tls ambassador-certs-termination --cert=certs/termination.crt --key=certs/termination.key
+kubectl create secret tls ambassador-certs --cert=certs/termination.crt --key=certs/termination.key
 kubectl create secret tls ambassador-certs-upstream --cert=certs/upstream.crt --key=certs/upstream.key
 
 kubectl apply -f k8s/authsvc.yaml
@@ -73,6 +73,7 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 <
     exit 1
 fi
 
+echo "kubectl apply -f k8s/canary-50.yaml"
 kubectl apply -f k8s/canary-50.yaml
 wait_for_pods
 wait_for_demo_weights "$BASEURL" x-demo-mode=canary 50 50
@@ -86,8 +87,12 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 <
     exit 1
 fi
 
+echo "kubectl apply -f k8s/canary-100.yaml"
 kubectl apply -f k8s/canary-100.yaml
 wait_for_pods
+
+sleep 10
+
 wait_for_demo_weights "$BASEURL" x-demo-mode=canary 100
 
 # This needs sorting crap before it'll work. :P

@@ -332,7 +332,7 @@ def sync(restarter):
                 tls_mod = {
                     "apiVersion": "ambassador/v0",
                     "kind": "Module",
-                    "name": "tls",
+                    "name": "tls-from-ambassador-certs",
                     "config": {
                         "server": {
                             "enabled": True,
