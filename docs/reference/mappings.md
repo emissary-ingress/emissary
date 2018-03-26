@@ -4,10 +4,10 @@ Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#
 
 Each mapping can also specify, among other things:
 
-- a [_rewrite rule_](#rewriting) which modifies the URL as it's handed to the Kubernetes service;
-- a [_weight_](#weights) specifying how much of the traffic for the resource will be routed using the mapping;
-- a [_host_](#host) specifying a required value for the HTTP `Host` header; and
-- other [_headers_](#headers) which must appear in the HTTP request.
+- a [_rewrite rule_](#rewrite-rules) which modifies the URL as it's handed to the Kubernetes service;
+- a [_weight_](#using-weight) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_host_](#using-host-and-hostregex) specifying a required value for the HTTP `Host` header; and
+- other [_headers_](#using-headers) which must appear in the HTTP request.
 
 ### Mapping Evaluation Order
 
@@ -85,7 +85,7 @@ Required attributes for mappings:
 Common optional attributes for mappings:
 
 - `prefix_regex`: if present and true, tells the system to interpret the `prefix` as a regular expression
-- `rewrite` is what to [replace](#rewriting) the URL prefix with when talking to the service
+- `rewrite` is what to [replace](#rewrite-rules) the URL prefix with when talking to the service
 - `host_rewrite`: forces the HTTP `Host` header to a specific value when talking to the service
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
 - `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
@@ -94,7 +94,7 @@ Common optional attributes for mappings:
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
 - `headers`: if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
-- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match 
+- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match
 for this mapping to be used to route the request
 - `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
 - `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
@@ -185,7 +185,7 @@ host_regex: true
 service: qotm3
 ```
 
-will map requests for `/qotm/` to 
+will map requests for `/qotm/` to
 
 - the `qotm2` service if the `Host` header is `qotm.datawire.io`;
 - the `qotm3` service if the `Host` header matches `^qotm[2-9]\\.datawire\\.io$`; and to
