@@ -156,7 +156,7 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 ## Automatic Sidecar Injection
 
-Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). With Ambassador, you don't need to inject the Istio sidecar -- Ambassador's Envoy instance will automatically route to the appropriate service(s). If you're using automatic sidecar injection, you'll need to configure Istio to not inject the sidecar automatically for Ambassador pods. There are several approaches to doing this that are [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#configuration-options).
+Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#policy).
 
 ## Roadmap
 
