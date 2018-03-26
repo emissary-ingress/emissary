@@ -32,6 +32,22 @@ def get_semver(what, version_string):
 
     return semver
 
+
+def config_filter_authservice_path_prefix(original_value):
+    """
+    If the authservice's path prefix ends with a slash, we can safely throw
+    it away.
+
+    :param original_value:
+    :return: original value without a trailing slash
+    """
+    if original_value.endswith("/"):
+        return original_value[:-1]
+
+    else:
+        return original_value
+
+
 class Config (object):
     # Weird stuff. The build version looks like
     #
@@ -85,6 +101,22 @@ class Config (object):
     scout_last_response = None
     scout_last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
     scout_update_frequency = datetime.timedelta(hours=4)
+
+    # map of configuration keys to filter functions
+    #
+    # Keys are in the form of:
+    # "{}-{}".format(configuration.kind, configuration.key)
+    #
+    # Example:
+    # "AuthService-path_prefix"
+    #
+    # Where the registered function should support the signature:
+    #
+    # def my_filter_function(original_value: str): -> str
+    #
+    _CONFIG_KEY_FILTERS = {
+        "AuthService-path_prefix": config_filter_authservice_path_prefix
+    }
 
     @classmethod
     def scout_report(klass, force_result=None, **kwargs):
@@ -1224,10 +1256,14 @@ class Config (object):
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
+        for key in ('path_prefix', 'timeout_ms', 'cluster', ):
             value = module.get(key, None)
 
-            if value != None:
+            filter_key = "AuthService-{}".format(key)
+            if filter_key in Config._CONFIG_KEY_FILTERS:
+                value = Config._CONFIG_KEY_FILTERS[filter_key](value)
+
+            if value is not None:
                 previous = config.get(key, None)
 
                 if previous and (previous != value):
