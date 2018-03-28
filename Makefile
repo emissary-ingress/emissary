@@ -85,8 +85,14 @@ statsd-image: .ALWAYS
 website: yaml-files
 	VERSION=$(VERSION) docs/build-website.sh
 
+helm: .ALWAYS
+	cd helm && helm package --app-version "${VERSION}" --version "${VERSION}" ambassador/
+	mv helm/ambassador-${VERSION}.tgz docs/
+	helm repo index docs --url https://www.getambassador.io --merge ./docs/index.yaml
+
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
+	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf ambassador/ambassador/VERSION.py*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
