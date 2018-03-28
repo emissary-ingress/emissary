@@ -6,7 +6,6 @@ replicaCount: 1
 
 image:
   repository: quay.io/datawire/ambassador
-  tag: 0.29.0
   pullPolicy: IfNotPresent
 
 service:
