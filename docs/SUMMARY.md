@@ -27,6 +27,7 @@
   * [Mappings](reference/mappings.md)
   * [Advanced configuration topics](reference/advanced.md)
 * [Running Ambassador](reference/running.md)
+  * [Ambassador with AWS](reference/ambassador-with-aws.md)
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
 * [Auth With an External Auth Service](reference/auth-external.md)
