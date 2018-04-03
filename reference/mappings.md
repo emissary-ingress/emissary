@@ -262,7 +262,7 @@ CORS settings:
 - `exposed_headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Expose-Headers` header.
 - `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
 
-#### Using `envoy_override`
+#### Using `envoy_override` {#using-envoy-override}
 
 It's possible that your situation may strain the limits of what Ambassador can do. The `envoy_override` attribute is provided for cases we haven't predicted: any object given as the value of `envoy_override` will be inserted into the Envoy `Route` synthesized for the given mapping. For example, you could enable Envoy's `auto_host_rewrite` by supplying
 
@@ -271,7 +271,16 @@ envoy_override:
   auto_host_rewrite: True
 ```
 
-Note that `envoy_override` cannot, at present, change any element already synthesized in the mapping: it can only add additional information.
+Note that `envoy_override` cannot, at present, change any element already synthesized in the mapping: it can only add additional information. In addition, `envoy_override` only supports adding information to Envoy routes, and not clusters.
+
+Here is another example of using `envoy_override` to set Envoy's [connection retries](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/route.html#retry-policy:
+
+```
+envoy_override:
+   retry_policy:
+     retry_on: connect-failure
+     num_retries: 4
+```
 
 #### Namespaces and Mappings
 
