@@ -639,6 +639,17 @@ footer {
     padding: 30px;
 }
 
+.card .icon {
+    height: 72px;
+    display: flex;
+    align-items: center;
+}
+
+.card .icon > img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
 .card strong {
     color: #111;
     font-weight: 800;
@@ -655,6 +666,8 @@ footer {
     font-size: 20px;
     letter-spacing: -0.42px;
     text-align: center;
+    min-height: 60px;
+    line-height: 30px;
 }
 
 #global-features {
