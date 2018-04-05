@@ -88,6 +88,7 @@ website: yaml-files
 helm: .ALWAYS
 	cd helm && helm package --app-version "${VERSION}" --version "${VERSION}" ambassador/
 	mv helm/ambassador-${VERSION}.tgz docs/
+	git add helm/ambassador-${VERSION}.tgz
 	helm repo index docs --url https://www.getambassador.io --merge ./docs/index.yaml
 
 clean:

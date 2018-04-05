@@ -10,6 +10,27 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.30.2] March 26, 2018
+[0.30.2]: https://github.com/datawire/ambassador/compare/v0.30.2...v0.30.1
+
+### Changed
+
+- drop the JavaScript `statsd` for a simple `socat`-based forwarder
+- ship an Ambassador Helm chart (thanks @stefanprodan!)
+   - Interested in testing Helm? See below!
+- disable Istio automatic sidecar injection (thanks @majelbstoat!)
+- clean up some doc issues (thanks @lavoiedn and @endrec!)
+
+To test Helm, make sure you have `helm` installed and that you have `tiller` properly set up for your RBAC configuration. Then:
+
+```
+helm repo add datawire https://www.getambassador.io
+
+helm upgrade --install --wait my-release datawire/ambassador
+```
+
+You can also use `adminService.type=LoadBalancer`.
+
 ## [0.30.1] March 26, 2018
 [0.30.1]: https://github.com/datawire/ambassador/compare/v0.30.1...v0.30.0
 
