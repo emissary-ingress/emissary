@@ -23,6 +23,7 @@ perl -pi \
 
 # Replace index.html with our hand-crafted landing page...
 cp index.html _book/
+cp features.html _book/
 
 # ...and make sure that the version is correct in the index.
 perl -pi -e "s/{VERSION}/$VERSION/g;" _book/index.html
