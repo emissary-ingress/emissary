@@ -639,7 +639,13 @@ footer {
     background: white;
     box-shadow: 0 10px 10px rgba(0, 0, 0, 0.04);
     margin: 0 15px 30px;
-    padding: 30px;
+    padding: 20px;
+    border: 2px solid white;
+}
+
+a.card:hover {
+    text-decoration: none;
+    border: 2px solid #F9634E;
 }
 
 .card .icon {
@@ -666,8 +672,8 @@ footer {
 .card p {
     display: inline-block;
     color: #4A4A4A;
-    font-size: 20px;
-    letter-spacing: -0.42px;
+    font-size: 18px;
+    letter-spacing: -0.82px;
     text-align: center;
     min-height: 60px;
     line-height: 30px;
@@ -682,9 +688,10 @@ footer {
 }
 @media (min-width: 768px) {
     #self-service-features {
+        margin-top: -65px;
         background-image: url('/images/self-service-features-bg.svg');
         background-repeat: no-repeat;
-        padding-top: 185px;
+        padding-top: 175px;
     }
 }
 .toggle {

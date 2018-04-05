@@ -36,7 +36,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,900" type="text/css" media="all" />
     <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
-    <link rel="stylesheet" href="/css/home.css">
+    <link rel="stylesheet" href="/css/styles.css">
 
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -87,34 +87,34 @@
         </a>
     </div>
 </section>
-<section id="global-features" class="bg-gray padding-bottom-75">
+<section id="global-features" class="bg-gray">
     <div class="container">
         <div class="text-center padding-bottom-75">
             <h1 class="text-black text-uppercase text-xl">Global Features</h1>
             <p class="font-light text-uppercase text-md">Ambassador supports global policies that apply to all services.</p>
         </div>
         <div class="cards">
-            <div class="card">
+            <a href="/user-guide/auth-tutorial" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/basic-authentication.svg" />
                 </div>
                 <strong>Basic Authentication</strong>
-                <p><<a href="/user-guide/auth-tutorial">Add basic authentication to your services</a></p>
-            </div>
-            <div class="card">
+                <p>Add basic authentication to your services</p>
+            </a>
+            <a href="/reference/auth-external" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/third-party-auth.svg" />
                 </div>
                 <strong>Third party Authentication</strong>
-                <p><a href="/reference/auth-external">Define your custom authentication service (e.g., OpenID Connect, OAuth)</a></p>
-            </div>
-            <div class="card">
+                <p>Define your custom authentication service (e.g., OpenID Connect, OAuth)</p>
+            </a>
+            <a href="/user-guide/tls-termination" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/tls-termination.svg" />
                 </div>
                 <strong>TLS Termination</strong>
-                <p><a href="/user-guide/tls-termination">Use your own SSL certificate</a></p>
-            </div>
+                <p>Use your own SSL certificate</p>
+            </a>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/statsd.png" />
@@ -209,13 +209,13 @@
                 <strong>WebSockets</strong>
                 <p>Native WebSockets support</p>
             </div>
-            <div class="card">
+            <a href="user-guide/grpc" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/url-rewrite.svg" />
                 </div>
                 <strong>gRPC</strong>
-                <p><a href="user-guide/grpc">Native gRPC support</a></p>
-            </div>
+                <p>Native gRPC support</p>
+            </a>
         </div>
     </div>
 </section>
