@@ -106,42 +106,42 @@
                     <img src="/images/features-icons/third-party-auth.svg" />
                 </div>
                 <strong>Third party Authentication</strong>
-                <p>Use any third party service</p>
+                <p>Define your custom authentication service (e.g., OpenID Connect, OAuth)</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/tls-termination.svg" />
                 </div>
                 <strong>TLS Termination</strong>
-                <p>Add basic authentication to your services</p>
+                <p><a href="/user-guide/tls-termination">Use your own SSL certificate</a></p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/statsd.png" />
                 </div>
                 <strong>StatsD</strong>
-                <p>Add basic authentication to your services</p>
+                <p>Send real-time metrics via StatsD</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/prometheus.svg" />
                 </div>
                 <strong>Prometheus</strong>
-                <p>Add basic authentication to your services</p>
+                <p>Collect real-time metrics with Prometheus</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/datadog.png" />
                 </div>
                 <strong>Datadog</strong>
-                <p>Add basic authentication to your services</p>
+                <p>Collect real-time metrics with DataDog</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/diagnostics.svg" />
                 </div>
                 <strong>Diagnostics</strong>
-                <p>Add basic authentication to your services</p>
+                <p>Easily troubleshoot your configuration with the Ambassador diagnostics UI</p>
             </div>
         </div>
     </div>
@@ -149,7 +149,7 @@
 <section id="self-service-features" class="bg-gray padding-bottom-75">
     <div class="container">
         <div class="text-center padding-bottom-75">
-            <h1 class="text-black text-uppercase text-xl">Self-service features</h1>
+            <h1 class="text-black text-uppercase text-xl">Service-scoped features</h1>
             <p class="font-light text-uppercase text-md">Ambassador gives your Kubernetes service owners fine-<br>grained control over their ingress.</p>
         </div>
         <div class="cards">
@@ -157,37 +157,64 @@
                 <div class="icon">
                     <img src="/images/features-icons/cors.svg" />
                 </div>
-                <strong>Cors</strong>
+                <strong>CORS</strong>
+                <p>Enable Cross-Origin Resource Sharing for given service URLs</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/canary-release.svg" />
                 </div>
                 <strong>Canary release</strong>
+                <p>Test new updates of your services against a subset of your production traffic</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/timeouts.svg" />
                 </div>
                 <strong>Timeouts</strong>
+                <p>Add request timeouts to service API calls</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/request-transformers.svg" />
                 </div>
                 <strong>Request Transformers</strong>
+                <p>Add a dictionary of HTTP headers that can be added to each request to your service</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/regex-routing.svg" />
                 </div>
                 <strong>Regular expression routing</strong>
+                <p>Route based on regular expression</p>
+            </div>
+            <div class="card">
+                <div class="icon">
+                    <img src="/images/features-icons/regex-routing.svg" />
+                </div>
+                <strong>Method-based routing</strong>
+                <p>Route based on your HTTP method (e.g., GET, PUT)</p>
             </div>
             <div class="card">
                 <div class="icon">
                     <img src="/images/features-icons/url-rewrite.svg" />
                 </div>
-                <strong>Url Rewrite</strong>
+                <strong>URL Rewrite</strong>
+                <p>Replace the URL prefix when routing to a service</p>
+            </div>
+            <div class="card">
+                <div class="icon">
+                    <img src="/images/features-icons/url-rewrite.svg" />
+                </div>
+                <strong>WebSockets</strong>
+                <p>Native WebSockets support</p>
+            </div>
+            <div class="card">
+                <div class="icon">
+                    <img src="/images/features-icons/url-rewrite.svg" />
+                </div>
+                <strong>gRPC</strong>
+                <p><a href="user-guide/grpc">Native gRPC support</a></p>
             </div>
         </div>
     </div>
