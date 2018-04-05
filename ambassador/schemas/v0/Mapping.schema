@@ -52,6 +52,17 @@
         "host_regex": { "type": "boolean" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
+        "rate_limit": {
+            "type": "object",
+            "properties": {
+                "descriptor":  { "type": "string" },
+                "headers": { 
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            },
+            "additionalProperties": false
+        },
         "envoy_override": { 
             "type": "object"
         }

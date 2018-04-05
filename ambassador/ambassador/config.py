@@ -575,6 +575,10 @@ class Config (object):
         return self.safe_store(source_key, "modules", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj['config']))
 
+    def handle_ratelimitservice(self, source_key, obj, obj_name, obj_kind, obj_version):
+        return self.safe_store(source_key, "ratelimit_configs", obj_name, obj_kind, 
+                               SourcedDict(_source=source_key, **obj))
+
     def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
         return self.safe_store(source_key, "auth_configs", obj_name, obj_kind, 
                                SourcedDict(_source=source_key, **obj))
@@ -725,15 +729,8 @@ class Config (object):
         # Our initial set of routes is empty...
         self.envoy_routes = {}
 
-        # ...and our initial set of filters is just the 'router' filter.
-        #
-        # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
-        # We're kind of punting on that so far since we'll only ever add one filter
-        # right now.
-        self.envoy_config['filters'] = [
-            SourcedDict(name="cors", config={}),
-            SourcedDict(type="decoder", name="router", config={})
-        ]
+        # Our initial list of grpc_services is empty...
+        self.envoy_config['grpc_services'] = []
 
         # Now we look at user-defined modules from our config...
         modules = self.config.get('modules', {})
@@ -748,11 +745,23 @@ class Config (object):
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
 
-        # Next up: deal with authentication.
+        # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
+        self.envoy_config['filters'] = []
+        # Start with authentication filter
         auth_mod = modules.get('authentication', None)
         auth_configs = self.config.get('auth_configs', None)
-        self.module_config_authentication("authentication", amod,
-                                          auth_mod, auth_configs)
+        auth_filter = self.module_config_authentication("authentication", amod, auth_mod, auth_configs)
+        if auth_filter:
+            self.envoy_config['filters'].append(auth_filter)
+        # Then append the rate-limit filter, because we might rate-limit based on auth headers
+        ratelimit_configs = self.config.get('ratelimit_configs', None)
+        (ratelimit_filter, ratelimit_grpc_service) = self.module_config_ratelimit(ratelimit_configs)
+        if ratelimit_filter and ratelimit_grpc_service:
+            self.envoy_config['filters'].append(ratelimit_filter)
+            self.envoy_config['grpc_services'].append(ratelimit_grpc_service)
+        # Then append non-configurable cors and decoder filters
+        self.envoy_config['filters'].append(SourcedDict(name="cors", config={}))
+        self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config={}))
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
@@ -1221,6 +1230,51 @@ class Config (object):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
 
+    def module_config_ratelimit(self, ratelimit_config):
+        cluster_hosts = None
+        sources = []
+
+        if ratelimit_config:
+            for config in ratelimit_config.values():
+                sources.append(config['_source'])
+                cluster_hosts = config.get("service", None)
+
+        if not cluster_hosts or not sources:
+            return (None, None)
+
+        cluster_name = "cluster_ext_ratelimit"
+        filter_config = {
+            "domain": "ambassador",
+            "request_type": "both",
+            "timeout_ms": 20
+        }
+        grpc_service = SourcedDict(
+            name="rate_limit_service",
+            cluster_name=cluster_name
+        )
+
+        first_source = sources.pop(0)
+
+        filter = SourcedDict(
+            _source=first_source,
+            type="decoder",
+            name="rate_limit",
+            config=filter_config
+        )
+
+        if cluster_name not in self.envoy_clusters:
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None)
+            self.add_intermediate_cluster(first_source, cluster_name,
+                                          'extratelimit', [url],
+                                          type="strict_dns", lb_type="round_robin",
+                                          grpc=True)
+
+        for source in sources:
+            filter._mark_referenced_by(source)
+            self.envoy_clusters[cluster_name]._mark_referenced_by(source)
+
+        return (filter, grpc_service)
+
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
 
@@ -1276,7 +1330,7 @@ class Config (object):
                 self.auth_helper(sources, filter_config, cluster_hosts, config)
 
         if not sources:
-            return
+            return None
 
         first_source = sources.pop(0)
 
@@ -1322,7 +1376,7 @@ class Config (object):
             filter._mark_referenced_by(source)
             self.envoy_clusters[cluster_name]._mark_referenced_by(source)
 
-        self.envoy_config['filters'].insert(0, filter)
+        return filter
 
     ### DIAGNOSTICS
     def diagnostic_overview(self):

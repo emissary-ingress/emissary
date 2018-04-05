@@ -138,6 +138,20 @@ class Mapping (object):
                 "enabled": True
             }.items() if value}
 
+        rate_limit = self.get('rate_limit')
+        if rate_limit != None:
+            rate_limits_actions = []
+            rate_limits_actions.append({'type': 'source_cluster'})
+            rate_limits_actions.append({'type': 'destination_cluster'})
+            rate_limits_actions.append({'type': 'remote_address'})
+            rate_limit_descriptor = rate_limit.get('descriptor', None)
+            if rate_limit_descriptor:
+                rate_limits_actions.append({'type': 'generic_key', 'descriptor_value': rate_limit_descriptor})
+            rate_limit_headers = rate_limit.get('headers', [])
+            for rate_limit_header in rate_limit_headers:
+                rate_limits_actions.append({'type': 'request_headers', 'header_name': rate_limit_header, 'descriptor_key': rate_limit_header})
+            route['rate_limits'] = [{'actions': rate_limits_actions}]
+
         # Even though we don't use it for generating the Envoy config, go ahead
         # and make sure that any ':method' header match gets saved under the
         # route's '_method' key -- diag uses it to make life easier.

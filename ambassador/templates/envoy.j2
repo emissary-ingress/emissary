@@ -52,6 +52,7 @@
                       {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
                       {%- if route.cors -%}"cors": {{ route.cors | tojson }},{% endif %}
+                      {%- if route.rate_limits -%}"rate_limits": {{ route.rate_limits | tojson }},{% endif %}
                       {%- if route.host_redirect -%}"host_redirect": "{{ route.host_redirect }}",{% endif %}
                       {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
                       {%- if route.path_redirect -%}"path_redirect": "{{ route.path_redirect }}",{% endif %}
@@ -135,6 +136,14 @@
       {% endfor %}
     ]
   },
+  {% for grpc_service in grpc_services -%}
+  "{{ grpc_service.name }}": {
+    "type": "grpc_service",
+    "config": {
+      "cluster_name": "{{ grpc_service.cluster_name }}"
+    }
+  },
+  {% endfor %}
   "statsd_udp_ip_address": "127.0.0.1:8125",
   "stats_flush_interval_ms": 1000
 }
