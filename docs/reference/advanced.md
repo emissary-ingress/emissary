@@ -7,15 +7,15 @@ When you run Ambassador within Kubernetes:
 3. Whenever any services change, Ambassador will update its `annotation`-based configuration.
 4. The baseline configuration, if present, will **never be updated** after Ambassador starts. To effect a change in the baseline configuration, use Kubernetes to force a redeployment of Ambassador.
 
-**Note:** We recommend using _only_ `annotation`-based configuration, so that Ambassador can respond to updates in its environment. 
+**Note:** We recommend using _only_ `annotation`-based configuration, so that Ambassador can respond to updates in its environment.
 
 ## Modifying Ambassador's Underlying Envoy Configuration
 
 Ambassador uses Envoy for the heavy lifting of proxying.
 
-If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use your own custom config template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates/envoy.j2).
+If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use the [`envoy_override` annotation](mappings#using-envoy-override). This annotation lets you add additional configuration for [Envoy routes](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/route.html).
 
-Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary so that we can explore direct Ambassador support for your use case (or, better yet, submit a PR!).
+If you need to add additional configuration for Envoy clusters, you will need to use your own custom configuration template. To do this, create a templated `envoy.json` file using the Jinja2 template language, and use this to to  replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates/envoy.j2). This method is not officially supported -- if you need to do this, please open a GitHub issue and [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary so that we can explore direct Ambassador support for your use case (or, better yet, submit a PR!).
 
 ## Configuring Ambassador via a Custom Image
 
