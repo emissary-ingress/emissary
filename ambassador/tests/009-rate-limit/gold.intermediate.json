@@ -147,6 +147,19 @@
                             },
                             {
                                 "type": "remote_address"
+                            }
+                        ]
+                    },
+                    {
+                        "actions": [
+                            {
+                                "type": "source_cluster"
+                            },
+                            {
+                                "type": "destination_cluster"
+                            },
+                            {
+                                "type": "remote_address"
                             },
                             {
                                 "descriptor_value": "custom-label",
@@ -322,7 +335,7 @@
             "kind": "Mapping",
             "name": "qotm_rate_limit_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_rate_limit_mapping\nprefix: /qotm-rate/\nrate_limit: {}\nservice: qotm\n"
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_rate_limit_mapping\nprefix: /qotm-rate/\nrate_limits:\n- {}\nservice: qotm\n"
         },
         "mapping-qotm.yaml.3": {
             "_source": "mapping-qotm.yaml",
@@ -331,7 +344,7 @@
             "kind": "Mapping",
             "name": "qotm_rate_limit_config_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_rate_limit_config_mapping\nprefix: /qotm-rate-custom/\nrate_limit:\n  descriptor: custom-label\n  headers:\n  - :authority\nservice: qotm\n"
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_rate_limit_config_mapping\nprefix: /qotm-rate-custom/\nrate_limits:\n- {}\n- descriptor: custom-label\n  headers:\n  - :authority\nservice: qotm\n"
         },
         "rate-limit-service.yaml.1": {
             "_source": "rate-limit-service.yaml",

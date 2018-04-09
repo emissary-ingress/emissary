@@ -49,7 +49,7 @@
                 ,
 
                   {
-                    "timeout_ms": 3000,"prefix": "/qotm-rate-custom/","prefix_rewrite": "/","rate_limits": [{"actions": [{"type": "source_cluster"}, {"type": "destination_cluster"}, {"type": "remote_address"}, {"descriptor_value": "custom-label", "type": "generic_key"}, {"descriptor_key": ":authority", "header_name": ":authority", "type": "request_headers"}]}],
+                    "timeout_ms": 3000,"prefix": "/qotm-rate-custom/","prefix_rewrite": "/","rate_limits": [{"actions": [{"type": "source_cluster"}, {"type": "destination_cluster"}, {"type": "remote_address"}]}, {"actions": [{"type": "source_cluster"}, {"type": "destination_cluster"}, {"type": "remote_address"}, {"descriptor_value": "custom-label", "type": "generic_key"}, {"descriptor_key": ":authority", "header_name": ":authority", "type": "request_headers"}]}],
                     "weighted_clusters": {
                       "clusters": [
 

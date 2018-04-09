@@ -11,10 +11,10 @@ metadata:
       name: qotm_mapping
       prefix: /qotm/
       service: qotm
-      rate_limit:
-        descriptor: A test case
-        headers:
-          - "x-ambassador-test-allow"
+      rate_limits:
+        - descriptor: A test case
+          headers:
+            - "x-ambassador-test-allow"
 spec:
   selector:
     app: qotm
