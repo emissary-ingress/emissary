@@ -52,6 +52,10 @@
         "host_regex": { "type": "boolean" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
+        "rate_limits": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/rateLimit" },
+        },
         "envoy_override": { 
             "type": "object"
         }
@@ -60,6 +64,17 @@
         "mapStrStr": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean" ] }
+        }
+        "rateLimit": {
+            "type": "object",
+            "properties": {
+                "descriptor":  { "type": "string" },
+                "headers": { 
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
+            },
+            "additionalProperties": false
         }
     },
     "required": [ "apiVersion", "kind", "name", "service", "prefix" ],

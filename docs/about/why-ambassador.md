@@ -6,7 +6,7 @@ Ambassador is:
 
 * Self-service. Ambassador is designed so that developers can manage services directly. This requires a system that is not only easy for developers to use, but provides safety and protection against inadvertent operational issues.
 * Operations friendly. Ambassador operates as a sidecar process to the [Envoy Proxy](https://www.envoyproxy.io), and integrates Envoy directly with Kubernetes. Thus, all routing, failover, health checking are handled by battle-tested, proven systems.
-* Designed for microservices. Ambassador integrates the features teams need for microservices, including authentication, observability, routing, TLS termination, and more.
+* Designed for microservices. Ambassador integrates the features teams need for microservices, including authentication, rate limiting, observability, routing, TLS termination, and more.
 
 For more background on the motivations of Ambassador, read [this blog post](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844).
 

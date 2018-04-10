@@ -98,6 +98,7 @@ Common optional attributes for mappings:
 for this mapping to be used to route the request
 - `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
 - `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
+- `rate_limits`: if present, specifies a list rate limit rules on a mapping. For more details about each setting, see [using rate_limits](#using-ratelimits)
 
 Less-common optional attributes for mappings:
 
@@ -261,6 +262,32 @@ CORS settings:
 - `credentials`: if present with a true value (boolean), will send a `true` value for the `Access-Control-Allow-Credentials` header.
 - `exposed_headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Expose-Headers` header.
 - `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
+
+#### Using `rate_limits`
+
+A mapping that specifies the `rate_limits` list attribute, and at least one `rate_limits` rule, will call the external [RateLimitService](rate-limit-service.md) before proceeding with the request. An example:
+
+```yaml
+apiVersion: ambassador/v0
+kind: Mapping
+name: rate_limits_mapping
+prefix: /rate-limit/
+service: rate-limit-example
+rate_limits:
+  - {}
+  - descriptor: a rate-limit descriptor
+    headers:
+    - matching-header
+```
+            
+Rate limit rule settings:
+
+- `descriptor`: if present, specifies a string identifying the triggered rate limit rule. This descriptor will be sent to the `RateLimitService`.
+- `headers`: if present, specifies a list of other HTTP headers which **must** appear in the request for the rate limiting rule to apply. These headers will be sent to the `RateLimitService`.
+
+Please note that you must use the internal HTTP/2 request header names in `rate_limits` rules. For example:
+- the `host` header should be specified as the `:authority` header; and
+- the `method` header should be specified as the `:method` header.
 
 #### Using `envoy_override` {#using-envoy-override}
 
