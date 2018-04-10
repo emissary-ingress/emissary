@@ -12,7 +12,7 @@ Ambassador can validate incoming requests before routing them to a backing servi
 ]
 ```
 
-This gRPC service must implement the Envoy [ratelimit.proto](https://github.com/envoyproxy/envoy/blob/master/source/common/ratelimit/ratelimit.proto).
+This gRPC service must implement the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto).
 
 If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
