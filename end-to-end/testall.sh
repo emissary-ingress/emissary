@@ -19,6 +19,7 @@ fi
 
 # For linify
 export MACHINE_READABLE=yes
+export SKIP_CHECK_CONTEXT=yes
 
 for dir in 0*; do
     attempt=0
