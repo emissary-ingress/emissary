@@ -16,7 +16,9 @@ This gRPC service must implement the Envoy [ratelimit.proto](https://github.com/
 
 If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-If Ambassador receives an `OK` response from the rate limit service, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow. If Ambassador receives an `OVER_LIMIT` response, then Ambassador will return an HTTP 429 response to the client.
+It is the external rate limit service's responsibility to determine whether rate limiting should take place, depending on custom business logic. The rate limit service must simply respond to the request with an `OK` or `OVER_LIMIT` code:
+* If Envoy receives an `OK` response from the rate limit service, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow.
+* If Ambassador receives an `OVER_LIMIT` response, then Ambassador will return an HTTP 429 response to the client and will end the transaction flow, preventing the request from reaching the backing service.
 
 The headers injected by the [AuthService](auth-service.md) can also be passed to the rate limit service since the `AuthService` is invoked before the `RateLimitService`.
 
