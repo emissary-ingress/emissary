@@ -28,6 +28,7 @@ Uniqifiers = {
     'breakers': lambda x: x['name'],
     'outliers': lambda x: x['name'],
     'filters': lambda x: x['name'],
+    'grpc_services': lambda x: x['name'],
     'tls': lambda x: "TLS",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
@@ -223,7 +224,7 @@ def diag_paranoia(configdir, outputdir):
 
     udiff = list(difflib.unified_diff(pretty_filtered_overview.split("\n"),
                                       pretty_reconstituted_lists.split("\n"),
-                                      fromfile="from overview", tofile="from intermediates",
+                                      fromfile="from overview", tofile="from reconstituted",
                                       lineterm=""))
 
     if udiff:
