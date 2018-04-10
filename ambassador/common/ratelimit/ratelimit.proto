@@ -1,5 +1,3 @@
-// Copied from https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto
-
 syntax = "proto3";
 
 option go_package = "ratelimit";
