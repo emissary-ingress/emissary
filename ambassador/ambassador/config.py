@@ -22,6 +22,38 @@ from scout import Scout
 
 from .VERSION import Version
 
+#############################################################################
+## config.py -- the main configuration parser for Ambassador
+##
+## Ambassador configures itself by creating a new Config object, which calls
+## Config.__init__().
+## 
+## __init__() sets up all the defaults for everything, then walks over all the
+## YAML it can find and calls self.load_yaml() to load each YAML file. After 
+## everything is loaded, it calls self.process_all_objects() to build the 
+## config objects.
+##
+## load_yaml() does the heavy lifting around YAML parsing and such, including
+## managing K8s annotations if so requested. Every object in every YAML file is
+## parsed and saved before any object is processed.
+##
+## process_all_objects() walks all the saved objects and creates an internal
+## representation of the Ambassador config in the data structures initialized
+## by __init__(). Each object is processed with self.process_object(). This 
+## internal representation is called the intermediate config.
+##
+## process_object() handles a single parsed object from YAML. It uses 
+## self.validate_object() to make sure of a schema match; assuming that's
+## good, most of the heavy lifting is done by a handler method. The handler
+## method for a given type is named handle_kind(), with kind in lowercase,
+## so e.g. the Mapping object is processed using the handle_mapping() method.
+##
+## After all of that, the actual Envoy config is generated from the intermediate
+## config using generate_envoy_config().
+##
+## The diag service also uses generate_intermediate_for() to extract the 
+## intermediate config for a given mapping or service.
+
 def get_semver(what, version_string):
     semver = None
 
