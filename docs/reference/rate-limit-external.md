@@ -1,6 +1,6 @@
 # Rate Limiting with an External Rate Limit Service
 
-Ambassador can validate incoming requests before routing them to a backing service. When using an external rate limit service, Ambassador will generate a gRPC request to the external rate limit service and will provide a list of descriptors on which the rate limit service can base it's decision to accept or reject the request:
+Ambassador can validate incoming requests before routing them to a backing service. When using an external rate limit service, Ambassador will generate a gRPC request to the external rate limit service and will provide a list of descriptors on which the rate limit service can base its decision to accept or reject the request:
 
 ```
 [
