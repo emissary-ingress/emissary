@@ -7,6 +7,7 @@
 venv
 __pycache__
 VERSION.py
+.pytest_cache
 
 ambassador.egg-info
 build
