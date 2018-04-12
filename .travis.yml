@@ -31,19 +31,12 @@ script:
   - printenv
   - |
     if [[ "$TRAVIS_TAG" == "" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
-      # Custom build logic should occur beyond this point, either inline in this block or by invoking one or more
-      # scripts on the file system. The conditional guards against execution of build logic for Travis CI jobs triggered
-      # by Tags or on PR's from 'nobuild' branches.
-
-      # NOTE: semicolons are required to end statements in this block because of how Travis evaluates the block. Break
-      #       up large complex build logic into its own script if necessary.
-
-      printf "Build script invoked!";
+      ./releng/travis-build.sh;
     fi
 
 deploy:
   - provider: script
     skip_cleanup: true
-    script: releng/travis-release.sh "$(git rev-parse --short HEAD)" "${TRAVIS_TAG}"
+    script: ./releng/travis-release.sh "$(git rev-parse --short HEAD)" "${TRAVIS_TAG}"
     on:
       branch: master
