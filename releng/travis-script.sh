@@ -2,6 +2,9 @@
 set -o errexit
 set -o nounset
 
-printf "== Begin: travis-script.sh =="
+git_branch="$1"
+git_commit="$2"
 
-printf "== End:   travis-script.sh =="
+printf "== Begin: travis-script.sh (branch: $git_branch, commit: $git_commit) ==\n"
+
+printf "== End:   travis-script.sh ==\n"

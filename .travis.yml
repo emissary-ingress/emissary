@@ -19,6 +19,7 @@ services:
 env:
   global:
     - DOCKER_REGISTRY=-
+    - GIT_COMMIT_SHORT="$(git rev-parse --short HEAD)"
     - SCOUT_DISABLE=1
 
 before_install: []
@@ -31,7 +32,9 @@ script:
   - printenv
   - |
     if [[ "$TRAVIS_TAG" == "" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
-      ./releng/travis-build.sh;
+      ./releng/travis-script.sh \
+        "${TRAVIS_BRANCH}" \
+        "${GIT_COMMIT_SHORT}";
     fi
 
 deploy:
