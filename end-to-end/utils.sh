@@ -14,6 +14,10 @@ step () {
 }
 
 initialize_cluster () {
+    if [ -z "$SKIP_CHECK_CONTEXT" ]; then
+        interactive_check_context
+    fi
+
     for namespace in $(kubectl get namespaces | egrep -v '^(NAME|kube-)' | awk ' { print $1 }'); do
         echo "Deleting everything in $namespace..."
 
@@ -200,6 +204,22 @@ istio_running () {
 
 ambassador_pod () {
     kubectl get pod -l app=ambassador -o jsonpath='{.items[0].metadata.name}'
+}
+
+kubectl_context () {
+    kubectl config current-context
+}
+
+interactive_check_context () {
+    CONTEXT=$(kubectl_context)
+    while true; do
+        read -p "You are about to delete everything running in '$CONTEXT' context. Proceed? [yes, no] " yn
+        case $yn in
+            [Yy]* ) return;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
 }
 
 # ISTIOHOME=${ISTIOHOME:-${HERE}/istio-0.1.6}

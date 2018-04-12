@@ -1,0 +1,24 @@
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm_mapping
+prefix: /qotm/
+service: qotm
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm_rate_limit_mapping
+prefix: /qotm-rate/
+service: qotm
+rate_limits: [{}]
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: qotm_rate_limit_config_mapping
+prefix: /qotm-rate-custom/
+service: qotm
+rate_limits:                 # Configuring 2 rate_limits rules, so it should generate 2 Envoy rate_limits.actions and 2 external rate limit service calls
+  - {}                         # Rule #1: empty dict with default configuration
+  - descriptor: custom-label   # Rule #2: with configuration overrides
+    headers:
+      - ":authority"

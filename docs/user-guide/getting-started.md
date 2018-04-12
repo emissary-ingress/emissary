@@ -50,7 +50,7 @@ Also, note that we are using the `host_rewrite` attribute for the `httpbin_mappi
 
 ## 2. Deploying Ambassador
 
-Once that's done, we need to get Ambassador actually running. It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use:
+Once that's done, we need to get Ambassador actually running. To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
 
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -61,6 +61,8 @@ Without RBAC, you can use:
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
+
+For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
 
 When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
 
@@ -180,5 +182,6 @@ We've just done a quick tour of some of the core features of Ambassador: diagnos
 
 - Join us on [Gitter](https://gitter.im/datawire/ambassador);
 - Learn how to [add authentication](auth-tutorial.md) to existing services; or
+- Learn how to [add rate limiting](rate-limiting-tutorial.md) to existing services; or
 - Learn how to [use gRPC with Ambassador](/how-to/grpc.md); or
 - Read about [configuring Ambassador](/reference/configuration.md).

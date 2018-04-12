@@ -1,0 +1,175 @@
+{
+  "listeners": [
+
+    {
+      "address": "tcp://0.0.0.0:80",
+
+      "filters": [
+        {
+          "type": "read",
+          "name": "http_connection_manager",
+          "config": {"codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "access_log": [
+              {
+                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                "path": "/dev/fd/1"
+              }
+            ],
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "name": "backend",
+                  "domains": ["*"],"routes": [
+
+                  {
+                    "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                    "weighted_clusters": {
+                      "clusters": [
+
+                        { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+
+                      ]
+                    }
+
+                  }
+                ,
+
+                  {
+                    "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
+                    "weighted_clusters": {
+                      "clusters": [
+
+                        { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+
+                      ]
+                    }
+
+                  }
+                ,
+
+                  {
+                    "timeout_ms": 3000,"prefix": "/qotm-rate-custom/","prefix_rewrite": "/","rate_limits": [{"actions": [{"type": "source_cluster"}, {"type": "destination_cluster"}, {"type": "remote_address"}]}, {"actions": [{"type": "source_cluster"}, {"type": "destination_cluster"}, {"type": "remote_address"}, {"descriptor_value": "custom-label", "type": "generic_key"}, {"descriptor_key": ":authority", "header_name": ":authority", "type": "request_headers"}]}],
+                    "weighted_clusters": {
+                      "clusters": [
+
+                        { "name": "cluster_qotm", "weight": 100.0 }
+
+                      ]
+                    }
+
+                  }
+                ,
+
+                  {
+                    "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                    "weighted_clusters": {
+                      "clusters": [
+
+                        { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+
+                      ]
+                    }
+
+                  }
+                ,
+
+                  {
+                    "timeout_ms": 3000,"prefix": "/qotm-rate/","prefix_rewrite": "/","rate_limits": [{"actions": [{"type": "source_cluster"}, {"type": "destination_cluster"}, {"type": "remote_address"}]}],
+                    "weighted_clusters": {
+                      "clusters": [
+
+                        { "name": "cluster_qotm", "weight": 100.0 }
+
+                      ]
+                    }
+
+                  }
+                ,
+
+                  {
+                    "timeout_ms": 3000,"prefix": "/qotm/","prefix_rewrite": "/",
+                    "weighted_clusters": {
+                      "clusters": [
+
+                        { "name": "cluster_qotm", "weight": 100.0 }
+
+                      ]
+                    }
+
+                  }
+
+
+                ]
+                }
+              ]
+            },
+            "filters": [
+              {"type": "decoder",
+                "name": "rate_limit",
+                "config": {"domain": "ambassador", "request_type": "both", "timeout_ms": 20}
+              },{
+                "name": "cors",
+                "config": {}
+              },{"type": "decoder",
+                "name": "router",
+                "config": {}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "admin": {
+    "address": "tcp://127.0.0.1:8001",
+    "access_log_path": "/tmp/admin_access_log"
+  },
+  "cluster_manager": {
+    "clusters": [
+      {
+        "name": "cluster_127_0_0_1_8877",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://127.0.0.1:8877"
+          }
+
+        ]},
+      {
+        "name": "cluster_ext_ratelimit",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin","features": "http2",
+        "hosts": [
+          {
+            "url": "tcp://example-rate-limit:5000"
+          }
+
+        ]},
+      {
+        "name": "cluster_qotm",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://qotm:80"
+          }
+
+        ]}
+
+    ]
+  },
+  "rate_limit_service": {
+    "type": "grpc_service",
+    "config": {
+      "cluster_name": "cluster_ext_ratelimit"
+    }
+  },
+
+  "statsd_udp_ip_address": "127.0.0.1:8125",
+  "stats_flush_interval_ms": 1000
+}

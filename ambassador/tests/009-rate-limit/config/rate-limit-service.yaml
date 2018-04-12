@@ -1,0 +1,5 @@
+---
+apiVersion: ambassador/v0
+kind: RateLimitService
+name: ratelimit
+service: "example-rate-limit:5000"
