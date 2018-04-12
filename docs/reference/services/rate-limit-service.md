@@ -1,4 +1,6 @@
-## RateLimitService
+## Rate Limiting with the RateLimitService
+
+Occasionally, your services may become overwhelmed with too many requests. In this situation, global rate limiting is a good solution to prevent cascade failure. Ambassador supports rate limiting via an external third party service. This rate limiting is based on [Envoy Proxy's rate limiting capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/global_rate_limiting.html).
 
 A `RateLimitService` manifest configures Ambassador to use an external service to check and enforce rate limits for incoming requests:
 
