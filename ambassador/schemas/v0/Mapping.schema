@@ -54,7 +54,7 @@
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "rate_limits": {
             "type": "array",
-            "items": { "$ref": "#/definitions/rateLimit" },
+            "items": { "$ref": "#/definitions/rateLimit" }
         },
         "envoy_override": { 
             "type": "object"
@@ -64,7 +64,7 @@
         "mapStrStr": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean" ] }
-        }
+        },
         "rateLimit": {
             "type": "object",
             "properties": {

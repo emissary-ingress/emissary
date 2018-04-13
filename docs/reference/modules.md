@@ -93,4 +93,4 @@ TLS configuration is examined in more detail in the documentation on [TLS termin
 
 ### The `authentication` Module
 
-The `authentication` module is now deprecated. Use the [AuthService](auth-service.md) manifest type instead.
+The `authentication` module is now deprecated. Use the [AuthService](services/auth-service.md) manifest type instead.
