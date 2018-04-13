@@ -123,6 +123,9 @@
                                  { "name": "cluster_http___httpbin_org", "weight": 100.0 }
                               
                           ]
+                      },
+                      "shadow": {
+                        "cluster": "cluster_shadow_https___myservice_org__otls"
                       }
                       
                     }
@@ -524,6 +527,20 @@
           
         ]},
       {
+        "name": "cluster_shadow_https___myservice_org__otls",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",        
+        "hosts": [
+          {
+            "url": "tcp://myservice.org/:443"
+          }
+          
+        ],
+        "ssl_context": {
+          
+        }},
+      {
         "name": "cluster_slack_com",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
@@ -537,6 +554,7 @@
       
     ]
   },
+  
   "statsd_udp_ip_address": "127.0.0.1:8125",
   "stats_flush_interval_ms": 1000
 }

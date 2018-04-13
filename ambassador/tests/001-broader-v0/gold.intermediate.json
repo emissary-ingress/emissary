@@ -273,6 +273,23 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-httpbin.yaml.1"
+                ],
+                "_service": "https://myservice.org/",
+                "_source": "mapping-httpbin.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_shadow_https___myservice_org__otls",
+                "tls_array": [],
+                "tls_context": {
+                    "_ambassador_enabled": true
+                },
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://myservice.org/:443"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-websocket.yaml.1"
                 ],
                 "_service": "slack.com",
@@ -387,6 +404,9 @@
                 "host_rewrite": "httpbin.org",
                 "prefix": "/httpbin/",
                 "prefix_rewrite": "/",
+                "shadow": {
+                    "name": "cluster_shadow_https___myservice_org__otls"
+                },
                 "timeout_ms": 50
             },
             {
@@ -1089,7 +1109,7 @@
             "kind": "Mapping",
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\ntimeout_ms: 50\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\nshadow: https://myservice.org/\ntimeout_ms: 50\n"
         },
         "mapping-long.yaml.1": {
             "_source": "test source",

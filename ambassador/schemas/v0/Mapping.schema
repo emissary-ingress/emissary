@@ -37,6 +37,7 @@
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
         "rewrite": { "type": "string" },
+        "shadow": { "type": "string" },
         "timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },

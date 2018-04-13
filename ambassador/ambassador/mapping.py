@@ -71,7 +71,8 @@ class Mapping (object):
     }
 
     def __init__(self, _source="--internal--", _from=None, **kwargs):
-        # Save the raw input...
+        # Save the raw input. After this, self["anything"] will have the
+        # value from the input Mapping.
         self.attrs = dict(**kwargs)
 
         if _from and ('_source' in _from):
@@ -124,7 +125,7 @@ class Mapping (object):
         else:
             return self.attrs.get(key)
 
-    def new_route(self, cluster_name):
+    def new_route(self, cluster_name, shadow_name=None):
         route = SourcedDict(
             _source=self['_source'],
             _group_id=self.group_id,
@@ -137,6 +138,12 @@ class Mapping (object):
 
         if self.headers:
             route['headers'] = self.headers
+
+        if shadow_name:
+            # We're going to need to support shadow weighting later, so use a dict here.
+            route['shadow'] = {
+                'name': shadow_name
+            }
 
         add_request_headers = self.get('add_request_headers')
         if add_request_headers:

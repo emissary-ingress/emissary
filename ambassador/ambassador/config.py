@@ -680,7 +680,7 @@ class Config (object):
 
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
-    def add_intermediate_route(self, _source, mapping, cluster_name):
+    def add_intermediate_route(self, _source, mapping, cluster_name, shadow_name=None):
         route = self.envoy_routes.get(mapping.group_id, None)
 
         if route:
@@ -689,11 +689,19 @@ class Config (object):
             route["clusters"].append( { "name": cluster_name,
                                         "weight": mapping.attrs.get("weight", None) } )
             route._mark_referenced_by(_source)
+
+            if shadow_name:
+                extant_shadow = route.get('shadow', None)
+
+                if extant_shadow and (extant_shadow != shadow_name):
+                    self.logger.error("mapping %s defines multiple shadows! Ignoring %s" % 
+                                      (mapping['name'], shadow_name))
+
             return
 
         # OK, if here, we don't have an extent route group for this Mapping. Make a
         # new one.
-        route = mapping.new_route(cluster_name)
+        route = mapping.new_route(cluster_name, shadow_name=shadow_name)
         self.envoy_routes[mapping.group_id] = route
 
     def service_tls_check(self, svc, context):
@@ -730,6 +738,96 @@ class Config (object):
             svc_url = '%s:%d' % (svc_url, port)
 
         return (svc, svc_url, originate_tls, context_name)
+
+    def add_clusters_for_mapping(self, mapping):
+        svc = mapping['service']
+        tls_context = mapping.get('tls', None)
+        grpc = mapping.get('grpc', False)
+
+        # Given the service and the TLS context, first initialize the cluster name for the
+        # main service with the incoming service string...
+
+        cluster_name_fields = [ svc ]      
+
+        # ...then do whatever normalization we need for the name and the URL. This can
+        # change the service name (e.g. "http://foo" will turn into "foo"), so we set 
+        # up cluster_name_fields above in order to preserve compatibility with older
+        # versions of Ambassador. (This isn't a functional issue, just a matter of 
+        # trying not to confuse people on upgrades.)
+
+        (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+        
+        # Build up the common name stuff that we'll need for the service and
+        # the shadow service.
+
+        aux_name_fields = []
+
+        cb_name = mapping.get('circuit_breaker', None)
+
+        if cb_name:
+            if cb_name in self.breakers:
+                aux_name_fields.append("cb_%s" % cb_name)
+            else:
+                self.logger.error("CircuitBreaker %s is not defined (mapping %s)" %
+                                  (cb_name, mapping.name))
+
+        od_name = mapping.get('outlier_detection', None)
+
+        if od_name:
+            if od_name in self.outliers:
+                aux_name_fields.append("od_%s" % od_name)
+            else:
+                self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
+                                  (od_name, mapping.name))
+
+        # OK. Use the main service stuff to build up the main clustor.
+
+        if otls_name:
+            cluster_name_fields.append(otls_name)
+        
+        cluster_name_fields.extend(aux_name_fields)
+
+        cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
+        cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
+
+        self.logger.debug("%s: svc %s -> cluster %s" % (mapping.name, svc, cluster_name))
+
+        self.add_intermediate_cluster(mapping['_source'], cluster_name,
+                                      svc, [ url ],
+                                      cb_name=cb_name, od_name=od_name, grpc=grpc,
+                                      originate_tls=originate_tls)
+
+        # Next up: shadow service.
+
+        shadow = mapping.get('shadow', None)
+        shadow_name = None
+
+        if shadow:
+            (shadow_svc, shadow_url, 
+             shadow_originate_tls, shadow_otls_name) = self.service_tls_check(shadow, tls_context)
+
+            self.logger.info("shadow %s, tls %s => %s, %s, %s, %s" % 
+                             (shadow, tls_context, 
+                              shadow_svc, shadow_url, shadow_originate_tls, shadow_otls_name))
+
+            shadow_name_fields = [ 'shadow', shadow ]
+            
+            if shadow_otls_name:
+                shadow_name_fields.append(shadow_otls_name)
+
+            shadow_name_fields.extend(aux_name_fields)
+
+            shadow_name = 'cluster_%s' % "_".join(shadow_name_fields)
+            shadow_name = re.sub(r'[^0-9A-Za-z_]', '_', shadow_name)
+
+            self.logger.debug("%s: shadow %s -> cluster %s" % (mapping.name, shadow, shadow_name))
+
+            self.add_intermediate_cluster(mapping['_source'], shadow_name,
+                                          shadow, [ shadow_url ],
+                                          cb_name=cb_name, od_name=od_name, grpc=grpc,
+                                          originate_tls=shadow_originate_tls)
+        
+        return svc, cluster_name, shadow_name
 
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
@@ -907,88 +1005,11 @@ class Config (object):
         for mapping_name in sorted(mappings.keys()):
             mapping = mappings[mapping_name]
 
-            # OK. We need a cluster for this service. Derive it from the 
-            # service name, plus things like circuit breaker and outlier 
-            # detection settings.
-            svc = mapping['service']
+            # OK. Set up clusters for this service...
+            svc, cluster_name, shadow_name = self.add_clusters_for_mapping(mapping)
 
-            cluster_name_fields = [ svc ]
-
-            tls_context = mapping.get('tls', None)
-
-            (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
-
-            if otls_name:
-                cluster_name_fields.append(otls_name)
-
-            cb_name = mapping.get('circuit_breaker', None)
-
-            if cb_name:
-                if cb_name in self.breakers:
-                    cluster_name_fields.append("cb_%s" % cb_name)
-                else:
-                    self.logger.error("CircuitBreaker %s is not defined (mapping %s)" %
-                                  (cb_name, mapping_name))
-
-            od_name = mapping.get('outlier_detection', None)
-
-            if od_name:
-                if od_name in self.outliers:
-                    cluster_name_fields.append("od_%s" % od_name)
-                else:
-                    self.logger.error("OutlierDetection %s is not defined (mapping %s)" %
-                                  (od_name, mapping_name))
-
-            cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
-            cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
-
-            self.logger.debug("%s: svc %s -> cluster %s" % (mapping_name, svc, cluster_name))
-
-            grpc = mapping.get('grpc', False)
-            # self.logger.debug("%s has GRPC %s" % (mapping_name, grpc))
-
-            self.add_intermediate_cluster(mapping['_source'], cluster_name,
-                                          svc, [ url ],
-                                          cb_name=cb_name, od_name=od_name, grpc=grpc,
-                                          originate_tls=originate_tls)
-
-            self.add_intermediate_route(mapping['_source'], mapping, cluster_name)
-
-            # # Also add a diag route.
-
-            # source = mapping['_source']
-
-            # method = mapping.get("method", "GET")
-            # dmethod = method.lower()
-
-            # prefix = mapping['prefix']
-            # dprefix = prefix[1:] if prefix.startswith('/') else prefix
-
-            # diag_prefix = '/ambassador/v0/diag/%s/%s' % (dmethod, dprefix)
-            # diag_rewrite = '/ambassador/v0/diag/%s?method=%s&resource=%s' % (source, method, prefix)
-
-            # self.add_intermediate_route(
-            #     '--diagnostics--',
-            #     {
-            #         'prefix': diag_prefix,
-            #         'rewrite': diag_rewrite,
-            #         'service': 'cluster_diagnostics'
-            #     },
-            #     'cluster_diagnostics'
-            # )
-
-        # # Also push a fallback diag route, so that one can easily ask for diagnostics 
-        # # by source file.
-
-        # self.add_intermediate_route(
-        #     '--diagnostics--',
-        #     {
-        #         'prefix': "/ambassador/v0/diag/",
-        #         'rewrite': "/ambassador/v0/diag/",
-        #         'service': 'cluster_diagnostics'
-        #     },
-        #     'cluster_diagnostics'
-        # )
+            # ...and route.
+            self.add_intermediate_route(mapping['_source'], mapping, cluster_name, shadow_name=shadow_name)
 
         # OK. Walk the set of clusters and normalize names...
         collisions = {}
