@@ -10,6 +10,14 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.31.0] April 12, 2018
+[0.31.0]: https://github.com/datawire/ambassador/compare/v0.31.0...v0.30.2
+
+### Changed
+
+- Rate limiting is now supported (thanks, @alexgervais!) See the docs for more detail here.
+- The `statsd` container has been quieted down yet more (thanks again, @alexgervais!).
+
 ## [0.30.2] March 26, 2018
 [0.30.2]: https://github.com/datawire/ambassador/compare/v0.30.2...v0.30.1
 
