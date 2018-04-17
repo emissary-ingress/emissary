@@ -4,7 +4,10 @@ language: python
 python:
   - "3.6"
 
-cache: pip
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.npm
 
 # Do not run in Travis CI when the branch name starts with "nobuild". Primarily
 # intended for documentation updates but may be used as an escape hatch for
@@ -23,11 +26,15 @@ env:
     - SCOUT_DISABLE=1
 
 before_install: []
+
 install:
   - pip install -Ur dev-requirements.txt
   - pip install -Ur ambassador/requirements.txt
+  - npm install gitbook netlify-cli
 
-before_script: []
+before_script:
+
+
 script:
   - printenv
   - |
@@ -35,12 +42,12 @@ script:
       ./releng/travis-script.sh \
         "${TRAVIS_BRANCH}" \
         "${GIT_COMMIT_SHORT}" \
-        "${GIT_TAG}";
+        "${TRAVIS_TAG}";
     fi
 
 deploy:
   - provider: script
     skip_cleanup: true
-    script: ./releng/travis-release.sh "$(git rev-parse --short HEAD)" "${TRAVIS_TAG}"
+    script: ./releng/travis-deploy.sh "$(git rev-parse --short HEAD)" "${TRAVIS_TAG}"
     on:
       branch: master

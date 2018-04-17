@@ -24,12 +24,12 @@ docker build \
     -t quay.io/datawire/ambassador-gh369:${git_commit} \
     ambassador
 
-docker push quay.io/datawire/ambassador-gh369:${git_commit}
-
 printf "== End:   build docker image\n"
 
-printf "== Begin: create documentation draft\n"
+printf "== Begin: generate documentation\n"
 
-printf "== End:   create documentation draft\n"
+make travis-website VERSION=${version}
+
+printf "== End:   generate documentation\n"
 
 printf "== End:   travis-script.sh ==\n"
