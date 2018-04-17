@@ -8,9 +8,6 @@ travis-images: deps-check version-check reg-check versions docker-images
 
 travis-website: version-check website
 
-printversion:
-	@echo $(VERSION)
-
 deps-check:
 	@python -c "import sys; sys.exit(0 if sys.version_info > (3,4) else 1)" || { \
 		echo "Python 3.4 or higher is required" >&2; \

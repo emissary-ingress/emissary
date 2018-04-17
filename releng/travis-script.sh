@@ -10,12 +10,11 @@ printf "== Begin: travis-script.sh (branch: $git_branch, commit: $git_commit, ve
 
 make deps-check
 make clean
-make versions VERSION=${version}
 
 printf "== Begin: execute tests\n"
 
 make setup-develop
-make test
+make test VERSION=${version}
 
 printf "== End:   execute tests\n"
 
