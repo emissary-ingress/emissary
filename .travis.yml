@@ -34,8 +34,8 @@ script:
     if [[ "$TRAVIS_TAG" == "" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
       ./releng/travis-script.sh \
         "${TRAVIS_BRANCH}" \
-        "${GIT_COMMIT_SHORT}"; \
-        "${GIT_TAG}"
+        "${GIT_COMMIT_SHORT}" \
+        "${GIT_TAG}";
     fi
 
 deploy:
