@@ -14,7 +14,7 @@ make clean
 printf "== Begin: execute tests\n"
 
 make setup-develop
-make test VERSION=${version}
+make versions test VERSION=${version}
 
 printf "== End:   execute tests\n"
 
