@@ -1,7 +1,5 @@
 all: dev
 
-VERSION=$(shell python scripts/versioner.py --bump --magic-pre)
-
 .ALWAYS:
 
 dev: deps-check version-check reg-check versions docker-images yaml-files
@@ -9,6 +7,9 @@ dev: deps-check version-check reg-check versions docker-images yaml-files
 travis-images: deps-check version-check reg-check versions docker-images
 
 travis-website: version-check website
+
+printversion:
+	@echo $(VERSION)
 
 deps-check:
 	@python -c "import sys; sys.exit(0 if sys.version_info > (3,4) else 1)" || { \
@@ -21,7 +22,7 @@ deps-check:
 		exit 1 ;\
 	}
 	@python -c 'import semantic_version, git' >/dev/null 2>&1 || { \
-		echo "Could not import semantic_version or git -- are they installed?" >&2 ;\
+		echo c"Could not import semantic_version or git -- are they installed?" >&2 ;\
 		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
 		exit 1 ;\
 	}
@@ -39,8 +40,8 @@ version-check:
 
 reg-check:
 	@if [ -z "$$DOCKER_REGISTRY" ]; then \
-	    echo "DOCKER_REGISTRY must be set" >&2 ;\
-	    exit 1 ;\
+		echo "DOCKER_REGISTRY must be set" >&2 ;\
+		exit 1 ;\
 	fi
 
 version versions: ambassador/ambassador/VERSION.py
