@@ -13,7 +13,7 @@ make clean
 
 printf "== Begin: execute tests\n"
 
-make setup-develop
+make versions setup-develop
 make versions test VERSION=${version}
 
 printf "== End:   execute tests\n"
