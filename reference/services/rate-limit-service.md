@@ -12,7 +12,7 @@ name: ratelimit
 service: "example-rate-limit:5000"
 ```
 
-- `service` gives the URL of the rate limit service. See [Rate Limiting with an External Rate Limit Service](rate-limit-external.md)
+- `service` gives the URL of the rate limit service.
 
 You may only use a single `RateLimitService` manifest.
 
