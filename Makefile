@@ -2,8 +2,7 @@
 
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
-
-VERSION=$(GIT_COMMIT)
+VERSION ?= $(GIT_COMMIT)
 
 DOCKER_REGISTRY ?= quay.io
 DOCKER_OPTS =
@@ -30,12 +29,16 @@ clean:
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 
 print-vars:
-	@echo "GIT_BRANCH      = $(GIT_BRANCH)"
-	@echo "GIT_COMMIT      = $(GIT_COMMIT)"
-	@echo "DOCKER_REGISTRY = $(DOCKER_REGISTRY)"
-	@echo "DOCKER_REPO     = $(DOCKER_REPO)"
-	@echo "DOCKER_TAG      = $(DOCKER_TAG)"
-	@echo "DOCKER_IMAGE    = $(DOCKER_IMAGE)"
+	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
+	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
+	@echo "VERSION                 = $(VERSION)"
+	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
+	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
+	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
+	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
+	@echo "STATSD_DOCKER_REPO      = $(STATSD_DOCKER_REPO)"
+	@echo "STATSD_DOCKER_TAG       = $(STATSD_DOCKER_TAG)"
+	@echo "STATSD_DOCKER_IMAGE     = $(STATSD_DOCKER_IMAGE)"
 
 ambassador-docker-image:
 	docker build $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
@@ -53,6 +56,9 @@ docker-push:
 	docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
 
 	@if [[ "$(VERSION)" != "$(GIT_COMMIT)" ]]; then \
+		docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION) \
+    	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION) \
+
 		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
 		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE); \
 	fi
