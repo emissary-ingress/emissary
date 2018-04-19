@@ -23,6 +23,10 @@ config:
   #   prefix: /ambassador/v0/are_you_ready_yet
   #   service: omg.omg:7777
 
+  # diagnostics overview defaults on, but you can disable the api route.
+  diagnostics:
+    enabled: false
+
   use_proxy_proto: True
   use_remote_address: True
   

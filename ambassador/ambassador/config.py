@@ -1225,7 +1225,7 @@ class Config (object):
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address' ]:
+                     'use_proxy_proto', 'use_remote_address', 'diagnostics' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])

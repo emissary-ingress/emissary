@@ -77,19 +77,6 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
-                      "weighted_clusters": {
-                          "clusters": [
-                              
-                                 { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                              
-                          ]
-                      }
-                      
-                    }
-                    ,
-                    
-                    {
                       "timeout_ms": 3000,"prefix": "/qotm/quote/","prefix_rewrite": "/quote/",
                       "weighted_clusters": {
                           "clusters": [
