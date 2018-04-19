@@ -6,7 +6,7 @@ metadata:
   name: postgres
 spec:
   replicas: 1
-  strategy: {{}}
+  strategy: {}
   template:
     metadata:
       creationTimestamp: null
@@ -16,9 +16,9 @@ spec:
       containers:
       - name: postgres
         image: postgres:9.6
-        resources: {{}}
+        resources: {}
       restartPolicy: Always
-status: {{}}
+status: {}
 ---
 apiVersion: v1
 kind: Service
@@ -42,7 +42,7 @@ metadata:
   name: usersvc
 spec:
   replicas: 1
-  strategy: {{}}
+  strategy: {}
   template:
     metadata:
       creationTimestamp: null
@@ -52,9 +52,9 @@ spec:
       containers:
       - name: usersvc
         image: dwflynn/usersvc:0.2.0
-        resources: {{}}
+        resources: {}
       restartPolicy: Always
-status: {{}}
+status: {}
 ---
 apiVersion: v1
 kind: Service

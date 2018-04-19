@@ -1,93 +1,20 @@
-all: dev
+# file: Makefile
 
-.ALWAYS:
+GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+GIT_COMMIT=$(shell git rev-parse --short HEAD)
 
-dev: deps-check version-check reg-check versions docker-images yaml-files
+VERSION=$(GIT_COMMIT)
 
-travis-images: deps-check version-check reg-check versions docker-images
+DOCKER_REGISTRY ?= quay.io
+DOCKER_OPTS =
 
-travis-website: version-check website
+AMBASSADOR_DOCKER_REPO ?= datawire/ambassador-gh369
+AMBASSADOR_DOCKER_TAG ?= $(GIT_COMMIT)
+AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
-deps-check:
-	@python -c "import sys; sys.exit(0 if sys.version_info > (3,4) else 1)" || { \
-		echo "Python 3.4 or higher is required" >&2; \
-		exit 1 ;\
-	}
-	@which pytest >/dev/null 2>&1 || { \
-		echo "Could not find pytest -- is it installed?" >&2 ;\
-		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
-		exit 1 ;\
-	}
-	@python -c 'import semantic_version, git' >/dev/null 2>&1 || { \
-		echo c"Could not import semantic_version or git -- are they installed?" >&2 ;\
-		echo "(if not, pip install -r dev-requirements may do the trick)" >&2 ;\
-		exit 1 ;\
-	}
-	@which aws >/dev/null 2>&1 || { \
-		echo "Could not find aws -- is it installed?" >&2 ;\
-		echo "(if not, check out https://docs.npmjs.com/getting-started/installing-node)" >&2 ;\
-		exit 1 ;\
-	}
-
-version-check:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Nothing needs to be built" >&2 ;\
-		exit 1 ;\
-	fi
-
-reg-check:
-	@if [ -z "$$DOCKER_REGISTRY" ]; then \
-		echo "DOCKER_REGISTRY must be set" >&2 ;\
-		exit 1 ;\
-	fi
-
-version versions: ambassador/ambassador/VERSION.py
-
-ambassador/ambassador/VERSION.py: .ALWAYS
-	@echo "Building $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
-
-artifacts: docker-images website
-
-tag:
-	git tag -a v$(VERSION) -m "v$(VERSION)"
-
-yaml-files:
-	VERSION=$(VERSION) sh scripts/build-yaml.sh
-	VERSION=$(VERSION) python scripts/template.py \
-		< end-to-end/ambassador-no-mounts.yaml \
-		> end-to-end/ambassador-deployment.yaml
-	VERSION=$(VERSION) python scripts/template.py \
-		< end-to-end/ambassador-with-mounts.yaml \
-		> end-to-end/ambassador-deployment-mounts.yaml
-
-setup-develop:
-	cd ambassador && python setup.py --quiet develop
-
-test: ambassador-test
-
-ambassador-test: setup-develop ambassador/ambassador/VERSION.py
-	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
-
-e2e end-to-end:
-	sh end-to-end/testall.sh
-
-docker-images: ambassador-image statsd-image
-
-ambassador-image: ambassador-test .ALWAYS
-	scripts/docker_build_maybe_push ambassador $(VERSION) ambassador
-
-statsd-image: .ALWAYS
-	scripts/docker_build_maybe_push statsd $(VERSION) statsd
-
-website: yaml-files
-	VERSION=$(VERSION) docs/build-website.sh
-
-helm: .ALWAYS
-	cd helm && helm package --app-version "${VERSION}" --version "${VERSION}" ambassador/
-	mv helm/ambassador-${VERSION}.tgz docs/
-	git add helm/ambassador-${VERSION}.tgz
-	helm repo index docs --url https://www.getambassador.io --merge ./docs/index.yaml
+STATSD_DOCKER_REPO ?= datawire/ambassador-statsd-gh369
+STATSD_DOCKER_TAG ?= $(GIT_COMMIT)
+STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
 
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
@@ -101,3 +28,84 @@ clean:
 		| xargs -0 rm -f
 	rm -rf end-to-end/ambassador-deployment.yaml end-to-end/ambassador-deployment-mounts.yaml
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
+
+print-vars:
+	@echo "GIT_BRANCH      = $(GIT_BRANCH)"
+	@echo "GIT_COMMIT      = $(GIT_COMMIT)"
+	@echo "DOCKER_REGISTRY = $(DOCKER_REGISTRY)"
+	@echo "DOCKER_REPO     = $(DOCKER_REPO)"
+	@echo "DOCKER_TAG      = $(DOCKER_TAG)"
+	@echo "DOCKER_IMAGE    = $(DOCKER_IMAGE)"
+
+ambassador-docker-image:
+	docker build $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
+
+statsd-docker-image:
+	docker build $(DOCKER_OPTS) -t $(STATSD_DOCKER_IMAGE) ./statsd
+
+docker-push:
+	docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
+	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
+
+	docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
+	docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
+
+	@if [[ "$(VERSION)" != "$(GIT_COMMIT)" ]]; then \
+		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
+		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE); \
+	fi
+
+version:
+	$(call check_defined, VERSION, VERSION is not set)
+	@echo "Generating and templating version information -> $(VERSION)"
+	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+
+e2e-versioned-manifests:
+	$(eval AMBASSADOR_DOCKER_IMAGE = $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE))
+	$(eval STATSD_DOCKER_IMAGE = $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE))
+
+	sed -e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g" \
+		< end-to-end/ambassador-no-mounts.yaml \
+		> end-to-end/ambassador-deployment.yaml
+
+	sed -e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g" \
+		< end-to-end/ambassador-with-mounts.yaml \
+		> end-to-end/ambassador-deployment-mounts.yaml
+
+website-yaml:
+	$(eval AMBASSADOR_DOCKER_IMAGE = $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE))
+	$(eval STATSD_DOCKER_IMAGE = $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE))
+
+	mkdir -p docs/yaml
+	cp -R templates/* docs/yaml
+	find ./docs/yaml \
+		-type f \
+		-exec sed \
+			-i''\
+			-e 's|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g' \
+			{} \;
+
+website: website-yaml
+	;
+
+e2e: ambassador-docker-image statsd-docker-image docker-push e2e-versioned-manifests
+	bash end-to-end/testall.sh
+
+setup-develop:
+	cd ambassador && python setup.py develop
+
+test: setup-develop version
+	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
+
+# --------------------
+# Function Definitions
+# --------------------
+
+# Check that given variables are set and all have non-empty values,
+# die with an error otherwise.
+#
+# Params:
+#   1. Variable name(s) to test.
+#   2. (optional) Error message to print.
+check_defined = $(strip $(foreach 1,$1, $(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = $(if $(value $1),, $(error Undefined $1$(if $2, ($2))))
