@@ -8,27 +8,23 @@ version=${3:-$git_commit}
 
 printf "== Begin: travis-script.sh (branch: $git_branch, commit: $git_commit, version: $version) ==\n"
 
-make deps-check
 make clean
 
 printf "== Begin: execute tests\n"
 
-make versions setup-develop
-make versions test VERSION=${version}
+make test
 
 printf "== End:   execute tests\n"
 
 printf "== Begin: build docker image\n"
 
-docker build \
-    -t quay.io/datawire/ambassador-gh369:${git_commit} \
-    ambassador
+make docker-images
 
 printf "== End:   build docker image\n"
 
 printf "== Begin: generate documentation\n"
 
-make travis-website VERSION=${version}
+make website
 
 printf "== End:   generate documentation\n"
 

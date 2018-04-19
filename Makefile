@@ -43,6 +43,8 @@ ambassador-docker-image:
 statsd-docker-image:
 	docker build $(DOCKER_OPTS) -t $(STATSD_DOCKER_IMAGE) ./statsd
 
+docker-images: ambassador-docker-image statsd-docker-image
+
 docker-push:
 	docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
 	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
@@ -86,7 +88,7 @@ website-yaml:
 			{} \;
 
 website: website-yaml
-	;
+	VERSION=$(VERSION) bash docs/build-website.sh
 
 e2e: ambassador-docker-image statsd-docker-image docker-push e2e-versioned-manifests
 	bash end-to-end/testall.sh
