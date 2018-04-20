@@ -1,7 +1,7 @@
 # file: Makefile
 
 .FORCE:
-.PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images docker-tags publish-website
+.PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images docker-tags publish-website e2e
 
 # GIT_BRANCH on TravisCI needs to be set via some external custom logic. Default to Git native mechanism or use what is
 # defined already.
@@ -111,7 +111,7 @@ website-yaml:
 website: website-yaml
 	VERSION=$(VERSION) bash docs/build-website.sh
 
-e2e: ambassador-docker-image statsd-docker-image docker-push e2e-versioned-manifests
+e2e: docker-images docker-push e2e-versioned-manifests
 	bash end-to-end/testall.sh
 
 setup-develop:
