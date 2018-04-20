@@ -120,13 +120,15 @@ setup-develop:
 test: version setup-develop
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
-release: docker-tags publish-website
+release: docker-tags
 	@if [[ "$(VERSION)" != "$(GIT_COMMIT)" ]]; then \
 		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
 		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
 
 		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+	else \
+		@printf "`make release` can only be run when VERSION is explicitly set to a different value than GIT_COMMIT!\n"
 	fi
 
 # ------------------------------------------------------------------------------

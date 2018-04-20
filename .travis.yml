@@ -42,6 +42,7 @@ script:
       ./releng/travis-script.sh
     fi
 
+  # run e2e suite for pull requests unless they are of the 'nobuild' variety.
   - |
     if [[ "${TRAVIS_PULL_REQUEST}" == "true" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
       make e2e
@@ -49,14 +50,5 @@ script:
 
 deploy:
   - provider: script
-    script: make publish-website publish-versioned-images
+    script: make release
     tags: true
-
-  - provider: script
-    script: |
-      make publish-website release-artifacts
-
-    #script: ./releng/travis-deploy.sh "$(git rev-parse --short HEAD)" "${TRAVIS_TAG}"
-    #script: make release
-    skip_cleanup: true
-    all_branches: true
