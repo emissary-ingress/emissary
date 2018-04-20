@@ -1,6 +1,10 @@
 # file: Makefile
 
-GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+# GIT_BRANCH on TravisCI needs to be set via some external custom logic. Default to Git native mechanism or use what is
+# defined already.
+#
+# read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
+GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 VERSION ?= $(GIT_COMMIT)
 
