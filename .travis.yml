@@ -46,7 +46,7 @@ script:
     fi
 
   - |
-    if [[ "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^rc/.* ]]; then
+    if [[ "${GIT_BRANCH}" =~ ^rc/.* ]]; then
       make e2e
     fi
 
