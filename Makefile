@@ -1,5 +1,8 @@
 # file: Makefile
 
+.FORCE:
+.PHONY: .FORCE clean version setup-develop print-vars
+
 # GIT_BRANCH on TravisCI needs to be set via some external custom logic. Default to Git native mechanism or use what is
 # defined already.
 #
@@ -109,7 +112,7 @@ e2e: ambassador-docker-image statsd-docker-image docker-push e2e-versioned-manif
 setup-develop:
 	cd ambassador && python setup.py develop
 
-test: setup-develop version
+test: version setup-develop
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
 # --------------------
