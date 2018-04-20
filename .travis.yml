@@ -44,7 +44,7 @@ script:
 
   # run e2e suite for pull requests unless they are of the 'nobuild' variety.
   - |
-    if [[ "${TRAVIS_PULL_REQUEST}" == "true" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
+    if [[ "${TRAVIS_PULL_REQUEST}" == "false" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
       make e2e
     fi
 
