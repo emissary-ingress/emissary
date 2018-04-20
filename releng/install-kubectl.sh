@@ -5,10 +5,9 @@ set -o pipefail
 
 KUBECTL_VERSION=${KUBECTL_VERSION:?KUBECTL_VERSION is not set}
 
-curl -L --output /tmp/kubectl \
+curl -L --output ~/bin/kubectl \
      https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 
-mv /tmp/kubectl /bin/kubectl
-chmod +x /bin/kubectl
+chmod +x ~/bin/kubectl
 
 kubectl version --client
