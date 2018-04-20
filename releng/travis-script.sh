@@ -12,11 +12,12 @@ make test
 
 printf "== End:   execute tests\n"
 
-printf "== Begin: build docker image\n"
+printf "== Begin: build and push docker image\n"
 
 make docker-images
+make docker-push
 
-printf "== End:   build docker image\n"
+printf "== End:   build and push docker image\n"
 
 printf "== Begin: generate documentation\n"
 

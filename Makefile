@@ -1,21 +1,23 @@
 # file: Makefile
 
 .FORCE:
-.PHONY: .FORCE clean version setup-develop print-vars
+.PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images docker-tags publish-website
 
 # GIT_BRANCH on TravisCI needs to be set via some external custom logic. Default to Git native mechanism or use what is
 # defined already.
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-GIT_COMMIT=$(shell git rev-parse --short HEAD)
+GIT_COMMIT = $(shell git rev-parse --short HEAD)
 
 ifndef VERSION
-VERSION=$(GIT_COMMIT)
+VERSION = $(GIT_COMMIT)
 endif
 
 DOCKER_REGISTRY ?= quay.io
 DOCKER_OPTS =
+
+NETLIFY_SITE=datawire-ambassador
 
 AMBASSADOR_DOCKER_REPO ?= datawire/ambassador-gh369
 AMBASSADOR_DOCKER_TAG ?= $(GIT_COMMIT)
@@ -24,6 +26,8 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 STATSD_DOCKER_REPO ?= datawire/ambassador-statsd-gh369
 STATSD_DOCKER_TAG ?= $(GIT_COMMIT)
 STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
+
+RELEASE_TYPE ?= unstable
 
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
@@ -43,6 +47,8 @@ print-vars:
 	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
 	@echo "VERSION                 = $(VERSION)"
 	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
+	@echo "DOCKER_OPTS             = $(DOCKER_OPTS)"
+	@echo "RELEASE_TYPE            = $(RELEASE_TYPE)"
 	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
@@ -56,22 +62,21 @@ ambassador-docker-image:
 statsd-docker-image:
 	docker build $(DOCKER_OPTS) -t $(STATSD_DOCKER_IMAGE) ./statsd
 
+docker-login:
+	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
+	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
+
+	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_REGISTRY)
+
 docker-images: ambassador-docker-image statsd-docker-image
 
-docker-push:
-	docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
-	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
-
+docker-push: docker-tags
 	docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
 	docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
 
-	@if [[ "$(VERSION)" != "$(GIT_COMMIT)" ]]; then \
-		docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION) \
-    	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION) \
-
-		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
-		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE); \
-	fi
+docker-tags: docker-images
+	docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
+	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
 
 version:
 	$(call check_defined, VERSION, VERSION is not set)
@@ -115,9 +120,32 @@ setup-develop:
 test: version setup-develop
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
-# --------------------
+release: docker-tags publish-website
+	@if [[ "$(VERSION)" != "$(GIT_COMMIT)" ]]; then \
+		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
+		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
+
+		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+	fi
+
+# ------------------------------------------------------------------------------
+# Website
+# ------------------------------------------------------------------------------
+
+publish-website:
+	RELEASE_TYPE=$(RELEASE_TYPE) \
+	NETLIFY_SITE=$(NETLIFY_SITE) \
+		bash ./releng/publish-website.sh
+
+
+# ------------------------------------------------------------------------------
+# CI Targets
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # Function Definitions
-# --------------------
+# ------------------------------------------------------------------------------
 
 # Check that given variables are set and all have non-empty values,
 # die with an error otherwise.
