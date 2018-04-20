@@ -2,11 +2,7 @@
 set -o errexit
 set -o nounset
 
-git_branch="$1"
-git_commit="$2"
-version=${3:-$git_commit}
-
-printf "== Begin: travis-script.sh (branch: $git_branch, commit: $git_commit, version: $version) ==\n"
+printf "== Begin: travis-script.sh ==\n"
 
 make clean
 

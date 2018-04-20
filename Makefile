@@ -6,7 +6,10 @@
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
-VERSION ?= $(GIT_COMMIT)
+
+ifndef VERSION
+VERSION=$(GIT_COMMIT)
+endif
 
 DOCKER_REGISTRY ?= quay.io
 DOCKER_OPTS =
