@@ -125,25 +125,27 @@ class Mapping (object):
         else:
             return self.attrs.get(key)
 
-    def new_route(self, cluster_name, shadow_name=None):
+    def new_route(self, cluster_name, shadow=False):
         route = SourcedDict(
             _source=self['_source'],
             _group_id=self.group_id,
             _precedence=self.get('precedence', 0),
             prefix=self.prefix,
-            prefix_rewrite=self.get('rewrite', '/'),
-            clusters=[ { "name": cluster_name,
-                         "weight": self.get("weight", None) } ]
+            prefix_rewrite=self.get('rewrite', '/')
         )
+
+        if shadow:
+            # XXX CODE DUPLICATION with config.py!!
+            # We're going to need to support shadow weighting later, so use a dict here.
+            route['shadow'] = {
+                'name': cluster_name
+            }
+        else:
+            route['clusters'] = [ { "name": cluster_name,
+                                    "weight": self.get("weight", None) } ]
 
         if self.headers:
             route['headers'] = self.headers
-
-        if shadow_name:
-            # We're going to need to support shadow weighting later, so use a dict here.
-            route['shadow'] = {
-                'name': shadow_name
-            }
 
         add_request_headers = self.get('add_request_headers')
         if add_request_headers:

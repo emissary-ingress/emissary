@@ -273,10 +273,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-httpbin.yaml.1"
+                    "mapping-httpbin-shadow.yaml.1"
                 ],
-                "_service": "https://myservice.org/",
-                "_source": "mapping-httpbin.yaml.1",
+                "_service": "myservice.org/",
+                "_source": "mapping-httpbin-shadow.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_shadow_https___myservice_org__otls",
                 "tls_array": [],
@@ -392,6 +392,7 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
+                    "mapping-httpbin-shadow.yaml.1",
                     "mapping-httpbin.yaml.1"
                 ],
                 "_source": "mapping-httpbin.yaml.1",
@@ -976,6 +977,9 @@
         "mapping-grpc.yaml": {
             "mapping-grpc.yaml.1": true
         },
+        "mapping-httpbin-shadow.yaml": {
+            "mapping-httpbin-shadow.yaml.1": true
+        },
         "mapping-httpbin.yaml": {
             "mapping-httpbin.yaml.1": true
         },
@@ -1102,6 +1106,15 @@
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nname: grpc_mapping\nprefix: /grpc/\nservice: 192.168.0.1:45\n"
         },
+        "mapping-httpbin-shadow.yaml.1": {
+            "_source": "mapping-httpbin-shadow.yaml",
+            "filename": "mapping-httpbin-shadow.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "httpbin_shadow",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_shadow\nprefix: /httpbin/\nservice: https://myservice.org/\nshadow: true\ntimeout_ms: 50\n"
+        },
         "mapping-httpbin.yaml.1": {
             "_source": "mapping-httpbin.yaml",
             "filename": "mapping-httpbin.yaml",
@@ -1109,7 +1122,7 @@
             "kind": "Mapping",
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\nshadow: https://myservice.org/\ntimeout_ms: 50\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\ntimeout_ms: 50\n"
         },
         "mapping-long.yaml.1": {
             "_source": "test source",

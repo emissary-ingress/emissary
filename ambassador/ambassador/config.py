@@ -680,28 +680,42 @@ class Config (object):
 
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
-    def add_intermediate_route(self, _source, mapping, cluster_name, shadow_name=None):
+    # XXX This is a silly API. We should have a Cluster object that can carry what kind
+    #     of cluster it is (this is a target cluster of weight 50%, this is a shadow cluster, 
+    #     whatever) and the API should be "add this cluster to this Mapping".
+    def add_intermediate_route(self, _source, mapping, cluster_name, shadow=False):
         route = self.envoy_routes.get(mapping.group_id, None)
 
         if route:
-            # Take the easy way out -- just add a new entry to this
-            # route's set of weighted clusters.
-            route["clusters"].append( { "name": cluster_name,
-                                        "weight": mapping.attrs.get("weight", None) } )
-            route._mark_referenced_by(_source)
-
-            if shadow_name:
+            # Is this a shadow? If so, is there already a shadow marked?
+            if shadow:
                 extant_shadow = route.get('shadow', None)
 
-                if extant_shadow and (extant_shadow != shadow_name):
-                    self.logger.error("mapping %s defines multiple shadows! Ignoring %s" % 
-                                      (mapping['name'], shadow_name))
+                if extant_shadow:
+                    shadow_name = extant_shadow.get('name', None)
+
+                    if shadow_name != cluster_name:
+                        self.logger.error("mapping %s defines multiple shadows! Ignoring %s" % 
+                                        (mapping['name'], cluster_name))
+                else:
+                    # XXX CODE DUPLICATION with mapping.py!!
+                    # We're going to need to support shadow weighting later, so use a dict here.
+                    route['shadow'] = {
+                        'name': cluster_name
+                    }
+            else:
+                # Take the easy way out -- just add a new entry to this
+                # route's set of weighted clusters.
+                route["clusters"].append( { "name": cluster_name,
+                                            "weight": mapping.attrs.get("weight", None) } )
+
+            route._mark_referenced_by(_source)
 
             return
 
         # OK, if here, we don't have an extent route group for this Mapping. Make a
         # new one.
-        route = mapping.new_route(cluster_name, shadow_name=shadow_name)
+        route = mapping.new_route(cluster_name, shadow=shadow)
         self.envoy_routes[mapping.group_id] = route
 
     def service_tls_check(self, svc, context):
@@ -748,6 +762,11 @@ class Config (object):
         # main service with the incoming service string...
 
         cluster_name_fields = [ svc ]      
+
+        shadow = mapping.get('shadow', False)
+
+        if shadow:
+            cluster_name_fields.insert(0, "shadow")
 
         # ...then do whatever normalization we need for the name and the URL. This can
         # change the service name (e.g. "http://foo" will turn into "foo"), so we set 
@@ -797,37 +816,37 @@ class Config (object):
                                       cb_name=cb_name, od_name=od_name, grpc=grpc,
                                       originate_tls=originate_tls)
 
-        # Next up: shadow service.
+        # # Next up: shadow service.
 
-        shadow = mapping.get('shadow', None)
-        shadow_name = None
+        # shadow = mapping.get('shadow', False)
+        # shadow_name = None
 
-        if shadow:
-            (shadow_svc, shadow_url, 
-             shadow_originate_tls, shadow_otls_name) = self.service_tls_check(shadow, tls_context)
+        # if shadow:
+        #     (shadow_svc, shadow_url, 
+        #      shadow_originate_tls, shadow_otls_name) = self.service_tls_check(shadow, tls_context)
 
-            self.logger.info("shadow %s, tls %s => %s, %s, %s, %s" % 
-                             (shadow, tls_context, 
-                              shadow_svc, shadow_url, shadow_originate_tls, shadow_otls_name))
+        #     self.logger.info("shadow %s, tls %s => %s, %s, %s, %s" % 
+        #                      (shadow, tls_context, 
+        #                       shadow_svc, shadow_url, shadow_originate_tls, shadow_otls_name))
 
-            shadow_name_fields = [ 'shadow', shadow ]
+        #     shadow_name_fields = [ 'shadow', shadow ]
             
-            if shadow_otls_name:
-                shadow_name_fields.append(shadow_otls_name)
+        #     if shadow_otls_name:
+        #         shadow_name_fields.append(shadow_otls_name)
 
-            shadow_name_fields.extend(aux_name_fields)
+        #     shadow_name_fields.extend(aux_name_fields)
 
-            shadow_name = 'cluster_%s' % "_".join(shadow_name_fields)
-            shadow_name = re.sub(r'[^0-9A-Za-z_]', '_', shadow_name)
+        #     shadow_name = 'cluster_%s' % "_".join(shadow_name_fields)
+        #     shadow_name = re.sub(r'[^0-9A-Za-z_]', '_', shadow_name)
 
-            self.logger.debug("%s: shadow %s -> cluster %s" % (mapping.name, shadow, shadow_name))
+        #     self.logger.debug("%s: shadow %s -> cluster %s" % (mapping.name, shadow, shadow_name))
 
-            self.add_intermediate_cluster(mapping['_source'], shadow_name,
-                                          shadow, [ shadow_url ],
-                                          cb_name=cb_name, od_name=od_name, grpc=grpc,
-                                          originate_tls=shadow_originate_tls)
+        #     self.add_intermediate_cluster(mapping['_source'], shadow_name,
+        #                                   shadow, [ shadow_url ],
+        #                                   cb_name=cb_name, od_name=od_name, grpc=grpc,
+        #                                   originate_tls=shadow_originate_tls)
         
-        return svc, cluster_name, shadow_name
+        return svc, cluster_name, shadow
 
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
@@ -1006,10 +1025,10 @@ class Config (object):
             mapping = mappings[mapping_name]
 
             # OK. Set up clusters for this service...
-            svc, cluster_name, shadow_name = self.add_clusters_for_mapping(mapping)
+            svc, cluster_name, shadow = self.add_clusters_for_mapping(mapping)
 
             # ...and route.
-            self.add_intermediate_route(mapping['_source'], mapping, cluster_name, shadow_name=shadow_name)
+            self.add_intermediate_route(mapping['_source'], mapping, cluster_name, shadow=shadow)
 
         # OK. Walk the set of clusters and normalize names...
         collisions = {}

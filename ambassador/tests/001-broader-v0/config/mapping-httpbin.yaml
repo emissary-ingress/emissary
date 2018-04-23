@@ -4,6 +4,5 @@ kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/
 service: http://httpbin.org
-shadow: https://myservice.org/
 host_rewrite: httpbin.org
 timeout_ms: 50
