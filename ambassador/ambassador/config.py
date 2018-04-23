@@ -1422,7 +1422,6 @@ class Config (object):
                 cluster_hosts = { '127.0.0.1:5000': 100 }
 
             urls = []
-            use_tls = False
             protocols = {}
 
             for svc in sorted(cluster_hosts.keys()):
@@ -1431,10 +1430,13 @@ class Config (object):
                 (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
 
                 if originate_tls:
-                    use_tls = True
                     protocols['https'] = True
                 else:
                     protocols['http'] = True
+
+                if otls_name:
+                    filter_config['cluster'] = cluster_name + "_" + otls_name
+                    cluster_name = filter_config['cluster']
 
                 urls.append(url)
 
@@ -1444,7 +1446,7 @@ class Config (object):
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extauth', urls,
                                           type="strict_dns", lb_type="round_robin",
-                                          originate_tls=use_tls)
+                                          originate_tls=originate_tls)
 
         for source in sources:
             filter._mark_referenced_by(source)
