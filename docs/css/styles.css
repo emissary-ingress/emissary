@@ -221,11 +221,26 @@ h1, h2, h3, h4, h5, h6, strong {
     padding-bottom: 75px;
 }
 
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.navigation-right {
+    display: flex;
+    flex-direction: column;
+}
+@media screen and (min-width: 768px) {
+    .navigation-right {
+        align-items: flex-end;
+    }
+}
+
 .datawire-link {
     display: block;
     padding: 15px 0 5px;
     width: 110px;
-    margin-left: 16px;
+    margin: 0 16px;
 }
 .datawire-link > img {
     display: block;
@@ -236,7 +251,7 @@ h1, h2, h3, h4, h5, h6, strong {
     .datawire-link {
         padding: 15px 0;
         width: 130px;
-        margin-left: 40px;
+        margin: 0 40px;
     }
 }
 
@@ -244,12 +259,19 @@ h1, h2, h3, h4, h5, h6, strong {
     display: flex;
     padding: 10px 5px;
     flex-wrap: wrap;
+    flex-direction: column;
 }
 
 @media screen and (min-width: 768px) {
     .main-navigation {
         padding: 0 30px;
         margin-bottom: 25px;
+        flex-direction: row;
+    }
+
+    .main-navigation.right {
+        justify-content: flex-end;
+        margin-right: 10px;
     }
 }
 
@@ -271,6 +293,57 @@ h1, h2, h3, h4, h5, h6, strong {
 
 .main-navigation li a:hover {
     text-decoration: underline;
+}
+
+.main-navigation li .dropbtn {
+    color: #222222;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    padding: 0;
+    font-size: 16px;
+    display: none;
+}
+@media screen and (min-width: 768px) {
+    .main-navigation li .dropbtn {
+        font-size: 1.125em;
+        font-weight: bold;
+        line-height: 1;
+        display: block;
+    }
+}
+
+.main-navigation .dropdown {
+    position: relative;
+    display: inline-block;
+    font-size: 15px;
+}
+
+@media screen and (min-width: 768px) {
+    .main-navigation .dropdown-content {
+        display: none;
+        position: absolute;
+        right: 0;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        z-index: 1;
+        border: 1px solid #E2E2E2;
+    }
+}
+
+.main-navigation .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    line-height: 25px;
+    text-decoration: none;
+    display: block;
+    font-weight: normal;
+    font-size: 1em;
+}
+
+.main-navigation .dropdown:hover .dropdown-content {
+    display: block;
 }
 
 #home-page #hero {

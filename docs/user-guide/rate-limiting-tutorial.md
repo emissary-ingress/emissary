@@ -158,4 +158,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/rate-limit-external.md) and [rate_limits mapping](/reference/mappings.md#using-ratelimits).
+For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/services/rate-limit-service.md) and [rate_limits mapping](/reference/mappings.md#using-ratelimits).
