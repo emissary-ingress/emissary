@@ -140,6 +140,7 @@ class Mapping (object):
             route['shadow'] = {
                 'name': cluster_name
             }
+            route['clusters'] = []
         else:
             route['clusters'] = [ { "name": cluster_name,
                                     "weight": self.get("weight", None) } ]
