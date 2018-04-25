@@ -347,6 +347,9 @@
         "lb_type": "round_robin",        
         "hosts": [
           {
+            "url": "tcp://canary-auth:3000"
+          },
+          {
             "url": "tcp://example-auth:3000"
           }
           
