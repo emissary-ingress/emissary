@@ -67,8 +67,7 @@ spec:
             memory: 100Mi
 ```
 
-This configuration tells Ambassador about the rate limit service, notably that it
-serving requests at `example-rate-limit:5000`.
+This configuration tells Ambassador about the rate limit service, notably that it is serving requests at `example-rate-limit:5000`.
 
 Ambassador will see the annotations and reconfigure itself within a few seconds.
 
@@ -76,7 +75,7 @@ Ambassador will see the annotations and reconfigure itself within a few seconds.
 
 Ambassador only validates requests on Mappings which define a `rate_limits` attribute. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-We already have the qotm service running, we need to tell Ambassador we want to apply rate limiting to it. The easiest way to do that is to annotate the `qotm` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply. Here's the new YAML:
+We already have the `qotm` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `qotm` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply. Here's the new YAML:
 
 ```yaml
 ---
@@ -159,4 +158,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/rate-limit-external.md) and [rate_limits mapping](/reference/mappings.md#using-ratelimits).
+For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/services/rate-limit-service.md) and [rate_limits mapping](/reference/mappings.md#using-ratelimits).

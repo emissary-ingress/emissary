@@ -2,6 +2,24 @@ import hashlib
 
 from .utils import SourcedDict
 
+#############################################################################
+## mapping.py -- the mapping configuration object for Ambassador
+##
+## Mappings are complex enough that they get their own class. Other elements
+## will likely follow, but Mapping is a big deal.
+##
+## Each Mapping object has a group_id that reflects the group of Mappings
+## that it is a part of. By definition, two Mappings with the same group_id
+## are reflecting a single mapped resource that's going to multiple services.
+## This implies that Mapping.group_id() is a very, very, very important 
+## thing that can have dramatic customer impact if changed! (At some point,
+## we should probably allow the human writing the Mapping to override the
+## grouping, in much the same way we allow overriding precedence.)
+##
+## Each Mapping object also has a weight, which is used for ordering. The
+## default is computing in Mapping.route_weight(), but it can be overridden
+## using the precedence field in the Mapping object.
+
 class Mapping (object):
     @classmethod
     def group_id(klass, method, prefix, headers):
@@ -53,7 +71,8 @@ class Mapping (object):
     }
 
     def __init__(self, _source="--internal--", _from=None, **kwargs):
-        # Save the raw input...
+        # Save the raw input. After this, self["anything"] will have the
+        # value from the input Mapping.
         self.attrs = dict(**kwargs)
 
         if _from and ('_source' in _from):
@@ -106,16 +125,25 @@ class Mapping (object):
         else:
             return self.attrs.get(key)
 
-    def new_route(self, cluster_name):
+    def new_route(self, cluster_name, shadow=False):
         route = SourcedDict(
             _source=self['_source'],
             _group_id=self.group_id,
             _precedence=self.get('precedence', 0),
             prefix=self.prefix,
-            prefix_rewrite=self.get('rewrite', '/'),
-            clusters=[ { "name": cluster_name,
-                         "weight": self.get("weight", None) } ]
+            prefix_rewrite=self.get('rewrite', '/')
         )
+
+        if shadow:
+            # XXX CODE DUPLICATION with config.py!!
+            # We're going to need to support shadow weighting later, so use a dict here.
+            route['shadow'] = {
+                'name': cluster_name
+            }
+            route['clusters'] = []
+        else:
+            route['clusters'] = [ { "name": cluster_name,
+                                    "weight": self.get("weight", None) } ]
 
         if self.headers:
             route['headers'] = self.headers

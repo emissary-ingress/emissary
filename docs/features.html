@@ -53,32 +53,47 @@
 <!-- End Google Tag Manager (noscript) -->
 
 <header class="white-bg">
-    <a class="datawire-link" target="_blank" href="https://www.datawire.io">
-        <img alt="Datawire" src="/images/datawire-logo.svg">
-    </a>
-    <ul class="main-navigation">
-        <li>
-            <a href="/">Home</a>
-        </li>
-        <li>
-            <a href="/user-guide/getting-started">Get Started</a>
-        </li>
-        <li>
-            <a href="/features">Features</a>
-        </li>
-        <li>
-            <a href="/about/why-ambassador">Docs</a>
-        </li>
-        <li>
-            <a href="https://blog.getambassador.io">Blog</a>
-        </li>
-        <li>
-            <a target="_blank" href="https://github.com/datawire/ambassador">GitHub</a>
-        </li>
-        <li>
-            <a target="_blank" href="https://gitter.im/datawire/ambassador">Need Help?</a>
-        </li>
-    </ul>
+    <div class="navigation-left">
+        <a class="datawire-link" href="/">
+            <img alt="Ambassador" src="/images/ambassador-logo.svg">
+        </a>
+        <ul class="main-navigation">
+            <li>
+                <a href="/user-guide/getting-started">Get Started</a>
+            </li>
+            <li>
+                <a href="/features">Features</a>
+            </li>
+            <li>
+                <a href="http://blog.getambassador.io/case-studies/home">Case Studies</a>
+            </li>
+            <li>
+                <a href="/about/why-ambassador">Docs</a>
+            </li>
+            <li>
+                <a href="https://blog.getambassador.io">Blog</a>
+            </li>
+            <li>
+                <a target="_blank" href="https://github.com/datawire/ambassador">GitHub</a>
+            </li>
+        </ul>
+    </div>
+    <div class="navigation-right">
+        <a class="datawire-link" target="_blank" href="https://www.datawire.io">
+            <img alt="Datawire" src="/images/datawire-logo.svg">
+        </a>
+        <ul class="main-navigation right">
+            <li>
+                <div class="dropdown">
+                    <button class="dropbtn">▾ Need Help?</button>
+                    <div class="dropdown-content">
+                        <a target="_blank" href="https://gitter.im/datawire/ambassador">Community Gitter</a>
+                        <a target="_blank" href="https://www.datawire.io/pricing">Enterprise Support</a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
 </header>
 <section class="bg-gray padding-top-75">
     <div class="toggle">
@@ -104,7 +119,7 @@
                 <strong>Basic Authentication</strong>
                 <p>Add basic authentication to your services</p>
             </a>
-            <a href="/reference/auth-external" class="card">
+            <a href="/reference/services/auth-service" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/third-party-auth.svg" />
                 </div>
@@ -118,34 +133,41 @@
                 <strong>TLS Termination</strong>
                 <p>Use your own SSL certificate</p>
             </a>
-            <div class="card">
+            <a href="/user-guide/rate-limiting-tutorial" class="card">
+                <div class="icon">
+                    <img src="/images/features-icons/rate-limiting.svg" />
+                </div>
+                <strong>Rate limiting</strong>
+                <p>Throttle incoming requests with a gRPC rate limiting service</p>
+            </a>
+            <a href="/reference/statistics" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/statsd.png" />
                 </div>
                 <strong>StatsD</strong>
                 <p>Send real-time metrics via StatsD</p>
-            </div>
-            <div class="card">
+            </a>
+            <a href="/reference/statistics#prometheus" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/prometheus.svg" />
                 </div>
                 <strong>Prometheus</strong>
                 <p>Collect real-time metrics with Prometheus</p>
-            </div>
-            <div class="card">
+            </a>
+            <a href="/reference/statistics#datadog" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/datadog.png" />
                 </div>
                 <strong>Datadog</strong>
                 <p>Collect real-time metrics with DataDog</p>
-            </div>
-            <div class="card">
+            </a>
+            <a href="/reference/running#diagnostics" class="card">
                 <div class="icon">
                     <img src="/images/features-icons/diagnostics.svg" />
                 </div>
                 <strong>Diagnostics</strong>
                 <p>Easily troubleshoot your configuration with the Ambassador diagnostics UI</p>
-            </div>
+            </a>
         </div>
     </div>
 </section>

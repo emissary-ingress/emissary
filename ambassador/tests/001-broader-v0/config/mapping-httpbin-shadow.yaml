@@ -1,0 +1,9 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  httpbin_shadow
+prefix: /httpbin/
+service: https://myservice.org/
+shadow: true
+host_rewrite: httpbin.org
+timeout_ms: 50

@@ -186,6 +186,28 @@ def source_key(source):
 def sorted_sources(sources):
     return sorted(sources, key=source_key)
 
+def route_cluster_info(route_clusters, cluster, cluster_info, shadow):
+    c_name = cluster['name']
+    c_info = cluster_info.get(c_name, {
+        '_service': 'unknown cluster!',
+        '_health': 'unknown cluster!',
+        '_hmetric': 'unknown',
+        '_hcolor': 'orange'
+    })
+
+    c_service = c_info.get('_service', 'unknown service!')
+    c_health = c_info.get('_hmetric', 'unknown')
+    c_color = c_info.get('_hcolor', 'orange')
+    c_weight = cluster['weight']
+
+    route_clusters[c_name] = {
+        'weight': c_weight,
+        '_health': c_health,
+        '_hcolor': c_color,
+        'service': c_service,
+        'shadow': shadow
+    }
+    
 def route_and_cluster_info(request, overview, clusters, cstats):
     request_host = request.headers.get('Host', '*')
     request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
@@ -214,25 +236,21 @@ def route_and_cluster_info(request, overview, clusters, cstats):
             route_clusters = {}
 
             for cluster in route['clusters']:
-                c_name = cluster['name']
-                c_info = cluster_info.get(c_name, {
-                    '_service': 'unknown cluster!',
-                    '_health': 'unknown cluster!',
-                    '_hmetric': 'unknown',
-                    '_hcolor': 'orange'
-                })
+                route_cluster_info(route_clusters, cluster, cluster_info, False)
 
-                c_service = c_info.get('_service', 'unknown service!')
-                c_health = c_info.get('_hmetric', 'unknown')
-                c_color = c_info.get('_hcolor', 'orange')
-                c_weight = cluster['weight']
+            if 'shadow' in route:
+                shadow_info = route['shadow']
+                shadow_name = shadow_info.get('name', None)
 
-                route_clusters[c_name] = {
-                    'weight': c_weight,
-                    '_health': c_health,
-                    '_hcolor': c_color,
-                    'service': c_service
-                }
+                if shadow_name:
+                    # XXX Stupid hackery here. shadow_info should be a real Cluster
+                    # object.
+                    shadow_cluster = {
+                        'name': shadow_name,
+                        'weight': 100
+                    }
+
+                    route_cluster_info(route_clusters, shadow_cluster, cluster_info, True)
 
             headers = []
 

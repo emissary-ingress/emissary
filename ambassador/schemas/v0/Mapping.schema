@@ -37,6 +37,7 @@
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
         "rewrite": { "type": "string" },
+        "shadow": { "type": "boolean" },
         "timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
@@ -54,7 +55,7 @@
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "rate_limits": {
             "type": "array",
-            "items": { "$ref": "#/definitions/rateLimit" },
+            "items": { "$ref": "#/definitions/rateLimit" }
         },
         "envoy_override": { 
             "type": "object"
@@ -64,7 +65,7 @@
         "mapStrStr": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean" ] }
-        }
+        },
         "rateLimit": {
             "type": "object",
             "properties": {
