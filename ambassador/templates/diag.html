@@ -142,6 +142,13 @@
                   <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
                 {% endfor %}
               </ul>
+
+              {% if route._route.shadow %}
+              shadow:
+              <ul>
+                <li><tt>{{ route._route.shadow.name }}</tt></li>
+              </ul>
+              {% endif %}
             </div>
             <div class="col-7">
               <div class="row">
