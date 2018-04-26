@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
+set -o nounset
+set -o errexit
 
-if [[ "$TRAVIS_TAG" != "" ]]; then
-    printf ${TRAVIS_TAG};
-elif [[ "${GIT_BRANCH}" =~ ^rc/.* ]]; then
-    printf ${GIT_BRANCH} | tr '[:upper:]' '[:lower:]' | sed -e 's|rc/||g';
-else
-    printf "";
-fi
+TRAVIS_TAG="${TRAVIS_TAG:?TRAVIS_TAG not set or empty}"
+printf ${TRAVIS_TAG} | tr '[:upper:]' '[:lower:]' | sed -e 's|-.*||g';

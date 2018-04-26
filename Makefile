@@ -10,6 +10,12 @@
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT = $(shell git rev-parse --short HEAD)
 
+ifeq ($(shell test -z "$(shell git status --porcelain)" || printf "dirty"),dirty)
+GIT_COMMIT = $(shell git rev-parse --short HEAD)-dirty
+endif
+
+# VERSION is usually just the value of GIT_COMMIT, however, it can be set to an explicit value if desired. This is
+# usually used when $VERSION is queried from another source (e.g. a Git tag).
 ifndef VERSION
 VERSION = $(GIT_COMMIT)
 endif

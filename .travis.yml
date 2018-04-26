@@ -21,6 +21,10 @@ services:
 
 env:
   global:
+    # "BLESSED_BRANCH" is just whatever we call 'master'. This is set as an environment variable because it makes it
+    # easier to develop and test new automation code.
+    - BLESSED_BRANCH=master2
+
     - GIT_BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then printf $TRAVIS_BRANCH; else printf $TRAVIS_PULL_REQUEST_BRANCH; fi)
     - VERSION=$(./releng/travis-version.sh)
     - secure: "pICW+jNQnKfTIi3cupJAzLe4If6FqvJ6OgAQIxfmnTxo/7w6EwzBh8zNqTJ60WCGXc/dqYpOtAYGZ/65hRR9HS9l3/8/wmZGeARoz/IR3dEbMpSQKRWTiF+J6UX24H2ol9u6vGa+JLgQuqJeTDdzGqk6h5sZ6H2a2dedOJ9Ns/QQlN/eCsxvYLHQmdzXtc+vlTAFfL902Y2AW7Ue0lqGdJlnzM9WxxX5amBxf9t73aY+pW4mqeysGPZfSlRdpkVAJd3TzYlC4fdJWYR5DGsHDXnXlQdQ7OcLC9Vpb4f5AAu4XPbdxpxW2oA4hxlV6ya1N+oDlZZo1RZiRugn7ecY7W3a6wI7HI91GbWLJe2BaCRW1TminmGZ+tSErz1AmGiOpiqjKeM7KvMwt2Kv5YpWkZcFy5ac0wSMP1qf9V6Kyn9INiohPCHiiy3vzy5a75fAdIVl9C/5x2n6SmNFf0bCO0RVDqqMBQvScjnAZDFZTKHhXDh8zHdQbhxTg0edKbJ+JimuzJYjvGLZkBVuQtW8XO/3kzycTsgzP8OgLH2Ww7qIP0jZpL4HAqIF5FePZ46u32iYqTmv2CokveMJJoCRK/tNKhB4a3Uc8wIHPPVAiTIme8LGJqDrpdzEKbRF7K3fB+qn2nypGfsdxXquNoNxs4/flBYfEt4sUWysvIpEtdY="
@@ -31,22 +35,31 @@ before_install:
   - make docker-login
 
 install:
-  - pip install -r dev-requirements.txt
-  - pip install -r ambassador/requirements.txt
-  - npm install gitbook-cli netlify-cli
+  - ./releng/travis-install.sh
 
 script:
-  - make print-vars
-  - |
-    if [[ "$TRAVIS_TAG" == "" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
-      ./releng/travis-script.sh
-    fi
+  - ./releng/travis-script.sh
+  # When $TRAVIS_TAG == $VERSION then do not rerun the below logic because that implies (by policy) that this is a
+  # stable build.
+  #
+  # When we are on a "nobuild" branch skip this logic as well.
+#  - |
+#    if [[ "$TRAVIS_TAG" == "$VERSION" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
+#      ./releng/travis-script.sh
+#    fi
+#
+#  # run e2e suite for pull requests or when a push into master occurs (generally for merges)
+#  - |
+#    if [[ ("${GIT_BRANCH} == ${BLESSED_BRANCH}") || ("${TRAVIS_PULL_REQUEST}" == "true" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.*) ]]; then
+#      make e2e
+#    fi
+
 
   # run e2e suite for pull requests unless they are of the 'nobuild' variety.
-  - |
-    if [[ "${TRAVIS_PULL_REQUEST}" == "true" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
-      make e2e
-    fi
+#  - |
+#    if [[ "${TRAVIS_PULL_REQUEST}" == "true" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
+#      make e2e
+#    fi
 
 deploy:
   - provider: script
