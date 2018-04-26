@@ -22,6 +22,7 @@ docs/Gemfile.lock
 docs/node_modules
 docs/package-lock.json
 .netlify
+node_modules
 
 .forge
 forge.yaml
