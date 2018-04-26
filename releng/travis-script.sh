@@ -2,6 +2,8 @@
 set -o errexit
 set -o nounset
 
+make print-vars
+
 BLESSED_BRANCH="${BLESSED_BRANCH:?BLESSED_BRANCH is not set or empty}"
 GIT_BRANCH="${GIT_BRANCH:?GIT_BRANCH is not set or empty}"
 
@@ -12,9 +14,7 @@ VERSION="${VERSION:?VERSION is not set or empty}"
 
 printf "== Begin: travis-script.sh ==\n"
 
-make print-vars
-
-if [[ "$TRAVIS_TAG" == "$VERSION" && ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^nobuild.* ]]; then
+if [[ "$TRAVIS_TAG" == "$VERSION" && ! "${GIT_BRANCH}" =~ ^nobuild.* ]]; then
     printf "== Begin: execute tests\n"
 
     make test
