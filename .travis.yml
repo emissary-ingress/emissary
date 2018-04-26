@@ -38,6 +38,7 @@ install:
   - ./releng/travis-install.sh
 
 script:
+  - git status --porcelain
   - ./releng/travis-script.sh
   # When $TRAVIS_TAG == $VERSION then do not rerun the below logic because that implies (by policy) that this is a
   # stable build.
