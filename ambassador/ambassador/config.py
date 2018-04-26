@@ -703,6 +703,7 @@ class Config (object):
                     route['shadow'] = {
                         'name': cluster_name
                     }
+                    route.setdefault('clusters', [])
             else:
                 # Take the easy way out -- just add a new entry to this
                 # route's set of weighted clusters.
