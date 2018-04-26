@@ -34,6 +34,10 @@ config:
   # readiness_probe:
   #   enabled: false
 
+  # diagnostics routes defaults on, but you can disable it.
+  # diagnostics:
+  #   enabled: false
+
   # use_proxy_protocol controls whether Envoy will honor the PROXY
   # protocol on incoming requests.
   # use_proxy_proto: false
