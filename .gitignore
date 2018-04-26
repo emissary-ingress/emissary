@@ -20,7 +20,7 @@ docs/_book
 docs/_site
 docs/Gemfile.lock
 docs/node_modules
-docs/package-lock.json
+package-lock.json
 .netlify
 node_modules
 
