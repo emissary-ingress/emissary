@@ -703,7 +703,7 @@ class Config (object):
                     route['shadow'] = {
                         'name': cluster_name
                     }
-                    route['clusters'] = []
+                    route.setdefault('clusters', [])
             else:
                 # Take the easy way out -- just add a new entry to this
                 # route's set of weighted clusters.
@@ -1409,6 +1409,7 @@ class Config (object):
 
         filter = SourcedDict(
             _source=first_source,
+            _services=sorted(cluster_hosts.keys()),
             type="decoder",
             name="extauth",
             config=filter_config
@@ -1521,9 +1522,22 @@ class Config (object):
         configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
                           if key != "routes" }
 
+        # Is extauth active?
+        extauth = None
+        filters = configuration.get('filters', [])
+
+        for filter in filters:
+            if filter['name'] == 'extauth':
+                extauth = filter
+
+                extauth['_service_weight'] = 100.0 / len(extauth['_services'])
+
         overview = dict(sources=sorted(source_files.values(), key=lambda x: x['filename']),
                         routes=routes,
                         **configuration)
+
+        if extauth:
+            overview['extauth'] = extauth
 
         # self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
 

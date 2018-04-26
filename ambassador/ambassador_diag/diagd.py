@@ -263,7 +263,7 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                 elif hdr_name == ':method':
                     method = hdr_value
                 else:
-                    headers.append((hdr_name, hdr_value))
+                    headers.append(header)
 
             sep = "" if prefix.startswith("/") else "/"
 
