@@ -1,0 +1,9 @@
+---
+apiVersion: ambassador/v0
+kind: AuthService
+name: authentication
+tls: upstream
+auth_service: "https://example-auth:3000"
+path_prefix: "/extauth"
+allowed_headers:
+- "x-qotm-session"

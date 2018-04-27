@@ -9,7 +9,8 @@
         "name": { "type": "string" },
         "auth_service": { "type": "string" },
         "path_prefix": { "type": "string" },
-        "allowed_headers": { 
+        "tls": { "type": [ "string", "boolean" ] },
+        "allowed_headers": {
             "type": "array",
             "items": { "type": "string" }
         }
