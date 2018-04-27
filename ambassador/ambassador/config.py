@@ -98,6 +98,9 @@ class Config (object):
     # __version__ won't, and we need to be consistent for comparison.
     current_semver = get_semver("current", scout_version)
 
+    # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
+    ambassador_id = os.environ.get('AMBASSADOR_ID', 'default')
+
     runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
@@ -395,6 +398,21 @@ class Config (object):
             else:
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
+
+            # Is an ambassador_id present in this object?
+            allowed_ids = obj.get('ambassador_id', 'default')
+
+            if allowed_ids:
+                # Make sure it's a list. Yes, this is Draconian,
+                # but the jsonschema will allow only a string or a list,
+                # and guess what? Strings are iterables.
+                if type(allowed_ids) != list:
+                    allowed_ids = [ allowed_ids ]
+
+                if Config.ambassador_id not in allowed_ids:
+                    self.logger.debug("PROCESS: skip %s.%d; id %s not in %s" % 
+                                      (self.filename, self.ocount, Config.ambassador_id, allowed_ids))
+                    continue
 
             self.logger.debug("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
 

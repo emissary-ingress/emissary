@@ -89,10 +89,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-evil.yaml.2"
+                    "mapping-evil.yaml.3"
                 ],
                 "_service": "qotm",
-                "_source": "mapping-evil.yaml.2",
+                "_source": "mapping-evil.yaml.3",
                 "lb_type": "round_robin",
                 "name": "cluster_http___qotm",
                 "type": "strict_dns",
@@ -618,9 +618,9 @@
                 "_method": "PUT",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-evil.yaml.2"
+                    "mapping-evil.yaml.3"
                 ],
-                "_source": "mapping-evil.yaml.2",
+                "_source": "mapping-evil.yaml.3",
                 "clusters": [
                     {
                         "name": "cluster_http___qotm",
@@ -981,7 +981,7 @@
         },
         "mapping-evil.yaml": {
             "mapping-evil.yaml.1": true,
-            "mapping-evil.yaml.2": true
+            "mapping-evil.yaml.3": true
         },
         "mapping-google.yaml": {
             "mapping-google.yaml.1": true
@@ -1098,16 +1098,16 @@
             "kind": "Mapping",
             "name": "evil_get_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: evil_get_mapping\nprefix: /evil/\nservice: qotm\n"
+            "yaml": "ambassador_id:\n- default\n- tester\napiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: evil_get_mapping\nprefix: /evil/\nservice: qotm\n"
         },
-        "mapping-evil.yaml.2": {
+        "mapping-evil.yaml.3": {
             "_source": "test source",
             "filename": "mapping-evil.yaml",
-            "index": 2,
+            "index": 3,
             "kind": "Mapping",
             "name": "evil_put_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: evil_put_mapping\nprefix: /evil/\nrewrite: /qotm/quote/\nservice: http://qotm\n"
+            "yaml": "ambassador_id: default\napiVersion: ambassador/v0\nkind: Mapping\nmethod: PUT\nname: evil_put_mapping\nprefix: /evil/\nrewrite: /qotm/quote/\nservice: http://qotm\n"
         },
         "mapping-google.yaml.1": {
             "_source": "mapping-google.yaml",
@@ -1125,7 +1125,7 @@
             "kind": "Mapping",
             "name": "grpc_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nname: grpc_mapping\nprefix: /grpc/\nservice: 192.168.0.1:45\n"
+            "yaml": "ambassador_id:\n- default\n- testing\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nname: grpc_mapping\nprefix: /grpc/\nservice: 192.168.0.1:45\n"
         },
         "mapping-httpbin-shadow.yaml.1": {
             "_source": "mapping-httpbin-shadow.yaml",

@@ -7,6 +7,13 @@
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
         "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+        
         "max_connections": { "type": "integer" },
         "max_requests": { "type": "integer" },
         "max_pending": { "type": "integer" },
