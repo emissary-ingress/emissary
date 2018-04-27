@@ -75,5 +75,5 @@ script:
 
 deploy:
   - provider: script
-    script: make release
+    script: make print-vars
     tags: true
