@@ -40,8 +40,8 @@ endif
 
 # VERSION in most contexts is going to be set as the value of $(GIT_VERSION). In a CI environment VERSION is likely to
 # be set explicitly based on some external routine.
-ifneq ($(GIT_TAG_SANITIZED),)
-VERSION := $(shell printf "$(GIT_TAG)" | sed -e 's/-.*//g')
+ifneq ($(GIT_TAG_SANITIZED),"")
+VERSION := $(shell printf "$(GIT_TAG_SANITIZED)" | sed -e 's/-.*//g')
 else
 VERSION := $(GIT_VERSION)
 endif
