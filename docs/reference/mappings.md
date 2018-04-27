@@ -5,7 +5,7 @@ Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#
 Each mapping can also specify, among other things:
 
 - a [_rewrite rule_](#rewrite-rules) which modifies the URL as it's handed to the Kubernetes service;
-- a [_weight_](#using-weight) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_weight_](canary) specifying how much of the traffic for the resource will be routed using the mapping;
 - a [_host_](#using-host-and-host-regex) specifying a required value for the HTTP `Host` header;
 - a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
 - other [_headers_](#using-headers) which must appear in the HTTP request.
@@ -91,7 +91,7 @@ Common optional attributes for mappings:
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
 - `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
-- `weight`: if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
+- [`weight`](canary): if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
 - `headers`: if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
@@ -133,30 +133,6 @@ host_rewrite: httpbin.org
 ```
 
 As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
-
-####  <a name="using-weight"></a> Using `weight`
-
-The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
-
-Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. Here's an example, which might appear during a canary deployment:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
----
-apiVersion: ambassador/v0
-kind: Mapping
-name: qotm2_mapping
-prefix: /qotm/
-service: qotmv2
-weight: 10
-```
-
-In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
 
 ####  <a name="using-host-and-host-regex"></a> Using `host` and `host_regex`
 
