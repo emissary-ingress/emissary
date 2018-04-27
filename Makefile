@@ -21,7 +21,7 @@ GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT))
 
 GIT_BRANCH_SANITIZED := $(shell printf $(GIT_BRANCH) | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
 GIT_TAG_SANITIZED := $(shell \
-	if [[ $(GIT_TAG) == "undefined" || $(GIT_TAG) == "" ]]; then \
+	if [ "$(GIT_TAG)" = "undefined" -o "$(GIT_TAG)" = "" ]; then \
 		printf ""; \
 	else \
 		printf "$(GIT_TAG)" | sed -e 's/\^.*//g'; \
