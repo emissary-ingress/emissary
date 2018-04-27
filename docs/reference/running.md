@@ -15,16 +15,64 @@ The default configuration of Ambassador includes default [resource limits](https
 Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (this is included in the YAML files from `getambassador.io`):
 
 ```yaml
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace          
+env:
+- name: AMBASSADOR_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace          
 ```
 
 Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](reference/mappings) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explicitly include the namespace with the service to cross namespaces; see the [mapping](reference/mappings) documentation for more information.
 
 If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
+
+## Multiple Ambassadors in One Cluster
+
+If you need to run multiple Ambassadors in one cluster, but you don't want to restrict a given Ambassador to a single namespace, you can assign each Ambassador a unique `AMBASSADOR_ID` using the environment:
+
+```yaml
+env:
+- name: AMBASSADOR_ID
+  value: ambassador-1
+```
+
+and then the Ambassador will only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  mapping_used_1
+ambassador_id: ambassador-1
+prefix: /demo1/
+service: demo1
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  mapping_used_2
+ambassador_id: [ "ambassador-1", "ambassador-2" ]
+prefix: /demo2/
+service: demo2
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  mapping_skipped_1
+prefix: /demo3/
+service: demo3
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  mapping_skipped_2
+ambassador_id: ambassador-2
+prefix: /demo4/
+service: demo4
+```
+
+The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassadors. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
+
+**Note well that _any_ object can have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects.
+
+If no `AMBASSADOR_ID` is assigned to an Ambassador, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
 
 ## Reconfiguration Timing Configuration
 

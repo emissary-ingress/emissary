@@ -215,6 +215,10 @@ def diag_paranoia(configdir, outputdir):
     if 'filters' not in reconstituted_lists:
         reconstituted_lists['filters'] = []
 
+    # Copy any 'extauth' block from the original into the reconstituted list.
+    if ('extauth' in ov) and ('extauth' not in reconstituted_lists):
+        reconstituted_lists['extauth'] = [ ov['extauth'] ]
+
     # OK. Next, filter out the '--internal--' stuff from our overview, and sort
     # _referenced_by.
     filtered = filtered_overview(ov)

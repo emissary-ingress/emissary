@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+  namespace: test-010-1
+spec:
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    app: ambassador
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+  namespace: test-010-1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ambassador
+    spec:
+      containers:
+      - env:
+        - name: AMBASSADOR_NAMESPACE
+          value: test-010-1
+        - name: AMBASSADOR_ID
+          value: ambassador-1
+        image: dwflynn/ambassador:0.31.1-b47.b830cf0.DIRTY
+        imagePullPolicy: Always
+        name: ambassador
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        terminationMessagePath: /dev/termination-log
+      - image: dwflynn/statsd:0.31.1-b47.b830cf0.DIRTY
+        imagePullPolicy: Always
+        name: statsd
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: ambassador
+      terminationGracePeriodSeconds: 30

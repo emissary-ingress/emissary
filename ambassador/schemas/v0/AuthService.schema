@@ -7,9 +7,17 @@
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
         "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+        
         "auth_service": { "type": "string" },
         "path_prefix": { "type": "string" },
-        "allowed_headers": { 
+        "tls": { "type": [ "string", "boolean" ] },
+        "allowed_headers": {
             "type": "array",
             "items": { "type": "string" }
         }

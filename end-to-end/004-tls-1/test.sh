@@ -34,7 +34,7 @@ APORT=$(service_port ambassador)
 DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="https://${CLUSTER}:${APORT}"
-HTTPURL="http://${CLUSTER}:$(service_port ambassador 1)"
+HTTPURL="http://${CLUSTER}:$(service_port ambassador default 1)"
 
 echo "Base URL $BASEURL"
 echo "HTTP URL $HTTPURL"
