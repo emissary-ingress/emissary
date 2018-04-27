@@ -52,12 +52,10 @@ else
 IS_PULL_REQUEST := false
 endif
 
-# VERSION in most contexts is going to be set as the value of $(GIT_VERSION). In a CI environment VERSION is likely to
-# be set explicitly based on some external routine.
-ifneq ($(GIT_TAG_SANITIZED),"")
-VERSION := $(shell printf "$(GIT_TAG_SANITIZED)" | sed -e 's/-.*//g')
+ifneq ($(GIT_TAG_SANITIZED),)
+VERSION = $(shell printf "$(GIT_TAG_SANITIZED)" | sed -e 's/-.*//g')
 else
-VERSION := $(GIT_VERSION)
+VERSION = $(GIT_VERSION)
 endif
 
 DOCKER_REGISTRY ?= quay.io
@@ -174,11 +172,11 @@ website: website-yaml
 e2e: ambassador-docker-image statsd-docker-image docker-push e2e-versioned-manifests
 	bash end-to-end/testall.sh
 
-setup-develop:
-	cd ambassador && python setup.py develop
+setup-develop: venv
+	venv/bin/pip install -e ambassador/.
 
 test: version setup-develop
-	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
+	PATH=$(shell pwd)/ambassador/venv/bin:$(PATH) venv/bin/pytest --tb=short -xs --cov=ambassador --cov-report=term-missing ambassador/tests/.
 
 release:
 	if [ "$(GIT_BRANCH)" = "$(MAIN_BRANCH)" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
@@ -193,6 +191,17 @@ release:
 		exit 1; \
 	fi
 
+# ------------------------------------------------------------------------------
+# Virtualenv
+# ------------------------------------------------------------------------------
+
+venv: venv/bin/activate
+
+venv/bin/activate: dev-requirements.txt ambassador/.
+	test -d venv || virtualenv venv --python python3
+	venv/bin/pip install -Ur dev-requirements.txt
+	venv/bin/pip install -e ambassador/.
+	touch venv/bin/activate
 
 # ------------------------------------------------------------------------------
 # Website

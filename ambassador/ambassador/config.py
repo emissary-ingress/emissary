@@ -87,11 +87,12 @@ class Config (object):
     scout_version = Version
 
     if '-' in scout_version:
+        scout_version = "0.0.0"
         # Dev build!
-        v, p = scout_version.split('-')
-        p, b = p.split('.', 1) if ('.' in p) else (0, p)
-
-        scout_version = "%s-%s+%s" % (v, p, b)
+        # v, p = scout_version.split('-')
+        # p, b = p.split('.', 1) if ('.' in p) else (0, p)
+        #
+        # scout_version = "%s-%s+%s" % (v, p, b)
 
     # Use scout_version here, not __version__, because the version
     # coming back from Scout will use build numbers for dev builds, but

@@ -62,7 +62,7 @@ yaml-files:
 		> end-to-end/ambassador-deployment-mounts.yaml
 
 setup-develop:
-	cd ambassador && python setup.py --quiet develop
+	cd ambassador; python setup.py --quiet develop
 
 test: ambassador-test
 
