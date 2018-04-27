@@ -1,5 +1,7 @@
 # file: Makefile
 
+# Welcome to the Ambassador Makefile...
+
 .FORCE:
 .PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images docker-tags publish-website
 
@@ -43,12 +45,6 @@ VERSION := $(shell printf "$(GIT_TAG)" | sed -e 's/-.*//g')
 else
 VERSION := $(GIT_VERSION)
 endif
-
-# VERSION is usually just the value of GIT_COMMIT, however, it can be set to an explicit value if desired. This is
-# usually used when $VERSION is queried from another source (e.g. a Git tag).
-#ifndef VERSION
-#VERSION = $(shell printf "$(GIT_BRANCH)-$(GIT_COMMIT)" | tr '[:upper:]' '[:lower:]')
-#endif
 
 DOCKER_REGISTRY ?= quay.io
 DOCKER_OPTS =
@@ -162,7 +158,7 @@ test: version setup-develop
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
 release:
-	@if [[ "$(VERSION)" != "$(GIT_BRANCH)-$(GIT_COMMIT)" ]]; then \
+	@if [ "$(VERSION)" != "$(GIT_BRANCH)-$(GIT_COMMIT)" ]; then \
 		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
 		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
 
