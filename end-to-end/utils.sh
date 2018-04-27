@@ -201,6 +201,7 @@ wait_for_demo_weights () {
 
     while [ $attempts -gt 0 ]; do
         if checkweights.py "$@"; then
+            printf "weights correct              \n"
             routed=YES
             break
         fi
