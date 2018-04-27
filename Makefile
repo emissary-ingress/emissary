@@ -5,11 +5,19 @@
 .FORCE:
 .PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images docker-tags publish-website
 
+# MAIN_BRANCH
+# -----------
+#
+# The name of the main branch (e.g. "master"). This is set as an variable because it makes it easy to develop and test
+# new automation code on a branch that is simulating the purpose of the main branch.
+#
+MAIN_BRANCH ?= master2
+
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
 # use what is defined.
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_DIRTY := $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
+GIT_DIRTY ?= $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
 
 ifndef $(GIT_BRANCH)
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
@@ -36,6 +44,12 @@ ifeq ($(GIT_DIRTY),dirty)
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)-dirty
 else
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
+endif
+
+ifneq ($(TRAVIS_PULL_REQUEST),false)
+IS_PULL_REQUEST := true
+else
+IS_PULL_REQUEST := false
 endif
 
 # VERSION in most contexts is going to be set as the value of $(GIT_VERSION). In a CI environment VERSION is likely to
@@ -74,7 +88,11 @@ clean:
 	rm -rf end-to-end/ambassador-deployment.yaml end-to-end/ambassador-deployment-mounts.yaml
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 
+print-%:
+	@printf "$($*)"
+
 print-vars:
+	@echo "MAIN_BRANCH             = $(MAIN_BRANCH)"
 	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
 	@echo "GIT_BRANCH_SANITIZED    = $(GIT_BRANCH_SANITIZED)"
 	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
@@ -107,8 +125,13 @@ docker-login:
 docker-images: ambassador-docker-image statsd-docker-image
 
 docker-push: docker-tags
-	docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
-	docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
+	if [ "$(GIT_DIRTY)" != "dirty" -o "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" ]; then \
+		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
+		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE); \
+	else \
+		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
+		exit 1; \
+	fi
 
 docker-tags: docker-images
 	docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
@@ -158,17 +181,18 @@ test: version setup-develop
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
 release:
-	@if [ "$(VERSION)" != "$(GIT_BRANCH)-$(GIT_COMMIT)" ]; then \
-		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
-		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
-
+	if [ "$(GIT_BRANCH)" = "$(MAIN_BRANCH)" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
+		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(MAIN_BRANCH)-$(GIT_COMMIT); \
+		docker pull $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(MAIN_BRANCH)-$(GIT_COMMIT); \
+		docker tag $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(MAIN_BRANCH)-$(GIT_COMMIT) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(MAIN_BRANCH)-$(GIT_COMMIT) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
 		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
-
 	else \
-		printf "'make release' can only be run when VERSION is explicitly set to a different value than GIT_COMMIT!\n"; \
-        exit 1; \
+		printf "'make release' can only be run when VERSION is explicitly set to a different value than GIT_COMMIT and GIT_BRANCH == MAIN_BRANCH!\n"; \
+		exit 1; \
 	fi
+
 
 # ------------------------------------------------------------------------------
 # Website
