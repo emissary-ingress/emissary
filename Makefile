@@ -3,22 +3,36 @@
 .FORCE:
 .PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images docker-tags publish-website
 
-# GIT_BRANCH on TravisCI needs to be set via some external custom logic. Default to Git native mechanism or use what is
-# defined already.
+# GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
+# use what is defined.
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-GIT_COMMIT = $(shell git rev-parse --short HEAD)
+GIT_DIRTY = $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
+GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
+GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
+GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT) | sed -e 's/\^.*//g')
 
-ifeq ($(shell test -z "$(shell git status --porcelain)" || printf "dirty"),dirty)
-GIT_COMMIT = $(shell git rev-parse --short HEAD)-dirty
+# Trees get dirty sometimes by choice and sometimes accidently. If we are in a dirty tree then append "-dirty" to the
+# GIT_COMMIT.
+ifeq ($(GIT_DIRTY),dirty)
+GIT_VERSION=$(GIT_BRANCH)-$(GIT_COMMIT)-dirty
+else
+GIT_VERSION=$(GIT_BRANCH)-$(GIT_COMMIT)
+endif
+
+# VERSION in most contexts is going to be set as the value of $(GIT_VERSION). In a CI environment VERSION is likely to
+# be set explicitly based on some external routine.
+ifneq ($(GIT_TAG),undefined)
+VERSION = $(shell printf "$(GIT_TAG)" | sed -e 's/-.*//g')
+else
+VERSION = $(GIT_VERSION)
 endif
 
 # VERSION is usually just the value of GIT_COMMIT, however, it can be set to an explicit value if desired. This is
 # usually used when $VERSION is queried from another source (e.g. a Git tag).
-ifndef VERSION
-VERSION = $(GIT_COMMIT)
-endif
+#ifndef VERSION
+#VERSION = $(shell printf "$(GIT_BRANCH)-$(GIT_COMMIT)" | tr '[:upper:]' '[:lower:]')
+#endif
 
 DOCKER_REGISTRY ?= quay.io
 DOCKER_OPTS =
@@ -26,11 +40,11 @@ DOCKER_OPTS =
 NETLIFY_SITE=datawire-ambassador
 
 AMBASSADOR_DOCKER_REPO ?= datawire/ambassador-gh369
-AMBASSADOR_DOCKER_TAG ?= $(GIT_COMMIT)
+AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 STATSD_DOCKER_REPO ?= datawire/ambassador-statsd-gh369
-STATSD_DOCKER_TAG ?= $(GIT_COMMIT)
+STATSD_DOCKER_TAG ?= $(GIT_VERSION)
 STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
 
 RELEASE_TYPE ?= unstable
@@ -51,6 +65,8 @@ clean:
 print-vars:
 	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
 	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
+	@echo "GIT_TAG                 = $(GIT_TAG)"
+	@echo "GIT_VERSION             = $(GIT_VERSION)"
 	@echo "VERSION                 = $(VERSION)"
 	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
 	@echo "DOCKER_OPTS             = $(DOCKER_OPTS)"
@@ -85,6 +101,7 @@ docker-tags: docker-images
 	docker tag $(STATSD_DOCKER_IMAGE) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_IMAGE)
 
 version:
+	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
@@ -126,15 +143,17 @@ setup-develop:
 test: version setup-develop
 	cd ambassador && pytest --tb=short --cov=ambassador --cov-report term-missing
 
-release: docker-tags
-	@if [[ "$(VERSION)" != "$(GIT_COMMIT)" ]]; then \
-		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
-		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE)
+release:
+	@if [[ "$(VERSION)" != "$(GIT_BRANCH)-$(GIT_COMMIT)" ]]; then \
+		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
+		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_IMAGE); \
 
 		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+
 	else \
-		@printf "`make release` can only be run when VERSION is explicitly set to a different value than GIT_COMMIT!\n"
+		printf "'make release' can only be run when VERSION is explicitly set to a different value than GIT_COMMIT!\n"; \
+        exit 1; \
 	fi
 
 # ------------------------------------------------------------------------------
