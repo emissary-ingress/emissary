@@ -22,6 +22,38 @@
             },
             {
                 "_referenced_by": [
+                    "auth-tls.yaml.1"
+                ],
+                "_service": "extauth",
+                "_source": "auth-tls.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_ext_auth_otls_upstream",
+                "tls_array": [
+                    {
+                        "key": "cert_chain_file",
+                        "value": "/etc/ambassador-config/certs/outbound.crt"
+                    },
+                    {
+                        "key": "private_key_file",
+                        "value": "/etc/ambassador-config/certs/outbound.key"
+                    }
+                ],
+                "tls_context": {
+                    "_referenced_by": [
+                        "auth-tls.yaml.1",
+                        "mapping-qotm.yaml.1"
+                    ],
+                    "_source": "tls.yaml.1",
+                    "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
+                    "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                },
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://example-auth:3000"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
                 "_service": "qotm",
@@ -40,6 +72,7 @@
                 ],
                 "tls_context": {
                     "_referenced_by": [
+                        "auth-tls.yaml.1",
                         "mapping-qotm.yaml.1"
                     ],
                     "_source": "tls.yaml.1",
@@ -57,6 +90,22 @@
                 "_source": "--internal--",
                 "config": {},
                 "name": "cors"
+            },
+            {
+                "_services": [
+                    "https://example-auth:3000"
+                ],
+                "_source": "auth-tls.yaml.1",
+                "config": {
+                    "allowed_headers": [
+                        "x-qotm-session"
+                    ],
+                    "cluster": "cluster_ext_auth_otls_upstream",
+                    "path_prefix": "/extauth",
+                    "timeout_ms": 5000
+                },
+                "name": "extauth",
+                "type": "decoder"
             },
             {
                 "_source": "--internal--",
@@ -160,6 +209,9 @@
         "ambassador.yaml": {
             "ambassador.yaml.1": true
         },
+        "auth-tls.yaml": {
+            "auth-tls.yaml.1": true
+        },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true
         },
@@ -194,6 +246,15 @@
             "name": "ambassador",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nconfig:\n  admin_port: 4242\n  liveness_probe:\n    enabled: false\nkind: Module\nname: ambassador\n"
+        },
+        "auth-tls.yaml.1": {
+            "_source": "auth-tls.yaml",
+            "filename": "auth-tls.yaml",
+            "index": 1,
+            "kind": "AuthService",
+            "name": "authentication",
+            "version": "ambassador/v0",
+            "yaml": "allowed_headers:\n- x-qotm-session\napiVersion: ambassador/v0\nauth_service: https://example-auth:3000\nkind: AuthService\nname: authentication\npath_prefix: /extauth\ntls: upstream\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
