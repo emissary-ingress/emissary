@@ -26,6 +26,7 @@
 * [Configuring Ambassador](reference/configuration.md)
   * [Modules](reference/modules.md)
   * [Mappings](reference/mappings.md)
+    * [Canary Releases](reference/canary.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [Services](reference/services/services.md)
     * [AuthService](reference/services/auth-service.md)
