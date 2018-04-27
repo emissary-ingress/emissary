@@ -1,10 +1,10 @@
 ## Traffic Shadowing
 
-Traffic shadowing is a deployment pattern where production traffic is asynchronously copied to a non-production service for testing. Shadowing (or mirroring) is a close cousin to the more well-known canary testing. Shadowing traffic has several important benefits:
+Traffic shadowing is a deployment pattern where production traffic is asynchronously copied to a non-production service for testing. Shadowing is a close cousin to two other commonly known deployment patterns, canary testing and blue/green deployments. Shadowing traffic has several important benefits over blue/green and canary testing:
 
 * Zero production impact. Since traffic is duplicated, any bugs in services that are processing shadow data have no impact on production.
 
-* Test persistent services. Since there is no production impact, shadowing provides a powerful technique to test persistent services. You can configure your test service to store data in a test database, and shadow traffic to your test service for testing.
+* Test persistent services. Since there is no production impact, shadowing provides a powerful technique to test persistent services. You can configure your test service to store data in a test database, and shadow traffic to your test service for testing. Both blue/green deployments and canary deployments require more machinery for testing.
 
 * Test the actual behavior of a service. When used in conjunction with tools such as [Twitter's Diffy](https://github.com/twitter/diffy), shadowing lets you measure the behavior of your service and compare it with an expected output. A typical canary rollout catches exceptions (e.g., HTTP 500 errors), but what happens when your service has a logic error and is not returning an exception?
 
@@ -16,7 +16,7 @@ Ambassador lets you easily shadow traffic to a given endpoint. In Ambassador, on
 
 ### The `shadow` annotation
 
-In Ambassador, you can enable shadowing for a given mapping by setting `shadow: true` in your `Mapping`.  One copy proceeds as if the `shadow`ing `Mapping` was not present: the request is handed onward per the `service`(s) defined by the non-`shadow` `Mapping`s, and the reply from whichever `service` is picked is handed back to the client.
+In Ambassador, you can enable shadowing for a given mapping by setting `shadow: true` in your `Mapping`.  One copy proceeds as if the shadowing `Mapping` was not present: the request is handed onward per the `service`(s) defined by the non-shadow `Mapping`s, and the reply from whichever `service` is picked is handed back to the client.
 
 The second copy is handed to the `service` defined by the `Mapping` with `shadow` set. Any reply from this `service` is ignored, rather than being handed back to the client.
 
