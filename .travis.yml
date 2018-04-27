@@ -32,7 +32,7 @@ env:
     # name of the base branch (e.g. "master" rather than "dev/new-feature").
     #
     # See also: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-    #- GIT_BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then printf "$TRAVIS_BRANCH"; else printf "$TRAVIS_PULL_REQUEST_BRANCH"; fi)
+    - GIT_BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then printf "$TRAVIS_BRANCH"; else printf "$TRAVIS_PULL_REQUEST_BRANCH"; fi)
 
     # Set the build version by doing some environment interrogation.
     #- VERSION="$(./releng/travis-version.sh)"

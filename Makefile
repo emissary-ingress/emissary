@@ -7,25 +7,41 @@
 # use what is defined.
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_DIRTY = $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
-GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
+GIT_DIRTY := $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
+
+ifndef $(GIT_BRANCH)
+GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+endif
+
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
-GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT) | sed -e 's/\^.*//g')
+
+# This commands prints the tag of this commit or "undefined". Later we use GIT_TAG_SANITIZED and set it to "" if this
+# string is "undefined" or blank.
+GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT))
+
+GIT_BRANCH_SANITIZED := $(shell printf $(GIT_BRANCH) | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
+GIT_TAG_SANITIZED := $(shell \
+	if [[ $(GIT_TAG) == "undefined" || $(GIT_TAG) == "" ]]; then \
+		printf ""; \
+	else \
+		printf "$(GIT_TAG)" | sed -e 's/\^.*//g'; \
+	fi \
+	)
 
 # Trees get dirty sometimes by choice and sometimes accidently. If we are in a dirty tree then append "-dirty" to the
 # GIT_COMMIT.
 ifeq ($(GIT_DIRTY),dirty)
-GIT_VERSION=$(GIT_BRANCH)-$(GIT_COMMIT)-dirty
+GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)-dirty
 else
-GIT_VERSION=$(GIT_BRANCH)-$(GIT_COMMIT)
+GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
 endif
 
 # VERSION in most contexts is going to be set as the value of $(GIT_VERSION). In a CI environment VERSION is likely to
 # be set explicitly based on some external routine.
-ifneq ($(GIT_TAG),undefined)
-VERSION = $(shell printf "$(GIT_TAG)" | sed -e 's/-.*//g')
+ifneq ($(GIT_TAG_SANITIZED),)
+VERSION := $(shell printf "$(GIT_TAG)" | sed -e 's/-.*//g')
 else
-VERSION = $(GIT_VERSION)
+VERSION := $(GIT_VERSION)
 endif
 
 # VERSION is usually just the value of GIT_COMMIT, however, it can be set to an explicit value if desired. This is
@@ -64,8 +80,10 @@ clean:
 
 print-vars:
 	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
+	@echo "GIT_BRANCH_SANITIZED    = $(GIT_BRANCH_SANITIZED)"
 	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
 	@echo "GIT_TAG                 = $(GIT_TAG)"
+	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION             = $(GIT_VERSION)"
 	@echo "VERSION                 = $(VERSION)"
 	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
