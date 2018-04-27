@@ -14,7 +14,7 @@ Ambassador lets you easily shadow traffic to a given endpoint. In Ambassador, on
 
 [Shadowing](/images/shadowing.png)
 
-### THe `shadow` annotatio
+### The `shadow` annotation
 
 In Ambassador, you can enable shadowing for a given mapping by setting `shadow: true` in your `Mapping`.  One copy proceeds as if the `shadow`ing `Mapping` was not present: the request is handed onward per the `service`(s) defined by the non-`shadow` `Mapping`s, and the reply from whichever `service` is picked is handed back to the client.
 

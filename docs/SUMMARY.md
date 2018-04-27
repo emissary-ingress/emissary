@@ -27,7 +27,7 @@
   * [Modules](reference/modules.md)
   * [Mappings](reference/mappings.md)
     * [Traffic Shadowing](reference/shadowing.md)
-  * [Services](reference/services.md)
+  * [Services](reference/services/services.md)
     * [AuthService](reference/services/auth-service.md)
     * [RateLimitService](reference/services/rate-limit-service.md)
   * [Advanced configuration topics](reference/advanced.md)
