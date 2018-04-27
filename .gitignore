@@ -36,8 +36,3 @@ no-such-file
 envoy.json
 intermediate.json
 check-*.json
-end-to-end/ambassador-deployment-mounts.yaml
-end-to-end/ambassador-deployment.yaml
-end-to-end/005-single-namespace/k8s/ambassador-deployment.yaml
-end-to-end/kubernaut
-end-to-end/*.log
