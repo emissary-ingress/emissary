@@ -1,3 +1,6 @@
+#!/bin/sh
+# set -x 
+
 if [ -z "$ROOT" ]; then
     echo "ROOT must be set to the root of the end-to-end tests" >&2
     exit 1
@@ -14,6 +17,15 @@ step () {
 }
 
 initialize_cluster () {
+    if [ -r "$ROOT/.skip-tests" ]; then
+        test_name=$(basename $(pwd))
+
+        if grep "$test_name" "$ROOT/.skip-tests" >/dev/null 2>&1; then
+            echo "$test_name: skipping!"
+            exit 0
+        fi
+    fi
+    
     if [ -z "$SKIP_CHECK_CONTEXT" ]; then
         interactive_check_context
     fi
@@ -27,6 +39,8 @@ initialize_cluster () {
             kubectl delete namespace "$namespace"
         fi
     done
+
+    wait_for_namespace_deletion
 }
 
 cluster_ip () {
@@ -40,13 +54,42 @@ cluster_ip () {
 }
 
 service_port() {
-    instance=${2:-0}
+    namespace=${2:-default}
+    instance=${3:-0}
 
-    kubectl get services "$1" -ojsonpath="{.spec.ports[$instance].nodePort}"
+    kubectl get services -n "$namespace" "$1" -ojsonpath="{.spec.ports[$instance].nodePort}"
 }
 
 demotest_pod() {
     kubectl get pods -l run=demotest -o 'jsonpath={.items[0].metadata.name}'
+}
+
+wait_for_namespace_deletion() {
+    attempts=60
+    running=
+
+    echo "Waiting for deletion"
+
+    while [ $attempts -gt 0 ]; do
+        # XXX This " || : " BS at the end is because grep -c -v returns an exit code of
+        # 1 when it finds nothing. Stupid grep.
+        pending=$(kubectl describe namespaces | grep '^Status:' | grep -c -v Active || :)
+
+        if [ $pending -eq 0 ]; then
+            printf "Namespaces cleared.              \n"
+            running=YES
+            break
+        fi
+
+        printf "try %02d: %d being cleared${LINE_END}" $attempts $pending
+        attempts=$(( $attempts - 1 ))
+        sleep 2
+    done
+
+    if [ -z "$running" ]; then
+        echo 'Some namespaces not cleared??' >&2
+        exit 1
+    fi
 }
 
 wait_for_pods () {
@@ -55,8 +98,9 @@ wait_for_pods () {
     running=
 
     while [ $attempts -gt 0 ]; do
-        # pending=$(kubectl --namespace $namespace get pod -o json | grep phase | grep -c -v Running)
-        pending=$(kubectl --namespace $namespace describe pods | grep '^Status:' | grep -c -v Running)
+        # XXX This " || : " BS at the end is because grep -c -v returns an exit code of
+        # 1 when it finds nothing. Stupid grep.
+        pending=$(kubectl --namespace $namespace describe pods | grep '^Status:' | grep -c -v Running || :)
 
         if [ $pending -eq 0 ]; then
             printf "Pods running.              \n"
