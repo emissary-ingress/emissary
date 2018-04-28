@@ -1,6 +1,5 @@
 # Table of Contents
 
-* [Ambassador](INDEX.md)
 * [Blog](https://blog.getambassador.io)
 
 ----
