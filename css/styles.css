@@ -595,6 +595,10 @@ footer {
 .announcement-widget__content p a {
     color: white;
     font-weight: bold;
+    text-decoration: underline;
+}
+.announcement-widget__content p a:hover {
+    text-decoration: none;
 }
 
 @media (min-width: 768px) {
