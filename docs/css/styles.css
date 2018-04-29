@@ -597,6 +597,7 @@ footer {
     font-weight: bold;
     text-decoration: underline;
 }
+
 .announcement-widget__content p a:hover {
     text-decoration: none;
 }
