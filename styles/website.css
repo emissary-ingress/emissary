@@ -1,0 +1,9 @@
+.logo {
+    width: 75%;
+    padding: 15px;
+}
+
+/** Removes the "Introduction" link from the table of contents **/
+.book-summary ul.summary li:first-child {
+    display: none;
+}
