@@ -4,6 +4,6 @@
 }
 
 /** Removes the "Introduction" link from the table of contents **/
-.book-summary ul.summary li:first-child {
+.book-summary ul.summary > li:first-child {
     display: none;
 }
