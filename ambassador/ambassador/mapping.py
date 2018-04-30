@@ -140,7 +140,7 @@ class Mapping (object):
             route['shadow'] = {
                 'name': cluster_name
             }
-            route['clusters'] = []
+            route.setdefault('clusters', [])
         else:
             route['clusters'] = [ { "name": cluster_name,
                                     "weight": self.get("weight", None) } ]

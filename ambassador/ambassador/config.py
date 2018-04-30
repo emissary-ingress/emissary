@@ -99,6 +99,9 @@ class Config (object):
     # __version__ won't, and we need to be consistent for comparison.
     current_semver = get_semver("current", scout_version)
 
+    # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
+    ambassador_id = os.environ.get('AMBASSADOR_ID', 'default')
+
     runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
@@ -396,6 +399,21 @@ class Config (object):
             else:
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
+
+            # Is an ambassador_id present in this object?
+            allowed_ids = obj.get('ambassador_id', 'default')
+
+            if allowed_ids:
+                # Make sure it's a list. Yes, this is Draconian,
+                # but the jsonschema will allow only a string or a list,
+                # and guess what? Strings are iterables.
+                if type(allowed_ids) != list:
+                    allowed_ids = [ allowed_ids ]
+
+                if Config.ambassador_id not in allowed_ids:
+                    self.logger.debug("PROCESS: skip %s.%d; id %s not in %s" % 
+                                      (self.filename, self.ocount, Config.ambassador_id, allowed_ids))
+                    continue
 
             self.logger.debug("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
 
@@ -704,7 +722,7 @@ class Config (object):
                     route['shadow'] = {
                         'name': cluster_name
                     }
-                    route['clusters'] = []
+                    route.setdefault('clusters', [])
             else:
                 # Take the easy way out -- just add a new entry to this
                 # route's set of weighted clusters.
@@ -1410,6 +1428,7 @@ class Config (object):
 
         filter = SourcedDict(
             _source=first_source,
+            _services=sorted(cluster_hosts.keys()),
             type="decoder",
             name="extauth",
             config=filter_config
@@ -1422,7 +1441,6 @@ class Config (object):
                 cluster_hosts = { '127.0.0.1:5000': 100 }
 
             urls = []
-            use_tls = False
             protocols = {}
 
             for svc in sorted(cluster_hosts.keys()):
@@ -1431,10 +1449,13 @@ class Config (object):
                 (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
 
                 if originate_tls:
-                    use_tls = True
                     protocols['https'] = True
                 else:
                     protocols['http'] = True
+
+                if otls_name:
+                    filter_config['cluster'] = cluster_name + "_" + otls_name
+                    cluster_name = filter_config['cluster']
 
                 urls.append(url)
 
@@ -1444,7 +1465,7 @@ class Config (object):
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extauth', urls,
                                           type="strict_dns", lb_type="round_robin",
-                                          originate_tls=use_tls)
+                                          originate_tls=originate_tls)
 
         for source in sources:
             filter._mark_referenced_by(source)
@@ -1522,9 +1543,22 @@ class Config (object):
         configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
                           if key != "routes" }
 
+        # Is extauth active?
+        extauth = None
+        filters = configuration.get('filters', [])
+
+        for filter in filters:
+            if filter['name'] == 'extauth':
+                extauth = filter
+
+                extauth['_service_weight'] = 100.0 / len(extauth['_services'])
+
         overview = dict(sources=sorted(source_files.values(), key=lambda x: x['filename']),
                         routes=routes,
                         **configuration)
+
+        if extauth:
+            overview['extauth'] = extauth
 
         # self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
 

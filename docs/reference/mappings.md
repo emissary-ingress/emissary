@@ -5,9 +5,9 @@ Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#
 Each mapping can also specify, among other things:
 
 - a [_rewrite rule_](#rewrite-rules) which modifies the URL as it's handed to the Kubernetes service;
-- a [_weight_](#using-weight) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_weight_](canary) specifying how much of the traffic for the resource will be routed using the mapping;
 - a [_host_](#using-host-and-host-regex) specifying a required value for the HTTP `Host` header;
-- a [_shadow_](#using-shadow) marker, specifying that this mapping will get a copy of traffic for the resource; and
+- a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
 - other [_headers_](#using-headers) which must appear in the HTTP request.
 
 ### Mapping Evaluation Order
@@ -91,7 +91,7 @@ Common optional attributes for mappings:
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
 - `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
-- `weight`: if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
+- [`weight`](canary): if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
 - `headers`: if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
@@ -109,7 +109,7 @@ Less-common optional attributes for mappings:
 - `host_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `host_redirect` value.
 - `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value.
 - `precedence`: an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier.
-- [`shadow`](#using-shadow): if present with a true value, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored.
+- [`shadow`](shadowing): if present with a true value, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored.
 - `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
 - `use_websocket`: if present with a true value, tells Ambassador that this service will use websockets.
 - `envoy_override`: supplies raw configuration data to be included with the generated Envoy route entry.
@@ -133,30 +133,6 @@ host_rewrite: httpbin.org
 ```
 
 As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
-
-####  <a name="using-weight"></a> Using `weight`
-
-The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
-
-Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. Here's an example, which might appear during a canary deployment:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
----
-apiVersion: ambassador/v0
-kind: Mapping
-name: qotm2_mapping
-prefix: /qotm/
-service: qotmv2
-weight: 10
-```
-
-In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
 
 ####  <a name="using-host-and-host-regex"></a> Using `host` and `host_regex`
 
@@ -290,14 +266,6 @@ Rate limit rule settings:
 Please note that you must use the internal HTTP/2 request header names in `rate_limits` rules. For example:
 - the `host` header should be specified as the `:authority` header; and
 - the `method` header should be specified as the `:method` header.
-
-####  <a name="using-shadow"></a> Using `shadow`
-
-A mapping that specifies a true value for the `shadow` attribute will cause traffic to the mapped resource to be split. One copy proceeds as if the `shadow`ing `Mapping` was not present: the request is handed onward per the `service`(s) defined by the non-`shadow` `Mapping`s, and the reply from whichever `service` is picked is handed back to the client.
-
-The second copy is handed to the `service` defined by the `Mapping` with `shadow` set. Any reply from this `service` is ignored, rather than being handed back to the client.
-
-Only one `shadow` can be specified at present. If you attempt to define multiple `shadow`s, Ambassador will indicate an error in the diagnostic service, and only one `shadow` will be used.
 
 #### <a name="using-envoy-override"></a> Using `envoy_override`
 

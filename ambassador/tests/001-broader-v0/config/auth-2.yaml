@@ -1,8 +1,8 @@
 ---
 apiVersion: ambassador/v0
 kind:  AuthService
-name:  authentication
-auth_service: "http://example-auth:3000"
+name:  auth-canary
+auth_service: "http://canary-auth:3000"
 path_prefix: "/extauth"
 allowed_headers:
 - "x-qotm-session"

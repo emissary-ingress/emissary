@@ -10,6 +10,16 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.32.0] April 27, 2018
+[0.32.0]: https://github.com/datawire/ambassador/compare/v0.32.0...v0.31.0
+
+### Changed
+
+- Traffic shadowing is supported using the `shadow` attribute in a `Mapping`
+- Multiple Ambassadors can now run more happily in a single cluster
+- The diagnostic service will now show you what `AuthService` configuration is active
+- The `tls` keyword now works for `AuthService` just like it does for `Mapping` (thanks @dvavili!)
+
 ## [0.31.0] April 12, 2018
 [0.31.0]: https://github.com/datawire/ambassador/compare/v0.31.0...v0.30.2
 

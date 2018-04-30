@@ -7,6 +7,13 @@
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
         "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+        
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },

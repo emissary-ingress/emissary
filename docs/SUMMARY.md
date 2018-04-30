@@ -1,6 +1,5 @@
 # Table of Contents
 
-* [Ambassador](INDEX.md)
 * [Blog](https://blog.getambassador.io)
 
 ----
@@ -26,9 +25,11 @@
 * [Configuring Ambassador](reference/configuration.md)
   * [Modules](reference/modules.md)
   * [Mappings](reference/mappings.md)
-  * [Services](reference/services.md)
-    * [AuthService](reference/services/auth-service.md)
-    * [RateLimitService](reference/services/rate-limit-service.md)
+    * [Canary Releases](reference/canary.md)
+    * [Traffic Shadowing](reference/shadowing.md)
+  * [Services](reference/services/services.md)
+    * [Authentication](reference/services/auth-service.md)
+    * [Rate Limiting](reference/services/rate-limit-service.md)
   * [Advanced configuration topics](reference/advanced.md)
 * [Running Ambassador](reference/running.md)
   * [Ambassador with AWS](reference/ambassador-with-aws.md)

@@ -70,6 +70,9 @@
                 "name": "cors"
             },
             {
+                "_services": [
+                    "demo.getambassador.io"
+                ],
                 "_source": "auth.yaml.1",
                 "config": {
                     "allowed_headers": [

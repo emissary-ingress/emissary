@@ -31,8 +31,8 @@ while i < len(sys.argv):
 
 headers.sort()
 
-print("Headers: %s" % headers)
-print("Wanted:  %s" % wanted)
+# print("Headers: %s" % headers)
+# print("Wanted:  %s" % wanted)
 
 r = requests.get("%s/ambassador/v0/diag/?json=true" % base_url, verify=False)
 
@@ -61,7 +61,7 @@ for route in x.get('routes', []):
 
 x = [ int(clusters[name]) for name in sorted(clusters.keys()) ]
 
-print("weights: %s" % x)
+# print("weights: %s" % x)
 # print("wanted:  %s" % wanted)
 
 if x != wanted:
