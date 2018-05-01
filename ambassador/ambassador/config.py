@@ -834,36 +834,6 @@ class Config (object):
                                       svc, [ url ],
                                       cb_name=cb_name, od_name=od_name, grpc=grpc,
                                       originate_tls=originate_tls)
-
-        # # Next up: shadow service.
-
-        # shadow = mapping.get('shadow', False)
-        # shadow_name = None
-
-        # if shadow:
-        #     (shadow_svc, shadow_url, 
-        #      shadow_originate_tls, shadow_otls_name) = self.service_tls_check(shadow, tls_context)
-
-        #     self.logger.info("shadow %s, tls %s => %s, %s, %s, %s" % 
-        #                      (shadow, tls_context, 
-        #                       shadow_svc, shadow_url, shadow_originate_tls, shadow_otls_name))
-
-        #     shadow_name_fields = [ 'shadow', shadow ]
-            
-        #     if shadow_otls_name:
-        #         shadow_name_fields.append(shadow_otls_name)
-
-        #     shadow_name_fields.extend(aux_name_fields)
-
-        #     shadow_name = 'cluster_%s' % "_".join(shadow_name_fields)
-        #     shadow_name = re.sub(r'[^0-9A-Za-z_]', '_', shadow_name)
-
-        #     self.logger.debug("%s: shadow %s -> cluster %s" % (mapping.name, shadow, shadow_name))
-
-        #     self.add_intermediate_cluster(mapping['_source'], shadow_name,
-        #                                   shadow, [ shadow_url ],
-        #                                   cb_name=cb_name, od_name=od_name, grpc=grpc,
-        #                                   originate_tls=shadow_originate_tls)
         
         return svc, cluster_name, shadow
 
