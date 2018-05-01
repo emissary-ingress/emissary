@@ -701,12 +701,19 @@ class Config (object):
     # XXX This is a silly API. We should have a Cluster object that can carry what kind
     #     of cluster it is (this is a target cluster of weight 50%, this is a shadow cluster, 
     #     whatever) and the API should be "add this cluster to this Mapping".
-    def add_intermediate_route(self, _source, mapping, cluster_name, shadow=False):
+    def add_intermediate_route(self, _source, mapping, svc, cluster_name, shadow=False):
         route = self.envoy_routes.get(mapping.group_id, None)
+        host_redirect = mapping.get('host_redirect', False)
+        shadow = mapping.get('shadow', False)
 
         if route:
+            # Is this a host_redirect? If so, that's an error.
+            if host_redirect:
+                self.logger.error("ignoring non-unique host_redirect mapping %s (see also %s)" %
+                                  (mapping['name'], route['_source']))
+
             # Is this a shadow? If so, is there already a shadow marked?
-            if shadow:
+            elif shadow:
                 extant_shadow = route.get('shadow', None)
 
                 if extant_shadow:
@@ -734,7 +741,7 @@ class Config (object):
 
         # OK, if here, we don't have an extent route group for this Mapping. Make a
         # new one.
-        route = mapping.new_route(cluster_name, shadow=shadow)
+        route = mapping.new_route(svc, cluster_name)
         self.envoy_routes[mapping.group_id] = route
 
     def service_tls_check(self, svc, context):
@@ -782,8 +789,19 @@ class Config (object):
 
         cluster_name_fields = [ svc ]      
 
+        host_redirect = mapping.get('host_redirect', False)
         shadow = mapping.get('shadow', False)
 
+        if host_redirect:
+            if shadow:
+                # Not allowed.
+                errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
+                self.post_error(RichStatus.fromError(errstr), key=module['_source'])
+            else:
+                # Short-circuit. You needn't actually create a cluster for a 
+                # host_redirect mapping.
+                return svc, None
+            
         if shadow:
             cluster_name_fields.insert(0, "shadow")
 
@@ -835,7 +853,7 @@ class Config (object):
                                       cb_name=cb_name, od_name=od_name, grpc=grpc,
                                       originate_tls=originate_tls)
         
-        return svc, cluster_name, shadow
+        return svc, cluster_name
 
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
@@ -1014,10 +1032,10 @@ class Config (object):
             mapping = mappings[mapping_name]
 
             # OK. Set up clusters for this service...
-            svc, cluster_name, shadow = self.add_clusters_for_mapping(mapping)
+            svc, cluster_name = self.add_clusters_for_mapping(mapping)
 
             # ...and route.
-            self.add_intermediate_route(mapping['_source'], mapping, cluster_name, shadow=shadow)
+            self.add_intermediate_route(mapping['_source'], mapping, svc, cluster_name)
 
         # OK. Walk the set of clusters and normalize names...
         collisions = {}

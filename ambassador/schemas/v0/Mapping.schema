@@ -35,7 +35,7 @@
             "additionalProperties": false
         },
         "grpc": { "type": "boolean" },
-        "host_redirect": { "type": "string" },
+        "host_redirect": { "type": "boolean" },
         "host_rewrite": { "type": "string" },
         "method": { "type": "string" },
         "method_regex": { "type": "boolean" },

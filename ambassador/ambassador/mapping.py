@@ -61,7 +61,6 @@ class Mapping (object):
         "auto_host_rewrite": True,
         "case_sensitive": True,
         "envoy_override": True,
-        "host_redirect": True,
         "host_rewrite": True,
         "path_redirect": True,
         "priority": True,
@@ -125,7 +124,7 @@ class Mapping (object):
         else:
             return self.attrs.get(key)
 
-    def new_route(self, cluster_name, shadow=False):
+    def new_route(self, svc, cluster_name):
         route = SourcedDict(
             _source=self['_source'],
             _group_id=self.group_id,
@@ -134,7 +133,11 @@ class Mapping (object):
             prefix_rewrite=self.get('rewrite', '/')
         )
 
-        if shadow:
+        if self.get('host_redirect', False):
+            route['host_redirect'] = svc
+            route.setdefault('clusters', [])
+
+        if self.get('shadow', False):
             # XXX CODE DUPLICATION with config.py!!
             # We're going to need to support shadow weighting later, so use a dict here.
             route['shadow'] = {
