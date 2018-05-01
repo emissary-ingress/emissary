@@ -12,6 +12,14 @@ metadata:
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
+      ---
+      # Disabling the default diagnostic route
+      apiVersion: ambassador/v0
+      kind: Module
+      name: ambassador
+      config:
+        diagnostics:
+          enabled: false
 spec:
   selector:
     app: ambassador
