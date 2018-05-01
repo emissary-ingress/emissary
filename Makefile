@@ -176,7 +176,7 @@ setup-develop: venv
 	venv/bin/pip install -e ambassador/.
 
 test: version setup-develop
-	PATH=$(shell pwd)/ambassador/venv/bin:$(PATH) venv/bin/pytest --tb=short -xs --cov=ambassador --cov-report=term-missing ambassador/tests/.
+	PATH=$(shell pwd)/venv/bin:$(PATH) venv/bin/pytest --tb=short -xs --cov=ambassador --cov-report=term-missing ambassador/tests/.
 
 release:
 	if [ "$(GIT_BRANCH)" = "$(MAIN_BRANCH)" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
