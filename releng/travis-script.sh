@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -o errexit
 set -o nounset
+set -o xtrace
 
 # Makes it much easier to actually debug when you see what the Makefile sees
 make print-vars
@@ -19,7 +20,7 @@ fi
 
 if [[ -z ${GIT_TAG} ]] ; then
     make test
-    make docker-images docker-push
+    make docker-push
     make website
 fi
 

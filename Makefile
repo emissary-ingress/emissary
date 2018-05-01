@@ -46,10 +46,10 @@ else
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
 endif
 
+# TODO: need to remove the dependency on Travis env var which means this likely needs to be arg passed to make rather
+IS_PULL_REQUEST = false
 ifneq ($(TRAVIS_PULL_REQUEST),false)
-IS_PULL_REQUEST := true
-else
-IS_PULL_REQUEST := false
+IS_PULL_REQUEST = true
 endif
 
 ifneq ($(GIT_TAG_SANITIZED),)
@@ -97,6 +97,7 @@ print-vars:
 	@echo "GIT_TAG                 = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION             = $(GIT_VERSION)"
+	@echo "IS_PULL_REQUEST         = $(IS_PULL_REQUEST)"
 	@echo "VERSION                 = $(VERSION)"
 	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
 	@echo "DOCKER_OPTS             = $(DOCKER_OPTS)"
@@ -169,7 +170,7 @@ website-yaml:
 website: website-yaml
 	VERSION=$(VERSION) bash docs/build-website.sh
 
-e2e: ambassador-docker-image statsd-docker-image docker-push e2e-versioned-manifests
+e2e: e2e-versioned-manifests
 	bash end-to-end/testall.sh
 
 setup-develop: venv
@@ -216,6 +217,8 @@ publish-website:
 # ------------------------------------------------------------------------------
 # CI Targets
 # ------------------------------------------------------------------------------
+
+ci-docker: docker-push
 
 # ------------------------------------------------------------------------------
 # Function Definitions
