@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -e
 set -o pipefail
@@ -10,7 +10,7 @@ cd "$HERE"
 source "$HERE/kubernaut_utils.sh"
 
 if [ "$BUILD_ALL" = true ]; then
-  sh buildall.sh
+  bash buildall.sh
 fi
 
 if [ -z "$SKIP_KUBERNAUT" ]; then
@@ -49,7 +49,7 @@ for dir in 0*; do
 
         attempt=$(( $attempt + 1 ))
 
-        if sh $dir/test.sh 2>&1 | python linify.py test.log; then
+        if bash $dir/test.sh 2>&1 | python linify.py test.log; then
             echo "${dir} PASSED"
             break
         else
