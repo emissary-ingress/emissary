@@ -10,6 +10,15 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.32.2] May 2, 2018
+[0.32.2]: https://github.com/datawire/ambassador/compare/v0.32.2...v0.32.0
+
+(Note that 0.32.1 was an internal release.)
+
+### Changed
+
+- Fix a bad bootstrap CSS inclusion that would cause the diagnostic service to render incorrectly.
+
 ## [0.32.0] April 27, 2018
 [0.32.0]: https://github.com/datawire/ambassador/compare/v0.32.0...v0.31.0
 
