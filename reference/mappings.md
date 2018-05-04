@@ -379,6 +379,10 @@ would be "rewritten" as
 http://service1/prefix1/foo/bar
 ```
 
+Ambassador can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
+
+- `rewrite: ""`
+
 ### Modifying Ambassador's Underlying Envoy Configuration
 
 Ambassador uses Envoy for the heavy lifting of proxying.
