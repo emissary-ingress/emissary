@@ -136,8 +136,7 @@ class Mapping (object):
         if self.get('host_redirect', False):
             route['host_redirect'] = svc
             route.setdefault('clusters', [])
-
-        if self.get('shadow', False):
+        elif self.get('shadow', False):
             # XXX CODE DUPLICATION with config.py!!
             # We're going to need to support shadow weighting later, so use a dict here.
             route['shadow'] = {

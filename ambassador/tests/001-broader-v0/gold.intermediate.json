@@ -482,12 +482,7 @@
                     "mapping-redirector.yaml.1"
                 ],
                 "_source": "mapping-redirector.yaml.1",
-                "clusters": [
-                    {
-                        "name": null,
-                        "weight": 100.0
-                    }
-                ],
+                "clusters": [],
                 "host_redirect": "httpbin.org",
                 "path_redirect": "/ip/",
                 "prefix": "/redirect/",
