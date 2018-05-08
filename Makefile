@@ -71,8 +71,6 @@ STATSD_DOCKER_REPO ?= datawire/ambassador-statsd-gh369
 STATSD_DOCKER_TAG ?= $(GIT_VERSION)
 STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
 
-RELEASE_TYPE ?= unstable
-
 clean:
 	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
 	rm -rf helm/*.tgz
@@ -101,7 +99,6 @@ print-vars:
 	@echo "VERSION                 = $(VERSION)"
 	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
 	@echo "DOCKER_OPTS             = $(DOCKER_OPTS)"
-	@echo "RELEASE_TYPE            = $(RELEASE_TYPE)"
 	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
@@ -209,10 +206,15 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 # ------------------------------------------------------------------------------
 
 publish-website:
-	RELEASE_TYPE=$(RELEASE_TYPE) \
-	NETLIFY_SITE=$(NETLIFY_SITE) \
-		bash ./releng/publish-website.sh
-
+	if [[ "$(GIT_BRANCH)" = "$(MAIN_BRANCH)" && "$(VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then \
+		RELEASE_TYPE=stable \
+        NETLIFY_SITE=$(NETLIFY_SITE) \
+        	bash ./releng/publish-website.sh; \
+	else \
+		RELEASE_TYPE=unstable \
+        NETLIFY_SITE=$(NETLIFY_SITE) \
+        	bash ./releng/publish-website.sh; \
+	fi
 
 # ------------------------------------------------------------------------------
 # CI Targets
