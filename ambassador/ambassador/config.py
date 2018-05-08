@@ -446,23 +446,29 @@ class Config (object):
         if not key:
             key = self.current_source_key()
 
-        if key not in self.sources:
-            # Save a fake source record.
-            self.sources[key] = {
-                'kind': 'error',
-                'version': 'error',
-                'name': 'error',
-                'filename': self.filename,
-                'index': self.ocount,
-                'yaml': 'error'
-            }
+        # Yuck.
+        filename = re.sub(r'\.\d+$', '', key)
 
-        source_map = self.source_map.setdefault(self.filename, {})
+        # Fetch the relevant source info. If it doesn't exist, stuff
+        # in a fake record.
+        source_info = self.sources.setdefault(key, {
+            'kind': 'error',
+            'version': 'error',
+            'name': 'error',
+            'filename': filename,
+            'index': self.ocount,
+            'yaml': 'error'
+        })
+
+        source_info.setdefault('errors', [])
+        source_info['errors'].append(rc.toDict())
+
+        source_map = self.source_map.setdefault(filename, {})
         source_map[key] = True
 
         errors = self.errors.setdefault(key, [])
         errors.append(rc.toDict())
-        self.logger.error("%s: %s" % (key, rc))
+        self.logger.error("%s (%s): %s" % (key, filename, rc))
 
     def process_object(self, obj):
         # Cache the source key first thing...

@@ -275,6 +275,19 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-redirector.yaml.2"
+                ],
+                "_service": "httpbin.org",
+                "_source": "mapping-redirector.yaml.2",
+                "lb_type": "round_robin",
+                "name": "cluster_shadow_httpbin_org",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://httpbin.org:80"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-httpbin-shadow.yaml.1"
                 ],
                 "_service": "myservice.org/",
@@ -703,17 +716,23 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-qotm.yaml.1"
+                    "mapping-qotm.yaml.1",
+                    "mapping-redirector.yaml.2"
                 ],
-                "_source": "mapping-qotm.yaml.1",
+                "_source": "mapping-redirector.yaml.2",
                 "clusters": [
                     {
                         "name": "cluster_qotm_cb_custom",
                         "weight": 100.0
                     }
                 ],
+                "path_redirect": "/ip/",
                 "prefix": "/qotm/",
-                "prefix_rewrite": "/"
+                "prefix_rewrite": "/",
+                "shadow": {
+                    "name": "cluster_shadow_httpbin_org"
+                },
+                "timeout_ms": 50
             },
             {
                 "__saved": [
@@ -979,6 +998,17 @@
             }
         ]
     },
+    "errors": {
+        "mapping-redirector.yaml.2": [
+            {
+                "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
+                "hostname": "ryoohko-9229.local",
+                "ok": false,
+                "resolvedname": "10.12.106.216",
+                "version": "0.32.3-b13.080d443.DIRTY"
+            }
+        ]
+    },
     "source_map": {
         "--internal--": {
             "--internal--": true
@@ -1031,7 +1061,8 @@
             "mapping-qotm2.yaml.1": true
         },
         "mapping-redirector.yaml": {
-            "mapping-redirector.yaml.1": true
+            "mapping-redirector.yaml.1": true,
+            "mapping-redirector.yaml.2": true
         },
         "mapping-websocket.yaml": {
             "mapping-websocket.yaml.1": true
@@ -1241,6 +1272,24 @@
             "name": "redirect_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: redirect_mapping\npath_redirect: /ip/\nprefix: /redirect/\nservice: httpbin.org\ntimeout_ms: 50\n"
+        },
+        "mapping-redirector.yaml.2": {
+            "_source": "mapping-redirector.yaml",
+            "errors": [
+                {
+                    "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
+                    "hostname": "ryoohko-9229.local",
+                    "ok": false,
+                    "resolvedname": "10.12.106.216",
+                    "version": "0.32.3-b13.080d443.DIRTY"
+                }
+            ],
+            "filename": "mapping-redirector.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "bad_redirect_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: bad_redirect_mapping\npath_redirect: /ip/\nprefix: /qotm/\nservice: httpbin.org\nshadow: true\ntimeout_ms: 50\n"
         },
         "mapping-websocket.yaml.1": {
             "_source": "mapping-websocket.yaml",

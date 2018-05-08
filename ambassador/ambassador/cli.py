@@ -110,6 +110,7 @@ def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
 
         diag_object = {
             'envoy_config': aconf.envoy_config,
+            'errors': aconf.errors,
             'sources': aconf.sources,
             'source_map': aconf.source_map
         }

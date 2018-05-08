@@ -7,3 +7,13 @@ service: httpbin.org
 host_redirect: true
 path_redirect: /ip/
 timeout_ms: 50
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  bad_redirect_mapping
+prefix: /qotm/
+service: httpbin.org
+shadow: true
+host_redirect: true
+path_redirect: /ip/
+timeout_ms: 50
