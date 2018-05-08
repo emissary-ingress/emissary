@@ -21,8 +21,10 @@ fi
 if [[ -z ${GIT_TAG} ]] ; then
     make test
     make docker-push
-    make website
 fi
+
+make website
+make publish-website
 
 if [[ ${GIT_BRANCH} == ${MAIN_BRANCH} ]] || \
    [[ $(make print-IS_PULL_REQUEST) == "true" ]]; then
