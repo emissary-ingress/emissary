@@ -1002,10 +1002,10 @@
         "mapping-redirector.yaml.2": [
             {
                 "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
-                "hostname": "ryoohko-9229.local",
+                "hostname": "sanitized",
                 "ok": false,
-                "resolvedname": "10.12.106.216",
-                "version": "0.32.3-b13.080d443.DIRTY"
+                "resolvedname": "sanitized",
+                "version": "sanitized"
             }
         ]
     },
@@ -1278,10 +1278,10 @@
             "errors": [
                 {
                     "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
-                    "hostname": "ryoohko-9229.local",
+                    "hostname": "sanitized",
                     "ok": false,
-                    "resolvedname": "10.12.106.216",
-                    "version": "0.32.3-b13.080d443.DIRTY"
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
                 }
             ],
             "filename": "mapping-redirector.yaml",
