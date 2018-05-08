@@ -96,6 +96,9 @@
                 "name": "cors"
             },
             {
+                "_services": [
+                    "example-auth:3000"
+                ],
                 "_source": "auth.yaml.1",
                 "config": {
                     "allowed_headers": [
@@ -440,6 +443,7 @@
             }
         ]
     },
+    "errors": {},
     "source_map": {
         "--internal--": {
             "--internal--": true

@@ -7,6 +7,13 @@
         "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
         "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+        
         "consecutive_5xx": { "type": "integer" },
         "max_ejection": { "type": "integer" },
         "interval_ms": { "type": "integer" }

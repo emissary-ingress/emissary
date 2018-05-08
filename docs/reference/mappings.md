@@ -5,8 +5,9 @@ Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#
 Each mapping can also specify, among other things:
 
 - a [_rewrite rule_](#rewrite-rules) which modifies the URL as it's handed to the Kubernetes service;
-- a [_weight_](#using-weight) specifying how much of the traffic for the resource will be routed using the mapping;
-- a [_host_](#using-host-and-hostregex) specifying a required value for the HTTP `Host` header; and
+- a [_weight_](canary) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_host_](#using-host-and-host-regex) specifying a required value for the HTTP `Host` header;
+- a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
 - other [_headers_](#using-headers) which must appear in the HTTP request.
 
 ### Mapping Evaluation Order
@@ -90,12 +91,11 @@ Common optional attributes for mappings:
 - `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
 - `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
 - `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
-- `weight`: if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
+- [`weight`](canary): if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
 - `headers`: if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
-- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match
-for this mapping to be used to route the request
+- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request
 - `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
 - `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
 - `rate_limits`: if present, specifies a list rate limit rules on a mapping. For more details about each setting, see [using rate_limits](#using-ratelimits)
@@ -105,16 +105,17 @@ Less-common optional attributes for mappings:
 - `add_request_headers`: if present, specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. Envoy dynamic `value`s `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static `value`s.
 - `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route.
 - `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True.
-- `host_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `host_redirect` value.
-- `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value.
+- `host_redirect`: if present with a true value, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. See [Using Redirects](#using-redirects) for more details. 
+- `path_redirect`: if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. See [Using Redirects](#using-redirects) for more details.
 - `precedence`: an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier.
+- [`shadow`](shadowing): if present with a true value, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored.
 - `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
 - `use_websocket`: if present with a true value, tells Ambassador that this service will use websockets.
 - `envoy_override`: supplies raw configuration data to be included with the generated Envoy route entry.
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
-#### Using `host_rewrite`
+####  <a name="using-host-rewrite"></a> Using `host_rewrite`
 
 By default, the `Host` header is not altered when talking to the service -- whatever `Host` header the client gave to Ambassador will be presented to the service. For many microservices this will be fine, but if you use Ambassador to route to services that use the `Host` header for routing, it's likely to fail (legacy monoliths are particularly susceptible to this, as well as external services). You can use `host_rewrite` to force the `Host` header to whatever value that such target services need.
 
@@ -132,31 +133,7 @@ host_rewrite: httpbin.org
 
 As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
 
-#### Using `weight`
-
-The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
-
-Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. Here's an example, which might appear during a canary deployment:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
----
-apiVersion: ambassador/v0
-kind: Mapping
-name: qotm2_mapping
-prefix: /qotm/
-service: qotmv2
-weight: 10
-```
-
-In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
-
-#### Using `host` and `host_regex`
+####  <a name="using-host-and-host-regex"></a> Using `host` and `host_regex`
 
 A mapping that specifies the `host` attribute will take effect _only_ if the HTTP `Host` header matches the value in the `host` attribute. If `host_regex` is `true`, the `host` value is taken to be a regular expression, otherwise an exact string match is required.
 
@@ -194,7 +171,7 @@ will map requests for `/qotm/` to
 
 **Note well** that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.
 
-#### Using `headers`
+####  <a name="using-headers"></a> Using `headers`
 
 If present, the `headers` attribute must be a dictionary of `header`: `value` pairs, for example:
 
@@ -221,7 +198,7 @@ Internally:
 
 You will see these headers in the diagnostic service if you use the `method` or `host` attributes.
 
-#### Using `precedence`
+####  <a name="using-precedence"></a> Using `precedence`
 
 Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
 
@@ -229,13 +206,13 @@ For those situations, a `Mapping` can explicitly specify the `precedence`. A `Ma
 
 If multiple `Mapping`s have the same `precedence`, Ambassador's normal sorting determines the ordering within the `precedence`; however, there is no way that Ambassador can ever sort a `Mapping` with a lower `precedence` ahead of one at a higher `precedence`.
 
-#### Using `tls`
+####  <a name="using-tls"></a> Using `tls`
 
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to specify TLS origination certificates.
 
-#### Using `cors`
+####  <a name="using-cors"></a> Using `cors`
 
 A mapping that specifies the `cors` attribute will automatically enable the CORS filter. An example:
 
@@ -263,7 +240,7 @@ CORS settings:
 - `exposed_headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Expose-Headers` header.
 - `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
 
-#### Using `rate_limits`
+####  <a name="using-rate-limits"></a> Using `rate_limits`
 
 A mapping that specifies the `rate_limits` list attribute, and at least one `rate_limits` rule, will call the external [RateLimitService](rate-limit-service.md) before proceeding with the request. An example:
 
@@ -289,7 +266,36 @@ Please note that you must use the internal HTTP/2 request header names in `rate_
 - the `host` header should be specified as the `:authority` header; and
 - the `method` header should be specified as the `:method` header.
 
-#### Using `envoy_override` {#using-envoy-override}
+####  <a name="using-redirects"></a> Using Redirects
+
+To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  redirect_mapping
+prefix: /redirect/
+service: httpbin.org
+host_redirect: true
+```
+
+Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/redirect/`.
+
+The `Mapping` **may** also set `path_redirect` to change the path portion of the URL during the redirect:
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  redirect_mapping
+prefix: /redirect/
+service: httpbin.org
+host_redirect: true
+path_redirect: /ip
+```
+
+Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador, attention paid to the trailing `/` on a URL is helpful!
+
+#### <a name="using-envoy-override"></a> Using `envoy_override`
 
 It's possible that your situation may strain the limits of what Ambassador can do. The `envoy_override` attribute is provided for cases we haven't predicted: any object given as the value of `envoy_override` will be inserted into the Envoy `Route` synthesized for the given mapping. For example, you could enable Envoy's `auto_host_rewrite` by supplying
 
@@ -400,6 +406,10 @@ would be "rewritten" as
 ```shell
 http://service1/prefix1/foo/bar
 ```
+
+Ambassador can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
+
+- `rewrite: ""`
 
 ### Modifying Ambassador's Underlying Envoy Configuration
 

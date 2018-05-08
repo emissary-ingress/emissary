@@ -186,6 +186,38 @@ def source_key(source):
 def sorted_sources(sources):
     return sorted(sources, key=source_key)
 
+def route_cluster_info(route, route_clusters, cluster, cluster_info, type_label):
+    c_name = cluster['name']
+
+    c_info = cluster_info.get(c_name, None)
+
+    if not c_info:
+        c_info = {
+            '_service': 'unknown cluster!',
+            '_health': 'unknown cluster!',
+            '_hmetric': 'unknown',
+            '_hcolor': 'orange'
+        }
+
+        if route.get('host_redirect', None):
+            c_info['_service'] = route['host_redirect']
+            c_info['_hcolor'] = 'grey'
+
+    c_service = c_info.get('_service', 'unknown service!')
+    c_health = c_info.get('_hmetric', 'unknown')
+    c_color = c_info.get('_hcolor', 'orange')
+    c_weight = cluster['weight']
+
+    route_clusters[c_name] = {
+        'weight': c_weight,
+        '_health': c_health,
+        '_hcolor': c_color,
+        'service': c_service,
+    }
+
+    if type_label:
+        route_clusters[c_name]['type_label'] = type_label
+
 def route_and_cluster_info(request, overview, clusters, cstats):
     request_host = request.headers.get('Host', '*')
     request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
@@ -214,25 +246,33 @@ def route_and_cluster_info(request, overview, clusters, cstats):
             route_clusters = {}
 
             for cluster in route['clusters']:
-                c_name = cluster['name']
-                c_info = cluster_info.get(c_name, {
-                    '_service': 'unknown cluster!',
-                    '_health': 'unknown cluster!',
-                    '_hmetric': 'unknown',
-                    '_hcolor': 'orange'
-                })
+                route_cluster_info(route, route_clusters, cluster, cluster_info, None)
 
-                c_service = c_info.get('_service', 'unknown service!')
-                c_health = c_info.get('_hmetric', 'unknown')
-                c_color = c_info.get('_hcolor', 'orange')
-                c_weight = cluster['weight']
+            if 'host_redirect' in route:
+                    # XXX Stupid hackery here. redirect_cluster should be a real 
+                    # Cluster object.
+                    redirect_cluster = {
+                        'name': route['host_redirect'],
+                        'weight': 100
+                    }
 
-                route_clusters[c_name] = {
-                    'weight': c_weight,
-                    '_health': c_health,
-                    '_hcolor': c_color,
-                    'service': c_service
-                }
+                    route_cluster_info(route, route_clusters, redirect_cluster, cluster_info, "redirect")
+                    app.logger.info("host_redirect route: %s" % route)
+                    app.logger.info("host_redirect clusters: %s" % route_clusters)
+
+            if 'shadow' in route:
+                shadow_info = route['shadow']
+                shadow_name = shadow_info.get('name', None)
+
+                if shadow_name:
+                    # XXX Stupid hackery here. shadow_cluster should be a real
+                    # Cluster object.
+                    shadow_cluster = {
+                        'name': shadow_name,
+                        'weight': 100
+                    }
+
+                    route_cluster_info(route, route_clusters, shadow_cluster, cluster_info, "shadow")
 
             headers = []
 
@@ -245,7 +285,7 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                 elif hdr_name == ':method':
                     method = hdr_value
                 else:
-                    headers.append((hdr_name, hdr_value))
+                    headers.append(header)
 
             sep = "" if prefix.startswith("/") else "/"
 
