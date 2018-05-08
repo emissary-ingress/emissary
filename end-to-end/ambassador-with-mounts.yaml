@@ -77,7 +77,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
       - name: ambassador
-        image: {AMREG}ambassador:{VERSION}
+        image: {{AMBASSADOR_DOCKER_IMAGE}}
         imagePullPolicy: Always
         resources:
           limits:
@@ -98,7 +98,7 @@ spec:
           mountPath: /etc/certs/upstream
         terminationMessagePath: /dev/termination-log
       - name: statsd
-        image: {STREG}statsd:{VERSION}
+        image: {{STATSD_DOCKER_IMAGE}}
         imagePullPolicy: Always
       volumes:
       # - name: termination-certs

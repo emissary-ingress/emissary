@@ -21,7 +21,7 @@ metadata:
   name: gruesvc
 spec:
   replicas: 1
-  strategy: {{}}
+  strategy: {}
   template:
     metadata:
       creationTimestamp: null
@@ -31,6 +31,6 @@ spec:
       containers:
       - name: gruesvc
         image: dwflynn/gruesvc:0.1.1
-        resources: {{}}
+        resources: {}
       restartPolicy: Always
-status: {{}}
+status: {}

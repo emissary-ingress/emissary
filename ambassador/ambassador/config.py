@@ -87,11 +87,22 @@ class Config (object):
     scout_version = Version
 
     if '-' in scout_version:
-        # Dev build!
-        v, p = scout_version.split('-')
-        p, b = p.split('.', 1) if ('.' in p) else (0, p)
+        # TODO(plombardi): This version code needs to be rewritten. We should only report RC and GA versions.
+        #
+        # As of the time when we moved to streamlined branch, merge and release model the way versions in development
+        # land are rendered has changed. A development version no longer has any <MAJOR>.<MINOR>.<PATCH> information and
+        # is instead rendered as <BRANCH_NAME>-<GIT_SHORT_HASH>[-dirty] where [-dirty] is only appended for modified
+        # source trees.
+        #
+        # Long term we are planning to remove the version report for development branches anyways so all of this
+        # formatting for versions
 
-        scout_version = "%s-%s+%s" % (v, p, b)
+        scout_version = "0.0.0-" + Version.split("-")[1]  # middle part is commit hash
+        # Dev build!
+        # v, p = scout_version.split('-')
+        # p, b = p.split('.', 1) if ('.' in p) else (0, p)
+        #
+        # scout_version = "%s-%s+%s" % (v, p, b)
 
     # Use scout_version here, not __version__, because the version
     # coming back from Scout will use build numbers for dev builds, but

@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: ambassador
-        image: {AMREG}ambassador:{VERSION}
+        image: {{AMBASSADOR_DOCKER_IMAGE}}
         resources:
           limits:
             cpu: 1
@@ -55,5 +55,5 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: statsd
-        image: {STREG}statsd:{VERSION}
+        image: {{STATSD_DOCKER_IMAGE}}
       restartPolicy: Always
