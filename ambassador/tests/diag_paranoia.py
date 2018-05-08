@@ -66,7 +66,30 @@ def filtered_overview(ov):
 
             filtered[key] = [ obj ]
 
-    return filtered
+    return sanitize_errors(filtered)
+
+def sanitize_errors(ov):
+    sources = ov.get('sources', {})
+    errors = ov.get('errors', {})
+    filtered = {}
+
+    for key in errors.keys():
+        errlist = errors[key]
+        filtlist = []
+
+        for error in errlist:
+            error['version'] = 'sanitized'
+            error['hostname'] = 'sanitized'
+            error['resolvedname'] = 'sanitized'
+
+            filtlist.append(error)
+
+        filtered[key] = filtlist
+
+        if key in sources:
+            sources[key]['errors'] = filtlist
+
+    return ov
 
 def diag_paranoia(configdir, outputdir):
     aconf = Config(configdir)

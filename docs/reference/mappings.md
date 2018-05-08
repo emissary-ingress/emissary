@@ -95,8 +95,7 @@ Common optional attributes for mappings:
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
 - `headers`: if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
-- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match
-for this mapping to be used to route the request
+- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request
 - `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
 - `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
 - `rate_limits`: if present, specifies a list rate limit rules on a mapping. For more details about each setting, see [using rate_limits](#using-ratelimits)
@@ -106,8 +105,8 @@ Less-common optional attributes for mappings:
 - `add_request_headers`: if present, specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. Envoy dynamic `value`s `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static `value`s.
 - `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route.
 - `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True.
-- `host_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `host_redirect` value.
-- `path_redirect`: if set, this `Mapping` performs an HTTP 301 `Redirect`, with the path portion of the URL replaced with the `path_redirect` value.
+- `host_redirect`: if present with a true value, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. See [Using Redirects](#using-redirects) for more details. 
+- `path_redirect`: if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. See [Using Redirects](#using-redirects) for more details.
 - `precedence`: an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier.
 - [`shadow`](shadowing): if present with a true value, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored.
 - `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
@@ -266,6 +265,35 @@ Rate limit rule settings:
 Please note that you must use the internal HTTP/2 request header names in `rate_limits` rules. For example:
 - the `host` header should be specified as the `:authority` header; and
 - the `method` header should be specified as the `:method` header.
+
+####  <a name="using-redirects"></a> Using Redirects
+
+To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  redirect_mapping
+prefix: /redirect/
+service: httpbin.org
+host_redirect: true
+```
+
+Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/redirect/`.
+
+The `Mapping` **may** also set `path_redirect` to change the path portion of the URL during the redirect:
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  redirect_mapping
+prefix: /redirect/
+service: httpbin.org
+host_redirect: true
+path_redirect: /ip
+```
+
+Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador, attention paid to the trailing `/` on a URL is helpful!
 
 #### <a name="using-envoy-override"></a> Using `envoy_override`
 

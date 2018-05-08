@@ -10,7 +10,7 @@ import pytest
 
 from shell import shell
 
-from diag_paranoia import diag_paranoia, filtered_overview
+from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
 
 VALIDATOR_IMAGE = "datawire/ambassador-envoy-alpine:v1.5.0-116-g7ccb25882"
 
@@ -82,7 +82,7 @@ def test_config(testname, dirpath, configdir):
         gold = None
 
         try:
-            current = json.loads(current_raw)
+            current = sanitize_errors(json.loads(current_raw))
         except json.decoder.JSONDecodeError as e:
             errors.append("current intermediate was unparseable?")
 
