@@ -133,19 +133,26 @@ class Mapping (object):
             prefix_rewrite=self.get('rewrite', '/')
         )
 
-        if self.get('host_redirect', False):
-            route['host_redirect'] = svc
-            route.setdefault('clusters', [])
-        elif self.get('shadow', False):
-            # XXX CODE DUPLICATION with config.py!!
-            # We're going to need to support shadow weighting later, so use a dict here.
-            route['shadow'] = {
-                'name': cluster_name
-            }
-            route.setdefault('clusters', [])
-        else:
+        host_redirect = self.get('host_redirect', False)
+        shadow = self.get('shadow', False)
+
+        if not host_redirect and not shadow:
             route['clusters'] = [ { "name": cluster_name,
                                     "weight": self.get("weight", None) } ]
+        else:
+            route.setdefault('clusters', [])
+
+            if host_redirect and not shadow:
+                route['host_redirect'] = svc
+                route.setdefault('clusters', [])
+            elif shadow:
+                # If both shadow and host_redirect are set, we let shadow win.
+                #
+                # XXX CODE DUPLICATION with config.py!!
+                # We're going to need to support shadow weighting later, so use a dict here.
+                route['shadow'] = {
+                    'name': cluster_name
+                }
 
         if self.headers:
             route['headers'] = self.headers

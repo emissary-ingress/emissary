@@ -796,7 +796,8 @@ class Config (object):
             if shadow:
                 # Not allowed.
                 errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
-                self.post_error(RichStatus.fromError(errstr), key=module['_source'])
+                self.post_error(RichStatus.fromError(errstr), key=mapping['_source'])
+                host_redirect = False
             else:
                 # Short-circuit. You needn't actually create a cluster for a 
                 # host_redirect mapping.
