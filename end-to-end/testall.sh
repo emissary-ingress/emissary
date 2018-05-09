@@ -41,6 +41,7 @@ failures=0
 
 for dir in 0*; do
     attempt=0
+    dir_passed=
 
     while [ $attempt -lt 2 ]; do
         echo
@@ -51,16 +52,20 @@ for dir in 0*; do
 
         if bash $dir/test.sh 2>&1 | python linify.py test.log; then
             echo "${dir} PASSED"
+            dir_passed=yes
             break
         else
             echo "${dir} FAILED"
-            failures=$(( $failures + 1 ))
 
             echo "================ start captured output"
             cat test.log
             echo "================ end captured output"
         fi
     done
+
+    if [ -z "$dir_passed" ]; then
+        failures=$(( $failures + 1 ))
+    fi
 done
 
 exit $failures

@@ -161,6 +161,7 @@
             }
         ]
     },
+    "errors": {},
     "source_map": {
         "--internal--": {
             "--internal--": true

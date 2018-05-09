@@ -181,8 +181,8 @@
                         {% for cluster in route.clusters| sort_clusters_by_service %}
                           <a href="/ambassador/v0/diag/{{ route['_source'] }}">
                             <code><span style="color:{{ cluster._hcolor }}">
-                              {% if cluster.shadow %}
-                              shadow:
+                              {% if cluster.type_label %}
+                                {{ cluster.type_label }}:
                               {% endif %}
                               {{ cluster.service }}
                             </span></code>
