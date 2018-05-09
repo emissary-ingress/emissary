@@ -164,6 +164,15 @@ website-yaml:
 			-e 's|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g' \
 			{} \;
 
+.ALWAYS: 
+
+helm: .ALWAYS
+	echo "Helm version $(VERSION)"
+	cd helm && helm package --app-version "${VERSION}" --version "${VERSION}" ambassador/
+	mv helm/ambassador-${VERSION}.tgz docs/
+	git add docs/ambassador-${VERSION}.tgz
+	helm repo index docs --url https://www.getambassador.io --merge ./docs/index.yaml
+
 website: website-yaml
 	VERSION=$(VERSION) bash docs/build-website.sh
 
