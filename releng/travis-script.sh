@@ -27,6 +27,7 @@ make website
 make publish-website
 
 if [[ ${GIT_BRANCH} == ${MAIN_BRANCH} ]] || \
+   [[ ${GIT_BRANCH} =~ -rc[0-9]+$ ]] || \
    [[ $(make print-IS_PULL_REQUEST) == "true" ]]; then
     make e2e
 fi
