@@ -34,8 +34,8 @@ fi
 make website
 make publish-website
 
-# E2E happens for everything that isn't a random commit.
-if [ "${COMMIT_TYPE}" != "random" ]; then
+# E2E happens unless this is a random commit not on the main branch.
+if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
     make e2e
 fi
 
