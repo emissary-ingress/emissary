@@ -36,6 +36,8 @@ check_kubernaut_token () {
 }
 
 get_kubernaut_cluster () {
+    set -x
+
     get_kubernaut
     check_kubernaut_token
 
@@ -44,5 +46,11 @@ get_kubernaut_cluster () {
 
     echo "Claiming new cluster"
     "$KUBERNAUT" claim || exit 1
+    echo $?
+    
     export KUBECONFIG=${HOME}/.kube/kubernaut
+
+    ls -l ${HOME}/.kube/kubernaut
+
+    set +x
 }
