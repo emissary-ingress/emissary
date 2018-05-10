@@ -126,6 +126,7 @@ print-vars:
 	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
 	@echo "GIT_BRANCH_SANITIZED    = $(GIT_BRANCH_SANITIZED)"
 	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
+	@echo "GIT_DIRTY               = $(GIT_DIRTY)"
 	@echo "GIT_TAG                 = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION             = $(GIT_VERSION)"
@@ -141,6 +142,7 @@ print-vars:
 	@echo "STATSD_DOCKER_REPO      = $(STATSD_DOCKER_REPO)"
 	@echo "STATSD_DOCKER_TAG       = $(STATSD_DOCKER_TAG)"
 	@echo "STATSD_DOCKER_IMAGE     = $(STATSD_DOCKER_IMAGE)"
+	git status --porcelain || true
 
 ambassador-docker-image:
 	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
@@ -158,7 +160,7 @@ docker-images: ambassador-docker-image statsd-docker-image
 
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
-	if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
+	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python end-to-end/linify.py push.log; \
 		echo "PUSH $(STATSD_DOCKER_IMAGE)"; \
