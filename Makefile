@@ -103,7 +103,7 @@ STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
 all: test docker-push website
 
 clean:
-	rm -rf docs/yaml docs/_book docs/_site docs/node_modules
+	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf ambassador/ambassador/VERSION.py*
@@ -116,7 +116,8 @@ clean:
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 
 clobber: clean
-	-rm -rf venv
+	-rm -rf docs/node_modules
+	-rm -rf venv 
 
 print-%:
 	@printf "$($*)"
