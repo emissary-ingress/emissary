@@ -231,13 +231,13 @@ test: version setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
 
 release:
-	if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
-		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-		docker pull $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC); \
-		docker tag $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
-		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
+		echo docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
+		echo docker pull $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC); \
+		echo docker tag $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		echo docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+		echo docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		echo docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \

@@ -13,6 +13,10 @@ get_kubernaut () {
         curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/0.1.39/kubernaut
         chmod +x "$KUBERNAUT"
     fi
+
+    if [ ! -x "$KUBERNAUT" ]; then
+        exit 1
+    fi
 }
 
 check_kubernaut_token () {
@@ -39,6 +43,6 @@ get_kubernaut_cluster () {
     "$KUBERNAUT" discard
 
     echo "Claiming new cluster"
-    "$KUBERNAUT" claim
+    "$KUBERNAUT" claim || exit 1
     export KUBECONFIG=${HOME}/.kube/kubernaut
 }
