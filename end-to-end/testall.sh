@@ -57,6 +57,9 @@ for dir in 0*; do
         else
             echo "${dir} FAILED"
 
+            echo "================ k8s info"
+            kubectl get svc --all-namespaces
+            kubectl get pods --all-namespaces
             echo "================ start captured output"
             cat test.log
             echo "================ end captured output"
