@@ -6,10 +6,19 @@ set -o xtrace
 # Makes it much easier to actually debug when you see what the Makefile sees
 make print-vars
 
+# IMPORTANT: no custom logic about shell variables goes here. The Makefile 
+# sets them all, because we want make to work when a developer runs it by 
+# hand. 
+#
+# All we get to do here is to copy things that make understands.
 MAIN_BRANCH="$(make print-MAIN_BRANCH)"
+COMMIT_TYPE="$(make print-COMMIT_TYPE)"
 
 GIT_TAG="$(make print-GIT_TAG_SANITIZED)"
 GIT_BRANCH="$(make print-GIT_BRANCH)"
+
+# CI builds use quay.io.
+DOCKER_REGISTRY = quay.io/datawire
 
 printf "== Begin: travis-script.sh ==\n"
 
@@ -18,19 +27,22 @@ if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
     exit 0
 fi
 
-# Flynn thinks this test may be unnecessary or possibly backward?
-# if [[ -z ${GIT_TAG} ]] ; then
+# Don't rebuild a GA commit. All we need to do here is to do doc stuff.
+if [ "${COMMIT_TYPE}" != "GA" ]; then
     make test
     make docker-push
-# fi
+fi
 
+# In all cases, do the doc stuff.
 make website
 make publish-website
 
-if [[ ${GIT_BRANCH} == ${MAIN_BRANCH} ]] || \
-   [[ ${GIT_BRANCH} =~ -rc[0-9]+$ ]] || \
-   [[ $(make print-IS_PULL_REQUEST) == "true" ]]; then
+# E2E happens for everything that isn't a random commit.
+if [ "${COMMIT_TYPE}" != "random" ]; then
     make e2e
 fi
+
+# All the artifact handling for GA builds happens in the deploy block
+# in travis.yml, so we're done here.
 
 printf "== End:   travis-script.sh ==\n"
