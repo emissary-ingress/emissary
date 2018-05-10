@@ -17,9 +17,6 @@ COMMIT_TYPE="$(make print-COMMIT_TYPE)"
 GIT_TAG="$(make print-GIT_TAG_SANITIZED)"
 GIT_BRANCH="$(make print-GIT_BRANCH)"
 
-# CI builds use quay.io.
-DOCKER_REGISTRY = quay.io/datawire
-
 printf "== Begin: travis-script.sh ==\n"
 
 if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then

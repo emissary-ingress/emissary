@@ -22,7 +22,8 @@ services:
 env:
   global:
     - PATH=~/bin:$PATH
-
+    - DOCKER_REGISTRY=quay.io/datawire
+    
     # Set the branch in a predictable way. Travis behavior is that when you are
     # executing due to a PR then the value of $TRAVIS_BRANCH is actually the
     # name of the base branch (e.g. "master" rather than "dev/new-feature").
