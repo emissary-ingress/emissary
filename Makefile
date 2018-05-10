@@ -1,5 +1,7 @@
 # file: Makefile
 
+SHELL = bash
+
 # Welcome to the Ambassador Makefile...
 
 .FORCE:
