@@ -18,10 +18,11 @@ if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
     exit 0
 fi
 
-if [[ -z ${GIT_TAG} ]] ; then
+# Flynn thinks this test may be unnecessary or possibly backward?
+# if [[ -z ${GIT_TAG} ]] ; then
     make test
     make docker-push
-fi
+# fi
 
 make website
 make publish-website
