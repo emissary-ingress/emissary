@@ -5,17 +5,15 @@ set -o xtrace
 
 # Makes it much easier to actually debug when you see what the Makefile sees
 make print-vars
+git status
 
 # IMPORTANT: no custom logic about shell variables goes here. The Makefile 
 # sets them all, because we want make to work when a developer runs it by 
 # hand. 
 #
 # All we get to do here is to copy things that make understands.
-MAIN_BRANCH="$(make print-MAIN_BRANCH)"
-COMMIT_TYPE="$(make print-COMMIT_TYPE)"
-
-GIT_TAG="$(make print-GIT_TAG_SANITIZED)"
-GIT_BRANCH="$(make print-GIT_BRANCH)"
+eval $(make export-vars)
+git status
 
 printf "== Begin: travis-script.sh ==\n"
 
@@ -26,13 +24,19 @@ fi
 
 # Don't rebuild a GA commit. All we need to do here is to do doc stuff.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
+    git status
     make test
+    git status
     make docker-push
+    git status
 fi
 
 # In all cases, do the doc stuff.
+git status
 make website
+git status
 make publish-website
+git status
 
 # E2E happens unless this is a random commit not on the main branch.
 if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then

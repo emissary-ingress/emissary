@@ -143,7 +143,28 @@ print-vars:
 	@echo "STATSD_DOCKER_REPO      = $(STATSD_DOCKER_REPO)"
 	@echo "STATSD_DOCKER_TAG       = $(STATSD_DOCKER_TAG)"
 	@echo "STATSD_DOCKER_IMAGE     = $(STATSD_DOCKER_IMAGE)"
-	git status --porcelain || true
+
+export-vars:
+	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
+	@echo "export GIT_BRANCH='$(GIT_BRANCH)'"
+	@echo "export GIT_BRANCH_SANITIZED='$(GIT_BRANCH_SANITIZED)'"
+	@echo "export GIT_COMMIT='$(GIT_COMMIT)'"
+	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
+	@echo "export GIT_TAG='$(GIT_TAG)'"
+	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
+	@echo "export GIT_VERSION='$(GIT_VERSION)'"
+	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
+	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
+	@echo "export VERSION='$(VERSION)'"
+	@echo "export LATEST_RC='$(LATEST_RC)'"
+	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
+	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
+	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
+	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
+	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
+	@echo "export STATSD_DOCKER_REPO='$(STATSD_DOCKER_REPO)'"
+	@echo "export STATSD_DOCKER_TAG='$(STATSD_DOCKER_TAG)'"
+	@echo "export STATSD_DOCKER_IMAGE='$(STATSD_DOCKER_IMAGE)'"
 
 ambassador-docker-image:
 	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
