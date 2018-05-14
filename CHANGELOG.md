@@ -10,7 +10,7 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
-## [0.33.0] May 9, 2018
+## [0.33.0] May 14, 2018
 [0.33.0]: https://github.com/datawire/ambassador/compare/v0.33.0...v0.32.2
 
 ### Changed
