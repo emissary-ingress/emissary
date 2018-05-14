@@ -78,6 +78,8 @@ else
 COMMIT_TYPE=random
 endif
 
+DOC_RELEASE_TYPE?=unstable
+
 ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
 endif
@@ -259,6 +261,8 @@ release:
 		echo docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
 		echo docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		echo docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+		echo RELEASE_TYPE=$(DOC_RELEASE_TYPE) make website publish-website; \
+		RELEASE_TYPE=$(DOC_RELEASE_TYPE) make website publish-website; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \
@@ -281,15 +285,9 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 # ------------------------------------------------------------------------------
 
 publish-website:
-	if [[ "$(GIT_BRANCH)" = "$(MAIN_BRANCH)" && "$(VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then \
-		RELEASE_TYPE=stable \
-        NETLIFY_SITE=$(NETLIFY_SITE) \
-        	bash ./releng/publish-website.sh; \
-	else \
-		RELEASE_TYPE=unstable \
-        NETLIFY_SITE=$(NETLIFY_SITE) \
-        	bash ./releng/publish-website.sh; \
-	fi
+	@echo RELEASE_TYPE=$(DOC_RELEASE_TYPE) \
+    NETLIFY_SITE=$(NETLIFY_SITE) \
+		bash ./releng/publish-website.sh;
 
 # ------------------------------------------------------------------------------
 # CI Targets

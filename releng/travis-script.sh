@@ -22,21 +22,17 @@ if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
     exit 0
 fi
 
-# Don't rebuild a GA commit. All we need to do here is to do doc stuff.
+# Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
-    git status
     make test
     git status
     make docker-push
     git status
+    make website
+    git status
+    make publish-website
+    git status
 fi
-
-# In all cases, do the doc stuff.
-git status
-make website
-git status
-make publish-website
-git status
 
 # E2E happens unless this is a random commit not on the main branch.
 if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
