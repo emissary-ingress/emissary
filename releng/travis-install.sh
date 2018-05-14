@@ -8,6 +8,6 @@ curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VE
 chmod +x kubectl
 mv kubectl ~/bin/kubectl
 
-pip install -r dev-requirements.txt
-pip install -r ambassador/requirements.txt
+pip install -q -r dev-requirements.txt
+pip install -q -r ambassador/requirements.txt
 npm install gitbook-cli netlify-cli

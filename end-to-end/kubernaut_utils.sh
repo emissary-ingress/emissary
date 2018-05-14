@@ -6,13 +6,55 @@ fi
 
 KUBERNAUT="$HERE/kubernaut"
 
+retry () {
+    label="$1"
+    iteration_function="$2"
+
+    attempts=${3:-3}
+    delay=${4:-20}
+    succeeded=
+
+    while [ $attempts -gt 0 ]; do
+        echo "$attempts: $label"
+        attempts=$(( $attempts - 1 ))
+
+        if $iteration_function; then
+            succeeded=yes
+            break
+        fi
+
+        sleep $delay
+    done
+
+    if [ -n "$succeeded" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+_get_kubernaut_iteration () {
+    kubernaut_version=$(curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)
+    if [ $? -ne 0 ]; then return 1; fi
+
+    curl -f -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$kubernaut_version/kubernaut
+    # curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/0.1.39/kubernaut
+    if [ $? -ne 0 ]; then return 1; fi
+
+    chmod +x "$KUBERNAUT"
+    return 0
+}
+
 get_kubernaut () {
     if [ ! -x "$KUBERNAUT" ]; then
-        echo "Fetching kubernaut..."
-        # curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
-        curl -s -L -o "$KUBERNAUT" https://s3.amazonaws.com/datawire-static-files/kubernaut/0.1.39/kubernaut
-        chmod +x "$KUBERNAUT"
+        retry "Fetching kubernaut" _get_kubernaut_iteration 3 5
+
+        if [ ! -x "$KUBERNAUT" ]; then
+            return 1
+        fi
     fi
+
+    return 0
 }
 
 check_kubernaut_token () {
@@ -27,18 +69,31 @@ check_kubernaut_token () {
         echo ""
         echo "to save it before trying again."
 
-        exit 1
+        return 1
     fi
+
+    return 0
+}
+
+_get_kubernaut_cluster_iteration () {
+    echo "Dropping old cluster"
+    "$KUBERNAUT" discard || return 1
+
+    echo "Claiming new cluster"
+    "$KUBERNAUT" claim || return 1
+
+    return 0    
 }
 
 get_kubernaut_cluster () {
-    get_kubernaut
-    check_kubernaut_token
+    get_kubernaut || return 1
+    check_kubernaut_token || return 1
 
-    echo "Dropping old cluster"
-    "$KUBERNAUT" discard
-
-    echo "Claiming new cluster"
-    "$KUBERNAUT" claim
-    export KUBECONFIG=${HOME}/.kube/kubernaut
+    if retry "Aquiring kubernaut cluster" _get_kubernaut_cluster_iteration 10 30; then
+        export KUBECONFIG=${HOME}/.kube/kubernaut
+        return 0
+    else
+        echo "Could not acquire kubernaut cluster" >&2
+        return 1
+    fi
 }

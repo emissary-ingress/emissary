@@ -10,6 +10,13 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.33.0] May 9, 2018
+[0.33.0]: https://github.com/datawire/ambassador/compare/v0.33.0...v0.32.2
+
+### Changed
+
+- Fix support for `host_redirect` in a `Mapping`. **See the `Mapping` documentation** for more details: the definition of the `host_redirect` attribute has changed.
+
 ## [0.32.2] May 2, 2018
 [0.32.2]: https://github.com/datawire/ambassador/compare/v0.32.2...v0.32.0
 

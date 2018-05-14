@@ -22,7 +22,8 @@ services:
 env:
   global:
     - PATH=~/bin:$PATH
-
+    - DOCKER_REGISTRY=quay.io/datawire
+    
     # Set the branch in a predictable way. Travis behavior is that when you are
     # executing due to a PR then the value of $TRAVIS_BRANCH is actually the
     # name of the base branch (e.g. "master" rather than "dev/new-feature").
@@ -60,5 +61,6 @@ deploy:
   # If this value is not set then our branch identification logic will set GIT_BRANCH automatically (and incorrectly)
   # based on the logic in the Makefile. This will cause a release failure which is expected behavior
   - provider: script
-    script: make release GIT_BRANCH=$(make print-MAIN_BRANCH)
+    # script: make release GIT_BRANCH=$(make print-MAIN_BRANCH)
+    script: make release
     tags: true
