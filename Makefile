@@ -231,7 +231,7 @@ website-yaml:
 		-type f \
 		-exec sed \
 			-i''\
-			-e 's|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g' \
+			-e 's|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_REPO):$(VERSION))|g' \
 			{} \;
 
 website: website-yaml
@@ -286,7 +286,7 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 # ------------------------------------------------------------------------------
 
 publish-website:
-	@echo RELEASE_TYPE=$(DOC_RELEASE_TYPE) \
+	RELEASE_TYPE=$(DOC_RELEASE_TYPE) \
     NETLIFY_SITE=$(NETLIFY_SITE) \
 		bash ./releng/publish-website.sh;
 
