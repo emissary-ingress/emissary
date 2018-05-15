@@ -36,7 +36,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     git status
 
     # Run E2E if this isn't a nobuild branch, nor a random commit not on the main branch.
-    if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+    if [[ ! ${GIT_BRANCH} =~ ^nobuild.* ]]; then
         if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
             make e2e
         fi
