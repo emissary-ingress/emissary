@@ -189,7 +189,7 @@ service: qotm
 
 will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has the value `canary` _and_ the `x-random-header` has the value `datawire`.
 
-#### `headers`, `host`, and `method`
+####  <a name="headers-host-method"></a> `headers`, `host`, and `method`
 
 Internally:
 
