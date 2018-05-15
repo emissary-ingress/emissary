@@ -256,12 +256,12 @@ test: version setup-develop
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -x; \
-		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-		docker pull $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC); \
-		docker tag $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
-		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
+		docker pull $(STATSD_DOCKER_REPO):$(LATEST_RC); \
+		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		docker tag $(STATSD_DOCKER_REPO):$(LATEST_RC) $(STATSD_DOCKER_REPO):$(VERSION); \
+		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		docker push $(STATSD_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website publish-website; \
 		set +x; \
 	else \
