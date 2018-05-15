@@ -13,7 +13,7 @@ SHELL = bash
 # The name of the main branch (e.g. "master"). This is set as an variable because it makes it easy to develop and test
 # new automation code on a branch that is simulating the purpose of the main branch.
 #
-MAIN_BRANCH ?= master2
+MAIN_BRANCH ?= master
 
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
 # use what is defined.
@@ -111,6 +111,7 @@ clean:
 	rm -rf ambassador/ambassador/VERSION.py*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
+	find . \( -name *.log \) -print0 | xargs -0 rm -rf
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
