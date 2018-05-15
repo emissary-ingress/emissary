@@ -32,11 +32,13 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     git status
     make publish-website
     git status
-fi
 
-# E2E happens unless this is a random commit not on the main branch.
-if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
-    make e2e
+    # E2E happens unless this is a random commit not on the main branch.
+    if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
+        make e2e
+    fi
+else
+    echo "GA commit, will retag in deployment"
 fi
 
 # All the artifact handling for GA builds happens in the deploy block
