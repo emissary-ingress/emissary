@@ -255,7 +255,7 @@ test: version setup-develop
 
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
-		set -x; \
+		set -ex; \
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker pull $(STATSD_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
