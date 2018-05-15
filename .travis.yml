@@ -64,5 +64,4 @@ deploy:
     # script: make release GIT_BRANCH=$(make print-MAIN_BRANCH)
     script: make release
     on:
-      # branch: master2
       condition: $GIT_BRANCH =~ ^[0-9]+\.[0-9]+\.[0-9]+$
