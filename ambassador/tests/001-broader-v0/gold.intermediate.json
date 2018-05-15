@@ -785,30 +785,6 @@
             },
             {
                 "__saved": [
-                    0,
-                    15,
-                    0,
-                    "/ambassador/v0/",
-                    "GET"
-                ],
-                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "ambassador.yaml.1"
-                ],
-                "_source": "ambassador.yaml.1",
-                "clusters": [
-                    {
-                        "name": "cluster_127_0_0_1_8877",
-                        "weight": 100.0
-                    }
-                ],
-                "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            },
-            {
-                "__saved": [
                     1,
                     1,
                     23,
@@ -1100,7 +1076,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
         },
         "auth-2.yaml.1": {
             "_source": "auth-2.yaml",
