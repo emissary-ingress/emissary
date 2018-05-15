@@ -26,12 +26,19 @@ config:
   # this.
   # admin_port: 8001
 
-  # liveness probe defaults on, but you can disable it.
+  # liveness probe defaults on, but you can disable the api route.
+  # It will remain accessible on diag_port.
   # liveness_probe:
   #   enabled: false
 
-  # readiness probe defaults on, but you can disable it.
+  # readiness probe defaults on, but you can disable the api route.
+  # It will remain accessible on diag_port.
   # readiness_probe:
+  #   enabled: false
+
+  # diagnostics overview defaults on, but you can disable the api route.
+  # It will remain accessible on diag_port.
+  # diagnostics:
   #   enabled: false
 
   # use_proxy_protocol controls whether Envoy will honor the PROXY
