@@ -8,12 +8,10 @@ TL;DR
 
 ```
 git clone https://github.com/datawire/ambassador
-# Development should be on branches based on the `develop` branch
-git checkout develop
-git checkout -b dev/my-branch-here
 cd ambassador
-# best to activate a Python 3 virtualenv here!
-pip install -r dev-requirements.txt
+# Development should be on branches based on the `master` branch
+git checkout master
+git checkout -b username/feature/my-branch-here
 make DOCKER_REGISTRY=-
 ```
 
@@ -26,11 +24,21 @@ Branching
 
 1. `master` is the branch from which Ambassador releases are cut. There should be no other activity on `master`.
 
-2. `develop` is the default branch for the repo, and is the base from which all development should happen. 
+2. **All development must be on branches cut from `master`.** When you have things working and tested, submit a pull request back to `master`.
+   - There is a special type of branch for e.g. minor doc changes called `nobuild`. Any branch that matches `^nobuild.*` skips all CI activities for that branch.
+   
+3. Once your branch is at a point where it's ready for review and testing, open a GitHub PR against `master`.
+   - The PR will trigger CI to perform a build and run tests.
+   - Tests **must** be passing for the PR to be merged.
 
-3. **All development should be on branches cut from `develop`.** When you have things working and tested, submit a pull request back to `develop`.
+4. When all is well, maintainers will merge the PR into `master`.
 
-This implies that `master` must _always_ be shippable and tagged, and `develop` _should_ always be shippable.
+5. Releases are driven by the maintainers applying tags to `master`.
+
+Documentation Changes
+---------------------
+
+Note that documentation changes _still follow the PR process_. If you're making minor changes (fixing typos, for example) it's OK to use a `nobuild` branch as above. If you're doing significant changes, you might want to allow CI to run by using a branch name `doc/major-doc-changes` or the like.
 
 Unit Tests
 ----------
@@ -70,18 +78,14 @@ and then commit all the changes you made in `$TESTDIR`.
 End-to-End Tests
 ----------------
 
-Ambassador's end-to-end tests are currently **not** run by CI, but they **are** part of the release criteria: we will not release an Ambassador for which the end-to-end tests are failing. **Again, you are strongly encouraged to add end-to-end test coverage for features you add.** 
+Ambassador's end-to-end tests are run by CI for pull requests, release candidates, and releases: we will not release an Ambassador for which the end-to-end tests are failing. **Again, you are strongly encouraged to add end-to-end test coverage for features you add.** 
 
 For more information on the end-to-end tests, see [their README](end-to-end/README.md).
 
 Version Numbering
 -----------------
 
-**Version numbers are determined by tags in Git, and will be computed by the build process.**
-
-This means that if you build repeatedly without committing, you'll get the same version number. This isn't a problem as you debug and hack, although you may need to set `imagePullPolicy: Always` to have things work smoothly.
-
-It also means that we humans don't say things like "I'm going to make this version 1.23.5" -- Ambassador uses [Semantic Versioning](http://www.semver.org/), and the build process computes the next version by looking at changes since the last tagged version. Start a Git commit comment with `[MINOR]` to tell the build that the change is worthy of a minor-version bump; start it with `[MAJOR]` for a major-version bump. If no marker is present, the patch version will be incremented.
+Version numbers will be determined by Git tags for actual releases. You are free to pick whatever version numbers you like when doing test builds.
 
 Normal Workflow
 ---------------
@@ -97,27 +101,21 @@ Normal Workflow
 
    You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY` and `STATSD_REGISTRY`. See the files in `templates` for more here.
 
-1. Use a private branch cut from `develop` for your work.
-
-   Committing to `master` triggers the CI pipeline to do an actual release. The base branch for development work is `develop` -- and you should always create a new branch from `develop` for your changes.
+1. Use a private branch cut from `master` for your work.
 
 2. Hack away, then `make`. This will:
 
-   a. Compute a version number based on git tags (`git describe --tags`).
-   b. Push that version number everywhere in the code that it needs to be.
-   c. Run tests and bail if something doesn't pass.
-   d. Build Docker images, and push them if DOCKER_REGISTRY says to.
-   e. Build YAML files for you in `doc/yaml`.
+   a. Run tests and bail if something doesn't pass.
+   b. Build Docker images, and push them if DOCKER_REGISTRY says to.
+   c. Build YAML files for you in `doc/yaml`.
 
-   **IT WILL NOT COMMIT OR TAG**. With new version numbers everywhere, you can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
-
-   If you make further changes and `make` again, _the version number will not change_. To get a new version number, you'll need to commit.
+   You can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
 
 3. Commit to your feature branch.
 
-   Remember: _not to `develop` or `master`_.
+   Remember: _not to `master`_.
 
-4. Open a pull request against `develop` when you're ready to ship.
+4. Open a pull request against `master` when you're ready to ship.
 
 What if I Don't Want to Push My Images?
 ---------------------------------------

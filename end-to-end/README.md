@@ -1,4 +1,4 @@
-Ambassador's end-to-end tests are currently **not** run by CI, but they **are** part of the release criteria: we will not release an Ambassador for which the end-to-end tests are failing. **Again, you are strongly encouraged to add end-to-end test coverage for features you add.** 
+Ambassador's end-to-end tests are run by CI, and we will not release an Ambassador for which the end-to-end tests are failing. **You are strongly encouraged to add end-to-end test coverage for features you add.** 
 
 By default, the tests use [`kubernaut`](https://kubernaut.io/) to grab a cluster in which to run the tests. If needed, they will install `kubernaut` for you and walk you through getting a `kubernaut` token. If you want to use your own cluster, set things up so that `kubectl` is talking to your cluster, and set `SKIP_KUBERNAUT` in your environment.
 
