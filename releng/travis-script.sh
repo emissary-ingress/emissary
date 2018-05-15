@@ -17,10 +17,12 @@ git status
 
 printf "== Begin: travis-script.sh ==\n"
 
-if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
-    printf "!! Branch is 'nobuild', therefore, no work will be performed.\n"
-    exit 0
-fi
+# Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
+# nobuild branch.
+# if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+#     printf "!! Branch is 'nobuild', therefore, no work will be performed.\n"
+#     exit 0
+# fi
 
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
@@ -33,9 +35,11 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     make publish-website
     git status
 
-    # E2E happens unless this is a random commit not on the main branch.
-    if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
-        make e2e
+    # Run E2E if this isn't a nobuild branch, nor a random commit not on the main branch.
+    if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+        if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
+            make e2e
+        fi
     fi
 else
     echo "GA commit, will retag in deployment"
