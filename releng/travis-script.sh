@@ -35,7 +35,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
 
     # E2E happens unless this is a random commit not on the main branch.
     if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
-        echo would make e2e
+        make e2e
     fi
 else
     echo "GA commit, will retag in deployment"

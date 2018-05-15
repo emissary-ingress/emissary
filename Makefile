@@ -255,14 +255,15 @@ test: version setup-develop
 
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
-		echo docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-		echo docker pull $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC); \
-		echo docker tag $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		echo docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
-		echo docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		echo docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
-		echo RELEASE_TYPE=$(DOC_RELEASE_TYPE) make website publish-website; \
-		RELEASE_TYPE=$(DOC_RELEASE_TYPE) make website publish-website; \
+		set -x; \
+		docker pull $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
+		docker pull $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC); \
+		docker tag $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		docker tag $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(LATEST_RC) $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+		docker push $(DOCKER_REGISTRY)/$(AMBASSADOR_DOCKER_REPO):$(VERSION); \
+		docker push $(DOCKER_REGISTRY)/$(STATSD_DOCKER_REPO):$(VERSION); \
+		DOC_RELEASE_TYPE=stable make website publish-website; \
+		set +x; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \
