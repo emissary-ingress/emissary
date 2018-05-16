@@ -200,6 +200,15 @@ class EnvoyStats (object):
 
                 node = node[key]
 
+            value = value.strip()
+
+            # Skip histograms for the moment.
+            if value.startswith("P0("):
+                continue
+                # for field in value.split(' '):
+                #     if field.startswith('P95('):
+                #         value = field.split(',')
+
             node[keypath[-1]] = int(value.strip())
 
         # Now dig into clusters a bit more.
