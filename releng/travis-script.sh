@@ -29,8 +29,6 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     make test
     make docker-push
 
-    make website
-
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
         # This is to allow simple doc fixes. So. Grab the most recent proper
@@ -47,10 +45,13 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
             VERSION=$(echo "$VERSION" | cut -c2-)
         fi
 
-        echo make VERSION="$VERSION" DOC_RELEASE_TYPE=stable publish-website
+        echo "making stable docs for $VERSION"
+        make VERSION="$VERSION" DOC_RELEASE_TYPE=unstable website publish-website
     else
         # Anything else, push staging.
-        make publish-website
+
+        echo "making draft docs for $VERSION"
+        make website publish-website 
     fi        
 
     # Run E2E if this isn't a nobuild branch, nor a doc branch, nor a random commit not on the main branch.
