@@ -46,7 +46,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         fi
 
         echo "making stable docs for $VERSION"
-        make VERSION="$VERSION" DOC_RELEASE_TYPE=unstable website publish-website
+        make VERSION="$VERSION" DOC_RELEASE_TYPE=stable website publish-website
     else
         # Anything else, push staging.
 
