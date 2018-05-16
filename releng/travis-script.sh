@@ -47,7 +47,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
             VERSION=$(echo "$VERSION" | cut -c2-)
         fi
 
-        echo make VERSION=$(VERSION) DOC_RELEASE_TYPE=stable publish-website
+        echo make VERSION="$VERSION" DOC_RELEASE_TYPE=stable publish-website
     else
         # Anything else, push staging.
         make publish-website
