@@ -24,7 +24,6 @@ service: qotm
 
 will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has the value `canary` _and_ the `x-random-header` has the value `datawire`.
 
-
 ## A conditional example
 
 ```yaml
