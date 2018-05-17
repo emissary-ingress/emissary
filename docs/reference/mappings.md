@@ -94,7 +94,7 @@ Common optional attributes for mappings:
 - [`weight`](canary): if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
 - `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
 - `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
-- `headers`: if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
+- [`headers`](headers): if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
 - `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request
 - `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
 - `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
@@ -171,25 +171,7 @@ will map requests for `/qotm/` to
 
 **Note well** that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.
 
-####  <a name="using-headers"></a> Using `headers`
-
-If present, the `headers` attribute must be a dictionary of `header`: `value` pairs, for example:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-headers:
-  x-qotm-mode: canary
-  x-random-header: datawire
-service: qotm
-```
-
-will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has the value `canary` _and_ the `x-random-header` has the value `datawire`.
-
-#### `headers`, `host`, and `method`
+#### `host` and `method`
 
 Internally:
 
