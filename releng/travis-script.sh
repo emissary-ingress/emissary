@@ -27,19 +27,50 @@ printf "== Begin: travis-script.sh ==\n"
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
     make test
-    git status
     make docker-push
-    git status
-    make website
-    git status
-    make publish-website
-    git status
 
-    # Run E2E if this isn't a nobuild branch, nor a random commit not on the main branch.
-    if [[ ! ${GIT_BRANCH} =~ ^nobuild.* ]]; then
-        if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
-            make e2e
+    if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
+        # By fiat, _any commit_ on the main branch pushes production docs.
+        # This is to allow simple doc fixes. So. Grab the most recent proper
+        # version...
+        VERSION=$(git describe --tags --abbrev=0 --exclude='*-*')
+
+        if [ -z "$VERSION" ]; then
+            # Uh WTF.
+            echo "No tagged version found at $GIT_COMMIT" >&2
+            exit 1
         fi
+
+        if [[ $VERSION =~ '^v' ]]; then
+            VERSION=$(echo "$VERSION" | cut -c2-)
+        fi
+
+        echo "making stable docs for $VERSION"
+        make VERSION="$VERSION" DOC_RELEASE_TYPE=stable website publish-website
+    else
+        # Anything else, push staging.
+
+        echo "making draft docs for $VERSION"
+        make website publish-website 
+    fi        
+
+    # Run E2E if this isn't a nobuild branch, nor a doc branch, nor a random commit not on the main branch.
+    SKIP_E2E=
+
+    if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+        SKIP_E2E=yes
+    fi
+
+    if [[ ${GIT_BRANCH} =~ ^doc.* ]]; then
+        SKIP_E2E=yes
+    fi
+
+    if [[ ( ${GIT_BRANCH} != ${MAIN_BRANCH} ) && ( ${COMMIT_TYPE} == "random" ) ]]; then
+        SKIP_E2E=yes
+    fi
+
+    if [ -z "$SKIP_E2E" ]; then
+        make e2e
     fi
 else
     echo "GA commit, will retag in deployment"
