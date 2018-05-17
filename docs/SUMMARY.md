@@ -25,6 +25,7 @@
 * [Configuring Ambassador](reference/configuration.md)
   * [Modules](reference/modules.md)
   * [Mappings](reference/mappings.md)
+    * [Header-based routing](reference/headers.md)
     * [Canary Releases](reference/canary.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [Services](reference/services/services.md)
