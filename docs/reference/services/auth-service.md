@@ -25,11 +25,15 @@ You can tell Ambassador to use TLS to talk to your service by using an `auth_ser
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to specify TLS origination certificates.
 
-### The External Authentication Service
+## The External Authentication Service
 
-When using an external auth service, the HTTP `method` and headers of every incoming request are forwarded to the auth service, with two changes:
+The external auth service receives information about every request through Ambassador, and must indicate whether the request is to be allowed, or not. If not, the external auth service provides the response which is to be handed back to the client.
 
-1. The `Host` header is overwritten with the host information of the external auth service.
+### The Request
+
+For every incoming request, the HTTP `method` and headers are forwarded to the auth service. Only two changes are made:
+
+1. The `Content-Length` header is overwritten with `0`.
 2. The body is removed.
 
 So, for example, if the incoming request is 
@@ -56,13 +60,25 @@ Content-Type: application/json
 Content-Length: 0
 ```
 
-**ALL** request methods will be proxied; the auth service should be able to handle any request that any client could make. If desired, Ambassador can add a prefix to the path before forwarding it to the auth service; see the example below.
+**ALL** request methods will be proxied, which implies that the auth service must be able to handle any request that any client could make. If desired, Ambassador can add a prefix to the path before forwarding it to the auth service; see the example below.
 
-If Ambassador cannot reach the auth service, it returns 503 to the client. If Ambassador receives any response from the auth service other than 200, it returns that full response (header and body) to the client. Ambassador assumes the auth service will return an appropriate response, such as 401.
+### Allowing the Request to Continue (HTTP status code 200)
 
-If the auth service response code is 200, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow. This typically means that the client will receive the expected response to its request.
+To tell Ambassador that the request should be allowed, the external auth service must return an HTTP status of 200. **Note well** that **only** 200 indicates success; other 2yz status codes will prevent the request from continuing, as below.
 
-Additionally, Ambassador can be configured to allow headers from the auth service to be passed back to the client when the auth service returns 200; see the example below.
+The 200 response should not contain any body, but may contain arbitrary headers. Any header present in the response that is also listed in the `allow_headers` attribute of the `AuthService` resource will be copied from the external auth response into the request going upstream. This allows the external auth service to inject tokens or other information into the request, or to modify headers coming from the client.
+
+### Preventing the Request from Continuing (any HTTP status code other than 200)
+
+Any HTTP status code other than 200 from the external auth service tells Ambassador **not** to allow the request to continue. In this case, the entire response from the external auth service - including the status code, the headers, and the body - is handed back to the client verbatim. This gives the external auth service **complete** control over the entine response presented to the client.
+
+Giving the external auth service control over the response on failure allows many different types of auth mechanisms, for example:
+
+- The external auth service can simply return an error page with an HTTP 401 response.
+- The external auth service can choose to include a `WWW-Authenticate` header in the 401 response, to ask the client to perform HTTP Basic Auth.
+- The external auth service can issue a 301 `Redirect` to divert the client into an OAuth or OIDC authentication sequence.
+
+Finally, if Ambassador cannot reach the auth service at all, it will return a HTTP 503 status code to the client.
 
 ## Example
 
