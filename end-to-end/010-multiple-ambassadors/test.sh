@@ -15,8 +15,8 @@ initialize_cluster
 
 kubectl cluster-info
 
-python fix_env.py 1 ../ambassador-deployment.yaml k8s/ambassador-deployment-1.yaml
-python fix_env.py 2 ../ambassador-deployment.yaml k8s/ambassador-deployment-2.yaml
+python ${ROOT}/fix_deployment.py test-010-1 ambassador-1 ../ambassador-deployment.yaml k8s/ambassador-deployment-1.yaml
+python ${ROOT}/fix_deployment.py test-010-2 ambassador-2 ../ambassador-deployment.yaml k8s/ambassador-deployment-2.yaml
 
 kubectl create namespace test-010-1
 kubectl create namespace test-010-2
