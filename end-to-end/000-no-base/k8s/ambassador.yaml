@@ -6,13 +6,6 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  diag_mapping
-      prefix: /ambassador/
-      rewrite: /ambassador/
-      service: 127.0.0.1:8877
-      ---
       # Disabling the default diagnostic route
       apiVersion: ambassador/v0
       kind: Module

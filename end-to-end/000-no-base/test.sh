@@ -60,6 +60,15 @@ if ! check_diag 1 "No annotated services"; then
     exit 1
 fi
 
+diag_status=$(curl -s -o /dev/null -w "%{http_code}" "${BASEURL}/ambassador/v0/diag/?json=true")
+
+if [ "$diag_status" == 404 ]; then
+    echo "External diag access prevented"
+else
+    echo "External diag allowed? $diag_status" >&2
+    exit 1
+fi
+
 if ! qtest.py $CLUSTER:$APORT test-1.yaml; then
     exit 1
 fi
