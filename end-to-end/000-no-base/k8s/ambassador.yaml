@@ -12,6 +12,13 @@ metadata:
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  httpbin2_mapping
+      prefix: /hb/
+      service: https://httpbin.org
+      host_rewrite: httpbin.org      
 spec:
   selector:
     app: ambassador

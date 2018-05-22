@@ -54,20 +54,36 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         make website publish-website 
     fi        
 
-    # Run E2E if this isn't a nobuild branch, nor a doc branch, nor a random commit not on the main branch.
+    #### RUN END-TO-END TESTS ONLY ON RC BUILDS
+    ####
+    #### The end-to-end tests, running sequentially, take around half an hour 
+    #### to run. Allowing them to run while collecting things for release is
+    #### just shredding velocity right now.
+    ####
+    #### Work is underway to parallelize the end-to-end tests (or to more
+    #### majorly refactor around needing them) but for now, we're only going to
+    #### run them on RC builds -- which is to say, do all the testing you can
+    #### in development, collect things for a release, and the RC build will run
+    #### the final E2E pass.
+    
     SKIP_E2E=
 
-    if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+    if [[ ${COMMIT_TYPE} != "RC" ]]; then
         SKIP_E2E=yes
     fi
 
-    if [[ ${GIT_BRANCH} =~ ^doc.* ]]; then
-        SKIP_E2E=yes
-    fi
+    # # Run E2E if this isn't a nobuild branch, nor a doc branch, nor a random commit not on the main branch.
+    # if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+    #     SKIP_E2E=yes
+    # fi
 
-    if [[ ( ${GIT_BRANCH} != ${MAIN_BRANCH} ) && ( ${COMMIT_TYPE} == "random" ) ]]; then
-        SKIP_E2E=yes
-    fi
+    # if [[ ${GIT_BRANCH} =~ ^doc.* ]]; then
+    #     SKIP_E2E=yes
+    # fi
+
+    # if [[ ( ${GIT_BRANCH} != ${MAIN_BRANCH} ) && ( ${COMMIT_TYPE} == "random" ) ]]; then
+    #     SKIP_E2E=yes
+    # fi
 
     if [ -z "$SKIP_E2E" ]; then
         make e2e
