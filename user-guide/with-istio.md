@@ -158,9 +158,9 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#policy).
 
-## Istio MTLS
+## Istio Mutual TLS
 
-In case Istio Mtls is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell ambassador to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador deployment installed above.
+In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell Ambassador to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador deployment installed above.
 
 In case of RBAC:
 
@@ -220,9 +220,8 @@ spec:
           optional: true
           secretName: istio.default
 ```
-Specifically note the mounting of the istio secrets. For non RBAC cluster modify accordingly. 
 
-Next we need to modify the Ambassador config to tell it use the new certs for istio enabled services:
+Specifically note the mounting of the Istio secrets. For non RBAC cluster modify accordingly. Next we need to modify the Ambassador configuration to tell it use the new certificates for Istio enabled services:
 
 ```yaml
 ---
@@ -251,7 +250,7 @@ metadata:
           redirect_cleartext_from: 80
         client:
           enabled: False
-        istio:
+        upstream:
           cert_chain_file: /etc/istiocerts/cert-chain.pem
           private_key_file: /etc/istiocerts/key.pem
 spec:
@@ -263,8 +262,8 @@ spec:
   selector:
     service: ambassador
 ```
-This will define an upstream called istio, which we can reuse in all Ambassador mapping to enable communication with istio pods.
 
+This will define an `upstream` that uses the Istio certificates. We can now reuse the `upstream` in all Ambassador mappings to enable communication with Istio pods.
 
 ``` yaml
 apiVersion: v1
@@ -281,7 +280,7 @@ metadata:
       name: productpage_mapping
       prefix: /productpage/
       rewrite: /productpage
-      tls: istio
+      tls: upstream
       service: productpage:9080
 spec:
   ports:
@@ -291,10 +290,10 @@ spec:
   selector:
     app: productpage
 ```
-Note the `tls:istio`, which lets ambassador know which cert to use when communicating with that service.
+Note the `tls: upstream`, which lets Ambassador know which certificate to use when communicating with that service.
 
-In the definition above we also have TLS termination enabled, please follow the corresponding guide to enable it.
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
 
 ## Roadmap
 
-There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in Ambassador, mTLS for end-to-end TLS encryption, and full propagation of request headers (e.g., Zipkin tracing) between Ambassador and Istio. If you're interested in contributing, we'd welcome the help!
+There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in Ambassador and full propagation of request headers (e.g., Zipkin tracing) between Ambassador and Istio. If you're interested in contributing, we'd welcome the help!
