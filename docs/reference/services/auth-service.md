@@ -27,7 +27,9 @@ If `tls` is present with a value that is not `true`, the value is assumed to be 
 
 ## The External Authentication Service
 
-The external auth service receives information about every request through Ambassador, and must indicate whether the request is to be allowed, or not. If not, the external auth service provides the response which is to be handed back to the client.
+The external auth service receives information about every request through Ambassador, and must indicate whether the request is to be allowed, or not. If not, the external auth service provides the response which is to be handed back to the client. The control flow for Authentication is shown below.
+
+![Authentication flow](/images/auth-flow.png)
 
 ### The Request
 
