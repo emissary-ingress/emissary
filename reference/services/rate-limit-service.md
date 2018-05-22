@@ -1,6 +1,6 @@
 ## Rate Limiting with the RateLimitService
 
-Occasionally, your services may become overwhelmed with too many requests. In this situation, global rate limiting is a good solution to prevent cascade failure. Ambassador supports rate limiting via an external third party service. This rate limiting is based on [Envoy Proxy's rate limiting capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/global_rate_limiting.html).
+Occasionally, your services may become overwhelmed with too many requests. In this situation, global rate limiting is a good solution to prevent cascade failure ([this article](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4) gives more background on rate limiting). Ambassador supports rate limiting via an external third party service. This rate limiting is based on [Envoy Proxy's rate limiting capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/global_rate_limiting.html).
 
 A `RateLimitService` manifest configures Ambassador to use an external service to check and enforce rate limits for incoming requests:
 
@@ -42,4 +42,12 @@ The headers injected by the [AuthService](auth-service.md) can also be passed to
 
 ## Example
 
-See [the Ambassador Rate Limiting Tutorial](../../user-guide/rate-limiting-tutorial.md) for an example.
+The [Ambassador Rate Limiting Tutorial](../../user-guide/rate-limiting-tutorial.md) has a simple rate limiting example. A more comprehensive example of a Java-based rate limiting service for Ambassador is discussed [in this tutorial](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da).
+
+## Further reading
+
+* [Rate limiting: a useful tool with distributed systems](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4)
+* [Rate limiting for API Gateways](https://blog.getambassador.io/rate-limiting-for-api-gateways-892310a2da02)
+* [Implementing a Java Rate Limiting Service for Ambassador](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da)
+
+

@@ -48,7 +48,9 @@ If you want to set up the StatsD sink as an independent deployment, [this exampl
 
 ## Grafana
 
-If you're using Grafana, Alex Gervais has written a template [Grafana dashboard for Ambassador](https://grafana.com/dashboards/4698).
+![Grafana dashboard](images/grafana.png)
+
+If you're using Grafana, [Alex Gervais](https://twitter.com/alex_gervais) has written a template [Grafana dashboard for Ambassador](https://grafana.com/dashboards/4698).
 
 ## Datadog
 
