@@ -158,6 +158,143 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#policy).
 
+## Istio MTLS
+
+In case Istio Mtls is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell ambassador to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador deployment installed above.
+
+In case of RBAC:
+
+``` yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 3
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        service: ambassador
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.33.1
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace          
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        volumeMounts:
+          - mountPath: /etc/istiocerts/
+            name: istio-certs
+            readOnly: true
+      - name: statsd
+        image: quay.io/datawire/statsd:0.33.1
+      restartPolicy: Always
+      volumes:
+      - name: istio-certs
+        secret:
+          optional: true
+          secretName: istio.default
+```
+Specifically note the mounting of the istio secrets. For non RBAC cluster modify accordingly. 
+
+Next we need to modify the Ambassador config to tell it use the new certs for istio enabled services:
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  httpbin_mapping
+      prefix: /httpbin/
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+      ---
+      apiVersion: ambassador/v0
+      kind:  Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
+        client:
+          enabled: False
+        istio:
+          cert_chain_file: /etc/istiocerts/cert-chain.pem
+          private_key_file: /etc/istiocerts/key.pem
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 80
+  selector:
+    service: ambassador
+```
+This will define an upstream called istio, which we can reuse in all Ambassador mapping to enable communication with istio pods.
+
+
+``` yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: productpage_mapping
+      prefix: /productpage/
+      rewrite: /productpage
+      tls: istio
+      service: productpage:9080
+spec:
+  ports:
+  - port: 9080
+    name: http
+    protocol: TCP
+  selector:
+    app: productpage
+```
+Note the `tls:istio`, which lets ambassador know which cert to use when communicating with that service.
+
+In the definition above we also have TLS termination enabled, please follow the corresponding guide to enable it.
+
 ## Roadmap
 
 There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in Ambassador, mTLS for end-to-end TLS encryption, and full propagation of request headers (e.g., Zipkin tracing) between Ambassador and Istio. If you're interested in contributing, we'd welcome the help!
