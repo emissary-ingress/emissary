@@ -118,5 +118,30 @@
         ],
         "prefix": "/qotm/",
         "prefix_rewrite": "/"
+    },
+    {
+        "__saved": [
+            0,
+            4,
+            0,
+            "/hb/",
+            "GET"
+        ],
+        "_group_id": "b8d9f34208af81a8514a2d2697636a2feccf5611",
+        "_method": "GET",
+        "_precedence": 0,
+        "_referenced_by": [
+            "ambassador-default.yaml.2"
+        ],
+        "_source": "ambassador-default.yaml.2",
+        "clusters": [
+            {
+                "name": "cluster_https___httpbin_org_otls_hr_httpbin_org",
+                "weight": 100.0
+            }
+        ],
+        "host_rewrite": "httpbin.org",
+        "prefix": "/hb/",
+        "prefix_rewrite": "/"
     }
 ]
