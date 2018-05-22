@@ -36,11 +36,33 @@ initialize_cluster () {
         if [ "$namespace" = "default" ]; then
             kubectl delete pods,secrets,services,deployments,configmaps --all
         else
-            kubectl delete namespace "$namespace"
+            drop_namespace "$namespace"
         fi
     done
 
     wait_for_namespace_deletion
+}
+
+drop_namespace () {
+    namespace="$1"
+
+    count=$(kubectl get namespaces | grep -c "^${namespace} " || true)
+
+    if [ $count -gt 0 ]; then
+        kubectl delete namespace "$namespace"
+    fi
+}
+
+initialize_namespace () {
+    namespace="$1"
+    
+    if [ -z "$SKIP_CHECK_CONTEXT" ]; then
+        interactive_check_context "$namespace"
+    fi
+    
+    drop_namespace "$namespace"
+    wait_for_namespace_deletion
+    kubectl create namespace "$namespace"
 }
 
 cluster_ip () {
@@ -61,7 +83,9 @@ service_port() {
 }
 
 demotest_pod() {
-    kubectl get pods -l run=demotest -o 'jsonpath={.items[0].metadata.name}'
+    namespace=${1:-default}
+
+    kubectl get pods -n "$namespace" -l run=demotest -o 'jsonpath={.items[0].metadata.name}'
 }
 
 wait_for_namespace_deletion() {
@@ -257,8 +281,16 @@ kubectl_context () {
 
 interactive_check_context () {
     CONTEXT=$(kubectl_context)
+    namespace="$1"
+
+    if [ -n "$namespace" ]; then
+        prompt="You are about to delete everything in namespace $namespace of context $CONTEXT."
+    else
+        prompt="You are about to delete everything in context $CONTEXT."
+    fi
+
     while true; do
-        read -p "You are about to delete everything running in '$CONTEXT' context. Proceed? [yes, no] " yn
+        read -p "${prompt} Proceed? [yes, no] " yn
         case $yn in
             [Yy]* ) return;;
             [Nn]* ) exit;;
