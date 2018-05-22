@@ -107,8 +107,13 @@
                 "_service": "google.com",
                 "_source": "mapping-google.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_https___google_com_otls",
-                "tls_array": [],
+                "name": "cluster_https___google_com_otls_hr_google_com",
+                "tls_array": [
+                    {
+                        "key": "sni",
+                        "value": "google.com"
+                    }
+                ],
                 "tls_context": {
                     "_ambassador_enabled": true
                 },
@@ -293,8 +298,13 @@
                 "_service": "myservice.org/",
                 "_source": "mapping-httpbin-shadow.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_shadow_https___myservice_org__otls",
-                "tls_array": [],
+                "name": "cluster_shadow_https___myservice_org__otls_hr_httpbin_org",
+                "tls_array": [
+                    {
+                        "key": "sni",
+                        "value": "httpbin.org"
+                    }
+                ],
                 "tls_context": {
                     "_ambassador_enabled": true
                 },
@@ -428,7 +438,7 @@
                 "prefix": "/httpbin/",
                 "prefix_rewrite": "/",
                 "shadow": {
-                    "name": "cluster_shadow_https___myservice_org__otls"
+                    "name": "cluster_shadow_https___myservice_org__otls_hr_httpbin_org"
                 },
                 "timeout_ms": 50
             },
@@ -888,7 +898,7 @@
                 "_source": "mapping-google.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_https___google_com_otls",
+                        "name": "cluster_https___google_com_otls_hr_google_com",
                         "weight": 100.0
                     }
                 ],

@@ -9,14 +9,13 @@ If you don't work at Datawire, this document is probably not going to help you. 
 
 If you're still reading, you must be at Datawire. Congrats, you picked a fine place to work! To release Ambassador, you'll need credentials for our Github repos.
 
-1. Build and test on defect or feature branches. 
-2. Merge work into `develop` as you go. Use PRs.
-3. Once `develop` has all the release drivers, passes CI, and passes the `end-to-end` tests, open a PR against `master`.
-4. The PR had better pass CI. If not, figure out why.
-5. Merge the PR to `master`. This kicks off the primary release.
-6. **READ THIS WHOLE LINE FOR THE VERY IMPORTANT NOTE.** Once CI runs on the merge commit and the new image has been published, you'll be certain of the new version number and can update the `CHANGELOG`. **VERY IMPORTANT NOTE: commit only `CHANGELOG.md`, and include `[ci skip]` in the commit message** so that you don't bump the version again. Commit and push directly to `master`.
-7. Run `make helm` to update helm charts. This will update stuff in `docs`.
-8. Edit `docs/index.html` with the new version number.
-9. Commit and push directly to `master`.
-10. Merge `master` into `develop`.
+1. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.**
+2. Once `master` has all the release drivers, tag `master` with an RC tag, eg `0.33.0-rc1`.
+   - Make sure that `CHANGELOG.md` and `index.html` are up to date!
+   - Make sure that the Helm charts are up to date (use `make helm VERSION=0.33.0` or the like, then commit).
+3. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why.
+4. The RC build will be available as `quay.io/datawire/ambassador:0.33.0-rc1` and also as `quay.io/datawire/ambassador:0.33.0-rc-latest`. Any other testing you want to do against this image, rock on.
+5. When you're happy with everything, tag `master` with a GA tag like `0.33.0` and let CI do its thing.
+
+**Note well** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 

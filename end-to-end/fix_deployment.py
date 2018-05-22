@@ -6,10 +6,12 @@ import yaml
 
 import dpath
 
-id_num = sys.argv[1]
-namespace = 'test-010-%s' % id_num
+namespace = sys.argv[1]
+ambassador_id = sys.argv[2]
+input_yaml_path = sys.argv[3]
+output_yaml_path = sys.argv[4]
 
-manifest = list(yaml.safe_load_all(open(sys.argv[2], 'r')))
+manifest = list(yaml.safe_load_all(open(input_yaml_path, 'r')))
 
 kinds_to_delete = {
     "ClusterRole": True,
@@ -28,11 +30,11 @@ for x in range(len(manifest)):
         # print("Skipping %s %s" % (kind, name))
         continue
 
-    # print("Adding namespace %s to %s %s" % (namespace, kind, name))
+    print("Adding namespace %s to %s %s" % (namespace, kind, name))
     dpath.util.new(manifest, "/%d/metadata/namespace" % x, namespace)
 
     if kind == 'Deployment':
-        # print("Setting environment for %s %s" % (kind, name))
+        print("Setting environment for %s %s" % (kind, name))
         path = "/%d/spec/template/spec/containers/0/env" % x
         dpath.util.new(manifest, path, [
             {
@@ -41,10 +43,10 @@ for x in range(len(manifest)):
             },
             {
                 'name': 'AMBASSADOR_ID',
-                'value': 'ambassador-%s' % id_num
+                'value': ambassador_id
             }            
         ])
     
     keep.append(manifest[x])
 
-yaml.safe_dump_all(keep, open(sys.argv[3], "w"), default_flow_style=False)
+yaml.safe_dump_all(keep, open(output_yaml_path, "w"), default_flow_style=False)

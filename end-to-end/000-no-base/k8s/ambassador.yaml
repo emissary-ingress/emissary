@@ -20,6 +20,13 @@ metadata:
       config:
         diagnostics:
           enabled: false
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  httpbin2_mapping
+      prefix: /hb/
+      service: https://httpbin.org
+      host_rewrite: httpbin.org      
 spec:
   selector:
     app: ambassador

@@ -17,24 +17,75 @@ git status
 
 printf "== Begin: travis-script.sh ==\n"
 
-if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
-    printf "!! Branch is 'nobuild', therefore, no work will be performed.\n"
-    exit 0
-fi
+# Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
+# nobuild branch.
+# if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+#     printf "!! Branch is 'nobuild', therefore, no work will be performed.\n"
+#     exit 0
+# fi
 
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
     make test
-    git status
     make docker-push
-    git status
-    make website
-    git status
-    make publish-website
-    git status
 
-    # E2E happens unless this is a random commit not on the main branch.
-    if [ \( "${GIT_BRANCH}" = "${MAIN_BRANCH}" \) -o \( "${COMMIT_TYPE}" != "random" \) ]; then
+    if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
+        # By fiat, _any commit_ on the main branch pushes production docs.
+        # This is to allow simple doc fixes. So. Grab the most recent proper
+        # version...
+        VERSION=$(git describe --tags --abbrev=0 --exclude='*-*')
+
+        if [ -z "$VERSION" ]; then
+            # Uh WTF.
+            echo "No tagged version found at $GIT_COMMIT" >&2
+            exit 1
+        fi
+
+        if [[ $VERSION =~ '^v' ]]; then
+            VERSION=$(echo "$VERSION" | cut -c2-)
+        fi
+
+        echo "making stable docs for $VERSION"
+        make VERSION="$VERSION" DOC_RELEASE_TYPE=stable website publish-website
+    else
+        # Anything else, push staging.
+
+        echo "making draft docs for $VERSION"
+        make website publish-website 
+    fi        
+
+    #### RUN END-TO-END TESTS ONLY ON RC BUILDS
+    ####
+    #### The end-to-end tests, running sequentially, take around half an hour 
+    #### to run. Allowing them to run while collecting things for release is
+    #### just shredding velocity right now.
+    ####
+    #### Work is underway to parallelize the end-to-end tests (or to more
+    #### majorly refactor around needing them) but for now, we're only going to
+    #### run them on RC builds -- which is to say, do all the testing you can
+    #### in development, collect things for a release, and the RC build will run
+    #### the final E2E pass.
+    
+    SKIP_E2E=
+
+    if [[ ${COMMIT_TYPE} != "RC" ]]; then
+        SKIP_E2E=yes
+    fi
+
+    # # Run E2E if this isn't a nobuild branch, nor a doc branch, nor a random commit not on the main branch.
+    # if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
+    #     SKIP_E2E=yes
+    # fi
+
+    # if [[ ${GIT_BRANCH} =~ ^doc.* ]]; then
+    #     SKIP_E2E=yes
+    # fi
+
+    # if [[ ( ${GIT_BRANCH} != ${MAIN_BRANCH} ) && ( ${COMMIT_TYPE} == "random" ) ]]; then
+    #     SKIP_E2E=yes
+    # fi
+
+    if [ -z "$SKIP_E2E" ]; then
         make e2e
     fi
 else

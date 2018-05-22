@@ -667,7 +667,7 @@ class Config (object):
     def add_intermediate_cluster(self, _source, name, _service, urls, 
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None, originate_tls=None,
-                                 grpc=False):
+                                 grpc=False, host_rewrite=None):
         if name not in self.envoy_clusters:
             self.logger.debug("CLUSTER %s: new from %s" % (name, _source))
 
@@ -703,8 +703,10 @@ class Config (object):
                         continue
 
                     tls_array.append({ 'key': key, 'value': value })
+                    cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
 
-                cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
+            if host_rewrite and originate_tls:
+                cluster['tls_array'].append({'key': 'sni', 'value': host_rewrite })
 
             if grpc:
                 cluster['features'] = 'http2'
@@ -761,7 +763,7 @@ class Config (object):
         route = mapping.new_route(svc, cluster_name)
         self.envoy_routes[mapping.group_id] = route
 
-    def service_tls_check(self, svc, context):
+    def service_tls_check(self, svc, context, host_rewrite):
         originate_tls = False
         name_fields = None
 
@@ -786,6 +788,9 @@ class Config (object):
             else:
                 self.logger.error("Originate-TLS context %s is not defined" % context)
 
+        if originate_tls and host_rewrite:
+            name_fields.append("hr-%s" % host_rewrite)
+
         port = 443 if originate_tls else 80
         context_name = "_".join(name_fields) if name_fields else None
 
@@ -800,6 +805,7 @@ class Config (object):
         svc = mapping['service']
         tls_context = mapping.get('tls', None)
         grpc = mapping.get('grpc', False)
+        host_rewrite = mapping.get('host_rewrite', None)
 
         # Given the service and the TLS context, first initialize the cluster name for the
         # main service with the incoming service string...
@@ -829,7 +835,7 @@ class Config (object):
         # versions of Ambassador. (This isn't a functional issue, just a matter of 
         # trying not to confuse people on upgrades.)
 
-        (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+        (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
         
         # Build up the common name stuff that we'll need for the service and
         # the shadow service.
@@ -869,7 +875,7 @@ class Config (object):
         self.add_intermediate_cluster(mapping['_source'], cluster_name,
                                       svc, [ url ],
                                       cb_name=cb_name, od_name=od_name, grpc=grpc,
-                                      originate_tls=originate_tls)
+                                      originate_tls=originate_tls, host_rewrite=host_rewrite)
         
         return svc, cluster_name
 
@@ -1339,6 +1345,8 @@ class Config (object):
         if not cluster_hosts or not sources:
             return (None, None)
 
+        host_rewrite = config.get("host_rewrite", None)
+
         cluster_name = "cluster_ext_ratelimit"
         filter_config = {
             "domain": "ambassador",
@@ -1360,11 +1368,11 @@ class Config (object):
         )
 
         if cluster_name not in self.envoy_clusters:
-            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None)
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extratelimit', [url],
                                           type="strict_dns", lb_type="round_robin",
-                                          grpc=True)
+                                          grpc=True, host_rewrite=host_rewrite)
 
         for source in sources:
             filter._mark_referenced_by(source)
@@ -1440,6 +1448,7 @@ class Config (object):
         )
 
         cluster_name = filter_config['cluster']
+        host_rewrite = filter_config.get('host_rewrite', None)
 
         if cluster_name not in self.envoy_clusters:
             if not cluster_hosts:
@@ -1451,7 +1460,7 @@ class Config (object):
             for svc in sorted(cluster_hosts.keys()):
                 weight, tls_context = cluster_hosts[svc]
 
-                (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context)
+                (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
 
                 if originate_tls:
                     protocols['https'] = True
@@ -1470,7 +1479,7 @@ class Config (object):
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extauth', urls,
                                           type="strict_dns", lb_type="round_robin",
-                                          originate_tls=originate_tls)
+                                          originate_tls=originate_tls, host_rewrite=host_rewrite)
 
         for source in sources:
             filter._mark_referenced_by(source)
