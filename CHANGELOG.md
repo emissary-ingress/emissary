@@ -19,21 +19,21 @@
 - Allow disabling external access to the diagnostics service (with thanks to @alexgervais and @dougwilson).
 
 ## [0.33.1] May 16, 2018
-[0.33.1]: https://github.com/datawire/ambassador/compare/v0.33.1...v0.33.0
+[0.33.1]: https://github.com/datawire/ambassador/compare/0.33.0...0.33.1
 
 ### Changed
 
 - Fix YAML error on statsd pod.
 
 ## [0.33.0] May 14, 2018
-[0.33.0]: https://github.com/datawire/ambassador/compare/v0.33.0...v0.32.2
+[0.33.0]: https://github.com/datawire/ambassador/compare/v0.32.2...0.33.0
 
 ### Changed
 
 - Fix support for `host_redirect` in a `Mapping`. **See the `Mapping` documentation** for more details: the definition of the `host_redirect` attribute has changed.
 
 ## [0.32.2] May 2, 2018
-[0.32.2]: https://github.com/datawire/ambassador/compare/v0.32.2...v0.32.0
+[0.32.2]: https://github.com/datawire/ambassador/compare/v0.32.0...v0.32.2
 
 (Note that 0.32.1 was an internal release.)
 
@@ -42,7 +42,7 @@
 - Fix a bad bootstrap CSS inclusion that would cause the diagnostic service to render incorrectly.
 
 ## [0.32.0] April 27, 2018
-[0.32.0]: https://github.com/datawire/ambassador/compare/v0.32.0...v0.31.0
+[0.32.0]: https://github.com/datawire/ambassador/compare/v0.31.0...v0.32.0
 
 ### Changed
 
@@ -52,7 +52,7 @@
 - The `tls` keyword now works for `AuthService` just like it does for `Mapping` (thanks @dvavili!)
 
 ## [0.31.0] April 12, 2018
-[0.31.0]: https://github.com/datawire/ambassador/compare/v0.31.0...v0.30.2
+[0.31.0]: https://github.com/datawire/ambassador/compare/v0.30.2...v0.31.0
 
 ### Changed
 
@@ -60,7 +60,7 @@
 - The `statsd` container has been quieted down yet more (thanks again, @alexgervais!).
 
 ## [0.30.2] March 26, 2018
-[0.30.2]: https://github.com/datawire/ambassador/compare/v0.30.2...v0.30.1
+[0.30.2]: https://github.com/datawire/ambassador/compare/v0.30.1...v0.30.2
 
 ### Changed
 
@@ -81,14 +81,14 @@ helm upgrade --install --wait my-release datawire/ambassador
 You can also use `adminService.type=LoadBalancer`.
 
 ## [0.30.1] March 26, 2018
-[0.30.1]: https://github.com/datawire/ambassador/compare/v0.30.1...v0.30.0
+[0.30.1]: https://github.com/datawire/ambassador/compare/v0.30.0...v0.30.1
 
 ### Fixed
 
 - The `tls` module is now able to override TLS settings probed from the `ambassador-certs` secret
 
 ## [0.30.0] March 23, 2018
-[0.30.0]: https://github.com/datawire/ambassador/compare/v0.30.0...v0.29.0
+[0.30.0]: https://github.com/datawire/ambassador/compare/v0.29.0...v0.30.0
 
 ### Changed
 
@@ -96,7 +96,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Fix docs around `AuthService` usage
 
 ## [0.29.0] March 15, 2018
-[0.29.0]: https://github.com/datawire/ambassador/compare/v0.29.0...v0.28.2
+[0.29.0]: https://github.com/datawire/ambassador/compare/v0.28.2...v0.29.0
 
 ### Changed
 
@@ -106,8 +106,8 @@ You can also use `adminService.type=LoadBalancer`.
 - `envoy_override` has been reenabled in `Mapping`s.
 
 ## [0.28.1] March 5, 2018 (and [0.28.0] on March 2, 2018)
-[0.28.1]: https://github.com/datawire/ambassador/compare/v0.28.1...v0.26.0
-[0.28.0]: https://github.com/datawire/ambassador/compare/v0.28.1...v0.26.0
+[0.28.1]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.28.1
+[0.28.0]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.28.1
 
 (Note that 0.28.1 is identical to 0.28.0, and 0.27.0 was an internal release. These are related to the way CI generates tags, which we'll be revamping soon.)
 
@@ -125,7 +125,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Remove a dependency on a `ConfigMap` for upgrade checks
 
 ## [0.26.0] February 13, 2018
-[0.26.0]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.25.0
+[0.26.0]: https://github.com/datawire/ambassador/compare/v0.25.0...v0.26.0
 
 ### Changed
 
@@ -134,7 +134,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Clean up some documentation (thanks @lavoiedn!)
 
 ## [0.25.0] February 6, 2018
-[0.25.0]: https://github.com/datawire/ambassador/compare/v0.25.0...v0.23.0
+[0.25.0]: https://github.com/datawire/ambassador/compare/v0.23.0...v0.25.0
 
 (Note that 0.24.0 was an internal release.)
 
@@ -151,7 +151,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Various build tweaks and end-to-end test speedups
 
 ## [0.23.0] January 17, 2017
-[0.23.0]: https://github.com/datawire/ambassador/compare/v0.23.0...v0.22.0
+[0.23.0]: https://github.com/datawire/ambassador/compare/v0.22.0...v0.23.0
 
 ### Changed
 
