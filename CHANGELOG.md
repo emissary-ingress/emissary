@@ -10,6 +10,14 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.34.0] May 16, 2018
+[0.34.0]: https://github.com/datawire/ambassador/compare/0.33.1...0.34.0
+
+### Changed
+
+- When originating TLS, use the `host_rewrite` value to set outgoing SNI. If no `host_rewrite` is set, do not use SNI.
+- Allow disabling external access to the diagnostics service (with thanks to @alexgervais and @dougwilson).
+
 ## [0.33.1] May 16, 2018
 [0.33.1]: https://github.com/datawire/ambassador/compare/v0.33.1...v0.33.0
 
