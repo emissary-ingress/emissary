@@ -62,7 +62,7 @@ handle_int() {
     echo "Exiting due to Control-C"
 }
 
-set -o monitor
+# set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
