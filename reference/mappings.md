@@ -10,27 +10,6 @@ Each mapping can also specify, among other things:
 - a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
 - other [_headers_](#using-headers) which must appear in the HTTP request.
 
-### Mapping Evaluation Order
-
-Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account.
-
-If absolutely necessary, you can manually set a `precedence` on the mapping (see below). In general, you should not need to use this feature unless you're using the `regex_headers` or `host_regex` matching features. If there's any question about how Ambassador is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
-
-### Optional Fallback Mapping
-
-Ambassador will respond with a `404 Not Found` to any request for which no mapping exists. If desired, you can define a fallback "catch-all" mapping so all unmatched requests will be sent to an upstream service.
-
-For example, defining a mapping with only a `/` prefix will catch all requests previously unhandled and forward them to an external service:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind: Mapping
-name: catch-all
-prefix: /
-service: https://www.getambassador.io
-```
-
 ### Defining Mappings
 
 Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
@@ -83,12 +62,14 @@ Required attributes for mappings:
 - `prefix` is the URL prefix identifying your [resource](#resources)
 - `service` is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador
 
-Common optional attributes for mappings:
+### Configuring Mappings
+
+Ambassador supports a number of additional attributes to configure and customize mappings.
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
 | [`add_request_headers`](add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
-| [`cors`](cors):           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
+| [`cors`](cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
 | [`grpc`](user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | `host_rewrite`            | forces the HTTP `Host` header to a specific value when talking to the service |
@@ -99,7 +80,7 @@ Common optional attributes for mappings:
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a regular expression |
 | [`rate_limits`](#using-ratelimits) | specifies a list rate limit rules on a mapping |
 | `regex_headers`           | specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request |
-| `rewrite`(#rewrite-rules) | replaces the URL prefix with when talking to the service |
+| [`rewrite`](#rewrite-rules) | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | `tls`                     | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador that this service will use websockets |
@@ -124,6 +105,26 @@ These attributes are less commonly used, but can be used to override Ambassador'
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
+### Mapping Evaluation Order
+
+Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account.
+
+If absolutely necessary, you can manually set a `precedence` on the mapping (see below). In general, you should not need to use this feature unless you're using the `regex_headers` or `host_regex` matching features. If there's any question about how Ambassador is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
+
+### Optional Fallback Mapping
+
+Ambassador will respond with a `404 Not Found` to any request for which no mapping exists. If desired, you can define a fallback "catch-all" mapping so all unmatched requests will be sent to an upstream service.
+
+For example, defining a mapping with only a `/` prefix will catch all requests previously unhandled and forward them to an external service:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind: Mapping
+name: catch-all
+prefix: /
+service: https://www.getambassador.io
+```
 ####  <a name="using-host-rewrite"></a> Using `host_rewrite`
 
 By default, the `Host` header is not altered when talking to the service -- whatever `Host` header the client gave to Ambassador will be presented to the service. For many microservices this will be fine, but if you use Ambassador to route to services that use the `Host` header for routing, it's likely to fail (legacy monoliths are particularly susceptible to this, as well as external services). You can use `host_rewrite` to force the `Host` header to whatever value that such target services need.
@@ -380,4 +381,4 @@ Ambassador uses Envoy for the heavy lifting of proxying.
 
 If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use your own custom config template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
 
-Please [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary for a given use case (or better yet, submit a PR!) so that we can expose this in the future.
+Please [contact us on Slack](https://join.slack.com/t/datawire-oss/shared_invite/enQtMzcwMDEwMTc5ODQ3LTE1NmIzZTFmZWE0OTQ1NDc2MzE2NTkzMDAzZWM0MDIxZTVjOGIxYmRjZjY3N2M2Mjk4NGI5Y2Q4NGY4Njc1Yjg) for more information if this seems necessary for a given use case (or better yet, submit a PR!) so that we can expose this in the future.
