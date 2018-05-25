@@ -26,6 +26,7 @@
   * [Modules](reference/modules.md)
   * [Mappings](reference/mappings.md)
     * [Header-based routing](reference/headers.md)
+    * [Adding Request Headers](reference/add_request_headers.md)
     * [Canary Releases](reference/canary.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [Services](reference/services/services.md)

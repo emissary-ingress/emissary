@@ -102,7 +102,7 @@ Common optional attributes for mappings:
 
 Less-common optional attributes for mappings:
 
-- `add_request_headers`: if present, specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. Envoy dynamic `value`s `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static `value`s.
+- [`add_request_headers`](add_request_headers): if present, specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. Envoy dynamic values `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static values.
 - `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route.
 - `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True.
 - `host_redirect`: if present with a true value, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. See [Using Redirects](#using-redirects) for more details. 
