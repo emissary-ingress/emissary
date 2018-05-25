@@ -274,7 +274,7 @@ envoy_override:
 
 Note that `envoy_override` cannot, at present, change any element already synthesized in the mapping: it can only add additional information. In addition, `envoy_override` only supports adding information to Envoy routes, and not clusters.
 
-Here is another example of using `envoy_override` to set Envoy's [connection retries](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/route.html#retry-policy:
+Here is another example of using `envoy_override` to set Envoy's [connection retries](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/route.html#retry-policy):
 
 ```
 envoy_override:
