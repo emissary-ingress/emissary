@@ -85,33 +85,42 @@ Required attributes for mappings:
 
 Common optional attributes for mappings:
 
-- `prefix_regex`: if present and true, tells the system to interpret the `prefix` as a regular expression
-- `rewrite` is what to [replace](#rewrite-rules) the URL prefix with when talking to the service
-- `host_rewrite`: forces the HTTP `Host` header to a specific value when talking to the service
-- `grpc`: if present with a true value, tells the system that the service will be handling gRPC calls
-- `method`: defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase!)
-- `method_regex`: if present and true, tells the system to interpret the `method` as a regular expression
-- [`weight`](canary): if present, specifies the (integer) percentage of traffic for this resource that will be routed using this mapping
-- `host`: if present, specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request
-- `host_regex`: if present and true, tells the system to interpret the `host` as a regular expression
-- [`headers`](headers): if present, specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request
-- `regex_headers`: if present, specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request
-- `tls`: if present and true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service; if this is something you need, please ask for details on [Gitter](https://gitter.im/datawire/ambassador).)
-- `cors`: if present, enables Cross-Origin Resource Sharing (CORS) setting on a mapping. For more details about each setting, see [using cors](#using-cors)
-- `rate_limits`: if present, specifies a list rate limit rules on a mapping. For more details about each setting, see [using rate_limits](#using-ratelimits)
+| Attribute                 | Description               |
+| :------------------------ | :------------------------ |
+| [`add_request_headers`](add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
+| [`cors`](cors):           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
+| [`grpc`](user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
+| [`headers`](headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
+| `host_rewrite`            | forces the HTTP `Host` header to a specific value when talking to the service |
+| `host`                    | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
+| `host_regex`              | if true, tells the system to interpret the `host` as a regular expression |
+| `method`                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
+| `method_regex`            | if true, tells the system to interpret the `method` as a regular expression |
+| `prefix_regex`            | if true, tells the system to interpret the `prefix` as a regular expression |
+| [`rate_limits`](#using-ratelimits) | specifies a list rate limit rules on a mapping |
+| `regex_headers`           | specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request |
+| `rewrite`(#rewrite-rules) | replaces the URL prefix with when talking to the service |
+| `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
+| `tls`                     | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
+| `use_websocket`           | if true, tells Ambassador that this service will use websockets |
 
-Less-common optional attributes for mappings:
+Ambassador supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service, while minimizing its impact on production users.
 
-- [`add_request_headers`](add_request_headers): if present, specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. Envoy dynamic values `%CLIENT_IP%` and `%PROTOCOL%` are supported, in addition to static values.
-- `auto_host_rewrite`: if present with a true value, forces the HTTP `Host` header to the `service` to which we will route.
-- `case_sensitive`: determines whether `prefix` matching is case-sensitive; defaults to True.
-- `host_redirect`: if present with a true value, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. See [Using Redirects](#using-redirects) for more details. 
-- `path_redirect`: if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. See [Using Redirects](#using-redirects) for more details.
-- `precedence`: an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier.
-- [`shadow`](shadowing): if present with a true value, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored.
-- `timeout_ms`: the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000.
-- `use_websocket`: if present with a true value, tells Ambassador that this service will use websockets.
-- `envoy_override`: supplies raw configuration data to be included with the generated Envoy route entry.
+| Attribute                 | Description               |
+| :------------------------ | :------------------------ |
+| [`shadow`](shadowing)     | if true, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored. |
+| [`weight`](canary)        | specifies the (integer) percentage of traffic for this resource that will be routed using this mapping |
+
+These attributes are less commonly used, but can be used to override Ambassador's default behavior in specific cases.
+
+| Attribute                 | Description               |
+| :------------------------ | :------------------------ |
+| `auto_host_rewrite`       | if true, forces the HTTP `Host` header to the `service` to which Ambassador routes |
+| `case_sensitive`          | determines whether `prefix` matching is case-sensitive; defaults to True |
+| `envoy_override`          | supplies raw configuration data to be included with the generated Envoy route entry. |
+| [`host_redirect`](#using-redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
+| [`path_redirect`](#using-redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
+| `precedence`              | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
@@ -193,34 +202,6 @@ If multiple `Mapping`s have the same `precedence`, Ambassador's normal sorting d
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to specify TLS origination certificates.
-
-####  <a name="using-cors"></a> Using `cors`
-
-A mapping that specifies the `cors` attribute will automatically enable the CORS filter. An example:
-
-```yaml
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  cors_mapping
-prefix: /cors/
-service: cors-example
-cors:
-  origins: http://foo.example,http://bar.example
-  methods: POST, GET, OPTIONS
-  headers: Content-Type
-  credentials: true
-  exposed_headers: X-Custom-Header
-  max_age: "86400"
-```
-
-CORS settings:
-
-- `origins`: Specifies a comma-separated list of allowed domains for the `Access-Control-Allow-Origin` header. To allow all origins, use the wildcard `"*"` value.
-- `methods`: if present, specifies a comma-separated list of allowed methods for the `Access-Control-Allow-Methods` header.
-- `headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Allow-Headers` header.
-- `credentials`: if present with a true value (boolean), will send a `true` value for the `Access-Control-Allow-Credentials` header.
-- `exposed_headers`: if present, specifies a comma-separated list of allowed headers for the `Access-Control-Expose-Headers` header.
-- `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
 
 ####  <a name="using-rate-limits"></a> Using `rate_limits`
 
