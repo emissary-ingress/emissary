@@ -74,6 +74,8 @@ if [ $STATUS -ne 0 ]; then
     diediedie "kubewatch sync" "$STATUS"
 fi
 
+export PYTHON_UNBUFFERED=true
+
 echo "AMBASSADOR: starting diagd"
 diagd --no-debugging "$CONFIG_DIR" &
 pids="${pids:+${pids} }$!:diagd"
