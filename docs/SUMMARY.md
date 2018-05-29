@@ -24,9 +24,11 @@
 
 * [Configuring Ambassador](reference/configuration.md)
   * [Modules](reference/modules.md)
-  * [Mappings](reference/mappings.md)
-    * [Header-based routing](reference/headers.md)
+  * [Configuring Services](reference/mappings.md)
+    * [Adding Request Headers](reference/add_request_headers.md)
     * [Canary Releases](reference/canary.md)
+    * [Cross Origin Resource Sharing](reference/cors.md)
+    * [Header-based routing](reference/headers.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [Services](reference/services/services.md)
     * [Authentication](reference/services/auth-service.md)
