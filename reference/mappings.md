@@ -78,12 +78,12 @@ Ambassador supports a number of additional attributes to configure and customize
 | [`headers`](headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | `host_rewrite`            | forces the HTTP `Host` header to a specific value when talking to the service |
 | `host`                    | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
-| `host_regex`              | if true, tells the system to interpret the `host` as a regular expression |
+| `host_regex`              | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `method`                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
-| `method_regex`            | if true, tells the system to interpret the `method` as a regular expression |
-| `prefix_regex`            | if true, tells the system to interpret the `prefix` as a regular expression |
+| `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
+| `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`rate_limits`](#using-ratelimits) | specifies a list rate limit rules on a mapping |
-| `regex_headers`           | specifies a list of HTTP headers and regular expressions which they _must_ match for this mapping to be used to route the request |
+| `regex_headers`           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](#rewrite-rules) | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | `tls`                     | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |

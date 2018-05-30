@@ -23,14 +23,14 @@
 ## Reference
 
 * [Configuring Ambassador](reference/configuration.md)
-  * [Modules](reference/modules.md)
+  * [Core Configuration](reference/modules.md)
   * [Configuring Services](reference/mappings.md)
     * [Adding Request Headers](reference/add_request_headers.md)
     * [Canary Releases](reference/canary.md)
     * [Cross Origin Resource Sharing](reference/cors.md)
     * [Header-based routing](reference/headers.md)
     * [Traffic Shadowing](reference/shadowing.md)
-  * [Services](reference/services/services.md)
+  * [External Services](reference/services/services.md)
     * [Authentication](reference/services/auth-service.md)
     * [Rate Limiting](reference/services/rate-limit-service.md)
   * [Advanced configuration topics](reference/advanced.md)
