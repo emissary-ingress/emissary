@@ -37,9 +37,23 @@ kubectl create secret tls ambassador-certs --cert=$FULLCHAIN_PATH --key=$PRIVKEY
 
 where `$FULLCHAIN_PATH` is the path to a single PEM file containing the certificate chain for your cert (including the certificate for your Ambassador and all relevant intermediate certs -- this is what Let's Encrypt calls `fullchain.pem`), and `$PRIVKEY_PATH` is the path to the corresponding private key.
 
+When Ambassador starts, it will notice the `ambassador-certs` secret and turn TLS on.
+
+**Important.** If you've already created the `ambassador` deployment in step 2 or you're adding TLS termination to an existing deployment, you **MUST** restart it. Ambassador looks for the `ambassador-certs` when it starts and only watches service changes later on ([#474](https://github.com/datawire/ambassador/issues/474)). If high availability is not an issue, simply delete the `ambassador` pods (after a short downtime, the deployment will start new pods for you):
+
+```shell
+kubectl delete pods -l service=ambassador
+```
+
+To ensure high availability, you can force a no-op rolling update (https://github.com/kubernetes/kubernetes/issues/27081):
+
+```shell
+kubectl patch deployment ambassador -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
+```
+
 ## 4. You may need to configure other Ambassador TLS options.
 
-When Ambassador starts, it will notice the `ambassador-certs` secret and turn TLS on. If you don't need anything else, you're good to go.
+If you don't need anything else, you're good to go.
 
 However, you may also configure other options using Ambassador's `tls` module:
 
