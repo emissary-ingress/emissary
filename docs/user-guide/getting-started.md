@@ -4,7 +4,61 @@ In this tutorial, we'll walk through the process of deploying Ambassador in Kube
 
 Ambassador is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
-## 1. Defining the Ambassador Service
+## 1. Deploying Ambassador
+
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
+
+```
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```
+
+To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
+
+```shell
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+```
+
+Without RBAC, you can use:
+
+```shell
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
+```
+
+For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
+
+When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+
+To confirm Ambassador is running confirm that the ambassador-admin service is configured and the endpoints point to the ambassador pods:
+
+```shell
+kubectl get svc
+$ kubectl get svc
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+ambassador-admin     NodePort       10.98.211.138    <none>        8877:30319/TCP   13h
+$ kubectl get endpoints
+NAME                 ENDPOINTS                                         AGE
+ambassador-admin     172.17.0.4:8877,172.17.0.5:8877,172.17.0.6:8877   13h
+$ kubectl get pod -o wide
+NAME                            READY     STATUS    RESTARTS   AGE       IP            NODE
+ambassador-64cdb74db5-gzflc     1/1       Running   0          13h       172.17.0.4    minikube
+ambassador-64cdb74db5-j8xqh     1/1       Running   0          13h       172.17.0.6    minikube
+ambassador-64cdb74db5-ptn8f     1/1       Running   0          13h       172.17.0.5    minikube
+```
+
+Next open the Ambassador diagnostic overview webpage.  You can find the IP Address by using one of the following commands:
+
+```bash
+# AWS (for Ambassador using HTTP)
+AMBASSADORURL=http://$(kubectl get service ambassador-admin --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+# GKE (for Ambassador using HTTP)
+AMBASSADORURL=http://$(kubectl get service ambassador-admin --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+# Minikube (for Ambassador using HTTP)
+AMBASSADORURL=$(minikube service --url ambassador-admin)
+```
+
+## 2. Defining the Ambassador Service
 
 Ambassador is deployed as a Kubernetes service. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
@@ -47,30 +101,6 @@ The YAML above does several things:
 * It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
 
 Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
-
-## 2. Deploying Ambassador
-
-Once that's done, we need to get Ambassador actually running. To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-```
-
-Without RBAC, you can use:
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
-```
-
-For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
-
-When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
-
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
-
-```
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-```
 
 ## 3. Testing the Mapping
 
