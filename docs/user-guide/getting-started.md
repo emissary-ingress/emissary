@@ -6,12 +6,6 @@ Ambassador is designed to allow service authors to control how their service is 
 
 ## 1. Deploying Ambassador
 
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
-
-```
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-```
-
 To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
 
 ```shell
@@ -25,6 +19,12 @@ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yam
 ```
 
 For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace). 
+
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+
+```
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```
 
 ## 2. Defining the Ambassador Service
 
@@ -44,25 +44,15 @@ spec:
     service: ambassador
 ```
 
-It is critical that the selector label `service: ambassador` is also a label set on the ambassador pods.  If the label is not set on the Ambassador pods routing will not work.  To confirm:
-
-```bash
-$ kubectl get pods --show-labels
-NAME                          READY     STATUS    RESTARTS   AGE       LABELS
-ambassador-64cdb74db5-gzflc   1/1       Running   0          14h       service=ambassador
-ambassador-64cdb74db5-j8xqh   1/1       Running   0          14h       service=ambassador
-ambassador-64cdb74db5-ptn8f   1/1       Running   0          14h       service=ambassador
-```
-
-Then, apply it to the Kubernetes with `kubectl`:
+Deploy this service with `kubectl`:
 
 ```shell
 $ kubectl apply -f ambassador-service.yaml
 ```
 
-The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`. All HTTP traffic will be evaulated against the routing rules you setup. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
+The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`. All HTTP traffic will be evaulated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
 
-## 3. Let's create our first routing service!
+## 3. Creating your first route
 
 Create the following YAML and put it in a file called `httpbin.yaml`.
 
@@ -71,8 +61,6 @@ Create the following YAML and put it in a file called `httpbin.yaml`.
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    service: apigateway
   name: httpbin
   annotations:
     getambassador.io/config: |
@@ -94,12 +82,9 @@ Then, apply it to the Kubernetes with `kubectl`:
 ```shell
 $ kubectl apply -f httpbin.yaml
 ```
-
 The YAML file creates a route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
 
 Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
-
-If you haven't already open the Ambassador Diagnostic webpage. You should now see a route rule for the httpbin service.
 
 ## 4. Testing the Mapping
 
@@ -120,7 +105,6 @@ You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`
 ```shell
 $ curl 35.36.37.38/httpbin/
 ```
-
 or on minikube 
 
 ```shell
@@ -226,7 +210,7 @@ will then let us view the diagnostics at http://localhost:8877/ambassador/v0/dia
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
-- Join us on [Gitter](https://gitter.im/datawire/ambassador);
+- Join us on [Slack](https://join.slack.com/t/datawire-oss/shared_invite/enQtMzcwMDEwMTc5ODQ3LTE1NmIzZTFmZWE0OTQ1NDc2MzE2NTkzMDAzZWM0MDIxZTVjOGIxYmRjZjY3N2M2Mjk4NGI5Y2Q4NGY4Njc1Yjg);
 - Learn how to [add authentication](auth-tutorial.md) to existing services; or
 - Learn how to [add rate limiting](rate-limiting-tutorial.md) to existing services; or
 - Learn how to [use gRPC with Ambassador](/how-to/grpc.md); or
