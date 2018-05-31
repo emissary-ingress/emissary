@@ -82,9 +82,10 @@ Then, apply it to the Kubernetes with `kubectl`:
 ```shell
 $ kubectl apply -f httpbin.yaml
 ```
-The YAML file creates a route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
 
-Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
+When the service is deployed, Ambassador will notice the `getambassador.io/config` annotation on the service, and use the `Mapping` contained in it to configure the route.  (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+
+In this case, the mapping creates a route that will route traffic from `/httpbin/` to the public `httpbin.org` service. Note that we are using the `host_rewrite` attribute for the `httpbin_mapping` &mdash; this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
 
 ## 4. Testing the Mapping
 
@@ -105,7 +106,8 @@ You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`
 ```shell
 $ curl 35.36.37.38/httpbin/
 ```
-or on minikube 
+
+or on minikube: 
 
 ```shell
 $ minikube service list
@@ -181,15 +183,9 @@ A few seconds after the QoTM service is running, Ambassador should be configured
 $ curl 35.36.37.38/qotm/
 ```
 
-or
-
-```shell
-$ curl http://192.168.99.107:31893/qotm/
-```
-
 ## 6. The Diagnostics Service in Kubernetes
 
-Note that we did not expose the diagnostics port for Ambassador, since we don't want to expose it on the Internet. To view it, we'll need to get the name of one of the ambassador pods:
+Ambassador includes an integrated diagnostics service to help with troubleshooting. By default, this is not exposed to the Internet. To view it, we'll need to get the name of one of the Ambassador pods:
 
 ```
 $ kubectl get pods
@@ -206,7 +202,7 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 6. Next
+## 7. Next
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
