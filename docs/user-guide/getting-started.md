@@ -4,53 +4,15 @@ In this tutorial, we'll walk through the process of deploying Ambassador in Kube
 
 Ambassador is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
 
-## 1. Defining the Ambassador Service
+## 1. Deploying Ambassador
 
-Ambassador is deployed as a Kubernetes service. Create the following YAML and put it in a file called `ambassador-service.yaml`.
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
 
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador
-  name: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  httpbin_mapping
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-spec:
-  type: LoadBalancer
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 80
-  selector:
-    service: ambassador
+```
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-Then, apply it to the Kubernetes with `kubectl`:
-
-```shell
-kubectl apply -f ambassador-service.yaml
-```
-
-The YAML above does several things:
-
-* It creates a Kubernetes service for Ambassador, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
-* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
-
-Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
-
-## 2. Deploying Ambassador
-
-Once that's done, we need to get Ambassador actually running. To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
+To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
 
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -66,13 +28,117 @@ For production configurations, we recommend you download these YAML files as you
 
 When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
 
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` Role privileges to that username:
+To confirm Ambassador is running confirm that the ambassador-admin service is configured and the endpoints point to the ambassador pods:
 
-```
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```shell
+kubectl get svc
+$ kubectl get svc
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+ambassador-admin     NodePort       10.98.211.138    <none>        8877:30319/TCP   13h
+$ kubectl get endpoints
+NAME                 ENDPOINTS                                         AGE
+ambassador-admin     172.17.0.4:8877,172.17.0.5:8877,172.17.0.6:8877   13h
+$ kubectl get pod -o wide
+NAME                            READY     STATUS    RESTARTS   AGE       IP            NODE
+ambassador-64cdb74db5-gzflc     1/1       Running   0          13h       172.17.0.4    minikube
+ambassador-64cdb74db5-j8xqh     1/1       Running   0          13h       172.17.0.6    minikube
+ambassador-64cdb74db5-ptn8f     1/1       Running   0          13h       172.17.0.5    minikube
 ```
 
-## 3. Testing the Mapping
+Next open the Ambassador diagnostic overview webpage, you can find the IP Address by using one of the following commands:
+
+```bash
+# AWS (for Ambassador using HTTP)
+AMBASSADORURL=http://$(kubectl get service ambassador-admin --output jsonpath='{.status.loadBalancer.ingress[0].hostname}'):8877
+
+# GKE (for Ambassador using HTTP)
+AMBASSADORURL=http://$(kubectl get service ambassador-admin --output jsonpath='{.status.loadBalancer.ingress[0].ip}'):8877
+
+# Minikube (for Ambassador using HTTP)
+AMBASSADORURL=$(minikube service --url ambassador-admin)
+```
+
+will then let us view the diagnostics at http://$AMBASSADORURL/ambassador/v0/diag/.  If your not using minikube you will need to setup a port forward 
+
+
+## 2. Defining the Ambassador Service
+
+Ambassador is deployed as a Kubernetes service.  Create the following YAML and put it in a file called `ambassador-service.yaml`.
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+spec:
+  type: LoadBalancer
+  ports:
+   - port: 80
+  selector:
+    service: ambassador
+```
+
+It is critical that the selector label 'service: ambassador' is also a label set on the ambassador pods.  If the label is not set on the Ambassador pods routing will not work.  To confirm:
+
+```bash
+$ kubectl get pods --show-labels
+NAME                          READY     STATUS    RESTARTS   AGE       LABELS
+ambassador-64cdb74db5-gzflc   1/1       Running   0          14h       service=ambassador
+ambassador-64cdb74db5-j8xqh   1/1       Running   0          14h       service=ambassador
+ambassador-64cdb74db5-ptn8f   1/1       Running   0          14h       service=ambassador
+```
+
+Then, apply it to the Kubernetes with `kubectl`:
+
+```shell
+$ kubectl apply -f ambassador-service.yaml
+```
+
+The YAML above creates a Kubernetes service for Ambassador, of type `LoadBalancer`. All http traffic will be evaulated against the routing rules you setup.  Where the URL matches a rule it will be directed to the correct service.
+
+Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
+
+## 3. Lets create our first routing service!
+
+Create the following YAML and put it in a file called `httpbin.yaml`.
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: apigateway
+  name: httpbin
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  httpbin_mapping
+      prefix: /httpbin/
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+spec:
+  ports:
+  - name: httpbin
+    port: 80
+```
+
+Then, apply it to the Kubernetes with `kubectl`:
+
+```shell
+$ kubectl apply -f httpbin.yaml
+```
+
+The YAML file creates a route that will route traffic from `/httpbin/` to the public `httpbin.org` service. In Ambassador, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
+
+Also, note that we are using the `host_rewrite` attribute for the `httpbin_mapping` -- this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
+
+If you haven't already open the Ambassador Diagnostic webpage. You should now see a route rule for the httpbin service.
+
+## 4. Testing the Mapping
 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
@@ -86,14 +152,26 @@ Eventually, this should give you something like:
 NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
-
 You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`):
 
 ```shell
 $ curl 35.36.37.38/httpbin/
 ```
 
-## 4. Adding a Service
+or on minikube 
+
+```shell
+$ minikube service list
+|-------------|----------------------|-----------------------------|
+|  NAMESPACE  |         NAME         |             URL             |
+|-------------|----------------------|-----------------------------|
+| default     | ambassador-admin     | http://192.168.99.107:30319 |
+| default     | ambassador           | http://192.168.99.107:31893 |
+|-------------|----------------------|-----------------------------|
+$ curl http://192.168.99.107:31893/httpbin/
+```
+
+## 5. Adding a Service
 
 You can add a service just by deploying it with an appropriate annotation. For example, we can deploy the QoTM service locally in this cluster and automatically map it through Ambassador by creating `qotm.yaml` with the following:
 
@@ -112,7 +190,6 @@ metadata:
       prefix: /qotm/
       service: qotm
 spec:
-  type: ClusterIP
   selector:
     app: qotm
   ports:
@@ -157,7 +234,13 @@ A few seconds after the QoTM service is running, Ambassador should be configured
 $ curl 35.36.37.38/qotm/
 ```
 
-## 5. The Diagnostics Service in Kubernetes
+or
+
+```shell
+$ curl http://192.168.99.107:31893/qotm/
+```
+
+## 6. The Diagnostics Service in Kubernetes
 
 Note that we did not expose the diagnostics port for Ambassador, since we don't want to expose it on the Internet. To view it, we'll need to get the name of one of the ambassador pods:
 
