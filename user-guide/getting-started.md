@@ -24,42 +24,7 @@ Without RBAC, you can use:
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
-For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
-
-When Ambassador starts, it will notice the `getambassador.io/config` annotation on its own service, and use the `Mapping` contained in it to configure itself. (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
-
-To confirm Ambassador is running confirm that the ambassador-admin service is configured and the endpoints point to the ambassador pods:
-
-```shell
-kubectl get svc
-$ kubectl get svc
-NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
-ambassador-admin     NodePort       10.98.211.138    <none>        8877:30319/TCP   13h
-$ kubectl get endpoints
-NAME                 ENDPOINTS                                         AGE
-ambassador-admin     172.17.0.4:8877,172.17.0.5:8877,172.17.0.6:8877   13h
-$ kubectl get pod -o wide
-NAME                            READY     STATUS    RESTARTS   AGE       IP            NODE
-ambassador-64cdb74db5-gzflc     1/1       Running   0          13h       172.17.0.4    minikube
-ambassador-64cdb74db5-j8xqh     1/1       Running   0          13h       172.17.0.6    minikube
-ambassador-64cdb74db5-ptn8f     1/1       Running   0          13h       172.17.0.5    minikube
-```
-
-Next open the Ambassador diagnostic overview webpage, you can find the IP Address by using one of the following commands:
-
-```bash
-# AWS (for Ambassador using HTTP)
-AMBASSADORURL=http://$(kubectl get service ambassador-admin --output jsonpath='{.status.loadBalancer.ingress[0].hostname}'):8877
-
-# GKE (for Ambassador using HTTP)
-AMBASSADORURL=http://$(kubectl get service ambassador-admin --output jsonpath='{.status.loadBalancer.ingress[0].ip}'):8877
-
-# Minikube (for Ambassador using HTTP)
-AMBASSADORURL=$(minikube service --url ambassador-admin)
-```
-
-will then let us view the diagnostics at http://$AMBASSADORURL/ambassador/v0/diag/.  If your not using minikube you will need to setup a port forward 
-
+For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace). 
 
 ## 2. Defining the Ambassador Service
 
@@ -79,7 +44,7 @@ spec:
     service: ambassador
 ```
 
-It is critical that the selector label 'service: ambassador' is also a label set on the ambassador pods.  If the label is not set on the Ambassador pods routing will not work.  To confirm:
+It is critical that the selector label `service: ambassador` is also a label set on the ambassador pods.  If the label is not set on the Ambassador pods routing will not work.  To confirm:
 
 ```bash
 $ kubectl get pods --show-labels
@@ -95,11 +60,9 @@ Then, apply it to the Kubernetes with `kubectl`:
 $ kubectl apply -f ambassador-service.yaml
 ```
 
-The YAML above creates a Kubernetes service for Ambassador, of type `LoadBalancer`. All http traffic will be evaulated against the routing rules you setup.  Where the URL matches a rule it will be directed to the correct service.
+The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`. All HTTP traffic will be evaulated against the routing rules you setup. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
 
-Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
-
-## 3. Lets create our first routing service!
+## 3. Let's create our first routing service!
 
 Create the following YAML and put it in a file called `httpbin.yaml`.
 
