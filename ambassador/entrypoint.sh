@@ -62,7 +62,7 @@ handle_int() {
     echo "Exiting due to Control-C"
 }
 
-set -o monitor
+# set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
@@ -73,6 +73,8 @@ STATUS=$?
 if [ $STATUS -ne 0 ]; then
     diediedie "kubewatch sync" "$STATUS"
 fi
+
+export PYTHON_UNBUFFERED=true
 
 echo "AMBASSADOR: starting diagd"
 diagd --no-debugging "$CONFIG_DIR" &
