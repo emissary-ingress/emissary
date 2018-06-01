@@ -272,7 +272,7 @@ istio_running () {
 }
 
 ambassador_pod () {
-    kubectl get pod -l app=ambassador -o jsonpath='{.items[0].metadata.name}'
+    kubectl get pod -l service=ambassador -o jsonpath='{.items[0].metadata.name}'
 }
 
 kubectl_context () {

@@ -1,0 +1,10 @@
+MATCH kind Deployment
+MATCH metadata/name ambassador
+MKLIST spec/template/spec/containers/0/volumeMounts
+MKDICT spec/template/spec/containers/0/volumeMounts/0
+SET spec/template/spec/containers/0/volumeMounts/0/name upstream-certs
+SET spec/template/spec/containers/0/volumeMounts/0/mountPath /etc/certs/upstream
+MKLIST spec/template/spec/volumes
+MKDICT spec/template/spec/volumes/0
+SET spec/template/spec/volumes/0/name upstream-certs
+SET spec/template/spec/volumes/0/secret/secretName ambassador-certs-upstream
