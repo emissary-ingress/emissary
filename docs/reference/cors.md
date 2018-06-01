@@ -29,3 +29,40 @@ cors:
   exposed_headers: X-Custom-Header
   max_age: "86400"
 ```
+## [AuthService](services/auth-service.md) and Cross-Origin Resource Sharing
+
+When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
+If your `AuthService` implementation wants to deal with CORS itself, by default it will deny these requests, so you have to teach it to accept anything, because you implement CORS on a different level.
+
+For example, a possible configuration for Spring Boot 2.0.1: 
+```java
+@EnableWebSecurity
+class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    public void configure(final HttpSecurity http) throws Exception {
+        http
+            .cors().configurationSource(new PermissiveCorsConfigurationSource()).and()
+            .csrf().disable()
+            .authorizeRequests()
+                .antMatchers("**").permitAll();
+    }
+
+    private static class PermissiveCorsConfigurationSource implements CorsConfigurationSource {
+        /**
+         * Return a {@link CorsConfiguration} based on the incoming request.
+         *
+         * @param request
+         * @return the associated {@link CorsConfiguration}, or {@code null} if none
+         */
+        @Override
+        public CorsConfiguration getCorsConfiguration(final HttpServletRequest request) {
+            final CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowCredentials(true);
+            configuration.setAllowedHeaders(Collections.singletonList("*"));
+            configuration.setAllowedMethods(Collections.singletonList("*"));
+            configuration.setAllowedOrigins(Collections.singletonList("*"));
+            return configuration;
+        }
+    }
+}
+```
