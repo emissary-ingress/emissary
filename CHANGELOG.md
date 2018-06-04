@@ -10,6 +10,15 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.34.1] June 4, 2018
+[0.34.1]: https://github.com/datawire/ambassador/compare/0.34.0...0.34.1
+
+### Bugfixes
+
+- Unbuffer log output for better diagnostics.
+- Switch to gunicorn instead of Werkzeug for the diag service.
+- Use the YAML we release as the basis for end-to-end testing.
+
 ## [0.34.0] May 16, 2018
 [0.34.0]: https://github.com/datawire/ambassador/compare/0.33.1...0.34.0
 
