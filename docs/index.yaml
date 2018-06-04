@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   ambassador:
   - apiVersion: v1
+    appVersion: 0.34.1
+    created: 2018-06-04T15:40:25.3879762-04:00
+    description: A Helm chart for Datawire Ambassador
+    digest: b9ab6363bd4bc53784673930e6b43ce8676ae0e64d568f7a44fad73ad680c2cd
+    engine: gotpl
+    maintainers:
+    - email: flynn@datawire.io
+      name: Flynn
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    urls:
+    - https://www.getambassador.io/ambassador-0.34.1.tgz
+    version: 0.34.1
+  - apiVersion: v1
     appVersion: 0.34.0
     created: 2018-05-23T10:34:41.089823732-04:00
     description: A Helm chart for Datawire Ambassador

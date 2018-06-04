@@ -217,7 +217,7 @@ version:
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests:
-	cd end-to-end && sh create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE) $(STATSD_DOCKER_IMAGE)
+	cd end-to-end && bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE) $(STATSD_DOCKER_IMAGE)
 
 website-yaml:
 	mkdir -p docs/yaml

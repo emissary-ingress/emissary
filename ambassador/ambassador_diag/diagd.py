@@ -7,6 +7,7 @@ import functools
 import glob
 import json
 import logging
+import multiprocessing
 import os
 import re
 import signal
@@ -18,6 +19,8 @@ from pkg_resources import Requirement, resource_filename
 import clize
 from clize import Parameter
 from flask import Flask, render_template, send_from_directory, request, jsonify # Response
+import gunicorn.app.base
+from gunicorn.six import iteritems
 
 from ambassador.config import Config
 from ambassador.VERSION import Version
@@ -25,13 +28,16 @@ from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
 
 from .envoy import EnvoyStats
 
+def number_of_workers():
+    return (multiprocessing.cpu_count() * 2) + 1
+
 __version__ = Version
 
 boot_time = datetime.datetime.now()
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%%(asctime)s diagd %s %%(levelname)s: %%(message)s" % __version__,
+    format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
@@ -500,19 +506,10 @@ def source_lookup(name, sources):
 
     return source.get('_source', name)
 
-def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False):
-    """
-    Run the diagnostic daemon.
-
-    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param no_checks: If True, don't do Envoy-cluster health checking
-    :param no_debugging: If True, don't run Flask in debug mode
-    :param verbose: If True, be more verbose
-    """
-
+def create_diag_app(config_dir_path, do_checks=False, debug=False, verbose=False):
     app.estats = EnvoyStats()
     app.health_checks = False
-    app.debugging = not no_debugging
+    app.debugging = debug
 
     # This feels like overkill.
     app._logger = logging.getLogger(app.logger_name)
@@ -524,14 +521,62 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
     else:
         logging.getLogger("ambassador.config").setLevel(logging.INFO)
 
-    if not no_checks:
+    if do_checks:
         app.health_checks = True
-        app.logger.debug("Starting periodic updates")
-        app.stats_updater = PeriodicTrigger(app.estats.update, period=5)
 
     app.config_dir_prefix = config_dir_path
 
-    app.run(host='0.0.0.0', port=aconf(app).diag_port(), debug=app.debugging)
+    return app
+
+class StandaloneApplication(gunicorn.app.base.BaseApplication):
+    def __init__(self, app, options=None):
+        self.options = options or {}
+        self.application = app
+        super(StandaloneApplication, self).__init__()
+
+    def load_config(self):
+        config = dict([(key, value) for key, value in iteritems(self.options)
+                       if key in self.cfg.settings and value is not None])
+        for key, value in iteritems(config):
+            self.cfg.set(key.lower(), value)
+
+    def load(self):
+        if self.application.health_checks:
+            self.application.logger.info("Starting periodic updates")
+            self.application.stats_updater = PeriodicTrigger(self.application.estats.update, period=5)
+
+        return self.application
+
+
+def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
+          workers=None, port=8877, host='0.0.0.0'):
+    """
+    Run the diagnostic daemon.
+
+    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param no_checks: If True, don't do Envoy-cluster health checking
+    :param no_debugging: If True, don't run Flask in debug mode
+    :param verbose: If True, be more verbose
+    :param workers: Number of workers; default is based on the number of CPUs present
+    :param host: Interface on which to listen (default 0.0.0.0)
+    :param port: Port on which to listen (default 8877)
+    """
+    
+    # Create the application itself.
+    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, verbose)
+
+    if workers == None:
+        workers = number_of_workers()
+
+    gunicorn_config = {
+        'bind': '%s:%s' % (host, port),
+        # 'workers': 1,
+        'threads': workers,
+    }
+
+    app.logger.info("thread count %d, listening on %s" % (gunicorn_config['threads'], gunicorn_config['bind']))
+
+    StandaloneApplication(flask_app, gunicorn_config).run()
 
 def main():
     clize.run(_main)
