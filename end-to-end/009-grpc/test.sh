@@ -18,7 +18,11 @@ kubectl apply -f ${ROOT}/rbac.yaml
 
 kubectl cluster-info
 
-python ${ROOT}/fix_deployment.py grpc-test grpc-test ../ambassador-deployment.yaml k8s/ambassador-deployment.yaml
+python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml \
+    grpc-test \
+    grpc-test
 
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml

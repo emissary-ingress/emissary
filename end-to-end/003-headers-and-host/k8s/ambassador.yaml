@@ -14,7 +14,7 @@ metadata:
       service: 127.0.0.1:8877
 spec:
   selector:
-    app: ambassador
+    service: ambassador
   ports:
     - name: http
       protocol: TCP
