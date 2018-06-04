@@ -217,13 +217,7 @@ version:
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests:
-	sed -e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g" \
-		< end-to-end/ambassador-no-mounts.yaml \
-		> end-to-end/ambassador-deployment.yaml
-
-	sed -e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_IMAGE)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_IMAGE)|g" \
-		< end-to-end/ambassador-with-mounts.yaml \
-		> end-to-end/ambassador-deployment-mounts.yaml
+	cd end-to-end && sh create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE) $(STATSD_DOCKER_IMAGE)
 
 website-yaml:
 	mkdir -p docs/yaml

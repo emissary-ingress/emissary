@@ -22,7 +22,7 @@ metadata:
       host_rewrite: httpbin.org      
 spec:
   selector:
-    app: ambassador
+    service: ambassador
   ports:
     - name: http
       protocol: TCP

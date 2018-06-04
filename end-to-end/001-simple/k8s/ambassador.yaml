@@ -5,7 +5,7 @@ metadata:
   name: ambassador
 spec:
   selector:
-    app: ambassador
+    service: ambassador
   ports:
     - name: http
       protocol: TCP

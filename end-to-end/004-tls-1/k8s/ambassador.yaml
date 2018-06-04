@@ -45,7 +45,7 @@ metadata:
         - "x-hurkle"
 spec:
   selector:
-    app: ambassador
+    service: ambassador
   ports:
     - name: https
       protocol: TCP

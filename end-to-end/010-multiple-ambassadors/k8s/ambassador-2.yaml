@@ -6,7 +6,7 @@ metadata:
   namespace: test-010-2
 spec:
   selector:
-    app: ambassador
+    service: ambassador
   ports:
     - name: http
       protocol: TCP
