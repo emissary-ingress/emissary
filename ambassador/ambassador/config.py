@@ -893,6 +893,7 @@ class Config (object):
             diagnostics = { "enabled": True },
             tls_config = None,
             use_proxy_proto = False,
+            tracing = None,
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -924,6 +925,9 @@ class Config (object):
 
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
+
+        # Create tracing config
+        self.envoy_config['tracing'] = self.ambassador_module['tracing']
 
         # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
         self.envoy_config['filters'] = []
@@ -1313,6 +1317,40 @@ class Config (object):
 
         return some_enabled
 
+    def tracing_config_helper(self, name, amod):
+        tmp_config = SourcedDict(_from=amod)
+        tracing_config = amod['tracing']
+
+        # This is the name given to the cluster that 'host' points to
+        collector_cluster = "ambassador-tracing-service"
+        # For some  reason I'm not able to use this key value pair in the j2 template so it's hard-coded for now
+        tmp_config["collector_cluster"] = collector_cluster
+
+        for key in tracing_config.keys():
+            if key.startswith('_'):
+                continue
+
+            if key == 'driver':
+                driver = tracing_config.get(key, '').lower()
+                # Only allow user to create a 'zipkin' or 'lightstep' driver for now. Update with envoy
+                assert driver in ['zipkin', 'lightstep']
+                tmp_config[key] = driver
+
+            elif key == 'host':
+                host = tracing_config.get(key, '')
+                tmp_config[key] = host
+
+            elif key == 'config':
+                config = tracing_config.get(key, {})
+                config["collector_cluster"] = collector_cluster
+                tmp_config[key] = config
+
+        # Save tracing config
+        self.set_config_ambassador(amod, 'tracing', tmp_config)
+
+        # Log tracing info
+        self.logger.debug("Tracing config: %s" % json.dumps(self.ambassador_module['tracing'], indent=4))
+
     def module_config_ambassador(self, name, amod, tmod):
         # Toplevel Ambassador configuration. First up, check out TLS.
 
@@ -1324,11 +1362,14 @@ class Config (object):
         if not have_amod_tls and tmod:
             self.tls_config_helper(name, tmod, tmod)
 
+        if amod and ('tracing' in amod):
+            self.tracing_config_helper(name, amod)
+
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address' ]:
+                     'use_proxy_proto', 'use_remote_address', 'tracing', ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])

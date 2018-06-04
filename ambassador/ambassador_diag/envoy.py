@@ -200,6 +200,11 @@ class EnvoyStats (object):
 
                 node = node[key]
 
+            value = value.strip()
+
+            if value.startswith("P0("):
+                continue
+
             node[keypath[-1]] = int(value.strip())
 
         # Now dig into clusters a bit more.
