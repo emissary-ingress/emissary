@@ -19,3 +19,23 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 
 **Note well** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
+----
+Updating Ambassador's Envoy
+----
+
+Ambassador currently relies on a custom Envoy build which includes the Ambassador `extauth` filter. This build lives in `https://github.com/datawire/envoy`, which is a fork of `https://github.com/envoyproxy/envoy`, and it'll need to be updated at least as often as Envoy releases happen. To do that:
+
+1. Clone the `datawire/envoy` repo and get to the `datawire/extauth-build-automation` branch:
+
+    ```
+    git clone git@github.com:datawire/envoy.git
+    cd envoy
+    git checkout datawire/extauth-build-automation
+    ```
+
+2. Follow the directions in `DATAWIRE/README.md` to get everything built and tested and pushed.
+
+3. Once the new `ambassador-envoy` image has been pushed, get back to your clone of the Ambassador repo and update the `FROM` line in `ambassador/Dockerfile` to use the new image.
+
+4. Build and test Ambassador as normal.
+
