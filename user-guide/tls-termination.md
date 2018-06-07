@@ -99,7 +99,7 @@ config:
     # This is optional. It should not be present unless you are using
     # a custom Docker build to install certificates onto the container
     # filesystem.
-    # cacert_chain_file: /etc/cacert/fullchain.pem
+    # cacert_chain_file: /etc/cacert/tls.crt
 ```
 
 Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443, you _must_ use the `tls` module:
