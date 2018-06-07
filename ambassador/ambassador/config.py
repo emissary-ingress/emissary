@@ -301,7 +301,7 @@ class Config (object):
                 "private_key_file": "/etc/certs/tls.key"
             },
             "client": {
-                "cacert_chain_file": "/etc/cacert/fullchain.pem"
+                "cacert_chain_file": "/etc/cacert/tls.crt"
             }
         }
 

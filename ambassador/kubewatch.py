@@ -347,7 +347,7 @@ def sync(restarter):
                 if client_cert:
                     tls_mod['config']['client'] = {
                         "enabled": True,
-                        "cacert_chain_file": "/etc/cacert/tls.pem"
+                        "cacert_chain_file": "/etc/cacert/tls.crt"
                     }
 
                     if client_data.get('cert_required', None):
