@@ -16,7 +16,7 @@ step () {
     echo "==== $@"
 }
 
-initialize_cluster () {
+check_skip () {
     if [ -r "$ROOT/.skip-tests" ]; then
         test_name=$(basename $(pwd))
 
@@ -25,7 +25,11 @@ initialize_cluster () {
             exit 0
         fi
     fi
-    
+}
+
+initialize_cluster () {
+    check_skip
+
     if [ -z "$SKIP_CHECK_CONTEXT" ]; then
         interactive_check_context
     fi
@@ -54,6 +58,8 @@ drop_namespace () {
 }
 
 initialize_namespace () {
+    check_skip
+
     namespace="$1"
     
     if [ -z "$SKIP_CHECK_CONTEXT" ]; then

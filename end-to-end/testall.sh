@@ -33,42 +33,26 @@ else
     done
 fi
 
-# For linify
-export MACHINE_READABLE=yes
-export SKIP_CHECK_CONTEXT=yes
+cat /dev/null > master.log
 
-failures=0
-
-for dir in 0*; do
-    attempt=0
-    dir_passed=
-
-    while [ $attempt -lt 2 ]; do
-        echo
-        echo "================================================================"
-        echo "${attempt}: ${dir}..."
-
-        attempt=$(( $attempt + 1 ))
-
-        if bash $dir/test.sh 2>&1 | python linify.py test.log; then
-            echo "${dir} PASSED"
-            dir_passed=yes
-            break
-        else
-            echo "${dir} FAILED"
-
-            echo "================ k8s info"
-            kubectl get svc --all-namespaces
-            kubectl get pods --all-namespaces
-            echo "================ start captured output"
-            cat test.log
-            echo "================ end captured output"
-        fi
-    done
-
-    if [ -z "$dir_passed" ]; then
-        failures=$(( $failures + 1 ))
+run_and_log () {
+    if bash testone.sh "$1"; then
+        echo "$1 PASS" >> master.log
+    else
+        echo "$1 FAIL" >> master.log
     fi
+}
+
+for dir in 0-serial/[0-9]*; do
+    run_and_log "$dir"
 done
+
+for dir in 1-parallel/[0-9]*; do
+    run_and_log "$dir" &
+done
+
+wait
+
+failures=$(grep -c 'FAIL' master.log)
 
 exit $failures

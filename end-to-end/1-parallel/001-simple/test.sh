@@ -6,18 +6,30 @@ HERE=$(cd $(dirname $0); pwd)
 
 cd "$HERE"
 
-ROOT=$(cd ..; pwd)
+ROOT=$(cd ../..; pwd)
 PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-initialize_cluster
+initialize_namespace "simple-test"
+
+# Make sure cluster-wide RBAC is set up.
+kubectl apply -f ${ROOT}/rbac.yaml
 
 kubectl cluster-info
 
-kubectl create cm ambassador-config --from-file k8s/base-config.yaml
+python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml \
+    simple-test \
+    simple-test
+
+kubectl apply -f k8s/rbac.yaml
+
+kubectl create cm ambassador-config --namespace=simple-test --from-file k8s/base-config.yaml
+
 kubectl apply -f k8s/ambassador.yaml
-kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f ${ROOT}/stats-test.yaml
 
 set +e +o pipefail
@@ -25,7 +37,7 @@ set +e +o pipefail
 wait_for_pods
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador)
+APORT=$(service_port ambassador simple-test)
 
 BASEURL="http://${CLUSTER}:${APORT}"
 

@@ -83,9 +83,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "base-config.yaml.1"
+            "base-config.yaml.2"
         ],
-        "_source": "base-config.yaml.1",
+        "_source": "base-config.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -107,9 +107,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "qotm-default.yaml.1"
+            "qotm-simple-test.yaml.2"
         ],
-        "_source": "qotm-default.yaml.1",
+        "_source": "qotm-simple-test.yaml.2",
         "clusters": [
             {
                 "name": "cluster_qotm",
