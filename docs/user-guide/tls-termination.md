@@ -119,7 +119,32 @@ is the minimal YAML to do this.
 
 If you need a `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself. 
 
-## Legacy configuration options
+## Certificate Manager
 
-It's still possible - but not recommended! - to configure Ambassador using a `ConfigMap`, or with YAML files on the container filesystem. If you think you'll need to do this, please contact us on [Gitter](https://gitter.im/datawire/ambassador).
+Jetstack's [cert-manager](https://github.com/jetstack/cert-manager) lets you easily provision and manage TLS certificates on Kubernetes. No special configuration is required to use Ambassador with `cert-manager`.
 
+Once `cert-manager` is running and you have successfully created the issuer, you can request a certificate such as the following:
+
+```
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: cloud-foo-com
+  namespace: default
+spec:
+  secretName: ambassador-certs
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: cloud.foo.com
+  dnsNames:
+  - cloud.foo.com
+  acme:
+    config:
+    - dns01:
+        provider: clouddns
+      domains:
+      - cloud.foo.com
+```
+
+Note the `secretName` line above. When the certificate has been stored in the secret, restart Ambasador to pick up the new certificate.
