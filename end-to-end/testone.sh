@@ -17,7 +17,10 @@ while [ $attempt -lt 2 ]; do
 
     attempt=$(( $attempt + 1 ))
 
-    if bash $DIR/test.sh 2>&1 | python linify.py $LOG; then
+    bash $DIR/test.sh 2>&1 | python linify.py $LOG
+
+    # I hate shell sometimes.
+    if [ ${PIPESTATUS[0]} -eq 0 ]; then
         echo "$DIR PASSED"
         dir_passed=yes
         break
