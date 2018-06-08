@@ -6,16 +6,10 @@ Ambassador is designed to allow service authors to control how their service is 
 
 ## 1. Deploying Ambassador
 
-To deploy Ambassador in your default namespace, run this command if you're running in a cluster with RBAC enabled:
+To deploy Ambassador in your default namespace, run this command:
 
 ```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-```
-
-Without RBAC, you can use:
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador.yaml
 ```
 
 For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace). 
