@@ -28,6 +28,18 @@ spec:
       containers:
       - name: example-auth
         image: datawire/ambassador-auth-service:1.1.1
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 4
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 4
         ports:
         - name: http-api
           containerPort: 3000
