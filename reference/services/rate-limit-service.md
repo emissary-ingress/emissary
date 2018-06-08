@@ -49,5 +49,6 @@ The [Ambassador Rate Limiting Tutorial](../../user-guide/rate-limiting-tutorial.
 * [Rate limiting: a useful tool with distributed systems](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4)
 * [Rate limiting for API Gateways](https://blog.getambassador.io/rate-limiting-for-api-gateways-892310a2da02)
 * [Implementing a Java Rate Limiting Service for Ambassador](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da)
+* [Designing a Rate Limit Service for Ambassador](https://blog.getambassador.io/designing-a-rate-limiting-service-for-ambassador-f460e9fabedb)
 
 
