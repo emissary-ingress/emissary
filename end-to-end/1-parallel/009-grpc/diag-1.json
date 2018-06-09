@@ -59,9 +59,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "grpc-service-grpc-test.yaml.2"
+            "grpc-service-009-grpc.yaml.2"
         ],
-        "_source": "grpc-service-grpc-test.yaml.2",
+        "_source": "grpc-service-009-grpc.yaml.2",
         "clusters": [
             {
                 "name": "cluster_grpc_service_50051",
@@ -107,9 +107,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "grpc-service-grpc-test.yaml.3"
+            "grpc-service-009-grpc.yaml.3"
         ],
-        "_source": "grpc-service-grpc-test.yaml.3",
+        "_source": "grpc-service-009-grpc.yaml.3",
         "clusters": [
             {
                 "name": "cluster_grpc_service_50051",

@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: statsd-sink
+  namespace: 001-simple
 spec:
   selector:
     app: stats-test
@@ -16,6 +17,7 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: stats-test
+  namespace: 001-simple
 spec:
   replicas: 1
   strategy:

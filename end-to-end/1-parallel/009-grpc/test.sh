@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -ex -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
 
@@ -11,31 +11,30 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-initialize_namespace "grpc-test"
+check_rbac
 
-# Make sure cluster-wide RBAC is set up.
-kubectl apply -f ${ROOT}/rbac.yaml
+initialize_namespace "009-grpc"
 
 kubectl cluster-info
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
-    grpc-test \
-    grpc-test
+    009-grpc \
+    009-grpc
 
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f k8s/grpc.yaml
-# kubectl run demotest -n grpc-test --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+# kubectl run demotest -n 009-grpc --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
-wait_for_pods grpc-test
+wait_for_pods 009-grpc
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador grpc-test)
+APORT=$(service_port ambassador 009-grpc)
 # DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="http://${CLUSTER}:${APORT}"

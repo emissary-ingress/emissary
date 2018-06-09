@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 set -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
+ROOT=$HERE
 BUILD_ALL=${BUILD_ALL:-false}
 
 cd "$HERE"
 source "$HERE/kubernaut_utils.sh"
+source "$HERE/utils.sh"
 
 if [ "$BUILD_ALL" = true ]; then
   bash buildall.sh
@@ -32,6 +34,8 @@ else
         esac
     done
 fi
+
+check_rbac
 
 cat /dev/null > master.log
 

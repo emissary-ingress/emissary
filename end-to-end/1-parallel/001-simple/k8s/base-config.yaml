@@ -2,7 +2,7 @@
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  diag_mapping
-ambassador_id: simple-test
+ambassador_id: 001-simple
 prefix: /ambassador/
 rewrite: /ambassador/
 service: 127.0.0.1:8877

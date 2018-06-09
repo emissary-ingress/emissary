@@ -27,9 +27,39 @@ check_skip () {
     fi
 }
 
+check_rbac () {
+    count=$(kubectl get clusterrole ambassador 2>/dev/null | grep -v NAME | wc -l || :)
+
+    if [ $count -eq 0 ]; then
+        kubectl apply -f $ROOT/rbac.yaml
+
+        attempts=60
+        running=
+
+        while [ $attempts -gt 0 ]; do
+            count=$(kubectl get clusterrole ambassador 2>/dev/null | grep -v NAME | wc -l || :)
+
+            if [ $count -gt 0 ]; then
+                printf "Ambassador main RBAC OK             \n"
+                running=yes
+                break
+            fi
+
+            printf "try %02d: waiting for RBAC\r"
+            attempts=$(( $attempts - 1 ))
+            sleep 2
+        done
+
+        if [ -z "$running" ]; then
+            echo "could not initialize Ambassador main RBAC" >&2
+            exit 1
+        fi
+    fi
+}
+
 initialize_cluster () {
     check_skip
-
+    
     if [ -z "$SKIP_CHECK_CONTEXT" ]; then
         interactive_check_context
     fi
@@ -49,6 +79,34 @@ initialize_cluster () {
 
 drop_namespace () {
     namespace="$1"
+
+    count=$(kubectl get clusterrolebinding | grep -c "ambassador-${namespace}" || true)
+
+    if [ $count -gt 0 ]; then
+        kubectl delete clusterrolebinding ambassador-${namespace}
+
+        attempts=60
+        gone=
+
+        while [ $attempts -gt 0 ]; do
+            count=$(kubectl get clusterrolebinding | grep -c "ambassador-${namespace}" || true)
+
+            if [ $count -eq 0 ]; then
+                printf "Clusterrolebinding cleared.              \n"
+                gone=yes
+                break
+            fi
+
+            printf "try %02d: waiting for clusterrolebinding\r"
+            attempts=$(( $attempts - 1 ))
+            sleep 2
+        done
+
+        if [ -z "$gone" ]; then
+            echo "could not delete clusterrolebinding ambassador-${namespace}" >&2
+            exit 1
+        fi
+    fi
 
     count=$(kubectl get namespaces | grep -c "^${namespace} " || true)
 
@@ -98,7 +156,7 @@ wait_for_namespace_deletion() {
     attempts=60
     running=
 
-    echo "Waiting for deletion"
+    echo "Waiting for namespace deletion"
 
     while [ $attempts -gt 0 ]; do
         # XXX This " || : " BS at the end is because grep -c -v returns an exit code of
@@ -312,7 +370,15 @@ istio_running () {
 }
 
 ambassador_pod () {
-    kubectl get pod -l service=ambassador -o jsonpath='{.items[0].metadata.name}'
+    namespace=${1:-default}
+    apod=$(kubectl get pod -l service=ambassador -n "$namespace" -o jsonpath='{.items[0].metadata.name}')
+
+    if [ $? -ne 0 ]; then
+        echo "Could not find Ambassador pod" >&2
+        exit 1
+    fi
+
+    echo $apod
 }
 
 kubectl_context () {

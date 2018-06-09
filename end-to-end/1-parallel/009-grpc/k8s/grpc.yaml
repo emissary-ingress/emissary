@@ -3,14 +3,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grpc-service
-  namespace: grpc-test
+  namespace: 009-grpc
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: Mapping
       name: grpc-service
-      ambassador_id: grpc-test
+      ambassador_id: 009-grpc
       grpc: true
       prefix: /helloworld.Greeter/
       rewrite: /helloworld.Greeter/
@@ -19,7 +19,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Mapping
       name: grpc-service-grpcreflect
-      ambassador_id: grpc-test
+      ambassador_id: 009-grpc
       grpc: true
       prefix: /grpc.
       rewrite: /grpc.
@@ -38,7 +38,7 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: grpc-service
-  namespace: grpc-test
+  namespace: 009-grpc
 spec:
   replicas: 1
   template:

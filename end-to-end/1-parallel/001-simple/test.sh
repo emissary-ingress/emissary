@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -o pipefail
+set -ex -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
 
@@ -11,33 +11,32 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-initialize_namespace "simple-test"
+check_rbac
 
-# Make sure cluster-wide RBAC is set up.
-kubectl apply -f ${ROOT}/rbac.yaml
+initialize_namespace "001-simple"
 
 kubectl cluster-info
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
-    simple-test \
-    simple-test
+    001-simple \
+    001-simple
 
 kubectl apply -f k8s/rbac.yaml
 
-kubectl create cm ambassador-config --namespace=simple-test --from-file k8s/base-config.yaml
+kubectl create cm ambassador-config --namespace=001-simple --from-file k8s/base-config.yaml
 
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
-kubectl apply -f ${ROOT}/stats-test.yaml
+kubectl apply -f k8s/stats-test.yaml
 
 set +e +o pipefail
 
-wait_for_pods
+wait_for_pods 001-simple
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador simple-test)
+APORT=$(service_port ambassador 001-simple)
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -84,8 +83,10 @@ if ! qtest.py $CLUSTER:$APORT test-2.yaml; then
     exit 1
 fi
 
-APOD=$(ambassador_pod)
-kubectl exec "$APOD" -c ambassador -- sh -c 'echo "DUMP" | nc -u -w 1 statsd-sink 8125' > stats.json
+set -e
+
+APOD=$(ambassador_pod 001-simple)
+kubectl exec "$APOD" -n 001-simple -c ambassador -- sh -c 'echo "DUMP" | nc -u -w 1 statsd-sink 8125' > stats.json
 
 rqt=$(jget.py envoy.cluster.cluster_qotm.upstream_rq_total < stats.json)
 

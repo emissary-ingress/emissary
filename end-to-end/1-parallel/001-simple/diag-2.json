@@ -107,9 +107,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "qotm-simple-test.yaml.2"
+            "qotm-001-simple.yaml.2"
         ],
-        "_source": "qotm-simple-test.yaml.2",
+        "_source": "qotm-001-simple.yaml.2",
         "clusters": [
             {
                 "name": "cluster_qotm",
