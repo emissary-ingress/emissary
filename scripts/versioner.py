@@ -100,7 +100,10 @@ class VersionedBranch (object):
                  self.version, str(self.versioned_commit)[0:8]))
 
     def __str__(self):
-        return unicode(self)
+        try:
+            return unicode(self)
+        except NameError:
+            return self.__unicode__()
 
     def recent_commits(self, since_tag=None):
         if not since_tag:
