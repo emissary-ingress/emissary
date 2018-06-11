@@ -124,7 +124,7 @@
             {
                 "_source": "--internal--",
                 "require_tls": false,
-                "service_port": 80,
+                "service_port": 8080,
                 "use_proxy_proto": false
             }
         ],
