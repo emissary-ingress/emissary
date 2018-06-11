@@ -10,6 +10,14 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.34.2] June 11, 2018
+[0.34.2]: https://github.com/datawire/ambassador/compare/0.34.1...0.34.2
+
+### Changed
+
+- Ambassador is now based on Envoy 1.6.0!
+- Re-support the `ambassador-cacert` secret for configuring TLS client-certificate authentication. **Note well** that a couple of things have changed in setting this up: you'll use the key `tls.crt`, not `fullchain.pem`. See https://www.getambassador.io/reference/auth-tls-certs for more.
+
 ## [0.34.1] June 4, 2018
 [0.34.1]: https://github.com/datawire/ambassador/compare/0.34.0...0.34.1
 
