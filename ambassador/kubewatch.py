@@ -302,7 +302,9 @@ def save_cert(cert, key, dir):
         pass
 
     open(os.path.join(dir, "tls.crt"), "w").write(cert.decode("utf-8"))
-    open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
+
+    if key:
+        open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
 
 def sync(restarter):
     v1 = kube_v1()
@@ -329,10 +331,13 @@ def sync(restarter):
                                                              restarter.namespace)
 
             if server_cert and server_key:
+                ambassador_id = os.getenv("AMBASSADOR_ID", "default")
+
                 tls_mod = {
                     "apiVersion": "ambassador/v0",
                     "kind": "Module",
                     "name": "tls-from-ambassador-certs",
+                    "ambassador_id": ambassador_id,
                     "config": {
                         "server": {
                             "enabled": True,
@@ -347,7 +352,7 @@ def sync(restarter):
                 if client_cert:
                     tls_mod['config']['client'] = {
                         "enabled": True,
-                        "cacert_chain_file": "/etc/cacert/tls.pem"
+                        "cacert_chain_file": "/etc/cacert/tls.crt"
                     }
 
                     if client_data.get('cert_required', None):
@@ -355,7 +360,9 @@ def sync(restarter):
 
                     save_cert(client_cert, None, "/etc/cacert")
 
-                restarter.update("tls.yaml", yaml.safe_dump(tls_mod))
+                tls_yaml = yaml.safe_dump(tls_mod)
+                logger.debug("generated TLS config %s" % tls_yaml)
+                restarter.update("tls.yaml", tls_yaml)
 
         # Next, check for annotations and such.
         svc_list = None

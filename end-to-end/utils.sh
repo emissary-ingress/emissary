@@ -267,6 +267,32 @@ check_diag () {
     return $rc
 }
 
+check_listeners () {
+    baseurl=$1
+    index=$2
+    desc=$3
+
+    sleep 20
+
+    rc=1
+
+    curl -k -s ${baseurl}/ambassador/v0/diag/?json=true | jget.py /listeners > check-l-$index.json
+
+    if ! cmp -s check-l-$index.json listeners-$index.json; then
+        echo "check_listeners $index: mismatch for $desc"
+
+        if diag-diff.sh listeners-$index.json check-l-$index.json; then
+            diag-fix.sh listeners-$index.json check-l-$index.json
+            rc=0
+        fi
+    else
+        echo "check_listeners $index: OK"
+        rc=0
+    fi
+
+    return $rc
+}
+
 istio_running () {
     kubectl get service istio-mixer >/dev/null 2>&1
 }
