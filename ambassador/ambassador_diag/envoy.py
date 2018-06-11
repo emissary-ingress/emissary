@@ -133,7 +133,7 @@ class EnvoyStats (object):
             if level:
                 url += "?level=%s" % level
 
-            r = requests.get(url)
+            r = requests.post(url)
         except OSError as e:
             logging.warning("EnvoyStats.update_log_levels failed: %s" % e)
             self.stats['update_errors'] += 1
