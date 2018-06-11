@@ -11,10 +11,9 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-initialize_namespace "008-cacert"
+check_rbac
 
-# Make sure cluster-wide RBAC is set up.
-kubectl apply -f ${ROOT}/rbac.yaml
+initialize_namespace "008-cacert"
 
 kubectl cluster-info
 
