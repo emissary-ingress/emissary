@@ -255,10 +255,14 @@ check_diag () {
     if ! cmp -s check-$index.json diag-$index.json; then
         echo "check_diag $index: mismatch for $desc"
 
-        if diag-diff.sh $index; then
-            diag-fix.sh $index
-            rc=0
-        fi
+        if [ -r ${ROOT}/diag-diff.sh ]; then
+            if sh ${ROOT}/diag-diff.sh $index; then
+                sh ${ROOT}/diag-fix.sh $index
+                rc=0
+            fi
+        else
+            diff -u check-$index.json diag-$index.json
+        fi            
     else
         echo "check_diag $index: OK"
         rc=0
@@ -281,9 +285,13 @@ check_listeners () {
     if ! cmp -s check-l-$index.json listeners-$index.json; then
         echo "check_listeners $index: mismatch for $desc"
 
-        if diag-diff.sh listeners-$index.json check-l-$index.json; then
-            diag-fix.sh listeners-$index.json check-l-$index.json
-            rc=0
+        if [ -r ${ROOT}/diag-diff.sh ]; then
+            if sh ${ROOT}/diag-diff.sh listeners-$index.json check-l-$index.json; then
+                sh ${ROOT}/diag-fix.sh listeners-$index.json check-l-$index.json
+                rc=0
+            fi
+        else
+            diff -u listeners-$index.json check-l-$index.json
         fi
     else
         echo "check_listeners $index: OK"
