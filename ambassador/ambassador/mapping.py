@@ -3,22 +3,23 @@ import hashlib
 from .utils import SourcedDict
 
 #############################################################################
-## mapping.py -- the mapping configuration object for Ambassador
+# mapping.py -- the mapping configuration object for Ambassador
 ##
-## Mappings are complex enough that they get their own class. Other elements
-## will likely follow, but Mapping is a big deal.
+# Mappings are complex enough that they get their own class. Other elements
+# will likely follow, but Mapping is a big deal.
 ##
-## Each Mapping object has a group_id that reflects the group of Mappings
-## that it is a part of. By definition, two Mappings with the same group_id
-## are reflecting a single mapped resource that's going to multiple services.
-## This implies that Mapping.group_id() is a very, very, very important 
-## thing that can have dramatic customer impact if changed! (At some point,
-## we should probably allow the human writing the Mapping to override the
-## grouping, in much the same way we allow overriding precedence.)
+# Each Mapping object has a group_id that reflects the group of Mappings
+# that it is a part of. By definition, two Mappings with the same group_id
+# are reflecting a single mapped resource that's going to multiple services.
+# This implies that Mapping.group_id() is a very, very, very important
+# thing that can have dramatic customer impact if changed! (At some point,
+# we should probably allow the human writing the Mapping to override the
+# grouping, in much the same way we allow overriding precedence.)
 ##
-## Each Mapping object also has a weight, which is used for ordering. The
-## default is computing in Mapping.route_weight(), but it can be overridden
-## using the precedence field in the Mapping object.
+# Each Mapping object also has a weight, which is used for ordering. The
+# default is computing in Mapping.route_weight(), but it can be overridden
+# using the precedence field in the Mapping object.
+
 
 class Mapping (object):
     @classmethod
@@ -47,10 +48,12 @@ class Mapping (object):
         len_headers = 0
 
         for hdr in headers:
-            len_headers += len(hdr['name']) + len(hdr.get('value', '*')) + (1 if hdr.get('regex', False) else 0)
+            len_headers += len(hdr['name']) + len(hdr.get('value', '*')
+                                                  ) + (1 if hdr.get('regex', False) else 0)
 
-        weight = [ precedence, len(prefix), len_headers, prefix, method ]
-        weight += [ hdr['name'] + '-' + hdr.get('value', '*') for hdr in headers ]
+        weight = [precedence, len(prefix), len_headers, prefix, method]
+        weight += [hdr['name'] + '-' +
+                   hdr.get('value', '*') for hdr in headers]
 
         if not route.get('__saved', None):
             route['__saved'] = weight
@@ -91,12 +94,13 @@ class Mapping (object):
 
         for name, value in self.get('headers', {}).items():
             if value == True:
-                self.headers.append({ "name": name })
+                self.headers.append({"name": name})
             else:
-                self.headers.append({ "name": name, "value": value, "regex": False })
+                self.headers.append(
+                    {"name": name, "value": value, "regex": False})
 
         for name, value in self.get('regex_headers', {}).items():
-            self.headers.append({ "name": name, "value": value, "regex": True })
+            self.headers.append({"name": name, "value": value, "regex": True})
 
         if 'host' in self.attrs:
             self.headers.append({
@@ -113,7 +117,8 @@ class Mapping (object):
             })
 
         # OK. After all that we can compute the group ID.
-        self.group_id = Mapping.group_id(self.method, self.prefix, self.headers)
+        self.group_id = Mapping.group_id(
+            self.method, self.prefix, self.headers)
 
     def __getitem__(self, key):
         return self.attrs[key]
@@ -137,8 +142,8 @@ class Mapping (object):
         shadow = self.get('shadow', False)
 
         if not host_redirect and not shadow:
-            route['clusters'] = [ { "name": cluster_name,
-                                    "weight": self.get("weight", None) } ]
+            route['clusters'] = [{"name": cluster_name,
+                                  "weight": self.get("weight", None)}]
         else:
             route.setdefault('clusters', [])
 
@@ -161,7 +166,8 @@ class Mapping (object):
         if add_request_headers:
             route['request_headers_to_add'] = []
             for key, value in add_request_headers.items():
-                route['request_headers_to_add'].append({"key": key, "value": value})
+                route['request_headers_to_add'].append(
+                    {"key": key, "value": value})
 
         cors = self.get('cors')
         if cors:
@@ -185,10 +191,12 @@ class Mapping (object):
                 rate_limits_actions.append({'type': 'remote_address'})
                 rate_limit_descriptor = rate_limit.get('descriptor', None)
                 if rate_limit_descriptor:
-                    rate_limits_actions.append({'type': 'generic_key', 'descriptor_value': rate_limit_descriptor})
+                    rate_limits_actions.append(
+                        {'type': 'generic_key', 'descriptor_value': rate_limit_descriptor})
                 rate_limit_headers = rate_limit.get('headers', [])
                 for rate_limit_header in rate_limit_headers:
-                    rate_limits_actions.append({'type': 'request_headers', 'header_name': rate_limit_header, 'descriptor_key': rate_limit_header})
+                    rate_limits_actions.append(
+                        {'type': 'request_headers', 'header_name': rate_limit_header, 'descriptor_key': rate_limit_header})
                 route['rate_limits'].append({'actions': rate_limits_actions})
 
         # Even though we don't use it for generating the Envoy config, go ahead
@@ -210,6 +218,7 @@ class Mapping (object):
         # Done!
         return route
 
+
 if __name__ == "__main__":
     import sys
 
@@ -222,7 +231,7 @@ if __name__ == "__main__":
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
-            # dealing with the actual object gets deferred 
+            # dealing with the actual object gets deferred
             objects = list(yaml.safe_load_all(open(path, "r")))
         except Exception as e:
             print("%s: could not parse YAML: %s" % (path, e))
@@ -238,4 +247,5 @@ if __name__ == "__main__":
 
                 print("%s: %s" % (m.name, m.group_id))
 
-                print(json.dumps(m.new_route("test_cluster"), indent=4, sort_keys=True))
+                print(json.dumps(m.new_route("test_cluster"),
+                                 indent=4, sort_keys=True))

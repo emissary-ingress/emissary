@@ -18,7 +18,7 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, send_from_directory, request, jsonify # Response
+from flask import Flask, render_template, send_from_directory, request, jsonify  # Response
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
@@ -28,8 +28,10 @@ from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
 
 from .envoy import EnvoyStats
 
+
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
+
 
 __version__ = Version
 
@@ -58,7 +60,8 @@ envoy_targets = {
     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
 }
 
-######## DECORATORS
+# DECORATORS
+
 
 def standard_handler(f):
     func_name = getattr(f, '__name__', '<anonymous>')
@@ -66,7 +69,8 @@ def standard_handler(f):
     @functools.wraps(f)
     def wrapper(*args, **kwds):
         reqid = str(uuid.uuid4()).upper()
-        prefix = "%s: %s \"%s %s\"" % (reqid, request.remote_addr, request.method, request.path)
+        prefix = "%s: %s \"%s %s\"" % (
+            reqid, request.remote_addr, request.method, request.path)
 
         start = datetime.datetime.now()
 
@@ -101,17 +105,21 @@ def standard_handler(f):
         end = datetime.datetime.now()
         ms = int(((end - start).total_seconds() * 1000) + .5)
 
-        app.logger.log(result_log_level, "%s %dms %d %s" % (prefix, ms, status_to_log, result_to_log))
+        app.logger.log(result_log_level, "%s %dms %d %s" %
+                       (prefix, ms, status_to_log, result_to_log))
 
         return result
 
     return wrapper
+
 
 # Get the Flask app defined early.
 app = Flask(__name__,
             template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
 # Next, various helpers.
+
+
 def aconf(app):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
 
@@ -119,9 +127,11 @@ def aconf(app):
     # configs.append("%s-87-envoy.json" % app.config_dir_prefix)
 
     if configs:
-        keyfunc = lambda x: x.split("-")[-1]
-        key_match = lambda x: re.match('^\d+$', keyfunc(x))
-        key_as_int = lambda x: int(keyfunc(x))
+        def keyfunc(x): return x.split("-")[-1]
+
+        def key_match(x): return re.match('^\d+$', keyfunc(x))
+
+        def key_as_int(x): return int(keyfunc(x))
 
         configs = sorted(filter(key_match, configs), key=key_as_int)
 
@@ -142,6 +152,7 @@ def aconf(app):
 
     return aconf
 
+
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
@@ -153,12 +164,12 @@ def td_format(td_object):
         ('second', 1)
     ]
 
-    strings=[]
-    for period_name,period_seconds in periods:
+    strings = []
+    for period_name, period_seconds in periods:
         if seconds > period_seconds:
-            period_value, seconds = divmod(seconds,period_seconds)
+            period_value, seconds = divmod(seconds, period_seconds)
 
-            strings.append("%d %s%s" % 
+            strings.append("%d %s%s" %
                            (period_value, period_name, "" if (period_value == 1) else "s"))
 
     formatted = ", ".join(strings)
@@ -168,11 +179,13 @@ def td_format(td_object):
 
     return formatted
 
+
 def interval_format(seconds, normal_format, now_message):
     if seconds >= 1:
         return normal_format % td_format(datetime.timedelta(seconds=seconds))
     else:
         return now_message
+
 
 def system_info():
     return {
@@ -182,15 +195,19 @@ def system_info():
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }
 
+
 def cluster_stats(clusters):
-    cluster_names = [ x['name'] for x in clusters ]
-    return { name: app.estats.cluster_stats(name) for name in cluster_names }
+    cluster_names = [x['name'] for x in clusters]
+    return {name: app.estats.cluster_stats(name) for name in cluster_names}
+
 
 def source_key(source):
     return "%s.%d" % (source['filename'], source['index'])
 
+
 def sorted_sources(sources):
     return sorted(sources, key=source_key)
+
 
 def route_cluster_info(route, route_clusters, cluster, cluster_info, type_label):
     c_name = cluster['name']
@@ -224,12 +241,13 @@ def route_cluster_info(route, route_clusters, cluster, cluster_info, type_label)
     if type_label:
         route_clusters[c_name]['type_label'] = type_label
 
+
 def route_and_cluster_info(request, overview, clusters, cstats):
     request_host = request.headers.get('Host', '*')
     request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
     tls_active = request_scheme == 'https'
 
-    cluster_info = { cluster['name']: cluster for cluster in clusters }
+    cluster_info = {cluster['name']: cluster for cluster in clusters}
 
     for cluster_name, cstat in cstats.items():
         c_info = cluster_info.setdefault(cluster_name, {
@@ -252,19 +270,21 @@ def route_and_cluster_info(request, overview, clusters, cstats):
             route_clusters = {}
 
             for cluster in route['clusters']:
-                route_cluster_info(route, route_clusters, cluster, cluster_info, None)
+                route_cluster_info(route, route_clusters,
+                                   cluster, cluster_info, None)
 
             if 'host_redirect' in route:
-                    # XXX Stupid hackery here. redirect_cluster should be a real 
-                    # Cluster object.
-                    redirect_cluster = {
-                        'name': route['host_redirect'],
-                        'weight': 100
-                    }
+                # XXX Stupid hackery here. redirect_cluster should be a real
+                # Cluster object.
+                redirect_cluster = {
+                    'name': route['host_redirect'],
+                    'weight': 100
+                }
 
-                    route_cluster_info(route, route_clusters, redirect_cluster, cluster_info, "redirect")
-                    app.logger.info("host_redirect route: %s" % route)
-                    app.logger.info("host_redirect clusters: %s" % route_clusters)
+                route_cluster_info(route, route_clusters,
+                                   redirect_cluster, cluster_info, "redirect")
+                app.logger.info("host_redirect route: %s" % route)
+                app.logger.info("host_redirect clusters: %s" % route_clusters)
 
             if 'shadow' in route:
                 shadow_info = route['shadow']
@@ -278,7 +298,8 @@ def route_and_cluster_info(request, overview, clusters, cstats):
                         'weight': 100
                     }
 
-                    route_cluster_info(route, route_clusters, shadow_cluster, cluster_info, "shadow")
+                    route_cluster_info(route, route_clusters,
+                                       shadow_cluster, cluster_info, "shadow")
 
             headers = []
 
@@ -295,7 +316,8 @@ def route_and_cluster_info(request, overview, clusters, cstats):
 
             sep = "" if prefix.startswith("/") else "/"
 
-            route_key = "%s://%s%s%s" % (request_scheme, host if host else request_host, sep, prefix)
+            route_key = "%s://%s%s%s" % (request_scheme,
+                                         host if host else request_host, sep, prefix)
 
             route_info.append({
                 '_route': route,
@@ -318,13 +340,16 @@ def route_and_cluster_info(request, overview, clusters, cstats):
 
     return route_info, cluster_info
 
+
 def envoy_status(estats):
-    since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
+    since_boot = interval_format(
+        estats.time_since_boot(), "%s", "less than a second")
 
     since_update = "Never updated"
 
     if estats.time_since_update():
-        since_update = interval_format(estats.time_since_update(), "%s ago", "within the last second")
+        since_update = interval_format(
+            estats.time_since_update(), "%s ago", "within the last second")
 
     return {
         "alive": estats.is_alive(),
@@ -333,32 +358,36 @@ def envoy_status(estats):
         "since_update": since_update
     }
 
+
 def clean_notices(notices):
     cleaned = []
 
     for notice in notices:
         try:
             if isinstance(notice, str):
-                cleaned.append({ "level": "WARNING", "message": notice })
+                cleaned.append({"level": "WARNING", "message": notice})
             else:
                 lvl = notice['level'].upper()
                 msg = notice['message']
 
-                cleaned.append({ "level": lvl, "message": msg })
+                cleaned.append({"level": lvl, "message": msg})
         except KeyError:
-            cleaned.append({ "level": "WARNING", "message": json.dumps(notice) })
+            cleaned.append({"level": "WARNING", "message": json.dumps(notice)})
         except:
-            cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
+            cleaned.append({"level": "ERROR", "message": json.dumps(notice)})
 
     return cleaned
 
-@app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
+
+@app.route('/ambassador/v0/favicon.ico', methods=['GET'])
 def favicon():
-    template_path = resource_filename(Requirement.parse("ambassador"), "templates")
+    template_path = resource_filename(
+        Requirement.parse("ambassador"), "templates")
 
     return send_from_directory(template_path, "favicon.ico")
 
-@app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
+
+@app.route('/ambassador/v0/check_alive', methods=['GET'])
 def check_alive():
     status = envoy_status(app.estats)
 
@@ -367,7 +396,8 @@ def check_alive():
     else:
         return "ambassador seems to have died (%s)" % status['uptime'], 503
 
-@app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
+
+@app.route('/ambassador/v0/check_ready', methods=['GET'])
 def check_ready():
     status = envoy_status(app.estats)
 
@@ -376,7 +406,8 @@ def check_ready():
     else:
         return "ambassador not ready (%s)" % status['since_update'], 503
 
-@app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
+
+@app.route('/ambassador/v0/diag/', methods=['GET'])
 @standard_handler
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
@@ -388,7 +419,7 @@ def show_overview(reqid=None):
         app.logger.debug("OV %s -- requesting loglevel %s" % (reqid, loglevel))
 
         if not app.estats.update_log_levels(time.time(), level=loglevel):
-            notices = [ "Could not update log level!" ]
+            notices = ["Could not update log level!"]
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
@@ -396,7 +427,8 @@ def show_overview(reqid=None):
     clusters = ov['clusters']
     cstats = cluster_stats(clusters)
 
-    route_info, cluster_info = route_and_cluster_info(request, ov, clusters, cstats)
+    route_info, cluster_info = route_and_cluster_info(
+        request, ov, clusters, cstats)
 
     notices.extend(clean_notices(Config.scout_notices))
 
@@ -407,11 +439,11 @@ def show_overview(reqid=None):
             obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
             if obj['errors']:
-                errors.extend([ (obj['key'], error['summary'])
-                                 for error in obj['errors'] ])
+                errors.extend([(obj['key'], error['summary'])
+                               for error in obj['errors']])
 
-    tvars = dict(system=system_info(), 
-                 envoy_status=envoy_status(app.estats), 
+    tvars = dict(system=system_info(),
+                 envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  cluster_stats=cstats,
                  notices=notices,
@@ -428,10 +460,12 @@ def show_overview(reqid=None):
 
     return result
 
-@app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
+
+@app.route('/ambassador/v0/diag/<path:source>', methods=['GET'])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
-    app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
+    app.logger.debug("SRC %s - getting intermediate for '%s'" %
+                     (reqid, source))
 
     result = aconf(app).get_intermediate_for(source)
 
@@ -446,19 +480,21 @@ def show_intermediate(source=None, reqid=None):
         clusters = result['clusters']
         cstats = cluster_stats(clusters)
 
-        route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+        route_info, cluster_info = route_and_cluster_info(
+            request, result, clusters, cstats)
 
         result['cluster_stats'] = cstats
         result['sources'] = sorted_sources(result['sources'])
-        result['source_dict'] = { source_key(source): source 
-                                  for source in result['sources']}
+        result['source_dict'] = {source_key(source): source
+                                 for source in result['sources']}
 
         for source in result['sources']:
-            source['target'] = ambassador_targets.get(source['kind'].lower(), None)
+            source['target'] = ambassador_targets.get(
+                source['kind'].lower(), None)
 
             if source['errors']:
-                errors.extend([ (source['filename'], error['summary'])
-                                 for error in source['errors'] ])
+                errors.extend([(source['filename'], error['summary'])
+                               for error in source['errors']])
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
@@ -474,12 +510,13 @@ def show_intermediate(source=None, reqid=None):
     else:
         return render_template("diag.html", **tvars)
 
+
 @app.template_filter('pretty_json')
 def pretty_json(obj):
     if isinstance(obj, dict):
         obj = dict(**obj)
 
-        keys_to_drop = [ key for key in obj.keys() if key.startswith('_') ]
+        keys_to_drop = [key for key in obj.keys() if key.startswith('_')]
 
         for key in keys_to_drop:
             del(obj[key])
@@ -492,9 +529,11 @@ def pretty_json(obj):
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
+
 @app.template_filter('sort_clusters_by_service')
 def sort_clusters_by_service(clusters):
-    return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
+    return sorted([c for c in clusters.values()], key=lambda x: x['service'])
+
 
 @app.template_filter('source_lookup')
 def source_lookup(name, sources):
@@ -505,6 +544,7 @@ def source_lookup(name, sources):
     app.logger.info("%s => source %s" % (name, source))
 
     return source.get('_source', name)
+
 
 def create_diag_app(config_dir_path, do_checks=False, debug=False, verbose=False):
     app.estats = EnvoyStats()
@@ -528,6 +568,7 @@ def create_diag_app(config_dir_path, do_checks=False, debug=False, verbose=False
 
     return app
 
+
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, options=None):
         self.options = options or {}
@@ -543,12 +584,13 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def load(self):
         if self.application.health_checks:
             self.application.logger.info("Starting periodic updates")
-            self.application.stats_updater = PeriodicTrigger(self.application.estats.update, period=5)
+            self.application.stats_updater = PeriodicTrigger(
+                self.application.estats.update, period=5)
 
         return self.application
 
 
-def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
+def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0'):
     """
     Run the diagnostic daemon.
@@ -561,9 +603,10 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
     :param host: Interface on which to listen (default 0.0.0.0)
     :param port: Port on which to listen (default 8877)
     """
-    
+
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, verbose)
+    flask_app = create_diag_app(
+        config_dir_path, not no_checks, not no_debugging, verbose)
 
     if workers == None:
         workers = number_of_workers()
@@ -574,12 +617,15 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
         'threads': workers,
     }
 
-    app.logger.info("thread count %d, listening on %s" % (gunicorn_config['threads'], gunicorn_config['bind']))
+    app.logger.info("thread count %d, listening on %s" %
+                    (gunicorn_config['threads'], gunicorn_config['bind']))
 
     StandaloneApplication(flask_app, gunicorn_config).run()
 
+
 def main():
     clize.run(_main)
+
 
 if __name__ == "__main__":
     main()

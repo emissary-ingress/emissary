@@ -22,7 +22,7 @@ from ambassador.VERSION import Version
 __version__ = Version
 
 logging.basicConfig(
-    level=logging.INFO, # if appDebug else logging.INFO,
+    level=logging.INFO,  # if appDebug else logging.INFO,
     format="%%(asctime)s kubewatch %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
@@ -33,18 +33,23 @@ logger.setLevel(logging.INFO)
 
 KEY = "getambassador.io/config"
 
+
 def is_annotated(svc):
     annotations = svc.metadata.annotations
     return annotations and KEY in annotations
 
+
 def get_annotation(svc):
     return svc.metadata.annotations[KEY] if is_annotated(svc) else None
+
 
 def get_source(svc):
     return "service %s, namespace %s" % (svc.metadata.name, svc.metadata.namespace)
 
+
 def get_filename(svc):
     return "%s-%s.yaml" % (svc.metadata.name, svc.metadata.namespace)
+
 
 class Restarter(threading.Thread):
 
@@ -88,7 +93,8 @@ class Restarter(threading.Thread):
                     filepath = os.path.join(path, name)
 
                     with open(filepath) as fd:
-                        self.configs[name] = self.read_yaml(fd.read(), "file %s" % filepath)
+                        self.configs[name] = self.read_yaml(
+                            fd.read(), "file %s" % filepath)
 
                     logger.debug("Loaded %s" % filepath)
 
@@ -145,14 +151,14 @@ class Restarter(threading.Thread):
         changes = self.changes()
         plural = "" if (changes == 1) else "s"
 
-        logger.info("generating config with gencount %d (%d change%s)" % 
+        logger.info("generating config with gencount %d (%d change%s)" %
                     (self.restart_count, changes, plural))
 
         aconf = Config(output)
         rc = aconf.generate_envoy_config(mode="kubewatch",
                                          generation_count=self.restart_count)
 
-        logger.info("Scout reports %s" % json.dumps(rc.scout_result))       
+        logger.info("Scout reports %s" % json.dumps(rc.scout_result))
 
         if rc:
             envoy_config = "%s-%s" % (output, "envoy.json")
@@ -168,7 +174,8 @@ class Restarter(threading.Thread):
                 with open(envoy_config) as fd:
                     logger.info(fd.read())
         else:
-            logger.info("Could not generate new Envoy configuration: %s" % rc.error)
+            logger.info(
+                "Could not generate new Envoy configuration: %s" % rc.error)
             logger.info("Raw template output:")
             logger.info("%s" % rc.raw)
 
@@ -253,6 +260,7 @@ def kube_v1():
 
     return k8s_api
 
+
 def check_cert_file(path):
     readable = False
 
@@ -268,6 +276,7 @@ def check_cert_file(path):
 
     return readable
 
+
 def read_cert_secret(k8s_api, secret_name, namespace):
     cert_data = None
     cert = None
@@ -279,7 +288,8 @@ def read_cert_secret(k8s_api, secret_name, namespace):
         if e.reason == "Not Found":
             pass
         else:
-            logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
+            logger.info("secret %s/%s could not be read: %s" %
+                        (namespace, secret_name, e))
 
     if cert_data and cert_data.data:
         cert_data = cert_data.data
@@ -295,6 +305,7 @@ def read_cert_secret(k8s_api, secret_name, namespace):
 
     return (cert, key, cert_data)
 
+
 def save_cert(cert, key, dir):
     try:
         os.makedirs(dir)
@@ -306,16 +317,18 @@ def save_cert(cert, key, dir):
     if key:
         open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
 
+
 def sync(restarter):
     v1 = kube_v1()
 
     if v1:
         # We have a Kube API! Do we have an ambassador-config ConfigMap?
-        cm_names = [ x.metadata.name 
-                     for x in v1.list_namespaced_config_map(restarter.namespace).items ]
+        cm_names = [x.metadata.name
+                    for x in v1.list_namespaced_config_map(restarter.namespace).items]
 
         if 'ambassador-config' in cm_names:
-            config_data = v1.read_namespaced_config_map("ambassador-config", restarter.namespace)
+            config_data = v1.read_namespaced_config_map(
+                "ambassador-config", restarter.namespace)
 
             if config_data:
                 for key, config_yaml in config_data.data.items():
@@ -325,9 +338,9 @@ def sync(restarter):
         # If we don't already see a TLS server key in its usual spot...
         if not check_cert_file("/etc/certs/tls.crt"):
             # ...then try pulling keys directly from the configmaps.
-            (server_cert, server_key, server_data) = read_cert_secret(v1, "ambassador-certs", 
+            (server_cert, server_key, server_data) = read_cert_secret(v1, "ambassador-certs",
                                                                       restarter.namespace)
-            (client_cert, _, client_data) = read_cert_secret(v1, "ambassador-cacert", 
+            (client_cert, _, client_data) = read_cert_secret(v1, "ambassador-cacert",
                                                              restarter.namespace)
 
             if server_cert and server_key:
@@ -379,6 +392,7 @@ def sync(restarter):
     logger.debug("Changes detected, regenerating envoy config.")
     restarter.restart()
 
+
 def watch_loop(restarter):
     v1 = kube_v1()
 
@@ -386,13 +400,14 @@ def watch_loop(restarter):
         w = watch.Watch()
 
         if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
-            watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
+            watched = w.stream(v1.list_namespaced_service,
+                               namespace=restarter.namespace)
         else:
             watched = w.stream(v1.list_service_for_all_namespaces)
 
         for evt in watched:
-            logger.debug("Event: %s %s/%s" % 
-                         (evt["type"], 
+            logger.debug("Event: %s %s/%s" %
+                         (evt["type"],
                           evt["object"].metadata.namespace, evt["object"].metadata.name))
             sys.stdout.flush()
 
@@ -404,6 +419,7 @@ def watch_loop(restarter):
         logger.info("No K8s, idling")
         while True:
             time.sleep(60)
+
 
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
@@ -436,17 +452,17 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     restarts too frequently. This leaves us with three delay
     parameters that needed to be tuned with increasing values that
     have sufficient margins:
-    
+
       --drain-time-s (an envoy parameter)
-    
+
          This is time permitted for active connections to drain from
          the old envoy. This is the smallest value. What you want to
          tune this to depends on your scenario, e.g. edge scenarios
          will likely want to permit more drain time, maybe 5 or 10
          minutes.
-    
+
       --parent-shutdown-time-s (an envoy parameter)
-    
+
          This is the time the new envoy gives the old envoy to
          complete it's drain before shutting it down. This is an
          absolute time measured from the initiation of the restart,
@@ -454,14 +470,14 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
          configured drain time. It should also be a bit larger than
          the drain time to account for timing discrepencies. Envoy
          examples seem to set it to 50% more than the drain time.
-    
+
       --delay (a parameter of this script)
-    
+
          This is the restart delay. It limits the minimum time this
          script will allow between subsequent restarts. This should be
          configured to be larger than the --parent-shutdown-time-s
          option by a reasonable margin.
-    
+
     In addition to the timing involved, envoy's restart machinery will
     die completely (both killing the old and new envoy) if the new
     envoy is supplied with an invalid configuration. This script takes
@@ -477,7 +493,8 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
 
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
-    restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
+    restarter = Restarter(ambassador_config_dir, namespace,
+                          envoy_config_file, delay, pid)
 
     if mode == "sync":
         sync(restarter)
@@ -492,9 +509,11 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
             except KeyboardInterrupt:
                 raise
             except:
-                logging.exception("could not watch for Kubernetes service changes")
+                logging.exception(
+                    "could not watch for Kubernetes service changes")
     else:
-         raise ValueError(mode)
+        raise ValueError(mode)
+
 
 if __name__ == "__main__":
     main()

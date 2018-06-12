@@ -23,36 +23,37 @@ from scout import Scout
 from .VERSION import Version
 
 #############################################################################
-## config.py -- the main configuration parser for Ambassador
+# config.py -- the main configuration parser for Ambassador
 ##
-## Ambassador configures itself by creating a new Config object, which calls
-## Config.__init__().
-## 
-## __init__() sets up all the defaults for everything, then walks over all the
-## YAML it can find and calls self.load_yaml() to load each YAML file. After 
-## everything is loaded, it calls self.process_all_objects() to build the 
-## config objects.
+# Ambassador configures itself by creating a new Config object, which calls
+# Config.__init__().
 ##
-## load_yaml() does the heavy lifting around YAML parsing and such, including
-## managing K8s annotations if so requested. Every object in every YAML file is
-## parsed and saved before any object is processed.
+# __init__() sets up all the defaults for everything, then walks over all the
+# YAML it can find and calls self.load_yaml() to load each YAML file. After
+# everything is loaded, it calls self.process_all_objects() to build the
+# config objects.
 ##
-## process_all_objects() walks all the saved objects and creates an internal
-## representation of the Ambassador config in the data structures initialized
-## by __init__(). Each object is processed with self.process_object(). This 
-## internal representation is called the intermediate config.
+# load_yaml() does the heavy lifting around YAML parsing and such, including
+# managing K8s annotations if so requested. Every object in every YAML file is
+# parsed and saved before any object is processed.
 ##
-## process_object() handles a single parsed object from YAML. It uses 
-## self.validate_object() to make sure of a schema match; assuming that's
-## good, most of the heavy lifting is done by a handler method. The handler
-## method for a given type is named handle_kind(), with kind in lowercase,
-## so e.g. the Mapping object is processed using the handle_mapping() method.
+# process_all_objects() walks all the saved objects and creates an internal
+# representation of the Ambassador config in the data structures initialized
+# by __init__(). Each object is processed with self.process_object(). This
+# internal representation is called the intermediate config.
 ##
-## After all of that, the actual Envoy config is generated from the intermediate
-## config using generate_envoy_config().
+# process_object() handles a single parsed object from YAML. It uses
+# self.validate_object() to make sure of a schema match; assuming that's
+# good, most of the heavy lifting is done by a handler method. The handler
+# method for a given type is named handle_kind(), with kind in lowercase,
+# so e.g. the Mapping object is processed using the handle_mapping() method.
 ##
-## The diag service also uses generate_intermediate_for() to extract the 
-## intermediate config for a given mapping or service.
+# After all of that, the actual Envoy config is generated from the intermediate
+# config using generate_envoy_config().
+##
+# The diag service also uses generate_intermediate_for() to extract the
+# intermediate config for a given mapping or service.
+
 
 def get_semver(what, version_string):
     semver = None
@@ -64,18 +65,19 @@ def get_semver(what, version_string):
 
     return semver
 
+
 class Config (object):
     # Weird stuff. The build version looks like
     #
     # 0.12.0                    for a prod build, or
     # 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
     #
-    # Now: 
+    # Now:
     # - Scout needs a build number (semver "+something") to flag a non-prod release;
     #   but
     # - DockerHub cannot use a build number at all; but
     # - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
-    # 
+    #
     # FFS.
     #
     # We cope with this by transforming e.g.
@@ -97,7 +99,8 @@ class Config (object):
         # Long term we are planning to remove the version report for development branches anyways so all of this
         # formatting for versions
 
-        scout_version = "0.0.0-" + Version.split("-")[1]  # middle part is commit hash
+        # middle part is commit hash
+        scout_version = "0.0.0-" + Version.split("-")[1]
         # Dev build!
         # v, p = scout_version.split('-')
         # p, b = p.split('.', 1) if ('.' in p) else (0, p)
@@ -112,14 +115,17 @@ class Config (object):
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id = os.environ.get('AMBASSADOR_ID', 'default')
 
-    runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
+    runtime = "kubernetes" if os.environ.get(
+        'KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     # Default to using the Nil UUID unless the environment variable is set explicitly
-    scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
+    scout_install_id = os.environ.get(
+        'AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
 
     try:
-        scout = Scout(app="ambassador", version=scout_version, install_id=scout_install_id)
+        scout = Scout(app="ambassador", version=scout_version,
+                      install_id=scout_install_id)
         scout_error = None
     except OSError as e:
         scout_error = e
@@ -149,7 +155,7 @@ class Config (object):
                 if 'runtime' not in kwargs:
                     kwargs['runtime'] = Config.runtime
 
-                # How long since the last Scout update? If it's been more than an hour, 
+                # How long since the last Scout update? If it's been more than an hour,
                 # check Scout again.
 
                 now = datetime.datetime.now()
@@ -166,10 +172,11 @@ class Config (object):
 
                 result_timestamp = Config.scout_last_update
             else:
-                result = { "scout": "unavailable" }
+                result = {"scout": "unavailable"}
                 result_timestamp = datetime.datetime.now()
         else:
-            _notices.append({ "level": "debug", "message": "Returning forced result" })
+            _notices.append(
+                {"level": "debug", "message": "Returning forced result"})
             result_timestamp = datetime.datetime.now()
 
         if not Config.current_semver:
@@ -181,7 +188,7 @@ class Config (object):
         result['cached'] = result_was_cached
         result['timestamp'] = result_timestamp.timestamp()
 
-        # Do version & notices stuff.      
+        # Do version & notices stuff.
         if 'latest_version' in result:
             latest_version = result['latest_version']
             latest_semver = get_semver("latest", latest_version)
@@ -195,7 +202,7 @@ class Config (object):
                     "message": "Scout returned bad version '%s'??!" % latest_version
                 })
 
-        if (Config.scout_latest_semver and 
+        if (Config.scout_latest_semver and
             ((not Config.current_semver) or
              (Config.scout_latest_semver > Config.current_semver))):
             _notices.append({
@@ -214,10 +221,12 @@ class Config (object):
         self.config_dir_path = config_dir_path
 
         if not template_dir_path:
-            template_dir_path = resource_filename(Requirement.parse("ambassador"),"templates")
+            template_dir_path = resource_filename(
+                Requirement.parse("ambassador"), "templates")
 
         if not schema_dir_path:
-            schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
+            schema_dir_path = resource_filename(
+                Requirement.parse("ambassador"), "schemas")
 
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
@@ -227,12 +236,16 @@ class Config (object):
         self.logger.debug("Scout version %s" % Config.scout_version)
         self.logger.debug("Runtime       %s" % Config.runtime)
 
-        self.logger.debug("CONFIG DIR    %s" % os.path.abspath(self.config_dir_path))
-        self.logger.debug("TEMPLATE DIR  %s" % os.path.abspath(self.template_dir_path))
-        self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
+        self.logger.debug("CONFIG DIR    %s" %
+                          os.path.abspath(self.config_dir_path))
+        self.logger.debug("TEMPLATE DIR  %s" %
+                          os.path.abspath(self.template_dir_path))
+        self.logger.debug("SCHEMA DIR    %s" %
+                          os.path.abspath(self.schema_dir_path))
 
         if Config.scout_error:
-            self.logger.warning("Couldn't do version check: %s" % str(Config.scout_error))
+            self.logger.warning("Couldn't do version check: %s" %
+                                str(Config.scout_error))
 
         self.schemas = {}
         self.config = {}
@@ -260,11 +273,11 @@ class Config (object):
                 "filename": "--diagnostics--",
                 "index": 0,
                 "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
-            }            
+            }
         }
 
         self.source_map = {
-            '--internal--': { '--internal--': True }
+            '--internal--': {'--internal--': True}
         }
 
         self.source_overrides = {}
@@ -291,7 +304,7 @@ class Config (object):
         }
 
         # 'server' and 'client' are special contexts. Others
-        # use cert_chain_file defaulting to context.crt, 
+        # use cert_chain_file defaulting to context.crt,
         # private_key_file (context.key), and cacert_chain_file
         # (context.pem).
 
@@ -314,33 +327,38 @@ class Config (object):
         self.objects_to_process = []
 
         if not os.path.isdir(self.config_dir_path):
-            raise Exception("ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
+            raise Exception(
+                "ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
 
         for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
             # Modify dirnames in-place (dirs[:]) to remove any weird directories
             # whose names start with '.' -- why? because my GKE cluster mounts my
-            # ConfigMap with a self-referential directory named 
+            # ConfigMap with a self-referential directory named
             # /etc/ambassador-config/..9989_25_09_15_43_06.922818753, and if we don't
             # ignore that, we end up trying to read the same config files twice, which
             # triggers the collision checks. Sigh.
 
-            dirnames[:] = sorted([ d for d in dirnames if not d.startswith('.') ])
+            dirnames[:] = sorted(
+                [d for d in dirnames if not d.startswith('.')])
 
             # self.logger.debug("WALK %s: dirs %s, files %s" % (dirpath, dirnames, filenames))
 
-            for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
+            for filename in sorted([x for x in filenames if x.endswith(".yaml")]):
                 filepath = os.path.join(dirpath, filename)
 
-                self.load_yaml(filename, open(filepath, "r").read(), ocount=1, k8s=k8s)
+                self.load_yaml(filename, open(
+                    filepath, "r").read(), ocount=1, k8s=k8s)
 
         self.process_all_objects()
 
         if self.fatal_errors:
             # Kaboom.
-            raise Exception("ERROR ERROR ERROR Unparseable configuration; exiting")
+            raise Exception(
+                "ERROR ERROR ERROR Unparseable configuration; exiting")
 
         if self.errors:
-            self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
+            self.logger.error(
+                "ERROR ERROR ERROR Starting with configuration errors")
 
         self.generate_intermediate_config()
 
@@ -357,12 +375,13 @@ class Config (object):
                     ocount += 1
         except Exception as e:
             # No sense letting one attribute with bad YAML take down the whole
-            # gateway, so post the error but keep any objects we were able to 
+            # gateway, so post the error but keep any objects we were able to
             # parse before hitting the error.
             self.filename = filename
             self.ocount = ocount
 
-            self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
+            self.post_error(RichStatus.fromError(
+                "%s: could not parse YAML" % filename))
 
         return ocount
 
@@ -370,14 +389,14 @@ class Config (object):
         kind = obj.get('kind', None)
 
         if kind != "Service":
-            self.logger.debug("%s/%s: ignoring K8s %s object" % 
-                             (filename, ocount, kind))
+            self.logger.debug("%s/%s: ignoring K8s %s object" %
+                              (filename, ocount, kind))
             return ocount
 
         metadata = obj.get('metadata', None)
 
         if not metadata:
-            self.logger.debug("%s/%s: ignoring unannotated K8s %s" % 
+            self.logger.debug("%s/%s: ignoring unannotated K8s %s" %
                               (filename, ocount, kind))
             return ocount
 
@@ -389,7 +408,7 @@ class Config (object):
         # self.logger.debug("annotations %s" % annotations)
 
         if not annotations:
-            self.logger.debug("%s/%s: ignoring K8s %s without Ambassador annotation" % 
+            self.logger.debug("%s/%s: ignoring K8s %s without Ambassador annotation" %
                               (filename, ocount, kind))
             return ocount
 
@@ -418,20 +437,21 @@ class Config (object):
                 # but the jsonschema will allow only a string or a list,
                 # and guess what? Strings are iterables.
                 if type(allowed_ids) != list:
-                    allowed_ids = [ allowed_ids ]
+                    allowed_ids = [allowed_ids]
 
                 if Config.ambassador_id not in allowed_ids:
-                    self.logger.debug("PROCESS: skip %s.%d; id %s not in %s" % 
+                    self.logger.debug("PROCESS: skip %s.%d; id %s not in %s" %
                                       (self.filename, self.ocount, Config.ambassador_id, allowed_ids))
                     continue
 
-            self.logger.debug("PROCESS: %s.%d => %s" % (self.filename, self.ocount, self.source))
+            self.logger.debug("PROCESS: %s.%d => %s" %
+                              (self.filename, self.ocount, self.source))
 
             rc = self.process_object(obj)
 
             if not rc:
                 # Object error. Not good but we'll allow the system to start.
-                self.post_error(rc)        
+                self.post_error(rc)
 
     def clean_and_copy(self, d):
         out = []
@@ -523,7 +543,7 @@ class Config (object):
             # Well that's no good.
             return rc
 
-        # Make sure it has a source: use what's in the object if present, 
+        # Make sure it has a source: use what's in the object if present,
         # otherwise use self.source.
         self.sources[source_key]['_source'] = obj.get('source', self.source)
         # self.logger.debug("source for %s is %s" % (source_key, self.sources[source_key]['_source']))
@@ -602,22 +622,23 @@ class Config (object):
 
         if obj_name in storage:
             # Oooops.
-            raise Exception("%s[%d] defines %s %s, which is already present" % 
+            raise Exception("%s[%d] defines %s %s, which is already present" %
                             (self.filename, self.ocount, obj_kind, obj_name))
 
         if allow_log:
             self.logger.debug("%s[%d]: saving %s %s" %
-                          (self.filename, self.ocount, obj_kind, obj_name))
+                              (self.filename, self.ocount, obj_kind, obj_name))
 
         storage[obj_name] = value
         return storage[obj_name]
 
     def save_object(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, obj_kind, obj_name, obj_kind, 
+        return self.safe_store(source_key, obj_kind, obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
 
     def handle_pragma(self, source_key, obj):
-        keylist = sorted([x for x in sorted(obj.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
+        keylist = sorted([x for x in sorted(obj.keys()) if (
+            (x != 'apiVersion') and (x != 'kind'))])
 
         # self.logger.debug("PRAGMA: %s" % keylist)
 
@@ -639,15 +660,15 @@ class Config (object):
         return RichStatus.OK(msg="handled pragma object")
 
     def handle_module(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "modules", obj_name, obj_kind, 
+        return self.safe_store(source_key, "modules", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj['config']))
 
     def handle_ratelimitservice(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "ratelimit_configs", obj_name, obj_kind, 
+        return self.safe_store(source_key, "ratelimit_configs", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
 
     def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "auth_configs", obj_name, obj_kind, 
+        return self.safe_store(source_key, "auth_configs", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
 
     def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
@@ -664,7 +685,7 @@ class Config (object):
     def diag_service(self):
         return "127.0.0.1:%d" % self.diag_port()
 
-    def add_intermediate_cluster(self, _source, name, _service, urls, 
+    def add_intermediate_cluster(self, _source, name, _service, urls,
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None, originate_tls=None,
                                  grpc=False, host_rewrite=None):
@@ -673,7 +694,7 @@ class Config (object):
 
             cluster = SourcedDict(
                 _source=_source,
-                _referenced_by=[ _source ],
+                _referenced_by=[_source],
                 _service=_service,
                 name=name,
                 type=type,
@@ -690,7 +711,7 @@ class Config (object):
                 self.outliers[od_name]._mark_referenced_by(_source)
 
             if originate_tls == True:
-                cluster['tls_context'] = { '_ambassador_enabled': True }
+                cluster['tls_context'] = {'_ambassador_enabled': True}
                 cluster['tls_array'] = []
             elif (originate_tls and (originate_tls in self.tls_contexts)):
                 cluster['tls_context'] = self.tls_contexts[originate_tls]
@@ -702,11 +723,13 @@ class Config (object):
                     if key.startswith('_'):
                         continue
 
-                    tls_array.append({ 'key': key, 'value': value })
-                    cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
+                    tls_array.append({'key': key, 'value': value})
+                    cluster['tls_array'] = sorted(
+                        tls_array, key=lambda x: x['key'])
 
             if host_rewrite and originate_tls:
-                cluster['tls_array'].append({'key': 'sni', 'value': host_rewrite })
+                cluster['tls_array'].append(
+                    {'key': 'sni', 'value': host_rewrite})
 
             if grpc:
                 cluster['features'] = 'http2'
@@ -718,7 +741,7 @@ class Config (object):
             self.envoy_clusters[name]._mark_referenced_by(_source)
 
     # XXX This is a silly API. We should have a Cluster object that can carry what kind
-    #     of cluster it is (this is a target cluster of weight 50%, this is a shadow cluster, 
+    #     of cluster it is (this is a target cluster of weight 50%, this is a shadow cluster,
     #     whatever) and the API should be "add this cluster to this Mapping".
     def add_intermediate_route(self, _source, mapping, svc, cluster_name, shadow=False):
         route = self.envoy_routes.get(mapping.group_id, None)
@@ -739,8 +762,8 @@ class Config (object):
                     shadow_name = extant_shadow.get('name', None)
 
                     if shadow_name != cluster_name:
-                        self.logger.error("mapping %s defines multiple shadows! Ignoring %s" % 
-                                        (mapping['name'], cluster_name))
+                        self.logger.error("mapping %s defines multiple shadows! Ignoring %s" %
+                                          (mapping['name'], cluster_name))
                 else:
                     # XXX CODE DUPLICATION with mapping.py!!
                     # We're going to need to support shadow weighting later, so use a dict here.
@@ -751,8 +774,8 @@ class Config (object):
             else:
                 # Take the easy way out -- just add a new entry to this
                 # route's set of weighted clusters.
-                route["clusters"].append( { "name": cluster_name,
-                                            "weight": mapping.attrs.get("weight", None) } )
+                route["clusters"].append({"name": cluster_name,
+                                          "weight": mapping.attrs.get("weight", None)})
 
             route._mark_referenced_by(_source)
 
@@ -772,21 +795,22 @@ class Config (object):
             svc = svc[len("http://"):]
         elif svc.lower().startswith("https://"):
             originate_tls = True
-            name_fields = [ 'otls' ]
+            name_fields = ['otls']
             svc = svc[len("https://"):]
         elif context == True:
             originate_tls = True
-            name_fields = [ 'otls' ]
+            name_fields = ['otls']
 
         # Separate if here because you need to be able to specify a context
         # even after you say "https://" for the service.
 
         if context and (context != True):
             if context in self.tls_contexts:
-                name_fields = [ 'otls', context ]
+                name_fields = ['otls', context]
                 originate_tls = context
             else:
-                self.logger.error("Originate-TLS context %s is not defined" % context)
+                self.logger.error(
+                    "Originate-TLS context %s is not defined" % context)
 
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
@@ -810,7 +834,7 @@ class Config (object):
         # Given the service and the TLS context, first initialize the cluster name for the
         # main service with the incoming service string...
 
-        cluster_name_fields = [ svc ]      
+        cluster_name_fields = [svc]
 
         host_redirect = mapping.get('host_redirect', False)
         shadow = mapping.get('shadow', False)
@@ -819,24 +843,26 @@ class Config (object):
             if shadow:
                 # Not allowed.
                 errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
-                self.post_error(RichStatus.fromError(errstr), key=mapping['_source'])
+                self.post_error(RichStatus.fromError(
+                    errstr), key=mapping['_source'])
                 host_redirect = False
             else:
-                # Short-circuit. You needn't actually create a cluster for a 
+                # Short-circuit. You needn't actually create a cluster for a
                 # host_redirect mapping.
                 return svc, None
-            
+
         if shadow:
             cluster_name_fields.insert(0, "shadow")
 
         # ...then do whatever normalization we need for the name and the URL. This can
-        # change the service name (e.g. "http://foo" will turn into "foo"), so we set 
+        # change the service name (e.g. "http://foo" will turn into "foo"), so we set
         # up cluster_name_fields above in order to preserve compatibility with older
-        # versions of Ambassador. (This isn't a functional issue, just a matter of 
+        # versions of Ambassador. (This isn't a functional issue, just a matter of
         # trying not to confuse people on upgrades.)
 
-        (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
-        
+        (svc, url, originate_tls, otls_name) = self.service_tls_check(
+            svc, tls_context, host_rewrite)
+
         # Build up the common name stuff that we'll need for the service and
         # the shadow service.
 
@@ -864,19 +890,20 @@ class Config (object):
 
         if otls_name:
             cluster_name_fields.append(otls_name)
-        
+
         cluster_name_fields.extend(aux_name_fields)
 
         cluster_name = 'cluster_%s' % "_".join(cluster_name_fields)
         cluster_name = re.sub(r'[^0-9A-Za-z_]', '_', cluster_name)
 
-        self.logger.debug("%s: svc %s -> cluster %s" % (mapping.name, svc, cluster_name))
+        self.logger.debug("%s: svc %s -> cluster %s" %
+                          (mapping.name, svc, cluster_name))
 
         self.add_intermediate_cluster(mapping['_source'], cluster_name,
-                                      svc, [ url ],
+                                      svc, [url],
                                       cb_name=cb_name, od_name=od_name, grpc=grpc,
                                       originate_tls=originate_tls, host_rewrite=host_rewrite)
-        
+
         return svc, cluster_name
 
     def generate_intermediate_config(self):
@@ -884,15 +911,15 @@ class Config (object):
         # default values now.
 
         self.ambassador_module = SourcedDict(
-            service_port = 80,
-            admin_port = 8001,
-            diag_port = 8877,
-            auth_enabled = None,
-            liveness_probe = { "enabled": True },
-            readiness_probe = { "enabled": True },
-            diagnostics = { "enabled": True },
-            tls_config = None,
-            use_proxy_proto = False,
+            service_port=80,
+            admin_port=8001,
+            diag_port=8877,
+            auth_enabled=None,
+            liveness_probe={"enabled": True},
+            readiness_probe={"enabled": True},
+            diagnostics={"enabled": True},
+            tls_config=None,
+            use_proxy_proto=False,
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -930,18 +957,22 @@ class Config (object):
         # Start with authentication filter
         auth_mod = modules.get('authentication', None)
         auth_configs = self.config.get('auth_configs', None)
-        auth_filter = self.module_config_authentication("authentication", amod, auth_mod, auth_configs)
+        auth_filter = self.module_config_authentication(
+            "authentication", amod, auth_mod, auth_configs)
         if auth_filter:
             self.envoy_config['filters'].append(auth_filter)
         # Then append the rate-limit filter, because we might rate-limit based on auth headers
         ratelimit_configs = self.config.get('ratelimit_configs', None)
-        (ratelimit_filter, ratelimit_grpc_service) = self.module_config_ratelimit(ratelimit_configs)
+        (ratelimit_filter, ratelimit_grpc_service) = self.module_config_ratelimit(
+            ratelimit_configs)
         if ratelimit_filter and ratelimit_grpc_service:
             self.envoy_config['filters'].append(ratelimit_filter)
             self.envoy_config['grpc_services'].append(ratelimit_grpc_service)
         # Then append non-configurable cors and decoder filters
-        self.envoy_config['filters'].append(SourcedDict(name="cors", config={}))
-        self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config={}))
+        self.envoy_config['filters'].append(
+            SourcedDict(name="cors", config={}))
+        self.envoy_config['filters'].append(
+            SourcedDict(type="decoder", name="router", config={}))
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
@@ -960,14 +991,15 @@ class Config (object):
         for module_name in modules.keys():
             if ((module_name == 'ambassador') or
                 (module_name == 'tls') or
-                (module_name == 'authentication')):
+                    (module_name == 'authentication')):
                 continue
 
             handler_name = "module_config_%s" % module_name
             handler = getattr(self, handler_name, None)
 
             if not handler:
-                self.logger.error("module %s: no configuration generator, skipping" % module_name)
+                self.logger.error(
+                    "module %s: no configuration generator, skipping" % module_name)
                 continue
 
             handler(module_name, modules[module_name])
@@ -991,14 +1023,14 @@ class Config (object):
 
         redirect_cleartext_from = None
         tmod = self.ambassador_module.get('tls_config', None)
-           
+
         # ...TLS config, if necessary...
         if tmod:
             # self.logger.debug("USING TLS")
             primary_listener['tls'] = tmod
             redirect_cleartext_from = tmod.get('redirect_cleartext_from')
 
-        self.envoy_config['listeners'] = [ primary_listener ]
+        self.envoy_config['listeners'] = [primary_listener]
 
         if redirect_cleartext_from:
             primary_listener['require_tls'] = True
@@ -1014,7 +1046,7 @@ class Config (object):
             )
 
             if 'use_remote_address' in self.ambassador_module:
-                new_listener['use_remote_address'] = self.ambassador_module['use_remote_address']    
+                new_listener['use_remote_address'] = self.ambassador_module['use_remote_address']
 
             self.envoy_config['listeners'].append(new_listener)
 
@@ -1022,13 +1054,13 @@ class Config (object):
         self.default_readiness_probe['service'] = self.diag_service()
         self.default_diagnostics['service'] = self.diag_service()
 
-        for name, cur, dflt in [ 
+        for name, cur, dflt in [
             ("liveness",    self.ambassador_module['liveness_probe'],
-                            self.default_liveness_probe),
+             self.default_liveness_probe),
             ("readiness",   self.ambassador_module['readiness_probe'],
-                            self.default_readiness_probe),
+             self.default_readiness_probe),
             ("diagnostics", self.ambassador_module['diagnostics'],
-                            self.default_diagnostics)
+             self.default_diagnostics)
         ]:
             if cur and cur.get("enabled", False):
                 prefix = cur.get("prefix", dflt['prefix'])
@@ -1059,7 +1091,8 @@ class Config (object):
             svc, cluster_name = self.add_clusters_for_mapping(mapping)
 
             # ...and route.
-            self.add_intermediate_route(mapping['_source'], mapping, svc, cluster_name)
+            self.add_intermediate_route(
+                mapping['_source'], mapping, svc, cluster_name)
 
         # OK. Walk the set of clusters and normalize names...
         collisions = {}
@@ -1129,7 +1162,7 @@ class Config (object):
         # can mess with the originals.
         #
         # What's going on here is that circuit-breaker and outlier-detection configs aren't
-        # included as independent objects in envoy.json, but we want to be able to discuss 
+        # included as independent objects in envoy.json, but we want to be able to discuss
         # them in diag. We also don't need to keep the _source and _referenced_by elements
         # in their real Envoy appearances.
 
@@ -1149,7 +1182,7 @@ class Config (object):
             value_referenced_by = value.get("_referenced_by", [])
 
             if ((value_source in source_keys) or
-                (source_keys & set(value_referenced_by))):
+                    (source_keys & set(value_referenced_by))):
                 good = True
 
         if good:
@@ -1171,7 +1204,7 @@ class Config (object):
             if not source_keys:
                 return {
                     "error": "No group matches %s" % group_id
-                }                
+                }
         else:
             if source_key in self.source_map:
                 # Exact match for a file in the source map: include all the objects
@@ -1180,7 +1213,7 @@ class Config (object):
             elif source_key in self.sources:
                 # Exact match for an object in a file: include only that object.
                 source_keys.append(source_key)
-            else: 
+            else:
                 # No match at all. Weird.
                 return {
                     "error": "No source matches %s" % source_key
@@ -1242,8 +1275,9 @@ class Config (object):
         #     rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
         #                               raw=envoy_json, exception=e)
 
-        # Go ahead and report that we generated an Envoy config, if we can.    
-        scout_result = Config.scout_report(action="config", result=True, generated=True, **kwargs)
+        # Go ahead and report that we generated an Envoy config, if we can.
+        scout_result = Config.scout_report(
+            action="config", result=True, generated=True, **kwargs)
 
         rc = RichStatus.OK(envoy_config=envoy_json, scout_result=scout_result)
 
@@ -1276,7 +1310,7 @@ class Config (object):
 
             if context.get('enabled', True):
                 if context_name == 'server':
-                    # Server-side TLS is enabled. 
+                    # Server-side TLS is enabled.
                     self.logger.debug("TLS termination enabled!")
                     some_enabled = True
 
@@ -1287,7 +1321,7 @@ class Config (object):
                     tmp_config.update(self.default_tls_config['server'])
                     tmp_config.update(tmod['server'])
                 elif context_name == 'client':
-                    # Client-side TLS is enabled. 
+                    # Client-side TLS is enabled.
                     self.logger.debug("TLS client certs enabled!")
                     some_enabled = True
 
@@ -1297,7 +1331,7 @@ class Config (object):
                 else:
                     # This is a wholly new thing.
                     self.tls_contexts[context_name] = SourcedDict(
-                        _from=tmod, 
+                        _from=tmod,
                         **context
                     )
 
@@ -1308,7 +1342,8 @@ class Config (object):
             # Save the TLS config...
             self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
-        self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
+        self.logger.debug("TLS config: %s" % json.dumps(
+            self.ambassador_module['tls_config'], indent=4))
         self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts))
 
         return some_enabled
@@ -1326,9 +1361,9 @@ class Config (object):
 
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
-        for key in [ 'service_port', 'admin_port', 'diag_port',
-                     'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics' ]:
+        for key in ['service_port', 'admin_port', 'diag_port',
+                    'liveness_probe', 'readiness_probe', 'auth_enabled',
+                    'use_proxy_proto', 'use_remote_address', 'diagnostics']:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
@@ -1368,7 +1403,8 @@ class Config (object):
         )
 
         if cluster_name not in self.envoy_clusters:
-            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(
+                cluster_hosts, None, host_rewrite)
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extratelimit', [url],
                                           type="strict_dns", lb_type="round_robin",
@@ -1383,7 +1419,7 @@ class Config (object):
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
+        for key in ['path_prefix', 'timeout_ms', 'cluster']:
             value = module.get(key, None)
 
             if value != None:
@@ -1391,11 +1427,12 @@ class Config (object):
 
                 if previous and (previous != value):
                     errstr = (
-                        "AuthService cannot support multiple %s values; using %s" % 
+                        "AuthService cannot support multiple %s values; using %s" %
                         (key, previous)
                     )
 
-                    self.post_error(RichStatus.fromError(errstr), key=module['_source'])
+                    self.post_error(RichStatus.fromError(
+                        errstr), key=module['_source'])
                 else:
                     config[key] = value
 
@@ -1415,7 +1452,7 @@ class Config (object):
         weight = 100    # Can't support arbitrary weights right now.
 
         if auth_service:
-            cluster_hosts[auth_service] = ( weight, module.get('tls', None) )
+            cluster_hosts[auth_service] = (weight, module.get('tls', None))
 
     def module_config_authentication(self, name, amod, auth_mod, auth_configs):
         filter_config = {
@@ -1452,7 +1489,7 @@ class Config (object):
 
         if cluster_name not in self.envoy_clusters:
             if not cluster_hosts:
-                cluster_hosts = { '127.0.0.1:5000': 100 }
+                cluster_hosts = {'127.0.0.1:5000': 100}
 
             urls = []
             protocols = {}
@@ -1460,7 +1497,8 @@ class Config (object):
             for svc in sorted(cluster_hosts.keys()):
                 weight, tls_context = cluster_hosts[svc]
 
-                (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
+                (svc, url, originate_tls, otls_name) = self.service_tls_check(
+                    svc, tls_context, host_rewrite)
 
                 if originate_tls:
                     protocols['https'] = True
@@ -1474,7 +1512,8 @@ class Config (object):
                 urls.append(url)
 
             if len(protocols.keys()) != 1:
-                raise Exception("auth config cannot try to use both HTTP and HTTPS")
+                raise Exception(
+                    "auth config cannot try to use both HTTP and HTTPS")
 
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extauth', urls,
@@ -1487,11 +1526,11 @@ class Config (object):
 
         return filter
 
-    ### DIAGNOSTICS
+    # DIAGNOSTICS
     def diagnostic_overview(self):
         # Build a set of source _files_ rather than source _objects_.
         source_files = {}
-    
+
         for filename, source_keys in self.source_map.items():
             # self.logger.debug("overview -- filename %s, source_keys %d" %
             #                   (filename, len(source_keys)))
@@ -1532,10 +1571,12 @@ class Config (object):
                         'text': error['error']
                     })
 
-                source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "errors"
+                source_dict['error_plural'] = "error" if (
+                    source_dict['error_count'] == 1) else "errors"
 
                 source_dict['count'] += 1
-                source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
+                source_dict['plural'] = "object" if (
+                    source_dict['count'] == 1) else "objects"
 
                 object_dict = source_dict['objects']
                 object_dict[source_key] = {
@@ -1554,8 +1595,8 @@ class Config (object):
 
                 routes.append(route)
 
-        configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
-                          if key != "routes" }
+        configuration = {key: self.envoy_config[key] for key in self.envoy_config.keys()
+                         if key != "routes"}
 
         # Is extauth active?
         extauth = None
@@ -1584,7 +1625,7 @@ class Config (object):
 #        out.write("\n")
 
     def to_json(self, template=None, template_dir=None):
-        template_paths = [ self.config_dir_path, self.template_dir_path ]
+        template_paths = [self.config_dir_path, self.template_dir_path]
 
         if template_dir:
             template_paths.insert(0, template_dir)
@@ -1601,6 +1642,7 @@ class Config (object):
 
         print("==== envoy_config")
         self.pretty(self.envoy_config)
+
 
 if __name__ == '__main__':
     aconf = Config(sys.argv[1])

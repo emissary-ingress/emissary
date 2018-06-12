@@ -3,11 +3,13 @@ import time
 
 import requests
 
+
 def percentage(x, y):
     if y == 0:
         return 0
     else:
         return int(((x * 100) / y) + 0.5)
+
 
 class EnvoyStats (object):
     def __init__(self, max_live_age=20, max_ready_age=20):
@@ -66,7 +68,7 @@ class EnvoyStats (object):
         Return the number of seconds since we last heard from Envoy, or None if
         we've never heard from Envoy.
         """
-        
+
         if self.stats["last_update"] == 0:
             return None
         else:
@@ -75,7 +77,7 @@ class EnvoyStats (object):
     def cluster_stats(self, name):
         if not self.stats['last_update']:
             # No updates.
-            return { 
+            return {
                 'valid': False,
                 'reason': "No stats updates have succeeded",
                 'health': "no stats yet",
@@ -143,7 +145,7 @@ class EnvoyStats (object):
         if (r.status_code != 200) and (r.status_code != 404):
             logging.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
             self.stats['update_errors'] += 1
-            return False   
+            return False
 
         levels = {}
 
@@ -152,7 +154,7 @@ class EnvoyStats (object):
                 continue
 
             if line.startswith('  '):
-                ( logtype, level ) = line[2:].split(": ")
+                (logtype, level) = line[2:].split(": ")
 
                 x = levels.setdefault(level, {})
                 x[logtype] = True
@@ -160,13 +162,13 @@ class EnvoyStats (object):
         # logging.info("levels: %s" % levels)
 
         if len(levels.keys()) == 1:
-            self.loginfo = { 'all': list(levels.keys())[0] }
+            self.loginfo = {'all': list(levels.keys())[0]}
         else:
-            self.loginfo = { x: levels[x] for x in sorted(levels.keys()) }
+            self.loginfo = {x: levels[x] for x in sorted(levels.keys())}
 
         # logging.info("loginfo: %s" % self.loginfo)
         return True
-        
+
     def update_envoy_stats(self, last_attempt):
         try:
             r = requests.get("http://127.0.0.1:8001/stats")
@@ -231,7 +233,7 @@ class EnvoyStats (object):
 
                 # # Toss any _%d -- that's madness with our Istio code at the moment.
                 # cluster_name = re.sub('_\d+$', '', cluster_name)
-                
+
                 if True or (cluster_name in active_cluster_map):
                     # mapping_name = active_cluster_map[cluster_name]
                     # active_mappings[mapping_name] = {}
@@ -240,26 +242,31 @@ class EnvoyStats (object):
 
                     healthy_members = cluster['membership_healthy']
                     total_members = cluster['membership_total']
-                    healthy_percent = percentage(healthy_members, total_members)
+                    healthy_percent = percentage(
+                        healthy_members, total_members)
 
                     update_attempts = cluster['update_attempt']
                     update_successes = cluster['update_success']
-                    update_percent = percentage(update_successes, update_attempts)
+                    update_percent = percentage(
+                        update_successes, update_attempts)
 
                     # Weird.
                     # upstream_ok = cluster.get('upstream_rq_2xx', 0)
-                    upstream_total = cluster.get('upstream_rq_pending_total', 0)
+                    upstream_total = cluster.get(
+                        'upstream_rq_pending_total', 0)
 
                     upstream_4xx = cluster.get('upstream_rq_4xx', 0)
                     upstream_5xx = cluster.get('upstream_rq_5xx', 0)
-                    upstream_bad = upstream_5xx # used to include 4XX here, but that seems wrong.
+                    # used to include 4XX here, but that seems wrong.
+                    upstream_bad = upstream_5xx
 
                     upstream_ok = upstream_total - upstream_bad
 
                     # logging.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
 
                     if upstream_total > 0:
-                        healthy_percent = percentage(upstream_ok, upstream_total)
+                        healthy_percent = percentage(
+                            upstream_ok, upstream_total)
                         # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
                     else:
                         healthy_percent = None
