@@ -10,7 +10,7 @@ Assuming you're using annotations to configure Ambassador, all you need to do to
 kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
 ```
 
-where `$FULLCHAIN_PATH` is the path to the single file mentioned above.
+where `$CACERT_PATH` is the path to the single file mentioned above.
 
 If you want to _require_ client-cert authentication for every connection, you can add the `cert_required` key:
 
