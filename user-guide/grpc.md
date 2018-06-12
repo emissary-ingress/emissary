@@ -126,6 +126,8 @@ To test `Hello World`, we can use the Docker image `enm10k/grpc-hello-world`:
 docker run -e ADDRESS=${AMBASSADORHOST}:${AMBASSADORPORT} enm10k/grpc-hello-world greeter_client
 ```
 
+Note: If you're trying this out using `NodePort` on minikube and running the docker command above on your host machine, make sure to pass the `--network host` parameter to the docker command.
+
 ## Using over TLS
 
 To enable grpc over TLS, ALPN protocol http2 `alpn_protocols: h2` must be added to the TLS module configuration. Refer to [TLS termination guide](/user-guide/tls-termination.html) for more information.
