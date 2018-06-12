@@ -8,9 +8,11 @@ import time
 
 from .VERSION import Version
 
+
 class SystemInfo (object):
     MyHostName = socket.gethostname()
     MyResolvedName = socket.gethostbyname(socket.gethostname())
+
 
 class RichStatus (object):
     def __init__(self, ok, **kwargs):
@@ -30,12 +32,13 @@ class RichStatus (object):
 
     def __nonzero__(self):
         return bool(self)
-        
+
     def __contains__(self, key):
         return key in self.info
 
     def __str__(self):
-        attrs = ["%s=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
+        attrs = ["%s=%s" % (key, self.info[key])
+                 for key in sorted(self.info.keys())]
         astr = " ".join(attrs)
 
         if astr:
@@ -44,7 +47,7 @@ class RichStatus (object):
         return "<RichStatus %s%s>" % ("OK" if self else "BAD", astr)
 
     def toDict(self):
-        d = { 'ok': self.ok }
+        d = {'ok': self.ok}
 
         for key in self.info.keys():
             d[key] = self.info[key]
@@ -59,6 +62,7 @@ class RichStatus (object):
     @classmethod
     def OK(self, **kwargs):
         return RichStatus(True, **kwargs)
+
 
 class SourcedDict (dict):
     def __init__(self, _source="--internal--", _from=None, **kwargs):
@@ -76,6 +80,7 @@ class SourcedDict (dict):
 
         if source not in refby:
             refby.append(source)
+
 
 class DelayTrigger (threading.Thread):
     def __init__(self, onfired, timeout=5, name=None):

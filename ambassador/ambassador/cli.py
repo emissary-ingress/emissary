@@ -18,7 +18,7 @@ from .VERSION import Version
 __version__ = Version
 
 logging.basicConfig(
-    level=logging.INFO, # if appDebug else logging.INFO,
+    level=logging.INFO,  # if appDebug else logging.INFO,
     format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
@@ -26,6 +26,7 @@ logging.basicConfig(
 # logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
 logger = logging.getLogger("ambassador")
 logger.setLevel(logging.DEBUG)
+
 
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
@@ -40,6 +41,7 @@ def handle_exception(what, e, **kwargs):
     logger.error("%s: %s\n%s" % (what, e, tb))
 
     show_notices()
+
 
 def show_notices(printer=logger.log):
     if Config.scout_notices:
@@ -58,8 +60,10 @@ def show_notices(printer=logger.log):
             except KeyError:
                 printer(logging.WARNING, json.dumps(notice))
 
+
 def stdout_printer(lvl, msg):
     print("%s: %s" % (logging.getLevelName(lvl), msg))
+
 
 def version():
     """
@@ -71,6 +75,7 @@ def version():
     if Config.scout:
         Config.scout_report(action="version", mode="cli")
         show_notices(printer=stdout_printer)
+
 
 def showid():
     """
@@ -86,6 +91,7 @@ def showid():
     else:
         print("unknown")
 
+
 def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_path=None):
     try:
         return Config(config_dir_path, k8s=k8s,
@@ -98,7 +104,8 @@ def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_
         # This is fatal.
         sys.exit(1)
 
-def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
+
+def dump(config_dir_path: Parameter.REQUIRED, *, k8s=False):
     """
     Dump the intermediate form of an Ambassador configuration for debugging
 
@@ -123,7 +130,8 @@ def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
         # This is fatal.
         sys.exit(1)
 
-def validate(config_dir_path:Parameter.REQUIRED, *, k8s=False):
+
+def validate(config_dir_path: Parameter.REQUIRED, *, k8s=False):
     """
     Validate an Ambassador configuration
 
@@ -132,7 +140,8 @@ def validate(config_dir_path:Parameter.REQUIRED, *, k8s=False):
     """
     config(config_dir_path, os.devnull, k8s=k8s, exit_on_error=True)
 
-def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *,
+
+def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQUIRED, *,
            check=False, k8s=False, exit_on_error=False):
     """
     Generate an Envoy configuration
@@ -170,7 +179,8 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                 logger.warning("output file is not valid JSON")
                 output_exists = False
 
-            logger.info("Output file %s" % ("exists" if output_exists else "does not exist"))
+            logger.info("Output file %s" %
+                        ("exists" if output_exists else "does not exist"))
 
         rc = RichStatus.fromError("impossible error")
 
@@ -182,20 +192,21 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
 
             # If exit_on_error is set, log errors and exit with status 1
             if exit_on_error and aconf.errors:
-                raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
+                raise Exception("errors in: {0}".format(
+                    ', '.join(aconf.errors.keys())))
 
             rc = aconf.generate_envoy_config(mode="cli", check=check)
 
             if rc:
                 aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))
             else:
-                logger.error("Could not generate new Envoy configuration: %s" % rc.error)
+                logger.error(
+                    "Could not generate new Envoy configuration: %s" % rc.error)
                 logger.error("Raw template output:")
                 logger.error("%s" % rc.raw)
         else:
             Config.scout_report(action="config", result=True,
                                 mode="cli", generated=False, check=check)
-
 
         show_notices()
     except Exception as e:
@@ -204,6 +215,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
 
         # This is fatal.
         sys.exit(1)
+
 
 def main():
     clize.run([config, dump, validate], alt=[version, showid],
@@ -218,6 +230,7 @@ def main():
 
               to see Ambassador's version.
               """)
+
 
 if __name__ == "__main__":
     main()

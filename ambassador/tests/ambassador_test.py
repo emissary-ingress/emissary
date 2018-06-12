@@ -15,17 +15,18 @@ from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
 VALIDATOR_IMAGE = "datawire/ambassador-envoy-alpine:v1.5.0-116-g7ccb25882"
 
 DIR = os.path.dirname(__file__)
-EXCLUDES = [ "__pycache__" ] 
+EXCLUDES = ["__pycache__"]
 
 # TESTDIR = os.path.join(DIR, "tests")
 TESTDIR = DIR
 DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
-MATCHES = [ n for n in os.listdir(TESTDIR) 
-            if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+MATCHES = [n for n in os.listdir(TESTDIR)
+           if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES))]
 
 os.environ['SCOUT_DISABLE'] = "1"
 
-#### decorators
+# decorators
+
 
 def standard_setup(f):
     func_name = getattr(f, '__name__', '<anonymous>')
@@ -47,11 +48,14 @@ def standard_setup(f):
 
     return wrapper
 
-#### Utilities
+# Utilities
+
 
 def unified_diff(gold_path, current_path):
-    gold = json.dumps(json.load(open(gold_path, "r")), indent=4, sort_keys=True)
-    current = json.dumps(json.load(open(current_path, "r")), indent=4, sort_keys=True)
+    gold = json.dumps(json.load(open(gold_path, "r")),
+                      indent=4, sort_keys=True)
+    current = json.dumps(json.load(open(current_path, "r")),
+                         indent=4, sort_keys=True)
 
     udiff = list(difflib.unified_diff(gold.split("\n"), current.split("\n"),
                                       fromfile=os.path.basename(gold_path),
@@ -60,7 +64,8 @@ def unified_diff(gold_path, current_path):
 
     return udiff
 
-#### Test functions
+# Test functions
+
 
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
@@ -72,7 +77,7 @@ def test_config(testname, dirpath, configdir):
 
     print("==== checking intermediate output")
 
-    ambassador = shell([ 'ambassador', 'dump', configdir ])
+    ambassador = shell(['ambassador', 'dump', configdir])
 
     if ambassador.code != 0:
         errors.append('ambassador dump failed! %s' % ambassador.code)
@@ -87,10 +92,12 @@ def test_config(testname, dirpath, configdir):
             errors.append("current intermediate was unparseable?")
 
         if current:
-            current['envoy_config'] = filtered_overview(current['envoy_config'])
+            current['envoy_config'] = filtered_overview(
+                current['envoy_config'])
 
             current_path = os.path.join(dirpath, "intermediate.json")
-            json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
+            json.dump(current, open(current_path, "w"),
+                      sort_keys=True, indent=4)
 
             gold_path = os.path.join(dirpath, "gold.intermediate.json")
 
@@ -98,7 +105,8 @@ def test_config(testname, dirpath, configdir):
                 udiff = unified_diff(gold_path, current_path)
 
                 if udiff:
-                    errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+                    errors.append(
+                        "gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
 
     print("==== checking config generation")
 
@@ -110,21 +118,22 @@ def test_config(testname, dirpath, configdir):
         if e.errno != errno.ENOENT:
             raise
 
-    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+    ambassador = shell(
+        ['ambassador', 'config', '--check', configdir, envoy_json_out])
 
-    print(ambassador.errors(raw=True))    
+    print(ambassador.errors(raw=True))
 
     if ambassador.code != 0:
         errors.append('ambassador failed! %s' % ambassador.code)
     else:
-        envoy = shell([ 'docker', 'run', 
-                            '--rm',
-                            '-v', '%s:/etc/ambassador-config' % dirpath,
-                            VALIDATOR_IMAGE,
-                            '/usr/local/bin/envoy',
-                               '--base-id', '1',
-                               '--mode', 'validate',
-                               '-c', '/etc/ambassador-config/envoy.json' ],
+        envoy = shell(['docker', 'run',
+                       '--rm',
+                       '-v', '%s:/etc/ambassador-config' % dirpath,
+                       VALIDATOR_IMAGE,
+                       '/usr/local/bin/envoy',
+                       '--base-id', '1',
+                       '--mode', 'validate',
+                       '-c', '/etc/ambassador-config/envoy.json'],
                       verbose=True)
 
         envoy_succeeded = (envoy.code == 0)
@@ -144,11 +153,13 @@ def test_config(testname, dirpath, configdir):
             udiff = unified_diff(gold_path, envoy_json_out)
 
             if udiff:
-                errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
+                errors.append(
+                    "gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
 
     print("==== checking short-circuit with existing config")
 
-    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+    ambassador = shell(
+        ['ambassador', 'config', '--check', configdir, envoy_json_out])
 
     print(ambassador.errors(raw=True))
 
@@ -163,6 +174,7 @@ def test_config(testname, dirpath, configdir):
         print("%s" % "\n".join(errors))
 
     assert not errors, ("failing, errors: %d" % len(errors))
+
 
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
@@ -190,5 +202,5 @@ def test_diag(testname, dirpath, configdir):
         print("%s" % results['overview'])
         print("---- RECONSTITUTED ----")
         print("%s" % results['reconstituted'])
-    
+
     assert errorcount == 0, ("failing, errors: %d" % errorcount)

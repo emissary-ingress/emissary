@@ -9,13 +9,15 @@ print("setuptools %s" % setuptools.__version__)
 
 requirements = open("requirements.txt", "r").read().split("\n")
 
+
 def collect_data_files(dirpath):
     return [
         (subdirpath,
-         [ os.path.join(subdirpath, filename) 
-           for filename in filenames ])
+         [os.path.join(subdirpath, filename)
+          for filename in filenames])
         for subdirpath, folders, filenames in os.walk(dirpath)
     ]
+
 
 template_files = collect_data_files("templates")
 schema_files = collect_data_files("schemas")
@@ -37,7 +39,7 @@ setup(
         'console_scripts': [
             'ambassador=ambassador.cli:main',
             'diagd=ambassador_diag.diagd:main'
-      ]
+        ]
     },
 
     author="datawire.io",

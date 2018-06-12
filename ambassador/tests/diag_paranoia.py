@@ -8,8 +8,10 @@ from shell import shell
 
 from ambassador.config import Config
 
+
 def prettify(obj):
     return json.dumps(obj, indent=4, sort_keys=True)
+
 
 def mark_referenced_by(obj, refby):
     if '_referenced_by' not in obj:
@@ -23,6 +25,7 @@ def mark_referenced_by(obj, refby):
     else:
         return False
 
+
 Uniqifiers = {
     'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
@@ -34,6 +37,7 @@ Uniqifiers = {
     'routes': lambda x: x['_group_id'],
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename']
 }
+
 
 def filtered_overview(ov):
     filtered = {}
@@ -52,7 +56,8 @@ def filtered_overview(ov):
                 #     continue
 
                 if '_referenced_by' in obj:
-                    obj['_referenced_by'] = sorted([ x for x in obj['_referenced_by'] ])
+                    obj['_referenced_by'] = sorted(
+                        [x for x in obj['_referenced_by']])
 
                 filtered_element.append(obj)
 
@@ -64,9 +69,10 @@ def filtered_overview(ov):
             if '_referenced_by' in obj:
                 obj['_referenced_by'].sort()
 
-            filtered[key] = [ obj ]
+            filtered[key] = [obj]
 
     return sanitize_errors(filtered)
+
 
 def sanitize_errors(ov):
     sources = ov.get('sources', {})
@@ -91,6 +97,7 @@ def sanitize_errors(ov):
 
     return ov
 
+
 def diag_paranoia(configdir, outputdir):
     aconf = Config(configdir)
     ov = aconf.diagnostic_overview()
@@ -103,14 +110,14 @@ def diag_paranoia(configdir, outputdir):
     source_info = [
         {
             "filename": x['filename'],
-            "sources": [ key for key in x['objects'].keys() ]
+            "sources": [key for key in x['objects'].keys()]
         }
         for x in ov['sources']
     ]
 
     source_info.insert(0, {
         "filename": "--internal--",
-        "sources": [ "--internal--" ]
+        "sources": ["--internal--"]
     })
 
     for si in source_info:
@@ -132,7 +139,7 @@ def diag_paranoia(configdir, outputdir):
 
                         if cname not in rclusters:
                             rclusters[cname] = dict(**cluster)
-                            rclusters[cname]['_referenced_by'] = [ source_key ]
+                            rclusters[cname]['_referenced_by'] = [source_key]
 
                             # print("%s: new cluster %s" % (source_key, prettify(rclusters[cname])))
                         else:
@@ -148,12 +155,12 @@ def diag_paranoia(configdir, outputdir):
                                     continue
 
                                 if cluster[ckey] != rcluster[ckey]:
-                                    errors.append("%s: cluster %s doesn't match %s for %s" % 
+                                    errors.append("%s: cluster %s doesn't match %s for %s" %
                                                   (source_key, cname, rcluster['_source'], ckey))
 
                             for rkey in sorted(rcluster.keys()):
                                 if rkey not in cluster:
-                                    errors.append('%s: cluster %s is missing key %s from source %s' % 
+                                    errors.append('%s: cluster %s is missing key %s from source %s' %
                                                   (source_key, cname, rkey, rcluster['_source']))
                 else:
                     # Other things are a touch more straightforward, just need to work out a unique
@@ -212,18 +219,21 @@ def diag_paranoia(configdir, outputdir):
                 s['error_count'] += len(obj['errors'])
 
             for s in sources.values():
-                s['error_plural'] = "error" if (s['error_count'] == 1) else "errors"
+                s['error_plural'] = "error" if (
+                    s['error_count'] == 1) else "errors"
                 s['plural'] = "object" if (s['count'] == 1) else "objects"
 
             # Finally, sort 'em all.
-            reconstituted_lists['sources'] = sorted(sources.values(), key=lambda x: x['filename'])
+            reconstituted_lists['sources'] = sorted(
+                sources.values(), key=lambda x: x['filename'])
         else:
             # Not the list of sources. Grab the uniqifier...
             uniqifier = Uniqifiers.get(key, lambda x: x.get('name', None))
 
-            reconstituted_lists[key] = sorted(reconstituted[key].values(), key=uniqifier)
+            reconstituted_lists[key] = sorted(
+                reconstituted[key].values(), key=uniqifier)
 
-    # # If there's no listener block in the reconstituted set, that implies that 
+    # # If there's no listener block in the reconstituted set, that implies that
     # # the configuration doesn't override the listener state. Go ahead and add the
     # # default in.
 
@@ -240,7 +250,7 @@ def diag_paranoia(configdir, outputdir):
 
     # Copy any 'extauth' block from the original into the reconstituted list.
     if ('extauth' in ov) and ('extauth' not in reconstituted_lists):
-        reconstituted_lists['extauth'] = [ ov['extauth'] ]
+        reconstituted_lists['extauth'] = [ov['extauth']]
 
     # OK. Next, filter out the '--internal--' stuff from our overview, and sort
     # _referenced_by.
@@ -265,6 +275,7 @@ def diag_paranoia(configdir, outputdir):
         'overview': pretty_filtered_overview,
         'reconstituted': pretty_reconstituted_lists
     }
+
 
 if __name__ == "__main__":
     results = diag_paranoia(sys.argv[1], ".")

@@ -45,6 +45,7 @@ class MissingCommandException(ShellException):
 
 class CommandError(ShellException):
     """Thrown when a command fails."""
+
     def __init__(self, message, code, stderr):
         self.message = message
         self.code = code
@@ -80,6 +81,7 @@ class Shell(object):
     If set to ``True``, prints stdout to stdout and stderr to stderr as
     execution happens. (Default: ``False``)
     """
+
     def __init__(self, has_input=False, record_output=True, record_errors=True,
                  strip_empty=True, die=False, verbose=False):
         self.has_input = has_input
