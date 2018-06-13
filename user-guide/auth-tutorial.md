@@ -73,19 +73,13 @@ kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
 
 to spin everything up. (Of course, you can also use a local file, if you prefer.)
 
-Wait for the pod to be running before continuing. The best test here is to use `kubectl port-forward` to make port 3000 available, then actually try talking to the auth service. In one window:
-
-```shell
-kubectl port-forward $example-auth-pod-name 3000
+Wait for the pod to be running before continuing. The output of `kubectl get pods` should look something like -
+```console
+$ kubectl get pods
+NAME                            READY     STATUS    RESTARTS   AGE
+example-auth-6c5855b98d-24clp   1/1       Running   0          4m
 ```
-
-then in another
-
-```shell
-$ curl http://localhost:3000/ready
-```
-
-You should see output like `OK (not /qotm/quote)` when the service is running.
+Note that the `READY` field says `1/1` which means the pod is up and running.
 
 ## 2. Configure Ambassador authentication
 
