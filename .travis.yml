@@ -38,6 +38,7 @@ env:
 before_install:
   - mkdir -p ~/bin
   - mkdir -p ~/.config/kubernaut
+  - echo "encrypted_95ce0d75e6f7_iv is \"$encrypted_95ce0d75e6f7_iv\" <-- (must not be blank)"
   - |-
     openssl aes-256-cbc \
       -K $encrypted_95ce0d75e6f7_key \
