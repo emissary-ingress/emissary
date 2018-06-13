@@ -3,15 +3,21 @@
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-CONFIG_DIR="/etc/ambassador-config"
+AMBASSADOR_ROOT="/ambassador"
+CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-config"
+ENVOY_CONFIG_FILE="$AMBASSADOR_ROOT/envoy.json"
 
 if [ "$1" == "--demo" ]; then
-    CONFIG_DIR="/etc/ambassador-demo-config"
+    CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
 
 DELAY=${AMBASSADOR_RESTART_TIME:-15}
 
-APPDIR=${APPDIR:-/application}
+APPDIR=${APPDIR:-"$AMBASSADOR_ROOT"}
+
+# If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by default, which fails when running as a non-privileged
+# user
+export PYTHON_EGG_CACHE=${APPDIR/.cache}
 
 export PYTHONUNBUFFERED=true
 
@@ -28,7 +34,7 @@ diediedie() {
     fi
 
     echo "Here's the envoy.json we were trying to run with:"
-    LATEST="$(ls -v /etc/envoy*.json | tail -1)"
+    LATEST="$(ls -v $AMBASSADOR_ROOT/envoy*.json | tail -1)"
     if [ -e "$LATEST" ]; then
         cat "$LATEST"
     else
@@ -68,7 +74,7 @@ handle_int() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" /etc/envoy.json
+/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
 
 STATUS=$?
 
@@ -85,7 +91,7 @@ echo "AMBASSADOR: starting Envoy"
 RESTARTER_PID="$!"
 pids="${pids:+${pids} }${RESTARTER_PID}:envoy"
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" --delay "${DELAY}" &
+/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${RESTARTER_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"

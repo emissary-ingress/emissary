@@ -884,7 +884,7 @@ class Config (object):
         # default values now.
 
         self.ambassador_module = SourcedDict(
-            service_port = 80,
+            service_port = 8080,
             admin_port = 8001,
             diag_port = 8877,
             auth_enabled = None,
