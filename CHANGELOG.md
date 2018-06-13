@@ -16,6 +16,7 @@
 ### Changed
 
 - Ambassador is now based on Envoy 1.6.0!
+- Ambassador external auth services can now modify existing headers in place, as well as adding new headers.
 - Re-support the `ambassador-cacert` secret for configuring TLS client-certificate authentication. **Note well** that a couple of things have changed in setting this up: you'll use the key `tls.crt`, not `fullchain.pem`. See https://www.getambassador.io/reference/auth-tls-certs for more.
 
 ## [0.34.1] June 4, 2018
