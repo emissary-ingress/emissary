@@ -376,7 +376,8 @@ def sync(restarter):
             for svc in svc_list.items:
                 restarter.update_from_service(svc)
 
-    logger.debug("Changes detected, regenerating envoy config.")
+    # Always generate an initial envoy config.    
+    logger.debug("Generating initial Envoy config")
     restarter.restart()
 
 def watch_loop(restarter):
@@ -402,8 +403,7 @@ def watch_loop(restarter):
                 restarter.update_from_service(evt["object"])
     else:
         logger.info("No K8s, idling")
-        while True:
-            time.sleep(60)
+        time.sleep(60)
 
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
@@ -492,7 +492,7 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
             except KeyboardInterrupt:
                 raise
             except:
-                logging.exception("could not watch for Kubernetes service changes")
+                logger.exception("could not watch for Kubernetes service changes")
     else:
          raise ValueError(mode)
 
