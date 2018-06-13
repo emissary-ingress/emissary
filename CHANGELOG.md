@@ -10,6 +10,14 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.34.3] June 13, 2018
+[0.34.3]: https://github.com/datawire/ambassador/compare/0.34.2...0.34.3
+
+### Changed
+
+- Fix a possible crash if no annotations are found at all (#519).
+- Improve logging around service watching and such.
+
 ## [0.34.2] June 11, 2018
 [0.34.2]: https://github.com/datawire/ambassador/compare/0.34.1...0.34.2
 
