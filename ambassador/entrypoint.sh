@@ -13,6 +13,8 @@ DELAY=${AMBASSADOR_RESTART_TIME:-15}
 
 APPDIR=${APPDIR:-/application}
 
+export PYTHONUNBUFFERED=true
+
 pids=""
 
 diediedie() {
@@ -73,8 +75,6 @@ STATUS=$?
 if [ $STATUS -ne 0 ]; then
     diediedie "kubewatch sync" "$STATUS"
 fi
-
-export PYTHON_UNBUFFERED=true
 
 echo "AMBASSADOR: starting diagd"
 diagd --no-debugging "$CONFIG_DIR" &
