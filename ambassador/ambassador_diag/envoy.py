@@ -219,67 +219,59 @@ class EnvoyStats (object):
         active_clusters = {}
 
         if "cluster" in envoy_stats:
-            # active_cluster_map = {
-            #     x + '_cluster': x
-            #     for x in active_mapping_names
-            # }
-
-            # logging.info("active_cluster_map: %s" % json.dumps(active_cluster_map))
-
             for cluster_name in envoy_stats['cluster']:
                 cluster = envoy_stats['cluster'][cluster_name]
 
                 # # Toss any _%d -- that's madness with our Istio code at the moment.
                 # cluster_name = re.sub('_\d+$', '', cluster_name)
-                
-                if True or (cluster_name in active_cluster_map):
-                    # mapping_name = active_cluster_map[cluster_name]
-                    # active_mappings[mapping_name] = {}
 
-                    # logging.info("cluster %s stats: %s" % (cluster_name, cluster))
+                # mapping_name = active_cluster_map[cluster_name]
+                # active_mappings[mapping_name] = {}
 
-                    healthy_members = cluster['membership_healthy']
-                    total_members = cluster['membership_total']
-                    healthy_percent = percentage(healthy_members, total_members)
+                # logging.info("cluster %s stats: %s" % (cluster_name, cluster))
 
-                    update_attempts = cluster['update_attempt']
-                    update_successes = cluster['update_success']
-                    update_percent = percentage(update_successes, update_attempts)
+                healthy_members = cluster['membership_healthy']
+                total_members = cluster['membership_total']
+                healthy_percent = percentage(healthy_members, total_members)
 
-                    # Weird.
-                    # upstream_ok = cluster.get('upstream_rq_2xx', 0)
-                    upstream_total = cluster.get('upstream_rq_pending_total', 0)
+                update_attempts = cluster['update_attempt']
+                update_successes = cluster['update_success']
+                update_percent = percentage(update_successes, update_attempts)
 
-                    upstream_4xx = cluster.get('upstream_rq_4xx', 0)
-                    upstream_5xx = cluster.get('upstream_rq_5xx', 0)
-                    upstream_bad = upstream_5xx # used to include 4XX here, but that seems wrong.
+                # Weird.
+                # upstream_ok = cluster.get('upstream_rq_2xx', 0)
+                upstream_total = cluster.get('upstream_rq_pending_total', 0)
 
-                    upstream_ok = upstream_total - upstream_bad
+                upstream_4xx = cluster.get('upstream_rq_4xx', 0)
+                upstream_5xx = cluster.get('upstream_rq_5xx', 0)
+                upstream_bad = upstream_5xx # used to include 4XX here, but that seems wrong.
 
-                    # logging.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
+                upstream_ok = upstream_total - upstream_bad
 
-                    if upstream_total > 0:
-                        healthy_percent = percentage(upstream_ok, upstream_total)
-                        # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
-                    else:
-                        healthy_percent = None
-                        # logging.debug("cluster %s has had no requests" % cluster_name)
+                # logging.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
 
-                    # active_mappings[mapping_name] = {
-                    active_clusters[cluster_name] = {
-                        'healthy_members': healthy_members,
-                        'total_members': total_members,
-                        'healthy_percent': healthy_percent,
+                if upstream_total > 0:
+                    healthy_percent = percentage(upstream_ok, upstream_total)
+                    # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
+                else:
+                    healthy_percent = None
+                    # logging.debug("cluster %s has had no requests" % cluster_name)
 
-                        'update_attempts': update_attempts,
-                        'update_successes': update_successes,
-                        'update_percent': update_percent,
+                # active_mappings[mapping_name] = {
+                active_clusters[cluster_name] = {
+                    'healthy_members': healthy_members,
+                    'total_members': total_members,
+                    'healthy_percent': healthy_percent,
 
-                        'upstream_ok': upstream_ok,
-                        'upstream_4xx': upstream_4xx,
-                        'upstream_5xx': upstream_5xx,
-                        'upstream_bad': upstream_bad
-                    }
+                    'update_attempts': update_attempts,
+                    'update_successes': update_successes,
+                    'update_percent': update_percent,
+
+                    'upstream_ok': upstream_ok,
+                    'upstream_4xx': upstream_4xx,
+                    'upstream_5xx': upstream_5xx,
+                    'upstream_bad': upstream_bad
+                }
 
         # OK, we're now officially finished with all the hard stuff.
         last_update = time.time()
