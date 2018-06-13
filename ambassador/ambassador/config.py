@@ -344,7 +344,7 @@ class Config (object):
 
         self.generate_intermediate_config()
 
-    def load_yaml(self, filepath, filename, serialization, ocount=1, k8s=False):
+    def load_yaml(self, filepath, filename, serialization, resource_identifier=None, ocount=1, k8s=False):
         try:
             # XXX This is a bit of a hack -- yaml.safe_load_all returns a
             # generator, and if we don't use list() here, any exception
@@ -353,17 +353,19 @@ class Config (object):
                 if k8s:
                     ocount = self.prep_k8s(filepath, filename, ocount, obj)
                 else:
-                    self.objects_to_process.append((filepath, filename, ocount, obj))
+                    # k8s objects will have an identifier, for other objects use filepath
+                    object_unique_id = resource_identifier or filepath
+                    self.objects_to_process.append((object_unique_id, filename, ocount, obj))
                     ocount += 1
         except Exception as e:
             # No sense letting one attribute with bad YAML take down the whole
             # gateway, so post the error but keep any objects we were able to
             # parse before hitting the error.
-            self.filepath = filepath
+            self.resource_identifier = resource_identifier or filepath
             self.filename = filename
             self.ocount = ocount
 
-            self.post_error(RichStatus.fromError("%s: could not parse YAML" % filename))
+            self.post_error(RichStatus.fromError("%s: could not parse YAML" % filepath))
 
         return ocount
 
@@ -382,6 +384,20 @@ class Config (object):
                               (filepath, ocount, kind))
             return ocount
 
+        # Use metadata to build an unique resource identifier
+        resource_name = metadata.get('name')
+
+        # This should never happen as the name field is required in metadata for Service
+        if not resource_name:
+            self.logger.debug("%s/%s: ignoring unnamed K8s %s" %
+                              (filepath, ocount, kind))
+            return ocount
+
+        resource_namespace = metadata.get('namespace', 'default')
+
+        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
+        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+
         annotations = metadata.get('annotations', None)
 
         if annotations:
@@ -394,11 +410,13 @@ class Config (object):
                               (filepath, ocount, kind))
             return ocount
 
-        return self.load_yaml(filepath, filename + ":annotation", annotations, ocount=ocount)
+        return self.load_yaml(filepath, filename + ":annotation", annotations, ocount=ocount, resource_identifier=resource_identifier)
 
     def process_all_objects(self):
-        for filepath, filename, ocount, obj in sorted(self.objects_to_process):
-            self.filepath = filepath
+        for resource_identifier, filename, ocount, obj in sorted(self.objects_to_process):
+            # resource_identifier is either a filepath or <name>.<namespace>
+            self.resource_identifier = resource_identifier
+            # This fallback prevents issues for internal/diagnostics objects
             self.filename = filename
             self.ocount = ocount
 
@@ -424,10 +442,10 @@ class Config (object):
 
                 if Config.ambassador_id not in allowed_ids:
                     self.logger.debug("PROCESS: skip %s.%d; id %s not in %s" %
-                                      (self.filepath, self.ocount, Config.ambassador_id, allowed_ids))
+                                      (self.resource_identifier, self.ocount, Config.ambassador_id, allowed_ids))
                     continue
 
-            self.logger.debug("PROCESS: %s.%d => %s" % (self.filepath, self.ocount, self.source))
+            self.logger.debug("PROCESS: %s.%d => %s" % (self.resource_identifier, self.ocount, self.source))
 
             rc = self.process_object(obj)
 
@@ -540,7 +558,7 @@ class Config (object):
         if not handler:
             handler = self.save_object
             self.logger.warning("%s[%d]: no handler for %s, just saving" %
-                                (self.filename, self.ocount, obj_kind))
+                                (self.resource_identifier, self.ocount, obj_kind))
         # else:
         #     self.logger.debug("%s[%d]: handling %s..." %
         #                       (self.filename, self.ocount, obj_kind))
@@ -605,11 +623,11 @@ class Config (object):
         if obj_name in storage:
             # Oooops.
             raise Exception("%s[%d] defines %s %s, which is already present" %
-                            (self.filename, self.ocount, obj_kind, obj_name))
+                            (self.resource_identifier, self.ocount, obj_kind, obj_name))
 
         if allow_log:
             self.logger.debug("%s[%d]: saving %s %s" %
-                          (self.filename, self.ocount, obj_kind, obj_name))
+                          (self.resource_identifier, self.ocount, obj_kind, obj_name))
 
         storage[obj_name] = value
         return storage[obj_name]
@@ -629,7 +647,7 @@ class Config (object):
                 override['source'] = obj['source']
 
                 self.logger.debug("PRAGMA: override %s to %s" %
-                                  (self.filename, self.source_overrides[self.filename]['source']))
+                                  (self.resource_identifier, self.source_overrides[self.filename]['source']))
             elif key == 'autogenerated':
                 override = self.source_overrides.setdefault(self.filename, {})
                 override['ocount_delta'] = -1
