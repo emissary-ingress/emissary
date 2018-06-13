@@ -4,7 +4,7 @@ Canary releasing is a deployment pattern where a small percentage of traffic is 
 
 ### Canary releases in Kubernetes
 
-Kubernetes supports a basic canary release workflow using its core objects. In this workflow, a service owner can create a Kubernetes [service](https://kubernetes.io/docs/concepts/services-networking/service/). This service can then be pointed to multiple [deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/). Each deployment can be a different version. By specifying the number of `replicas` in a given deployment, you can control how much traffic goes between different versions. For example, you could set `replicas: 3` for `v1`, and `replicas: 1` for `v2`, to insure that 25% of traffic goes to `v2`. This approach works, but is fairly coarse grained unless you have lots of replicas. Moreover, auto scaling doesn't work well with this strategy.
+Kubernetes supports a basic canary release workflow using its core objects. In this workflow, a service owner can create a Kubernetes [service](https://kubernetes.io/docs/concepts/services-networking/service/). This service can then be pointed to multiple [deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/). Each deployment can be a different version. By specifying the number of `replicas` in a given deployment, you can control how much traffic goes between different versions. For example, you could set `replicas: 3` for `v1`, and `replicas: 1` for `v2`, to ensure that 25% of traffic goes to `v2`. This approach works, but is fairly coarse grained unless you have lots of replicas. Moreover, auto scaling doesn't work well with this strategy.
 
 ### Canary releases in Ambassador
 

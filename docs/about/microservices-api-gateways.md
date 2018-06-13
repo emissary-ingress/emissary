@@ -45,7 +45,7 @@ Microservices API gateways utilize mechanisms that enable service teams to easil
 
 A common business model for APIs is metering, where a consumer is charged different fees depending on API usage. Traditional enterprise API gateways excel in this use case: they provide functionality for monitoring per-client usage of an API, and the ability to limit usage when the client exceeds their quota.
 
-A microservice gateway also requires monitoring and rate limiting, but for different reasons. Monitoring user-visible metrics such as throughput, latency, and availability are important to insure that new updates don't impact the end user. Robust end user metrics are critical to allowing rapid, incremental updates. Rate limiting is used to improve the overall resilience of a service. When a service is not responding as expected, an API gateway can throttle incoming requests to allow a service to recover and prevent a cascade failure.
+A microservice gateway also requires monitoring and rate limiting, but for different reasons. Monitoring user-visible metrics such as throughput, latency, and availability are important to ensure that new updates don't impact the end user. Robust end user metrics are critical to allowing rapid, incremental updates. Rate limiting is used to improve the overall resilience of a service. When a service is not responding as expected, an API gateway can throttle incoming requests to allow a service to recover and prevent a cascade failure.
 
 ## Testing and Updates
 
