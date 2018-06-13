@@ -179,6 +179,8 @@ class Restarter(threading.Thread):
         source = get_source(svc)
         config = get_annotation(svc)
 
+        logger.debug("update_from_svc: key %s, config %s" % (key, yaml.safe_dump(config)))
+
         if config is None:
             self.delete(svc)
         else:
@@ -218,6 +220,9 @@ class Restarter(threading.Thread):
     def delete(self, svc):
         with self.mutex:
             key = get_filename(svc)
+
+            logger.debug("delete: dropping key %s" % key)
+
             if key in self.configs:
                 del self.configs[key]
                 self.poke()
@@ -373,8 +378,13 @@ def sync(restarter):
             svc_list = v1.list_service_for_all_namespaces()
 
         if svc_list:
+            logger.debug("sync: found %d service%s" % 
+                         (len(svc_list.items), ("" if (len(svc_list.items) == 1) else "s")))
+
             for svc in svc_list.items:
                 restarter.update_from_service(svc)
+        else:
+            logger.debug("sync: no services found")
 
     # Always generate an initial envoy config.    
     logger.debug("Generating initial Envoy config")
@@ -401,6 +411,8 @@ def watch_loop(restarter):
                 restarter.delete(evt["object"])
             else:
                 restarter.update_from_service(evt["object"])
+
+        logger.info("watch loop exited?")
     else:
         logger.info("No K8s, idling")
         time.sleep(60)
@@ -488,6 +500,7 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
             try:
                 # this is in a loop because sometimes the auth expires
                 # or the connection dies
+                logger.debug("starting watch loop")
                 watch_loop(restarter)
             except KeyboardInterrupt:
                 raise
