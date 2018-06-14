@@ -1,0 +1,29 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  cors_creds_mapping_array
+prefix: /cors-creds-array/
+service: cors-array:8080
+cors:
+  origins:
+  - http://foo.example
+  - http://bar.example
+  methods:
+  - POST
+  - GET
+  - OPTIONS
+  headers:
+  - Content-Type
+  credentials: true
+  exposed_headers:
+  - X-Custom-Header
+  max_age: "86400"
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  cors_all_mapping_array
+prefix: /cors-all-array/
+service: cors-array:8080
+cors:
+  origins:
+  - "*"

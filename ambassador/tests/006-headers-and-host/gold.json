@@ -31,23 +31,65 @@
                               
                           ]
                       }
-                      
                     }
                     ,
-                    
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
                       "weighted_clusters": {
                           "clusters": [
-                              
+
                                  { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                              
+
                           ]
                       }
-                      
                     }
                     ,
-                    
+                    {
+                      "timeout_ms": 3000,
+                      "prefix": "/cors-creds-array/",
+                      "prefix_rewrite": "/",
+                      "cors": {
+                        "allow_credentials": true,
+                        "allow_headers": "Content-Type",
+                        "allow_methods": "POST, GET, OPTIONS",
+                        "allow_origin": [
+                          "http://foo.example",
+                          "http://bar.example"
+                        ],
+                        "enabled": true,
+                        "expose_headers": "X-Custom-Header",
+                        "max_age": "86400"
+                      },
+                      "weighted_clusters": {
+                        "clusters": [
+                          {
+                            "name": "cluster_cors_array_8080",
+                            "weight": 100.0
+                          }
+                        ]
+                      }
+                    }
+                    ,
+                    {
+                      "cors": {
+                        "allow_origin": [
+                          "*"
+                        ],
+                        "enabled": true
+                      },
+                      "prefix": "/cors-all-array/",
+                      "prefix_rewrite": "/",
+                      "timeout_ms": 3000,
+                      "weighted_clusters": {
+                        "clusters": [
+                          {
+                            "name": "cluster_cors_array_8080",
+                            "weight": 100.0
+                          }
+                        ]
+                      }
+                    }
+                    ,
                     {
                       "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
                       "weighted_clusters": {
@@ -60,7 +102,6 @@
                       
                     }
                     ,
-                    
                     {
                       "timeout_ms": 3000,"prefix": "/cors-creds/","prefix_rewrite": "/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
                       "weighted_clusters": {
@@ -86,17 +127,16 @@
                       
                     }
                     ,
-                    
                     {
                       "timeout_ms": 3000,"prefix": "/cors-all/","prefix_rewrite": "/","cors": {"allow_origin": ["*"], "enabled": true},
                       "weighted_clusters": {
                           "clusters": [
-                              
+
                                  { "name": "cluster_cors_8080", "weight": 100.0 }
-                              
+
                           ]
                       }
-                      
+
                     }
                     ,
                     
@@ -200,6 +240,17 @@
             "url": "tcp://cors:8080"
           }
           
+        ]},
+      {
+        "name": "cluster_cors_array_8080",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://cors-array:8080"
+          }
+
         ]},
       {
         "name": "cluster_demo_getambassador_io",
