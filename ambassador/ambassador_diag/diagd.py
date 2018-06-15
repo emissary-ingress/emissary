@@ -244,7 +244,7 @@ def route_and_cluster_info(request, overview, clusters, cstats):
 
     if 'routes' in overview:
         for route in overview['routes']:
-            prefix = route['prefix']
+            prefix = route['prefix'] if 'prefix' in route else route['regex']
             rewrite = route.get('prefix_rewrite', "/")
             method = '*'
             host = None

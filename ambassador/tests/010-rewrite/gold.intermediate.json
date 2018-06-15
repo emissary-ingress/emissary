@@ -134,8 +134,7 @@
                     }
                 ],
                 "host_rewrite": "httpbin.org",
-                "prefix": "^\\/http(.*)\\/$",
-                "prefix_regex": true,
+                "regex": "^\\/http(.*)\\/$",
                 "prefix_rewrite": ""
             },
             {

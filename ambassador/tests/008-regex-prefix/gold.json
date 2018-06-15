@@ -49,7 +49,20 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"regex": "^\/http(bin)\/$","prefix_rewrite": "/","host_rewrite": "httpbin.org","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],
+                      "timeout_ms": 3000,"regex": "^\\/users\\/(\\S)+\\/profile$","prefix_rewrite": "/","host_rewrite": "httpbin.org","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_http___httpbin_org", "weight": 100.0 }
+                              
+                          ]
+                      }
+                      
+                    }
+                    ,
+                    
+                    {
+                      "timeout_ms": 3000,"regex": "^\\/http(bin)\\/$","prefix_rewrite": "/","host_rewrite": "httpbin.org","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],
                       "weighted_clusters": {
                           "clusters": [
                               
