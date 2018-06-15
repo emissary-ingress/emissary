@@ -33,6 +33,6 @@ spec:
     service: ambassador-{{ build.profile.name }}
 ```
 
-In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route TCP to support both WebSockets and HTTP. Ambassador is configured with `use_remote_address` and `use_proxy_proto` to insure that remote IP addresses are passed through properly. TLS termination then occurs at the ELB.
+In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route TCP to support both WebSockets and HTTP. Ambassador is configured with `use_remote_address` and `use_proxy_proto` to ensure that remote IP addresses are passed through properly. TLS termination then occurs at the ELB.
 
 Ambassador can also terminate TLS directly, as discussed elsewhere in the documentation.
