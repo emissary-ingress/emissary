@@ -1549,7 +1549,7 @@ class Config (object):
         for route in self.envoy_config['routes']:
             if route['_source'] != "--diagnostics--":
                 route['_group_id'] = Mapping.group_id(route.get('method', 'GET'),
-                                                      route['prefix'],
+                                                      route['prefix'] if 'prefix' in route else route['regex'],
                                                       route.get('headers', []))
 
                 routes.append(route)

@@ -61,7 +61,7 @@
                     }
                     ,
                     {
-                      "timeout_ms": 3000,"regex": "^\/http(.*)\/$","host_rewrite": "httpbin.org","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],
+                      "timeout_ms": 3000,"regex": "^\\/http(.*)\\/$","host_rewrite": "httpbin.org","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],
                       "weighted_clusters": {
                           "clusters": [
                               

@@ -40,7 +40,7 @@ class Mapping (object):
     @classmethod
     def route_weight(klass, route):
         precedence = route.get('_precedence', 0)
-        prefix = route['prefix']
+        prefix = route['prefix'] if 'prefix' in route else route['regex']
         method = route.get('method', 'GET')
         headers = route.get('headers', [])
 
@@ -65,8 +65,7 @@ class Mapping (object):
         "path_redirect": True,
         "priority": True,
         "timeout_ms": True,
-        "use_websocket": True,
-        "prefix_regex": True
+        "use_websocket": True
     }
 
     def __init__(self, _source="--internal--", _from=None, **kwargs):
@@ -82,7 +81,6 @@ class Mapping (object):
         # ...and cache some useful first-class stuff.
         self.name = self['name']
         self.kind = self['kind']
-        self.prefix = self['prefix']
         self.method = self.get('method', 'GET')
 
         # Next up, build up the headers. We do this unconditionally at init
@@ -113,7 +111,7 @@ class Mapping (object):
             })
 
         # OK. After all that we can compute the group ID.
-        self.group_id = Mapping.group_id(self.method, self.prefix, self.headers)
+        self.group_id = Mapping.group_id(self.method, self['prefix'], self.headers)
 
     def __getitem__(self, key):
         return self.attrs[key]
@@ -129,9 +127,13 @@ class Mapping (object):
             _source=self['_source'],
             _group_id=self.group_id,
             _precedence=self.get('precedence', 0),
-            prefix=self.prefix,
             prefix_rewrite=self.get('rewrite', '/')
         )
+
+        if self.get('prefix_regex', False):
+            route['regex'] = self['prefix']  # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
+        else:
+            route['prefix'] = self['prefix']
 
         host_redirect = self.get('host_redirect', False)
         shadow = self.get('shadow', False)
