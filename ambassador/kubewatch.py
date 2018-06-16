@@ -415,7 +415,6 @@ def watch_loop(restarter):
         logger.info("watch loop exited?")
     else:
         logger.info("No K8s, idling")
-        time.sleep(60)
 
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
@@ -506,6 +505,8 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
                 raise
             except:
                 logger.exception("could not watch for Kubernetes service changes")
+            finally:
+                time.sleep(60)
     else:
          raise ValueError(mode)
 
