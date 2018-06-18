@@ -22,7 +22,17 @@ By default, the Bookinfo application uses the Istio ingress. To use Ambassador, 
 
 First you will need to deploy the Ambassador ambassador-admin service to your cluster:
 
-It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!). If you're using a cluster with RBAC enabled, you'll need to use:
+It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!).
+
+First, you need to check if Kubernetes has RBAC enabled:
+
+```shell
+kubectl cluster-info dump --namespace kube-system | grep authorization-mode
+```
+If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled.
+
+If RBAC is enabled, you'll need to use:
+
 
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -33,6 +43,7 @@ Without RBAC, you can use:
 ```shell
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
+
 (Note that if you are planning to use mutual TLS for communication between Ambassador and Istio/services in the future, then the order in which you deploy the ambassador-admin service and the ambassador LoadBalancer service below may need to be swapped)
 
 Next you will deploy an ambassador service that acts as a point of ingress into the cluster via the LoadBalancer type. Create the following YAML and put it in a file called `ambassador-service.yaml`.
