@@ -217,5 +217,5 @@ We've just done a quick tour of some of the core features of Ambassador: diagnos
 - Join us on [Slack](https://join.slack.com/t/datawire-oss/shared_invite/enQtMzcwMDEwMTc5ODQ3LTE1NmIzZTFmZWE0OTQ1NDc2MzE2NTkzMDAzZWM0MDIxZTVjOGIxYmRjZjY3N2M2Mjk4NGI5Y2Q4NGY4Njc1Yjg);
 - Learn how to [add authentication](auth-tutorial.md) to existing services; or
 - Learn how to [add rate limiting](rate-limiting-tutorial.md) to existing services; or
-- Learn how to [use gRPC with Ambassador](/how-to/grpc.md); or
+- Learn how to [use gRPC with Ambassador](grpc.md); or
 - Read about [configuring Ambassador](/reference/configuration.md).
