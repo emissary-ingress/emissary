@@ -24,7 +24,8 @@ First you will need to deploy the Ambassador ambassador-admin service to your cl
 
 It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!).
 
-First, you need to check if Kubernetes has RBAC enabled, run:
+First, you need to check if Kubernetes has RBAC enabled:
+
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 ```

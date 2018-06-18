@@ -1,9 +1,13 @@
 ## Upgrading Ambassador
 
-Since Ambassador's configuration is entirely stored in annotations or a `ConfigMap`, no special process is necessary to upgrade Ambassador. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating the following `kubectl apply` commands. First determine if Kubernetes has RBAC enabled, run:
+Since Ambassador's configuration is entirely stored in annotations or a `ConfigMap`, no special process is necessary to upgrade Ambassador. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating the following `kubectl apply` commands.
+
+First determine if Kubernetes has RBAC enabled:
+
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 ```
+
 If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled.
 
 If RBAC is enabled:

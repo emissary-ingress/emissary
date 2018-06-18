@@ -6,7 +6,7 @@ Ambassador is designed to allow service authors to control how their service is 
 
 ## 1. Deploying Ambassador
 
-To deploy Ambassador in your default namespace, first you need to check if Kubernetes has RBAC enabled, run:
+To deploy Ambassador in your default namespace, first you need to check if Kubernetes has RBAC enabled:
 
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
