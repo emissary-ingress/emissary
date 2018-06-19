@@ -1,6 +1,16 @@
 # Changelog
 
+## WARNING WARNING WARNING
+
+**Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is a bug, being tracked in [Ambassador issue 535](https://github.com/datawire/ambassador/issues/535); we expect a fix soon.
+
+If you are using websockets, you should stick with Ambassador 0.34.1 until a fix to [#535](https://github.com/datawire/ambassador/issues/535) is released.
+
+If you do _not_ use websockets, you should probably run Ambassador 0.34.3, as it incorporates other fixes that may be important for you.
+
 ## BREAKING NEWS
+
+- Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above.
 
 - As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
 
@@ -10,19 +20,21 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
-## [0.34.3] June 13, 2018
+## [0.34.3] June 13, 2018: **READ THE WARNING ABOVE**
 [0.34.3]: https://github.com/datawire/ambassador/compare/0.34.2...0.34.3
 
 ### Changed
 
+- **0.34.3 cannot support websockets**: see the **WARNING** above.
 - Fix a possible crash if no annotations are found at all (#519).
 - Improve logging around service watching and such.
 
-## [0.34.2] June 11, 2018
+## [0.34.2] June 11, 2018: **READ THE WARNING ABOVE**
 [0.34.2]: https://github.com/datawire/ambassador/compare/0.34.1...0.34.2
 
 ### Changed
 
+- **0.34.2 cannot support websockets**: see the **WARNING** above.
 - Ambassador is now based on Envoy 1.6.0!
 - Ambassador external auth services can now modify existing headers in place, as well as adding new headers.
 - Re-support the `ambassador-cacert` secret for configuring TLS client-certificate authentication. **Note well** that a couple of things have changed in setting this up: you'll use the key `tls.crt`, not `fullchain.pem`. See https://www.getambassador.io/reference/auth-tls-certs for more.

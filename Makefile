@@ -222,11 +222,12 @@ e2e-versioned-manifests:
 website-yaml:
 	mkdir -p docs/yaml
 	cp -R templates/* docs/yaml
+	# Normally we use $(VERSION) here, but we're temporarily hardcoding 0.34.1.
 	find ./docs/yaml \
 		-type f \
 		-exec sed \
 			-i''\
-			-e 's|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_REPO):$(VERSION)|g' \
+			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):0.34.1|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_REPO):0.34.1|g" \
 			{} \;
 
 website: website-yaml
