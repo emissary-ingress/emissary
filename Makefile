@@ -222,7 +222,8 @@ e2e-versioned-manifests:
 website-yaml:
 	mkdir -p docs/yaml
 	cp -R templates/* docs/yaml
-	find ./docs/yaml \
+	# Total hack here.
+	VERSION=0.34.1 find ./docs/yaml \
 		-type f \
 		-exec sed \
 			-i''\
