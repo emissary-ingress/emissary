@@ -15,7 +15,7 @@ Ambassador uses Envoy for the heavy lifting of proxying.
 
 If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use the [`envoy_override` annotation](mappings#using-envoy-override). This annotation lets you add additional configuration for [Envoy routes](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/route.html).
 
-If you need to add additional configuration for Envoy clusters, you will need to use your own custom configuration template. To do this, create a templated `envoy.json` file using the Jinja2 template language, and use this to to  replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates/envoy.j2). This method is not officially supported -- if you need to do this, please open a GitHub issue and [contact us on Gitter](https://gitter.im/datawire/ambassador) for more information if this seems necessary so that we can explore direct Ambassador support for your use case (or, better yet, submit a PR!).
+If you need to add additional configuration for Envoy clusters, you will need to use your own custom configuration template. To do this, create a templated `envoy.json` file using the Jinja2 template language, and use this to to  replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates/envoy.j2). This method is not officially supported -- if you need to do this, please open a GitHub issue and [contact us on Slack](https://d6e.co/slack) for more information if this seems necessary so that we can explore direct Ambassador support for your use case (or, better yet, submit a PR!).
 
 ## Configuring Ambassador via a Custom Image
 
