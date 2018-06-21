@@ -28,7 +28,7 @@ spec:
   ports:
   - name: ambassador
     port: 443
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador-{{ build.profile.name }}
 ```
