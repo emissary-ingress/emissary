@@ -25,11 +25,31 @@
         "cors": {
             "type": "object",
             "properties": {
-                "origins":  { "type": "string" },
-                "methods": { "type": "string" },
-                "headers": { "type": "string" },
+                "origins":  {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ],
+                },
+                "methods": {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ],
+                },
+                "headers": {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ],
+                },
                 "credentials": { "type": "boolean" },
-                "exposed_headers": { "type": "string" },
+                "exposed_headers": {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ],
+                },
                 "max_age": { "type": "string" }
             },
             "additionalProperties": false
