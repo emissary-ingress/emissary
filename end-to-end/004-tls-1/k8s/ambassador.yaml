@@ -19,7 +19,7 @@ metadata:
       config:
         server:
           enabled: True
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
           # These are optional.
           cert_chain_file: /etc/certs/tls.crt
           private_key_file: /etc/certs/tls.key
@@ -54,5 +54,5 @@ spec:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8080
   type: NodePort
