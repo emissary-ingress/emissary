@@ -18,6 +18,11 @@ kubectl apply -f ${ROOT}/rbac.yaml
 
 kubectl cluster-info
 
+# Make sure we have a forge.yaml (.gitignore stops us from
+# checking it in, which is usually a good thing).
+cp forge.yaml.src forge.yaml
+
+# Get stuff deployed.
 cd ambassador
 $ROOT/forge --profile=sandbox0 deploy
 cd ../web-basic
