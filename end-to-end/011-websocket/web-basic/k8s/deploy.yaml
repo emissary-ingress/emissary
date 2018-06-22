@@ -5,16 +5,16 @@ metadata:
   name: {{ service.name }}
   namespace: {{ build.profile.namespace }}
   labels:
-    app: {{ service.name }}
+    service: {{ service.name }}
 spec:
   replicas: {{ build.profile.replicas }}
   selector:
     matchLabels:
-      app: {{ service.name }}
+      service: {{ service.name }}
   template:
     metadata:
       labels:
-        app: {{ service.name }}
+        service: {{ service.name }}
     spec:
       containers:
         - name: conntest

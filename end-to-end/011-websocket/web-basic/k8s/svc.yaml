@@ -5,7 +5,7 @@ metadata:
   name: {{ service.name }}
   namespace: {{ build.profile.namespace }}
   labels:
-    app: {{ service.name }}
+    service: {{ service.name }}
   annotations:
     getambassador.io/config: |
       ---
@@ -18,7 +18,7 @@ metadata:
       service: {{ service.name }}.{{ build.profile.namespace }}
 spec:
   selector:
-    app: {{ service.name }}
+    service: {{ service.name }}
   type: ClusterIP
   ports:
     - name: http-api
@@ -33,7 +33,7 @@ metadata:
   name: {{ service.name }}-websocket-insecure
   namespace: {{ build.profile.namespace }}
   labels:
-    app: {{ service.name }}
+    service: {{ service.name }}
   annotations:
     getambassador.io/config: |
       ---
@@ -47,7 +47,7 @@ metadata:
       service: {{ service.name }}.{{ build.profile.namespace }}
 spec:
   selector:
-    app: {{ service.name }}
+    service: {{ service.name }}
   type: ClusterIP
   ports:
     - name: http-api
@@ -62,7 +62,7 @@ metadata:
   name: {{ service.name }}-nosvcproxy
   namespace: {{ build.profile.namespace }}
   labels:
-    app: {{ service.name }}
+    service: {{ service.name }}
   annotations:
     getambassador.io/config: |
       ---
@@ -75,6 +75,6 @@ metadata:
       service: {{ service.name }}-nosvcproxy.{{ build.profile.namespace }}:7000
 spec:
   selector:
-    app: {{ service.name }}
+    service: {{ service.name }}
   type: ClusterIP
   clusterIP: None

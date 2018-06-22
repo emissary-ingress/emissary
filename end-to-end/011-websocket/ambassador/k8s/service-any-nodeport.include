@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: {{ service.name }}
+    service: {{ service.name }}
   name: {{ service.name }}
   namespace: {{ build.profile.namespace }}
 spec:
@@ -13,4 +13,4 @@ spec:
       nodePort: 30900
       targetPort: envoy
   selector:
-    app: {{ service.name }}
+    service: {{ service.name }}

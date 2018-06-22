@@ -8,11 +8,11 @@ spec:
   replicas: {{ build.profile.replicas | default(1) }}
   selector:
     matchLabels:
-      app: ambassador
+      service: ambassador
   template:
     metadata:
       labels:
-        app: ambassador
+        service: ambassador
     spec:
       serviceAccountName: ambassador
       restartPolicy: Always

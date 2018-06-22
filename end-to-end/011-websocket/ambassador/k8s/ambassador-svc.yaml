@@ -11,7 +11,7 @@ spec:
       port: 8877
       targetPort: admin
   selector:
-    app: ambassador
+    service: ambassador
 
 
 {% if service.cloud | default("none") | lower == "aws" %}
