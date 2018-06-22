@@ -8,6 +8,7 @@ BUILD_ALL=${BUILD_ALL:-false}
 
 cd "$HERE"
 source "$HERE/kubernaut_utils.sh"
+source "$HERE/forge_utils.sh"
 
 if [ "$BUILD_ALL" = true ]; then
   bash buildall.sh
@@ -32,6 +33,8 @@ else
         esac
     done
 fi
+
+get_forge
 
 # For linify
 export MACHINE_READABLE=yes

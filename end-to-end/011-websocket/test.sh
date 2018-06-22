@@ -18,13 +18,13 @@ kubectl apply -f ${ROOT}/rbac.yaml
 
 kubectl cluster-info
 
-set +e +o pipefail
-
 cd ambassador
-forge --profile=sandbox0 deploy
+$ROOT/forge --profile=sandbox0 deploy
 cd ../web-basic
-forge --profile=sandbox0 deploy
+$ROOT/forge --profile=sandbox0 deploy
 cd ..
+
+set +e +o pipefail
 
 wait_for_pods ambassador-sbx0
 

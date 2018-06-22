@@ -12,6 +12,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Mapping
       name: {{ service.name }}
+      ambassador_id: {{ build.profile.name }}
       prefix: /
       host: {{ service.name }}
       service: {{ service.name }}.{{ build.profile.namespace }}
@@ -39,6 +40,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Mapping
       name: {{ service.name }}-websocket-insecure
+      ambassador_id: {{ build.profile.name }}
       prefix: /ws
       rewrite: /ws
       use_websocket: true
@@ -67,6 +69,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Mapping
       name: {{ service.name }}-nosvcproxy
+      ambassador_id: {{ build.profile.name }}
       prefix: /
       host: {{ service.name }}-nosvcproxy
       service: {{ service.name }}-nosvcproxy.{{ build.profile.namespace }}:7000

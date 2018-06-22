@@ -30,6 +30,8 @@ spec:
               value: "1"
             - name: AMBASSADOR_NAMESPACE
               value: {{ build.profile.namespace }}
+            - name: AMBASSADOR_ID
+              value: {{ build.profile.name }}
           livenessProbe:
             httpGet:
               path: /ambassador/v0/check_alive

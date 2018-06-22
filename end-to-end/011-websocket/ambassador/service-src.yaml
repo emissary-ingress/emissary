@@ -9,10 +9,10 @@ aws:
 
 profiles:
   sandbox0:
-    dockerImage: dwflynn/ambassador:flynn-defect-535-cf84b31-dirty
+    dockerImage: CHANGE
     replicas: 1
     namespace: ambassador-sbx0
   sandbox1:
-    dockerImage: dwflynn/ambassador:flynn-defect-535-cf84b31-dirty
+    dockerImage: CHANGE
     replicas: 1
     namespace: ambassador-sbx1
