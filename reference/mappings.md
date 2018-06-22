@@ -263,7 +263,7 @@ path_redirect: /ip
 
 Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador, attention paid to the trailing `/` on a URL is helpful!
 
-#### <a name="using-envoy-override"></a> Using `envoy_override`
+#### <a name="using-envoyoverride"></a> Using `envoy_override`
 
 It's possible that your situation may strain the limits of what Ambassador can do. The `envoy_override` attribute is provided for cases we haven't predicted: any object given as the value of `envoy_override` will be inserted into the Envoy `Route` synthesized for the given mapping. For example, you could enable Envoy's `auto_host_rewrite` by supplying
 
