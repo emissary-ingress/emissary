@@ -64,16 +64,20 @@
                         {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
                         {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
                         {%- if route.request_headers_to_add -%}"request_headers_to_add": {{ route.request_headers_to_add | tojson }},{% endif %}
-                        "weighted_clusters": {
-                            "clusters": [
-                                {% for wc in route.clusters %}
-                                  { "name": "{{wc.name}}", "weight": {{wc.weight}} }{{ "," if not loop.last }}
-                                {% endfor %}
-                            ]
-                        }{%- if route.shadow -%},
-                        "shadow": {
-                          "cluster": "{{ route.shadow.name }}"
-                        }{%- endif -%}
+                        {%- if route.use_websocket -%}
+                          "cluster": "{{ route.clusters[0].name }}"
+                        {%- else -%}
+                          "weighted_clusters": {
+                              "clusters": [
+                                  {% for wc in route.clusters %}
+                                    { "name": "{{wc.name}}", "weight": {{wc.weight}} }{{ "," if not loop.last }}
+                                  {% endfor %}
+                              ]
+                          }{%- if route.shadow -%},
+                          "shadow": {
+                            "cluster": "{{ route.shadow.name }}"
+                          }{%- endif -%}
+                        {%- endif -%}
                       {% endif %}
 
                       {% if route.envoy_override %}
