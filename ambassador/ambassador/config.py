@@ -1114,6 +1114,12 @@ class Config (object):
             total = 0.0
             unspecified = 0
 
+            # If this is a websocket route, it will support only one cluster right now.
+            if route.get('use_websocket', False):
+                if len(clusters) > 1:
+                    errmsg = "Only one cluster is supported for websockets; using %s" % clusters[0]['name']
+                    self.post_error(RichStatus.fromError(errmsg))
+
             for c in clusters:
                 # Mangle the name, if need be.
                 c_name = c["name"]
