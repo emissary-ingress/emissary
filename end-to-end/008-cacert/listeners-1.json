@@ -2,7 +2,7 @@
     {
         "_source": "tls.yaml.2",
         "require_tls": false,
-        "service_port": 443,
+        "service_port": 8443,
         "tls": {
             "_source": "tls.yaml.2",
             "cacert_chain_file": "/etc/cacert/tls.crt",
