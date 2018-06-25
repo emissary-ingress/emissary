@@ -2,15 +2,27 @@
 
 ## WARNING WARNING WARNING
 
-**Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is a bug, being tracked in [Ambassador issue 535](https://github.com/datawire/ambassador/issues/535); we expect a fix soon.
+**Ambassador 0.35.0 listens on ports 8080 and 8443 by default, and can support websockets.** Please read the description of 0.35.0 below for more information.
 
-If you are using websockets, you should stick with Ambassador 0.34.1 until a fix to [#535](https://github.com/datawire/ambassador/issues/535) is released.
-
-If you do _not_ use websockets, you should probably run Ambassador 0.34.3, as it incorporates other fixes that may be important for you.
+**Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is fixed in 0.35.0, but read the description below for an important caveat.
 
 ## BREAKING NEWS
 
-- Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above.
+- **Ambassador version 0.35.0 listens on different default ports, and resupports websockets.**
+   - Ambassador 0.35.0 had to change listen ports because it no longer runs as root.
+      - The new ports are
+         - port 8080 for cleartext, and
+         - port 8443 for TLS.
+      - If you are using the default port assignments, **you will likely need to change things**:
+         - The `targetPort` assignments of Kubernetes services will need to be updated.
+         - If you are using `redirect_cleartext_from`, you will likely need to change it to 8080 instead of 80.
+          We apologize for the inconvenience! Running Ambassador as a non-root user improves security, and is required for compatibility with e.g. OpenShift, but we understand that the change is still a pain.
+   - Ambassador 0.35.0 resupports websockets, with the important caveat that **a websocket cannot have multiple upstream services**.
+      - This means that you cannot do canary deployments for websockets.
+       We're actively working on fixing this.
+      - Multiple websocket `Mapping`s are still supported.
+
+- Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above. This bug is fixed in Ambassador 0.35.0.
 
 - As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
 
@@ -19,6 +31,18 @@ If you do _not_ use websockets, you should probably run Ambassador 0.34.3, as it
 - As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
+
+## [0.35.0] June 25, 2018: **READ THE WARNING ABOVE**
+[0.35.0]: https://github.com/datawire/ambassador/compare/0.34.3...0.35.0
+
+### Changed
+
+- **0.35.0 listens by default on port 8080 for cleartext and port 8443 for TLS.** See the **BREAKING NEWS** above for more information on how this may affect you.
+- 0.35.0 re-supports websockets, but see the **BREAKING NEWS** for an important caveat.
+- Switch Ambassador to run as a non-root user to improve security and support for OpenShift et al.
+- Make sure regex matches properly handle backslashes, and properly display in the diagnostics service (thanks @alexgervais!).
+- Prevent kubewatch from falling into an endless spinloop (thanks @mechpen!).
+- Support YAML array syntax for CORS array elements.
 
 ## [0.34.3] June 13, 2018: **READ THE WARNING ABOVE**
 [0.34.3]: https://github.com/datawire/ambassador/compare/0.34.2...0.34.3
