@@ -89,5 +89,5 @@ spec:
     - name: http
       protocol: TCP
       port: 443
-      targetPort: 8443
+      targetPort: 443
   type: NodePort

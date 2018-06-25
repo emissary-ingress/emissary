@@ -19,7 +19,7 @@ metadata:
       config:
         server:
           enabled: True
-          redirect_cleartext_from: 8080
+          redirect_cleartext_from: 80
           # These are optional.
           cert_chain_file: /etc/certs/tls.crt
           private_key_file: /etc/certs/tls.key
