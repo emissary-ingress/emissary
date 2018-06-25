@@ -23,53 +23,52 @@
                   "domains": ["*"],"routes": [
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready","weighted_clusters": {
-                              "clusters": [
-                                  
-                                    { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                                  
-                              ]
-                          }
-
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                              
+                          ]
+                      }
                       
                     }
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive","weighted_clusters": {
-                              "clusters": [
-                                  
-                                    { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                                  
-                              ]
-                          }
-
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                              
+                          ]
+                      }
                       
                     }
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/","weighted_clusters": {
-                              "clusters": [
-                                  
-                                    { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
-                                  
-                              ]
-                          }
-
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+                              
+                          ]
+                      }
                       
                     }
                     ,
-                    
                     {
-                      "timeout_ms": 3000,"regex": "^\\/http(.*)\\/$","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],"host_rewrite": "httpbin.org","weighted_clusters": {
-                              "clusters": [
-                                  
-                                    { "name": "cluster_http___httpbin_org", "weight": 100.0 }
-                                  
-                              ]
-                          }
-
+                      "timeout_ms": 3000,"regex": "^\\/http(.*)\\/$","host_rewrite": "httpbin.org","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],
+                      "weighted_clusters": {
+                          "clusters": [
+                              
+                                 { "name": "cluster_http___httpbin_org", "weight": 100.0 }
+                              
+                          ]
+                      }
                       
                     }
                     
@@ -123,7 +122,6 @@
       
     ]
   },
-  
   "statsd_udp_ip_address": "127.0.0.1:8125",
   "stats_flush_interval_ms": 1000
 }

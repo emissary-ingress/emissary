@@ -19,7 +19,7 @@ metadata:
       config:
         server:
           enabled: True
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
           # These are optional.
           cert_chain_file: /etc/certs/tls.crt
           private_key_file: /etc/certs/tls.key
@@ -50,7 +50,7 @@ spec:
     - name: https
       protocol: TCP
       port: 443
-      targetPort: 8443
+      targetPort: 443
     - name: http
       protocol: TCP
       port: 80
