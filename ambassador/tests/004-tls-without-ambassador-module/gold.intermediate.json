@@ -51,7 +51,7 @@
             {
                 "_source": "tls.yaml.1",
                 "require_tls": false,
-                "service_port": 443,
+                "service_port": 8443,
                 "tls": {
                     "_source": "tls.yaml.1",
                     "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",

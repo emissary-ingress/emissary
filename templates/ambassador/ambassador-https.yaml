@@ -11,6 +11,6 @@ spec:
   ports:
   - name: ambassador
     port: 443
-    targetPort: 443
+    targetPort: 8443
   selector:
     service: ambassador
