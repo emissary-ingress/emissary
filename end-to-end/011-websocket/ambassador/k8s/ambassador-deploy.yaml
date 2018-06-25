@@ -24,7 +24,7 @@ spec:
             - name: admin
               containerPort: 8877
             - name: envoy
-              containerPort: 80
+              containerPort: 8080
           env:
             - name: SCOUT_DISABLE
               value: "1"
@@ -36,11 +36,11 @@ spec:
             httpGet:
               path: /ambassador/v0/check_alive
               port: 8877
-            initialDelaySeconds: 3
+            initialDelaySeconds: 30
             periodSeconds: 3
           readinessProbe:
             httpGet:
               path: /ambassador/v0/check_ready
               port: 8877
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
