@@ -70,7 +70,7 @@ spec:
   ports:
   - name: ambassador
     port: 80
-    targetPort: 8080
+    targetPort: 80
   selector:
     service: ambassador
 ```
@@ -269,7 +269,7 @@ spec:
   ports:
   - name: ambassador
     port: 80
-    targetPort: 8080
+    targetPort: 80
   selector:
     service: ambassador
 ```

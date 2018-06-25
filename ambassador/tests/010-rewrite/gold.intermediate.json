@@ -51,7 +51,7 @@
             {
                 "_source": "--internal--",
                 "require_tls": false,
-                "service_port": 8080,
+                "service_port": 80,
                 "use_proxy_proto": false
             }
         ],
@@ -134,8 +134,8 @@
                     }
                 ],
                 "host_rewrite": "httpbin.org",
-                "prefix_rewrite": "",
-                "regex": "^\\/http(.*)\\/$"
+                "regex": "^\\/http(.*)\\/$",
+                "prefix_rewrite": ""
             },
             {
                 "__saved": [

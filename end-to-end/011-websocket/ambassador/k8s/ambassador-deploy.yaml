@@ -24,7 +24,7 @@ spec:
             - name: admin
               containerPort: 8877
             - name: envoy
-              containerPort: 8080
+              containerPort: 80
           env:
             - name: SCOUT_DISABLE
               value: "1"

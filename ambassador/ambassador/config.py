@@ -904,7 +904,7 @@ class Config (object):
         # default values now.
 
         self.ambassador_module = SourcedDict(
-            service_port = 8080,
+            service_port = 80,
             admin_port = 8001,
             diag_port = 8877,
             auth_enabled = None,
@@ -1306,8 +1306,8 @@ class Config (object):
                     self.logger.debug("TLS termination enabled!")
                     some_enabled = True
 
-                    # Switch to port 8443 by default...
-                    self.set_config_ambassador(amod, 'service_port', 8443)
+                    # Switch to port 443 by default...
+                    self.set_config_ambassador(amod, 'service_port', 443)
 
                     # ...and merge in the server-side defaults.
                     tmp_config.update(self.default_tls_config['server'])

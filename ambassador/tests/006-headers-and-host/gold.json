@@ -2,7 +2,7 @@
   "listeners": [
     
     {
-      "address": "tcp://0.0.0.0:8080",
+      "address": "tcp://0.0.0.0:80",
       
       "filters": [
         {
@@ -91,7 +91,7 @@
                       "timeout_ms": 3000,"prefix": "/cors-creds/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},"prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
-                                    { "name": "cluster_cors_8080", "weight": 100.0 }
+                                    { "name": "cluster_cors", "weight": 100.0 }
                                   
                               ]
                           }
@@ -117,7 +117,7 @@
                       "timeout_ms": 3000,"prefix": "/cors-all/","cors": {"allow_origin": ["*"], "enabled": true},"prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
-                                    { "name": "cluster_cors_8080", "weight": 100.0 }
+                                    { "name": "cluster_cors", "weight": 100.0 }
                                   
                               ]
                           }
@@ -217,13 +217,13 @@
           
         ]},
       {
-        "name": "cluster_cors_8080",
+        "name": "cluster_cors",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin",        
         "hosts": [
           {
-            "url": "tcp://cors:8080"
+            "url": "tcp://cors:80"
           }
           
         ]},
