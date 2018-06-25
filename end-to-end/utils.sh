@@ -449,6 +449,18 @@ get_http_code() {
     echo $(eval ${command})
 }
 
+check_http_code() {
+    url=$1
+    extra_args=$2
+    expected=$3
+
+    code=$(get_http_code ${url} ${extra_args})
+    echo "URL ${url} returned ${code}, expected ${expected}"
+    if [ ${code} -ne ${expected} ]; then
+        exit 1
+    fi
+}
+
 get_redirect_url() {
     url=$1
     extra_args=$2
@@ -491,6 +503,40 @@ get_redirect_url() {
 
     command="curl $extra_args -w %{redirect_url} -s -o /dev/null $url"
     echo $(eval ${command})
+}
+
+check_ambassador_diff() {
+    pod=$1
+    container_file=$2
+    local_file=$3
+
+    diff <(kubectl exec ${pod} -c ambassador cat ${container_file}) ${local_file}
+    exit_code=$?
+    if [ ${exit_code} -ne 0 ]; then
+        echo "ambassador:${container_file} and ${local_file} do not match"
+        exit 1
+    else
+        echo "ambassador:${container_file} and ${local_file} match"
+    fi
+}
+
+check_CN() {
+    url=$1
+    CN=$2
+
+    # grepping on something like
+    # `openssl s_client -connect <IP>:<PORT> | openssl x509 -noout -subject`
+    # might be cleaner if this does not look ideal.
+    output=$(curl -o /dev/null -s -v -k ${url} 2>&1)
+    echo "${output}" | grep CN=${CN}
+    exit_code=$?
+    if [ ${exit_code} -ne 0 ]; then
+        echo "SSL certificate at ${url} does not have CN=${CN}, got the following output instead -"
+        echo "${output}" | grep CN
+        exit 1
+    else
+        echo "SSL certificate at ${url} has CN=${CN}"
+    fi
 }
 
 # ISTIOHOME=${ISTIOHOME:-${HERE}/istio-0.1.6}
