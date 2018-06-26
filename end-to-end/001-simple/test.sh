@@ -11,13 +11,17 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml
+
 initialize_cluster
 
 kubectl cluster-info
 
 kubectl create cm ambassador-config --from-file k8s/base-config.yaml
 kubectl apply -f k8s/ambassador.yaml
-kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f ${ROOT}/stats-test.yaml
 
 set +e +o pipefail
