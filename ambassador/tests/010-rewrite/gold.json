@@ -2,7 +2,7 @@
   "listeners": [
     
     {
-      "address": "tcp://0.0.0.0:8080",
+      "address": "tcp://0.0.0.0:80",
       
       "filters": [
         {

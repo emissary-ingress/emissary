@@ -3,7 +3,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  cors_creds_mapping
 prefix: /cors-creds/
-service: cors:8080
+service: cors
 cors:
   origins: http://foo.example,http://bar.example
   methods: POST, GET, OPTIONS
@@ -16,6 +16,6 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  cors_all_mapping
 prefix: /cors-all/
-service: cors:8080
+service: cors
 cors:
   origins: "*"
