@@ -1478,7 +1478,7 @@ class Config (object):
 
         if cluster_name not in self.envoy_clusters:
             if not cluster_hosts:
-                cluster_hosts = { '127.0.0.1:5000': 100 }
+                cluster_hosts = { '127.0.0.1:5000': ( 100, None ) }
 
             urls = []
             protocols = {}
