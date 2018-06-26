@@ -980,7 +980,8 @@ class Config (object):
         for module_name in modules.keys():
             if ((module_name == 'ambassador') or
                 (module_name == 'tls') or
-                (module_name == 'authentication')):
+                (module_name == 'authentication') or
+                (module_name == 'tls-from-ambassador-certs')):
                 continue
 
             handler_name = "module_config_%s" % module_name
