@@ -4,6 +4,14 @@ kind: Service
 metadata:
   name: ambassador
   namespace: 009-grpc
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name:  ambassador
+      config:
+        service_port: 8080
 spec:
   selector:
     service: ambassador
@@ -11,5 +19,5 @@ spec:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8080
   type: NodePort

@@ -1,6 +1,20 @@
 #!/bin/bash
 
-set -ex -o pipefail
+# Copyright 2018 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+set -e -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
 
@@ -11,6 +25,11 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml
+
+initialize_cluster
 check_rbac
 
 initialize_namespace "001-simple"

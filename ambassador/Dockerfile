@@ -1,3 +1,17 @@
+# Copyright 2018 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
 # Our base image was built from https://github.com/datawire/envoy, commit
 # 6557e9ea7, on the flynn/feature/extauth branch. We need this instead of
 # the official Envoy image so that we can support Ambassador's ability to
@@ -21,18 +35,18 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
       VENDOR_URL               = "https://datawire.io/"
 
 # This Dockerfile is set up to install all the application-specific stuff into
-# /application.
+# /ambassador.
 #
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
 RUN apk --no-cache add curl python3
 
-# Set WORKDIR to /application which is the root of all our apps then COPY
+# Set WORKDIR to /ambassador which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a
 # full reinstall of all dependencies when dependencies are not changed.
-
-WORKDIR /application
+ENV AMBASSADOR_ROOT=/ambassador
+WORKDIR ${AMBASSADOR_ROOT}
 COPY requirements.txt .
 
 # Install application dependencies
@@ -43,12 +57,18 @@ COPY ./ ambassador
 RUN cd ambassador && python3 setup.py --quiet install
 RUN rm -rf ./ambassador
 
-# MKDIR an empty /etc/ambassador-config. You can dump a configmap over this with no
-# trouble, or you can let annotations do the right thing.
-RUN mkdir /etc/ambassador-config
+# MKDIR an empty /ambassador/ambassador-config. You can dump a
+# configmap over this with no trouble, or you can let
+# annotations do the right thing
+RUN mkdir ambassador-config
 
 # COPY in a default config for use with --demo.
-COPY default-config/ /etc/ambassador-demo-config
+COPY default-config/ ambassador-demo-config
+
+# Fix permissions to allow running as a non root user
+RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
+    chmod -R u+x ${AMBASSADOR_ROOT} && \
+    chmod -R g=u ${AMBASSADOR_ROOT} /etc/passwd
 
 # COPY the entrypoint script and make it runnable.
 COPY kubewatch.py .

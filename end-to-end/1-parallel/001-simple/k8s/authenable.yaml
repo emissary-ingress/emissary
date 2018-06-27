@@ -9,6 +9,12 @@ metadata:
       ---
       apiVersion: ambassador/v0
       kind: Module
+      name:  ambassador
+      config:
+        service_port: 8080
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
       name:  authentication
       ambassador_id: 001-simple
       config:
@@ -25,5 +31,5 @@ spec:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8080
   type: NodePort

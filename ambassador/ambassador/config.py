@@ -1,3 +1,17 @@
+# Copyright 2018 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
 import sys
 
 import collections
@@ -980,7 +994,8 @@ class Config (object):
         for module_name in modules.keys():
             if ((module_name == 'ambassador') or
                 (module_name == 'tls') or
-                (module_name == 'authentication')):
+                (module_name == 'authentication') or
+                (module_name == 'tls-from-ambassador-certs')):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -1113,6 +1128,12 @@ class Config (object):
 
             total = 0.0
             unspecified = 0
+
+            # If this is a websocket route, it will support only one cluster right now.
+            if route.get('use_websocket', False):
+                if len(clusters) > 1:
+                    errmsg = "Only one cluster is supported for websockets; using %s" % clusters[0]['name']
+                    self.post_error(RichStatus.fromError(errmsg))
 
             for c in clusters:
                 # Mangle the name, if need be.
@@ -1472,7 +1493,7 @@ class Config (object):
 
         if cluster_name not in self.envoy_clusters:
             if not cluster_hosts:
-                cluster_hosts = { '127.0.0.1:5000': 100 }
+                cluster_hosts = { '127.0.0.1:5000': ( 100, None ) }
 
             urls = []
             protocols = {}

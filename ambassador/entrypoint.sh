@@ -1,21 +1,55 @@
 #!/bin/sh
 
+# Copyright 2018 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-CONFIG_DIR="/etc/ambassador-config"
+AMBASSADOR_ROOT="/ambassador"
+CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-config"
+ENVOY_CONFIG_FILE="$AMBASSADOR_ROOT/envoy.json"
+
+export PYTHON_EGG_CACHE=$(AMBASSADOR_ROOT)
 
 if [ "$1" == "--demo" ]; then
-    CONFIG_DIR="/etc/ambassador-demo-config"
+    CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
 
 DELAY=${AMBASSADOR_RESTART_TIME:-15}
 
-APPDIR=${APPDIR:-/application}
+APPDIR=${APPDIR:-"$AMBASSADOR_ROOT"}
+
+# If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by default, which fails when running as a non-privileged
+# user
+export PYTHON_EGG_CACHE=${APPDIR/.cache}
 
 export PYTHONUNBUFFERED=true
 
 pids=""
+
+ambassador_exit() {
+    RC=${1:-0}
+
+    if [ -n "$AMBASSADOR_EXIT_DELAY" ]; then
+        echo "AMBASSADOR: sleeping for debug"
+        sleep $AMBASSADOR_EXIT_DELAY
+    fi
+
+    echo "AMBASSADOR: shutting down ($RC)"
+    exit $RC
+}
 
 diediedie() {
     NAME=$1
@@ -28,15 +62,14 @@ diediedie() {
     fi
 
     echo "Here's the envoy.json we were trying to run with:"
-    LATEST="$(ls -v /etc/envoy*.json | tail -1)"
+    LATEST="$(ls -v $AMBASSADOR_ROOT/envoy*.json | tail -1)"
     if [ -e "$LATEST" ]; then
         cat "$LATEST"
     else
         echo "No config generated."
     fi
-
-    echo "AMBASSADOR: shutting down"
-    exit 1
+    
+    ambassador_exit 1
 }
 
 handle_chld() {
@@ -68,7 +101,7 @@ handle_int() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" /etc/envoy.json
+/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
 
 STATUS=$?
 
@@ -85,9 +118,11 @@ echo "AMBASSADOR: starting Envoy"
 RESTARTER_PID="$!"
 pids="${pids:+${pids} }${RESTARTER_PID}:envoy"
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" /etc/envoy.json -p "${RESTARTER_PID}" --delay "${DELAY}" &
+/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${RESTARTER_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"
 echo "PIDS: $pids"
 wait
+
+ambassador_exit 0

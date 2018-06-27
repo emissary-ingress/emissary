@@ -1,3 +1,17 @@
+# Copyright 2018 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
 import sys
 
 import binascii
@@ -346,24 +360,24 @@ def sync(restarter):
                     "config": {
                         "server": {
                             "enabled": True,
-                            "cert_chain_file": "/etc/certs/tls.crt",
-                            "private_key_file": "/etc/certs/tls.key"
+                            "cert_chain_file": "/ambassador/certs/tls.crt",
+                            "private_key_file": "/ambassador/certs/tls.key"
                         }
                     }
                 }
 
-                save_cert(server_cert, server_key, "/etc/certs")
+                save_cert(server_cert, server_key, "/ambassador/certs")
 
                 if client_cert:
                     tls_mod['config']['client'] = {
                         "enabled": True,
-                        "cacert_chain_file": "/etc/cacert/tls.crt"
+                        "cacert_chain_file": "/ambassador/cacert/tls.crt"
                     }
 
                     if client_data.get('cert_required', None):
                         tls_mod['config']['client']["cert_required"] = True
 
-                    save_cert(client_cert, None, "/etc/cacert")
+                    save_cert(client_cert, None, "/ambassador/cacert")
 
                 tls_yaml = yaml.safe_dump(tls_mod)
                 logger.debug("generated TLS config %s" % tls_yaml)

@@ -1,6 +1,26 @@
 # Changelog
 
+## WARNING WARNING WARNING
+
+**Ambassador 0.35.0 partially fixes support for websockets.** Please read the description of 0.35.0 below for more information.
+
+**Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is fixed in 0.35.0, but read the description below for an important caveat.
+
 ## BREAKING NEWS
+
+- **Ambassador 0.35.0 resupports websockets, with the important caveat that a websocket cannot have multiple upstream services**.
+  - This means that you cannot do canary deployments for websockets.
+    We're actively working on fixing this.
+  - Multiple websocket `Mapping`s are still supported.
+
+- Ambassador version 0.35.0 supports running as a non-root user, to improve security and work on other Kubernetes runtimes (e.g. OpenShift). **Running as non-root will become the default in a future Ambassador release; this will be a breaking change.** We recommend proactively switching to non-root now:
+    - Use a `securityContext` in your Ambassador `Deployment` to switch to a non-root user.
+    - Set the `service_port` element in the `ambassador` `Module` to a port number greater than 1024. (Ambassador's defaults will change to 8080 for cleartext and 8443 for TLS.)
+    - Make sure that incoming traffic to Ambassador routes to the `service_port`. The most likely required change is the `targetPort` in the Kubernetes `Service` resource for Ambassador.
+    - If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
+    - If you have modified Ambassador's behavior around TLS certificates using a custom Ambassador build, please contact Datawire for more information.
+
+- Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above. This bug is fixed in Ambassador 0.35.0.
 
 - As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
 
@@ -10,19 +30,32 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
-## [0.34.3] June 13, 2018
+## [0.35.0] June 25, 2018: **READ THE WARNING ABOVE**
+[0.35.0]: https://github.com/datawire/ambassador/compare/0.34.3...0.35.0
+
+### Changed
+
+- 0.35.0 re-supports websockets, but see the **BREAKING NEWS** for an important caveat.
+- 0.35.0 supports running as non-root. See the **BREAKING NEWS** above for more information.
+- Make sure regex matches properly handle backslashes, and properly display in the diagnostics service (thanks @alexgervais!).
+- Prevent kubewatch from falling into an endless spinloop (thanks @mechpen!).
+- Support YAML array syntax for CORS array elements.
+
+## [0.34.3] June 13, 2018: **READ THE WARNING ABOVE**
 [0.34.3]: https://github.com/datawire/ambassador/compare/0.34.2...0.34.3
 
 ### Changed
 
+- **0.34.3 cannot support websockets**: see the **WARNING** above.
 - Fix a possible crash if no annotations are found at all (#519).
 - Improve logging around service watching and such.
 
-## [0.34.2] June 11, 2018
+## [0.34.2] June 11, 2018: **READ THE WARNING ABOVE**
 [0.34.2]: https://github.com/datawire/ambassador/compare/0.34.1...0.34.2
 
 ### Changed
 
+- **0.34.2 cannot support websockets**: see the **WARNING** above.
 - Ambassador is now based on Envoy 1.6.0!
 - Ambassador external auth services can now modify existing headers in place, as well as adding new headers.
 - Re-support the `ambassador-cacert` secret for configuring TLS client-certificate authentication. **Note well** that a couple of things have changed in setting this up: you'll use the key `tls.crt`, not `fullchain.pem`. See https://www.getambassador.io/reference/auth-tls-certs for more.
