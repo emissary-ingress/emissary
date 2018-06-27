@@ -2,25 +2,23 @@
 
 ## WARNING WARNING WARNING
 
-**Ambassador 0.35.0 listens on ports 8080 and 8443 by default, and can support websockets.** Please read the description of 0.35.0 below for more information.
+**Ambassador 0.35.0 partially fixes support for websockets.** Please read the description of 0.35.0 below for more information.
 
 **Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is fixed in 0.35.0, but read the description below for an important caveat.
 
 ## BREAKING NEWS
 
-- **Ambassador version 0.35.0 listens on different default ports, and resupports websockets.**
-   - Ambassador 0.35.0 had to change listen ports because it no longer runs as root.
-      - The new ports are
-         - port 8080 for cleartext, and
-         - port 8443 for TLS.
-      - If you are using the default port assignments, **you will likely need to change things**:
-         - The `targetPort` assignments of Kubernetes services will need to be updated.
-         - If you are using `redirect_cleartext_from`, you will likely need to change it to 8080 instead of 80.
-          We apologize for the inconvenience! Running Ambassador as a non-root user improves security, and is required for compatibility with e.g. OpenShift, but we understand that the change is still a pain.
-   - Ambassador 0.35.0 resupports websockets, with the important caveat that **a websocket cannot have multiple upstream services**.
-      - This means that you cannot do canary deployments for websockets.
-       We're actively working on fixing this.
-      - Multiple websocket `Mapping`s are still supported.
+- **Ambassador 0.35.0 resupports websockets, with the important caveat that a websocket cannot have multiple upstream services**.
+  - This means that you cannot do canary deployments for websockets.
+    We're actively working on fixing this.
+  - Multiple websocket `Mapping`s are still supported.
+
+- Ambassador version 0.35.0 supports running as a non-root user, to improve security and work on other Kubernetes runtimes (e.g. OpenShift). **Running as non-root will become the default in a future Ambassador release; this will be a breaking change.** We recommend proactively switching to non-root now:
+    - Use a `securityContext` in your Ambassador `Deployment` to switch to a non-root user.
+    - Set the `service_port` element in the `ambassador` `Module` to a port number greater than 1024. (Ambassador's defaults will change to 8080 for cleartext and 8443 for TLS.)
+    - Make sure that incoming traffic to Ambassador routes to the `service_port`. The most likely required change is the `targetPort` in the Kubernetes `Service` resource for Ambassador.
+    - If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
+    - If you have modified Ambassador's behavior around TLS certificates using a custom Ambassador build, please contact Datawire for more information.
 
 - Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above. This bug is fixed in Ambassador 0.35.0.
 
@@ -37,9 +35,8 @@
 
 ### Changed
 
-- **0.35.0 listens by default on port 8080 for cleartext and port 8443 for TLS.** See the **BREAKING NEWS** above for more information on how this may affect you.
 - 0.35.0 re-supports websockets, but see the **BREAKING NEWS** for an important caveat.
-- Switch Ambassador to run as a non-root user to improve security and support for OpenShift et al.
+- 0.35.0 supports running as non-root. See the **BREAKING NEWS** above for more information.
 - Make sure regex matches properly handle backslashes, and properly display in the diagnostics service (thanks @alexgervais!).
 - Prevent kubewatch from falling into an endless spinloop (thanks @mechpen!).
 - Support YAML array syntax for CORS array elements.
