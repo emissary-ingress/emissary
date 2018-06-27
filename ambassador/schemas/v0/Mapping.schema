@@ -29,26 +29,26 @@
                     "anyOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
-                    ],
+                    ]
                 },
                 "methods": {
                     "anyOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
-                    ],
+                    ]
                 },
                 "headers": {
                     "anyOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
-                    ],
+                    ]
                 },
                 "credentials": { "type": "boolean" },
                 "exposed_headers": {
                     "anyOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } }
-                    ],
+                    ]
                 },
                 "max_age": { "type": "string" }
             },

@@ -7,6 +7,8 @@ AMBASSADOR_ROOT="/ambassador"
 CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-config"
 ENVOY_CONFIG_FILE="$AMBASSADOR_ROOT/envoy.json"
 
+export PYTHON_EGG_CACHE=$(AMBASSADOR_ROOT)
+
 if [ "$1" == "--demo" ]; then
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
@@ -22,6 +24,18 @@ export PYTHON_EGG_CACHE=${APPDIR/.cache}
 export PYTHONUNBUFFERED=true
 
 pids=""
+
+ambassador_exit() {
+    RC=${1:-0}
+
+    if [ -n "$AMBASSADOR_EXIT_DELAY" ]; then
+        echo "AMBASSADOR: sleeping for debug"
+        sleep $AMBASSADOR_EXIT_DELAY
+    fi
+
+    echo "AMBASSADOR: shutting down ($RC)"
+    exit $RC
+}
 
 diediedie() {
     NAME=$1
@@ -40,9 +54,8 @@ diediedie() {
     else
         echo "No config generated."
     fi
-
-    echo "AMBASSADOR: shutting down"
-    exit 1
+    
+    ambassador_exit 1
 }
 
 handle_chld() {
@@ -97,3 +110,5 @@ pids="${pids:+${pids} }$!:kubewatch"
 echo "AMBASSADOR: waiting"
 echo "PIDS: $pids"
 wait
+
+ambassador_exit 0

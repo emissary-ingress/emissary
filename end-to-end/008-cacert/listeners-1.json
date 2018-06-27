@@ -2,12 +2,12 @@
     {
         "_source": "tls.yaml.2",
         "require_tls": false,
-        "service_port": 8443,
+        "service_port": 443,
         "tls": {
             "_source": "tls.yaml.2",
-            "cacert_chain_file": "/etc/cacert/tls.crt",
-            "cert_chain_file": "/etc/certs/tls.crt",
-            "private_key_file": "/etc/certs/tls.key"
+            "cacert_chain_file": "/ambassador/cacert/tls.crt",
+            "cert_chain_file": "/ambassador/certs/tls.crt",
+            "private_key_file": "/ambassador/certs/tls.key"
         },
         "use_proxy_proto": false
     }

@@ -346,24 +346,24 @@ def sync(restarter):
                     "config": {
                         "server": {
                             "enabled": True,
-                            "cert_chain_file": "/etc/certs/tls.crt",
-                            "private_key_file": "/etc/certs/tls.key"
+                            "cert_chain_file": "/ambassador/certs/tls.crt",
+                            "private_key_file": "/ambassador/certs/tls.key"
                         }
                     }
                 }
 
-                save_cert(server_cert, server_key, "/etc/certs")
+                save_cert(server_cert, server_key, "/ambassador/certs")
 
                 if client_cert:
                     tls_mod['config']['client'] = {
                         "enabled": True,
-                        "cacert_chain_file": "/etc/cacert/tls.crt"
+                        "cacert_chain_file": "/ambassador/cacert/tls.crt"
                     }
 
                     if client_data.get('cert_required', None):
                         tls_mod['config']['client']["cert_required"] = True
 
-                    save_cert(client_cert, None, "/etc/cacert")
+                    save_cert(client_cert, None, "/ambassador/cacert")
 
                 tls_yaml = yaml.safe_dump(tls_mod)
                 logger.debug("generated TLS config %s" % tls_yaml)

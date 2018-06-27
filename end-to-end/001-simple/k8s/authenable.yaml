@@ -8,6 +8,12 @@ metadata:
       ---
       apiVersion: ambassador/v0
       kind: Module
+      name:  ambassador
+      config:
+        service_port: 8080
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
       name:  authentication
       config:
         auth_service: "example-auth:3000"
