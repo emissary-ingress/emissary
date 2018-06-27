@@ -14,7 +14,7 @@ entries:
     sources:
     - https://github.com/datawire/ambassador
     urls:
-    - https://www.getambassador.io/_book/ambassador-0.35.0.tgz
+    - https://www.getambassador.io/ambassador-0.35.0.tgz
     version: 0.35.0
   - apiVersion: v1
     appVersion: 0.34.3
