@@ -14,11 +14,11 @@ The default configuration also includes a `statsd` sidecar for collecting and fo
 
 ## Running as non-root
 
-Starting with Ambassador 0.35, we support running Ambassador as non-root. This is the recommend configuration, and will be the default configuration in future releases. We recommend you configure Ambassador to run as non-root as follows:
+Starting with Ambassador 0.35, we support running Ambassador as non-root. This is the recommended configuration, and will be the default configuration in future releases. We recommend you configure Ambassador to run as non-root as follows:
 
 * Have Kubernetes run Ambassador as non-root. This may happen by default (e.g., OpenShift) or you can set a `securityContext` in your Deployment as shown below in this abbreviated example:
 
-```
+```yaml
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -42,7 +42,7 @@ spec:
 
 * Set the `service_port` element in the ambassador Module to 8080 (cleartext) or 8443 (TLS). This is the port that Ambassador will use to listen to incoming traffic. Note that any port number above 1024 will work; Ambassador will use 8080/8443 as its defaults in the future.
 
-* Insure that incoming traffic to Ambassador is configured to route to the `service_port`. If you're using the default Ambassador configuration, this means configuring the `targetPort` to point to the `service_port` above.
+* Make sure that incoming traffic to Ambassador is configured to route to the `service_port`. If you're using the default Ambassador configuration, this means configuring the `targetPort` to point to the `service_port` above.
 
 * If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
 
