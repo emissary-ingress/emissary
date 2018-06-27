@@ -12,6 +12,40 @@ The default configuration of Ambassador includes default [resource limits](https
 
 The default configuration also includes a `statsd` sidecar for collecting and forwarding StatsD statistics to your metrics infrastructure. If you are not collecting metrics, you should delete the `statsd` sidecar.
 
+## Running as non-root
+
+Starting with Ambassador 0.35, we support running Ambassador as non-root. This is the recommend configuration, and will be the default configuration in future releases. We recommend you configure Ambassador to run as non-root as follows:
+
+* Have Kubernetes run Ambassador as non-root. This may happen by default (e.g., OpenShift) or you can set a `securityContext` in your Deployment as shown below in this abbreviated example:
+
+```
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: ambassador
+    spec:
+      containers:
+        image: quay.io/datawire/ambassador:0.35.0
+        name: ambassador
+     restartPolicy: Always
+     securityContext:
+       runAsUser: 8888
+     serviceAccountName: ambassador
+```
+
+* Set the `service_port` element in the ambassador Module to 8080 (cleartext) or 8443 (TLS). This is the port that Ambassador will use to listen to incoming traffic. Note that any port number above 1024 will work; Ambassador will use 8080/8443 as its defaults in the future.
+
+* Insure that incoming traffic to Ambassador is configured to route to the `service_port`. If you're using the default Ambassador configuration, this means configuring the `targetPort` to point to the `service_port` above.
+
+* If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
+
 ## Namespaces
 
 Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (this is included in the YAML files from `getambassador.io`):
