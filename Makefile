@@ -292,7 +292,7 @@ release:
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(STATSD_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website publish-website; \
-		make SCOUT_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
+		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		set +x; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
