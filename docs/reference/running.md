@@ -44,7 +44,7 @@ spec:
 
 * Make sure that incoming traffic to Ambassador is configured to route to the `service_port`. If you're using the default Ambassador configuration, this means configuring the `targetPort` to point to the `service_port` above.
 
-* If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
+* If you are using `redirect_cleartext_from`, change the value of this field to point to your cleartext port (e.g., 8080) and set `service_port` to be your TLS port (e.g., 8443).
 
 ## Namespaces
 
