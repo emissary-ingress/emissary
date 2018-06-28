@@ -11,9 +11,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "base-config.yaml.2"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "base-config.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -35,9 +35,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "base-config.yaml.2"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "base-config.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -59,30 +59,6 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
-        ],
-        "_source": "ambassador-default.yaml.1",
-        "clusters": [
-            {
-                "name": "cluster_127_0_0_1_8877",
-                "weight": 100.0
-            }
-        ],
-        "prefix": "/ambassador/v0/",
-        "prefix_rewrite": "/ambassador/v0/"
-    },
-    {
-        "__saved": [
-            0,
-            12,
-            0,
-            "/ambassador/",
-            "GET"
-        ],
-        "_group_id": "688e9f91e06f33c943c0c6373a5bdd32e647f7c4",
-        "_method": "GET",
-        "_precedence": 0,
-        "_referenced_by": [
             "base-config.yaml.2"
         ],
         "_source": "base-config.yaml.2",
@@ -92,7 +68,7 @@
                 "weight": 100.0
             }
         ],
-        "prefix": "/ambassador/",
-        "prefix_rewrite": "/ambassador/"
+        "prefix": "/ambassador/v0/",
+        "prefix_rewrite": "/ambassador/v0/"
     }
 ]

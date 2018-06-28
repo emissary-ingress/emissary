@@ -16,10 +16,17 @@
 
 import sys
 
+import logging
 import re
 import yaml
 
 import dpath
+
+logging.basicConfig(
+    level=logging.INFO, # if appDebug else logging.INFO,
+    format="%%(asctime)s yfix %s %%(levelname)s: %%(message)s" % '0.0.1',
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 class Edit (object):
     def __init__(self):
@@ -43,21 +50,21 @@ class Edit (object):
                 got_value = dpath.util.get(manifest, qualified)
 
                 if got_value != value:
-                    print("NOMATCH %s: %s != %s" % (qualified, value, got_value))
+                    logging.debug("NOMATCH %s: %s != %s" % (qualified, value, got_value))
                     all_matched = False
                 else:
-                    print("MATCH %s == %s" % (qualified, value))
+                    logging.debug("MATCH %s == %s" % (qualified, value))
 
         return all_matched
 
     def set(self, manifest, x, path, value):
         qualified = '/%d/%s' % (x, path)
-        print("SET %s = %s" % (qualified, value))
+        logging.debug("SET %s = %s" % (qualified, value))
         dpath.util.new(manifest, qualified, value)
 
     def execute(self, manifest, x, args):
         if 'discard' in self.elements:
-            print("DISCARD")
+            logging.debug("DISCARD")
             return False
 
         for element in self.elements.get('mklist', []):
@@ -79,7 +86,7 @@ class Edit (object):
         for element in self.elements.get('delete', []):
             path = element[0]
             qualified = '/%d/%s' % (x, path)
-            print("DEL %s" % qualified)
+            logging.debug("DEL %s" % qualified)
             dpath.util.delete(manifest, qualified)
 
         return True
@@ -141,6 +148,10 @@ class Args (object):
     def interpolate(self, text):
         return Args.reVar.sub(self.replacer, text)
 
+if (len(sys.argv) > 1) and (sys.argv[1] == '-d'):
+    sys.argv.pop(1) # pop out the -d
+    logging.setLevel(logging.DEBUG)
+
 cmd_path = sys.argv.pop(1)  # Not 0. Trust me.
 
 edits = Edits()
@@ -163,8 +174,8 @@ for line in open(cmd_path, 'r'):
 
 edits.finish()
 
-print(edits)
-print("args needed: %s" % args.needed)
+logging.debug(edits)
+logging.debug("args needed: %s" % args.needed)
 
 input_yaml_path = "-"
 output_yaml_path = "-"

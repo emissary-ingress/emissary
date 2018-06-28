@@ -11,9 +11,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-001-simple.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-001-simple.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -35,9 +35,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-001-simple.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-001-simple.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -59,9 +59,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-001-simple.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-001-simple.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -107,9 +107,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "qotm-001-simple.yaml.2"
+            "qotm-001-simple.yaml.1"
         ],
-        "_source": "qotm-001-simple.yaml.2",
+        "_source": "qotm-001-simple.yaml.1",
         "clusters": [
             {
                 "name": "cluster_qotm",

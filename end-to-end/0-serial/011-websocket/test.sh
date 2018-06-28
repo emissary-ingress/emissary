@@ -20,7 +20,7 @@ HERE=$(cd $(dirname $0); pwd)
 
 cd "$HERE"
 
-ROOT=$(cd ..; pwd)
+ROOT=$(cd ../..; pwd)
 PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh

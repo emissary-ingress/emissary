@@ -25,22 +25,25 @@ PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
 
-python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
-    ${ROOT}/ambassador-deployment.yaml \
-    k8s/ambassador-deployment.yaml
-
-initialize_cluster
 check_rbac
 
 initialize_namespace "001-simple"
 
 kubectl cluster-info
 
+rm -f adep-tmp.yaml
+
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
-    k8s/ambassador-deployment.yaml \
+    adep-tmp.yaml \
     001-simple \
     001-simple
+
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
+    adep-tmp.yaml \
+    k8s/ambassador-deployment.yaml
+
+rm -f adep-tmp.yaml
 
 kubectl apply -f k8s/rbac.yaml
 
@@ -71,6 +74,8 @@ fi
 kubectl apply -f k8s/qotm.yaml
 
 wait_for_pods
+
+sleep 10 
 
 if ! check_diag "$BASEURL" 2 "QoTM annotated"; then
     exit 1
