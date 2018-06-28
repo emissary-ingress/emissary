@@ -11,6 +11,7 @@ image:
 service:
   type: LoadBalancer
   port: 80
+  annotations: {}
 
 adminService:
   create: true
