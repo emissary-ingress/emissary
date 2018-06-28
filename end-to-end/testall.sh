@@ -64,13 +64,17 @@ run_and_log () {
     fi
 }
 
-for dir in 0-serial/[0-9]*; do
-    run_and_log "$dir"
-done
+if [ -n "$E2E_TEST_NAME" ]; then
+    run_and_log "$E2E_TEST_NAME"
+else
+    for dir in 0-serial/[0-9]*; do
+        run_and_log "$dir"
+    done
 
-for dir in 1-parallel/[0-9]*; do
-    run_and_log "$dir" &
-done
+    for dir in 1-parallel/[0-9]*; do
+        run_and_log "$dir" &
+    done
+endif
 
 wait
 
