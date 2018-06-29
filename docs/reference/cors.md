@@ -8,48 +8,48 @@ The `cors` attribute enables the CORS filter. The following settings are support
 
 - `origins`: Specifies a list of allowed domains for the `Access-Control-Allow-Origin` header. To allow all origins, use the wildcard `"*"` value. Format can be either of:
     - comma-separated list, e.g.
-    ```yaml
-    origins: http://foo.example,http://bar.example
-    ```
+      ```yaml
+      origins: http://foo.example,http://bar.example
+      ```
     - YAML array, e.g.
-    ```yaml
-    origins:
-    - http://foo.example
-    - http://bar.example
-    ```
+      ```yaml
+      origins:
+      - http://foo.example
+      - http://bar.example
+      ```
 - `methods`: if present, specifies a list of allowed methods for the `Access-Control-Allow-Methods` header. Format can be either of:
     - comma-separated list, e.g.
-    ```yaml
-    methods: POST, GET, OPTIONS
-    ```
+      ```yaml
+      methods: POST, GET, OPTIONS
+      ```
     - YAML array, e.g.
-    ```yaml
-    methods:
-    - GET
-    - POST
-    - OPTIONS
-    ```
+      ```yaml
+      methods:
+      - GET
+      - POST
+      - OPTIONS
+      ```
 - `headers`: if present, specifies a list of allowed headers for the `Access-Control-Allow-Headers` header. Format can be either of:
     - comma-separated list, e.g.
-    ```yaml
-    headers: Content-Type
-    ```
+      ```yaml
+      headers: Content-Type
+      ```
     - YAML array, e.g.
-    ```yaml
-    header:
-    - Content-Type
-    ```
+      ```yaml
+      header:
+      - Content-Type
+      ```
 - `credentials`: if present with a true value (boolean), will send a `true` value for the `Access-Control-Allow-Credentials` header.
 - `exposed_headers`: if present, specifies a list of allowed headers for the `Access-Control-Expose-Headers` header. Format can be either of:
     - comma-separated list, e.g.
-    ```yaml
-    exposed_headers: X-Custom-Header
-    ```
+      ```yaml
+      exposed_headers: X-Custom-Header
+      ```
     - YAML array, e.g.
-    ```yaml
-    exposed_headers:
-    - X-Custom-Header
-    ```
+      ```yaml
+      exposed_headers:
+      - X-Custom-Header
+      ```
 - `max_age`: if present, indicated how long the results of the preflight request can be cached, in seconds. This value must be a string.
 
 ## Example
