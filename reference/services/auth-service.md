@@ -1,6 +1,6 @@
-## AuthService
+## Authentication
 
-An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
+Ambassador supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
 ```yaml
 ---
@@ -18,6 +18,15 @@ allowed_headers:
 - `allowed_headers` (optional) gives an array of headers that will be incorporated into the upstream request if the auth service supplies them.
 
 You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and `allowed_headers`;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
+
+### Using the AuthService API
+
+By design, the AuthService interface is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
+
+* Supporting traditional SSO authentication protocols, e.g., OAuth, OpenID Connect, etc.
+* Support HTTP basic authentication (sample implementation available at:  https://github.com/datawire/ambassador-auth-httpbasic)
+* Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit
+* Authenticating specific services (URLs), and not others
 
 ### AuthService and TLS
 
