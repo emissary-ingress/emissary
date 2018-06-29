@@ -261,11 +261,13 @@ wait_for_pods () {
 
 wait_for_ready () {
     baseurl=${1}
+    extra_args=${2}
     attempts=60
     ready=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl -k $baseurl/ambassador/v0/check_ready 2>&1 | grep -c 'readiness check OK')
+        command="curl ${extra_args} -k ${baseurl}/ambassador/v0/check_ready 2>&1 | grep -c 'readiness check OK'"
+        OK=$(eval ${command})
 
         if [ $OK -gt 0 ]; then
             printf "ambassador ready           \n"
@@ -361,12 +363,14 @@ check_diag () {
     baseurl=$1
     index=$2
     desc=$3
+    extra_args=${4}
 
     sleep 20
 
     rc=1
 
-    curl -k -s ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json
+    command="curl -k -s ${extra_args} ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json"
+    eval ${command}
 
     if ! cmp -s check-$index.json diag-$index.json; then
         echo "check_diag $index: mismatch for $desc"
@@ -455,6 +459,22 @@ interactive_check_context () {
             * ) echo "Please answer yes or no.";;
         esac
     done
+}
+
+get_http_code() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{http_code} -s -o /dev/null $url"
+    echo $(eval ${command})
+}
+
+get_redirect_url() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{redirect_url} -s -o /dev/null $url"
+    echo $(eval ${command})
 }
 
 # ISTIOHOME=${ISTIOHOME:-${HERE}/istio-0.1.6}
