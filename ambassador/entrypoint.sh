@@ -21,7 +21,7 @@ AMBASSADOR_ROOT="/ambassador"
 CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-config"
 ENVOY_CONFIG_FILE="$AMBASSADOR_ROOT/envoy.json"
 
-export PYTHON_EGG_CACHE=$(AMBASSADOR_ROOT)
+export PYTHON_EGG_CACHE=${AMBASSADOR_ROOT}
 
 if [ "$1" == "--demo" ]; then
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
