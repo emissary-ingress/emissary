@@ -76,13 +76,13 @@ Ambassador supports a number of additional attributes to configure and customize
 | [`cors`](cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
 | [`grpc`](user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
-| `host_rewrite`            | forces the HTTP `Host` header to a specific value when talking to the service |
-| `host`                    | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
-| `host_regex`              | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
+| [`host`](host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
+| [`host_regex`](host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
+| [`host_rewrite`](hosts) | forces the HTTP `Host` header to a specific value when talking to the service |
 | `method`                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| [`rate_limits`](#using-ratelimits) | specifies a list rate limit rules on a mapping |
+| [`rate_limits`](rate-limits) | specifies a list rate limit rules on a mapping |
 | `regex_headers`           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](#rewrite-rules) | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
@@ -102,9 +102,9 @@ These attributes are less commonly used, but can be used to override Ambassador'
 | :------------------------ | :------------------------ |
 | `auto_host_rewrite`       | if true, forces the HTTP `Host` header to the `service` to which Ambassador routes |
 | `case_sensitive`          | determines whether `prefix` matching is case-sensitive; defaults to True |
-| `envoy_override`          | supplies raw configuration data to be included with the generated Envoy route entry. |
-| [`host_redirect`](#using-redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
-| [`path_redirect`](#using-redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
+| [`envoy_override`](override) | supplies raw configuration data to be included with the generated Envoy route entry. |
+| [`host_redirect`](redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
+| [`path_redirect`](redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
 | `precedence`              | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
@@ -129,70 +129,6 @@ name: catch-all
 prefix: /
 service: https://www.getambassador.io
 ```
-####  <a name="using-host-rewrite"></a> Using `host_rewrite`
-
-By default, the `Host` header is not altered when talking to the service -- whatever `Host` header the client gave to Ambassador will be presented to the service. For many microservices this will be fine, but if you use Ambassador to route to services that use the `Host` header for routing, it's likely to fail (legacy monoliths are particularly susceptible to this, as well as external services). You can use `host_rewrite` to force the `Host` header to whatever value that such target services need.
-
-An example: the default Ambassador configuration includes the following mapping for `httpbin.org`:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind: Mapping
-name: httpbin_mapping
-prefix: /httpbin/
-service: httpbin.org:80
-host_rewrite: httpbin.org
-```
-
-As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.
-
-####  <a name="using-host-and-host-regex"></a> Using `host` and `host_regex`
-
-A mapping that specifies the `host` attribute will take effect _only_ if the HTTP `Host` header matches the value in the `host` attribute. If `host_regex` is `true`, the `host` value is taken to be a regular expression, otherwise an exact string match is required.
-
-You may have multiple mappings listing the same resource but different `host` attributes to effect `Host`-based routing. An example:
-
-```yaml
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm1
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-host: qotm.datawire.io
-service: qotm2
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-host: "^qotm[2-9]\\.datawire\\.io$"
-host_regex: true
-service: qotm3
-```
-
-will map requests for `/qotm/` to
-
-- the `qotm2` service if the `Host` header is `qotm.datawire.io`;
-- the `qotm3` service if the `Host` header matches `^qotm[2-9]\\.datawire\\.io$`; and to
-- the `qotm1` service otherwise.
-
-**Note well** that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.
-
-#### `host` and `method`
-
-Internally:
-
-- the `host` attribute becomes a `header` match on the `:authority` header; and
-- the `method` attribute becomes a `header` match on the `:method` header.
-
-You will see these headers in the diagnostic service if you use the `method` or `host` attributes.
 
 ####  <a name="using-precedence"></a> Using `precedence`
 
@@ -207,81 +143,6 @@ If multiple `Mapping`s have the same `precedence`, Ambassador's normal sorting d
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
-
-####  <a name="using-rate-limits"></a> Using `rate_limits`
-
-A mapping that specifies the `rate_limits` list attribute, and at least one `rate_limits` rule, will call the external [RateLimitService](rate-limit-service.md) before proceeding with the request. An example:
-
-```yaml
-apiVersion: ambassador/v0
-kind: Mapping
-name: rate_limits_mapping
-prefix: /rate-limit/
-service: rate-limit-example
-rate_limits:
-  - {}
-  - descriptor: a rate-limit descriptor
-    headers:
-    - matching-header
-```
-            
-Rate limit rule settings:
-
-- `descriptor`: if present, specifies a string identifying the triggered rate limit rule. This descriptor will be sent to the `RateLimitService`.
-- `headers`: if present, specifies a list of other HTTP headers which **must** appear in the request for the rate limiting rule to apply. These headers will be sent to the `RateLimitService`.
-
-Please note that you must use the internal HTTP/2 request header names in `rate_limits` rules. For example:
-- the `host` header should be specified as the `:authority` header; and
-- the `method` header should be specified as the `:method` header.
-
-####  <a name="using-redirects"></a> Using Redirects
-
-To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
-
-```yaml
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  redirect_mapping
-prefix: /redirect/
-service: httpbin.org
-host_redirect: true
-```
-
-Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/redirect/`.
-
-The `Mapping` **may** also set `path_redirect` to change the path portion of the URL during the redirect:
-
-```yaml
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  redirect_mapping
-prefix: /redirect/
-service: httpbin.org
-host_redirect: true
-path_redirect: /ip
-```
-
-Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador, attention paid to the trailing `/` on a URL is helpful!
-
-#### <a name="using-envoyoverride"></a> Using `envoy_override`
-
-It's possible that your situation may strain the limits of what Ambassador can do. The `envoy_override` attribute is provided for cases we haven't predicted: any object given as the value of `envoy_override` will be inserted into the Envoy `Route` synthesized for the given mapping. For example, you could enable Envoy's `auto_host_rewrite` by supplying
-
-```yaml
-envoy_override:
-  auto_host_rewrite: True
-```
-
-Note that `envoy_override` cannot, at present, change any element already synthesized in the mapping: it can only add additional information. In addition, `envoy_override` only supports adding information to Envoy routes, and not clusters.
-
-Here is another example of using `envoy_override` to set Envoy's [connection retries](https://www.envoyproxy.io/docs/envoy/latest/api-v1/route_config/route.html#retry-policy):
-
-```
-envoy_override:
-   retry_policy:
-     retry_on: connect-failure
-     num_retries: 4
-```
 
 #### Namespaces and Mappings
 
