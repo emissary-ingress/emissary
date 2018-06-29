@@ -33,6 +33,7 @@
     * [Host Header](reference/host.md)
     * [Rate Limits](reference/rate-limits.md)
     * [Redirects](reference/redirects.md)
+    * [Rewrites](reference/rewrites.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [External Services](reference/services/services.md)
     * [Authentication](reference/services/auth-service.md)
