@@ -30,7 +30,7 @@
     * [Cross Origin Resource Sharing](reference/cors.md)
     * [Custom Envoy config](reference/override.md)
     * [Header-based routing](reference/headers.md)
-    * [Host Header](reference/hosts.md)
+    * [Host Header](reference/host.md)
     * [Rate Limits](reference/rate-limits.md)
     * [Redirects](reference/redirects.md)
     * [Traffic Shadowing](reference/shadowing.md)
