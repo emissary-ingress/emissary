@@ -29,6 +29,7 @@
     * [Canary Releases](reference/canary.md)
     * [Cross Origin Resource Sharing](reference/cors.md)
     * [Header-based routing](reference/headers.md)
+    * [Rate Limits](reference/rate-limits.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [External Services](reference/services/services.md)
     * [Authentication](reference/services/auth-service.md)

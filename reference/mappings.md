@@ -82,7 +82,7 @@ Ambassador supports a number of additional attributes to configure and customize
 | `method`                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| [`rate_limits`](#using-ratelimits) | specifies a list rate limit rules on a mapping |
+| [`rate_limits`](rate-limits) | specifies a list rate limit rules on a mapping |
 | `regex_headers`           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](#rewrite-rules) | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
@@ -207,32 +207,6 @@ If multiple `Mapping`s have the same `precedence`, Ambassador's normal sorting d
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
-
-####  <a name="using-rate-limits"></a> Using `rate_limits`
-
-A mapping that specifies the `rate_limits` list attribute, and at least one `rate_limits` rule, will call the external [RateLimitService](rate-limit-service.md) before proceeding with the request. An example:
-
-```yaml
-apiVersion: ambassador/v0
-kind: Mapping
-name: rate_limits_mapping
-prefix: /rate-limit/
-service: rate-limit-example
-rate_limits:
-  - {}
-  - descriptor: a rate-limit descriptor
-    headers:
-    - matching-header
-```
-            
-Rate limit rule settings:
-
-- `descriptor`: if present, specifies a string identifying the triggered rate limit rule. This descriptor will be sent to the `RateLimitService`.
-- `headers`: if present, specifies a list of other HTTP headers which **must** appear in the request for the rate limiting rule to apply. These headers will be sent to the `RateLimitService`.
-
-Please note that you must use the internal HTTP/2 request header names in `rate_limits` rules. For example:
-- the `host` header should be specified as the `:authority` header; and
-- the `method` header should be specified as the `:method` header.
 
 ####  <a name="using-redirects"></a> Using Redirects
 
