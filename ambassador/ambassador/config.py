@@ -937,8 +937,8 @@ class Config (object):
         elif tls_module is None:
             return generated_module
         else:
-            self.logger.debug("tls_module %s" % tls_module)
-            self.logger.debug("generated_module %s" % generated_module)
+            self.logger.debug("tls_module %s" % json.dumps(tls_module, indent=4))
+            self.logger.debug("generated_module %s" % json.dumps(generated_module, indent=4))
 
             # OK, no easy cases. We know that both modules exist: grab the config dicts.
             tls_source = tls_module['_source']
@@ -1030,7 +1030,7 @@ class Config (object):
 
         # OK, done. Make sure we have _something_ for the TLS module going forward.
         tmod = tls_module or {}
-        self.logger.debug("TLS module after merge: %s" % tmod)
+        self.logger.debug("TLS module after merge: %s" % json.dumps(tmod, indent=4))
 
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
@@ -1374,6 +1374,12 @@ class Config (object):
         else:
             self.ambassador_module[key].update(value)
 
+        # XXX This is actually wrong sometimes. If, for example, you have an
+        # ambassador module that defines the admin_port, sure, bringing in its
+        # source makes sense. On the other hand, if you have a TLS module 
+        # created by a secret, that source shouldn't really take over the
+        # admin document. This will take enough unraveling that I'm going to
+        # leave it for now, though.
         self.ambassador_module['_source'] = module['_source']
 
     def update_config_ambassador(self, module, key, value):
@@ -1426,7 +1432,7 @@ class Config (object):
             self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
         self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
-        self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts))
+        self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts, indent=4))
 
         return some_enabled
 
