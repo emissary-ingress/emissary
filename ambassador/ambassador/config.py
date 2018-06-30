@@ -913,6 +913,73 @@ class Config (object):
 
         return svc, cluster_name
 
+    def merge_tmods(self, tls_module, generated_module, key):
+        """
+        Merge TLS module configuration for a particular key. In the event of conflicts, the 
+        tls_module element wins, and an error is posted so that the diagnostics service can 
+        show it.
+
+        Returns a TLS module with a correctly-merged config element. This will be the
+        tls_module (possibly modified) unless no tls_module is present, in which case
+        the generated_module will be promoted. If any changes were made to the module, it
+        will be marked as referenced by the generated_module.
+
+        :param tls_module: the `tls` module; may be None
+        :param generated_module: the `tls-from-ambassador-certs` module; may be None
+        :param key: the key in the module config to merge
+        :return: TLS module object; see above.
+        """
+
+        # First up, the easy cases. If either module is missing, return the other.
+        # (The other might be None too, of course.)
+        if generated_module is None:
+            return tls_module
+        elif tls_module is None:
+            return generated_module
+        else:
+            self.logger.debug("tls_module %s" % json.dumps(tls_module, indent=4))
+            self.logger.debug("generated_module %s" % json.dumps(generated_module, indent=4))
+
+            # OK, no easy cases. We know that both modules exist: grab the config dicts.
+            tls_source = tls_module['_source']
+            tls_config = tls_module.get(key, {})
+
+            gen_source = generated_module['_source']
+            gen_config = generated_module.get(key, {})
+
+            # Now walk over the tls_config and copy anything needed.
+            any_changes = False
+
+            for ckey in gen_config:
+                if ckey in tls_config:
+                    # ckey exists in both modules. Do they have the same value?
+                    if tls_config[ckey] != gen_config[ckey]:
+                        # No -- post an error, but let the version from the TLS module win.
+                        errfmt = "CONFLICT in TLS config for {}.{}: using {} from TLS module in {}"
+                        errstr = errfmt.format(key, ckey, tls_config[ckey], tls_source)
+                        self.post_error(RichStatus.fromError(errstr))
+                    else:
+                        # They have the same value. Worth mentioning in debug.
+                        self.logger.debug("merge_tmods: {}.{} duplicated with same value".format(key, ckey))
+                else:
+                    # ckey only exists in gen_config. Copy it over.
+                    self.logger.debug("merge_tmods: copy {}.{} from gen_config".format(key, ckey))
+                    tls_config[ckey] = gen_config[ckey]
+                    any_changes = True
+
+            # If we had changes...
+            if any_changes:
+                # ...then mark the tls_module as referenced by the generated_module's
+                # source..
+                tls_module._mark_referenced_by(gen_source)
+
+                # ...and copy the tls_config back in (in case the key wasn't in the tls_module 
+                # config at all originally).
+                tls_module[key] = tls_config
+
+            # Finally, return the tls_module.
+            return tls_module
+
     def generate_intermediate_config(self):
         # First things first. The "Ambassador" module always exists; create it with
         # default values now.
@@ -951,10 +1018,19 @@ class Config (object):
 
         # ...most notably the 'ambassador' and 'tls' modules, which are handled first.
         amod = modules.get('ambassador', None)
-        tmod = modules.get('tls', None)
+        tls_module = modules.get('tls', None)
 
-        if not tmod:
-            tmod = modules.get('tls-from-ambassador-certs',)
+        # Part of handling the 'tls' module is folding in the 'tls-from-ambassador-certs'
+        # module, so grab that too...
+        generated_module = modules.get('tls-from-ambassador-certs', None)
+
+        # ...and merge the 'server' and 'client' config elements.
+        tls_module = self.merge_tmods(tls_module, generated_module, 'server')
+        tls_module = self.merge_tmods(tls_module, generated_module, 'client')
+
+        # OK, done. Make sure we have _something_ for the TLS module going forward.
+        tmod = tls_module or {}
+        self.logger.debug("TLS module after merge: %s" % json.dumps(tmod, indent=4))
 
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
@@ -1298,6 +1374,12 @@ class Config (object):
         else:
             self.ambassador_module[key].update(value)
 
+        # XXX This is actually wrong sometimes. If, for example, you have an
+        # ambassador module that defines the admin_port, sure, bringing in its
+        # source makes sense. On the other hand, if you have a TLS module 
+        # created by a secret, that source shouldn't really take over the
+        # admin document. This will take enough unraveling that I'm going to
+        # leave it for now, though.
         self.ambassador_module['_source'] = module['_source']
 
     def update_config_ambassador(self, module, key, value):
@@ -1350,7 +1432,7 @@ class Config (object):
             self.set_config_ambassador(amod, 'tls_config', tmp_config)
 
         self.logger.debug("TLS config: %s" % json.dumps(self.ambassador_module['tls_config'], indent=4))
-        self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts))
+        self.logger.debug("TLS contexts: %s" % json.dumps(self.tls_contexts, indent=4))
 
         return some_enabled
 

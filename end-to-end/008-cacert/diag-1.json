@@ -11,9 +11,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "tls.yaml.2"
+            "ambassador-008-cacert.yaml.2"
         ],
-        "_source": "tls.yaml.2",
+        "_source": "ambassador-008-cacert.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -35,9 +35,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "tls.yaml.2"
+            "ambassador-008-cacert.yaml.2"
         ],
-        "_source": "tls.yaml.2",
+        "_source": "ambassador-008-cacert.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -59,9 +59,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "tls.yaml.2"
+            "ambassador-008-cacert.yaml.2"
         ],
-        "_source": "tls.yaml.2",
+        "_source": "ambassador-008-cacert.yaml.2",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
