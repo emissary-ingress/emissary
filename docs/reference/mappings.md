@@ -8,11 +8,11 @@ Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#
 
 Each mapping can also specify, among other things:
 
-- a [_rewrite rule_](#rewrite-rules) which modifies the URL as it's handed to the Kubernetes service;
+- a [_rewrite rule_](rewrite) which modifies the URL as it's handed to the Kubernetes service;
 - a [_weight_](canary) specifying how much of the traffic for the resource will be routed using the mapping;
-- a [_host_](#using-host-and-host-regex) specifying a required value for the HTTP `Host` header;
+- a [_host_](host) specifying a required value for the HTTP `Host` header;
 - a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
-- other [_headers_](#using-headers) which must appear in the HTTP request.
+- other [_headers_](headers) which must appear in the HTTP request.
 
 ### Defining Mappings
 
@@ -84,9 +84,9 @@ Ambassador supports a number of additional attributes to configure and customize
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`rate_limits`](rate-limits) | specifies a list rate limit rules on a mapping |
 | `regex_headers`           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
-| [`rewrite`](#rewrite-rules) | replaces the URL prefix with when talking to the service |
+| [`rewrite`](rewrite)      | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
-| `tls`                     | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
+| [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador that this service will use websockets |
 
 Ambassador supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service, while minimizing its impact on production users.
@@ -105,7 +105,7 @@ These attributes are less commonly used, but can be used to override Ambassador'
 | [`envoy_override`](override) | supplies raw configuration data to be included with the generated Envoy route entry. |
 | [`host_redirect`](redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
 | [`path_redirect`](redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
-| `precedence`              | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
+| [`precedence`](precedence)           | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
@@ -130,7 +130,7 @@ prefix: /
 service: https://www.getambassador.io
 ```
 
-####  <a name="using-precedence"></a> Using `precedence`
+####  <a name="precedence"></a> Using `precedence`
 
 Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
 
@@ -144,7 +144,7 @@ In most cases, you won't need the `tls` attribute: just use a `service` with an 
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
 
-#### Namespaces and Mappings
+### Namespaces and Mappings
 
 Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
 
@@ -202,48 +202,3 @@ A `service` is simply a URL to Ambassador. For example:
 
 At present, Ambassador relies on Kubernetes to do load balancing: it trusts that using the DNS to look up the service by name will do the right thing in terms of spreading the load across all instances of the service.
 
-### Rewrite Rules
-
-Once Ambassador uses a prefix to identify the service to which a given request should be passed, it can rewrite the URL before handing it off to the service. By default, the `prefix` is rewritten to `/`, so e.g. if we map `/prefix1/` to the service `service1`, then
-
-```shell
-http://ambassador.example.com/prefix1/foo/bar
-```
-
-would effectively be written to
-
-```shell
-http://service1/foo/bar
-```
-
-when it was handed to `service1`.
-
-You can change the rewriting: for example, if you choose to rewrite the prefix as `/v1/` in this example, the final target would be
-
-```shell
-http://service1/v1/foo/bar
-```
-
-And, of course, you can choose to rewrite the prefix to the prefix itself, so that
-
-```shell
-http://ambassador.example.com/prefix1/foo/bar
-```
-
-would be "rewritten" as
-
-```shell
-http://service1/prefix1/foo/bar
-```
-
-Ambassador can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
-
-- `rewrite: ""`
-
-### Modifying Ambassador's Underlying Envoy Configuration
-
-Ambassador uses Envoy for the heavy lifting of proxying.
-
-If you wish to use Envoy features that aren't (yet) exposed by Ambassador, you can use your own custom config template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
-
-Please [contact us on Slack](https://join.slack.com/t/datawire-oss/shared_invite/enQtMzcwMDEwMTc5ODQ3LTE1NmIzZTFmZWE0OTQ1NDc2MzE2NTkzMDAzZWM0MDIxZTVjOGIxYmRjZjY3N2M2Mjk4NGI5Y2Q4NGY4Njc1Yjg) for more information if this seems necessary for a given use case (or better yet, submit a PR!) so that we can expose this in the future.
