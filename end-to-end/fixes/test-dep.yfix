@@ -12,7 +12,6 @@ DISCARD
 
 MATCH kind Deployment
 SET metadata/namespace $1
-SET spec/template/spec/containers/0/imagePullPolicy Always
 MKLIST spec/template/spec/containers/0/env
 MKDICT spec/template/spec/containers/0/env/0
 SET spec/template/spec/containers/0/env/0/name AMBASSADOR_NAMESPACE
