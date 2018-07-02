@@ -30,6 +30,14 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.35.1] June 25, 2018: **READ THE WARNING ABOVE**
+[0.35.1]: https://github.com/datawire/ambassador/compare/0.35.0...0.35.1
+
+### Changed
+
+- Properly support supplying additional TLS configuration (such as `redirect_cleartext_from`) when using certificates from a Kubernetes `Secret`
+- Update Helm chart to allow customizing annotations on the deployed `ambassador` Kubernetes `Service` (thanks @psychopenguin!)
+
 ## [0.35.0] June 25, 2018: **READ THE WARNING ABOVE**
 [0.35.0]: https://github.com/datawire/ambassador/compare/0.34.3...0.35.0
 
