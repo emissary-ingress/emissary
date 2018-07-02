@@ -2,6 +2,7 @@ MATCH kind Deployment
 MATCH metadata/name ambassador
 SETINT spec/replicas 1
 SET spec/template/spec/containers/0/image $1
+SET spec/template/spec/containers/0/imagePullPolicy Always
 DELETE spec/template/spec/containers/0/livenessProbe
 DELETE spec/template/spec/containers/0/readinessProbe
 SET spec/template/spec/containers/1/image $2

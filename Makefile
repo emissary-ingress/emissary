@@ -116,6 +116,8 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 STATSD_DOCKER_TAG ?= $(GIT_VERSION)
 STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
 
+SCOUT_APP_KEY=
+
 all: test docker-push website
 
 clean:
@@ -262,6 +264,24 @@ setup-develop: venv
 test: version setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
 
+update-aws:
+	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
+        printf "$(VERSION)" > stable.txt; \
+		echo "updating $(STABLE_TXT_KEY) with $$(cat stable.txt)"; \
+        aws s3api put-object \
+            --bucket datawire-static-files \
+            --key ambassador/$(STABLE_TXT_KEY) \
+            --body stable.txt; \
+	fi
+	@if [ -n "$(SCOUT_APP_KEY)" ]; then \
+		printf '{"application":"ambassador","latest_version":"$(VERSION)","notices":[]}' > app.json; \
+		echo "updating $(SCOUT_APP_KEY) with $$(cat app.json)"; \
+        aws s3api put-object \
+            --bucket scout-datawire-io \
+            --key ambassador/$(SCOUT_APP_KEY) \
+            --body app.json; \
+	fi
+
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \
@@ -272,6 +292,7 @@ release:
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(STATSD_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website publish-website; \
+		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		set +x; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
