@@ -299,7 +299,7 @@ You can also use `adminService.type=LoadBalancer`.
 ### Changed
 
 - Ambassador can now use HTTPS upstream services: just use a `service` that starts with `https://` to enable it.
-  - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to do this.
+  - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Slack](https://d6e.co/slack) if you need to do this.
 - HTTP access logs appear in the normal Kubernetes logs for Ambassador.
 - It’s now possible to tell `ambassador config` to read Kubernetes manifests from the filesystem and build a configuration from the annotations in them (use the `--k8s` switch).
 - Documentation on using Ambassador with Istio now reflects Ambassador 0.19.0 and Istio 0.2.12.
