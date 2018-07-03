@@ -20,6 +20,13 @@ HERE=$(cd $(dirname $0); pwd)
 
 cd "$HERE"
 
+CLEAN_ON_SUCCESS=
+
+if [ "$1" == "--cleanup" ]; then
+    CLEAN_ON_SUCCESS="--cleanup"
+    shift
+fi
+
 ROOT=$(cd ../..; pwd)
 PATH="${ROOT}:${PATH}"
 
@@ -70,3 +77,6 @@ if ! check_listeners "$BASEURL" 1 "no services but TLS"; then
     exit 1
 fi
 
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace 008-cacert
+fi

@@ -54,10 +54,11 @@ get_forge
 
 check_rbac
 
+rm -f *.log
 cat /dev/null > master.log
 
 run_and_log () {
-    if bash testone.sh "$1"; then
+    if bash testone.sh --cleanup "$1"; then
         echo "$1 PASS" >> master.log
     else
         echo "$1 FAIL" >> master.log
@@ -70,6 +71,9 @@ else
     for dir in 0-serial/[0-9]*; do
         run_and_log "$dir"
     done
+
+    # Clean up everything.
+    initialize_cluster
 
     for dir in 1-parallel/[0-9]*; do
         run_and_log "$dir" &

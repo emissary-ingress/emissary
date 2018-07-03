@@ -4,6 +4,13 @@
 export MACHINE_READABLE=yes
 export SKIP_CHECK_CONTEXT=yes
 
+CLEAN_ON_SUCCESS=
+
+if [ "$1" == "--cleanup" ]; then
+    CLEAN_ON_SUCCESS="--cleanup"
+    shift
+fi
+
 DIR="$1"
 LOG="$(basename $DIR).log"
 
@@ -17,7 +24,7 @@ while [ $attempt -lt 2 ]; do
 
     attempt=$(( $attempt + 1 ))
 
-    bash $DIR/test.sh 2>&1 | python linify.py $LOG
+    bash $DIR/test.sh $CLEAN_ON_SUCCESS 2>&1 | python linify.py $LOG
 
     # I hate shell sometimes.
     if [ ${PIPESTATUS[0]} -eq 0 ]; then

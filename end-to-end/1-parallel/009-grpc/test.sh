@@ -20,6 +20,13 @@ HERE=$(cd $(dirname $0); pwd)
 
 cd "$HERE"
 
+CLEAN_ON_SUCCESS=
+
+if [ "$1" == "--cleanup" ]; then
+    CLEAN_ON_SUCCESS="--cleanup"
+    shift
+fi
+
 ROOT=$(cd ../..; pwd)
 PATH="${ROOT}:${PATH}"
 
@@ -91,5 +98,10 @@ if [ $failures -gt 0 ]; then
     exit 1
 else
     echo "OK"
+
+    if [ -n "$CLEAN_ON_SUCCESS" ]; then
+        drop_namespace 009-grpc
+    fi
+
     exit 0
 fi

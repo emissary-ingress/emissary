@@ -20,6 +20,13 @@ HERE=$(cd $(dirname $0); pwd)
 
 cd "$HERE"
 
+CLEAN_ON_SUCCESS=
+
+if [ "$1" == "--cleanup" ]; then
+    CLEAN_ON_SUCCESS="--cleanup"
+    shift
+fi
+
 ROOT=$(cd ../..; pwd)
 PATH="${ROOT}:${PATH}"
 
@@ -132,7 +139,10 @@ else
     echo "Upstream RQ 200 stat good"
 fi
 
-exit $rc
+if [ \( $rc -eq 0 \) -a \( -n "$CLEAN_ON_SUCCESS" \) ]; then
+    drop_namespace 001-simple
+fi
 
+exit $rc
 
 # kubernaut discard
