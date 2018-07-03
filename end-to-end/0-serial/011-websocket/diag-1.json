@@ -83,9 +83,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "web-basic-websocket-insecure-ambassador-sbx0.yaml.2"
+            "web-basic-websocket-insecure-ambassador-sbx0.yaml.1"
         ],
-        "_source": "web-basic-websocket-insecure-ambassador-sbx0.yaml.2",
+        "_source": "web-basic-websocket-insecure-ambassador-sbx0.yaml.1",
         "clusters": [
             {
                 "name": "cluster_web_basic_ambassador_sbx0",
@@ -109,9 +109,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "web-basic-nosvcproxy-ambassador-sbx0.yaml.2"
+            "web-basic-nosvcproxy-ambassador-sbx0.yaml.1"
         ],
-        "_source": "web-basic-nosvcproxy-ambassador-sbx0.yaml.2",
+        "_source": "web-basic-nosvcproxy-ambassador-sbx0.yaml.1",
         "clusters": [
             {
                 "name": "cluster_web_basic_nosvcproxy_ambassador_sbx0_7000",
@@ -141,9 +141,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "web-basic-ambassador-sbx0.yaml.2"
+            "web-basic-ambassador-sbx0.yaml.1"
         ],
-        "_source": "web-basic-ambassador-sbx0.yaml.2",
+        "_source": "web-basic-ambassador-sbx0.yaml.1",
         "clusters": [
             {
                 "name": "cluster_web_basic_ambassador_sbx0",

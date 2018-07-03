@@ -1,10 +1,10 @@
 [
     {
-        "_source": "ambassador-008-cacert.yaml.2",
+        "_source": "ambassador-008-cacert.yaml.1",
         "require_tls": false,
         "service_port": 443,
         "tls": {
-            "_source": "ambassador-008-cacert.yaml.2",
+            "_source": "ambassador-008-cacert.yaml.1",
             "cacert_chain_file": "/ambassador/cacert/tls.crt",
             "cert_chain_file": "/ambassador/certs/tls.crt",
             "private_key_file": "/ambassador/certs/tls.key",

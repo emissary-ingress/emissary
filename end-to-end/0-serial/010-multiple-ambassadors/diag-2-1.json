@@ -84,10 +84,10 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo1-test-010-svc.yaml.3",
-            "demo2-test-010-svc.yaml.3"
+            "demo1-test-010-svc.yaml.2",
+            "demo2-test-010-svc.yaml.2"
         ],
-        "_source": "demo1-test-010-svc.yaml.3",
+        "_source": "demo1-test-010-svc.yaml.2",
         "clusters": [
             {
                 "name": "cluster_demo1_test_010_svc",
@@ -120,9 +120,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo1-test-010-svc.yaml.2"
+            "demo1-test-010-svc.yaml.1"
         ],
-        "_source": "demo1-test-010-svc.yaml.2",
+        "_source": "demo1-test-010-svc.yaml.1",
         "clusters": [
             {
                 "name": "cluster_demo1_test_010_svc",

@@ -10,6 +10,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Module
       name:  ambassador
+      ambassador_id: 009-grpc
       config:
         service_port: 8080
 spec:
