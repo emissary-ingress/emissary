@@ -53,6 +53,6 @@
 
 ## Need Help?
 
-* [Ask on Gitter](https://gitter.im/datawire/ambassador)
+* [Ask on Slack](https://d6e.co/slack)
 * [File a GitHub Issue](https://github.com/datawire/ambassador/issues/new)
 * [Visit Datawire.io](https://www.datawire.io)
