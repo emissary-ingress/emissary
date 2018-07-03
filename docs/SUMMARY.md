@@ -25,7 +25,6 @@
 * [Configuring Ambassador](reference/configuration.md)
   * [Core Configuration](reference/modules.md)
   * [Configuring Services](reference/mappings.md)
-    * [Adding Request Headers](reference/add_request_headers.md)
     * [Canary Releases](reference/canary.md)
     * [Cross Origin Resource Sharing](reference/cors.md)
     * [Custom Envoy config](reference/override.md)
@@ -33,6 +32,7 @@
     * [Host Header](reference/host.md)
     * [Rate Limits](reference/rate-limits.md)
     * [Redirects](reference/redirects.md)
+    * [Request Headers](reference/add_request_headers.md)
     * [Rewrites](reference/rewrites.md)
     * [Traffic Shadowing](reference/shadowing.md)
   * [External Services](reference/services/services.md)
@@ -53,6 +53,6 @@
 
 ## Need Help?
 
-* [Ask on Gitter](https://gitter.im/datawire/ambassador)
+* [Ask on Slack](https://d6e.co/slack)
 * [File a GitHub Issue](https://github.com/datawire/ambassador/issues/new)
 * [Visit Datawire.io](https://www.datawire.io)
