@@ -74,10 +74,14 @@ else
     for dir in 1-parallel/[0-9]*; do
         run_and_log "$dir" &
     done
-endif
+fi
 
 wait
 
-failures=$(grep -c 'FAIL' master.log)
+# Stupid grep. Why exactly it insists on exiting nonzero when it 
+# doesn't find the match with -c...
+failures=$(grep -c 'FAIL' master.log || true)
+
+echo "failures: $failures"
 
 exit $failures
