@@ -83,8 +83,8 @@ else
         run_and_log "$dir"
     done
 
-    # Clean up everything.
-    initialize_cluster
+    # Clean up everything, non-interactively.
+    SKIP_CHECK_CONTEXT=yes initialize_cluster
 
     for dir in 1-parallel/[0-9]*; do
         run_and_log "$dir" &
