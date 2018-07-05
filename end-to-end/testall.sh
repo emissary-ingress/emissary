@@ -18,11 +18,13 @@ set -e
 set -o pipefail
 
 HERE=$(cd $(dirname $0); pwd)
+ROOT=$HERE
 BUILD_ALL=${BUILD_ALL:-false}
 
 cd "$HERE"
 source "$HERE/kubernaut_utils.sh"
 source "$HERE/forge_utils.sh"
+source "$HERE/utils.sh"
 
 if [ "$BUILD_ALL" = true ]; then
   bash buildall.sh
@@ -50,42 +52,51 @@ fi
 
 get_forge
 
-# For linify
-export MACHINE_READABLE=yes
-export SKIP_CHECK_CONTEXT=yes
+check_rbac
 
-failures=0
+rm -f *.log
+cat /dev/null > master.log
 
-for dir in 0*; do
-    attempt=0
-    dir_passed=
+run_and_log () {
+    if bash testone.sh --cleanup "$1"; then
+        echo "$1 PASS" >> master.log
+    else
+        echo "$1 FAIL" >> master.log
+    fi
+}
 
-    while [ $attempt -lt 2 ]; do
-        echo
-        echo "================================================================"
-        echo "${attempt}: ${dir}..."
-
-        attempt=$(( $attempt + 1 ))
-
-        if bash $dir/test.sh 2>&1 | python linify.py test.log; then
-            echo "${dir} PASSED"
-            dir_passed=yes
-            break
+if [ -n "$E2E_TEST_NAME" ]; then
+    if [ ! -d "$E2E_TEST_NAME" ]; then
+        if [ -d "1-parallel/$E2E_TEST_NAME" ]; then
+            E2E_TEST_NAME="1-parallel/$E2E_TEST_NAME"
+        elif [ -d "0-serial/$E2E_TEST_NAME" ]; then
+            E2E_TEST_NAME="0-serial/$E2E_TEST_NAME"
         else
-            echo "${dir} FAILED"
-
-            echo "================ k8s info"
-            kubectl get svc --all-namespaces
-            kubectl get pods --all-namespaces
-            echo "================ start captured output"
-            cat test.log
-            echo "================ end captured output"
+            echo "Test $E2E_TEST_NAME cannot be found" >&2
+            exit 1
         fi
+    fi
+
+    run_and_log "$E2E_TEST_NAME"
+else
+    for dir in 0-serial/[0-9]*; do
+        run_and_log "$dir"
     done
 
-    if [ -z "$dir_passed" ]; then
-        failures=$(( $failures + 1 ))
-    fi
-done
+    # Clean up everything, non-interactively.
+    SKIP_CHECK_CONTEXT=yes initialize_cluster
+
+    for dir in 1-parallel/[0-9]*; do
+        run_and_log "$dir" &
+    done
+fi
+
+wait
+
+# Stupid grep. Why exactly it insists on exiting nonzero when it 
+# doesn't find the match with -c...
+failures=$(grep -c 'FAIL' master.log || true)
+
+echo "failures: $failures"
 
 exit $failures

@@ -30,6 +30,13 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.35.2] June 25, 2018: **READ THE WARNING ABOVE**
+[0.35.2]: https://github.com/datawire/ambassador/compare/0.35.1...0.35.2
+
+### Changed
+
+- 0.35.2 is functionally unchanged from 0.35.1: we updated Datawire testing infrastructure but made no user-visible changes.
+
 ## [0.35.1] June 25, 2018: **READ THE WARNING ABOVE**
 [0.35.1]: https://github.com/datawire/ambassador/compare/0.35.0...0.35.1
 
@@ -299,7 +306,7 @@ You can also use `adminService.type=LoadBalancer`.
 ### Changed
 
 - Ambassador can now use HTTPS upstream services: just use a `service` that starts with `https://` to enable it.
-  - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Gitter](https://gitter.im/datawire/ambassador) if you need to do this.
+  - By default, Ambassador will not offer a certificate when using HTTPS to connect to a service, but it is possible to configure certificates. Please [contact us on Slack](https://d6e.co/slack) if you need to do this.
 - HTTP access logs appear in the normal Kubernetes logs for Ambassador.
 - It’s now possible to tell `ambassador config` to read Kubernetes manifests from the filesystem and build a configuration from the annotations in them (use the `--k8s` switch).
 - Documentation on using Ambassador with Istio now reflects Ambassador 0.19.0 and Istio 0.2.12.

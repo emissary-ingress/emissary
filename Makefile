@@ -255,8 +255,13 @@ helm:
 	git add docs/ambassador-${VERSION}.tgz
 	helm repo index docs --url https://www.getambassador.io --merge ./docs/index.yaml
 
+e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
-	bash end-to-end/testall.sh
+	if [ "$(E2E_TEST_NAME)" == "all" ]; then \
+		bash end-to-end/testall.sh; \
+	else \
+		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
+	fi
 
 setup-develop: venv
 	venv/bin/pip install -q -e ambassador/.
