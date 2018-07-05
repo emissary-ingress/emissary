@@ -22,6 +22,10 @@
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
         "circuit_breaker": { "type": "string" },
+        "https_redirect": {
+            "port": { "type": "integer" },
+            "to": { "type": "string" }
+        },
         "cors": {
             "type": "object",
             "properties": {

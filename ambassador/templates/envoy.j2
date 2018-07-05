@@ -1,5 +1,40 @@
 {
   "listeners": [
+    {% if https_listener is defined %}
+    {
+      "address": "tcp://0.0.0.0:{{ https_listener.port }}",
+      "filters": [
+        {
+          "type": "read",
+          "name": "http_connection_manager",
+          "config": {
+            "codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "filters": [
+              {
+                "name": router,
+                "config": {}
+              }
+            ],
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "name": "https_redirect",
+                  "domains": ["*"],
+                  "routes": [
+                    {
+                      "prefix": "/",
+                      "host_rediect": "{{ https_listener.destination }}"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {% endif %}
     {% for listener in listeners %}
     {
       "address": "tcp://0.0.0.0:{{ listener.service_port }}",
