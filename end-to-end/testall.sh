@@ -57,6 +57,11 @@ export SKIP_CHECK_CONTEXT=yes
 failures=0
 
 for dir in 0*; do
+    if [[ ! -z ${E2E_TEST_NAME} && ${E2E_TEST_NAME} != "$dir" ]]; then
+        echo "Skipping E2E test ${dir}"
+        continue
+    fi
+
     attempt=0
     dir_passed=
 
