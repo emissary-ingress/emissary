@@ -5,3 +5,4 @@
 /how-to/auth-external      /reference/services/auth-service
 /user-guide/running        /reference/running
 /reference/auth-external   /reference/services/auth-service
+/helm/*                    https://s3.amazonaws.com/datawire-static-files/ambassador/:splat
