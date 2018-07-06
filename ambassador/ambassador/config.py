@@ -1172,6 +1172,27 @@ class Config (object):
             # ...and route.
             self.add_intermediate_route(mapping['_source'], mapping, svc, cluster_name)
 
+            # if https_redirect is configured, then
+            https_redirect = mapping.get('https_redirect')
+            if https_redirect is not None:
+                https_redirection_port = https_redirect.get('port')
+                https_redirection_destination = https_redirect.get('to')
+                if https_redirection_port is not None and https_redirection_destination is not None:
+                    https_redirect_listener = SourcedDict(
+                        _from=self.ambassador_module,
+                        service_port=https_redirection_port,
+                    )
+
+                    route = SourcedDict(
+                        _source=mapping.get('_source'),
+                        _group_id=mapping.group_id,
+                        _precedence=mapping.get('precedence', 0),
+                    )
+                    route['prefix'] = '/'
+                    route['host_redirect'] = https_redirection_destination
+
+                    self.envoy_config['listeners'].append(https_redirect_listener)
+
         # OK. Walk the set of clusters and normalize names...
         collisions = {}
         mangled = {}
