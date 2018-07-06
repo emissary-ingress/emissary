@@ -310,14 +310,15 @@ class Config (object):
         # (context.pem).
 
         self.default_tls_config = {
-            "server": {
-                "cert_chain_file": "/etc/certs/tls.crt",
-                "private_key_file": "/etc/certs/tls.key"
-            },
-            "client": {
-                "cacert_chain_file": "/etc/cacert/tls.crt"
-            }
+            "server": {},
+            "client": {},
         }
+        if os.path.isfile("/etc/certs/tls.crt"):
+            self.default_tls_config["server"]["cert_chain_file"] = "/etc/certs/tls.crt"
+        if os.path.isfile("/etc/certs/tls.key"):
+            self.default_tls_config["server"]["private_key_file"] = "/etc/certs/tls.key"
+        if os.path.isfile("/etc/cacert/tls.crt"):
+            self.default_tls_config["client"]["cacert_chain_file"] = "/etc/cacert/tls.crt"
 
         self.tls_config = None
 
@@ -1107,12 +1108,16 @@ class Config (object):
         if tmod:
             # self.logger.debug("USING TLS")
             primary_listener['tls'] = tmod
+            if self.tmod_certs_exist(primary_listener['tls']) > 0:
+                primary_listener['tls']['ssl_context'] = True
             redirect_cleartext_from = tmod.get('redirect_cleartext_from')
 
         self.envoy_config['listeners'] = [ primary_listener ]
 
         if redirect_cleartext_from:
-            primary_listener['require_tls'] = True
+            # We only want to set `require_tls` on the primary listener when certs are present on the pod
+            if self.tmod_certs_exist(primary_listener['tls']) > 0:
+                primary_listener['require_tls'] = True
 
             new_listener = SourcedDict(
                 _from=self.ambassador_module,
@@ -1252,6 +1257,24 @@ class Config (object):
 
         self.envoy_config['breakers'] = self.clean_and_copy(self.breakers)
         self.envoy_config['outliers'] = self.clean_and_copy(self.outliers)
+
+    @staticmethod
+    def tmod_certs_exist(tmod):
+        """
+        Returns the number of certs that are defined in the supplied tmod
+
+        :param tmod: The TLS module configuration
+        :return: number of certs in tmod
+        :rtype: int
+        """
+        cert_count = 0
+        if tmod.get('cert_chain_file') is not None:
+            cert_count += 1
+        if tmod.get('private_key_file') is not None:
+            cert_count += 1
+        if tmod.get('cacert_chain_file') is not None:
+            cert_count += 1
+        return cert_count
 
     def _get_intermediate_for(self, element_list, source_keys, value):
         if not isinstance(value, dict):

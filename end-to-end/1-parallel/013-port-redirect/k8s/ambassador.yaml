@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: diag_mapping
+      prefix: /ambassador/
+      rewrite: /ambassador/
+      service: 127.0.0.1:8877
+      ambassador_id: 013-port-redirect
+      ---
+      apiVersion: ambassador/v0
+      kind:  Module
+      name:  tls
+      ambassador_id: 013-port-redirect
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 8080
+spec:
+  selector:
+    service: ambassador
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+    - name: redirect-port
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: NodePort
