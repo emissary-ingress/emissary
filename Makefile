@@ -136,7 +136,7 @@ clean:
 
 clobber: clean
 	-rm -rf docs/node_modules
-	-rm -rf venv 
+	-rm -r venv 2> /dev/null && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
 	@printf "$($*)"
