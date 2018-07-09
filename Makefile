@@ -232,7 +232,7 @@ version:
 	@echo "Generating and templating version information -> $(VERSION)"
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 
-e2e-versioned-manifests:
+e2e-versioned-manifests: venv website-yaml
 	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE) $(STATSD_DOCKER_IMAGE)
 
 website-yaml:
@@ -257,6 +257,7 @@ helm:
 
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
+	source venv/bin/activate; \
 	if [ "$(E2E_TEST_NAME)" == "all" ]; then \
 		bash end-to-end/testall.sh; \
 	else \
@@ -308,7 +309,7 @@ release:
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: venv/bin/activate
+venv: version venv/bin/activate
 
 venv/bin/activate: dev-requirements.txt ambassador/.
 	test -d venv || virtualenv venv --python python3
