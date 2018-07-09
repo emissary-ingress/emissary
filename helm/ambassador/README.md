@@ -5,7 +5,7 @@ Ambassador is an open source, Kubernetes-native [microservices API gateway](http
 ## TL;DR;
 
 ```console
-$ helm repo add datawire https://www.getambassador.io
+$ helm repo add datawire https://www.getambassador.io/helm
 $ helm install datawire/ambassador
 ```
 
