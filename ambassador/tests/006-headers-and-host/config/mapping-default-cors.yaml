@@ -1,0 +1,11 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  cors_default_envoy
+config:
+  cors:
+    allow_origin:
+      - "*"
+    allow_methods: "POST, GET, OPTIONS"
+    max_age: "86400"
+    enabled: true

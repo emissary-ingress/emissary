@@ -103,6 +103,19 @@
                 ]
             }
         ],
+        "cors_default_envoy": [
+            {
+                "_source": "--cors_defaults--",
+                "cors": {
+                    "allow_methods": "POST, GET, OPTIONS",
+                    "allow_origin": [
+                        "*"
+                    ],
+                    "enabled": true,
+                    "max_age": "86400"
+                }
+            }
+        ],
         "filters": [
             {
                 "_source": "--internal--",
@@ -539,6 +552,9 @@
             "mapping-cors.yaml.1": true,
             "mapping-cors.yaml.2": true
         },
+        "mapping-default-cors.yaml": {
+            "mapping-default-cors.yaml.1": true
+        },
         "mapping-diag.yaml": {
             "mapping-diag.yaml.1": true
         },
@@ -614,6 +630,15 @@
             "name": "cors_all_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\ncors:\n  origins: '*'\nkind: Mapping\nname: cors_all_mapping\nprefix: /cors-all/\nservice: cors\n"
+        },
+        "mapping-default-cors.yaml.1": {
+            "_source": "mapping-default-cors.yaml",
+            "filename": "mapping-default-cors.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "cors_default_envoy",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  cors:\n    allow_methods: POST, GET, OPTIONS\n    allow_origin:\n    - '*'\n    enabled: true\n    max_age: '86400'\nkind: Module\nname: cors_default_envoy\n"
         },
         "mapping-diag.yaml.1": {
             "_source": "mapping-diag.yaml",

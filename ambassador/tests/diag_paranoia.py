@@ -24,6 +24,7 @@ def mark_referenced_by(obj, refby):
         return False
 
 Uniqifiers = {
+    'cors_default_envoy': lambda x: "cors_default_envoy",
     'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
     'outliers': lambda x: x['name'],
@@ -242,6 +243,10 @@ def diag_paranoia(configdir, outputdir):
     # Copy any 'extauth' block from the original into the reconstituted list.
     if ('extauth' in ov) and ('extauth' not in reconstituted_lists):
         reconstituted_lists['extauth'] = [ ov['extauth'] ]
+
+    # Copy any 'cors_default_envoy' block from the original into the reconstituted list.
+    if ('cors_default_envoy' in ov) and ('cors_default_envoy' not in reconstituted_lists):
+        reconstituted_lists['cors_default_envoy'] = [ ov['cors_default_envoy'] ]
 
     # OK. Next, filter out the '--internal--' stuff from our overview, and sort
     # _referenced_by.
