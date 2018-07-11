@@ -1071,7 +1071,8 @@ class Config (object):
             if ((module_name == 'ambassador') or
                 (module_name == 'tls') or
                 (module_name == 'authentication') or
-                (module_name == 'tls-from-ambassador-certs')):
+                (module_name == 'tls-from-ambassador-certs') or
+                (module_name == 'cors_default')):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -1241,6 +1242,10 @@ class Config (object):
         self.envoy_config['clusters'] = [
             self.envoy_clusters[cluster_key] for cluster_key in sorted(self.envoy_clusters.keys())
         ]
+
+        default_cors_module = modules.get('cors_default', None)
+        if default_cors_module:
+            self.envoy_config['cors_default'] = default_cors_module['cors']
 
         # ...and finally repeat for breakers and outliers, but copy them in the process so we
         # can mess with the originals.
