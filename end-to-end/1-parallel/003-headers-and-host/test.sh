@@ -16,28 +16,26 @@
 
 set -e -o pipefail
 
-NAMESPACE="008-cacert"
+NAMESPACE="003-headers-and-host"
 
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
 bootstrap ${NAMESPACE} ${ROOT}
 
-python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
     ${NAMESPACE} \
     ${NAMESPACE}
 
-# create secrets for TLS stuff
-kubectl create -n ${NAMESPACE} secret tls ambassador-certs --cert=certs/server.crt --key=certs/server.key
-kubectl create -n ${NAMESPACE} secret generic ambassador-cacert --from-file=tls.crt=certs/client.crt
-# --from-literal=cert_required=true
-
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
+kubectl apply -f k8s/cors.yaml
+kubectl apply -f k8s/demo1.yaml
+kubectl apply -f k8s/demo2.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
-# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+kubectl run demotest --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
@@ -45,20 +43,52 @@ wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador ${NAMESPACE})
-# DEMOTEST_POD=$(demotest_pod)
+DEMOTEST_POD=$(demotest_pod ${NAMESPACE})
 
-BASEURL="https://${CLUSTER}:${APORT}"
+BASEURL="http://${CLUSTER}:${APORT}"
 
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL"
 
-if ! check_diag "$BASEURL" 1 "no services but TLS"; then
+if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1
 fi
 
-if ! check_listeners "$BASEURL" 1 "no services but TLS"; then
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < cors.yaml; then
+    exit 1
+fi
+
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-1.yaml; then
+    exit 1
+fi
+
+kubectl apply -f k8s/canary-50.yaml
+wait_for_pods ${NAMESPACE}
+wait_for_demo_weights "$BASEURL" x-demo-mode=canary 50 50
+
+if ! check_diag "$BASEURL" 2 "Canary 50/50"; then
+    exit 1
+fi
+
+sleep 5
+
+if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-2.yaml; then
+    exit 1
+fi
+
+kubectl apply -f k8s/canary-100.yaml
+wait_for_pods ${NAMESPACE}
+wait_for_demo_weights "$BASEURL" x-demo-mode=canary 100
+
+if ! check_diag "$BASEURL" 3 "Canary 100"; then
+    exit 1
+fi
+
+sleep 5
+
+if ! kubectl exec -i "$DEMOTEST_POD" -- python3 demotest.py "$BASEURL" /dev/fd/0 < demo-3.yaml; then
     exit 1
 fi
 

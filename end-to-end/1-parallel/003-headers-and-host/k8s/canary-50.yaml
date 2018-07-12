@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo2
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  canary_50_mapping
+      prefix: /demo/
+      headers:
+        x-demo-mode: canary
+      service: demo2
+      weight: 50
+      ambassador_id: 003-headers-and-host
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_host_mapping
+      prefix: /demo/
+      host: demo2.datawire.io
+      service: demo2
+      ambassador_id: 003-headers-and-host
+spec:
+  selector:
+    app: demo2
+  ports:
+    - port: 80
+      targetPort: http-api
+  type: ClusterIP
