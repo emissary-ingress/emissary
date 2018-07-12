@@ -11,6 +11,7 @@ metadata:
       name:  demo_default_mapping
       prefix: /demo/
       service: demo1
+      ambassador_id: 003-headers-and-host
 spec:
   selector:
     app: demo1
@@ -34,13 +35,15 @@ metadata:
         x-demo-mode: canary
       service: demo2
       weight: 50
+      ambassador_id: 003-headers-and-host
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  demo_with_host_mapping
       prefix: /demo/
       host: demo2.datawire.io
-      service: demo2      
+      service: demo2
+      ambassador_id: 003-headers-and-host
 spec:
   selector:
     app: demo2

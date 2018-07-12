@@ -83,9 +83,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-003-headers-and-host.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-003-headers-and-host.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -108,9 +108,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo2-default.yaml.2"
+            "demo2-003-headers-and-host.yaml.2"
         ],
-        "_source": "demo2-default.yaml.2",
+        "_source": "demo2-003-headers-and-host.yaml.2",
         "clusters": [
             {
                 "name": "cluster_demo2",
@@ -140,9 +140,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "cors-default.yaml.1"
+            "cors-003-headers-and-host.yaml.1"
         ],
-        "_source": "cors-default.yaml.1",
+        "_source": "cors-003-headers-and-host.yaml.1",
         "clusters": [
             {
                 "name": "cluster_cors",
@@ -178,9 +178,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo2-default.yaml.1"
+            "demo2-003-headers-and-host.yaml.1"
         ],
-        "_source": "demo2-default.yaml.1",
+        "_source": "demo2-003-headers-and-host.yaml.1",
         "clusters": [
             {
                 "name": "cluster_demo2",
@@ -209,9 +209,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo1-default.yaml.1"
+            "demo1-003-headers-and-host.yaml.1"
         ],
-        "_source": "demo1-default.yaml.1",
+        "_source": "demo1-003-headers-and-host.yaml.1",
         "clusters": [
             {
                 "name": "cluster_demo1",

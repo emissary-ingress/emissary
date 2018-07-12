@@ -11,6 +11,7 @@ metadata:
       name:  demo_default_mapping
       prefix: /demo/
       service: demo1
+      ambassador_id: 003-headers-and-host
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
@@ -19,6 +20,7 @@ metadata:
       headers:
         x-demo-mode: canary
       service: demo1
+      ambassador_id: 003-headers-and-host
 spec:
   selector:
     app: demo1

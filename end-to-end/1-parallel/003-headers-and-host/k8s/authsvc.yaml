@@ -11,6 +11,7 @@ metadata:
       name:  auth_mapping
       prefix: /example-auth/
       service: example-auth:3000
+      ambassador_id: 003-headers-and-host
 spec:
   selector:
     app: example-auth

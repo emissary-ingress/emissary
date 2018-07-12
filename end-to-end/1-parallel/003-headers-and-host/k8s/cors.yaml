@@ -14,6 +14,7 @@ metadata:
       service: cors
       cors:
         origins: "*"
+      ambassador_id: 003-headers-and-host
 spec:
   selector:
     app: demo2

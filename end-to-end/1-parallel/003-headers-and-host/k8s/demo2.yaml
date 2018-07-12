@@ -12,7 +12,8 @@ metadata:
       prefix: /demo/
       host: "^[dh]emo[2-4]\\.datawire\\.io"
       host_regex: true
-      service: demo2      
+      service: demo2
+      ambassador_id: 003-headers-and-host
 spec:
   selector:
     app: demo2
