@@ -30,12 +30,13 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
-## [0.35.2] June 25, 2018: **READ THE WARNING ABOVE**
+## [0.35.2] July 5, 2018: **READ THE WARNING ABOVE**
 [0.35.2]: https://github.com/datawire/ambassador/compare/0.35.1...0.35.2
 
 ### Changed
 
-- 0.35.2 is functionally unchanged from 0.35.1: we updated Datawire testing infrastructure but made no user-visible changes.
+- 0.35.2 is almost entirely about updates to Datawire testing infrastructure.
+- The only user-visible change is that Ambassador will do a better job of showing which Kubernetes objects define Ambassador configuration objects when using `AMBASSADOR_ID` to run multiple Ambassadors in the same cluster.
 
 ## [0.35.1] June 25, 2018: **READ THE WARNING ABOVE**
 [0.35.1]: https://github.com/datawire/ambassador/compare/0.35.0...0.35.1
