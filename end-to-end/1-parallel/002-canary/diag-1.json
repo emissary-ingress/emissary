@@ -83,9 +83,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-002-canary.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-002-canary.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",

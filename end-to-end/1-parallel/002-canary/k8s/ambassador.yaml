@@ -8,6 +8,7 @@ metadata:
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
+      ambassador_id: 002-canary
       name:  diag_mapping
       prefix: /ambassador/
       rewrite: /ambassador/

@@ -2,19 +2,21 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo1
+  name: demo2
+  namespace: 002-canary-other
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
-      name:  demo1_mapping
+      name:  demo2_mapping
       prefix: /demo/
-      service: demo1
-      timeout_ms: 1000
+      service: demo2.002-canary-other
+      weight: 10
+      ambassador_id: 002-canary
 spec:
   selector:
-    app: demo1
+    app: demo2
   ports:
     - port: 80
       targetPort: http-api
@@ -23,7 +25,8 @@ spec:
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: demo1
+  name: demo2
+  namespace: 002-canary-other
 spec:
   replicas: 1
   strategy:
@@ -31,11 +34,11 @@ spec:
   template:
     metadata:
       labels:
-        app: demo1
+        app: demo2
     spec:
       containers:
-      - name: demo1
-        image: dwflynn/demo:1.0.0
+      - name: demo2
+        image: dwflynn/demo:2.0.0
         imagePullPolicy: Always
         ports:
         - name: http-api
