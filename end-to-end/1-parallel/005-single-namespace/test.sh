@@ -16,35 +16,32 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="005-single-namespace"
 
-cd "$HERE"
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
-
-initialize_cluster
-
-kubectl cluster-info
+bootstrap ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/single-namespace.yfix \
     ${ROOT}/ambassador-deployment.yaml \
-    k8s/ambassador-deployment.yaml
+    k8s/ambassador-deployment.yaml \
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
-kubectl create namespace other
+kubectl create namespace ${NAMESPACE}-other
+kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl run demotest --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador)
-DEMOTEST_POD=$(demotest_pod)
+APORT=$(service_port ambassador ${NAMESPACE})
+DEMOTEST_POD=$(demotest_pod ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -71,8 +68,8 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 0; then
     exit 1
 fi
 
-kubectl apply -f k8s/demo2-other.yaml
-wait_for_pods
+\kubectl apply -f k8s/demo2-other.yaml
+wait_for_pods ${NAMESPACE}-other
 wait_for_demo_weights "$BASEURL" 100
 
 # This needs sorting crap before it'll work. :P
@@ -87,7 +84,7 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 0; then
 fi
 
 kubectl apply -f k8s/demo2.yaml
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 wait_for_demo_weights "$BASEURL" 90 10
 
 # This needs sorting crap before it'll work. :P
@@ -102,7 +99,7 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 10; then
 fi
 
 kubectl apply -f k8s/demo2-50.yaml
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 wait_for_demo_weights "$BASEURL" 50 50
 
 # This needs sorting crap before it'll work. :P
@@ -117,7 +114,7 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 50; then
 fi
 
 kubectl apply -f k8s/demo2-90.yaml
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 wait_for_demo_weights "$BASEURL" 10 90
 
 # This needs sorting crap before it'll work. :P
@@ -132,7 +129,7 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 90; then
 fi
 
 kubectl delete -f k8s/demo1.yaml
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 wait_for_demo_weights "$BASEURL" 100
 
 # This needs sorting crap before it'll work. :P
@@ -146,4 +143,7 @@ if ! kubectl exec -i $DEMOTEST_POD -- python3 demotest.py "$BASEURL" 100; then
     exit 1
 fi
 
-# kubernaut discard
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
+    drop_namespace ${NAMESPACE}-other
+fi

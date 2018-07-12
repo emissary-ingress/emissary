@@ -10,8 +10,9 @@ metadata:
       kind:  Mapping
       name:  demo2_mapping
       prefix: /demo/
-      service: demo2.other
-      weight: 90
+      service: demo2.005-single-namespace-other
+      weight: 50
+      ambassador_id: 005-single-namespace
 spec:
   selector:
     app: demo2
