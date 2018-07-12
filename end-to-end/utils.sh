@@ -31,6 +31,33 @@ step () {
     echo "==== $@"
 }
 
+bootstrap () {
+    NAMESPACE=${1:-default}
+
+    PATH="${2}:${PATH}"
+    echo "PATH set to $PATH"
+
+    CLEAN_ON_SUCCESS=
+
+    if [ "$1" == "--cleanup" ]; then
+        CLEAN_ON_SUCCESS="--cleanup"
+        shift
+    fi
+
+    check_rbac
+
+    initialize_namespace ${NAMESPACE}
+    echo "initialized namespace $NAMESPACE"
+
+    # Unless expand_aliases is set, no one cares about your aliases, not even bash!
+    shopt -s expand_aliases
+    alias kubectl="kubectl -n $NAMESPACE"
+
+    kubectl cluster-info
+
+    echo "boostrapping done for test $NAMESPACE"
+}
+
 check_skip () {
     if [ -r "$ROOT/.skip-tests" ]; then
         test_name=$(basename $(pwd))
@@ -142,6 +169,16 @@ initialize_namespace () {
     drop_namespace "$namespace"
     wait_for_namespace_deletion
     kubectl create namespace "$namespace"
+}
+
+switch_namespace() {
+  kubectl get namespace $1 &> /dev/null
+  if [ $? -eq 0 ]; then
+    kubectl config set-context $(kubectl config current-context) --namespace=$1 > /dev/null
+  else
+    echo "namespace $1 does not exist"
+    exit 1
+  fi
 }
 
 cluster_ip () {
