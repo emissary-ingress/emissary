@@ -16,46 +16,31 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="009-grpc"
 
-cd "$HERE"
-
-CLEAN_ON_SUCCESS=
-
-if [ "$1" == "--cleanup" ]; then
-    CLEAN_ON_SUCCESS="--cleanup"
-    shift
-fi
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
-
-check_rbac
-
-initialize_namespace "009-grpc"
-
-kubectl cluster-info
+bootstrap ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
-    009-grpc \
-    009-grpc
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f k8s/grpc.yaml
-# kubectl run demotest -n 009-grpc --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
-wait_for_pods 009-grpc
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador 009-grpc)
+APORT=$(service_port ambassador ${NAMESPACE})
 # DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="http://${CLUSTER}:${APORT}"
@@ -100,7 +85,7 @@ else
     echo "OK"
 
     if [ -n "$CLEAN_ON_SUCCESS" ]; then
-        drop_namespace 009-grpc
+        drop_namespace ${NAMESPACE}
     fi
 
     exit 0
