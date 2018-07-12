@@ -40,6 +40,7 @@
     * [Rate Limiting](reference/services/rate-limit-service.md)
   * [Advanced configuration topics](reference/advanced.md)
 * [Running Ambassador](reference/running.md)
+  * [Diagnostics](reference/diagnostics.md)
   * [Ambassador with AWS](reference/ambassador-with-aws.md)
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
