@@ -994,6 +994,7 @@ class Config (object):
             diagnostics = { "enabled": True },
             tls_config = None,
             use_proxy_proto = False,
+            x_forwarded_proto_redirect = False,
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -1099,6 +1100,14 @@ class Config (object):
 
         if 'use_remote_address' in self.ambassador_module:
             primary_listener['use_remote_address'] = self.ambassador_module['use_remote_address']
+
+        # If x_forwarded_proto_redirect is set, then we enable require_tls in primary listener, which in turn sets
+        # require_ssl to true in envoy config. Once set, then all requests that contain X-FORWARDED-PROTO set to
+        # https, are processes normally by envoy. In all the other cases, including X-FORWARDED-PROTO set to http,
+        # a 301 redirect response to https://host is sent
+        if self.ambassador_module.get('x_forwarded_proto_redirect', False):
+            primary_listener['require_tls'] = True
+            self.logger.debug("x_forwarded_proto_redirect is set to true, enabling 'require_tls' in listener")
 
         redirect_cleartext_from = None
         tmod = self.ambassador_module.get('tls_config', None)
@@ -1451,7 +1460,7 @@ class Config (object):
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics' ]:
+                     'use_proxy_proto', 'use_remote_address', 'diagnostics', 'x_forwarded_proto_redirect' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])

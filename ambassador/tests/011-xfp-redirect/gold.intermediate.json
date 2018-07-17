@@ -1,0 +1,208 @@
+{
+    "envoy_config": {
+        "admin": [
+            {
+                "_source": "l7-redirect.yaml.1",
+                "admin_port": 8001
+            }
+        ],
+        "clusters": [
+            {
+                "_referenced_by": [
+                    "l7-redirect.yaml.1"
+                ],
+                "_service": "127.0.0.1:8877",
+                "_source": "l7-redirect.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_127_0_0_1_8877",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://127.0.0.1:8877"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping.yaml.1"
+                ],
+                "_service": "httpbin.org",
+                "_source": "mapping.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_httpbin_org",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://httpbin.org:80"
+                ]
+            }
+        ],
+        "filters": [
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
+                "type": "decoder"
+            }
+        ],
+        "listeners": [
+            {
+                "_source": "l7-redirect.yaml.1",
+                "require_tls": true,
+                "service_port": 80,
+                "use_proxy_proto": false
+            }
+        ],
+        "routes": [
+            {
+                "__saved": [
+                    0,
+                    9,
+                    0,
+                    "/httpbin/",
+                    "GET"
+                ],
+                "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping.yaml.1"
+                ],
+                "_source": "mapping.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_httpbin_org",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/httpbin/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
+                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "l7-redirect.yaml.1"
+                ],
+                "_source": "l7-redirect.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready"
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
+                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "l7-redirect.yaml.1"
+                ],
+                "_source": "l7-redirect.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
+                "__saved": [
+                    0,
+                    15,
+                    0,
+                    "/ambassador/v0/",
+                    "GET"
+                ],
+                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "l7-redirect.yaml.1"
+                ],
+                "_source": "l7-redirect.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/",
+                "prefix_rewrite": "/ambassador/v0/"
+            }
+        ]
+    },
+    "errors": {},
+    "source_map": {
+        "--internal--": {
+            "--internal--": true
+        },
+        "l7-redirect.yaml": {
+            "l7-redirect.yaml.1": true
+        },
+        "mapping.yaml": {
+            "mapping.yaml.1": true
+        }
+
+    },
+    "sources": {
+        "--diagnostics--": {
+            "_source": "--diagnostics--",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "filename": "--diagnostics--",
+            "index": 0,
+            "kind": "diagnostics",
+            "name": "Ambassador Diagnostics",
+            "version": "v0"
+        },
+        "--internal--": {
+            "_source": "--internal--",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "filename": "--internal--",
+            "index": 0,
+            "kind": "Internal",
+            "name": "Ambassador Internals",
+            "version": "v0"
+        },
+        "l7-redirect.yaml.1": {
+            "_source": "l7-redirect.yaml",
+            "filename": "l7-redirect.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "ambassador",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  x_forwarded_proto_redirect: true\nkind: Module\nname: ambassador\n"
+        },
+        "mapping.yaml.1": {
+            "_source": "mapping.yaml",
+            "filename": "mapping.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "httpbin_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: httpbin.org\n"
+        }
+    }
+}
