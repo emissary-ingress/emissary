@@ -2,35 +2,22 @@
     "envoy_config": {
         "admin": [
             {
-                "_source": "tls.yaml.1",
+                "_source": "module.yaml.1",
                 "admin_port": 8001
             }
         ],
         "clusters": [
             {
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "module.yaml.1"
                 ],
                 "_service": "127.0.0.1:8877",
-                "_source": "tls.yaml.1",
+                "_source": "module.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://127.0.0.1:8877"
-                ]
-            },
-            {
-                "_referenced_by": [
-                    "mapping-qotm.yaml.1"
-                ],
-                "_service": "qotm",
-                "_source": "mapping-qotm.yaml.1",
-                "lb_type": "round_robin",
-                "name": "cluster_qotm",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://qotm:80"
                 ]
             }
         ],
@@ -49,17 +36,19 @@
         ],
         "listeners": [
             {
-                "_source": "tls.yaml.1",
+                "_source": "module.yaml.1",
                 "require_tls": false,
                 "service_port": 443,
                 "tls": {
-                    "_source": "tls.yaml.1",
-                    "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-                    "cert_required": true,
-                    "private_key_file": "/etc/ambassador-config/certs/tls.key",
-                    "ssl_context": true
+                    "_source": "module.yaml.1",
+                    "redirect_cleartext_from": 8888
                 },
+                "use_proxy_proto": false
+            },
+            {
+                "_source": "module.yaml.1",
+                "require_tls": true,
+                "service_port": 8888,
                 "use_proxy_proto": false
             }
         ],
@@ -76,9 +65,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "module.yaml.1"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "module.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -100,9 +89,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "module.yaml.1"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "module.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -111,30 +100,6 @@
                 ],
                 "prefix": "/ambassador/v0/check_alive",
                 "prefix_rewrite": "/ambassador/v0/check_alive"
-            },
-            {
-                "__saved": [
-                    0,
-                    6,
-                    0,
-                    "/qotm/",
-                    "GET"
-                ],
-                "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "mapping-qotm.yaml.1"
-                ],
-                "_source": "mapping-qotm.yaml.1",
-                "clusters": [
-                    {
-                        "name": "cluster_qotm",
-                        "weight": 100.0
-                    }
-                ],
-                "prefix": "/qotm/",
-                "prefix_rewrite": "/"
             },
             {
                 "__saved": [
@@ -148,9 +113,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "module.yaml.1"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "module.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -167,11 +132,8 @@
         "--internal--": {
             "--internal--": true
         },
-        "mapping-qotm.yaml": {
-            "mapping-qotm.yaml.1": true
-        },
-        "tls.yaml": {
-            "tls.yaml.1": true
+        "module.yaml": {
+            "module.yaml.1": true
         }
     },
     "sources": {
@@ -193,23 +155,14 @@
             "name": "Ambassador Internals",
             "version": "v0"
         },
-        "mapping-qotm.yaml.1": {
-            "_source": "mapping-qotm.yaml",
-            "filename": "mapping-qotm.yaml",
-            "index": 1,
-            "kind": "Mapping",
-            "name": "qotm_mapping",
-            "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nservice: qotm\n"
-        },
-        "tls.yaml.1": {
-            "_source": "tls.yaml",
-            "filename": "tls.yaml",
+        "module.yaml.1": {
+            "_source": "module.yaml",
+            "filename": "module.yaml",
             "index": 1,
             "kind": "Module",
             "name": "tls",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  client:\n    cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n    cert_required: true\n    enabled: True,\n  server:\n    cert_chain_file: /etc/ambassador-config/certs/tls.crt\n    enabled: true\n    private_key_file: /etc/ambassador-config/certs/tls.key\nkind: Module\nname: tls\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8888\nkind: Module\nname: tls\n"
         }
     }
 }

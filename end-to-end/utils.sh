@@ -441,6 +441,22 @@ kubectl_context () {
     kubectl config current-context
 }
 
+get_http_code() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{http_code} -s -o /dev/null $url"
+    echo $(eval ${command})
+}
+
+get_redirect_url() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{redirect_url} -s -o /dev/null $url"
+    echo $(eval ${command})
+}
+
 interactive_check_context () {
     CONTEXT=$(kubectl_context)
     namespace="$1"

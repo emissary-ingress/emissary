@@ -1,0 +1,8 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+  server:
+    enabled: True
+    redirect_cleartext_from: 8888
