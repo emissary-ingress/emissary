@@ -9,6 +9,13 @@ image:
   pullPolicy: IfNotPresent
 
 service:
+  enableHttp: true
+  enableHttps: true
+
+  targetPorts:
+    http: http
+    https: https
+
   type: LoadBalancer
   port: 80
   # annotations:
