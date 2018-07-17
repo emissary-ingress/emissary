@@ -55,6 +55,11 @@ config:
   # The current default is not to include any use_remote_address setting,
   # but THAT IS LIKELY TO CHANGE SOON.
   # use_remote_address: false
+
+  # Ambassador lets through only the HTTP requests with
+  # `X-FORWARDED-PROTO: https` header set, and redirects all the other
+  # requests to HTTPS if this field is set to true.
+  # x_forwarded_proto_redirect: false
 ```
 
 #### `use_remote_address`
