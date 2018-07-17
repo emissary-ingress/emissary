@@ -45,9 +45,9 @@ The following tables lists the configurable parameters of the Ambassador chart a
 
 | Parameter                       | Description                                | Default                                                    |
 | ------------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| `image` | Image | `quay.io/datawire/ambassador` 
-| `imageTag` | Image tag | `0.29.0` 
-| `imagePullPolicy` | Image pull policy | `IfNotPresent` 
+| `image.repository` | Image | `quay.io/datawire/ambassador` 
+| `imageTag` | Image tag | `0.35.0` 
+| `image.pullPolicy` | Image pull policy | `IfNotPresent` 
 | `replicaCount`  | Number of Ambassador replicas  | `1` 
 | `resources` | CPU/memory resource requests/limits | None 
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
