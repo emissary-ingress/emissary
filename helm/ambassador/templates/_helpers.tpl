@@ -46,5 +46,5 @@ Create the name of the service account to use
 Create imageTag
 */}}
 {{- define "ambassador.imageTag" -}}
-{{- default .Chart.AppVersion .Values.imageTag -}}
+{{- default .Chart.AppVersion .Values.image.tag -}}
 {{- end -}}
