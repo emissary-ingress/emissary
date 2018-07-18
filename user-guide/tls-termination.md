@@ -76,9 +76,11 @@ config:
 
     # These are optional. They should not be present unless you are using
     # a custom Docker build to install certificates onto the container
-    # filesystem.
-    # cert_chain_file: /etc/certs/tls.crt
-    # private_key_file: /etc/certs/tls.key
+    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
+    # above.
+    #
+    # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
+    # private_key_file: /etc/certs/tls.key  # remember to set enabled!
 
     # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with 
     # HTTP2 clients over TLS.
@@ -98,8 +100,10 @@ config:
 
     # This is optional. It should not be present unless you are using
     # a custom Docker build to install certificates onto the container
-    # filesystem.
-    # cacert_chain_file: /etc/cacert/tls.crt
+    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
+    # above.
+    # 
+    # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
 Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443, you _must_ use the `tls` module:
