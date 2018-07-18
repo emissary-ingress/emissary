@@ -53,7 +53,7 @@ AWS provides three types of load balancers:
   * Supports L4 only
   * Cannot perform SSL/TLS offload
 
-In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 nand later). 
+In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 and later).
 
 If you are running an ELB in L4 mode, you need to:
 
@@ -62,4 +62,24 @@ If you are running an ELB in L4 mode, you need to:
   * `:80` -> `:8080` (the Envoy port doesn't matter)
   * Configure `redirect_cleartext_from` to redirect traffic on `8080` to the secure port
 
+For this setup of an L4 load balancer, ambassador's configuration will look like -
 
+```yaml
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+server:
+  enabled: True
+  redirect_cleartext_from: 8080
+```
+
+If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests with `X-FORWARDED-PROTO: http` header to HTTPS. In such a scenario, ambassador's configuration will look like -
+
+```yaml
+apiVersion: ambassador/v0
+kind: Module
+name: ambassador
+config:
+  x_forwarded_proto_redirect: true
+```
