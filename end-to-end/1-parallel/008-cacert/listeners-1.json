@@ -8,6 +8,7 @@
             "cacert_chain_file": "/ambassador/cacert/tls.crt",
             "cert_chain_file": "/ambassador/certs/tls.crt",
             "private_key_file": "/ambassador/certs/tls.key",
+            "ssl_context": true,
             "use_remote_address": true
         },
         "use_proxy_proto": false
