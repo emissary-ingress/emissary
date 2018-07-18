@@ -31,6 +31,33 @@ step () {
     echo "==== $@"
 }
 
+bootstrap () {
+    NAMESPACE=${1:-default}
+
+    PATH="${2}:${PATH}"
+    echo "PATH set to $PATH"
+
+    CLEAN_ON_SUCCESS=
+
+    if [ "$1" == "--cleanup" ]; then
+        CLEAN_ON_SUCCESS="--cleanup"
+        shift
+    fi
+
+    check_rbac
+
+    initialize_namespace ${NAMESPACE}
+    echo "initialized namespace $NAMESPACE"
+
+    # Unless expand_aliases is set, no one cares about your aliases, not even bash!
+    shopt -s expand_aliases
+    alias kubectl="kubectl -n $NAMESPACE"
+
+    kubectl cluster-info
+
+    echo "boostrapping done for test $NAMESPACE"
+}
+
 check_skip () {
     if [ -r "$ROOT/.skip-tests" ]; then
         test_name=$(basename $(pwd))
@@ -144,6 +171,16 @@ initialize_namespace () {
     kubectl create namespace "$namespace"
 }
 
+switch_namespace() {
+  kubectl get namespace $1 &> /dev/null
+  if [ $? -eq 0 ]; then
+    kubectl config set-context $(kubectl config current-context) --namespace=$1 > /dev/null
+  else
+    echo "namespace $1 does not exist"
+    exit 1
+  fi
+}
+
 cluster_ip () {
     IP=$(kubectl get nodes -ojsonpath="{.items[0].status.addresses[?(@.type==\"ExternalIP\")].address}")
 
@@ -224,11 +261,13 @@ wait_for_pods () {
 
 wait_for_ready () {
     baseurl=${1}
+    extra_args=${2}
     attempts=60
     ready=
 
     while [ $attempts -gt 0 ]; do
-        OK=$(curl -k $baseurl/ambassador/v0/check_ready 2>&1 | grep -c 'readiness check OK')
+        command="curl ${extra_args} -k ${baseurl}/ambassador/v0/check_ready 2>&1 | grep -c 'readiness check OK'"
+        OK=$(eval ${command})
 
         if [ $OK -gt 0 ]; then
             printf "ambassador ready           \n"
@@ -324,12 +363,14 @@ check_diag () {
     baseurl=$1
     index=$2
     desc=$3
+    extra_args=${4}
 
     sleep 20
 
     rc=1
 
-    curl -k -s ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json
+    command="curl -k -s ${extra_args} ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json"
+    eval ${command}
 
     if ! cmp -s check-$index.json diag-$index.json; then
         echo "check_diag $index: mismatch for $desc"
@@ -400,6 +441,22 @@ kubectl_context () {
     kubectl config current-context
 }
 
+get_http_code() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{http_code} -s -o /dev/null $url"
+    echo $(eval ${command})
+}
+
+get_redirect_url() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{redirect_url} -s -o /dev/null $url"
+    echo $(eval ${command})
+}
+
 interactive_check_context () {
     CONTEXT=$(kubectl_context)
     namespace="$1"
@@ -418,6 +475,22 @@ interactive_check_context () {
             * ) echo "Please answer yes or no.";;
         esac
     done
+}
+
+get_http_code() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{http_code} -s -o /dev/null $url"
+    echo $(eval ${command})
+}
+
+get_redirect_url() {
+    url=$1
+    extra_args=$2
+
+    command="curl $extra_args -w %{redirect_url} -s -o /dev/null $url"
+    echo $(eval ${command})
 }
 
 # ISTIOHOME=${ISTIOHOME:-${HERE}/istio-0.1.6}

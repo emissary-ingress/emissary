@@ -1,0 +1,168 @@
+{
+    "envoy_config": {
+        "admin": [
+            {
+                "_source": "module.yaml.1",
+                "admin_port": 8001
+            }
+        ],
+        "clusters": [
+            {
+                "_referenced_by": [
+                    "module.yaml.1"
+                ],
+                "_service": "127.0.0.1:8877",
+                "_source": "module.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_127_0_0_1_8877",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://127.0.0.1:8877"
+                ]
+            }
+        ],
+        "filters": [
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "router",
+                "type": "decoder"
+            }
+        ],
+        "listeners": [
+            {
+                "_source": "module.yaml.1",
+                "require_tls": false,
+                "service_port": 443,
+                "tls": {
+                    "_source": "module.yaml.1",
+                    "redirect_cleartext_from": 8888
+                },
+                "use_proxy_proto": false
+            },
+            {
+                "_source": "module.yaml.1",
+                "require_tls": true,
+                "service_port": 8888,
+                "use_proxy_proto": false
+            }
+        ],
+        "routes": [
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
+                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "module.yaml.1"
+                ],
+                "_source": "module.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready"
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
+                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "module.yaml.1"
+                ],
+                "_source": "module.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
+                "__saved": [
+                    0,
+                    15,
+                    0,
+                    "/ambassador/v0/",
+                    "GET"
+                ],
+                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "module.yaml.1"
+                ],
+                "_source": "module.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/",
+                "prefix_rewrite": "/ambassador/v0/"
+            }
+        ]
+    },
+    "errors": {},
+    "source_map": {
+        "--internal--": {
+            "--internal--": true
+        },
+        "module.yaml": {
+            "module.yaml.1": true
+        }
+    },
+    "sources": {
+        "--diagnostics--": {
+            "_source": "--diagnostics--",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "filename": "--diagnostics--",
+            "index": 0,
+            "kind": "diagnostics",
+            "name": "Ambassador Diagnostics",
+            "version": "v0"
+        },
+        "--internal--": {
+            "_source": "--internal--",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "filename": "--internal--",
+            "index": 0,
+            "kind": "Internal",
+            "name": "Ambassador Internals",
+            "version": "v0"
+        },
+        "module.yaml.1": {
+            "_source": "module.yaml",
+            "filename": "module.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "tls",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8888\nkind: Module\nname: tls\n"
+        }
+    }
+}

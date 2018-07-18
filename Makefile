@@ -250,6 +250,7 @@ website: website-yaml
 
 helm:
 	echo "Helm version $(VERSION)"
+	helm init --client-only
 	cd helm && helm package --app-version "$(VERSION)" --version "$(VERSION)" ambassador/
 	curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
 	helm repo index helm --url https://www.getambassador.io --merge tmp.yaml

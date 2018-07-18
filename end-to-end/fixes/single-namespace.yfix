@@ -5,4 +5,7 @@ SET spec/template/spec/containers/0/env/0/name AMBASSADOR_SINGLE_NAMESPACE
 SET spec/template/spec/containers/0/env/0/value YES
 MKDICT spec/template/spec/containers/0/env/1
 SET spec/template/spec/containers/0/env/1/name AMBASSADOR_NAMESPACE
-SET spec/template/spec/containers/0/env/1/value default
+SET spec/template/spec/containers/0/env/1/value $1
+MKDICT spec/template/spec/containers/0/env/2
+SET spec/template/spec/containers/0/env/2/name AMBASSADOR_ID
+SET spec/template/spec/containers/0/env/2/value $2

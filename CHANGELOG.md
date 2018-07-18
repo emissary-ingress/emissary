@@ -30,6 +30,24 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.35.3] July 18, 2018: **READ THE WARNING ABOVE**
+[0.35.3]: https://github.com/datawire/ambassador/compare/0.35.2...0.35.3
+
+### Changed
+
+Major changes:
+- Ambassador is now based on Envoy v1.7.0
+- Support for X-FORWARDED-PROTO based redirection, generally used with Layer 7 load balancers
+- Support for port based redirection using `redirect_cleartext_from`, generally used with Layer 4 load balancers
+- Specifying HTTP and HTTPS target ports in Helm chart
+
+Other changes:
+- End-to-end tests can now be run with `make e2e` command
+- Helm release automation has been fixed
+- Mutliple end-to-end tests are now executed in parallel, taking lesser time
+- Huge revamp to documentation around unit tests
+- Documentation changes
+
 ## [0.35.2] July 5, 2018: **READ THE WARNING ABOVE**
 [0.35.2]: https://github.com/datawire/ambassador/compare/0.35.1...0.35.2
 

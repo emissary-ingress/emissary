@@ -16,50 +16,35 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="008-cacert"
 
-cd "$HERE"
-
-CLEAN_ON_SUCCESS=
-
-if [ "$1" == "--cleanup" ]; then
-    CLEAN_ON_SUCCESS="--cleanup"
-    shift
-fi
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
-
-check_rbac
-
-initialize_namespace "008-cacert"
-
-kubectl cluster-info
+bootstrap ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
-    008-cacert \
-    008-cacert
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
 # create secrets for TLS stuff
-kubectl create -n 008-cacert secret tls ambassador-certs --cert=certs/server.crt --key=certs/server.key
-kubectl create -n 008-cacert secret generic ambassador-cacert --from-file=tls.crt=certs/client.crt 
+kubectl create -n ${NAMESPACE} secret tls ambassador-certs --cert=certs/server.crt --key=certs/server.key
+kubectl create -n ${NAMESPACE} secret generic ambassador-cacert --from-file=tls.crt=certs/client.crt
 # --from-literal=cert_required=true
 
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
-# kubectl run demotest -n 008-cacert --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
 
 set +e +o pipefail
 
-wait_for_pods 008-cacert
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador 008-cacert)
+APORT=$(service_port ambassador ${NAMESPACE})
 # DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="https://${CLUSTER}:${APORT}"
@@ -78,5 +63,5 @@ if ! check_listeners "$BASEURL" 1 "no services but TLS"; then
 fi
 
 if [ -n "$CLEAN_ON_SUCCESS" ]; then
-    drop_namespace 008-cacert
+    drop_namespace ${NAMESPACE}
 fi

@@ -39,3 +39,5 @@ no-such-file
 envoy.json
 intermediate.json
 check-*.json
+end-to-end/forge
+stats.json

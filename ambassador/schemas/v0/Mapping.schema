@@ -17,7 +17,6 @@
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },
-
         "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },

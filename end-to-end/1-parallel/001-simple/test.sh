@@ -16,35 +16,20 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="001-simple"
 
-cd "$HERE"
-
-CLEAN_ON_SUCCESS=
-
-if [ "$1" == "--cleanup" ]; then
-    CLEAN_ON_SUCCESS="--cleanup"
-    shift
-fi
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
-
-check_rbac
-
-initialize_namespace "001-simple"
-
-kubectl cluster-info
+bootstrap ${NAMESPACE} ${ROOT}
 
 rm -f adep-tmp.yaml
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     adep-tmp.yaml \
-    001-simple \
-    001-simple
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
     adep-tmp.yaml \
@@ -54,7 +39,7 @@ rm -f adep-tmp.yaml
 
 kubectl apply -f k8s/rbac.yaml
 
-kubectl create cm ambassador-config --namespace=001-simple --from-file k8s/base-config.yaml
+kubectl create cm ambassador-config --namespace=${NAMESPACE} --from-file k8s/base-config.yaml
 
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
@@ -62,10 +47,10 @@ kubectl apply -f k8s/stats-test.yaml
 
 set +e +o pipefail
 
-wait_for_pods 001-simple
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador 001-simple)
+APORT=$(service_port ambassador ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -116,8 +101,8 @@ fi
 
 set -e
 
-APOD=$(ambassador_pod 001-simple)
-kubectl exec "$APOD" -n 001-simple -c ambassador -- sh -c 'echo "DUMP" | nc -u -w 1 statsd-sink 8125' > stats.json
+APOD=$(ambassador_pod ${NAMESPACE})
+kubectl exec "$APOD" -n ${NAMESPACE} -c ambassador -- sh -c 'echo "DUMP" | nc -u -w 1 statsd-sink 8125' > stats.json
 
 rqt=$(jget.py envoy.cluster.cluster_qotm.upstream_rq_total < stats.json)
 
@@ -140,7 +125,7 @@ else
 fi
 
 if [ \( $rc -eq 0 \) -a \( -n "$CLEAN_ON_SUCCESS" \) ]; then
-    drop_namespace 001-simple
+    drop_namespace ${NAMESPACE}
 fi
 
 exit $rc

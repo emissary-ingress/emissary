@@ -30,7 +30,7 @@ spec:
           - name: metrics
             containerPort: 9102
         - name: ambassador
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http

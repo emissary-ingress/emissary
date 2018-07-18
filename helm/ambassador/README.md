@@ -45,14 +45,18 @@ The following tables lists the configurable parameters of the Ambassador chart a
 
 | Parameter                       | Description                                | Default                                                    |
 | ------------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| `image` | Image | `quay.io/datawire/ambassador` 
-| `imageTag` | Image tag | `0.29.0` 
-| `imagePullPolicy` | Image pull policy | `IfNotPresent` 
+| `image.repository` | Image | `quay.io/datawire/ambassador` 
+| `image.tag` | Image tag | `0.35.0` 
+| `image.pullPolicy` | Image pull policy | `IfNotPresent` 
 | `replicaCount`  | Number of Ambassador replicas  | `1` 
 | `resources` | CPU/memory resource requests/limits | None 
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
 | `serviceAccount.create` | If `true`, create a new service account | `true`
 | `serviceAccount.name` | Service account to be used | `ambassador`
+| `service.enableHttp` | if port 80 should be opened for service | `true`
+| `service.enableHttps` | if port 443 should be opened for service | `true`
+| `service.targetPorts.http` | Sets the targetPort that maps to the service's port 80 | `80`
+| `service.targetPorts.https` | Sets the targetPort that maps to the service's port 443 | `443`
 | `service.type` | Service type to be used | `LoadBalancer`
 | `service.annotations` | Annotations to apply to Ambassador service | none
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`

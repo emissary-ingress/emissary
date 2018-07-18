@@ -14,14 +14,18 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
+    {{- if .Values.service.enableHttp }}
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.service.targetPorts.http }}
       protocol: TCP
       name: http
+    {{- end }}
+    {{- if .Values.service.enableHttps }}
     - port: 443
-      targetPort: https
+      targetPort: {{ .Values.service.targetPorts.https }}
       protocol: TCP
       name: https
+    {{- end }}
   selector:
     app: {{ template "ambassador.name" . }}
     release: {{ .Release.Name }}
