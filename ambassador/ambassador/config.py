@@ -29,7 +29,7 @@ from pkg_resources import Requirement, resource_filename
 
 from jinja2 import Environment, FileSystemLoader
 
-from .utils import RichStatus, SourcedDict
+from .utils import RichStatus, SourcedDict, read_cert_secret, save_cert, TLSPaths, kube_v1, check_cert_file
 from .mapping import Mapping
 
 from scout import Scout
@@ -235,6 +235,7 @@ class Config (object):
 
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
+        self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
         self.logger = logging.getLogger("ambassador.config")
 
@@ -313,12 +314,12 @@ class Config (object):
             "server": {},
             "client": {},
         }
-        if os.path.isfile("/etc/certs/tls.crt"):
-            self.default_tls_config["server"]["cert_chain_file"] = "/etc/certs/tls.crt"
-        if os.path.isfile("/etc/certs/tls.key"):
-            self.default_tls_config["server"]["private_key_file"] = "/etc/certs/tls.key"
-        if os.path.isfile("/etc/cacert/tls.crt"):
-            self.default_tls_config["client"]["cacert_chain_file"] = "/etc/cacert/tls.crt"
+        if os.path.isfile(TLSPaths.mount_tls_crt.value):
+            self.default_tls_config["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
+        if os.path.isfile(TLSPaths.mount_tls_key.value):
+            self.default_tls_config["server"]["private_key_file"] = TLSPaths.mount_tls_key.value
+        if os.path.isfile(TLSPaths.client_mount_crt.value):
+            self.default_tls_config["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         self.tls_config = None
 
@@ -1441,6 +1442,26 @@ class Config (object):
                     # ...and merge in the server-side defaults.
                     tmp_config.update(self.default_tls_config['server'])
                     tmp_config.update(tmod['server'])
+
+                    # Check if secrets are supplied for TLS termination and/or TLS auth
+                    secret = context.get('secret')
+                    if secret is not None:
+                        self.logger.debug("config.server.secret is {}".format(secret))
+                        # If /{etc,ambassador}/certs/tls.crt does not exist, then load the secrets
+                        if check_cert_file(TLSPaths.mount_tls_crt.value):
+                            self.logger.debug("Secret already exists, taking no action for secret {}".format(secret))
+                        elif check_cert_file(TLSPaths.tls_crt.value):
+                            tmp_config['cert_chain_file'] = TLSPaths.tls_crt.value
+                            tmp_config['private_key_file'] = TLSPaths.tls_key.value
+                        else:
+                            (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret, self.namespace)
+                            if server_cert and server_key:
+                                self.logger.debug("saving contents of secret {} to {}".format(
+                                    secret, TLSPaths.cert_dir.value))
+                                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
+                                tmp_config['cert_chain_file'] = TLSPaths.tls_crt.value
+                                tmp_config['private_key_file'] = TLSPaths.tls_key.value
+
                 elif context_name == 'client':
                     # Client-side TLS is enabled.
                     self.logger.debug("TLS client certs enabled!")
@@ -1449,6 +1470,22 @@ class Config (object):
                     # Merge in the client-side defaults.
                     tmp_config.update(self.default_tls_config['client'])
                     tmp_config.update(tmod['client'])
+
+                    secret = context.get('secret')
+                    if secret is not None:
+                        self.logger.debug("config.client.secret is {}".format(secret))
+                        if check_cert_file(TLSPaths.client_mount_crt.value):
+                            self.logger.debug("Secret already exists, taking no action for secret {}".format(secret))
+                        elif check_cert_file(TLSPaths.client_tls_crt.value):
+                            tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+                        else:
+                            (client_cert, _, _) = read_cert_secret(kube_v1(), secret, self.namespace)
+                            if client_cert:
+                                self.logger.debug("saving contents of secret {} to  {}".format(
+                                    secret, TLSPaths.client_cert_dir.value))
+                                save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
+                                tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+
                 else:
                     # This is a wholly new thing.
                     self.tls_contexts[context_name] = SourcedDict(
