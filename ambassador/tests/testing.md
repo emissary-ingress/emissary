@@ -296,3 +296,15 @@ would cut down the fast path in the dev case to something like:
 
 1. Step 5 (for the subset of tests you care about)
 2. Step 6 (for the subset of tests you care about)
+
+Next Steps
+----------
+
+The overall next step is to explore this idea with a proof of concept
+sketch. This is currently in progress [here](./poc/go.py).
+
+The POC illustrates assembling configuration fragments in a way that
+generates a controlled set of permutations.
+
+The next area to explore for the POC is expressing test traffic and
+assertions.
