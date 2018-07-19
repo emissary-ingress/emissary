@@ -250,10 +250,11 @@ website: website-yaml
 
 helm:
 	echo "Helm version $(VERSION)"
-	helm init --client-only
 	cd helm && helm package --app-version "$(VERSION)" --version "$(VERSION)" ambassador/
 	curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
-	helm repo index helm --url https://www.getambassador.io --merge tmp.yaml
+	helm repo index helm --url https://www.getambassador.io/helm --merge tmp.yaml
+
+helm-update: helm
 	aws s3api put-object --bucket datawire-static-files \
 		--key ambassador/ambassador-$(VERSION).tgz \
 		--body helm/ambassador-$(VERSION).tgz
@@ -306,7 +307,7 @@ release:
 		docker push $(STATSD_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website publish-website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
-		make helm; \
+		make helm-update; \
 		set +x; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \

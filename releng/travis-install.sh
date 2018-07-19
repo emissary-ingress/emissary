@@ -33,3 +33,6 @@ if [[ `which helm` == "" ]]; then
   sudo mv linux-amd64/helm /usr/local/bin/
   rm -rf linux-amd64
 fi
+
+# Initialize helm for indexing use.
+helm init --client-only
