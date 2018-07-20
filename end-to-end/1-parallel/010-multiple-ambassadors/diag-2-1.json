@@ -84,17 +84,17 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo1-test-010-svc.yaml.2",
-            "demo2-test-010-svc.yaml.2"
+            "demo1-010-multiple-ambassadors-3.yaml.2",
+            "demo2-010-multiple-ambassadors-3.yaml.2"
         ],
-        "_source": "demo1-test-010-svc.yaml.2",
+        "_source": "demo1-010-multiple-ambassadors-3.yaml.2",
         "clusters": [
             {
-                "name": "cluster_demo1_test_010_svc",
+                "name": "cluster_demo1_010_multiple_ambassadors_3",
                 "weight": 75.0
             },
             {
-                "name": "cluster_demo2_test_010_svc",
+                "name": "cluster_demo2_010_multiple_ambassadors_3",
                 "weight": 25
             }
         ],
@@ -120,12 +120,12 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "demo1-test-010-svc.yaml.1"
+            "demo1-010-multiple-ambassadors-3.yaml.1"
         ],
-        "_source": "demo1-test-010-svc.yaml.1",
+        "_source": "demo1-010-multiple-ambassadors-3.yaml.1",
         "clusters": [
             {
-                "name": "cluster_demo1_test_010_svc",
+                "name": "cluster_demo1_010_multiple_ambassadors_3",
                 "weight": 100.0
             }
         ],

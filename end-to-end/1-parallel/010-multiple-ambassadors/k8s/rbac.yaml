@@ -21,13 +21,13 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador
-  namespace: test-010-1
+  namespace: 010-multiple-ambassadors-1
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador
-  namespace: test-010-2
+  namespace: 010-multiple-ambassadors-2
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -40,8 +40,8 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ambassador
-  namespace: test-010-1
+  namespace: 010-multiple-ambassadors-1
 - kind: ServiceAccount
   name: ambassador
-  namespace: test-010-2
+  namespace: 010-multiple-ambassadors-2
   
