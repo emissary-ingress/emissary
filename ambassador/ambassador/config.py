@@ -1085,8 +1085,7 @@ class Config (object):
             if ((module_name == 'ambassador') or
                 (module_name == 'tls') or
                 (module_name == 'authentication') or
-                (module_name == 'tls-from-ambassador-certs') or
-                (module_name == 'cors_default_envoy')):
+                (module_name == 'tls-from-ambassador-certs')):
                 continue
 
             handler_name = "module_config_%s" % module_name
@@ -1268,12 +1267,6 @@ class Config (object):
         self.envoy_config['clusters'] = [
             self.envoy_clusters[cluster_key] for cluster_key in sorted(self.envoy_clusters.keys())
         ]
-
-        # Set default cors settings - default for all services without customized CORS section.
-        # Expecation is that this is directly mapped to envoy configuration, no renaming.
-        default_cors_module = modules.get('cors_default_envoy', None)
-        if default_cors_module:
-            self.envoy_config['cors_default_envoy'] = { '_source' : '--cors_defaults--', 'cors' : default_cors_module['cors'] }
 
         # ...and finally repeat for breakers and outliers, but copy them in the process so we
         # can mess with the originals.
@@ -1534,6 +1527,28 @@ class Config (object):
         if not have_amod_tls and tmod:
             self.tls_config_helper(name, tmod, tmod)
 
+        if amod and ('cors' in amod):
+            cors_default_temp = {'enabled': True}
+            cors = amod['cors']
+            origins = cors.get('origins')
+            if origins is not None:
+                if type(origins) is list:
+                    cors_default_temp['allow_origin'] = origins
+                elif type(origins) is str:
+                    cors_default_temp['allow_origin'] = origins.split(',')
+                else:
+                    print("invalid cors configuration supplied - {}".format(origins))
+                    return
+
+            self.save_cors_default_element("max_age", "max_age", cors_default_temp, cors)
+            self.save_cors_default_element("credentials", "allow_credentials", cors_default_temp, cors)
+            self.save_cors_default_element("methods", "allow_methods", cors_default_temp, cors)
+            self.save_cors_default_element("headers", "allow_headers", cors_default_temp, cors)
+            self.save_cors_default_element("exposed_headers", "expose_headers", cors_default_temp, cors)                   
+        
+            # self.set_config_ambassador(amod, 'cors_default', cors_default_temp)
+            self.envoy_config['cors_default'] = cors_default_temp
+            
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
@@ -1542,6 +1557,13 @@ class Config (object):
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
+
+    def save_cors_default_element(self, cors_key, route_key, cors_dest, cors_source):                    
+        if cors_source.get(cors_key) is not None:
+            if type(cors_source.get(cors_key)) is list:
+                cors_dest[route_key] = ", ".join(cors_source.get(cors_key))
+            else:
+                cors_dest[route_key] = cors_source.get(cors_key)
 
     def module_config_ratelimit(self, ratelimit_config):
         cluster_hosts = None

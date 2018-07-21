@@ -24,13 +24,13 @@ def mark_referenced_by(obj, refby):
         return False
 
 Uniqifiers = {
-    'cors_default_envoy': lambda x: "cors_default_envoy",
     'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
     'outliers': lambda x: x['name'],
     'filters': lambda x: x['name'],
     'grpc_services': lambda x: x['name'],
     'tls': lambda x: "TLS",
+    'tls': lambda x: "cors_default",    
     'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename'],
@@ -245,8 +245,8 @@ def diag_paranoia(configdir, outputdir):
         reconstituted_lists['extauth'] = [ ov['extauth'] ]
 
     # Copy any 'cors_default_envoy' block from the original into the reconstituted list.
-    if ('cors_default_envoy' in ov) and ('cors_default_envoy' not in reconstituted_lists):
-        reconstituted_lists['cors_default_envoy'] = [ ov['cors_default_envoy'] ]
+    if ('cors_default' in ov) and ('cors_default' not in reconstituted_lists):
+        reconstituted_lists['cors_default'] = [ ov['cors_default'] ]
 
     # OK. Next, filter out the '--internal--' stuff from our overview, and sort
     # _referenced_by.

@@ -24,6 +24,8 @@ import signal
 import subprocess
 import threading
 import time
+from watchdog.observers import Observer
+from watchdog.events import LoggingEventHandler
 
 import yaml
 
