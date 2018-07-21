@@ -1528,26 +1528,7 @@ class Config (object):
             self.tls_config_helper(name, tmod, tmod)
 
         if amod and ('cors' in amod):
-            cors_default_temp = {'enabled': True}
-            cors = amod['cors']
-            origins = cors.get('origins')
-            if origins is not None:
-                if type(origins) is list:
-                    cors_default_temp['allow_origin'] = origins
-                elif type(origins) is str:
-                    cors_default_temp['allow_origin'] = origins.split(',')
-                else:
-                    print("invalid cors configuration supplied - {}".format(origins))
-                    return
-
-            self.save_cors_default_element("max_age", "max_age", cors_default_temp, cors)
-            self.save_cors_default_element("credentials", "allow_credentials", cors_default_temp, cors)
-            self.save_cors_default_element("methods", "allow_methods", cors_default_temp, cors)
-            self.save_cors_default_element("headers", "allow_headers", cors_default_temp, cors)
-            self.save_cors_default_element("exposed_headers", "expose_headers", cors_default_temp, cors)                   
-        
-            # self.set_config_ambassador(amod, 'cors_default', cors_default_temp)
-            self.envoy_config['cors_default'] = cors_default_temp
+            self.parse_and_save_default_cors(amod)
             
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
@@ -1557,6 +1538,26 @@ class Config (object):
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
+
+    def parse_and_save_default_cors(self, amod):
+        cors_default_temp = {'enabled': True}
+        cors = amod['cors']
+        origins = cors.get('origins')
+        if origins is not None:
+            if type(origins) is list:
+                cors_default_temp['allow_origin'] = origins
+            elif type(origins) is str:
+                cors_default_temp['allow_origin'] = origins.split(',')
+            else:
+                print("invalid cors configuration supplied - {}".format(origins))
+                return
+
+        self.save_cors_default_element("max_age", "max_age", cors_default_temp, cors)
+        self.save_cors_default_element("credentials", "allow_credentials", cors_default_temp, cors)
+        self.save_cors_default_element("methods", "allow_methods", cors_default_temp, cors)
+        self.save_cors_default_element("headers", "allow_headers", cors_default_temp, cors)
+        self.save_cors_default_element("exposed_headers", "expose_headers", cors_default_temp, cors)                           
+        self.envoy_config['cors_default'] = cors_default_temp
 
     def save_cors_default_element(self, cors_key, route_key, cors_dest, cors_source):                    
         if cors_source.get(cors_key) is not None:
