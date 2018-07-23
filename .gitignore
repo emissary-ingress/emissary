@@ -42,3 +42,5 @@ check-*.json
 end-to-end/forge
 stats.json
 end-to-end/1-parallel/011-websocket/ambassador/service.yaml
+ambassador-deployment-*.yaml
+ambassador-secrets-deployment.yaml
