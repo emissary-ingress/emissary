@@ -9,6 +9,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  diag_mapping
+      ambassador_id: 004-tls-1
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
@@ -16,6 +17,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Module
       name:  tls
+      ambassador_id: 004-tls-1
       config:
         server:
           enabled: True
@@ -39,6 +41,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Module
       name:  authentication
+      ambassador_id: 004-tls-1
       config:
         auth_service: https://auth
         allowed_headers:

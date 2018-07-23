@@ -2,27 +2,30 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo1
+  name: demo2
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
-      name:  demo_default_mapping
+      name:  demo_with_host_mapping
       prefix: /demo/
-      tls: upstream     
-      service: demo1
+      host: demo2.datawire.io
+      service: https://demo2:443
+      ambassador_id: 004-tls-1
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
-      name:  demo_with_header_mapping
-      prefix: /demo/
+      name:  demo_with_x_mapping
+      prefix: /good/
       headers:
-        x-demo-mode: canary
-      service: https://demo1:443
+        "x-hurkle": true
+      tls: upstream     
+      service: demo2:443
+      ambassador_id: 004-tls-1
 spec:
   selector:
-    app: demo1
+    app: demo2
   ports:
     - port: 443
       targetPort: http-api
@@ -31,7 +34,7 @@ spec:
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: demo1
+  name: demo2
 spec:
   replicas: 1
   strategy:
@@ -39,11 +42,11 @@ spec:
   template:
     metadata:
       labels:
-        app: demo1
+        app: demo2
     spec:
       containers:
-      - name: demo1
-        image: dwflynn/demo:1.0.0tls
+      - name: demo2
+        image: dwflynn/demo:2.0.0tls
         imagePullPolicy: Always
         ports:
         - name: http-api
