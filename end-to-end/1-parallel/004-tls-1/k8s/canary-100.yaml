@@ -9,6 +9,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  demo_default_mapping
+      ambassador_id: 004-tls-1
       prefix: /demo/
       tls: True     
       service: demo1
@@ -30,6 +31,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  demo_with_host_mapping
+      ambassador_id: 004-tls-1
       prefix: /demo/
       host: demo2.datawire.io
       tls: True     
@@ -38,6 +40,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  demo_with_x_mapping
+      ambassador_id: 004-tls-1
       prefix: /good/
       headers:
         "x-hurkle": true
@@ -47,6 +50,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  canary_100_mapping
+      ambassador_id: 004-tls-1
       prefix: /demo/
       headers:
         x-demo-mode: canary
@@ -73,10 +77,12 @@ metadata:
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
+      ambassador_id: 004-tls-1
       ---
       apiVersion: ambassador/v0
       kind: Module
       name:  authentication
+      ambassador_id: 004-tls-1
       config:
         auth_service: "auth"
         tls: True

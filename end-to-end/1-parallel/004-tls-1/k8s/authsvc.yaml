@@ -9,6 +9,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  Mapping
       name:  auth_mapping
+      ambassador_id: 004-tls-1
       prefix: /auth/
       tls: True
       service: auth:443

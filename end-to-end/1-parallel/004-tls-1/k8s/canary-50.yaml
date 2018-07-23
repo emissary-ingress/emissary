@@ -13,6 +13,7 @@ metadata:
       host: demo2.datawire.io
       tls: upstream     
       service: demo2:443
+      ambassador_id: 004-tls-1
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
@@ -22,6 +23,7 @@ metadata:
         "x-hurkle": true
       tls: upstream     
       service: demo2:443
+      ambassador_id: 004-tls-1
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
@@ -32,6 +34,7 @@ metadata:
       tls: upstream    
       service: https://demo2
       weight: 50
+      ambassador_id: 004-tls-1
 spec:
   selector:
     app: demo2
