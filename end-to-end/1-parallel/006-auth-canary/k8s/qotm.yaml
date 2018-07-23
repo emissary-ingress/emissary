@@ -11,6 +11,7 @@ metadata:
       name:  qotm_mapping
       prefix: /qotm/
       service: qotm
+      ambassador_id: 006-auth-canary
 spec:
   selector:
     app: qotm

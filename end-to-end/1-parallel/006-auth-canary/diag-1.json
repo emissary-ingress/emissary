@@ -83,9 +83,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-006-auth-canary.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-006-auth-canary.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -100,23 +100,23 @@
             0,
             8,
             0,
-            "/auth-2/",
+            "/auth-1/",
             "GET"
         ],
-        "_group_id": "717c3fa8665a9491dfc3dc4a802996b50b47f269",
+        "_group_id": "132f66138845bf1f072b70fa78f7c66eecdc13d7",
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "auth-2-default.yaml.1"
+            "auth-1-006-auth-canary.yaml.1"
         ],
-        "_source": "auth-2-default.yaml.1",
+        "_source": "auth-1-006-auth-canary.yaml.1",
         "clusters": [
             {
-                "name": "cluster_auth_2_3000",
+                "name": "cluster_auth_1_3000",
                 "weight": 100.0
             }
         ],
-        "prefix": "/auth-2/",
+        "prefix": "/auth-1/",
         "prefix_rewrite": "/"
     },
     {
@@ -131,9 +131,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "qotm-default.yaml.1"
+            "qotm-006-auth-canary.yaml.1"
         ],
-        "_source": "qotm-default.yaml.1",
+        "_source": "qotm-006-auth-canary.yaml.1",
         "clusters": [
             {
                 "name": "cluster_qotm",
