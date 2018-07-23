@@ -15,6 +15,7 @@ metadata:
         - descriptor: A test case
           headers:
             - "x-ambassador-test-allow"
+      ambassador_id: 007-rate-limit
 spec:
   selector:
     app: qotm

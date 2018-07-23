@@ -10,6 +10,7 @@ metadata:
       kind: RateLimitService
       name: ratelimit
       service: rate-limit:5000
+      ambassador_id: 007-rate-limit
 spec:
   selector:
     service: ambassador
