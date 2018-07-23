@@ -55,7 +55,7 @@ if ! check_diag "$BASEURL" 1 "No annotated services"; then
 fi
 
 kubectl apply -f k8s/demo1.yaml
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 wait_for_demo_weights "$BASEURL" 100
 
 if ! check_diag "$BASEURL" 2 "demo1 annotated"; then

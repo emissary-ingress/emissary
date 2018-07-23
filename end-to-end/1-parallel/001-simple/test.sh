@@ -65,7 +65,7 @@ fi
 
 kubectl apply -f k8s/qotm.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 sleep 10 
 
@@ -81,7 +81,7 @@ fi
 
 kubectl apply -f k8s/authsvc.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 wait_for_extauth_running "$BASEURL"
 
