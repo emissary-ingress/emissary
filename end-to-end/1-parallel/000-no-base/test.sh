@@ -16,30 +16,31 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="000-no-base"
 
-cd "$HERE"
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
+bootstrap ${NAMESPACE} ${ROOT}
 
-initialize_cluster
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml \
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
-kubectl cluster-info
-
+kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
-kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f k8s/qotm.yaml
 
 set +e +o pipefail
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador)
-APOD=$(ambassador_pod)
+APORT=$(service_port ambassador ${NAMESPACE})
+APOD=$(ambassador_pod ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -83,8 +84,10 @@ else
     exit 1
 fi
 
-if ! qtest.py $CLUSTER:$APORT test-1.yaml; then
+if ! qtest.py ${CLUSTER}:${APORT} test-1.yaml; then
     exit 1
 fi
 
-# kubernaut discard
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
+fi

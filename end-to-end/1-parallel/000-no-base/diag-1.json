@@ -11,9 +11,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-000-no-base.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-000-no-base.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -35,9 +35,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.1"
+            "ambassador-000-no-base.yaml.1"
         ],
-        "_source": "ambassador-default.yaml.1",
+        "_source": "ambassador-000-no-base.yaml.1",
         "clusters": [
             {
                 "name": "cluster_127_0_0_1_8877",
@@ -59,9 +59,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "qotm-default.yaml.1"
+            "qotm-000-no-base.yaml.1"
         ],
-        "_source": "qotm-default.yaml.1",
+        "_source": "qotm-000-no-base.yaml.1",
         "clusters": [
             {
                 "name": "cluster_qotm",
@@ -83,9 +83,9 @@
         "_method": "GET",
         "_precedence": 0,
         "_referenced_by": [
-            "ambassador-default.yaml.2"
+            "ambassador-000-no-base.yaml.2"
         ],
-        "_source": "ambassador-default.yaml.2",
+        "_source": "ambassador-000-no-base.yaml.2",
         "clusters": [
             {
                 "name": "cluster_https___httpbin_org_otls_hr_httpbin_org",

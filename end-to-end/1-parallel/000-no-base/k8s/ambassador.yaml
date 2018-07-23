@@ -10,6 +10,7 @@ metadata:
       apiVersion: ambassador/v0
       kind: Module
       name: ambassador
+      ambassador_id: 000-no-base
       config:
         diagnostics:
           enabled: false
@@ -19,7 +20,8 @@ metadata:
       name:  httpbin2_mapping
       prefix: /hb/
       service: https://httpbin.org
-      host_rewrite: httpbin.org      
+      host_rewrite: httpbin.org
+      ambassador_id: 000-no-base
 spec:
   selector:
     service: ambassador
