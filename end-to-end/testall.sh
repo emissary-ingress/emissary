@@ -69,8 +69,6 @@ if [ -n "$E2E_TEST_NAME" ]; then
     if [ ! -d "$E2E_TEST_NAME" ]; then
         if [ -d "1-parallel/$E2E_TEST_NAME" ]; then
             E2E_TEST_NAME="1-parallel/$E2E_TEST_NAME"
-        elif [ -d "0-serial/$E2E_TEST_NAME" ]; then
-            E2E_TEST_NAME="0-serial/$E2E_TEST_NAME"
         else
             echo "Test $E2E_TEST_NAME cannot be found" >&2
             exit 1
@@ -79,10 +77,6 @@ if [ -n "$E2E_TEST_NAME" ]; then
 
     run_and_log "$E2E_TEST_NAME"
 else
-    for dir in 0-serial/[0-9]*; do
-        run_and_log "$dir"
-    done
-
     # Clean up everything, non-interactively.
     SKIP_CHECK_CONTEXT=yes initialize_cluster
 
