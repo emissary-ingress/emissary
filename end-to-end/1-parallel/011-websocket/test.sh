@@ -16,21 +16,15 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="ambassador-sbx0"
 
-cd "$HERE"
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
-
-initialize_namespace "ambassador-sbx0"
+bootstrap ${NAMESPACE} ${ROOT}
 
 # Make sure cluster-wide RBAC is set up.
-kubectl apply -f ${ROOT}/rbac.yaml
-
-kubectl cluster-info
+kubectl apply -f rbac.yaml
 
 # Make sure we have a forge.yaml (.gitignore stops us from
 # checking it in, which is usually a good thing).
@@ -45,10 +39,10 @@ cd ..
 
 set +e +o pipefail
 
-wait_for_pods ambassador-sbx0
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador ambassador-sbx0)
+APORT=$(service_port ambassador ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -63,4 +57,6 @@ fi
 
 python web-basic/wscat.py ws://${CLUSTER}:${APORT}/ws
 
-# kubernaut discard
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
+fi
