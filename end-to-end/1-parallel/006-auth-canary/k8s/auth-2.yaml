@@ -11,6 +11,7 @@ metadata:
       name:  auth_2_mapping
       prefix: /auth-2/
       service: auth-2:3000
+      ambassador_id: 006-auth-canary
       ---
       apiVersion: ambassador/v0
       kind: AuthService
@@ -19,7 +20,8 @@ metadata:
       path_prefix: "/auth-2"
       allowed_headers:
       - "x-demo-version"
-      - "x-qotm-session"      
+      - "x-qotm-session"
+      ambassador_id: 006-auth-canary
 spec:
   selector:
     app: auth-2

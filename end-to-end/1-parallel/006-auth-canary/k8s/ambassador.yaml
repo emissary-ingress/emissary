@@ -12,6 +12,7 @@ metadata:
       prefix: /ambassador/
       rewrite: /ambassador/
       service: 127.0.0.1:8877
+      ambassador_id: 006-auth-canary
 spec:
   selector:
     service: ambassador

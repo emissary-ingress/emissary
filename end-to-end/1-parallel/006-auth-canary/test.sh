@@ -16,30 +16,31 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
+NAMESPACE="006-auth-canary"
 
-cd "$HERE"
-
+cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
-
 source ${ROOT}/utils.sh
+bootstrap ${NAMESPACE} ${ROOT}
 
-initialize_cluster
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml \
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
-kubectl cluster-info
-
+kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
-kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f k8s/qotm.yaml
 kubectl apply -f k8s/auth-1.yaml
 
 set +e +o pipefail
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador)
+APORT=$(service_port ambassador ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -71,7 +72,7 @@ fi
 
 kubectl apply -f k8s/auth-2.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 wait_for_extauth_enabled "$BASEURL"
 sleep 5 # Not sure why this is sometimes relevant.
@@ -88,7 +89,7 @@ kubectl delete service auth-1
 kubectl delete deployment auth-1
 
 # This works because it'll wait for "terminating" to go away too.
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 wait_for_extauth_enabled "$BASEURL"
 sleep 5 # Not sure why this is sometimes relevant.
@@ -101,4 +102,6 @@ if ! python auth-test.py $CLUSTER:$APORT "2.0.0:100"; then
     exit 1
 fi
 
-# kubernaut discard
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
+fi
