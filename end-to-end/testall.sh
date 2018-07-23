@@ -87,6 +87,19 @@ fi
 
 wait
 
+# Print all the error logs from tests
+for f in *-fail-*.log; do
+    echo "=========================================="
+    echo "Error output from $f"
+    echo "=========================================="
+
+    cat ${f} 2> /dev/null || true
+    # streaming the output takes some time on Travis, and it might truncate before the output is finished printing
+    sleep 1
+
+    echo
+done
+
 # Stupid grep. Why exactly it insists on exiting nonzero when it 
 # doesn't find the match with -c...
 failures=$(grep -c 'FAIL' master.log || true)
