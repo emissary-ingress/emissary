@@ -20,6 +20,7 @@ set -o pipefail
 HERE=$(cd $(dirname $0); pwd)
 ROOT=$HERE
 BUILD_ALL=${BUILD_ALL:-false}
+PARALLEL_TESTS=7
 
 cd "$HERE"
 source "$HERE/kubernaut_utils.sh"
@@ -80,30 +81,27 @@ else
     # Clean up everything, non-interactively.
     SKIP_CHECK_CONTEXT=yes initialize_cluster
 
-    for dir in 1-parallel/[0-9]*; do
-        run_and_log "$dir" &
-    done
+    export -f run_and_log
+    echo 1-parallel/[0-9]* | xargs -n1 | xargs --max-procs ${PARALLEL_TESTS} -I {} bash -c 'run_and_log {}'
 fi
 
 wait
 
-# Print all the error logs from tests
 for f in *-fail-*.log; do
-    echo "=========================================="
-    echo "Error output from $f"
-    echo "=========================================="
-
-    cat ${f} 2> /dev/null || true
-    # streaming the output takes some time on Travis, and it might truncate before the output is finished printing
-    sleep 1
-
-    echo
+    if [ -f ${f} ]; then
+        echo "=========================================="
+        echo "Error output from $f"
+        echo "=========================================="
+        cat ${f}
+        echo
+        # We need this for Travis to not shut us down
+        sleep 2
+    fi
 done
 
-# Stupid grep. Why exactly it insists on exiting nonzero when it 
+# Stupid grep. Why exactly it insists on exiting nonzero when it
 # doesn't find the match with -c...
 failures=$(grep -c 'FAIL' master.log || true)
-
 echo "failures: $failures"
 
-exit $failures
+exit ${failures}

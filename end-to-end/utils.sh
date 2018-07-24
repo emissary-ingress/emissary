@@ -75,7 +75,7 @@ check_rbac () {
     if [ $count -eq 0 ]; then
         kubectl apply -f $ROOT/rbac.yaml
 
-        attempts=60
+        attempts=100
         running=
 
         while [ $attempts -gt 0 ]; do
@@ -127,7 +127,7 @@ drop_namespace () {
     if [ $count -gt 0 ]; then
         kubectl delete clusterrolebinding ambassador-${namespace}
 
-        attempts=60
+        attempts=100
         gone=
 
         while [ $attempts -gt 0 ]; do
@@ -167,7 +167,7 @@ initialize_namespace () {
     fi
     
     drop_namespace "$namespace"
-    wait_for_namespace_deletion
+    wait_for_namespace_deletion "$namespace"
     kubectl create namespace "$namespace"
 }
 
@@ -205,7 +205,8 @@ demotest_pod() {
 }
 
 wait_for_namespace_deletion() {
-    attempts=60
+    namespace=${1:-default}
+    attempts=100
     running=
 
     echo "Waiting for namespace deletion"
@@ -213,10 +214,10 @@ wait_for_namespace_deletion() {
     while [ $attempts -gt 0 ]; do
         # XXX This " || : " BS at the end is because grep -c -v returns an exit code of
         # 1 when it finds nothing. Stupid grep.
-        pending=$(kubectl describe namespaces | grep '^Status:' | grep -c -v Active || :)
+        pending=$(kubectl describe namespaces ${namespace} | grep '^Status:' | grep -c -v Active || :)
 
         if [ $pending -eq 0 ]; then
-            printf "Namespaces cleared.              \n"
+            printf "Namespace $namespace cleared.              \n"
             running=YES
             break
         fi
@@ -227,20 +228,20 @@ wait_for_namespace_deletion() {
     done
 
     if [ -z "$running" ]; then
-        echo 'Some namespaces not cleared??' >&2
+        echo "Namespace $namespace not cleared?" >&2
         exit 1
     fi
 }
 
 wait_for_pods () {
     namespace=${1:-default}
-    attempts=60
+    attempts=100
     running=
 
     while [ $attempts -gt 0 ]; do
         # XXX This " || : " BS at the end is because grep -c -v returns an exit code of
         # 1 when it finds nothing. Stupid grep.
-        pending=$(kubectl --namespace $namespace describe pods | grep '^Status:' | grep -c -v Running || :)
+        pending=$(kubectl --namespace ${namespace} describe pods | grep '^Status:' | grep -c -v Running || :)
 
         if [ $pending -eq 0 ]; then
             printf "Pods running.              \n"
@@ -261,8 +262,9 @@ wait_for_pods () {
 
 wait_for_ready () {
     baseurl=${1}
-    extra_args=${2}
-    attempts=60
+    namespace=${2:-default}
+    extra_args=${3}
+    attempts=100
     ready=
 
     while [ $attempts -gt 0 ]; do
@@ -282,14 +284,20 @@ wait_for_ready () {
 
     if [ -z "$ready" ]; then
         echo 'Ambassador not yet ready?' >&2
-        kubectl get pods >&2
+        echo
+        echo "pods running in namespace $namespace -"
+        kubectl get pods -n ${namespace} >&2
+        echo
+        echo "logs from ambassador's pod in namespace $namespace -"
+        kubectl logs -n ${namespace} $(ambassador_pod ${namespace}) -c ambassador >&2
+        echo
         exit 1
     fi
 }
 
 wait_for_extauth_running () {
     baseurl=${1}
-    attempts=60
+    attempts=100
     ready=
 
     while [ $attempts -gt 0 ]; do
@@ -314,7 +322,7 @@ wait_for_extauth_running () {
 
 wait_for_extauth_enabled () {
     baseurl=${1}
-    attempts=60
+    attempts=100
     enabled=
 
     while [ $attempts -gt 0 ]; do
@@ -338,7 +346,7 @@ wait_for_extauth_enabled () {
 }
 
 wait_for_demo_weights () {
-    attempts=60
+    attempts=100
     routed=
 
     while [ $attempts -gt 0 ]; do
@@ -365,12 +373,31 @@ check_diag () {
     desc=$3
     extra_args=${4}
 
-    sleep 20
-
     rc=1
 
-    command="curl -k -s ${extra_args} ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json"
-    eval ${command}
+    command="curl -k -s ${extra_args} ${baseurl}/ambassador/v0/diag/?json=true | jget.py /routes > check-$index.json 2> /dev/null"
+    routes=
+
+    attempts=100
+    while [ ${attempts} -gt 0 ]; do
+        echo "Try $attempts at getting routes from ambassador's diagnostics"
+
+        eval ${command}
+        if [ $? -ne 0 ]; then
+            echo "error getting routes from diagnostics"
+        else
+            routes=FOUND
+            break
+        fi
+
+        attempts=$(( $attempts - 1 ))
+        sleep 2
+    done
+
+    if [ -z "${routes}" ]; then
+        echo "Could not get routes from $baseurl"
+        exit 1
+    fi
 
     if ! cmp -s check-$index.json diag-$index.json; then
         echo "check_diag $index: mismatch for $desc"
@@ -382,7 +409,7 @@ check_diag () {
             fi
         else
             diff -u check-$index.json diag-$index.json
-        fi            
+        fi
     else
         echo "check_diag $index: OK"
         rc=0
