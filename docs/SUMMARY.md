@@ -24,7 +24,7 @@
 
 * [Configuring Ambassador](reference/configuration.md)
   * [Core Configuration](reference/modules.md)
-    * [TLS](reference/core/tls.md)
+    * [TLS and X-Forwarded-Proto](reference/core/tls.md)
   * [Configuring Services](reference/mappings.md)
     * [Canary Releases](reference/canary.md)
     * [Cross Origin Resource Sharing](reference/cors.md)
