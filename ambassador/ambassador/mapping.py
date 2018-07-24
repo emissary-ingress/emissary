@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from typing import cast as typecast
+
 import hashlib
 
 from .utils import SourcedDict
+from .resource import Resource
 
 #############################################################################
 ## mapping.py -- the mapping configuration object for Ambassador
@@ -34,25 +38,22 @@ from .utils import SourcedDict
 ## default is computing in Mapping.route_weight(), but it can be overridden
 ## using the precedence field in the Mapping object.
 
-class Mapping (object):
-    @classmethod
-    def group_id(klass, method, prefix, headers):
-        # Yes, we're using a  cryptographic hash here. Cope. [ :) ]
+# StringOrBool = Union[str, bool]
+# DictOfStringOrBool = Dict[str, StringOrBool]
 
-        h = hashlib.new('sha1')
-        h.update(method.encode('utf-8'))
-        h.update(prefix.encode('utf-8'))
+class Header:
+    def __init__(self, name: str, value: Optional[str]=None, regex: Optional[bool]=False) -> None:
+        self.name = name
+        self.value = value
+        self.regex = regex
 
-        for hdr in headers:
-            h.update(hdr['name'].encode('utf-8'))
-
-            if 'value' in hdr:
-                h.update(hdr['value'].encode('utf-8'))
-
-        return h.hexdigest()
+class Mapping (Resource):
+    """
+    Mappings are Resources with a bunch of extra stuff.
+    """
 
     @classmethod
-    def route_weight(klass, route):
+    def route_weight(cls, route):
         precedence = route.get('_precedence', 0)
         prefix = route['prefix'] if 'prefix' in route else route['regex']
         method = route.get('method', 'GET')
@@ -82,59 +83,60 @@ class Mapping (object):
         "use_websocket": True
     }
 
-    def __init__(self, _source="--internal--", _from=None, **kwargs):
-        # Save the raw input. After this, self["anything"] will have the
-        # value from the input Mapping.
-        self.attrs = dict(**kwargs)
+    def __init__(self, res_key: str, location: str, obj: dict, serialization: Optional[str]) -> None:
+        """
+        Initialize a Mapping from the raw fields of its Resource.
+        """
 
-        if _from and ('_source' in _from):
-            self.attrs['_source'] = _from['_source']
-        else:
-            self.attrs['_source'] = _source
+        # First init our superclass...
 
-        # ...and cache some useful first-class stuff.
-        self.name = self['name']
-        self.kind = self['kind']
-        self.method = self.get('method', 'GET')
+        super().__init__(res_key, location, obj, serialization)
 
-        # Next up, build up the headers. We do this unconditionally at init
+        # ...then cache some super-useful stuff (also note the override of
+        # __getitem__, so that self["anything"] will look into self.attrsfor
+        # you)...
+
+        self.name: str = self['name']
+        self.prefix = self['prefix']
+        self.service = self['service']
+        self.method: str = self.get('method', 'GET')
+
+        # ...then build up our headers the headers. We do this unconditionally at init
         # time because we need the headers to work out the group ID.
-        self.headers = []
+        self.headers: List[Header] = []
 
         for name, value in self.get('headers', {}).items():
             if value == True:
-                self.headers.append({ "name": name })
+                self.headers.append(Header(name))
             else:
-                self.headers.append({ "name": name, "value": value, "regex": False })
+                self.headers.append(Header(name, value))
 
         for name, value in self.get('regex_headers', {}).items():
-            self.headers.append({ "name": name, "value": value, "regex": True })
+            self.headers.append(Header(name, value, regex=True))
 
         if 'host' in self.attrs:
-            self.headers.append({
-                "name": ":authority",
-                "value": self['host'],
-                "regex": self.get('host_regex', False)
-            })
+            self.headers.append(Header(":authority", self['host'], self.get('host_regex', False)))
 
         if 'method' in self.attrs:
-            self.headers.append({
-                "name": ":method",
-                "value": self['method'],
-                "regex": self.get('method_regex', False)
-            })
+            self.headers.append(Header(":method", self['method'], self.get('method_regex', False)))
 
         # OK. After all that we can compute the group ID.
-        self.group_id = Mapping.group_id(self.method, self['prefix'], self.headers)
+        self.group_id = self._group_id()
 
-    def __getitem__(self, key):
-        return self.attrs[key]
+    def _group_id(self) -> str:
+        # Yes, we're using a  cryptographic hash here. Cope. [ :) ]
 
-    def get(self, key, *args):
-        if len(args) > 0:
-            return self.attrs.get(key, args[0])
-        else:
-            return self.attrs.get(key)
+        h = hashlib.new('sha1')
+        h.update(self.method.encode('utf-8'))
+        h.update(self.prefix.encode('utf-8'))
+
+        for hdr in self.headers:
+            h.update(hdr.name.encode('utf-8'))
+
+            if hdr.value is not None:
+                h.update(hdr.value.encode('utf-8'))
+
+        return h.hexdigest()
 
     def save_cors_element(self, cors_key, route_key, route):
         """If self.get('cors')[cors_key] exists, and
@@ -184,7 +186,7 @@ class Mapping (object):
         self.save_cors_element('exposed_headers', 'expose_headers', route_cors)
         return route_cors
 
-    def new_route(self, svc, cluster_name):
+    def new_route(self, svc, cluster_name) -> SourcedDict:
         route = SourcedDict(
             _source=self['_source'],
             _group_id=self.group_id,
@@ -294,4 +296,4 @@ if __name__ == "__main__":
 
                 print("%s: %s" % (m.name, m.group_id))
 
-                print(json.dumps(m.new_route("test_cluster"), indent=4, sort_keys=True))
+                # print(json.dumps(m.new_route("test_cluster"), indent=4, sort_keys=True))

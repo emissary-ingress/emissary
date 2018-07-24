@@ -22,11 +22,11 @@ import time
 
 from .VERSION import Version
 
-class SystemInfo (object):
+class SystemInfo:
     MyHostName = socket.gethostname()
     MyResolvedName = socket.gethostbyname(socket.gethostname())
 
-class RichStatus (object):
+class RichStatus:
     def __init__(self, ok, **kwargs):
         self.ok = ok
         self.info = kwargs

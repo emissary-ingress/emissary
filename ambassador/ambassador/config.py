@@ -14,27 +14,27 @@
 
 import sys
 
-import collections
-import datetime
+from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from typing import cast as typecast
+
+#import collections
+#import datetime
 import json
 import logging
 import os
 import re
 
 import jsonschema
-import semantic_version
-import yaml
 
 from pkg_resources import Requirement, resource_filename
 
 from jinja2 import Environment, FileSystemLoader
 
 from .utils import RichStatus, SourcedDict
+from .resource import Resource
 from .mapping import Mapping
 
-from scout import Scout
-
-from .VERSION import Version
+#from .VERSION import Version
 
 #############################################################################
 ## config.py -- the main configuration parser for Ambassador
@@ -68,221 +68,66 @@ from .VERSION import Version
 ## The diag service also uses generate_intermediate_for() to extract the
 ## intermediate config for a given mapping or service.
 
-def get_semver(what, version_string):
-    semver = None
+# Custom types
+# ServiceInfo is a tuple of information about a service: 
+# service name, service URL, originate TLS?, TLS context name
+ServiceInfo = Tuple[str, str, bool, str]
 
-    try:
-        semver = semantic_version.Version(version_string)
-    except ValueError:
-        pass
+# StringOrList is either a string or a list of strings.
+StringOrList = Union[str, List[str]]
 
-    return semver
-
-class Config (object):
-    # Weird stuff. The build version looks like
-    #
-    # 0.12.0                    for a prod build, or
-    # 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
-    #
-    # Now:
-    # - Scout needs a build number (semver "+something") to flag a non-prod release;
-    #   but
-    # - DockerHub cannot use a build number at all; but
-    # - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
-    #
-    # FFS.
-    #
-    # We cope with this by transforming e.g.
-    #
-    # 0.12.1-b2.da5d895.DIRTY into 0.12.1-b2+da5d895.DIRTY
-    #
-    # for Scout.
-
-    scout_version = Version
-
-    if '-' in scout_version:
-        # TODO(plombardi): This version code needs to be rewritten. We should only report RC and GA versions.
-        #
-        # As of the time when we moved to streamlined branch, merge and release model the way versions in development
-        # land are rendered has changed. A development version no longer has any <MAJOR>.<MINOR>.<PATCH> information and
-        # is instead rendered as <BRANCH_NAME>-<GIT_SHORT_HASH>[-dirty] where [-dirty] is only appended for modified
-        # source trees.
-        #
-        # Long term we are planning to remove the version report for development branches anyways so all of this
-        # formatting for versions
-
-        scout_version = "0.0.0-" + Version.split("-")[1]  # middle part is commit hash
-        # Dev build!
-        # v, p = scout_version.split('-')
-        # p, b = p.split('.', 1) if ('.' in p) else (0, p)
-        #
-        # scout_version = "%s-%s+%s" % (v, p, b)
-
-    # Use scout_version here, not __version__, because the version
-    # coming back from Scout will use build numbers for dev builds, but
-    # __version__ won't, and we need to be consistent for comparison.
-    current_semver = get_semver("current", scout_version)
-
+class Config:
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
-    ambassador_id = os.environ.get('AMBASSADOR_ID', 'default')
+    ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
+    runtime: ClassVar[str] = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
+    namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
-    runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
-    namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
-
-    # Default to using the Nil UUID unless the environment variable is set explicitly
-    scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
-
-    try:
-        scout = Scout(app="ambassador", version=scout_version, install_id=scout_install_id)
-        scout_error = None
-    except OSError as e:
-        scout_error = e
-
-    scout_latest_version = None
-    scout_latest_semver = None
-    scout_notices = []
-
-    scout_last_response = None
-    scout_last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
-    scout_update_frequency = datetime.timedelta(hours=4)
-
-    @classmethod
-    def scout_report(klass, force_result=None, **kwargs):
-        _notices = []
-
-        env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
-        if env_result:
-            force_result = json.loads(env_result)
-
-        result = force_result
-        result_timestamp = None
-        result_was_cached = False
-
-        if not result:
-            if Config.scout:
-                if 'runtime' not in kwargs:
-                    kwargs['runtime'] = Config.runtime
-
-                # How long since the last Scout update? If it's been more than an hour,
-                # check Scout again.
-
-                now = datetime.datetime.now()
-
-                if (now - Config.scout_last_update) > Config.scout_update_frequency:
-                    result = Config.scout.report(**kwargs)
-
-                    Config.scout_last_update = now
-                    Config.scout_last_result = dict(**result)
-                else:
-                    # _notices.append({ "level": "debug", "message": "Returning cached result" })
-                    result = dict(**Config.scout_last_result)
-                    result_was_cached = True
-
-                result_timestamp = Config.scout_last_update
-            else:
-                result = { "scout": "unavailable" }
-                result_timestamp = datetime.datetime.now()
-        else:
-            _notices.append({ "level": "debug", "message": "Returning forced result" })
-            result_timestamp = datetime.datetime.now()
-
-        if not Config.current_semver:
-            _notices.append({
-                "level": "warning",
-                "message": "Ambassador has bad version '%s'??!" % Config.scout_version
-            })
-
-        result['cached'] = result_was_cached
-        result['timestamp'] = result_timestamp.timestamp()
-
-        # Do version & notices stuff.
-        if 'latest_version' in result:
-            latest_version = result['latest_version']
-            latest_semver = get_semver("latest", latest_version)
-
-            if latest_semver:
-                Config.scout_latest_version = latest_version
-                Config.scout_latest_semver = latest_semver
-            else:
-                _notices.append({
-                    "level": "warning",
-                    "message": "Scout returned bad version '%s'??!" % latest_version
-                })
-
-        if (Config.scout_latest_semver and
-            ((not Config.current_semver) or
-             (Config.scout_latest_semver > Config.current_semver))):
-            _notices.append({
-                "level": "info",
-                "message": "Upgrade available! to Ambassador version %s" % Config.scout_latest_semver
-            })
-
-        if 'notices' in result:
-            _notices.extend(result['notices'])
-
-        Config.scout_notices = _notices
-
-        return result
-
-    def __init__(self, config_dir_path, k8s=False, schema_dir_path=None, template_dir_path=None):
-        self.config_dir_path = config_dir_path
-
-        if not template_dir_path:
-            template_dir_path = resource_filename(Requirement.parse("ambassador"),"templates")
-
+    def __init__(self, schema_dir_path: Optional[str]=None) -> None:
         if not schema_dir_path:
+            # Note that this "resource_filename" has to do with setuptool packages, not
+            # with our Resource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
 
         self.schema_dir_path = schema_dir_path
-        self.template_dir_path = template_dir_path
 
         self.logger = logging.getLogger("ambassador.config")
 
-        self.logger.debug("Scout version %s" % Config.scout_version)
+        # self.logger.debug("Scout version %s" % Config.scout_version)
         self.logger.debug("Runtime       %s" % Config.runtime)
-
-        self.logger.debug("CONFIG DIR    %s" % os.path.abspath(self.config_dir_path))
-        self.logger.debug("TEMPLATE DIR  %s" % os.path.abspath(self.template_dir_path))
         self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
 
-        if Config.scout_error:
-            self.logger.warning("Couldn't do version check: %s" % str(Config.scout_error))
+        self._reset()
 
-        self.schemas = {}
-        self.config = {}
-        self.tls_contexts = {}
+    def _reset(self) -> None:
+        """
+        Resets this Config to the empty, default state so it can load a new config.
+        """
 
-        self.envoy_config = {}
-        self.envoy_clusters = {}
-        self.envoy_routes = {}
+        self.logger.debug("RESET")
 
-        self.sources = {
-            "--internal--": {
-                "_source": "--internal--",
-                "kind": "Internal",
-                "version": "v0",
-                "name": "Ambassador Internals",
-                "filename": "--internal--",
-                "index": 0,
-                "description": "The '--internal--' source marks objects created by Ambassador's internal logic."
-            },
-            "--diagnostics--": {
-                "_source": "--diagnostics--",
-                "kind": "diagnostics",
-                "version": "v0",
-                "name": "Ambassador Diagnostics",
-                "filename": "--diagnostics--",
-                "index": 0,
-                "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
-            }
-        }
+        self.current_resource: Optional[Resource] = None
 
-        self.source_map = {
-            '--internal--': { '--internal--': True }
-        }
+        # XXX flat wrong
+        self.schemas: Dict[str, dict] = {}
+        self.config: Dict[str, Dict[str, Resource]] = {}
+        self.tls_contexts: Dict[str, SourcedDict] = {}
 
-        self.source_overrides = {}
+        # XXX flat wrong
+        self.envoy_config: Dict[str, SourcedDict] = {}
+        self.envoy_clusters: Dict[str, SourcedDict] = {}
+        self.envoy_routes: Dict[str, SourcedDict] = {}
 
+        # res_key => Resource
+        self.sources: Dict[str, Resource] = {}
+
+        # Allow overriding the location of a resource with a Pragma
+        self.location_overrides: Dict[str, Dict[str, str]] = {}
+
+        # Save our magic internal sources.
+        self.save_source(Resource.internal_resource())
+        self.save_source(Resource.diagnostics_resource())
+
+        # Set up the default probes and such.
         self.default_liveness_probe = {
             "enabled": True,
             "prefix": "/ambassador/v0/check_alive",
@@ -309,7 +154,7 @@ class Config (object):
         # private_key_file (context.key), and cacert_chain_file
         # (context.pem).
 
-        self.default_tls_config = {
+        self.default_tls_config: Dict[str, Dict[str, str]] = {
             "server": {},
             "client": {},
         }
@@ -322,33 +167,52 @@ class Config (object):
 
         self.tls_config = None
 
-        self.errors = {}
+        self.errors: Dict[str, List[str]] = {}
         self.fatal_errors = 0
         self.object_errors = 0
 
-        self.objects_to_process = []
+    def save_source(self, resource: Resource) -> None:
+        """
+        Save a give Resource as a source of Ambassador config information.
+        """
+        self.sources[resource.res_key] = resource
 
-        if not os.path.isdir(self.config_dir_path):
-            raise Exception("ERROR ERROR ERROR configuration directory %s does not exist; exiting" % self.config_dir_path)
+    def load_all(self, resources: Iterable[Resource]) -> None:
+        """
+        Loads all of a set of Resources. It is the caller's responsibility to arrange for 
+        the set of Resources to be sorted in some way that makes sense.
+        """
+        for resource in resources:
+            # XXX I think this whole override thing should go away.
+            #
+            # Any override here?
+            if resource.res_key in self.location_overrides:
+                # Let Pragma objects override source information for this filename.
+                override = self.location_overrides[resource.res_key]
+                resource.location = override.get('source', resource.res_key)
 
-        for dirpath, dirnames, filenames in os.walk(self.config_dir_path, topdown=True):
-            # Modify dirnames in-place (dirs[:]) to remove any weird directories
-            # whose names start with '.' -- why? because my GKE cluster mounts my
-            # ConfigMap with a self-referential directory named
-            # /etc/ambassador-config/..9989_25_09_15_43_06.922818753, and if we don't
-            # ignore that, we end up trying to read the same config files twice, which
-            # triggers the collision checks. Sigh.
+            # Is an ambassador_id present in this object?
+            allowed_ids: StringOrList = resource.attrs.get('ambassador_id', 'default')
 
-            dirnames[:] = sorted([ d for d in dirnames if not d.startswith('.') ])
+            if allowed_ids:
+                # Make sure it's a list. Yes, this is Draconian,
+                # but the jsonschema will allow only a string or a list,
+                # and guess what? Strings are iterables.
+                if type(allowed_ids) != list:
+                    allowed_ids = typecast(StringOrList, [ allowed_ids ])
 
-            # self.logger.debug("WALK %s: dirs %s, files %s" % (dirpath, dirnames, filenames))
+                if Config.ambassador_id not in allowed_ids:
+                    self.logger.debug("LOAD_ALL: skip %s; id %s not in %s" %
+                                        (resource, Config.ambassador_id, allowed_ids))
+                    return
 
-            for filename in sorted([ x for x in filenames if x.endswith(".yaml") ]):
-                filepath = os.path.join(dirpath, filename)
+            self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
 
-                self.load_yaml(filepath, filename, open(filepath, "r").read(), ocount=1, k8s=k8s)
+            rc = self.process(resource)
 
-        self.process_all_objects()
+            if not rc:
+                # Object error. Not good but we'll allow the system to start.
+                self.post_error(rc, resource=resource)
 
         if self.fatal_errors:
             # Kaboom.
@@ -356,117 +220,6 @@ class Config (object):
 
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
-
-        self.generate_intermediate_config()
-
-    def load_yaml(self, filepath, filename, serialization, resource_identifier=None, ocount=1, k8s=False):
-        try:
-            # XXX This is a bit of a hack -- yaml.safe_load_all returns a
-            # generator, and if we don't use list() here, any exception
-            # dealing with the actual object gets deferred
-            for obj in yaml.safe_load_all(serialization):
-                if k8s:
-                    ocount = self.prep_k8s(filepath, filename, ocount, obj)
-                else:
-                    # k8s objects will have an identifier, for other objects use filepath
-                    object_unique_id = resource_identifier or filepath
-                    self.objects_to_process.append((object_unique_id, filename, ocount, obj))
-                    ocount += 1
-        except Exception as e:
-            # No sense letting one attribute with bad YAML take down the whole
-            # gateway, so post the error but keep any objects we were able to
-            # parse before hitting the error.
-            self.resource_identifier = resource_identifier or filepath
-            self.filename = filename
-            self.ocount = ocount
-
-            self.post_error(RichStatus.fromError("%s: could not parse YAML" % filepath))
-
-        return ocount
-
-    def prep_k8s(self, filepath, filename, ocount, obj):
-        kind = obj.get('kind', None)
-
-        if kind != "Service":
-            self.logger.debug("%s/%s: ignoring K8s %s object" %
-                             (filepath, ocount, kind))
-            return ocount
-
-        metadata = obj.get('metadata', None)
-
-        if not metadata:
-            self.logger.debug("%s/%s: ignoring unannotated K8s %s" %
-                              (filepath, ocount, kind))
-            return ocount
-
-        # Use metadata to build an unique resource identifier
-        resource_name = metadata.get('name')
-
-        # This should never happen as the name field is required in metadata for Service
-        if not resource_name:
-            self.logger.debug("%s/%s: ignoring unnamed K8s %s" %
-                              (filepath, ocount, kind))
-            return ocount
-
-        resource_namespace = metadata.get('namespace', 'default')
-
-        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
-        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
-
-        annotations = metadata.get('annotations', None)
-
-        if annotations:
-            annotations = annotations.get('getambassador.io/config', None)
-
-        # self.logger.debug("annotations %s" % annotations)
-
-        if not annotations:
-            self.logger.debug("%s/%s: ignoring K8s %s without Ambassador annotation" %
-                              (filepath, ocount, kind))
-            return ocount
-
-        return self.load_yaml(filepath, filename + ":annotation", annotations, ocount=ocount, resource_identifier=resource_identifier)
-
-    def process_all_objects(self):
-        for resource_identifier, filename, ocount, obj in sorted(self.objects_to_process):
-            # resource_identifier is either a filepath or <name>.<namespace>
-            self.resource_identifier = resource_identifier
-            # This fallback prevents issues for internal/diagnostics objects
-            self.filename = filename
-            self.ocount = ocount
-
-            if self.filename in self.source_overrides:
-                # Let Pragma objects override source information for this filename.
-                override = self.source_overrides[self.filename]
-
-                self.source = override.get('source', self.filename)
-                self.ocount += override.get('ocount_delta', 0)
-            else:
-                # No pragma involved here; just default to the filename.
-                self.source = self.filename
-
-            # Is an ambassador_id present in this object?
-            allowed_ids = obj.get('ambassador_id', 'default')
-
-            if allowed_ids:
-                # Make sure it's a list. Yes, this is Draconian,
-                # but the jsonschema will allow only a string or a list,
-                # and guess what? Strings are iterables.
-                if type(allowed_ids) != list:
-                    allowed_ids = [ allowed_ids ]
-
-                if Config.ambassador_id not in allowed_ids:
-                    self.logger.debug("PROCESS: skip %s.%d; id %s not in %s" %
-                                      (self.resource_identifier, self.ocount, Config.ambassador_id, allowed_ids))
-                    continue
-
-            self.logger.debug("PROCESS: %s.%d => %s" % (self.resource_identifier, self.ocount, self.source))
-
-            rc = self.process_object(obj)
-
-            if not rc:
-                # Object error. Not good but we'll allow the system to start.
-                self.post_error(rc)
 
     def clean_and_copy(self, d):
         out = []
@@ -485,137 +238,105 @@ class Config (object):
 
         return out
 
-    def current_source_key(self):
-        return("%s.%d" % (self.filename, self.ocount))
+    def post_error(self, rc: RichStatus, resource=None):
+        if not resource:
+            resource = self.current_resource
 
-    def post_error(self, rc, key=None):
-        if not key:
-            key = self.current_source_key()
+        if not resource:
+            raise Exception("FATAL: trying to post an error from a totally unknown resource??")
 
-        # Yuck.
-        filename = re.sub(r'\.\d+$', '', key)
+        self.save_source(resource)
+        resource.post_error(rc.toDict())
 
-        # Fetch the relevant source info. If it doesn't exist, stuff
-        # in a fake record.
-        source_info = self.sources.setdefault(key, {
-            'kind': 'error',
-            'version': 'error',
-            'name': 'error',
-            'filename': filename,
-            'index': self.ocount,
-            'yaml': 'error'
-        })
-
-        source_info.setdefault('errors', [])
-        source_info['errors'].append(rc.toDict())
-
-        source_map = self.source_map.setdefault(filename, {})
-        source_map[key] = True
-
-        errors = self.errors.setdefault(key, [])
+        # XXX Probably don't need this data structure, since we can walk the source
+        # list and get them all.
+        errors = self.errors.setdefault(resource.res_key, [])
         errors.append(rc.toDict())
-        self.logger.error("%s (%s): %s" % (key, filename, rc))
+        self.logger.error("%s: %s" % (resource, rc))
 
-    def process_object(self, obj):
-        # Cache the source key first thing...
-        source_key = self.current_source_key()
-
+    def process(self, resource: Resource) -> RichStatus:
         # This should be impossible.
-        if not obj:
+        if not resource or not resource.attrs:
             return RichStatus.fromError("undefined object???")
 
-        try:
-            obj_version = obj['apiVersion']
-            obj_kind = obj['kind']
-        except KeyError:
-            return RichStatus.fromError("need apiVersion, kind")
+        self.current_res_key = resource.res_key
+
+        if not resource.version:
+            return RichStatus.fromError("need apiVersion")
+
+        if not resource.kind:
+            return RichStatus.fromError("need kind")
 
         # Is this a pragma object?
-        if obj_kind == 'Pragma':
+        if resource.kind == 'Pragma':
             # Yes. Handle this inline and be done.
-            return self.handle_pragma(source_key, obj)
+            return self.handle_pragma(resource)
 
         # Not a pragma. It needs a name...
-        if 'name' not in obj:
+        if 'name' not in resource.attrs:
             return RichStatus.fromError("need name")
 
-        obj_name = obj['name']
-
         # ...and off we go. Save the source info...
-        self.sources[source_key] = {
-            'kind': obj_kind,
-            'version': obj_version,
-            'name': obj_name,
-            'filename': self.filename,
-            'index': self.ocount,
-            'yaml': yaml.safe_dump(obj, default_flow_style=False)
-        }
+        self.save_source(resource)
 
         # ...and figure out if this thing is OK.
-        rc = self.validate_object(obj)
+        rc = self.validate_object(resource)
 
         if not rc:
             # Well that's no good.
             return rc
 
-        # Make sure it has a source: use what's in the object if present,
-        # otherwise use self.source.
-        self.sources[source_key]['_source'] = obj.get('source', self.source)
-        # self.logger.debug("source for %s is %s" % (source_key, self.sources[source_key]['_source']))
-
-        source_map = self.source_map.setdefault(self.filename, {})
-        source_map[source_key] = True
-
         # OK, so far so good. Grab the handler for this object type.
-        handler_name = "handle_%s" % obj_kind.lower()
+        handler_name = "handle_%s" % resource.kind.lower()
         handler = getattr(self, handler_name, None)
 
         if not handler:
             handler = self.save_object
-            self.logger.warning("%s[%d]: no handler for %s, just saving" %
-                                (self.resource_identifier, self.ocount, obj_kind))
-        # else:
-        #     self.logger.debug("%s[%d]: handling %s..." %
-        #                       (self.filename, self.ocount, obj_kind))
+            self.logger.warning("%s: no handler for %s, just saving" % (resource, resource.kind))
+        else:
+            self.logger.debug("%s: handling %s..." % (resource, resource.kind))
 
         try:
-            handler(source_key, obj, obj_name, obj_kind, obj_version)
+            handler(resource)
         except Exception as e:
             # Bzzzt.
-            return RichStatus.fromError("could not process %s object: %s" % (obj_kind, e))
+            return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))
 
         # OK, all's well.
-        return RichStatus.OK(msg="%s object processed successfully" % obj_kind)
+        return RichStatus.OK(msg="%s object processed successfully" % resource.kind)
 
-    def validate_object(self, obj):
-        # Each object must be a dict, and must include "apiVersion"
-        # and "type" at toplevel.
+    def validate_object(self, resource: Resource) -> RichStatus:
+        obj = resource.attrs
 
-        if not isinstance(obj, collections.Mapping):
-            return RichStatus.fromError("not a dictionary")
-
+        # This is basically "impossible"
         if not (("apiVersion" in obj) and ("kind" in obj) and ("name" in obj)):
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
-        obj_version = obj['apiVersion']
-        obj_kind = obj['kind']
-        obj_name = obj['name']
+        version = resource.version
 
-        if obj_version.startswith("ambassador/"):
-            obj_version = obj_version.split('/')[1]
+        # Ditch the leading ambassador/ that really needs to be there.
+        if version.startswith("ambassador/"):
+            version = version.split('/')[1]
         else:
-            return RichStatus.fromError("apiVersion %s unsupported" % obj_version)
+            return RichStatus.fromError("apiVersion %s unsupported" % version)
 
-        schema_key = "%s-%s" % (obj_version, obj_kind)
-
+        # Do we already have this schema loaded?
+        schema_key = "%s-%s" % (version, resource.kind)
         schema = self.schemas.get(schema_key, None)
 
         if not schema:
-            schema_path = os.path.join(self.schema_dir_path, obj_version,
-                                       "%s.schema" % obj_kind)
+            # Not loaded. Go find it on disk.
+            schema_path = os.path.join(self.schema_dir_path, version,
+                                       "%s.schema" % resource.kind)
 
             try:
+                # Load it up...
                 schema = json.load(open(schema_path, "r"))
+
+                # ...and then cache it, if it exists. Note that we'll never
+                # get here if we find something that doesn't parse.
+                if schema:
+                    self.schemas[schema_key] = typecast(Dict[Any, Any], schema)
             except OSError:
                 self.logger.debug("no schema at %s, skipping" % schema_path)
             except json.decoder.JSONDecodeError as e:
@@ -623,86 +344,168 @@ class Config (object):
                                     (schema_path, e))
 
         if schema:
-            self.schemas[schema_key] = schema
+            # We have a schema. Does the object validate OK?
             try:
                 jsonschema.validate(obj, schema)
             except jsonschema.exceptions.ValidationError as e:
-                return RichStatus.fromError("not a valid %s: %s" % (obj_kind, e))
+                # Nope. Bzzzzt.
+                return RichStatus.fromError("not a valid %s: %s" % (resource.kind, e))
 
-        return RichStatus.OK(msg="valid %s" % obj_kind,
-                             details=(obj_kind, obj_version, obj_name))
+        # All good. Return an OK.
+        return RichStatus.OK(msg="valid %s" % resource.kind)
 
-    def safe_store(self, source_key, storage_name, obj_name, obj_kind, value, allow_log=True):
+    def safe_store(self, storage_name: str, resource: Resource, allow_log: bool=True) -> None:
+        """
+        Safely store a Resource under a given storage name. The storage_name is separate
+        because we may need to e.g. store a Module under the 'ratelimit' name or the like.
+        Within a storage_name bucket, the Resource will be stored under its name.
+
+        :param storage_name: where shall we file this?
+        :param resource: what shall we file?
+        :param allow_log: if True, logs that we're saving this thing.
+        """
+
         storage = self.config.setdefault(storage_name, {})
 
-        if obj_name in storage:
+        if resource.name in storage:
             # Oooops.
-            raise Exception("%s[%d] defines %s %s, which is already present" %
-                            (self.resource_identifier, self.ocount, obj_kind, obj_name))
+            raise Exception("%s defines %s %s, which is already present" %
+                            (resource, resource.kind, resource.name))
 
         if allow_log:
-            self.logger.debug("%s[%d]: saving %s %s" %
-                          (self.resource_identifier, self.ocount, obj_kind, obj_name))
+            self.logger.debug("%s: saving %s %s" %
+                          (resource, resource.kind, resource.name))
 
-        storage[obj_name] = value
-        return storage[obj_name]
+        storage[resource.name] = resource
 
-    def save_object(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, obj_kind, obj_name, obj_kind,
-                               SourcedDict(_source=source_key, **obj))
+    def save_object(self, resource: Resource, allow_log: bool=False) -> None:
+        """
+        Saves a Resource using its kind as the storage class name. Sort of the
+        defaulted version of safe_store.
 
-    def handle_pragma(self, source_key, obj):
-        keylist = sorted([x for x in sorted(obj.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
+        :param resource: what shall we file?
+        :param allow_log: if True, logs that we're saving this thing.
+        """
 
-        # self.logger.debug("PRAGMA: %s" % keylist)
+        self.safe_store(resource.kind, resource, allow_log=allow_log)
+
+    def get_module(self, module_name: str) -> Optional[Resource]:
+        """
+        Fetch a module from the module store. Can return None if no
+        such module exists.
+
+        :param module_name: name of the module you want.
+        """
+
+        modules = self.config.get("modules", None)
+
+        if modules:
+            return modules.get(module_name, None)
+        else:
+            return None
+
+    def module_lookup(self, module_name: str, key: str, default: Any=None) -> Any:
+        """
+        Look up a specific key in a given module. If the named module doesn't 
+        exist, or if the key doesn't exist in the module, return the default.
+
+        :param module_name: name of the module you want.
+        :param key: key to look up within the module
+        :param default: default value if the module is missing or has no such key
+        """
+
+        module = self.get_module(module_name)
+
+        if module:
+            return module.get(key, default)
+
+        return default
+
+    # XXX Misnamed. handle_pragma isn't the same signature as, say, handle_mapping.
+    # XXX Is this needed any more??
+    def handle_pragma(self, resource: Resource) -> RichStatus:
+        """
+        Handles a Pragma object. May not be needed any more...
+        """
+
+        attrs = resource.attrs
+        res_key = resource.res_key
+
+        keylist = sorted([x for x in sorted(attrs.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
+
+        self.logger.debug("PRAGMA: %s" % keylist)
 
         for key in keylist:
             if key == 'source':
-                override = self.source_overrides.setdefault(self.filename, {})
-                override['source'] = obj['source']
+                override = self.location_overrides.setdefault(res_key, {})
+                override['source'] = attrs['source']
 
                 self.logger.debug("PRAGMA: override %s to %s" %
-                                  (self.resource_identifier, self.source_overrides[self.filename]['source']))
-            elif key == 'autogenerated':
-                override = self.source_overrides.setdefault(self.filename, {})
-                override['ocount_delta'] = -1
-
-            #     self.logger.debug("PRAGMA: autogenerated, setting ocount_delta to -1")
-            # else:
-            #     self.logger.debug("PRAGMA: skip %s" % key)
+                                  (res_key, self.location_overrides[res_key]['source']))
 
         return RichStatus.OK(msg="handled pragma object")
 
-    def handle_module(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "modules", obj_name, obj_kind,
-                               SourcedDict(_source=source_key, **obj['config']))
+    def handle_module(self, resource: Resource) -> None:
+        """
+        Handles a Module resource.
+        """
 
-    def handle_ratelimitservice(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "ratelimit_configs", obj_name, obj_kind,
-                               SourcedDict(_source=source_key, **obj))
+        # Make a new Resource from the 'config' element of this Resource
+        # Note that we leave the original serialization intact, since it will
+        # indeed show a human the YAML that defined this module.
+        module_resource = Resource.from_resource(resource, attrs=resource.attrs['config'])
 
-    def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "auth_configs", obj_name, obj_kind,
-                               SourcedDict(_source=source_key, **obj))
+        self.safe_store("modules", module_resource)
 
-    def handle_mapping(self, source_key, obj, obj_name, obj_kind, obj_version):
-        mapping = Mapping(source_key, **obj)
+    def handle_ratelimitservice(self, resource: Resource) -> None:
+        """
+        Handles a RateLimitService resource.
+        """
 
-        return self.safe_store(source_key, "mappings", obj_name, obj_kind, mapping)
+        self.safe_store("ratelimit_configs", resource)
+
+    def handle_authservice(self, resource: Resource) -> None:
+        """
+        Handles an AuthService resource.
+        """
+
+        self.safe_store("auth_configs", resource)
+
+    def handle_mapping(self, resource: Resource) -> None:
+        """
+        Handles a Mapping resource.
+
+        Mappings are complex things, so a lot of stuff gets buried in a Mapping 
+        object.
+        """
+
+        mapping = Mapping(resource.res_key, **resource.attrs)
+        self.safe_store("mappings", mapping)
 
     def diag_port(self):
-        modules = self.config.get("modules", {})
-        amod = modules.get("ambassador", {})
+        """
+        Returns the diagnostics port for this Ambassador config.
+        """
 
-        return amod.get("diag_port", 8877)
+        return self.module_lookup("ambassador", "diag_port", 8877)
 
     def diag_service(self):
+        """
+        Returns the diagnostics service URL for this Ambassador config.
+        """
+
         return "127.0.0.1:%d" % self.diag_port()
 
-    def add_intermediate_cluster(self, _source, name, _service, urls,
-                                 type="strict_dns", lb_type="round_robin",
-                                 cb_name=None, od_name=None, originate_tls=None,
-                                 grpc=False, host_rewrite=None):
+    def add_intermediate_cluster(self, _source: str, name: str, _service: str, urls: List[str],
+                                 type: str="strict_dns", lb_type: str="round_robin",
+                                 cb_name: Optional[str]=None, od_name: Optional[str]=None,
+                                 originate_tls: Union[str, bool]=None,
+                                 grpc: Optional[bool]=False, host_rewrite: Optional[str]=None):
+        """
+        Adds a cluster to the IR. This is wicked ugly because clusters are complex,
+        and happen to live in an annoying bit of the IR.
+        """
+
         if name not in self.envoy_clusters:
             self.logger.debug("CLUSTER %s: new from %s" % (name, _source))
 
@@ -728,10 +531,10 @@ class Config (object):
                 cluster['tls_context'] = { '_ambassador_enabled': True }
                 cluster['tls_array'] = []
             elif (originate_tls and (originate_tls in self.tls_contexts)):
-                cluster['tls_context'] = self.tls_contexts[originate_tls]
-                self.tls_contexts[originate_tls]._mark_referenced_by(_source)
+                cluster['tls_context'] = self.tls_contexts[typecast(str, originate_tls)]
+                self.tls_contexts[typecast(str, originate_tls)]._mark_referenced_by(_source)
 
-                tls_array = []
+                tls_array: List[Dict[str, str]] = []
 
                 for key, value in cluster['tls_context'].items():
                     if key.startswith('_'):
@@ -755,7 +558,13 @@ class Config (object):
     # XXX This is a silly API. We should have a Cluster object that can carry what kind
     #     of cluster it is (this is a target cluster of weight 50%, this is a shadow cluster,
     #     whatever) and the API should be "add this cluster to this Mapping".
-    def add_intermediate_route(self, _source, mapping, svc, cluster_name, shadow=False):
+    def add_intermediate_route(self, _source: str, mapping: Mapping, svc: str, cluster_name: str, 
+                               shadow: bool=False) -> None:
+        """
+        Adds a route to the IR. This is wicked ugly because routes are complex,
+        and happen to live in an annoying bit of the IR.
+        """
+
         route = self.envoy_routes.get(mapping.group_id, None)
         host_redirect = mapping.get('host_redirect', False)
         shadow = mapping.get('shadow', False)
@@ -798,9 +607,29 @@ class Config (object):
         route = mapping.new_route(svc, cluster_name)
         self.envoy_routes[mapping.group_id] = route
 
-    def service_tls_check(self, svc, context, host_rewrite):
-        originate_tls = False
-        name_fields = None
+    def service_tls_check(self, svc: str, context: Optional[Union[str, bool]], host_rewrite: bool) -> ServiceInfo:
+        """
+        Uniform handling of service definitions, TLS origination, etc.
+
+        Here's how it goes:
+        - If the service starts with https://, it is forced to originate TLS.
+        - Else, if it starts with http://, it is forced to _not_ originate TLS.
+        - Else, if the context is the boolean value True, it will originate TLS.
+
+        After figuring that out, if we have a context which is a string value,
+        we try to use that context name to look up certs to use. If we can't 
+        find any, we won't send any originating cert.
+
+        Finally, if no port is present in the service already, we force port 443
+        if we're originating TLS, 80 if not.
+
+        :param svc: URL of the service (from the Ambassador Mapping)
+        :param context: TLS context name, or True to originate TLS but use no certs
+        :param host_rewrite: Is host rewriting active?
+        """
+
+        originate_tls: Union[str, bool] = False
+        name_fields: List[str] = []
 
         if svc.lower().startswith("http://"):
             originate_tls = False
@@ -817,9 +646,10 @@ class Config (object):
         # even after you say "https://" for the service.
 
         if context and (context != True):
+            # We know that context is a string here.
             if context in self.tls_contexts:
-                name_fields = [ 'otls', context ]
-                originate_tls = context
+                name_fields = [ 'otls', typecast(str, context) ]
+                originate_tls = typecast(str, context)
             else:
                 self.logger.error("Originate-TLS context %s is not defined" % context)
 
@@ -827,34 +657,42 @@ class Config (object):
             name_fields.append("hr-%s" % host_rewrite)
 
         port = 443 if originate_tls else 80
-        context_name = "_".join(name_fields) if name_fields else None
+        context_name = typecast(str, "_".join(name_fields) if name_fields else None)
 
         svc_url = 'tcp://%s' % svc
 
         if ':' not in svc:
             svc_url = '%s:%d' % (svc_url, port)
 
-        return (svc, svc_url, originate_tls, context_name)
+        return (svc, svc_url, bool(originate_tls), context_name)
 
-    def add_clusters_for_mapping(self, mapping):
-        svc = mapping['service']
-        tls_context = mapping.get('tls', None)
-        grpc = mapping.get('grpc', False)
-        host_rewrite = mapping.get('host_rewrite', None)
+    def add_clusters_for_mapping(self, mapping: Mapping) -> Tuple[str, Optional[str]]:
+        """
+        Given a Mapping, add the clusters we need for that Mapping to the IR.
+        Returns the (possibly updated) service URL and main cluster name.
 
-        # Given the service and the TLS context, first initialize the cluster name for the
-        # main service with the incoming service string...
+        :param Mapping: Mapping for which we need clusters
+        :return: Tuple of (possibly updated) service URL and main cluster name
+        """
+
+        svc: str = mapping['service']
+        tls_context: Optional[Union[str, bool]] = mapping.get('tls', None)
+        grpc: bool = mapping.get('grpc', False)
+        host_rewrite: Optional[str] = mapping.get('host_rewrite', None)
+
+        # We're going to build up the cluster name for the main service in an array,
+        # then join everything up afterward. Start with just the service name...
 
         cluster_name_fields = [ svc ]
 
-        host_redirect = mapping.get('host_redirect', False)
-        shadow = mapping.get('shadow', False)
+        host_redirect: bool = mapping.get('host_redirect', False)
+        shadow: bool = mapping.get('shadow', False)
 
         if host_redirect:
             if shadow:
                 # Not allowed.
                 errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
-                self.post_error(RichStatus.fromError(errstr), key=mapping['_source'])
+                self.post_error(RichStatus.fromError(errstr), resource=mapping)
                 host_redirect = False
             else:
                 # Short-circuit. You needn't actually create a cluster for a
@@ -865,19 +703,21 @@ class Config (object):
             cluster_name_fields.insert(0, "shadow")
 
         # ...then do whatever normalization we need for the name and the URL. This can
-        # change the service name (e.g. "http://foo" will turn into "foo"), so we set
-        # up cluster_name_fields above in order to preserve compatibility with older
-        # versions of Ambassador. (This isn't a functional issue, just a matter of
-        # trying not to confuse people on upgrades.)
+        # change the service name (e.g. "http://foo" will turn into "foo"), which is why
+        # we initialize cluster_name_fields above, before changing it. (This isn't a
+        # functional issue, just a matter of trying not to confuse people trying to find
+        # things later, especially across Ambassador upgrades where we might alter internal
+        # stuff.)
 
-        (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
+        (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, bool(host_rewrite))
 
         # Build up the common name stuff that we'll need for the service and
         # the shadow service.
+        #
+        # XXX I don't think we need aux_name_fields any more.
+        aux_name_fields: List[str] = []
 
-        aux_name_fields = []
-
-        cb_name = mapping.get('circuit_breaker', None)
+        cb_name: Optional[str] = mapping.get('circuit_breaker', None)
 
         if cb_name:
             if cb_name in self.breakers:
@@ -886,7 +726,7 @@ class Config (object):
                 self.logger.error("CircuitBreaker %s is not defined (mapping %s)" %
                                   (cb_name, mapping.name))
 
-        od_name = mapping.get('outlier_detection', None)
+        od_name: Optional[str] = mapping.get('outlier_detection', None)
 
         if od_name:
             if od_name in self.outliers:
@@ -995,7 +835,6 @@ class Config (object):
             diagnostics = { "enabled": True },
             tls_config = None,
             use_proxy_proto = False,
-            x_forwarded_proto_redirect = False,
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -1060,12 +899,12 @@ class Config (object):
 
         self.breakers = self.config.get("CircuitBreaker", {})
 
-        for key, breaker in self.breakers.items():
+        for _, breaker in self.breakers.items():
             breaker['_referenced_by'] = []
 
         self.outliers = self.config.get("OutlierDetection", {})
 
-        for key, outlier in self.outliers.items():
+        for _, outlier in self.outliers.items():
             outlier['_referenced_by'] = []
 
         # OK. Given those initial sets, let's look over our global modules.
@@ -1102,14 +941,6 @@ class Config (object):
         if 'use_remote_address' in self.ambassador_module:
             primary_listener['use_remote_address'] = self.ambassador_module['use_remote_address']
 
-        # If x_forwarded_proto_redirect is set, then we enable require_tls in primary listener, which in turn sets
-        # require_ssl to true in envoy config. Once set, then all requests that contain X-FORWARDED-PROTO set to
-        # https, are processes normally by envoy. In all the other cases, including X-FORWARDED-PROTO set to http,
-        # a 301 redirect response to https://host is sent
-        if self.ambassador_module.get('x_forwarded_proto_redirect', False):
-            primary_listener['require_tls'] = True
-            self.logger.debug("x_forwarded_proto_redirect is set to true, enabling 'require_tls' in listener")
-
         redirect_cleartext_from = None
         tmod = self.ambassador_module.get('tls_config', None)
 
@@ -1117,16 +948,12 @@ class Config (object):
         if tmod:
             # self.logger.debug("USING TLS")
             primary_listener['tls'] = tmod
-            if self.tmod_certs_exist(primary_listener['tls']) > 0:
-                primary_listener['tls']['ssl_context'] = True
             redirect_cleartext_from = tmod.get('redirect_cleartext_from')
 
         self.envoy_config['listeners'] = [ primary_listener ]
 
         if redirect_cleartext_from:
-            # We only want to set `require_tls` on the primary listener when certs are present on the pod
-            if self.tmod_certs_exist(primary_listener['tls']) > 0:
-                primary_listener['require_tls'] = True
+            primary_listener['require_tls'] = True
 
             new_listener = SourcedDict(
                 _from=self.ambassador_module,
@@ -1213,7 +1040,7 @@ class Config (object):
                 self.envoy_clusters[name]['name'] = mangled_name
 
         # We need to default any unspecified weights and renormalize to 100
-        for group_id, route in self.envoy_routes.items():
+        for _, route in self.envoy_routes.items():
             clusters = route["clusters"]
 
             total = 0.0
@@ -1267,25 +1094,7 @@ class Config (object):
         self.envoy_config['breakers'] = self.clean_and_copy(self.breakers)
         self.envoy_config['outliers'] = self.clean_and_copy(self.outliers)
 
-    @staticmethod
-    def tmod_certs_exist(tmod):
-        """
-        Returns the number of certs that are defined in the supplied tmod
-
-        :param tmod: The TLS module configuration
-        :return: number of certs in tmod
-        :rtype: int
-        """
-        cert_count = 0
-        if tmod.get('cert_chain_file') is not None:
-            cert_count += 1
-        if tmod.get('private_key_file') is not None:
-            cert_count += 1
-        if tmod.get('cacert_chain_file') is not None:
-            cert_count += 1
-        return cert_count
-
-    def _get_intermediate_for(self, element_list, source_keys, value):
+    def _get_intermediate_for(self, element_list, res_keys, value):
         if not isinstance(value, dict):
             return
 
@@ -1297,52 +1106,52 @@ class Config (object):
             value_source = value.get("_source", None)
             value_referenced_by = value.get("_referenced_by", [])
 
-            if ((value_source in source_keys) or
-                (source_keys & set(value_referenced_by))):
+            if ((value_source in res_keys) or
+                (res_keys & set(value_referenced_by))):
                 good = True
 
         if good:
             element_list.append(value)
 
-    def get_intermediate_for(self, source_key):
-        source_keys = []
+    def get_intermediate_for(self, res_key):
+        res_keys = []
 
-        if source_key.startswith("grp-"):
-            group_id = source_key[4:]
+        if res_key.startswith("grp-"):
+            group_id = res_key[4:]
 
             for route in self.envoy_config['routes']:
                 if route['_group_id'] == group_id:
-                    source_keys.append(route['_source'])
+                    res_keys.append(route['_source'])
 
                     for reference_key in route['_referenced_by']:
-                        source_keys.append(reference_key)
+                        res_keys.append(reference_key)
 
-            if not source_keys:
+            if not res_keys:
                 return {
                     "error": "No group matches %s" % group_id
                 }
         else:
-            if source_key in self.source_map:
+            if res_key in self.location_map:
                 # Exact match for a file in the source map: include all the objects
                 # in the file.
-                source_keys = self.source_map[source_key]
-            elif source_key in self.sources:
+                res_keys = self.location_map[res_key]
+            elif res_key in self.sources:
                 # Exact match for an object in a file: include only that object.
-                source_keys.append(source_key)
+                res_keys.append(res_key)
             else:
                 # No match at all. Weird.
                 return {
-                    "error": "No source matches %s" % source_key
+                    "error": "No source matches %s" % res_key
                 }
 
-        source_keys = set(source_keys)
+        res_keys = set(res_keys)
 
-        # self.logger.debug("get_intermediate_for: source_keys %s" % source_keys)
+        # self.logger.debug("get_intermediate_for: res_keys %s" % res_keys)
         # self.logger.debug("get_intermediate_for: errors %s" % self.errors)
 
         sources = []
 
-        for key in source_keys:
+        for key in res_keys:
             source_dict = dict(self.sources[key])
             source_dict['errors'] = [
                 {
@@ -1351,7 +1160,7 @@ class Config (object):
                 }
                 for error in self.errors.get(key, [])
             ]
-            source_dict['source_key'] = key
+            source_dict['res_key'] = key
 
             sources.append(source_dict)
 
@@ -1368,9 +1177,9 @@ class Config (object):
 
             if isinstance(value, list):
                 for v2 in value:
-                    self._get_intermediate_for(result[key], source_keys, v2)
+                    self._get_intermediate_for(result[key], res_keys, v2)
             else:
-                self._get_intermediate_for(result[key], source_keys, value)
+                self._get_intermediate_for(result[key], res_keys, value)
 
         return result
 
@@ -1391,10 +1200,10 @@ class Config (object):
         #     rc = RichStatus.fromError("Invalid Envoy configuration: %s" % str(e),
         #                               raw=envoy_json, exception=e)
 
-        # Go ahead and report that we generated an Envoy config, if we can.
-        scout_result = Config.scout_report(action="config", result=True, generated=True, **kwargs)
+        # # Go ahead and report that we generated an Envoy config, if we can.
+        # scout_result = Config.scout_report(action="config", result=True, generated=True, **kwargs)
 
-        rc = RichStatus.OK(envoy_config=envoy_json, scout_result=scout_result)
+        rc = RichStatus.OK(envoy_config=envoy_json) # , scout_result=scout_result
 
         # self.logger.debug("Scout reports %s" % json.dumps(rc.scout_result))
 
@@ -1483,7 +1292,7 @@ class Config (object):
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics', 'x_forwarded_proto_redirect' ]:
+                     'use_proxy_proto', 'use_remote_address', 'diagnostics' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
@@ -1523,7 +1332,8 @@ class Config (object):
         )
 
         if cluster_name not in self.envoy_clusters:
-            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
+            # (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
+            (_, url, _, _) = self.service_tls_check(cluster_hosts, None, host_rewrite)
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'extratelimit', [url],
                                           type="strict_dns", lb_type="round_robin",
@@ -1613,7 +1423,7 @@ class Config (object):
             protocols = {}
 
             for svc in sorted(cluster_hosts.keys()):
-                weight, tls_context = cluster_hosts[svc]
+                _, tls_context = cluster_hosts[svc]
 
                 (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
 
@@ -1647,9 +1457,9 @@ class Config (object):
         # Build a set of source _files_ rather than source _objects_.
         source_files = {}
 
-        for filename, source_keys in self.source_map.items():
-            # self.logger.debug("overview -- filename %s, source_keys %d" %
-            #                   (filename, len(source_keys)))
+        for filename, res_keys in self.location_map.items():
+            # self.logger.debug("overview -- filename %s, res_keys %d" %
+            #                   (filename, len(res_keys)))
 
             # # Skip '--internal--' etc.
             # if filename.startswith('--'):
@@ -1667,15 +1477,15 @@ class Config (object):
                 }
             )
 
-            for source_key in source_keys:
-                # self.logger.debug("overview --- source_key %s" % source_key)
+            for res_key in res_keys:
+                # self.logger.debug("overview --- res_key %s" % res_key)
 
-                source = self.sources[source_key]
+                source = self.sources[res_key]
 
                 if ('source' in source) and not ('source' in source_dict):
                     source_dict['source'] = source['source']
 
-                raw_errors = self.errors.get(source_key, [])
+                raw_errors = self.errors.get(res_key, [])
 
                 errors = []
 
@@ -1693,8 +1503,8 @@ class Config (object):
                 source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
 
                 object_dict = source_dict['objects']
-                object_dict[source_key] = {
-                    'key': source_key,
+                object_dict[res_key] = {
+                    'key': res_key,
                     'kind': source['kind'],
                     'errors': errors
                 }
