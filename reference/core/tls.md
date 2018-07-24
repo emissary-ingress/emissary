@@ -88,7 +88,25 @@ config:
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Every HTTP request to Ambassador will only be allowed to pass if it has an `X-FORWARDED-PROTO: https` header.
 
+### Authentication with TLS Client Certificates
+
+Ambassador also supports TLS client-certificate authentcation. After enabling TLS termination, collect the full CA certificate chain (including all necessary intermediate certificates) into a single file. Store the CA certificate chain used to validate the client certificate into a Kubernetes `secret` named `ambassador-cacert`:
+
+```shell
+kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
+```
+
+where `$CACERT_PATH` is the path to the single file mentioned above.
+
+If you want to _require_ client-cert authentication for every connection, you can add the `cert_required` key:
+
+```shell
+kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH --from-literal=cert_required=true
+```
+
+When Ambassador starts, it will notice the `ambassador-cacert` secret and turn TLS client-certificate auth on (assuming that TLS termination is enabled).
+
 ### More reading
 
-TLS configuration is examined in more detail in the documentation on [TLS termination](/user-guide/tls-termination.md) and [TLS client certificate authentication](/reference/auth-tls-certs).
+The [TLS termination guide](/user-guide/tls-termination.md) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws.md). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
 
