@@ -45,7 +45,6 @@
   * [Ambassador with AWS](reference/ambassador-with-aws.md)
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
-* [Auth with TLS Client Certificates](reference/auth-tls-certs.md)
 * [Microservices API Gateways](about/microservices-api-gateways.md)
 
 ## Developers
