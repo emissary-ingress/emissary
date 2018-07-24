@@ -86,7 +86,7 @@ config:
   x_forwarded_proto_redirect: true
 ```
 
-Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Every HTTP request to Ambassador will only be allowed to pass if it has an `X-FORWARDED-PROTO: https` header.
+Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Requests that contain have `X-FORWARDED-PROTO` set to `https` will be passed through. Otherwise, for all other values of `X-FORWARDED-PROTO`, they will be redirected to TLS.
 
 ### Authentication with TLS Client Certificates
 
