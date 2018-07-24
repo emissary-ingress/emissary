@@ -56,7 +56,7 @@ echo "Base URL $BASEURL"
 echo "HTTP URL $HTTPURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "No canary active"; then
     exit 1

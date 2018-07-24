@@ -48,7 +48,7 @@ echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 extra_args="-H 'X-FORWARDED-PROTO: https'"
 
-wait_for_ready "$BASEURL" "$extra_args"
+wait_for_ready "$BASEURL" ${NAMESPACE} "$extra_args"
 
 if ! check_diag "$BASEURL" 1 "QOTM present" "$extra_args"; then
     exit 1

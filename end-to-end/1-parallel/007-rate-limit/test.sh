@@ -47,7 +47,7 @@ BASEURL="http://${CLUSTER}:${APORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 wait_for_pods ${NAMESPACE}
 
 if ! python rate-limit-test.py ${CLUSTER}:${APORT}; then

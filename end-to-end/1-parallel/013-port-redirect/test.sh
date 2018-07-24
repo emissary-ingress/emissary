@@ -51,7 +51,7 @@ REDIRECTURL="http://${CLUSTER}:${REDIRECTPORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $ADMINURL/ambassador/v0/diag/"
 
-wait_for_ready "$ADMINURL"
+wait_for_ready "$ADMINURL" ${NAMESPACE}
 
 if ! check_diag "$ADMINURL" 1 "QOTM present"; then
     exit 1

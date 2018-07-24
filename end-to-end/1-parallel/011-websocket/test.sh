@@ -49,7 +49,7 @@ BASEURL="http://${CLUSTER}:${APORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1
