@@ -68,7 +68,7 @@ kubectl apply -f k8s/ambassador-secrets-deployment.yaml
 kubectl apply -f k8s/ambassador-tls-enabled.yaml
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "QOTM present"; then
     exit 1
@@ -97,7 +97,7 @@ kubectl apply -f k8s/ambassador-tls-enabled.yaml
 kubectl delete pods -l service=ambassador --force --grace-period=0
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "QOTM present"; then
     exit 1
@@ -126,7 +126,7 @@ kubectl apply -f k8s/ambassador-secrets-deployment.yaml
 kubectl delete pods -l service=ambassador --force --grace-period=0
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "QOTM present"; then
     exit 1
@@ -153,7 +153,7 @@ kubectl apply -f k8s/ambassador-secrets-deployment.yaml
 kubectl delete pods -l service=ambassador --force --grace-period=0
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "QOTM present"; then
     exit 1
@@ -180,7 +180,7 @@ kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 2 "QOTM present"; then
     exit 1
@@ -205,7 +205,7 @@ kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl delete pods -l service=ambassador --force --grace-period=0
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "QOTM present"; then
     exit 1
@@ -231,7 +231,7 @@ kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl delete pods -l service=ambassador --force --grace-period=0
 
 wait_for_pods ${NAMESPACE}
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "QOTM present"; then
     exit 1

@@ -46,7 +46,7 @@ BASEURL="http://${CLUSTER}:${APORT}"
 
 echo "Base URL $BASEURL"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 check_diag () {
     index=$1

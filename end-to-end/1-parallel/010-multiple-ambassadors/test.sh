@@ -68,8 +68,8 @@ echo "Diag 1 URL $BASEURL1/ambassador/v0/diag/"
 echo "Base 2 URL $BASEURL2"
 echo "Diag 2 URL $BASEURL2/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL1"
-wait_for_ready "$BASEURL2"
+wait_for_ready "$BASEURL1" ${NAMESPACE_1}
+wait_for_ready "$BASEURL2" ${NAMESPACE_2}
 
 if ! check_diag "$BASEURL1" 1-1 "No annotated services"; then
     exit 1
