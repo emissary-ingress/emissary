@@ -62,7 +62,7 @@ If you are running an ELB in L4 mode, you need to:
   * `:80` -> `:8080` (the Envoy port doesn't matter)
   * Configure `redirect_cleartext_from` to redirect traffic on `8080` to the secure port
 
-For this setup of an L4 load balancer, ambassador's configuration will look like -
+For this setup of an L4 load balancer, here is an example Ambassador configuration:
 
 ```yaml
 apiVersion: ambassador/v0
@@ -74,7 +74,7 @@ server:
   redirect_cleartext_from: 8080
 ```
 
-If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests with `X-FORWARDED-PROTO: http` header to HTTPS. In such a scenario, ambassador's configuration will look like -
+If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests with `X-FORWARDED-PROTO: http` header to HTTPS. Here is an example Ambassador configuration for this scenario:
 
 ```yaml
 apiVersion: ambassador/v0
