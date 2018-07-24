@@ -681,6 +681,10 @@ class Config (object):
         return self.safe_store(source_key, "ratelimit_configs", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
 
+    def handle_tracingservice(self, source_key, obj, obj_name, obj_kind, obj_version):
+        return self.safe_store(source_key, "tracing_configs", obj_name, obj_kind,
+                               SourcedDict(_source=source_key, **obj))
+
     def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
         return self.safe_store(source_key, "auth_configs", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
@@ -1037,6 +1041,13 @@ class Config (object):
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
 
+        router_config = {}
+
+        tracing_configs = self.config.get('tracing_configs', None)
+        self.module_config_tracing(tracing_configs)
+        if 'tracing' in self.envoy_config:
+            router_config['start_child_span'] = True
+
         # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
         self.envoy_config['filters'] = []
         # Start with authentication filter
@@ -1053,7 +1064,7 @@ class Config (object):
             self.envoy_config['grpc_services'].append(ratelimit_grpc_service)
         # Then append non-configurable cors and decoder filters
         self.envoy_config['filters'].append(SourcedDict(name="cors", config={}))
-        self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config={}))
+        self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config=router_config))
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
@@ -1534,6 +1545,44 @@ class Config (object):
             self.envoy_clusters[cluster_name]._mark_referenced_by(source)
 
         return (filter, grpc_service)
+
+    def module_config_tracing(self, tracing_config):
+        cluster_hosts = None
+        driver = None
+        driver_config = None
+        host_rewrite = None
+        sources = []
+
+        if tracing_config:
+            for config in tracing_config.values():
+                sources.append(config['_source'])
+                cluster_hosts = config.get("service", None)
+                driver = config.get("driver", None)
+                driver_config = config.get("config", {})
+                host_rewrite = config.get("host_rewrite", None)
+
+        if not cluster_hosts or not sources:
+            return
+
+        cluster_name = "cluster_ext_tracing"
+
+        first_source = sources.pop(0)
+
+        if cluster_name not in self.envoy_clusters:
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
+            self.add_intermediate_cluster(first_source, cluster_name,
+                                          'exttracing', [url],
+                                          type="strict_dns", lb_type="round_robin",
+                                          host_rewrite=host_rewrite)
+
+        driver_config['collector_cluster'] = cluster_name
+        tracing = SourcedDict(
+            _source=first_source,
+            driver=driver,
+            config=driver_config,
+            cluster_name=cluster_name
+        )
+        self.envoy_config['tracing'] = tracing
 
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
