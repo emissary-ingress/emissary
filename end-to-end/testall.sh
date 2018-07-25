@@ -78,6 +78,8 @@ if [ -n "$E2E_TEST_NAME" ]; then
 
     run_and_log "$E2E_TEST_NAME"
 else
+    run_and_log "1-parallel/no-base-serial"
+
     # Clean up everything, non-interactively.
     SKIP_CHECK_CONTEXT=yes initialize_cluster
 
