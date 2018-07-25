@@ -36,6 +36,13 @@ rbac:
   # Specifies whether RBAC resources should be created
   create: true
 
+ambassador:
+  id: ambassador-poppy
+
+namespace:
+  single: false
+  name: "poppy"
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
