@@ -450,7 +450,7 @@
                     },
                     {
                         "key": "x-test-ip",
-                        "value": "%CLIENT_IP%"
+                        "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
                     },
                     {
                         "key": "x-test-static",
@@ -658,7 +658,7 @@
             "kind": "Mapping",
             "name": "qotm_host_mapping",
             "version": "ambassador/v0",
-            "yaml": "add_request_headers:\n  x-test-ip: '%CLIENT_IP%'\n  x-test-proto: '%PROTOCOL%'\n  x-test-static: testing\napiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
+            "yaml": "add_request_headers:\n  x-test-ip: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'\n  x-test-proto: '%PROTOCOL%'\n  x-test-static: testing\napiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
         }
     }
 }
