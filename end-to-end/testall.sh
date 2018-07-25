@@ -57,12 +57,16 @@ check_rbac
 
 rm -f *.log
 cat /dev/null > master.log
+FAIL_FILE=failures.txt
+touch ${FAIL_FILE}
 
 run_and_log () {
-    if bash testone.sh --cleanup "$1"; then
+    test=$1
+    if bash testone.sh --cleanup "$test"; then
         echo "$1 PASS" >> master.log
     else
         echo "$1 FAIL" >> master.log
+        echo ${test} >> ${FAIL_FILE}
     fi
 }
 
@@ -78,6 +82,8 @@ if [ -n "$E2E_TEST_NAME" ]; then
 
     run_and_log "$E2E_TEST_NAME"
 else
+    run_and_log "1-parallel/no-base-serial"
+
     # Clean up everything, non-interactively.
     SKIP_CHECK_CONTEXT=yes initialize_cluster
 
@@ -86,6 +92,19 @@ else
 fi
 
 wait
+
+echo "The following tests failed:"
+cat ${FAIL_FILE}
+
+cp ${FAIL_FILE} old-failures.txt
+# Empty the file for re-runs
+> ${FAIL_FILE}
+while read -r line || [[ -n "$line" ]]; do
+    echo
+    echo "Re-running $test"
+    echo
+    run_and_log ${line}
+done < old-failures.txt
 
 for f in *-fail-*.log; do
     if [ -f ${f} ]; then
@@ -99,9 +118,7 @@ for f in *-fail-*.log; do
     fi
 done
 
-# Stupid grep. Why exactly it insists on exiting nonzero when it
-# doesn't find the match with -c...
-failures=$(grep -c 'FAIL' master.log || true)
-echo "failures: $failures"
-
-exit ${failures}
+fail_count=$(wc -l < ${FAIL_FILE})
+echo "The following ${fail_count} tests failed:"
+cat ${FAIL_FILE}
+exit ${fail_count}
