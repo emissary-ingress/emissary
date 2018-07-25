@@ -48,10 +48,10 @@ retry () {
 }
 
 _get_forge_iteration () {
-    forge_version=$(curl -f -s https://s3.amazonaws.com/datawire-static-files/forge/latest.url)
+    forge_version=$(curl -f -s https://s3.amazonaws.com/datawire-static-files/forge/latest.url?x-download=datawire)
     if [ $? -ne 0 ]; then return 1; fi
 
-    curl -f -s -L -o "$FORGE" https://s3.amazonaws.com/datawire-static-files/forge/$forge_version/forge
+    curl -f -s -L -o "$FORGE" https://s3.amazonaws.com/datawire-static-files/forge/$forge_version/forge?x-download=datawire
     if [ $? -ne 0 ]; then return 1; fi
 
     chmod +x "$FORGE"
