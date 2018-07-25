@@ -4,7 +4,7 @@ Ambassador can add a dictionary of HTTP headers that can be added to each reques
 
 ## The `add_request_headers` annotation
 
-The `add_request_headers` attribute is a dictionary of `header`: `value` pairs. Envoy dynamic values %DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT% and %PROTOCOL% are supported, in addition to static values.
+The `add_request_headers` attribute is a dictionary of `header`: `value` pairs. Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values.
 
 ## A basic example
 
