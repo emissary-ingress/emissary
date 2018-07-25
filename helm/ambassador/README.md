@@ -1,6 +1,6 @@
 # Ambassador
 
-Ambassador is an open source, Kubernetes-native [microservices API gateway](https://www.getambassador.io/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io/). 
+Ambassador is an open source, Kubernetes-native [microservices API gateway](https://www.getambassador.io/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io/).
 
 ## TL;DR;
 
@@ -11,7 +11,7 @@ $ helm install datawire/ambassador
 
 ## Introduction
 
-This chart bootstraps an [Ambassador](https://www.getambassador.io) deployment on 
+This chart bootstraps an [Ambassador](https://www.getambassador.io) deployment on
 a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 ## Prerequisites
@@ -26,7 +26,7 @@ To install the chart with the release name `my-release`:
 $ helm install --name my-release datawire/ambassador
 ```
 
-The command deploys Ambassador API gateway on the Kubernetes cluster in the default configuration. 
+The command deploys Ambassador API gateway on the Kubernetes cluster in the default configuration.
 The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Uninstalling the Chart
@@ -45,14 +45,17 @@ The following tables lists the configurable parameters of the Ambassador chart a
 
 | Parameter                       | Description                                | Default                                                    |
 | ------------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| `image.repository` | Image | `quay.io/datawire/ambassador` 
-| `image.tag` | Image tag | `0.35.0` 
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` 
-| `replicaCount`  | Number of Ambassador replicas  | `1` 
-| `resources` | CPU/memory resource requests/limits | None 
+| `image.repository` | Image | `quay.io/datawire/ambassador`
+| `image.tag` | Image tag | `0.35.0`
+| `image.pullPolicy` | Image pull policy | `IfNotPresent`
+| `replicaCount`  | Number of Ambassador replicas  | `1`
+| `resources` | CPU/memory resource requests/limits | None
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
 | `serviceAccount.create` | If `true`, create a new service account | `true`
 | `serviceAccount.name` | Service account to be used | `ambassador`
+| `namespace.single` | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable | `false`
+| `namespace.name` | Set the `AMBASSADOR_NAMESPACE` environment variable | `metadata.namespace`
+| `ambassador.id` | Set the identifier of the Ambassador instance | none
 | `service.enableHttp` | if port 80 should be opened for service | `true`
 | `service.enableHttps` | if port 443 should be opened for service | `true`
 | `service.targetPorts.http` | Sets the targetPort that maps to the service's port 80 | `80`
