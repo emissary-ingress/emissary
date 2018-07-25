@@ -57,12 +57,15 @@ check_rbac
 
 rm -f *.log
 cat /dev/null > master.log
+> failures.txt
 
 run_and_log () {
-    if bash testone.sh --cleanup "$1"; then
+    test=$1
+    if bash testone.sh --cleanup "$test"; then
         echo "$1 PASS" >> master.log
     else
         echo "$1 FAIL" >> master.log
+        echo ${test} >> failures.txt
     fi
 }
 
@@ -89,6 +92,19 @@ fi
 
 wait
 
+echo
+echo "The following tests failed:"
+cat failures.txt
+
+cp failures.txt old-failures.txt
+# Empty the file for re-runs
+> failures.txt
+while read -r line || [[ -n "$line" ]]; do
+    echo
+    echo "Re-running $test"
+    run_and_log ${line}
+done < old-failures.txt
+
 for f in *-fail-*.log; do
     if [ -f ${f} ]; then
         echo "=========================================="
@@ -101,9 +117,7 @@ for f in *-fail-*.log; do
     fi
 done
 
-# Stupid grep. Why exactly it insists on exiting nonzero when it
-# doesn't find the match with -c...
-failures=$(grep -c 'FAIL' master.log || true)
-echo "failures: $failures"
-
-exit ${failures}
+fail_count=$(wc -l < failures.txt)
+echo "The following ${fail_count} tests failed:"
+cat failures.txt
+exit ${fail_count}
