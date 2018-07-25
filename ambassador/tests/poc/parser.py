@@ -53,17 +53,12 @@ class MappingView(View, Mapping):
         raise KeyError(key)
 
     def __setitem__(self, key, value):
-        value = node(value)
-        values = []
-        for k, v in self.node.value:
+        for idx, (k, v) in enumerate(self.node.value):
             if k.value == key:
-                values.append((k, value))
+                self.node.value[idx] = (node(key), node(value))
                 break
-            else:
-                values.append((k, v))
         else:
-            values.append((node(key), value))
-        self.node.value = values
+            self.node.value.append((node(key), node(value)))
 
     def update(self, other):
         for k, v in other.items():
@@ -161,7 +156,7 @@ def node(value: Any) -> Node:
     return COERCIONS[type(value)](value)
 
 def load(name: str, value: Any) -> SequenceView:
-    return view(SequenceNode(Tag.SEQUENCE, list(compose_all(value))), ViewMode.PYTHON)
+    return view(SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON)
 
 def dump(value: SequenceView):
     return dump_all(value, default_flow_style=False)
