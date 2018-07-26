@@ -21,7 +21,7 @@ NAMESPACE="006-auth-canary"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
     ${ROOT}/ambassador-deployment.yaml \

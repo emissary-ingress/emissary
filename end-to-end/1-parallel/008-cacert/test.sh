@@ -21,7 +21,7 @@ NAMESPACE="008-cacert"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \

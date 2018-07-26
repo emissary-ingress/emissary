@@ -21,7 +21,7 @@ NAMESPACE="001-simple"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 rm -f adep-tmp.yaml
 
