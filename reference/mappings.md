@@ -74,7 +74,7 @@ Ambassador supports a number of additional attributes to configure and customize
 | :------------------------ | :------------------------ |
 | [`add_request_headers`](add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`cors`](cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
-| [`grpc`](user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
+| [`grpc`](../user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | [`host`](host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
 | [`host_regex`](host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
