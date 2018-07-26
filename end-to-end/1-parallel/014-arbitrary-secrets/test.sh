@@ -21,7 +21,7 @@ NAMESPACE="014-arbitrary-secrets"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml

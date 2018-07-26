@@ -32,17 +32,17 @@ step () {
 }
 
 bootstrap () {
-    NAMESPACE=${1:-default}
-
-    PATH="${2}:${PATH}"
-    echo "PATH set to $PATH"
-
     CLEAN_ON_SUCCESS=
 
     if [ "$1" == "--cleanup" ]; then
         CLEAN_ON_SUCCESS="--cleanup"
         shift
     fi
+
+    NAMESPACE=${1:-default}
+
+    PATH="${2}:${PATH}"
+    echo "PATH set to $PATH"
 
     check_rbac
 
@@ -55,7 +55,7 @@ bootstrap () {
 
     kubectl cluster-info
 
-    echo "boostrapping done for test $NAMESPACE"
+    echo "bootstrapping done for test $NAMESPACE"
 }
 
 check_skip () {

@@ -21,7 +21,7 @@ NAMESPACE="ambassador-sbx0"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 # Make sure cluster-wide RBAC is set up.
 kubectl apply -f rbac.yaml
