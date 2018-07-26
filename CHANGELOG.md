@@ -8,6 +8,8 @@
 
 ## BREAKING NEWS
 
+- In Ambassador 0.36.0, the Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
+
 - **Ambassador 0.35.0 resupports websockets, with the important caveat that a websocket cannot have multiple upstream services**.
   - This means that you cannot do canary deployments for websockets.
     We're actively working on fixing this.
@@ -29,6 +31,14 @@
 - As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
+
+## [0.36.0] July 26, 2018:
+[0.36.0]: https://github.com/datawire/ambassador/compare/0.35.3...0.36.0
+
+### Major changes:
+- Fix: HEAD requests no longer cause segfaults
+- Feature: TLS can now be configured with arbitrary secret names, instead of predefined secrets
+- Change: The Envoy dynamic header value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.) 
 
 ## [0.35.3] July 18, 2018: **READ THE WARNING ABOVE**
 [0.35.3]: https://github.com/datawire/ambassador/compare/0.35.2...0.35.3

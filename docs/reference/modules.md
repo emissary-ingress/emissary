@@ -85,27 +85,6 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 **Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
-### The `tls` Module
-
-If present, the `tls` module defines system-wide configuration for TLS.
- 
-When running in Kubernetes, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret, so many Kubernetes installations of Ambassador will not need a `tls` module at all.
-
-The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following `tls` module:
-
-```
----
-apiVersion: ambassador/v0
-kind:  Module
-name:  tls
-config:
-  server:
-    enabled: True
-    redirect_cleartext_from: 80
-```
-
-TLS configuration is examined in more detail in the documentation on [TLS termination](/user-guide/tls-termination.md) and [TLS client certificate authentication](/reference/auth-tls-certs).
-
 ### The `authentication` Module
 
 The `authentication` module is now deprecated. Use the [AuthService](services/auth-service.md) manifest type instead.

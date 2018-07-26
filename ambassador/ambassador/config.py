@@ -30,7 +30,7 @@ from pkg_resources import Requirement, resource_filename
 
 from jinja2 import Environment, FileSystemLoader
 
-from .utils import RichStatus, SourcedDict
+from .utils import RichStatus, SourcedDict, read_cert_secret, save_cert, TLSPaths, kube_v1, check_cert_file
 from .resource import Resource
 from .mapping import Mapping
 
@@ -158,12 +158,12 @@ class Config:
             "server": {},
             "client": {},
         }
-        if os.path.isfile("/etc/certs/tls.crt"):
-            self.default_tls_config["server"]["cert_chain_file"] = "/etc/certs/tls.crt"
-        if os.path.isfile("/etc/certs/tls.key"):
-            self.default_tls_config["server"]["private_key_file"] = "/etc/certs/tls.key"
-        if os.path.isfile("/etc/cacert/tls.crt"):
-            self.default_tls_config["client"]["cacert_chain_file"] = "/etc/cacert/tls.crt"
+        if os.path.isfile(TLSPaths.mount_tls_crt.value):
+            self.default_tls_config["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
+        if os.path.isfile(TLSPaths.mount_tls_key.value):
+            self.default_tls_config["server"]["private_key_file"] = TLSPaths.mount_tls_key.value
+        if os.path.isfile(TLSPaths.client_mount_crt.value):
+            self.default_tls_config["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         self.tls_config = None
 
@@ -835,6 +835,7 @@ class Config:
             diagnostics = { "enabled": True },
             tls_config = None,
             use_proxy_proto = False,
+            x_forwarded_proto_redirect = False,
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -941,6 +942,14 @@ class Config:
         if 'use_remote_address' in self.ambassador_module:
             primary_listener['use_remote_address'] = self.ambassador_module['use_remote_address']
 
+        # If x_forwarded_proto_redirect is set, then we enable require_tls in primary listener, which in turn sets
+        # require_ssl to true in envoy config. Once set, then all requests that contain X-FORWARDED-PROTO set to
+        # https, are processes normally by envoy. In all the other cases, including X-FORWARDED-PROTO set to http,
+        # a 301 redirect response to https://host is sent
+        if self.ambassador_module.get('x_forwarded_proto_redirect', False):
+            primary_listener['require_tls'] = True
+            self.logger.debug("x_forwarded_proto_redirect is set to true, enabling 'require_tls' in listener")
+
         redirect_cleartext_from = None
         tmod = self.ambassador_module.get('tls_config', None)
 
@@ -948,12 +957,16 @@ class Config:
         if tmod:
             # self.logger.debug("USING TLS")
             primary_listener['tls'] = tmod
+            if self.tmod_certs_exist(primary_listener['tls']) > 0:
+                primary_listener['tls']['ssl_context'] = True
             redirect_cleartext_from = tmod.get('redirect_cleartext_from')
 
         self.envoy_config['listeners'] = [ primary_listener ]
 
         if redirect_cleartext_from:
-            primary_listener['require_tls'] = True
+            # We only want to set `require_tls` on the primary listener when certs are present on the pod
+            if self.tmod_certs_exist(primary_listener['tls']) > 0:
+                primary_listener['require_tls'] = True
 
             new_listener = SourcedDict(
                 _from=self.ambassador_module,
@@ -1093,6 +1106,24 @@ class Config:
 
         self.envoy_config['breakers'] = self.clean_and_copy(self.breakers)
         self.envoy_config['outliers'] = self.clean_and_copy(self.outliers)
+
+    @staticmethod
+    def tmod_certs_exist(tmod):
+        """
+        Returns the number of certs that are defined in the supplied tmod
+
+        :param tmod: The TLS module configuration
+        :return: number of certs in tmod
+        :rtype: int
+        """
+        cert_count = 0
+        if tmod.get('cert_chain_file') is not None:
+            cert_count += 1
+        if tmod.get('private_key_file') is not None:
+            cert_count += 1
+        if tmod.get('cacert_chain_file') is not None:
+            cert_count += 1
+        return cert_count
 
     def _get_intermediate_for(self, element_list, res_keys, value):
         if not isinstance(value, dict):
@@ -1250,6 +1281,26 @@ class Config:
                     # ...and merge in the server-side defaults.
                     tmp_config.update(self.default_tls_config['server'])
                     tmp_config.update(tmod['server'])
+
+                    # Check if secrets are supplied for TLS termination and/or TLS auth
+                    secret = context.get('secret')
+                    if secret is not None:
+                        self.logger.debug("config.server.secret is {}".format(secret))
+                        # If /{etc,ambassador}/certs/tls.crt does not exist, then load the secrets
+                        if check_cert_file(TLSPaths.mount_tls_crt.value):
+                            self.logger.debug("Secret already exists, taking no action for secret {}".format(secret))
+                        elif check_cert_file(TLSPaths.tls_crt.value):
+                            tmp_config['cert_chain_file'] = TLSPaths.tls_crt.value
+                            tmp_config['private_key_file'] = TLSPaths.tls_key.value
+                        else:
+                            (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret, self.namespace)
+                            if server_cert and server_key:
+                                self.logger.debug("saving contents of secret {} to {}".format(
+                                    secret, TLSPaths.cert_dir.value))
+                                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
+                                tmp_config['cert_chain_file'] = TLSPaths.tls_crt.value
+                                tmp_config['private_key_file'] = TLSPaths.tls_key.value
+
                 elif context_name == 'client':
                     # Client-side TLS is enabled.
                     self.logger.debug("TLS client certs enabled!")
@@ -1258,6 +1309,22 @@ class Config:
                     # Merge in the client-side defaults.
                     tmp_config.update(self.default_tls_config['client'])
                     tmp_config.update(tmod['client'])
+
+                    secret = context.get('secret')
+                    if secret is not None:
+                        self.logger.debug("config.client.secret is {}".format(secret))
+                        if check_cert_file(TLSPaths.client_mount_crt.value):
+                            self.logger.debug("Secret already exists, taking no action for secret {}".format(secret))
+                        elif check_cert_file(TLSPaths.client_tls_crt.value):
+                            tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+                        else:
+                            (client_cert, _, _) = read_cert_secret(kube_v1(), secret, self.namespace)
+                            if client_cert:
+                                self.logger.debug("saving contents of secret {} to  {}".format(
+                                    secret, TLSPaths.client_cert_dir.value))
+                                save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
+                                tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+
                 else:
                     # This is a wholly new thing.
                     self.tls_contexts[context_name] = SourcedDict(
@@ -1292,7 +1359,7 @@ class Config:
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics' ]:
+                     'use_proxy_proto', 'use_remote_address', 'diagnostics', 'x_forwarded_proto_redirect' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])

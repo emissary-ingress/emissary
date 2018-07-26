@@ -14,7 +14,6 @@
 
 import sys
 
-import binascii
 import click
 import json
 import logging
@@ -28,8 +27,9 @@ import time
 
 import yaml
 
-from kubernetes import client, config, watch
+from kubernetes import watch
 from ambassador.config import Config
+from ambassador.utils import kube_v1, read_cert_secret, save_cert, check_cert_file, TLSPaths
 
 from ambassador.VERSION import Version
 
@@ -250,83 +250,6 @@ class Restarter(threading.Thread):
             self.pokes += 1
 
 
-def kube_v1():
-    # Assume we got nothin'.
-    k8s_api = None
-
-    # XXX: is there a better way to check if we are inside a cluster or not?
-    if "KUBERNETES_SERVICE_HOST" in os.environ:
-        # If this goes horribly wrong and raises an exception (it shouldn't),
-        # we'll crash, and Kubernetes will kill the pod. That's probably not an
-        # unreasonable response.
-        config.load_incluster_config()
-        k8s_api = client.CoreV1Api()
-    else:
-        # Here, we might be running in docker, in which case we'll likely not
-        # have any Kube secrets, and that's OK.
-        try:
-            config.load_kube_config()
-            k8s_api = client.CoreV1Api()
-        except FileNotFoundError:
-            # Meh, just ride through.
-            logger.info("No K8s")
-            pass
-
-    return k8s_api
-
-def check_cert_file(path):
-    readable = False
-
-    try:
-        data = open(path, "r").read()
-
-        if data and (len(data) > 0):
-            readable = True
-    except OSError:
-        pass
-    except IOError:
-        pass
-
-    return readable
-
-def read_cert_secret(k8s_api, secret_name, namespace):
-    cert_data = None
-    cert = None
-    key = None
-
-    try:
-        cert_data = k8s_api.read_namespaced_secret(secret_name, namespace)
-    except client.rest.ApiException as e:
-        if e.reason == "Not Found":
-            pass
-        else:
-            logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
-
-    if cert_data and cert_data.data:
-        cert_data = cert_data.data
-        cert = cert_data.get('tls.crt', None)
-
-        if cert:
-            cert = binascii.a2b_base64(cert)
-
-        key = cert_data.get('tls.key', None)
-
-        if key:
-            key = binascii.a2b_base64(key)
-
-    return (cert, key, cert_data)
-
-def save_cert(cert, key, dir):
-    try:
-        os.makedirs(dir)
-    except FileExistsError:
-        pass
-
-    open(os.path.join(dir, "tls.crt"), "w").write(cert.decode("utf-8"))
-
-    if key:
-        open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
-
 def sync(restarter):
     v1 = kube_v1()
 
@@ -344,7 +267,7 @@ def sync(restarter):
                     restarter.update(key, restarter.read_yaml(config_yaml, "ambassador-config %s" % key))
 
         # If we don't already see a TLS server key in its usual spot...
-        if not check_cert_file("/etc/certs/tls.crt"):
+        if not check_cert_file(TLSPaths.mount_tls_crt.value):
             # ...then try pulling keys directly from the configmaps.
             (server_cert, server_key, server_data) = read_cert_secret(v1, "ambassador-certs", 
                                                                       restarter.namespace)
@@ -360,24 +283,24 @@ def sync(restarter):
                     "config": {
                         "server": {
                             "enabled": True,
-                            "cert_chain_file": "/ambassador/certs/tls.crt",
-                            "private_key_file": "/ambassador/certs/tls.key"
+                            "cert_chain_file": TLSPaths.tls_crt.value,
+                            "private_key_file": TLSPaths.tls_key.value
                         }
                     }
                 }
 
-                save_cert(server_cert, server_key, "/ambassador/certs")
+                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
 
                 if client_cert:
                     tls_mod['config']['client'] = {
                         "enabled": True,
-                        "cacert_chain_file": "/ambassador/cacert/tls.crt"
+                        "cacert_chain_file": TLSPaths.client_tls_crt.value
                     }
 
                     if client_data.get('cert_required', None):
                         tls_mod['config']['client']["cert_required"] = True
 
-                    save_cert(client_cert, None, "/ambassador/cacert")
+                    save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
 
                 tls_yaml = yaml.safe_dump(tls_mod)
                 logger.debug("generated TLS config %s" % tls_yaml)

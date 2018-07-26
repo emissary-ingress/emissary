@@ -51,6 +51,31 @@ To ensure high availability, you can force a no-op rolling update (https://githu
 kubectl patch deployment ambassador -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
 ```
 
+##### Configuring using a user defined secret
+
+If you do not wish to use a secret named `ambassador-certs`, then you can tell Ambassador to use your own secret. This can be particularly useful if you want to use different secrets for different Ambassador deployments.
+
+Create the secret -
+```shell
+kubectl create secret tls user-secret --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
+```
+
+And then, configure Ambassador's TLS module like the following -
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+  server:
+    enabled: True
+    secret: user-secret
+```
+
+This will make Ambassador load a secret called `user-secret` to configure TLS termination.
+
+Note: If `ambassador-certs` is present in the cluster and the TLS module is configured to load a custom secret, then `ambassador-certs` will take precedence, and the custom secret will be ignored.
+
 ## 4. You may need to configure other Ambassador TLS options.
 
 If you don't need anything else, you're good to go.

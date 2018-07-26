@@ -140,7 +140,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%CLIENT_IP%"}, {"key": "x-test-static", "value": "testing"}],"weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"}, {"key": "x-test-static", "value": "testing"}],"weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_httpbin_org_80", "weight": 100.0 }
