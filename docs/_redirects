@@ -5,5 +5,6 @@
 /how-to/auth-external      /reference/services/auth-service
 /user-guide/running        /reference/running
 /reference/auth-external   /reference/services/auth-service
+/reference/auth-tls-certs  /reference/core/tls
 /helm/*                    https://s3.amazonaws.com/datawire-static-files/ambassador/:splat
 /index.yaml                https://s3.amazonaws.com/datawire-static-files/ambassador/index.yaml
