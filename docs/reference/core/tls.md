@@ -106,6 +106,29 @@ kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
 
 When Ambassador starts, it will notice the `ambassador-cacert` secret and turn TLS client-certificate auth on (assuming that TLS termination is enabled).
 
+##### Using a user defined secret
+
+If you do not wish to use a secret named `ambassador-cacert`, then you can specify your own secret. This can be particularly useful if you want to use different secrets for different Ambassador deployments in your cluster.
+
+Create the secret -
+```shell
+kubectl create secret generic user-secret --from-file=tls.crt=$CACERT_PATH
+```
+
+And then, configure Ambassador's TLS module like the following -
+
+```yaml
+apiVersion: ambassador/v0
+kind:  Module
+name:  tls
+config:
+  client:
+    enabled: True
+    secret: user-secret
+```
+
+Note: If `ambassador-cacert` is present in the cluster and the TLS module is configured to load a custom secret, then `ambassador-cacert` will take precedence, and the custom secret will be ignored.
+
 ### More reading
 
 The [TLS termination guide](/user-guide/tls-termination.md) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws.md). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
