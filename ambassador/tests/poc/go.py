@@ -1,37 +1,37 @@
 #!/usr/bin/env python3
 
-from abc import ABC, abstractmethod
-from parser import load, dump, Tag, SequenceView
-from typing import Sequence
+from typing import Any, Iterable, Optional, Sequence, Type
 
-class Test(ABC):
+import pprint
+import templates
 
-    def name(self) -> str:
-        return self.__class__.__name__
-
-    @abstractmethod
-    def yaml(self) -> str:
-        pass
-
-    def yaml_check(self, *tags: Tag) -> SequenceView:
-        seq = load(self.name(), self.yaml())
-        for o in seq:
-            if o.tag not in tags:
-                raise ValueError("test %s expecting %s, got %s" % (self.name(), ", ".join(t.name for t in tags),
-                                                                   o.node.tag))
-        return seq
+from harness import choice, variants, Test
 
 class ConfigTest(Test):
 
-    def __init__(self):
-        self.mappings = []
+    @classmethod
+    def variants(cls):
+        yield (cls, variants(MappingTest))
 
-    def add_mapping(self, m):
-        m.config = self
-        self.mappings.append(m)
+    def __init__(self, mappings = ()):
+        self.mappings = list(mappings)
+        for m in mappings:
+            m.config = self
 
     def assemble(self):
-        result = self.yaml_check(Tag.MAPPING)
+        result = []
+        amb_yaml = self.yaml_check(self.yaml, Tag.MAPPING)
+        if amb_yaml is not None:
+            for m in amb_yaml:
+                m["ambassador_id"] = self.name().lower()
+        k8s_yaml = self.yaml_check(self.k8s_yaml, Tag.MAPPING)
+        if amb_yaml is not None:
+            for item in k8s_yaml:
+                if item["kind"].lower() == "service":
+                    item["metadata"]["annotations"] = { "getambassador.io/config": dump(amb_yaml) }
+                    break
+        result.extend(k8s_yaml)
+
         for m in self.mappings:
             result.extend(m.assemble())
         return result
@@ -40,100 +40,93 @@ class ConfigTest(Test):
         for m in self.mappings:
             yield m.target
 
+    def k8s_yaml(self) -> str:
+        return templates.AMBASSADOR % {"name": self.name().lower()}
+
 class ServiceType:
 
     mapping: 'MappingTest'
 
+    @classmethod
+    def variants(cls):
+        yield (cls,)
+
 class HTTP(ServiceType):
 
     def __str__(self):
-        return "HTTP_%s" % self.mapping.name()
+        return self.mapping.name()
 
 class GRPC(ServiceType):
 
     def __str__(self):
-        return "GRPC_%s" % self.mapping.name()
+        return self.mapping.name()
 
 class MappingTest(Test):
 
     target: ServiceType
+    suffix: str
     options: Sequence['MappingOptionTest']
+    config: ConfigTest
 
-    def __init__(self, target: ServiceType) -> None:
+    def __init__(self, target: ServiceType, suffix: str = "", options = ()) -> None:
         target.mapping = self
         self.target = target
-        self.options = []
+        self.suffix = suffix
+        self.options = list(options)
+        for o in self.options:
+            o.mapping = self
 
-    @classmethod
-    def apply_options(cls):
-        return False
-
-    def add_option(self, o):
-        o.mapping = self
-        self.options.append(o)
+    def name(self):
+        return self.target.__class__.__name__ + "-" + Test.name(self) + self.suffix
 
     def assemble(self):
-        mappings = self.yaml_check(Tag.MAPPING)
+        mappings = self.yaml_check(self.yaml, Tag.MAPPING)
+        for m in mappings:
+            m["ambassador_id"] = self.config.name().lower()
         me = mappings[0]
         for opt in self.options:
-            for o in opt.yaml_check(Tag.MAPPING):
+            for o in opt.yaml_check(opt.yaml, Tag.MAPPING):
                 me.update(o)
-        return [me]
+
+        k8s_yaml = self.yaml_check(self.k8s_yaml, Tag.MAPPING)
+        for item in k8s_yaml:
+            if item["kind"].lower() == "service":
+                item["metadata"]["annotations"] = { "getambassador.io/config": dump(mappings) }
+
+        return k8s_yaml
+
+    def k8s_yaml(self):
+        return templates.BACKEND % {"name": str(self.target).lower()}
 
 class MappingOptionTest(Test):
-    pass
 
+    mapping: MappingTest
 
-import inspect
+    VALUES: Any = None
 
-def get_type(type):
-    for k, v in globals().items():
-        if inspect.isclass(v):
-            if issubclass(v, type) and v != type:
-                yield v
+    @classmethod
+    def variants(cls):
+        if cls.VALUES is None:
+            yield (cls,)
+        else:
+            yield (cls, choice(cls.VALUES))
 
-def get_configs():
-    return get_type(ConfigTest)
+    def __init__(self, value = None):
+        self.value = value
 
-def get_service_types():
-    return get_type(ServiceType)
-
-def get_mappings():
-    return get_type(MappingTest)
-
-def get_mapping_options():
-    return get_type(MappingOptionTest)
-
-def collect():
-    permutations = []
-    for cfg in get_configs():
-        # we create a new permutation for each top level config we
-        # want to test no idea if that is appropriate... I should
-        # prolly read what we can configure
-        c = cfg()
-        permutations.append(c)
-        for st in get_service_types():
-            # we instantiate every mapping test for every service type
-            for m in get_mappings():
-                c.add_mapping(m(st()))
-                # if the mapping tests says it's ok, we apply option
-                # tests to the mapping
-                if m.apply_options():
-                    loaded = m(st())
-                    for mo in get_mapping_options():
-                        loaded.add_option(mo())
-                        isolated = m(st())
-                        isolated.add_option(mo())
-                        c.add_mapping(isolated)
-                    c.add_mapping(loaded)
-    return permutations
+    def name(self):
+        if self.value is None:
+            return Test.name(self)
+        else:
+            return Test.name(self) + "[" + str(self.value) + "]"
 
 def go():
-    for p in collect():
-        print("==services==")
-        print(" ".join(str(s) for s in p.services()))
-        print("==configuration==")
-        print(dump(p.assemble()), end="")
+    vars = tuple(v.instantiate() for v in variants(ConfigTest))
+    for v in vars:
+#        print("--")
+#        pprint.pprint(v, indent=2)
+#        print(dump(v.assemble()), end="")
+        v.list()
 
 ##################################
 
@@ -152,28 +145,45 @@ config:
     enabled: False
         """
 
+#class Empty(ConfigTest):
+
+#    def yaml(self):
+#        return ""
+
 class Plain(ConfigTest):
 
     def yaml(self):
-        return "{}"
+        return """
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config: {}
+"""
 
 class SimpleMapping(MappingTest):
 
     @classmethod
-    def apply_options(cls):
-        return True
+    def variants(cls):
+        yield (cls, choice(variants(ServiceType)))
+        yield (cls, choice(variants(ServiceType)), "-isolated", (choice(variants(MappingOptionTest)),))
+        # need to figure out how to write this when there are conflicting option tests
+        yield (cls, choice(variants(ServiceType)), "-loaded", variants(MappingOptionTest))
 
     def yaml(self):
         return """
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
+name:  %s
+prefix: /%s/
 service: http://%s
-""" % self.target
+""" % (self.name(), self.name(), self.target)
 
 class AddRequestHeaders(MappingOptionTest):
+
+    VALUES = ({"foo": "bar"},
+              {"moo": "arf"})
 
     def yaml(self):
         return """
@@ -199,14 +209,24 @@ class SimpleOption3(MappingOptionTest):
 
 class GroupMapping(MappingTest):
 
+    @classmethod
+    def variants(cls):
+        yield (cls, choice(variants(ServiceType)))
+
     def yaml(self):
         return """
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  group_mapping
-prefix: /group/
+name:  %s
+prefix: /%s/
 service: http://%s
-""" % self.target
+""" % (self.name(), self.name(), self.target)
 
 go()
+
+### NEXT STEPS: write cli, wire in driver, wire in assertions
+
+# Bugs found:
+# - an empty annotation causes a crash: hard to track down what is at fault when this happens
+#  + possibly need better architectural isolation so errors are more targeted to inputs at a lower level
