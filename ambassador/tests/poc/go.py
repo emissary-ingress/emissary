@@ -6,6 +6,7 @@ import pprint
 import templates
 
 from harness import choice, variants, Test
+from parser import dump, Tag
 
 class ConfigTest(Test):
 
@@ -15,8 +16,6 @@ class ConfigTest(Test):
 
     def __init__(self, mappings = ()):
         self.mappings = list(mappings)
-        for m in mappings:
-            m.config = self
 
     def assemble(self):
         result = []
@@ -73,8 +72,6 @@ class MappingTest(Test):
         self.target = target
         self.suffix = suffix
         self.options = list(options)
-        for o in self.options:
-            o.mapping = self
 
     def name(self):
         return self.target.__class__.__name__ + "-" + Test.name(self) + self.suffix
@@ -82,7 +79,7 @@ class MappingTest(Test):
     def assemble(self):
         mappings = self.yaml_check(self.yaml, Tag.MAPPING)
         for m in mappings:
-            m["ambassador_id"] = self.config.name().lower()
+            m["ambassador_id"] = self.parent.name().lower()
         me = mappings[0]
         for opt in self.options:
             for o in opt.yaml_check(opt.yaml, Tag.MAPPING):
@@ -125,8 +122,8 @@ def go():
     for v in vars:
 #        print("--")
 #        pprint.pprint(v, indent=2)
-#        print(dump(v.assemble()), end="")
-        v.list()
+        print(dump(v.assemble()), end="")
+#        v.list()
 
 ##################################
 
