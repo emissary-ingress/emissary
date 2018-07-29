@@ -69,9 +69,9 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  tls
 config:
-server:
-  enabled: True
-  redirect_cleartext_from: 8080
+  server:
+    enabled: True
+    redirect_cleartext_from: 8080
 ```
 
 If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests with `X-FORWARDED-PROTO: http` header to HTTPS. Here is an example Ambassador configuration for this scenario:
