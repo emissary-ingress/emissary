@@ -5,7 +5,8 @@
         "readme": "INDEX.md"
     },
     "plugins": [
-        "gtm"
+        "gtm",
+        "anchorjs"
     ],
     "pluginsConfig": {
         "layout": {
@@ -14,6 +15,13 @@
         "gtm": {
             "token": "GTM-TPMQ838",
             "virtualPageViews": true
+        },
+        "anchorjs": {
+            "selector": "h2,h3,h4,h5",
+            "placement": "right",
+            "visible": "always",
+            "truncate": 64,
+            "ariaLabel": "Anchor"
         }
     }
 }
