@@ -8,6 +8,8 @@ Ambassador is configured in a declarative fashion, using YAML manifests to descr
 
 - [`RateLimitService`](services/rate-limit-service.md) manifests configures the external rate limiting service that Ambassador will use.
 
+- [`TracingService`](services/tracing-service.md) manifests configures the external tracing service that Ambassador will use.
+
 - [`Mapping`](mappings) manifests associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
 ## Configuration sources

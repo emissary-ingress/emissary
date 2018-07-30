@@ -32,7 +32,8 @@ Uniqifiers = {
     'tls': lambda x: "TLS",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
-    'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename']
+    'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename'],
+    'tracing': lambda x: x['cluster_name']
 }
 
 def filtered_overview(ov):
