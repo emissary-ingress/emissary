@@ -32,7 +32,3 @@ spec:
         ports:
         - name: http
           containerPort: 9411
-        resources:
-          limits:
-            cpu: "1"
-            memory: 256Mi
