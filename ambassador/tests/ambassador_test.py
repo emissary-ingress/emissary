@@ -124,6 +124,7 @@ def test_config(testname, dirpath, configdir):
                             '/usr/local/bin/envoy',
                                '--base-id', '1',
                                '--mode', 'validate',
+                               '--service-cluster', 'test',
                                '-c', '/etc/ambassador-config/envoy.json' ],
                       verbose=True)
 

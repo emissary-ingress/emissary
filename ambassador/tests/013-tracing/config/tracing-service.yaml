@@ -1,0 +1,6 @@
+---
+apiVersion: ambassador/v0
+kind: TracingService
+name: tracing
+service: "example-tracing:5000"
+driver: zipkin
