@@ -12,7 +12,7 @@ from shell import shell
 
 from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
 
-VALIDATOR_IMAGE = "quay.io/datawire/ambassador-envoy:v1.7.0-64-g09ba72b1-alpine-stripped"
+VALIDATOR_IMAGE = "quay.io/datawire/ambassador-envoy:v1.7.0-235-gaf17ea9a-alpine-stripped"
 
 DIR = os.path.dirname(__file__)
 EXCLUDES = [ "__pycache__" ] 
@@ -122,6 +122,7 @@ def test_config(testname, dirpath, configdir):
                             '-v', '%s:/etc/ambassador-config' % dirpath,
                             VALIDATOR_IMAGE,
                             '/usr/local/bin/envoy',
+                               '--allow-deprecated-v1-api',
                                '--base-id', '1',
                                '--mode', 'validate',
                                '-c', '/etc/ambassador-config/envoy.json' ],
