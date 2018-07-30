@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from itertools import chain, product
 from typing import Any, Iterable, Optional, Sequence, Type
 
-import inspect, sys
+import inspect, json, os, pprint, sys
 
 from parser import load, dump, Tag, SequenceView
 
@@ -110,3 +110,52 @@ class Test(ABC):
                 raise ValueError("test %s expecting %s, got %s" % (self.name(), ", ".join(t.name for t in tags),
                                                                    o.node.tag))
         return seq
+
+import argparse
+
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers(help="subcommands")
+
+def cli(root, args = None):
+    if args is None:
+        args = sys.argv[1:]
+    ns = parser.parse_args(args)
+    ns.func(root, ns)
+
+## list subcommand
+list_parser = subparsers.add_parser("list", help="list tests, configuration, and/or manifests")
+
+def list_(root, args):
+    vars = variants(root)
+    for v in vars:
+        v.instantiate().list()
+#        pprint.pprint(v, indent=2)
+
+list_parser.set_defaults(func=list_)
+
+
+## setup subcommand
+setup_parser = subparsers.add_parser("setup", help="setup the current cluster for testing")
+
+def setup(root, args):
+    vars = variants(root)
+    for v in vars:
+        print(dump(v.instantiate().assemble()), end="")
+
+setup_parser.set_defaults(func=setup)
+
+
+## run subcommand
+run_parser = subparsers.add_parser("run", help="run tests")
+
+def run(root, args):
+    vars = variants(root)
+    tests = [v.instantiate() for v in vars]
+    urls = []
+    for t in tests:
+        urls.extend(t.urls())
+    with open("/tmp/urls.json", "w") as f:
+        json.dump(urls, f)
+    os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json")
+
+run_parser.set_defaults(func=run)

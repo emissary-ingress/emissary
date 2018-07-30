@@ -10,9 +10,9 @@ import (
 
 func requestLogger(w http.ResponseWriter, r *http.Request) {
 	var request = make(map[string]interface{})
-	request["URL"] = r.URL
-	request["Method"] = r.Method
-	request["Header"] = r.Header
+	request["url"] = r.URL
+	request["method"] = r.Method
+	request["header"] = r.Header
 
 	// respond with the requested status
 	status := r.Header.Get("Requested-Status")
@@ -42,11 +42,11 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 
 	// Write out all request/response information
 	var response = make(map[string]interface{})
-	response["Header"] = w.Header()
+	response["headers"] = w.Header()
 
 	var body = make(map[string]interface{})
-	body["Request"] = request
-	body["Response"] = response
+	body["request"] = request
+	body["response"] = response
 
 	b, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
