@@ -173,7 +173,7 @@ class Restarter(threading.Thread):
             envoy_config = "%s-%s" % (output, "envoy.json")
             aconf.pretty(rc.envoy_config, out=open(envoy_config, "w"))
             try:
-                result = subprocess.check_output(["/usr/local/bin/envoy", "--base-id", "1", "--mode", "validate",
+                result = subprocess.check_output(["/usr/local/bin/envoy", "--allow-deprecated-v1-api", "--base-id", "1", "--mode", "validate",
                                                   "-c", envoy_config])
                 if result.strip().endswith(b" OK"):
                     logger.debug("Configuration %s valid" % envoy_config)
