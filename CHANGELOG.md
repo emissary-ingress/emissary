@@ -32,6 +32,12 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+## [0.37.0] July 31, 2018:
+[0.37.0]: https://github.com/datawire/ambassador/compare/0.36.0...0.37.0
+
+### Major changes:
+- Feature: Added support for request tracing (by Alex Gervais)
+
 ## [0.36.0] July 26, 2018:
 [0.36.0]: https://github.com/datawire/ambassador/compare/0.35.3...0.36.0
 
