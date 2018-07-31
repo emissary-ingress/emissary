@@ -1,6 +1,10 @@
-## Tracing with the TracingService
+## Distributed Tracing
 
-In addition to request logging and [metrics](/reference/statistics.md), you can enable request tracing. Enabling this feature will instruct Ambassador to initiate a trace on some sample requests by generating and populating an `x-request-id` HTTP header. Services can make use of this `x-request-id` header in logging and forward it in downstream requests for tracing. Ambassador also integrates with external trace services, namely [LightStep](https://lightstep.com/) and Zipkin-compatible APIs such as [Zipkin](https://zipkin.io/) and [Jaeger](https://github.com/jaegertracing/) to allow you to store and visualize traces. You can read further on [Envoy's Tracing capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/tracing).
+Applications that consist of multiple services can be difficult to debug, as a single request can span multiple services. Distributed tracing tells the story of your request as it is processed through your system. Distributed tracing is a powerful tool to debug and analyze your system in addition to request logging and [metrics](/reference/statistics.md).
+
+### The TracingService
+
+When enabled, the `TracingService` will instruct Ambassador to initiate a trace on requests by generating and populating an `x-request-id` HTTP header. Services can make use of this `x-request-id` header in logging and forward it in downstream requests for tracing. Ambassador also integrates with external trace visualization services, including [LightStep](https://lightstep.com/) and Zipkin-compatible APIs such as [Zipkin](https://zipkin.io/) and [Jaeger](https://github.com/jaegertracing/) to allow you to store and visualize traces. You can read further on [Envoy's Tracing capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/tracing).
 
 A `TracingService` manifest configures Ambassador to use an external trace visualization service:
 
@@ -26,6 +30,6 @@ config: {}
 
 You may only use a single `TracingService` manifest.
 
-## Example
+### Example
 
 The [Ambassador Tracing Tutorial](../../user-guide/tracing-tutorial.md) has a simple Zipkin tracing example.
