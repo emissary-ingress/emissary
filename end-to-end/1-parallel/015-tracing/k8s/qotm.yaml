@@ -11,6 +11,7 @@ metadata:
       name: qotm_mapping
       prefix: /qotm/
       service: qotm
+      ambassador_id: 015-tracing
 spec:
   selector:
     app: qotm

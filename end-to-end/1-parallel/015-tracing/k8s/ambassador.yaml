@@ -11,6 +11,7 @@ metadata:
       name: tracing
       service: zipkin:9411
       driver: zipkin
+      ambassador_id: 015-tracing
 spec:
   selector:
     service: ambassador

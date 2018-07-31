@@ -70,7 +70,7 @@ def test_qotm_tracing(base, zipkin, test_list, iterations=100):
 
     return 0 if (
             len(zipkinServices) == 1 and
-            zipkinServices[0] == 'ambassador-default' and
+            zipkinServices[0] == '015-tracing-015-tracing' and
             len(zipkinSpans) >= 5  # This is a bit flaky, requests are sampled so will be lower than the number of iterations
     ) else 1
 
