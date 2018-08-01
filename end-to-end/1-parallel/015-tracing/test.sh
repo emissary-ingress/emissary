@@ -16,24 +16,24 @@
 
 set -e -o pipefail
 
-NAMESPACE="009-grpc"
+NAMESPACE="015-tracing"
 
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
 bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
-python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
     ${NAMESPACE} \
     ${NAMESPACE}
 
-kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
-kubectl apply -f k8s/grpc.yaml
-# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+kubectl apply -f k8s/qotm.yaml
+kubectl apply -f k8s/zipkin.yaml
+kubectl apply -f k8s/rbac.yaml
 
 set +e +o pipefail
 
@@ -41,52 +41,21 @@ wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador ${NAMESPACE})
-# DEMOTEST_POD=$(demotest_pod)
+ZPORT=$(service_port zipkin ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
+ZIPKINURL="http://${CLUSTER}:${ZPORT}"
 
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
+echo "Zipkin URL $ZIPKINURL"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
 
-if ! check_diag "$BASEURL" 1 "grpc annotated"; then
+if ! python tracing-test.py ${BASEURL} ${ZIPKINURL}; then
     exit 1
 fi
 
-check_grpc () {
-    number="$1"
-
-    name="Test Name $number"
-    count=$(sh grpcurl.sh -plaintext -d "{\"name\": \"$name\"}" ${CLUSTER}:${APORT} helloworld.Greeter/SayHello | \
-            jget.py /message | \
-            grep -c "Hello, $name" || true)
-    echo "$count $number"
-}
-
-echo "Starting GRPC calls"
-
-cp /dev/null count.log
-
-iterations=10
-for i in $(seq 1 ${iterations}); do
-    check_grpc $i >> count.log &
-done
-
-wait
-
-failures=$(egrep -c -v '^1 ' count.log)
-
-if [ $failures -gt 0 ]; then
-    echo "FAILED"
-    cat count.log
-    exit 1
-else
-    echo "OK"
-
-    if [ -n "$CLEAN_ON_SUCCESS" ]; then
-        drop_namespace ${NAMESPACE}
-    fi
-
-    exit 0
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
 fi

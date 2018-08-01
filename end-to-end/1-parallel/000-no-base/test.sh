@@ -16,14 +16,14 @@
 
 set -e -o pipefail
 
-NAMESPACE="009-grpc"
+NAMESPACE="000-no-base"
 
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
 bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
-python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
     ${NAMESPACE} \
@@ -32,8 +32,7 @@ python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
-kubectl apply -f k8s/grpc.yaml
-# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+kubectl apply -f k8s/qotm.yaml
 
 set +e +o pipefail
 
@@ -41,52 +40,54 @@ wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador ${NAMESPACE})
-# DEMOTEST_POD=$(demotest_pod)
+APOD=$(ambassador_pod ${NAMESPACE})
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
 echo "Base URL $BASEURL"
-echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
 
-if ! check_diag "$BASEURL" 1 "grpc annotated"; then
+check_diag () {
+    index=$1
+    desc=$2
+
+    rc=1
+
+    kubectl exec "$APOD" -c ambassador -- sh -c 'curl -k -s localhost:8877/ambassador/v0/diag/?json=true' | jget.py /routes > check-$index.json
+
+    if ! cmp -s check-$index.json diag-$index.json; then
+        echo "check_diag $index: mismatch for $desc"
+
+        if diag-diff.sh $index; then
+            diag-fix.sh $index
+            rc=0
+        fi
+    else
+        echo "check_diag $index: OK"
+        rc=0
+    fi
+
+    return $rc
+}
+
+if ! check_diag 1 "No annotated services"; then
     exit 1
 fi
 
-check_grpc () {
-    number="$1"
+diag_status=$(curl -s -o /dev/null -w "%{http_code}" "${BASEURL}/ambassador/v0/diag/?json=true")
 
-    name="Test Name $number"
-    count=$(sh grpcurl.sh -plaintext -d "{\"name\": \"$name\"}" ${CLUSTER}:${APORT} helloworld.Greeter/SayHello | \
-            jget.py /message | \
-            grep -c "Hello, $name" || true)
-    echo "$count $number"
-}
-
-echo "Starting GRPC calls"
-
-cp /dev/null count.log
-
-iterations=10
-for i in $(seq 1 ${iterations}); do
-    check_grpc $i >> count.log &
-done
-
-wait
-
-failures=$(egrep -c -v '^1 ' count.log)
-
-if [ $failures -gt 0 ]; then
-    echo "FAILED"
-    cat count.log
-    exit 1
+if [ "$diag_status" == 404 ]; then
+    echo "External diag access prevented"
 else
-    echo "OK"
+    echo "External diag allowed? $diag_status" >&2
+    exit 1
+fi
 
-    if [ -n "$CLEAN_ON_SUCCESS" ]; then
-        drop_namespace ${NAMESPACE}
-    fi
+if ! qtest.py ${CLUSTER}:${APORT} test-1.yaml; then
+    exit 1
+fi
 
-    exit 0
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
 fi

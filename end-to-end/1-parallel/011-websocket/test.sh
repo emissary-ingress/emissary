@@ -16,28 +16,26 @@
 
 set -e -o pipefail
 
-NAMESPACE="008-cacert"
+NAMESPACE="ambassador-sbx0"
 
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
 bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
-python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
-    ${ROOT}/ambassador-deployment.yaml \
-    k8s/ambassador-deployment.yaml \
-    ${NAMESPACE} \
-    ${NAMESPACE}
+# Make sure cluster-wide RBAC is set up.
+kubectl apply -f rbac.yaml
 
-# create secrets for TLS stuff
-kubectl create -n ${NAMESPACE} secret tls ambassador-certs --cert=certs/server.crt --key=certs/server.key
-kubectl create -n ${NAMESPACE} secret generic ambassador-cacert --from-file=tls.crt=certs/client.crt
-# --from-literal=cert_required=true
+# Make sure we have a forge.yaml (.gitignore stops us from
+# checking it in, which is usually a good thing).
+cp forge.yaml.src forge.yaml
 
-kubectl apply -f k8s/rbac.yaml
-kubectl apply -f k8s/ambassador.yaml
-kubectl apply -f k8s/ambassador-deployment.yaml
-# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+# Get stuff deployed.
+cd ambassador
+$ROOT/forge --profile=sandbox0 deploy
+cd ../web-basic
+$ROOT/forge --profile=sandbox0 deploy
+cd ..
 
 set +e +o pipefail
 
@@ -45,22 +43,19 @@ wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador ${NAMESPACE})
-# DEMOTEST_POD=$(demotest_pod)
 
-BASEURL="https://${CLUSTER}:${APORT}"
+BASEURL="http://${CLUSTER}:${APORT}"
 
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
 
-if ! check_diag "$BASEURL" 1 "no services but TLS"; then
+if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1
 fi
 
-if ! check_listeners "$BASEURL" 1 "no services but TLS"; then
-    exit 1
-fi
+python web-basic/wscat.py ws://${CLUSTER}:${APORT}/ws
 
 if [ -n "$CLEAN_ON_SUCCESS" ]; then
     drop_namespace ${NAMESPACE}

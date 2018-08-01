@@ -20,6 +20,7 @@ set -o pipefail
 HERE=$(cd $(dirname $0); pwd)
 ROOT=$HERE
 BUILD_ALL=${BUILD_ALL:-false}
+PARALLEL_TESTS=7
 
 cd "$HERE"
 source "$HERE/kubernaut_utils.sh"
@@ -56,12 +57,15 @@ check_rbac
 
 rm -f *.log
 cat /dev/null > master.log
+> failures.txt
 
 run_and_log () {
-    if bash testone.sh --cleanup "$1"; then
+    test=$1
+    if bash testone.sh --cleanup "$test"; then
         echo "$1 PASS" >> master.log
     else
         echo "$1 FAIL" >> master.log
+        echo ${test} >> failures.txt
     fi
 }
 
@@ -69,8 +73,6 @@ if [ -n "$E2E_TEST_NAME" ]; then
     if [ ! -d "$E2E_TEST_NAME" ]; then
         if [ -d "1-parallel/$E2E_TEST_NAME" ]; then
             E2E_TEST_NAME="1-parallel/$E2E_TEST_NAME"
-        elif [ -d "0-serial/$E2E_TEST_NAME" ]; then
-            E2E_TEST_NAME="0-serial/$E2E_TEST_NAME"
         else
             echo "Test $E2E_TEST_NAME cannot be found" >&2
             exit 1
@@ -79,24 +81,43 @@ if [ -n "$E2E_TEST_NAME" ]; then
 
     run_and_log "$E2E_TEST_NAME"
 else
-    for dir in 0-serial/[0-9]*; do
-        run_and_log "$dir"
-    done
+    run_and_log "1-parallel/no-base-serial"
 
     # Clean up everything, non-interactively.
     SKIP_CHECK_CONTEXT=yes initialize_cluster
 
-    for dir in 1-parallel/[0-9]*; do
-        run_and_log "$dir" &
-    done
+    export -f run_and_log
+    echo 1-parallel/[0-9]* | xargs -n1 | xargs --max-procs ${PARALLEL_TESTS} -I {} bash -c 'run_and_log {}'
 fi
 
 wait
 
-# Stupid grep. Why exactly it insists on exiting nonzero when it 
-# doesn't find the match with -c...
-failures=$(grep -c 'FAIL' master.log || true)
+echo
+echo "The following tests failed:"
+cat failures.txt
 
-echo "failures: $failures"
+cp failures.txt old-failures.txt
+# Empty the file for re-runs
+> failures.txt
+while read -r line || [[ -n "$line" ]]; do
+    echo
+    echo "Re-running $test"
+    run_and_log ${line}
+done < old-failures.txt
 
-exit $failures
+for f in *-fail-*.log; do
+    if [ -f ${f} ]; then
+        echo "=========================================="
+        echo "Error output from $f"
+        echo "=========================================="
+        cat ${f}
+        echo
+        # We need this for Travis to not shut us down
+        sleep 2
+    fi
+done
+
+fail_count=$(wc -l < failures.txt)
+echo "The following ${fail_count} tests failed:"
+cat failures.txt
+exit ${fail_count}

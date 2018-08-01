@@ -16,14 +16,14 @@
 
 set -e -o pipefail
 
-NAMESPACE="009-grpc"
+NAMESPACE="006-auth-canary"
 
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
 bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
-python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
     ${ROOT}/ambassador-deployment.yaml \
     k8s/ambassador-deployment.yaml \
     ${NAMESPACE} \
@@ -32,8 +32,8 @@ python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
 kubectl apply -f k8s/rbac.yaml
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
-kubectl apply -f k8s/grpc.yaml
-# kubectl run demotest -n ${NAMESPACE} --image=dwflynn/demotest:0.0.1 -- /bin/sh -c "sleep 3600"
+kubectl apply -f k8s/qotm.yaml
+kubectl apply -f k8s/auth-1.yaml
 
 set +e +o pipefail
 
@@ -41,7 +41,6 @@ wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
 APORT=$(service_port ambassador ${NAMESPACE})
-# DEMOTEST_POD=$(demotest_pod)
 
 BASEURL="http://${CLUSTER}:${APORT}"
 
@@ -50,43 +49,59 @@ echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
 
-if ! check_diag "$BASEURL" 1 "grpc annotated"; then
+if ! check_diag "$BASEURL" 1 "No auth"; then
     exit 1
 fi
 
-check_grpc () {
-    number="$1"
-
-    name="Test Name $number"
-    count=$(sh grpcurl.sh -plaintext -d "{\"name\": \"$name\"}" ${CLUSTER}:${APORT} helloworld.Greeter/SayHello | \
-            jget.py /message | \
-            grep -c "Hello, $name" || true)
-    echo "$count $number"
-}
-
-echo "Starting GRPC calls"
-
-cp /dev/null count.log
-
-iterations=10
-for i in $(seq 1 ${iterations}); do
-    check_grpc $i >> count.log &
-done
-
-wait
-
-failures=$(egrep -c -v '^1 ' count.log)
-
-if [ $failures -gt 0 ]; then
-    echo "FAILED"
-    cat count.log
+if ! python auth-test.py $CLUSTER:$APORT "none:100"; then
     exit 1
-else
-    echo "OK"
+fi
 
-    if [ -n "$CLEAN_ON_SUCCESS" ]; then
-        drop_namespace ${NAMESPACE}
-    fi
+kubectl apply -f k8s/auth-1-enable.yaml
 
-    exit 0
+wait_for_extauth_enabled "$BASEURL"
+sleep 5 # Not sure why this is sometimes relevant.
+
+if ! check_diag "$BASEURL" 2 "Auth 1"; then
+    exit 1
+fi
+
+if ! python auth-test.py $CLUSTER:$APORT "1.0.0:100"; then
+    exit 1
+fi
+
+kubectl apply -f k8s/auth-2.yaml
+
+wait_for_pods ${NAMESPACE}
+
+wait_for_extauth_enabled "$BASEURL"
+sleep 5 # Not sure why this is sometimes relevant.
+
+if ! check_diag "$BASEURL" 3 "Auth 1 and 2"; then
+    exit 1
+fi
+
+if ! python auth-test.py $CLUSTER:$APORT "1.0.0:50" "2.0.0:50"; then
+    exit 1
+fi
+
+kubectl delete service auth-1
+kubectl delete deployment auth-1
+
+# This works because it'll wait for "terminating" to go away too.
+wait_for_pods ${NAMESPACE}
+
+wait_for_extauth_enabled "$BASEURL"
+sleep 5 # Not sure why this is sometimes relevant.
+
+if ! check_diag "$BASEURL" 4 "Auth 2 only"; then
+    exit 1
+fi
+
+if ! python auth-test.py $CLUSTER:$APORT "2.0.0:100"; then
+    exit 1
+fi
+
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
 fi

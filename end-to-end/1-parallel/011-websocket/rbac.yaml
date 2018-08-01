@@ -7,7 +7,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-001-simple
+  name: ambassador-011-websocket
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -15,4 +15,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ambassador
-  namespace: 001-simple
+  namespace: ambassador-sbx0
+- kind: ServiceAccount
+  name: ambassador
+  namespace: ambassador-sbx1

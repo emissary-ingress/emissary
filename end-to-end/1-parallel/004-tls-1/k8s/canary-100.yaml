@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo1
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_default_mapping
+      ambassador_id: 004-tls-1
+      prefix: /demo/
+      tls: True     
+      service: demo1
+spec:
+  selector:
+    app: demo1
+  ports:
+    - port: 443
+      targetPort: http-api
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo2
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_host_mapping
+      ambassador_id: 004-tls-1
+      prefix: /demo/
+      host: demo2.datawire.io
+      tls: True     
+      service: demo2:443
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_x_mapping
+      ambassador_id: 004-tls-1
+      prefix: /good/
+      headers:
+        "x-hurkle": true
+      tls: True     
+      service: demo2:443
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  canary_100_mapping
+      ambassador_id: 004-tls-1
+      prefix: /demo/
+      headers:
+        x-demo-mode: canary
+      tls: True    
+      service: demo2
+spec:
+  selector:
+    app: demo2
+  ports:
+    - port: 443
+      targetPort: http-api
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  diag_mapping
+      prefix: /ambassador/
+      rewrite: /ambassador/
+      service: 127.0.0.1:8877
+      ambassador_id: 004-tls-1
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name:  authentication
+      ambassador_id: 004-tls-1
+      config:
+        auth_service: "auth"
+        tls: True
+        allowed_headers:
+        - "x-hurkle"
+spec:
+  selector:
+    service: ambassador
+  ports:
+    - name: http
+      protocol: TCP
+      port: 443
+      targetPort: 443
+  type: NodePort
