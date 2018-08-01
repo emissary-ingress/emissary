@@ -58,9 +58,18 @@ func main() {
 				result["headers"] = resp.Header
 				body, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
+					log.Printf("%v: %v", url, err)
 					result["error"] = err.Error()
 				} else {
+					log.Printf("%v: %v", url, resp.Status)
 					result["body"] = body
+					var jsonBody interface{}
+					err = json.Unmarshal(body, &jsonBody)
+					if err == nil {
+						result["json"] = jsonBody
+					} else {
+						result["text"] = string(body)
+					}
 				}
 			}
 			queries <- true
