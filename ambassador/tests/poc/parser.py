@@ -64,6 +64,9 @@ class MappingView(View, Mapping):
         for k, v in other.items():
             self[k] = v
 
+    def merge(self, other):
+        self.node.value.extend(other.node.value)
+
     def keys(self):
         return set(k.value for k, v in self.node.value)
 
@@ -103,6 +106,9 @@ class SequenceView(View, Sequence):
     def extend(self, items):
         for i in items:
             self.append(i)
+
+    def merge(self, other):
+        self.node.value.extend(other.node.value)
 
     def __repr__(self):
         return repr([v for v in self])
@@ -155,11 +161,19 @@ COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
 def node(value: Any) -> Node:
     return COERCIONS[type(value)](value)
 
-def load(name: str, value: Any) -> SequenceView:
-    return view(SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON)
+def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
+    result = view(SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON)
+    for r in result:
+        if r.tag not in allowed:
+            raise ValueError("expecting %s, got %s" % (", ".join(t.name for t in tags),
+                                                       r.node.tag))
+    return result
 
 def dump(value: SequenceView):
-    return dump_all(value, default_flow_style=False)
+    st = dump_all(value, default_flow_style=False)
+    if not st.startswith('---'):
+        st = '---\n' + st
+    return st
 
 def view_representer(dumper, data):
     return data.node
