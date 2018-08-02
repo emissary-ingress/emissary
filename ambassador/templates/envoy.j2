@@ -35,6 +35,13 @@
                 "path": "/dev/fd/1"
               }
             ],
+            {% if tracing -%}
+            "generate_request_id": true,
+            "tracing": {
+              "operation_name": "egress",
+              "request_headers_for_tags": []
+            },
+            {%- endif %}
             "route_config": {
               "virtual_hosts": [
                 {
@@ -111,6 +118,16 @@
     "address": "tcp://127.0.0.1:{{ admin.admin_port }}",
     "access_log_path": "/tmp/admin_access_log"
   },
+  {% if tracing %}
+  "tracing": {
+    "http": {
+      "driver": {
+        "type": "{{ tracing.driver }}",
+        "config": {{ tracing.config | tojson }}
+      }
+    }
+  },
+  {% endif %}
   "cluster_manager": {
     "clusters": [
       {% for cluster in clusters -%}

@@ -64,7 +64,26 @@ If you only want Ambassador to only work within a single namespace, set `AMBASSA
 
 ## Multiple Ambassadors in One Cluster
 
-If you need to run multiple Ambassadors in one cluster, but you don't want to restrict a given Ambassador to a single namespace, you can assign each Ambassador a unique `AMBASSADOR_ID` using the environment:
+Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  namespace: ambassador-1
+  labels:
+    app: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Module
+      name:  ambassador
+      ambassador_id: ambassador-1
+```
+
+Then, assign each Ambassador pod a unique `AMBASSADOR_ID` with the environment variable as part of your deployment:
 
 ```yaml
 env:
@@ -72,7 +91,7 @@ env:
   value: ambassador-1
 ```
 
-and then the Ambassador will only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
+Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 
 ```yaml
 ---

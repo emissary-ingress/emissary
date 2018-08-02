@@ -15,6 +15,7 @@
 
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Adding Rate Limiting](user-guide/rate-limiting-tutorial.md)
+* [Adding Tracing](user-guide/tracing-tutorial.md)
 * [Use gRPC with Ambassador](user-guide/grpc.md)
 * [TLS Termination](user-guide/tls-termination.md)
 * [Istio and Ambassador](user-guide/with-istio.md)
@@ -39,6 +40,7 @@
   * [External Services](reference/services/services.md)
     * [Authentication](reference/services/auth-service.md)
     * [Rate Limiting](reference/services/rate-limit-service.md)
+    * [Tracing](reference/services/tracing-service.md)
   * [Advanced configuration topics](reference/advanced.md)
 * [Running Ambassador](reference/running.md)
   * [Diagnostics](reference/diagnostics.md)
