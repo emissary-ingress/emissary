@@ -321,6 +321,14 @@ weight: {self.weight}
     def k8s_yaml(self):
         return templates.backend(self.target.k8s_path) + "\n" + templates.backend(self.canary.k8s_path)
 
+    def check(self):
+        if self.results:
+            print(self.summary())
+        hist = {}
+        for r in self.results:
+            hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
+        print("  " + ", ".join("%s: %s" % (k, 100*v/len(self.results)) for k, v in sorted(hist.items())))
+
 go()
 
 ### NEXT STEPS: wire in assertions
