@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from itertools import chain, product
 from typing import Any, Iterable, Mapping, Optional, Sequence, Type
 
-import copy, fnmatch, functools, inspect, json, os, pprint, sys
+import base64, copy, fnmatch, functools, inspect, json, os, pprint, sys
 
 COUNTERS: Mapping[Type,int] = {}
 
@@ -168,6 +168,63 @@ class Node(ABC):
 class Test(Node):
     pass
 
+class Query:
+
+    def __init__(self, url, expected=200):
+        self.url = url
+        self.expected = expected
+        self.parent = None
+        self.result = None
+
+class Result:
+
+    def __init__(self, query, res):
+        self.query = query
+        query.result = self
+        self.parent = query.parent
+        self.status = res.get("status")
+        self.headers = res.get("headers")
+        if "body" in res:
+            self.body = base64.decodebytes(bytes(res["body"], "ASCII"))
+        else:
+            self.body = None
+        self.text = res.get("text")
+        self.json = res.get("json")
+        self.backend = BackendResult(self.json) if self.json else None
+        self.error = res.get("error")
+
+class BackendURL:
+
+    def __init__(self, fragment=None, host=None, opaque=None, path=None, query=None, rawQuery=None,
+                 scheme=None, username=None, password=None):
+        self.fragment = fragment
+        self.host = host
+        self.opaque = opaque
+        self.path = path
+        self.query = query
+        self.rawQuery = rawQuery
+        self.scheme = scheme
+        self.username = username
+        self.password = password
+
+class BackendRequest:
+
+    def __init__(self, req):
+        self.url = BackendURL(**req.get("url"))
+        self.headers = req.get("headers", {})
+
+class BackendResponse:
+
+    def __init__(self, resp):
+        self.headers = resp.get("headers", {})
+
+class BackendResult:
+
+    def __init__(self, bres):
+        self.name = bres["backend"]
+        self.request = BackendRequest(bres["request"]) if "request" in bres else None
+        self.response = BackendResponse(bres["response"]) if "response" in bres else None
+
 import argparse, fnmatch
 
 parser = argparse.ArgumentParser()
@@ -197,14 +254,49 @@ def do_list(vars, args):
 
 from parser import dump
 def do_setup(vars, args):
+    yaml = ""
     for v in vars:
         if v.matches(args.filter):
-            print(dump(v.assemble(args.filter)), end="")
+            yaml += dump(v.assemble(args.filter)) + "\n"
+    if os.path.exists("/tmp/k8s.yaml"):
+        with open("/tmp/k8s.yaml") as f:
+            prev_yaml = f.read()
+    else:
+        prev_yaml = None
+
+    if yaml != prev_yaml:
+        with open("/tmp/k8s.yaml", "w") as f:
+            f.write(yaml)
+        # XXX: better prune selector
+        os.system("kubectl apply --prune -l deployment!=teleproxy -f /tmp/k8s.yaml")
 
 def do_run(vars, args):
-    urls = []
-    for t in vars:
-        urls.extend(t.urls())
+    queries = []
+    byid = {}
+    for v in vars:
+        for t in v.traversal:
+            if isinstance(t, Test) and t.matches(args.filter):
+                t.queried = []
+                t.results = []
+                for q in t.queries():
+                    q.parent = t
+                    queries.append(q)
+                    byid[id(q)] = q
+
     with open("/tmp/urls.json", "w") as f:
-        json.dump(urls, f)
+        json.dump([{"test": q.parent.path, "id": id(q), "url": q.url} for q in queries], f)
     os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json")
+    with open("/tmp/results.json") as f:
+        results = json.load(f)
+
+    for r in results:
+        res = r["result"]
+        q = byid[r["id"]]
+        result = Result(q, res)
+        q.parent.queried.append(q)
+        q.parent.results.append(result)
+
+    for v in vars:
+        for t in v.traversal:
+            if isinstance(t, Test) and t.matches(args.filter):
+                t.check()

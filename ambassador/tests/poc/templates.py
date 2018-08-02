@@ -1,3 +1,9 @@
+def backend(name):
+    return BACKEND % {"name": name, "tag": "1"}
+
+def ambassador(name):
+    return AMBASSADOR % {"name": name}
+
 BACKEND = """
 ---
 kind: Service
@@ -30,9 +36,12 @@ spec:
     spec:
       containers:
       - name: backend
-        image: rschloming/backend
+        image: rschloming/backend:%(tag)s
         ports:
         - containerPort: 8080
+        env:
+        - name: BACKEND
+          value: %(name)s
 """
 
 AMBASSADOR = """

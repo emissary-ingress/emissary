@@ -5,14 +5,29 @@ import (
 	"log"
 	"net/http"
 	"encoding/json"
+	"os"
 	"strconv"
 )
 
 func requestLogger(w http.ResponseWriter, r *http.Request) {
 	var request = make(map[string]interface{})
-	request["url"] = r.URL
+	var url = make(map[string]interface{})
+	request["url"] = url
+	url["fragment"] = r.URL.Fragment
+	url["host"] = r.URL.Host
+	url["opaque"] = r.URL.Opaque
+	url["path"] = r.URL.Path
+	url["query"] = r.URL.Query()
+	url["rawQuery"] = r.URL.RawQuery
+	url["scheme"] = r.URL.Scheme
+	if r.URL.User != nil {
+		url["username"] = r.URL.User.Username()
+		pw, ok := r.URL.User.Password()
+		if ok { url["password"] = pw }
+	}
+
 	request["method"] = r.Method
-	request["header"] = r.Header
+	request["headers"] = r.Header
 
 	// respond with the requested status
 	status := r.Header.Get("Requested-Status")
@@ -45,6 +60,7 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 	response["headers"] = w.Header()
 
 	var body = make(map[string]interface{})
+	body["backend"] = os.Getenv("BACKEND")
 	body["request"] = request
 	body["response"] = response
 

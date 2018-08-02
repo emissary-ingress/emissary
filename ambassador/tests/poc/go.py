@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from abc import abstractmethod
+from collections import OrderedDict
 from typing import Any, Iterable, Optional, Sequence, Type
 from parser import SequenceView
 
@@ -8,7 +9,7 @@ import json
 import pprint
 import templates
 
-from harness import sanitize, variant, variants, Node, Test
+from harness import sanitize, variant, variants, Node, Query, Test
 from parser import load, dump, Tag, SequenceView
 
 def yaml_check(gen, *tags: Tag) -> Optional[SequenceView]:
@@ -16,7 +17,31 @@ def yaml_check(gen, *tags: Tag) -> Optional[SequenceView]:
     if st is None: return None
     return load(gen.__name__, st, *tags)
 
-class AmbassadorTest(Test):
+class QueryTest(Test):
+
+    def queries(self):
+        if False: yield
+
+    def summary(self):
+        statuses = OrderedDict()
+        failures = 0
+        for r in self.results:
+            key = r.status or r.error
+            statuses[key] = statuses.get(key, 0) + 1
+            if r.status != r.query.expected:
+                failures += 1
+        result = "%s %s" % (self.path, " ".join("%s*%s" % (v, k) if v > 1 else str(k) for k, v in statuses.items()))
+        if failures > 0:
+            result += " \033[91mERR\033[0m"
+        else:
+            result += " \033[92mOK\033[0m"
+        return result
+
+    def check(self):
+        if self.results:
+            print(self.summary())
+
+class AmbassadorTest(QueryTest):
 
     @abstractmethod
     def yaml(self) -> str:
@@ -51,7 +76,7 @@ class ConfigTest(AmbassadorTest):
         return result
 
     def k8s_yaml(self) -> str:
-        return templates.AMBASSADOR % {"name": self.name.lower()}
+        return templates.ambassador(self.name.lower())
 
     @abstractmethod
     def scheme(self) -> str:
@@ -59,9 +84,6 @@ class ConfigTest(AmbassadorTest):
 
     def url(self, prefix) -> str:
         return "%s://ambassador-%s/%s" % (self.scheme(), self.name.lower(), prefix)
-
-    def urls(self):
-        return (u for m in self.mappings for u in m.urls())
 
 class ServiceType(Node):
 
@@ -77,7 +99,7 @@ class HTTP(ServiceType):
 class GRPC(ServiceType):
     pass
 
-class MappingTest(Test):
+class MappingTest(QueryTest):
 
     target: ServiceType
     options: Sequence['MappingOptionTest']
@@ -106,9 +128,9 @@ class MappingTest(Test):
         return k8s_yaml
 
     def k8s_yaml(self):
-        return templates.BACKEND % {"name": self.target.k8s_path}
+        return templates.backend(self.target.k8s_path)
 
-class MappingOptionTest(Test):
+class MappingOptionTest(QueryTest):
 
     mapping: MappingTest
 
@@ -189,7 +211,6 @@ class SimpleMapping(MappingTest):
             yield variant(st, name="{self.target.name}")
             for mot in variants(MappingOptionTest):
                 yield variant(st, (mot,), name="{self.target.name}-{self.options[0].name}")
-            # need to figure out how to write this when there are conflicting option tests
             yield variant(st, unique(variants(MappingOptionTest)), name="{self.target.name}-all")
 
     def yaml(self):
@@ -202,8 +223,15 @@ prefix: /{self.name}/
 service: http://{self.target.k8s_path}
 """)
 
-    def urls(self):
-        yield {"url": self.parent.url(self.name + "/")}
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"))
+
+    def check(self):
+        if self.results:
+            print(self.summary())
+        for r in self.results:
+            if r.backend:
+                assert r.backend.name == self.target.k8s_path, (r.backend.name, self.target.k8s_path)
 
 class AddRequestHeaders(MappingOptionTest):
 
@@ -213,15 +241,32 @@ class AddRequestHeaders(MappingOptionTest):
     def yaml(self):
         return "add_request_headers: %s" % json.dumps(self.value)
 
+    def check(self):
+        for r in self.parent.results:
+            for k, v in self.value.items():
+                actual = r.backend.request.headers.get(k.capitalize())
+                assert actual == [v], (actual, [v])
+
 class CaseSensitive(MappingOptionTest):
 
     def yaml(self):
         return "case_sensitive: false"
 
+    def queries(self):
+        for q in self.parent.queries():
+            idx = q.url.find("/", q.url.find("://") + 3)
+            upped = q.url[:idx] + q.url[idx:].upper()
+            assert upped != q.url
+            yield Query(upped)
+
 class AutoHostRewrite(MappingOptionTest):
 
     def yaml(self):
         return "auto_host_rewrite: true"
+
+    def check(self):
+        for r in self.parent.results:
+            print(self.path, r.backend.request.url.host or None, self.parent.target.k8s_path)
 
 class Rewrite(MappingOptionTest):
 
@@ -230,6 +275,14 @@ class Rewrite(MappingOptionTest):
     def yaml(self):
         return self.format("rewrite: {self.value}")
 
+    def check(self):
+        for r in self.parent.results:
+            if r.backend:
+                path = r.backend.request.url.path
+                assert path == self.value
+            else:
+                path = None
+            print(self.path, repr(path), repr(self.value))
 
 class CanaryMapping(MappingTest):
 
@@ -261,12 +314,12 @@ service: http://{self.canary.k8s_path}
 weight: {self.weight}
 """)
 
-    def urls(self):
+    def queries(self):
         for i in range(25):
-            yield {"url": self.parent.url(self.name + "/")}
+            yield Query(self.parent.url(self.name + "/"))
 
     def k8s_yaml(self):
-        return templates.BACKEND % {"name": self.target.k8s_path} + "\n" + templates.BACKEND % {"name": self.canary.k8s_path}
+        return templates.backend(self.target.k8s_path) + "\n" + templates.backend(self.canary.k8s_path)
 
 go()
 
