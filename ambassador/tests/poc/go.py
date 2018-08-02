@@ -193,7 +193,7 @@ config: {}
     def scheme(self) -> str:
         return "http"
 
-
+# XXX: should put this somewhere better
 def unique(variants):
     added = set()
     result = []

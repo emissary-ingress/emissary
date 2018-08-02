@@ -294,7 +294,7 @@ def do_run(vars, args):
 
     with open("/tmp/urls.json", "w") as f:
         json.dump([{"test": q.parent.path, "id": id(q), "url": q.url} for q in queries], f)
-    os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json")
+    os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log")
     with open("/tmp/results.json") as f:
         results = json.load(f)
 
