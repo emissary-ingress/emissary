@@ -63,6 +63,7 @@ def _instantiate(o):
     else:
         return o
 
+# XXX: maybe make this a metaclass?
 class variant:
 
     def __init__(self, *args, **kwargs):
@@ -253,11 +254,19 @@ def do_list(vars, args):
                 print("  "*t.depth + t.relpath(t.parent))
 
 from parser import dump
+
+def label(yaml, scope):
+    for obj in yaml:
+        md = obj["metadata"]
+        if "labels" not in md: md["labels"] = {}
+        obj["metadata"]["labels"]["scope"] = scope
+    return yaml
+
 def do_setup(vars, args):
     yaml = ""
     for v in vars:
         if v.matches(args.filter):
-            yaml += dump(v.assemble(args.filter)) + "\n"
+            yaml += dump(label(v.assemble(args.filter), "poc-test")) + "\n"
     if os.path.exists("/tmp/k8s.yaml"):
         with open("/tmp/k8s.yaml") as f:
             prev_yaml = f.read()
@@ -268,7 +277,7 @@ def do_setup(vars, args):
         with open("/tmp/k8s.yaml", "w") as f:
             f.write(yaml)
         # XXX: better prune selector
-        os.system("kubectl apply --prune -l deployment!=teleproxy -f /tmp/k8s.yaml")
+        os.system("kubectl apply --prune -l scope=poc-test -f /tmp/k8s.yaml")
 
 def do_run(vars, args):
     queries = []
