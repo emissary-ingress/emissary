@@ -165,7 +165,7 @@ def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
     result = view(SequenceNode(Tag.SEQUENCE.value, list(compose_all(value))), ViewMode.PYTHON)
     for r in result:
         if r.tag not in allowed:
-            raise ValueError("expecting %s, got %s" % (", ".join(t.name for t in tags),
+            raise ValueError("expecting %s, got %s" % (", ".join(t.name for t in allowed),
                                                        r.node.tag))
     return result
 
