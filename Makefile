@@ -298,6 +298,9 @@ update-aws:
             --body app.json; \
 	fi
 
+release-prep:
+	bash releng/release-prep.sh
+
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \

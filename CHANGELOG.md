@@ -32,6 +32,27 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+<!---
+Add release notes right after this point.
+
+(version number: MAJOR.MINOR.PATCH)
+
+Format:
+
+## [version] <month> <date>, <year>:
+[version]: https://github.com/datawire/ambassador/compare/<last released version>...<version>
+
+### Major changes:
+- Feature: <insert feature description here>
+- Bugfix: <insert bugfix description here>
+
+### Minor changes:
+- Feature: <insert feature description here>
+- Bugfix: <insert bugfix description here>
+--->
+
+<!--- CueAddReleaseNotes --->
+
 ## [0.37.0] July 31, 2018:
 [0.37.0]: https://github.com/datawire/ambassador/compare/0.36.0...0.37.0
 
