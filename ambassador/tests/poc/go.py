@@ -7,6 +7,7 @@ from parser import SequenceView
 
 import json
 import pprint
+import pytest
 import templates
 
 from harness import sanitize, variant, variants, Node, Query, Test
@@ -22,24 +23,8 @@ class QueryTest(Test):
     def queries(self):
         if False: yield
 
-    def summary(self):
-        statuses = OrderedDict()
-        failures = 0
-        for r in self.results:
-            key = r.status or r.error
-            statuses[key] = statuses.get(key, 0) + 1
-            if r.status != r.query.expected:
-                failures += 1
-        result = "%s %s" % (self.path, " ".join("%s*%s" % (v, k) if v > 1 else str(k) for k, v in statuses.items()))
-        if failures > 0:
-            result += " \033[91mERR\033[0m"
-        else:
-            result += " \033[92mOK\033[0m"
-        return result
-
     def check(self):
-        if self.results:
-            print(self.summary())
+        pass
 
 class AmbassadorTest(QueryTest):
 
@@ -147,10 +132,6 @@ class MappingOptionTest(QueryTest):
     def __init__(self, value = None):
         self.value = value
 
-def go():
-    from harness import cli
-    cli(AmbassadorTest)
-
 ##################################
 
 class TLS(ConfigTest):
@@ -227,8 +208,6 @@ service: http://{self.target.k8s_path}
         yield Query(self.parent.url(self.name + "/"))
 
     def check(self):
-        if self.results:
-            print(self.summary())
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.k8s_path, (r.backend.name, self.target.k8s_path)
@@ -257,7 +236,7 @@ class CaseSensitive(MappingOptionTest):
             idx = q.url.find("/", q.url.find("://") + 3)
             upped = q.url[:idx] + q.url[idx:].upper()
             assert upped != q.url
-            yield Query(upped)
+            yield Query(upped, xfail="this is broken")
 
 class AutoHostRewrite(MappingOptionTest):
 
@@ -275,14 +254,17 @@ class Rewrite(MappingOptionTest):
     def yaml(self):
         return self.format("rewrite: {self.value}")
 
+    def queries(self):
+        if self.value[0] != "/":
+            for q in self.parent.pending:
+                q.xfail = "rewrite option is broken for values not beginning in slash"
+        return super(MappingOptionTest, self).queries()
+
     def check(self):
+        if self.value[0] != "/":
+            pytest.xfail("this is broken")
         for r in self.parent.results:
-            if r.backend:
-                path = r.backend.request.url.path
-                assert path == self.value
-            else:
-                path = None
-            print(self.path, repr(path), repr(self.value))
+            assert r.backend.request.url.path == self.value
 
 class CanaryMapping(MappingTest):
 
@@ -322,16 +304,12 @@ weight: {self.weight}
         return templates.backend(self.target.k8s_path) + "\n" + templates.backend(self.canary.k8s_path)
 
     def check(self):
-        if self.results:
-            print(self.summary())
         hist = {}
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
         print("  " + ", ".join("%s: %s" % (k, 100*v/len(self.results)) for k, v in sorted(hist.items())))
 
-go()
-
-### NEXT STEPS: wire in assertions
+### NEXT STEPS: fix assemble and friends to use better traversal/discovery technique
 
 # Test docs:
 #  test methods:
