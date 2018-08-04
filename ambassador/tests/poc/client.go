@@ -11,6 +11,24 @@ import (
 	"time"
 )
 
+type semaphore chan bool
+
+func Semaphore(n int) semaphore {
+	sem := make(semaphore, n)
+	for i := 0; i < n; i++ {
+		sem.Release()
+	}
+	return sem
+}
+
+func (s semaphore) Acquire() {
+	<- s
+}
+
+func (s semaphore) Release() {
+	s <- true
+}
+
 func main() {
 	var input, output string
 	flag.StringVar(&input, "input", "", "input filename")
@@ -43,8 +61,12 @@ func main() {
 
 	count := len(specs)
 	queries := make(chan bool)
+
+	sem := Semaphore(256)
+
 	for i := 0; i < count; i++ {
 		go func(idx int) {
+			sem.Acquire()
 			query := specs[idx]
 			result := make(map[string]interface{})
 			query["result"] = result
@@ -73,6 +95,7 @@ func main() {
 				}
 			}
 			queries <- true
+			sem.Release()
 		}(i)
 	}
 
