@@ -244,8 +244,10 @@ class AutoHostRewrite(MappingOptionTest):
         return "auto_host_rewrite: true"
 
     def check(self):
+        pytest.xfail("this doesn't work for some reason")
         for r in self.parent.results:
-            print(self.path, r.backend.request.url.host or None, self.parent.target.k8s_path)
+            host = r.backend.request.url.host
+            assert r.backend.name == host, (r.backend.name, host)
 
 class Rewrite(MappingOptionTest):
 
@@ -271,7 +273,7 @@ class CanaryMapping(MappingTest):
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
-            for w in (33, 50, 75):
+            for w in (10, 50, 90):
                 yield variant(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
     def __init__(self, target, canary, weight):
@@ -297,7 +299,7 @@ weight: {self.weight}
 """)
 
     def queries(self):
-        for i in range(25):
+        for i in range(100):
             yield Query(self.parent.url(self.name + "/"))
 
     def k8s_yaml(self):
@@ -307,7 +309,9 @@ weight: {self.weight}
         hist = {}
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
-        print("  " + ", ".join("%s: %s" % (k, 100*v/len(self.results)) for k, v in sorted(hist.items())))
+        canary = 100*hist.get(self.canary.k8s_path, 0)/len(self.results)
+        main = 100*hist.get(self.target.k8s_path, 0)/len(self.results)
+        assert abs(self.weight - canary) < 10, (self.weight, canary)
 
 ### NEXT STEPS: fix assemble and friends to use better traversal/discovery technique
 
