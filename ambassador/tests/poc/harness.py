@@ -133,7 +133,7 @@ class Node(ABC):
 
     @classmethod
     def variants(cls):
-        return variant()
+        yield variant()
 
     @property
     def path(self) -> str:
