@@ -151,6 +151,7 @@ COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
     SequenceView: lambda v: v.node,
     ScalarView: lambda v: v.node,
     list: lambda l: SequenceNode(Tag.SEQUENCE.value, [node(i) for i in l]),
+    tuple: lambda t: SequenceNode(Tag.SEQUENCE.value, [node(i) for i in t]),
     str: lambda s: ScalarNode(Tag.STRING.value, str(s)),
     bool: lambda b: ScalarNode(Tag.BOOL.value, str(b)),
     int: lambda i: ScalarNode(Tag.INT.value, str(i)),
