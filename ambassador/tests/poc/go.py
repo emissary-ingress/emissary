@@ -113,7 +113,7 @@ class MappingTest(QueryTest):
         return k8s_yaml
 
     def k8s_yaml(self):
-        return templates.backend(self.target.k8s_path)
+        return templates.backend(self.target.path.k8s)
 
 class MappingOptionTest(QueryTest):
 
@@ -201,7 +201,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://{self.target.k8s_path}
+service: http://{self.target.path.k8s}
 """)
 
     def queries(self):
@@ -210,7 +210,7 @@ service: http://{self.target.k8s_path}
     def check(self):
         for r in self.results:
             if r.backend:
-                assert r.backend.name == self.target.k8s_path, (r.backend.name, self.target.k8s_path)
+                assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
 
 class AddRequestHeaders(MappingOptionTest):
 
@@ -288,13 +288,13 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://{self.target.k8s_path}
+service: http://{self.target.path.k8s}
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-canary
 prefix: /{self.name}/
-service: http://{self.canary.k8s_path}
+service: http://{self.canary.path.k8s}
 weight: {self.weight}
 """)
 
@@ -303,14 +303,14 @@ weight: {self.weight}
             yield Query(self.parent.url(self.name + "/"))
 
     def k8s_yaml(self):
-        return templates.backend(self.target.k8s_path) + "\n" + templates.backend(self.canary.k8s_path)
+        return templates.backend(self.target.path.k8s) + "\n" + templates.backend(self.canary.path.k8s)
 
     def check(self):
         hist = {}
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
-        canary = 100*hist.get(self.canary.k8s_path, 0)/len(self.results)
-        main = 100*hist.get(self.target.k8s_path, 0)/len(self.results)
+        canary = 100*hist.get(self.canary.path.k8s, 0)/len(self.results)
+        main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
         assert abs(self.weight - canary) < 10, (self.weight, canary)
 
 ### NEXT STEPS: fix assemble and friends to use better traversal/discovery technique

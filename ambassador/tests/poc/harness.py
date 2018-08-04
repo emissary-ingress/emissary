@@ -82,11 +82,14 @@ class variant:
 
     def instantiate(self):
         result = self.cls(*_instantiate(self.args))
-        result.name = self.cls.__name__
+
+        name = self.cls.__name__
         if self.name:
-            result.name += "-" + result.format(self.name)
+            name += "-" + result.format(self.name)
         if self.axis:
-            result.name += "-" + result.format(self.axis)
+            name += "-" + result.format(self.axis)
+
+        result.name = Name(name)
 
         names = {}
         for c in result.children:
@@ -107,6 +110,12 @@ def _set_parent(c, parent):
         for k, v in c.items():
             _set_parent(k, parent)
             _set_parent(v, parent)
+
+class Name(str):
+
+    @property
+    def k8s(self):
+        return self.replace(".", "-").lower()
 
 class Node(ABC):
 
@@ -132,9 +141,9 @@ class Node(ABC):
 
     def relpath(self, ancestor):
         if self.parent is ancestor:
-            return self.name
+            return Name(self.name)
         else:
-            return self.parent.relpath(ancestor) + "." + self.name
+            return Name(self.parent.relpath(ancestor) + "." + self.name)
 
     @property
     def k8s_path(self) -> str:
