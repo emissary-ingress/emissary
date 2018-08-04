@@ -12,36 +12,27 @@ metadata:
   name: %(name)s
 spec:
   selector:
-    deployment: %(name)s
+    backend: %(name)s
   ports:
   - protocol: TCP
     port: 80
     targetPort: 8080
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   name: %(name)s
   labels:
-    deployment: %(name)s
+    backend: %(name)s
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      deployment: %(name)s
-  template:
-    metadata:
-      labels:
-        deployment: %(name)s
-    spec:
-      containers:
-      - name: backend
-        image: rschloming/backend:%(tag)s
-        ports:
-        - containerPort: 8080
-        env:
-        - name: BACKEND
-          value: %(name)s
+  containers:
+  - name: backend
+    image: rschloming/backend:%(tag)s
+    ports:
+    - containerPort: 8080
+    env:
+    - name: BACKEND
+      value: %(name)s
 """
 
 AMBASSADOR = """
@@ -108,50 +99,46 @@ subjects:
   name: ambassador-%(name)s
   namespace: default
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   name: ambassador-%(name)s
+  annotations:
+    sidecar.istio.io/inject: "false"
+  labels:
+    service: ambassador-%(name)s
 spec:
-  replicas: 1
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      labels:
-        service: ambassador-%(name)s
-    spec:
-      serviceAccountName: ambassador-%(name)s
-      containers:
-      - name: ambassador
-        image: quay.io/datawire/ambassador:0.35.3
-#        resources:
-#          limits:
-#            cpu: 1
-#            memory: 400Mi
-#          requests:
-#            cpu: 200m
-#            memory: 100Mi
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: AMBASSADOR_ID
-          value: %(name)s
-        livenessProbe:
-          httpGet:
-            path: /ambassador/v0/check_alive
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /ambassador/v0/check_ready
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-      - name: statsd
-        image: quay.io/datawire/statsd:0.35.3
-      restartPolicy: Always
+  serviceAccountName: ambassador-%(name)s
+  containers:
+  - name: ambassador
+    image: quay.io/datawire/ambassador:0.35.3
+#    resources:
+#      limits:
+#        cpu: 1
+#        memory: 400Mi
+#      requests:
+#        cpu: 200m
+#        memory: 100Mi
+    env:
+    - name: AMBASSADOR_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+    - name: AMBASSADOR_ID
+      value: %(name)s
+    livenessProbe:
+      httpGet:
+        path: /ambassador/v0/check_alive
+        port: 8877
+      initialDelaySeconds: 30
+      periodSeconds: 3
+    readinessProbe:
+      httpGet:
+        path: /ambassador/v0/check_ready
+        port: 8877
+      initialDelaySeconds: 30
+      periodSeconds: 3
+  - name: statsd
+    image: quay.io/datawire/statsd:0.35.3
+  restartPolicy: Always
 """
