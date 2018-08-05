@@ -7,7 +7,16 @@ import (
 	"encoding/json"
 	"os"
 	"strconv"
+	"strings"
 )
+
+func lower(m map[string][]string) (result map[string][]string) {
+	result = make(map[string][]string)
+	for k, v := range(m) {
+		result[strings.ToLower(k)] = v
+	}
+	return result
+}
 
 func requestLogger(w http.ResponseWriter, r *http.Request) {
 	var request = make(map[string]interface{})
@@ -27,7 +36,7 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request["method"] = r.Method
-	request["headers"] = r.Header
+	request["headers"] = lower(r.Header)
 	request["host"] = r.Host
 
 	// respond with the requested status
@@ -58,7 +67,7 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 
 	// Write out all request/response information
 	var response = make(map[string]interface{})
-	response["headers"] = w.Header()
+	response["headers"] = lower(w.Header())
 
 	var body = make(map[string]interface{})
 	body["backend"] = os.Getenv("BACKEND")
