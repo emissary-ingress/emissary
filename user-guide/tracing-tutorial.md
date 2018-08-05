@@ -74,25 +74,30 @@ Ambassador will see the annotations and reconfigure itself within a few seconds.
 Use `curl` to generate a few requests to an existing Ambassador mapping. You may need to perform many requests since only a subset of random requests are sampled and instrumented with traces.
 
 ```shell
-$ curl http://192.168.99.107:31893/httpbin/
+$ curl $AMBASSADOR_IP/httpbin/
 ```
 
 ## 3. Test traces
 
-To test things out, we'll need the external IP for Zipkin (it might take some time for this to be available):
+To test things out, we'll need to access the Zipkin UI. If you're on Kubernetes, get the name of the Zipkin pod:
+
+```shelll
+$ kubectl get pods
+NAME                                   READY     STATUS    RESTARTS   AGE
+ambassador-5ffcfc798-c25dc             2/2       Running   0          1d
+prometheus-prometheus-0                2/2       Running   0          113d
+zipkin-868b97667c-58v4r                1/1       Running   0          2h
+```
+
+And then use `kubectl port-forward` to access the pod:
 
 ```shell
-kubectl get svc -o wide zipkin
+$ kubectl port-forward zipkin-868b97667c-58v4r 9411
 ```
 
-Eventually, this should give you something like:
+Open your web browser to `http://localhost:9411` for the Zipkin UI.
 
-```
-NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)          AGE
-zipkin       10.11.12.13     35.36.37.38     9411:31043/TCP   1m
-```
-
-or on minikube: 
+If you're on `minikube`, you can access the `NodePort` directly:
 
 ```shell
 $ minikube service list
@@ -105,7 +110,9 @@ $ minikube service list
 |-------------|----------------------|-----------------------------|
 ```
 
-Open your web browser to the Zipkin dashboard http://192.168.99.107:31043/zipkin/ and click the "Find Traces" button to get a listing instrumented traces.
+Open your web browser to the Zipkin dashboard http://192.168.99.107:31043/zipkin/.
+
+In the Zipkin UI, click on the "Find Traces" button to get a listing instrumented traces.
 
 ## More
 
