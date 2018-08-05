@@ -231,6 +231,7 @@ class BackendRequest:
     def __init__(self, req):
         self.url = BackendURL(**req.get("url"))
         self.headers = req.get("headers", {})
+        self.host = req.get("host", None)
 
 class BackendResponse:
 

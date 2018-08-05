@@ -28,6 +28,7 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 
 	request["method"] = r.Method
 	request["headers"] = r.Header
+	request["host"] = r.Host
 
 	// respond with the requested status
 	status := r.Header.Get("Requested-Status")
