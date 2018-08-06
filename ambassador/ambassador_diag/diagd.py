@@ -582,6 +582,9 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
     if workers == None:
         workers = number_of_workers()
 
+    if 'AMBASSADOR_IPV6' in os.environ:
+        host = '[0:0:0:0:0:0:0:0]'
+
     gunicorn_config = {
         'bind': '%s:%s' % (host, port),
         # 'workers': 1,

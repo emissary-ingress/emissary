@@ -48,7 +48,10 @@ class TLSPaths(Enum):
 
 class SystemInfo (object):
     MyHostName = socket.gethostname()
-    MyResolvedName = socket.gethostbyname(socket.gethostname())
+    if 'AMBASSADOR_IPV6' in os.environ:
+        MyResolvedName = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6)
+    else:
+        MyResolvedName = socket.gethostbyname(socket.gethostname())
 
 class RichStatus (object):
     def __init__(self, ok, **kwargs):
