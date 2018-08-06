@@ -20,17 +20,24 @@ def yaml_check(gen, *tags: Tag) -> Optional[SequenceView]:
 
 class QueryTest(Test):
 
+    def config(self):
+        if False: yield
+
+    def manifests(self):
+        return None
+
     def queries(self):
         if False: yield
 
     def check(self):
         pass
 
-class AmbassadorTest(QueryTest):
+    @property
+    def ambassador_id(self):
+        return self.parent.ambassador_id
 
-    @abstractmethod
-    def yaml(self) -> str:
-        pass
+class AmbassadorTest(QueryTest):
+    pass
 
 class ConfigTest(AmbassadorTest):
 
@@ -41,27 +48,13 @@ class ConfigTest(AmbassadorTest):
     def __init__(self, mappings = ()):
         self.mappings = list(mappings)
 
-    def assemble(self, pattern):
-        result = []
-        amb_yaml = yaml_check(self.yaml, Tag.MAPPING)
-        if amb_yaml is not None:
-            for m in amb_yaml:
-                m["ambassador_id"] = self.name.lower()
-        k8s_yaml = yaml_check(self.k8s_yaml, Tag.MAPPING)
-        if amb_yaml is not None:
-            for item in k8s_yaml:
-                if item["kind"].lower() == "service":
-                    item["metadata"]["annotations"] = { "getambassador.io/config": dump(amb_yaml) }
-                    break
-        result.extend(k8s_yaml)
+    @property
+    def ambassador_id(self):
+        return self.name.k8s
 
-        for m in self.mappings:
-            if m.matches(pattern):
-                result.extend(m.assemble(pattern))
-        return result
-
-    def k8s_yaml(self) -> str:
-        return templates.ambassador(self.name.lower())
+    # XXX: should use format for manifests and change templates to manifests
+    def manifests(self) -> str:
+        return templates.ambassador(self.name.k8s)
 
     @abstractmethod
     def scheme(self) -> str:
@@ -72,11 +65,11 @@ class ConfigTest(AmbassadorTest):
 
 class ServiceType(Node):
 
-    mapping: 'MappingTest'
+    def config(self):
+        if False: yield
 
-    @classmethod
-    def variants(cls):
-        yield variant()
+    def manifests(self):
+        return templates.backend(self.path.k8s)
 
 class HTTP(ServiceType):
     pass
@@ -87,37 +80,13 @@ class GRPC(ServiceType):
 class MappingTest(QueryTest):
 
     target: ServiceType
-    options: Sequence['MappingOptionTest']
-    config: ConfigTest
+    options: Sequence['OptionTest']
 
     def __init__(self, target: ServiceType, options = ()) -> None:
         self.target = target
         self.options = list(options)
 
-    def assemble(self, pattern):
-        mappings = yaml_check(self.yaml, Tag.MAPPING)
-        for m in mappings:
-            m["ambassador_id"] = self.parent.name.lower()
-        me = mappings[0]
-        for opt in self.options:
-            if opt.matches(pattern):
-                for o in yaml_check(opt.yaml, Tag.MAPPING):
-                    me.merge(o)
-
-        k8s_yaml = yaml_check(self.k8s_yaml, Tag.MAPPING)
-        for item in k8s_yaml:
-            if item["kind"].lower() == "service":
-                item["metadata"]["annotations"] = { "getambassador.io/config": dump(mappings) }
-                break
-
-        return k8s_yaml
-
-    def k8s_yaml(self):
-        return templates.backend(self.target.path.k8s)
-
-class MappingOptionTest(QueryTest):
-
-    mapping: MappingTest
+class OptionTest(QueryTest):
 
     VALUES: Any = None
 
@@ -136,8 +105,8 @@ class MappingOptionTest(QueryTest):
 
 class TLS(ConfigTest):
 
-    def yaml(self):
-        return """
+    def config(self):
+        yield self, """
 ---
 apiVersion: ambassador/v0
 kind: Module
@@ -162,8 +131,8 @@ config:
 
 class Plain(ConfigTest):
 
-    def yaml(self):
-        return """
+    def config(self):
+        yield self, """
 ---
 apiVersion: ambassador/v0
 kind:  Module
@@ -190,12 +159,12 @@ class SimpleMapping(MappingTest):
     def variants(cls):
         for st in variants(ServiceType):
             yield variant(st, name="{self.target.name}")
-            for mot in variants(MappingOptionTest):
+            for mot in variants(OptionTest):
                 yield variant(st, (mot,), name="{self.target.name}-{self.options[0].name}")
-            yield variant(st, unique(variants(MappingOptionTest)), name="{self.target.name}-all")
+            yield variant(st, unique(variants(OptionTest)), name="{self.target.name}-all")
 
-    def yaml(self):
-        return self.format("""
+    def config(self):
+        yield self, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
@@ -212,24 +181,24 @@ service: http://{self.target.path.k8s}
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
 
-class AddRequestHeaders(MappingOptionTest):
+class AddRequestHeaders(OptionTest):
 
     VALUES = ({"foo": "bar"},
               {"moo": "arf"})
 
-    def yaml(self):
-        return "add_request_headers: %s" % json.dumps(self.value)
+    def config(self):
+        yield "add_request_headers: %s" % json.dumps(self.value)
 
     def check(self):
         for r in self.parent.results:
             for k, v in self.value.items():
-                actual = r.backend.request.headers.get(k.capitalize())
+                actual = r.backend.request.headers.get(k.lower())
                 assert actual == [v], (actual, [v])
 
-class CaseSensitive(MappingOptionTest):
+class CaseSensitive(OptionTest):
 
-    def yaml(self):
-        return "case_sensitive: false"
+    def config(self):
+        yield "case_sensitive: false"
 
     def queries(self):
         for q in self.parent.queries():
@@ -238,29 +207,28 @@ class CaseSensitive(MappingOptionTest):
             assert upped != q.url
             yield Query(upped, xfail="this is broken")
 
-class AutoHostRewrite(MappingOptionTest):
+class AutoHostRewrite(OptionTest):
 
-    def yaml(self):
-        return "auto_host_rewrite: true"
+    def config(self):
+        yield "auto_host_rewrite: true"
 
     def check(self):
-        pytest.xfail("this doesn't work for some reason")
         for r in self.parent.results:
-            host = r.backend.request.url.host
+            host = r.backend.request.host
             assert r.backend.name == host, (r.backend.name, host)
 
-class Rewrite(MappingOptionTest):
+class Rewrite(OptionTest):
 
     VALUES = ("/foo", "foo")
 
-    def yaml(self):
-        return self.format("rewrite: {self.value}")
+    def config(self):
+        yield self.format("rewrite: {self.value}")
 
     def queries(self):
         if self.value[0] != "/":
             for q in self.parent.pending:
                 q.xfail = "rewrite option is broken for values not beginning in slash"
-        return super(MappingOptionTest, self).queries()
+        return super(OptionTest, self).queries()
 
     def check(self):
         if self.value[0] != "/":
@@ -273,7 +241,7 @@ class CanaryMapping(MappingTest):
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
-            for w in (10, 50, 90):
+            for w in (10, 50):
                 yield variant(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
     def __init__(self, target, canary, weight):
@@ -281,14 +249,16 @@ class CanaryMapping(MappingTest):
         self.canary = canary
         self.weight = weight
 
-    def yaml(self):
-        return self.format("""
+    def config(self):
+        yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: http://{self.target.path.k8s}
+""")
+        yield self.canary, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
@@ -302,18 +272,15 @@ weight: {self.weight}
         for i in range(100):
             yield Query(self.parent.url(self.name + "/"))
 
-    def k8s_yaml(self):
-        return templates.backend(self.target.path.k8s) + "\n" + templates.backend(self.canary.path.k8s)
-
     def check(self):
         hist = {}
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
         canary = 100*hist.get(self.canary.path.k8s, 0)/len(self.results)
         main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
-        assert abs(self.weight - canary) < 10, (self.weight, canary)
+        assert abs(self.weight - canary) < 25, (self.weight, canary)
 
-### NEXT STEPS: fix assemble and friends to use better traversal/discovery technique
+# NEXT: docs, readiness probes, backend history queries
 
 # Test docs:
 #  test methods:
@@ -324,6 +291,6 @@ weight: {self.weight}
 #
 #     manifests() -> k8s config
 #
-#     urls() -> Sequence[Tuple[ID, URL]]
+#     queries() -> Sequence[Query]
 #
-#     validate() -> validates results
+#     check() -> validates results

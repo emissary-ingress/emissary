@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from itertools import chain, product
 from typing import Any, Iterable, Mapping, Optional, Sequence, Type
 
 import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys
+
+from parser import dump, load, Tag
 
 COUNTERS: Mapping[Type,int] = {}
 
@@ -244,3 +247,116 @@ class BackendResult:
         self.name = bres["backend"]
         self.request = BackendRequest(bres["request"]) if "request" in bres else None
         self.response = BackendResponse(bres["response"]) if "response" in bres else None
+
+def label(yaml, scope):
+    for obj in yaml:
+        md = obj["metadata"]
+        if "labels" not in md: md["labels"] = {}
+        obj["metadata"]["labels"]["scope"] = scope
+    return yaml
+
+
+class Root:
+
+    def __init__(self, tests):
+        self.tests = tests
+        self.done = False
+        self.exc = None
+        self.tb = None
+
+    def setup(self, selected):
+        if not self.done:
+            try:
+                self._setup_k8s()
+                self._query(selected)
+            except:
+                _, self.exc, self.tb = sys.exc_info()
+                raise
+            finally:
+                self.done = True
+        if self.exc:
+            raise self.exc.with_traceback(self.tb)
+
+    def _setup_k8s(self):
+        manifests = OrderedDict()
+        for t in self.tests:
+            for n in t.traversal:
+                yaml = n.manifests()
+                if yaml is not None:
+                    manifests[n] = load(n.path, yaml, Tag.MAPPING)
+
+        configs = OrderedDict()
+        for t in self.tests:
+            for n in t.traversal:
+                configs[n] = []
+                for cfg in n.config():
+                    if isinstance(cfg, str):
+                        parent_config = configs[n.parent][0][1][0]
+                        for o in load(n.path, cfg, Tag.MAPPING):
+                            parent_config.merge(o)
+                    else:
+                        target = cfg[0]
+                        yaml = load(n.path, cfg[1], Tag.MAPPING)
+                        for obj in yaml:
+                            obj["ambassador_id"] = n.ambassador_id
+                        configs[n].append((target, yaml))
+
+        for tgt_cfgs in configs.values():
+            for target, cfg in tgt_cfgs:
+                for t in target.traversal:
+                    if t in manifests:
+                        k8s_yaml = manifests[t]
+                        for item in k8s_yaml:
+                            if item["kind"].lower() == "service":
+                                item["metadata"]["annotations"] = { "getambassador.io/config": dump(cfg) }
+                                break
+                        else:
+                            continue
+                        break
+                else:
+                    assert False, "no service found for target: %s" % target.path
+
+        yaml = ""
+        for v in manifests.values():
+            yaml += dump(label(v, "poc-test")) + "\n"
+
+        if os.path.exists("/tmp/k8s.yaml"):
+            with open("/tmp/k8s.yaml") as f:
+                prev_yaml = f.read()
+        else:
+            prev_yaml = None
+
+        if yaml != prev_yaml:
+            with open("/tmp/k8s.yaml", "w") as f:
+                f.write(yaml)
+            # XXX: better prune selector label
+            os.system("kubectl apply --prune -l scope=poc-test -f /tmp/k8s.yaml")
+
+    def _query(self, selected):
+        queries = []
+        byid = {}
+        for v in self.tests:
+            for t in v.traversal:
+                if t in selected:
+                    t.pending = []
+                    t.queried = []
+                    t.results = []
+                    for q in t.queries():
+                        q.parent = t
+                        t.pending.append(q)
+                        queries.append(q)
+                        byid[id(q)] = q
+
+        with open("/tmp/urls.json", "w") as f:
+            json.dump([{"test": q.parent.path, "id": id(q), "url": q.url} for q in queries], f)
+        os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log")
+        with open("/tmp/results.json") as f:
+            results = json.load(f)
+
+        for r in results:
+            res = r["result"]
+            q = byid[r["id"]]
+            result = Result(q, res)
+            q.parent.queried.append(q)
+            q.parent.results.append(result)
+            q.parent.pending.remove(q)
