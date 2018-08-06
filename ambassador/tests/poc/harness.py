@@ -42,11 +42,11 @@ def abstract_test(cls):
     cls.abstract_test = True
     return cls
 
-def get_leafs(type):
+def get_nodes(type):
     if not inspect.isabstract(type) and not type.__dict__.get("abstract_test", False):
         yield type
     for sc in type.__subclasses__():
-        for ssc in get_leafs(sc):
+        for ssc in get_nodes(sc):
             yield ssc
 
 def _fixup(var, cls, axis):
@@ -56,7 +56,7 @@ def _fixup(var, cls, axis):
 
 def variants(cls, *args, **kwargs):
     axis = kwargs.pop("axis", None)
-    return tuple(_fixup(a, t, axis) for t in get_leafs(cls) for a in t.variants(*args, **kwargs))
+    return tuple(_fixup(a, n, axis) for n in get_nodes(cls) for a in n.variants(*args, **kwargs))
 
 def _instantiate(o):
     if isinstance(o, variant):
