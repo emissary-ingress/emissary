@@ -63,6 +63,9 @@ spec:
           limits:
             cpu: "1"
             memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
 ```
 
 This configuration tells Ambassador about the tracing service, notably that Zipkin API is listening on `zipkin:9411`.
