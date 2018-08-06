@@ -55,14 +55,19 @@ AWS provides three types of load balancers:
 
 In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 and later).
 
-If you are running an ELB in L4 mode, you need to:
+#### L4 Load Balancer
 
-* Run the ELB with the following listener configuration:
-  * `:443` -> `:8443` (the Envoy port doesn't matter)
-  * `:80` -> `:8080` (the Envoy port doesn't matter)
-  * Configure `redirect_cleartext_from` to redirect traffic on `8080` to the secure port
+When running an ELB in L4 mode, you will need to listen on two ports to redirect all incoming HTTP requests to HTTPS. The first port will listen for HTTP traffic to redirect to HTTPS, while the second port will listen for HTTPS traffic.
 
-For this setup of an L4 load balancer, here is an example Ambassador configuration:
+Let's say,
+- port 80 on the load balancer forwards requests to port 8080 on Ambassador
+- port 443 on the load balancer forwards requests to port 8443 on Ambassador
+
+First off, configure this forwarding in your load balancer.
+
+Now, we want every request on port 80 (8080 of Ambassador) to be redirected to port 443 (8443 of Ambassador)
+
+To achieve this, you need to use `redirect_cleartext_from` as follows -
 
 ```yaml
 apiVersion: ambassador/v0
@@ -74,7 +79,13 @@ config:
     redirect_cleartext_from: 8080
 ```
 
-If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests with `X-FORWARDED-PROTO: http` header to HTTPS. Here is an example Ambassador configuration for this scenario:
+This configuration makes Ambassador start a new listener on 8080 which redirects all cleartext HTTP traffic to HTTPS.
+
+Note: Ambassador only supports standard ports (80 and 443) on the load balancer for L4 redirection, [yet](https://github.com/datawire/ambassador/issues/702)! For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888`. This will fail because HTTPS listener is on port 9999.
+
+#### L7 Load Balancer
+
+If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests without the `X-FORWARDED-PROTO: https` header to HTTPS. Here is an example Ambassador configuration for this scenario:
 
 ```yaml
 apiVersion: ambassador/v0
