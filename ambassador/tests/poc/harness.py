@@ -49,14 +49,14 @@ def get_nodes(type):
         for ssc in get_nodes(sc):
             yield ssc
 
-def _fixup(var, cls, axis):
+def _fixup(var, cls, context):
     var.cls = cls
-    var.axis = axis
+    var.context = context
     return var
 
 def variants(cls, *args, **kwargs):
-    axis = kwargs.pop("axis", None)
-    return tuple(_fixup(a, n, axis) for n in get_nodes(cls) for a in n.variants(*args, **kwargs))
+    context = kwargs.pop("context", None)
+    return tuple(_fixup(a, n, context) for n in get_nodes(cls) for a in n.variants(*args, **kwargs))
 
 def _instantiate(o):
     if isinstance(o, variant):
@@ -83,7 +83,7 @@ class variant:
         dict(self.kwargs)
         result = variant(*self.args, name=name, **self.kwargs)
         result.cls = self.cls
-        result.axis = self.axis
+        result.context = self.context
         return result
 
     def instantiate(self):
@@ -95,8 +95,8 @@ class variant:
         name = self.cls.__name__
         if self.name:
             name += "-" + result.format(self.name)
-        if self.axis:
-            name += "-" + result.format(self.axis)
+        if self.context:
+            name += "-" + result.format(self.context)
 
         result.name = Name(name)
 
