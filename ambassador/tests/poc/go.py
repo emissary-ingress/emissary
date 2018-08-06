@@ -7,12 +7,10 @@ import json
 import pytest
 import templates
 
-from harness import sanitize, variant, variants, Node, Query, QueryTest
+from harness import abstract_test, sanitize, variant, variants, Node, Query, QueryTest
 
+@abstract_test
 class AmbassadorTest(QueryTest):
-    pass
-
-class ConfigTest(AmbassadorTest):
 
     @classmethod
     def variants(cls):
@@ -36,6 +34,7 @@ class ConfigTest(AmbassadorTest):
     def url(self, prefix) -> str:
         return "%s://ambassador-%s/%s" % (self.scheme(), self.name.lower(), prefix)
 
+@abstract_test
 class ServiceType(Node):
 
     def config(self):
@@ -50,6 +49,7 @@ class HTTP(ServiceType):
 class GRPC(ServiceType):
     pass
 
+@abstract_test
 class MappingTest(QueryTest):
 
     target: ServiceType
@@ -59,6 +59,7 @@ class MappingTest(QueryTest):
         self.target = target
         self.options = list(options)
 
+@abstract_test
 class OptionTest(QueryTest):
 
     VALUES: Any = None
@@ -76,7 +77,7 @@ class OptionTest(QueryTest):
 
 ##################################
 
-class TLS(ConfigTest):
+class TLS(AmbassadorTest):
 
     def config(self):
         yield self, """
@@ -102,7 +103,7 @@ config:
 #    def scheme(self) -> str:
 #        return "http"
 
-class Plain(ConfigTest):
+class Plain(AmbassadorTest):
 
     def config(self):
         yield self, """

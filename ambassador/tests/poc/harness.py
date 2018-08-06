@@ -38,10 +38,14 @@ def sanitize(obj):
         else:
             return cls.__name__ + "-%s" %  count
 
+def abstract_test(cls):
+    cls.abstract_test = True
+    return cls
+
 def get_leafs(type):
+    if not inspect.isabstract(type) and not type.__dict__.get("abstract_test", False):
+        yield type
     for sc in type.__subclasses__():
-        if not inspect.isabstract(sc):
-            yield sc
         for ssc in get_leafs(sc):
             yield ssc
 
@@ -66,7 +70,6 @@ def _instantiate(o):
     else:
         return o
 
-# XXX: maybe make this a metaclass?
 class variant:
 
     def __init__(self, *args, **kwargs):
@@ -84,7 +87,10 @@ class variant:
         return result
 
     def instantiate(self):
-        result = self.cls(*_instantiate(self.args))
+        try:
+            result = self.cls(*_instantiate(self.args))
+        except TypeError as e:
+            raise Exception("error instantiating %s, args=%s, kwargs=%s" % (self.cls, self.args, self.kwargs)) from e
 
         name = self.cls.__name__
         if self.name:
@@ -96,7 +102,7 @@ class variant:
 
         names = {}
         for c in result.children:
-            assert c.name not in names, (result, c, names[c.name])
+            assert c.name not in names, (result, c, names[c.name], c.name)
             names[c.name] = c
 
         return result
@@ -340,17 +346,19 @@ class Runner:
         for v in manifests.values():
             yaml += dump(label(v, self.scope)) + "\n"
 
-        if os.path.exists("/tmp/k8s.yaml"):
-            with open("/tmp/k8s.yaml") as f:
+        fname = "/tmp/k8s-%s.yaml" % self.scope
+
+        if os.path.exists(fname):
+            with open(fname) as f:
                 prev_yaml = f.read()
         else:
             prev_yaml = None
 
         if yaml != prev_yaml:
-            with open("/tmp/k8s.yaml", "w") as f:
+            with open(fname, "w") as f:
                 f.write(yaml)
             # XXX: better prune selector label
-            os.system("kubectl apply --prune -l scope=%s -f /tmp/k8s.yaml" % self.scope)
+            os.system("kubectl apply --prune -l scope=%s -f %s" % (self.scope, fname))
 
     def _query(self, selected):
         queries = []

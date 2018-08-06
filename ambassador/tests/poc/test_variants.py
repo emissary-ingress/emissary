@@ -1,6 +1,5 @@
-import json, os, pytest, sys
+import pytest
 
-import harness
 from harness import variants, Runner
 from go import AmbassadorTest
 
