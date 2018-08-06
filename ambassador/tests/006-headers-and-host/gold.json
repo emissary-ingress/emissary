@@ -16,6 +16,7 @@
                 "path": "/dev/fd/1"
               }
             ],
+            
             "route_config": {
               "virtual_hosts": [
                 {
@@ -140,8 +141,9 @@
                     ,
                     
                     {
-
-                      "timeout_ms": 3000,"prefix": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"}, {"key": "x-test-static", "value": "testing"}],"weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/qotm/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"}, {"key": "x-test-static", "value": "testing"}],"weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_httpbin_org_80", "weight": 100.0 }
@@ -208,6 +210,7 @@
     "address": "tcp://127.0.0.1:8001",
     "access_log_path": "/tmp/admin_access_log"
   },
+  
   "cluster_manager": {
     "clusters": [
       {
