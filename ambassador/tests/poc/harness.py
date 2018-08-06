@@ -292,6 +292,21 @@ class Runner:
         self.exc = None
         self.tb = None
 
+        @pytest.mark.parametrize("t", self.tests, ids=self.ids)
+        def test(request, t):
+            selected = set(item.callspec.getparam('t') for item in request.session.items)
+            self.setup(selected)
+            # XXX: should aggregate the result of url checks
+            for r in t.results:
+                r.check()
+            t.check()
+
+        self.__func__ = test
+        self.__test__ = True
+
+    def __call__(self):
+        assert False, "this is here for py.test discovery purposes only"
+
     def setup(self, selected):
         if not self.done:
             try:
