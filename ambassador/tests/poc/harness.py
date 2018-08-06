@@ -256,10 +256,14 @@ def label(yaml, scope):
     return yaml
 
 
-class Root:
+class Runner:
 
-    def __init__(self, tests):
-        self.tests = tests
+    def __init__(self, scope, variants):
+        self.scope = scope
+        self.roots = tuple(v.instantiate() for v in variants)
+        self.nodes = [n for r in self.roots for n in r.traversal]
+        self.tests = [n for n in self.nodes if isinstance(n, Test)]
+        self.ids = [t.path for t in self.tests]
         self.done = False
         self.exc = None
         self.tb = None
@@ -279,27 +283,25 @@ class Root:
 
     def _setup_k8s(self):
         manifests = OrderedDict()
-        for t in self.tests:
-            for n in t.traversal:
-                yaml = n.manifests()
-                if yaml is not None:
-                    manifests[n] = load(n.path, yaml, Tag.MAPPING)
+        for n in self.nodes:
+            yaml = n.manifests()
+            if yaml is not None:
+                manifests[n] = load(n.path, yaml, Tag.MAPPING)
 
         configs = OrderedDict()
-        for t in self.tests:
-            for n in t.traversal:
-                configs[n] = []
-                for cfg in n.config():
-                    if isinstance(cfg, str):
-                        parent_config = configs[n.parent][0][1][0]
-                        for o in load(n.path, cfg, Tag.MAPPING):
-                            parent_config.merge(o)
-                    else:
-                        target = cfg[0]
-                        yaml = load(n.path, cfg[1], Tag.MAPPING)
-                        for obj in yaml:
-                            obj["ambassador_id"] = n.ambassador_id
-                        configs[n].append((target, yaml))
+        for n in self.nodes:
+            configs[n] = []
+            for cfg in n.config():
+                if isinstance(cfg, str):
+                    parent_config = configs[n.parent][0][1][0]
+                    for o in load(n.path, cfg, Tag.MAPPING):
+                        parent_config.merge(o)
+                else:
+                    target = cfg[0]
+                    yaml = load(n.path, cfg[1], Tag.MAPPING)
+                    for obj in yaml:
+                        obj["ambassador_id"] = n.ambassador_id
+                    configs[n].append((target, yaml))
 
         for tgt_cfgs in configs.values():
             for target, cfg in tgt_cfgs:
@@ -318,7 +320,7 @@ class Root:
 
         yaml = ""
         for v in manifests.values():
-            yaml += dump(label(v, "poc-test")) + "\n"
+            yaml += dump(label(v, self.scope)) + "\n"
 
         if os.path.exists("/tmp/k8s.yaml"):
             with open("/tmp/k8s.yaml") as f:
@@ -330,22 +332,21 @@ class Root:
             with open("/tmp/k8s.yaml", "w") as f:
                 f.write(yaml)
             # XXX: better prune selector label
-            os.system("kubectl apply --prune -l scope=poc-test -f /tmp/k8s.yaml")
+            os.system("kubectl apply --prune -l scope=%s -f /tmp/k8s.yaml" % self.scope)
 
     def _query(self, selected):
         queries = []
         byid = {}
-        for v in self.tests:
-            for t in v.traversal:
-                if t in selected:
-                    t.pending = []
-                    t.queried = []
-                    t.results = []
-                    for q in t.queries():
-                        q.parent = t
-                        t.pending.append(q)
-                        queries.append(q)
-                        byid[id(q)] = q
+        for t in self.tests:
+            if t in selected:
+                t.pending = []
+                t.queried = []
+                t.results = []
+                for q in t.queries():
+                    q.parent = t
+                    t.pending.append(q)
+                    queries.append(q)
+                    byid[id(q)] = q
 
         with open("/tmp/urls.json", "w") as f:
             json.dump([{"test": q.parent.path, "id": id(q), "url": q.url} for q in queries], f)

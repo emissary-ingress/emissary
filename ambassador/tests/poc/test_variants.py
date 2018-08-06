@@ -1,16 +1,15 @@
 import json, os, pytest, sys
 
 import harness
-from harness import variants, Root
+from harness import variants, Runner
 from go import AmbassadorTest
 
-root = Root(tuple(v.instantiate() for v in variants(AmbassadorTest)))
-params = [t for r in root.tests for t in r.traversal if isinstance(t, harness.Test)]
+runner = Runner("poc-test", variants(AmbassadorTest))
 
-@pytest.mark.parametrize("t", params, ids=[t.path for t in params])
+@pytest.mark.parametrize("t", runner.tests, ids=runner.ids)
 def test(request, t):
     selected = set(item.callspec.getparam('t') for item in request.session.items)
-    root.setup(selected)
+    runner.setup(selected)
     # XXX: should aggregate the result of url checks
     for r in t.results:
         r.check()
