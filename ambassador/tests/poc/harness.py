@@ -181,6 +181,24 @@ class Node(ABC):
 class Test(Node):
     pass
 
+class QueryTest(Test):
+
+    def config(self):
+        if False: yield
+
+    def manifests(self):
+        return None
+
+    def queries(self):
+        if False: yield
+
+    def check(self):
+        pass
+
+    @property
+    def ambassador_id(self):
+        return self.parent.ambassador_id
+
 class Query:
 
     def __init__(self, url, expected=200, skip = None, xfail = None):

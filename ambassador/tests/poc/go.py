@@ -1,40 +1,13 @@
 #!/usr/bin/env python3
 
 from abc import abstractmethod
-from collections import OrderedDict
 from typing import Any, Iterable, Optional, Sequence, Type
-from parser import SequenceView
 
 import json
-import pprint
 import pytest
 import templates
 
-from harness import sanitize, variant, variants, Node, Query, Test
-from parser import load, dump, Tag, SequenceView
-
-def yaml_check(gen, *tags: Tag) -> Optional[SequenceView]:
-    st = gen()
-    if st is None: return None
-    return load(gen.__name__, st, *tags)
-
-class QueryTest(Test):
-
-    def config(self):
-        if False: yield
-
-    def manifests(self):
-        return None
-
-    def queries(self):
-        if False: yield
-
-    def check(self):
-        pass
-
-    @property
-    def ambassador_id(self):
-        return self.parent.ambassador_id
+from harness import sanitize, variant, variants, Node, Query, QueryTest
 
 class AmbassadorTest(QueryTest):
     pass
