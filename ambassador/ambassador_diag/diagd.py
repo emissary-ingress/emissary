@@ -563,7 +563,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0'):
+          workers=None, port=8877, host='[0:0:0:0:0:0:0:0]'):
     """
     Run the diagnostic daemon.
 

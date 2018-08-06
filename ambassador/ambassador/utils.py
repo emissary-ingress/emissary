@@ -48,7 +48,7 @@ class TLSPaths(Enum):
 
 class SystemInfo (object):
     MyHostName = socket.gethostname()
-    MyResolvedName = socket.gethostbyname(socket.gethostname())
+    MyResolvedName = socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6)
 
 class RichStatus (object):
     def __init__(self, ok, **kwargs):
