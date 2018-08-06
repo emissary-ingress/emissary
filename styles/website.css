@@ -7,3 +7,7 @@
 .book-summary ul.summary > li:first-child {
     display: none;
 }
+
+#datawire-breadcrumb {
+    display: none;
+}
