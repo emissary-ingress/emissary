@@ -42,7 +42,7 @@ python ${HERE}/yfix.py ${HERE}/fixes/mounts.yfix \
 # have the right Ambassador image. We'll need to extend 
 # this as more tests rely on Forge.
 python ${HERE}/yfix.py ${HERE}/fixes/service-yaml.yfix \
-    ${HERE}/0-serial/011-websocket/ambassador/service-src.yaml \
-    ${HERE}/0-serial/011-websocket/ambassador/service.yaml \
+    ${HERE}/1-parallel/011-websocket/ambassador/service-src.yaml \
+    ${HERE}/1-parallel/011-websocket/ambassador/service.yaml \
     "$AMBASSADOR_IMAGE"
 

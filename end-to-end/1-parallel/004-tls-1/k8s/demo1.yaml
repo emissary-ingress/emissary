@@ -1,0 +1,52 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo1
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_default_mapping
+      prefix: /demo/
+      tls: upstream     
+      service: demo1
+      ambassador_id: 004-tls-1
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  demo_with_header_mapping
+      prefix: /demo/
+      headers:
+        x-demo-mode: canary
+      service: https://demo1:443
+      ambassador_id: 004-tls-1
+spec:
+  selector:
+    app: demo1
+  ports:
+    - port: 443
+      targetPort: http-api
+  type: ClusterIP
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: demo1
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: demo1
+    spec:
+      containers:
+      - name: demo1
+        image: dwflynn/demo:1.0.0tls
+        imagePullPolicy: Always
+        ports:
+        - name: http-api
+          containerPort: 3000

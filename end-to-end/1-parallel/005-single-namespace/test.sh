@@ -21,7 +21,7 @@ NAMESPACE="005-single-namespace"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/single-namespace.yfix \
     ${ROOT}/ambassador-deployment.yaml \
@@ -48,14 +48,14 @@ BASEURL="http://${CLUSTER}:${APORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1
 fi
 
 kubectl apply -f k8s/demo1.yaml
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 wait_for_demo_weights "$BASEURL" 100
 
 if ! check_diag "$BASEURL" 2 "demo1 annotated"; then
