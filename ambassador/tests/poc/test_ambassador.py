@@ -1,13 +1,12 @@
-#!/usr/bin/env python3
 
 from abc import abstractmethod
 from typing import Any, Iterable, Optional, Sequence, Type
 
 import json
 import pytest
-import templates
+import manifests
 
-from harness import abstract_test, sanitize, variant, variants, Node, Query, Test
+from harness import abstract_test, sanitize, variant, variants, Node, Query, Runner, Test
 
 @abstract_test
 class AmbassadorTest(Test):
@@ -25,7 +24,7 @@ class AmbassadorTest(Test):
 
     # XXX: should use format for manifests and change templates to manifests
     def manifests(self) -> str:
-        return templates.ambassador(self.name.k8s)
+        return self.format(manifests.AMBASSADOR)
 
     @abstractmethod
     def scheme(self) -> str:
@@ -41,7 +40,7 @@ class ServiceType(Node):
         if False: yield
 
     def manifests(self):
-        return templates.backend(self.path.k8s)
+        return self.format(manifests.BACKEND)
 
 class HTTP(ServiceType):
     pass
@@ -254,17 +253,4 @@ weight: {self.weight}
         main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
         assert abs(self.weight - canary) < 25, (self.weight, canary)
 
-# NEXT: docs, readiness probes, backend history queries
-
-# Test docs:
-#  test methods:
-#
-#     variants() -> test generator
-#
-#     config() -> amb config
-#
-#     manifests() -> k8s config
-#
-#     queries() -> Sequence[Query]
-#
-#     check() -> validates results
+t = Runner("ambassador-tests", AmbassadorTest)

@@ -1,18 +1,12 @@
-def backend(name):
-    return BACKEND % {"name": name, "tag": "3"}
-
-def ambassador(name):
-    return AMBASSADOR % {"name": name}
-
 BACKEND = """
 ---
 kind: Service
 apiVersion: v1
 metadata:
-  name: %(name)s
+  name: {self.path.k8s}
 spec:
   selector:
-    backend: %(name)s
+    backend: {self.path.k8s}
   ports:
   - protocol: TCP
     port: 80
@@ -21,18 +15,18 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: %(name)s
+  name: {self.path.k8s}
   labels:
-    backend: %(name)s
+    backend: {self.path.k8s}
 spec:
   containers:
   - name: backend
-    image: rschloming/backend:%(tag)s
+    image: rschloming/backend:3
     ports:
     - containerPort: 8080
     env:
     - name: BACKEND
-      value: %(name)s
+      value: {self.path.k8s}
 """
 
 AMBASSADOR = """
@@ -40,33 +34,33 @@ AMBASSADOR = """
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
 spec:
   type: NodePort
   ports:
    - port: 80
   selector:
-    service: ambassador-%(name)s
+    service: ambassador-{self.name.k8s}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: ambassador-%(name)s-admin
-  name: ambassador-%(name)s-admin
+    service: ambassador-{self.name.k8s}-admin
+  name: ambassador-{self.name.k8s}-admin
 spec:
   type: NodePort
   ports:
-  - name: ambassador-%(name)s-admin
+  - name: ambassador-{self.name.k8s}-admin
     port: 8877
     targetPort: 8877
   selector:
-    service: ambassador-%(name)s
+    service: ambassador-{self.name.k8s}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
 rules:
 - apiGroups: [""]
   resources:
@@ -84,31 +78,31 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
 subjects:
 - kind: ServiceAccount
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
   namespace: default
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ambassador-%(name)s
+  name: ambassador-{self.name.k8s}
   annotations:
     sidecar.istio.io/inject: "false"
   labels:
-    service: ambassador-%(name)s
+    service: ambassador-{self.name.k8s}
 spec:
-  serviceAccountName: ambassador-%(name)s
+  serviceAccountName: ambassador-{self.name.k8s}
   containers:
   - name: ambassador
     image: quay.io/datawire/ambassador:0.35.3
@@ -125,7 +119,7 @@ spec:
         fieldRef:
           fieldPath: metadata.namespace
     - name: AMBASSADOR_ID
-      value: %(name)s
+      value: {self.name.k8s}
     livenessProbe:
       httpGet:
         path: /ambassador/v0/check_alive
