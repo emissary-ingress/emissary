@@ -134,6 +134,7 @@ clean:
 	rm -rf end-to-end/ambassador-deployment.yaml end-to-end/ambassador-deployment-mounts.yaml
 	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
 	rm -f end-to-end/1-parallel/011-websocket/ambassador/service.yaml
+	find end-to-end/1-parallel/ -type f -name 'ambassador-deployment*.yaml' -exec rm {} \;
 
 clobber: clean
 	-rm -rf docs/node_modules
