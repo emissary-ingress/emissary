@@ -59,6 +59,10 @@ spec:
         ports:
         - name: http
           containerPort: 9411
+        resources:
+          limits:
+            cpu: "1"
+            memory: 256Mi
 ```
 
 This configuration tells Ambassador about the tracing service, notably that Zipkin API is listening on `zipkin:9411`.
