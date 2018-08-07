@@ -101,7 +101,7 @@ cp failures.txt old-failures.txt
 > failures.txt
 while read -r line || [[ -n "$line" ]]; do
     echo
-    echo "Re-running $test"
+    echo "Re-running $line"
     run_and_log ${line}
 done < old-failures.txt
 
