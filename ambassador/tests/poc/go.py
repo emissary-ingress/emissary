@@ -7,10 +7,10 @@ import json
 import pytest
 import templates
 
-from harness import abstract_test, sanitize, variant, variants, Node, Query, QueryTest
+from harness import abstract_test, sanitize, variant, variants, Node, Query, Test
 
 @abstract_test
-class AmbassadorTest(QueryTest):
+class AmbassadorTest(Test):
 
     @classmethod
     def variants(cls):
@@ -50,7 +50,7 @@ class GRPC(ServiceType):
     pass
 
 @abstract_test
-class MappingTest(QueryTest):
+class MappingTest(Test):
 
     target: ServiceType
     options: Sequence['OptionTest']
@@ -60,7 +60,7 @@ class MappingTest(QueryTest):
         self.options = list(options)
 
 @abstract_test
-class OptionTest(QueryTest):
+class OptionTest(Test):
 
     VALUES: Any = None
 

@@ -3,7 +3,7 @@ from collections import OrderedDict
 from itertools import chain, product
 from typing import Any, Iterable, Mapping, Optional, Sequence, Type
 
-import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys
+import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys, traceback
 
 from parser import dump, load, Tag
 
@@ -185,9 +185,8 @@ class Node(ABC):
         return False
 
 class Test(Node):
-    pass
 
-class QueryTest(Test):
+    __test__ = False
 
     def config(self):
         if False: yield
@@ -282,9 +281,9 @@ def label(yaml, scope):
 
 class Runner:
 
-    def __init__(self, scope, variants):
+    def __init__(self, scope, *classes):
         self.scope = scope
-        self.roots = tuple(v.instantiate() for v in variants)
+        self.roots = tuple(v.instantiate() for c in classes for v in variants(c))
         self.nodes = [n for r in self.roots for n in r.traversal]
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
         self.ids = [t.path for t in self.tests]
@@ -306,6 +305,17 @@ class Runner:
 
     def __call__(self):
         assert False, "this is here for py.test discovery purposes only"
+
+    def run(self):
+        for t in self.tests:
+            try:
+                self.setup(set(self.tests))
+                for r in t.results:
+                    r.check()
+                t.check()
+                print("%s: PASSED" % t.name)
+            except:
+                print("%s: FAILED\n  %s" % (t.name, traceback.format_exc().replace("\n", "\n  ")))
 
     def setup(self, selected):
         if not self.done:
