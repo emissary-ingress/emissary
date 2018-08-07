@@ -446,6 +446,11 @@ class Config (object):
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
 
+            # Is the object empty?
+            if obj == None :
+                self.logger.debug("Annotation has empty config")
+                return
+
             # Is an ambassador_id present in this object?
             allowed_ids = obj.get('ambassador_id', 'default')
 
