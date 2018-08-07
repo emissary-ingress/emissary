@@ -42,6 +42,7 @@ kubectl apply -f k8s/rbac.yaml
 kubectl create cm ambassador-config --namespace=${NAMESPACE} --from-file k8s/base-config.yaml
 
 kubectl apply -f k8s/ambassador.yaml
+sleep 20
 kubectl apply -f k8s/ambassador-deployment.yaml
 kubectl apply -f k8s/stats-test.yaml
 
