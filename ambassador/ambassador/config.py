@@ -1001,6 +1001,7 @@ class Config (object):
             tls_config = None,
             use_proxy_proto = False,
             x_forwarded_proto_redirect = False,
+            health_checks = [],
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -1065,6 +1066,16 @@ class Config (object):
             self.envoy_config['grpc_services'].append(ratelimit_grpc_service)
         # Then append non-configurable cors and decoder filters
         self.envoy_config['filters'].append(SourcedDict(name="cors", config={}))
+
+        # Then append the health_check filters which can either pass-though or short-circuit the router
+        for health_check in self.ambassador_module['health_checks']:
+            if 'endpoint' in health_check:
+                self.envoy_config['filters'].append(SourcedDict(name="health_check", config={
+                    "pass_through_mode": health_check['pass_through'] if 'pass_through' in health_check else False,
+                    "endpoint":  health_check['endpoint'],
+                    "cache_time_ms": 0}))  # Don't enable caching because it's incompatible with pass_through_mode=false and only returns the status-code of the response, stripping the content
+
+        # Finish off with the request router
         self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config=router_config))
 
         # For mappings, start with empty sets for everything.
@@ -1531,7 +1542,8 @@ class Config (object):
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics', 'x_forwarded_proto_redirect' ]:
+                     'use_proxy_proto', 'use_remote_address', 'diagnostics',
+                     'x_forwarded_proto_redirect', 'health_checks' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])

@@ -1,0 +1,8 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  health_checks:
+  - pass_through: false
+    endpoint: /custom-health-endpoint

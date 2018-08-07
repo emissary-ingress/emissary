@@ -44,6 +44,13 @@ config:
   # diagnostics:
   #   enabled: true
 
+  # Health checks allow you to define custom endpoints used to 
+  # filter health checking traffic and not have it instrumented 
+  # with tracing. 
+  # health_checks:
+  # - pass_through: false
+  #   endpoint: /custom-health-endpoint
+
   # use_proxy_protocol controls whether Envoy will honor the PROXY
   # protocol on incoming requests.
   # use_proxy_proto: false
@@ -84,6 +91,18 @@ readiness_probe:
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](#mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
 **Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
+
+#### Health checks
+
+In distributed systems, the number of health checking requests can quickly add up. Hopefully, multiple health check endpoints can be filtered by Ambassador to prevent them from generating an excessive amount of [traces](services/tracing-service.md). Although the `endpoint` parameter is mandatory, Ambassador can behave in two different modes:
+- In `pass_through: false` (the default) the HTTP request is never passed to the backend service. Ambassador will respond with a 200 or a 503 status depending on the Envoy server state.
+- In `pass_through: true` the HTTP request is relayed to the backend service, which is expected to respond with a 200 or 503 status depending of the service's health.
+
+```yaml
+health_checks:
+  - pass_through: false
+    endpoint: /health
+```
 
 ### The `authentication` Module
 
