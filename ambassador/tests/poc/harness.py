@@ -430,6 +430,7 @@ class Runner:
                     time.sleep(10)
                     break
             else:
+                print("pods ready")
                 return
 
     def _query(self, selected):
@@ -444,7 +445,9 @@ class Runner:
                     t.pending.append(q)
                     queries.append(q)
 
+        print("making %s queries" % len(queries))
         results = query(queries)
+        print("got %s results" % len(results))
 
         for r in results:
             t = r.parent
