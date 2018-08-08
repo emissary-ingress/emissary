@@ -184,8 +184,8 @@ class Node(ABC):
                 return True
         return False
 
-    def ready(self, containers):
-        return True
+    def requirements(self):
+        if False: yield
 
 class Test(Node):
 
@@ -417,21 +417,27 @@ class Runner:
             os.system("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
 
             with open(fname) as f:
-                pods = json.load(f)
+                raw_pods = json.load(f)
 
-            containers = {}
-            for p in pods["items"]:
-                for cs in p["status"].get("containerStatuses", ()):
-                    containers[(p["metadata"]["name"], cs["name"])] = cs["ready"]
+            pods = {}
+            for p in raw_pods["items"]:
+                name = p["metadata"]["name"]
+                ready = tuple(cs["name"] for cs in p["status"].get("containerStatuses", ()) if cs["ready"])
+                pods[name] = ready
 
-            for n in self.nodes:
-                if not n.ready(containers):
-                    print("pods not ready, sleeping...")
-                    time.sleep(10)
-                    break
-            else:
-                print("pods ready")
-                return
+            requirements = [r for n in self.nodes for r in n.requirements()]
+
+            if requirements:
+                print("Checking requirements")
+                for kind, name in requirements:
+                    assert kind == "pod"
+                    if not pods.get(name, ()):
+                        print("%s %s not ready, sleeping..." % (kind, name))
+                        time.sleep(10)
+                        break
+                else:
+                    print("Requirements satisifed")
+                    return
 
     def _query(self, selected):
         queries = []
@@ -445,12 +451,13 @@ class Runner:
                     t.pending.append(q)
                     queries.append(q)
 
-        print("making %s queries" % len(queries))
-        results = query(queries)
-        print("got %s results" % len(results))
+        if queries:
+            print("Querying %s urls" % len(queries))
+            results = query(queries)
+            print("Done querying")
 
-        for r in results:
-            t = r.parent
-            t.queried.append(r.query)
-            t.results.append(r)
-            t.pending.remove(r.query)
+            for r in results:
+                t = r.parent
+                t.queried.append(r.query)
+                t.results.append(r)
+                t.pending.remove(r.query)
