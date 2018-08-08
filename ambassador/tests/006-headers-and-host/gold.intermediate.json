@@ -23,11 +23,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-cors.yaml.1",
-                    "mapping-cors.yaml.2"
+                    "mapping-cors.yaml.1"
                 ],
                 "_service": "cors",
-                "_source": "mapping-cors.yaml.2",
+                "_source": "mapping-cors.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_cors",
                 "type": "strict_dns",
@@ -101,6 +100,20 @@
                 "urls": [
                     "tcp://qotm:80"
                 ]
+            }
+        ],
+        "cors_default": [
+            {
+                "allow_credentials": true,
+                "allow_headers": "Content-Type",
+                "allow_methods": "POST, GET, OPTIONS",
+                "allow_origin": [
+                    "http://foo.example",
+                    "http://bar.example"
+                ],
+                "enabled": true,
+                "expose_headers": "X-Custom-Header",
+                "max_age": "86400"
             }
         ],
         "filters": [
@@ -490,36 +503,6 @@
                 "host_rewrite": "httpbin.org",
                 "prefix": "/httpbin/",
                 "prefix_rewrite": "/"
-            },
-            {
-                "__saved": [
-                    0,
-                    10,
-                    0,
-                    "/cors-all/",
-                    "GET"
-                ],
-                "_group_id": "e75a3faa8eb4d60b982096024a9d118ca00322c8",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "mapping-cors.yaml.2"
-                ],
-                "_source": "mapping-cors.yaml.2",
-                "clusters": [
-                    {
-                        "name": "cluster_cors",
-                        "weight": 100.0
-                    }
-                ],
-                "cors": {
-                    "allow_origin": [
-                        "*"
-                    ],
-                    "enabled": true
-                },
-                "prefix": "/cors-all/",
-                "prefix_rewrite": "/"
             }
         ]
     },
@@ -527,6 +510,9 @@
     "source_map": {
         "--internal--": {
             "--internal--": true
+        },
+        "ambassador.yaml": {
+            "ambassador.yaml.1": true
         },
         "auth.yaml": {
             "auth.yaml.1": true
@@ -536,8 +522,7 @@
             "mapping-cors-array.yaml.2": true
         },
         "mapping-cors.yaml": {
-            "mapping-cors.yaml.1": true,
-            "mapping-cors.yaml.2": true
+            "mapping-cors.yaml.1": true
         },
         "mapping-diag.yaml": {
             "mapping-diag.yaml.1": true
@@ -569,6 +554,15 @@
             "kind": "Internal",
             "name": "Ambassador Internals",
             "version": "v0"
+        },
+        "ambassador.yaml.1": {
+            "_source": "ambassador.yaml",
+            "filename": "ambassador.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "ambassador",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  cors:\n    credentials: true\n    exposed_headers: X-Custom-Header\n    headers: Content-Type\n    max_age: '86400'\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example,http://bar.example\nkind: Module\nname: ambassador\n"
         },
         "auth.yaml.1": {
             "_source": "auth.yaml",
@@ -605,15 +599,6 @@
             "name": "cors_creds_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\ncors:\n  credentials: true\n  exposed_headers: X-Custom-Header\n  headers: Content-Type\n  max_age: '86400'\n  methods: POST, GET, OPTIONS\n  origins: http://foo.example,http://bar.example\nkind: Mapping\nname: cors_creds_mapping\nprefix: /cors-creds/\nservice: cors\n"
-        },
-        "mapping-cors.yaml.2": {
-            "_source": "mapping-cors.yaml",
-            "filename": "mapping-cors.yaml",
-            "index": 2,
-            "kind": "Mapping",
-            "name": "cors_all_mapping",
-            "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\ncors:\n  origins: '*'\nkind: Mapping\nname: cors_all_mapping\nprefix: /cors-all/\nservice: cors\n"
         },
         "mapping-diag.yaml.1": {
             "_source": "mapping-diag.yaml",

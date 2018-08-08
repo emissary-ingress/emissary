@@ -21,7 +21,7 @@ NAMESPACE="001-simple"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 rm -f adep-tmp.yaml
 
@@ -57,7 +57,7 @@ BASEURL="http://${CLUSTER}:${APORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1
@@ -65,7 +65,7 @@ fi
 
 kubectl apply -f k8s/qotm.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 sleep 10 
 
@@ -81,7 +81,7 @@ fi
 
 kubectl apply -f k8s/authsvc.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 wait_for_extauth_running "$BASEURL"
 

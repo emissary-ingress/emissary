@@ -32,6 +32,39 @@
 
 - The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
+<!---
+Add release notes right after this point.
+
+(version number: MAJOR.MINOR.PATCH)
+
+Format:
+
+## [version] <month> <date>, <year>:
+[version]: https://github.com/datawire/ambassador/compare/<last released version>...<version>
+
+### Major changes:
+- Feature: <insert feature description here>
+- Bugfix: <insert bugfix description here>
+
+### Minor changes:
+- Feature: <insert feature description here>
+- Bugfix: <insert bugfix description here>
+--->
+
+<!--- CueAddReleaseNotes --->
+## [0.38.0] August 08, 2018
+[0.38.0]: https://github.com/datawire/ambassador/compare/0.37.0...0.38.0
+
+### Major changes:
+- Feature: Default CORS configuration can now be set - @KowalczykBartek
+- BugFix: Ambassador does not crash with empty YAML config anymore - @rohan47
+
+### Minor changes:
+- DevEx: `master` is now latest, `stable` tracks the latest released version
+- DevEx: release-prep target added to Makefile to facilitate releasing process
+- DevEx: all tests now run in parallel, consuming lesser time
+- BugFix: Ambassador SIGCHLD messages are less scary looking now
+
 ## [0.37.0] July 31, 2018:
 [0.37.0]: https://github.com/datawire/ambassador/compare/0.36.0...0.37.0
 

@@ -16,6 +16,7 @@
                 "path": "/dev/fd/1"
               }
             ],
+            
             "route_config": {
               "virtual_hosts": [
                 {
@@ -23,7 +24,9 @@
                   "domains": ["*"],"routes": [
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "prefix_rewrite": "/ambassador/v0/check_ready","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
@@ -36,7 +39,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "prefix_rewrite": "/ambassador/v0/check_alive","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
@@ -49,7 +54,8 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/cors-creds-array/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},"prefix_rewrite": "/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/cors-creds-array/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_cors_array_8080", "weight": 100.0 }
@@ -62,7 +68,8 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/cors-all-array/","cors": {"allow_origin": ["*"], "enabled": true},"prefix_rewrite": "/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/cors-all-array/","cors": {"allow_origin": ["*"], "enabled": true},
+                      "prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_cors_array_8080", "weight": 100.0 }
@@ -75,7 +82,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/ambassador/v0/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "prefix_rewrite": "/ambassador/v0/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
@@ -88,7 +97,8 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/cors-creds/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},"prefix_rewrite": "/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/cors-creds/","cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_cors", "weight": 100.0 }
@@ -101,7 +111,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/","prefix_rewrite": "/ambassador/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/ambassador/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "prefix_rewrite": "/ambassador/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
@@ -114,20 +126,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/cors-all/","cors": {"allow_origin": ["*"], "enabled": true},"prefix_rewrite": "/","weighted_clusters": {
-                              "clusters": [
-                                  
-                                    { "name": "cluster_cors", "weight": 100.0 }
-                                  
-                              ]
-                          }
-
-                      
-                    }
-                    ,
-                    
-                    {
-                      "timeout_ms": 3000,"prefix": "/httpbin/","headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/httpbin/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "headers": [{"name": ":authority", "regex": false, "value": "test.datawire.io"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_httpbin_org_80", "weight": 100.0 }
@@ -140,7 +141,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"}, {"key": "x-test-static", "value": "testing"}],"weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/qotm/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "headers": [{"name": "x-demo-mode", "regex": false, "value": "host"}, {"name": ":authority", "regex": false, "value": "httpbin.org"}],"prefix_rewrite": "/","host_rewrite": "httpbin.org","request_headers_to_add": [{"key": "x-test-proto", "value": "%PROTOCOL%"}, {"key": "x-test-ip", "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"}, {"key": "x-test-static", "value": "testing"}],"weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_httpbin_org_80", "weight": 100.0 }
@@ -153,7 +156,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "local"}],"prefix_rewrite": "/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/qotm/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "headers": [{"name": "x-demo-mode", "regex": false, "value": "local"}],"prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_qotm", "weight": 100.0 }
@@ -166,7 +171,9 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/qotm/","headers": [{"name": "x-demo-mode", "regex": false, "value": "cloud"}],"prefix_rewrite": "/qotm/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/qotm/",
+                        "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
+                      "headers": [{"name": "x-demo-mode", "regex": false, "value": "cloud"}],"prefix_rewrite": "/qotm/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_demo_getambassador_io", "weight": 100.0 }
@@ -203,6 +210,7 @@
     "address": "tcp://127.0.0.1:8001",
     "access_log_path": "/tmp/admin_access_log"
   },
+  
   "cluster_manager": {
     "clusters": [
       {
