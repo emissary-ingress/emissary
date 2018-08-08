@@ -404,7 +404,7 @@ class Runner:
         else:
             prev_yaml = None
 
-        if yaml != prev_yaml:
+        if yaml.strip() and yaml != prev_yaml:
             with open(fname, "w") as f:
                 f.write(yaml)
             # XXX: better prune selector label
@@ -412,6 +412,9 @@ class Runner:
             self._wait()
 
     def _wait(self):
+        requirements = [r for n in self.nodes for r in n.requirements()]
+        if not requirements: return
+
         for i in range(6):
             fname = "/tmp/pods-%s.json" % self.scope
             os.system("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
@@ -425,19 +428,16 @@ class Runner:
                 ready = tuple(cs["name"] for cs in p["status"].get("containerStatuses", ()) if cs["ready"])
                 pods[name] = ready
 
-            requirements = [r for n in self.nodes for r in n.requirements()]
-
-            if requirements:
-                print("Checking requirements")
-                for kind, name in requirements:
-                    assert kind == "pod"
-                    if not pods.get(name, ()):
-                        print("%s %s not ready, sleeping..." % (kind, name))
-                        time.sleep(10)
-                        break
-                else:
-                    print("Requirements satisifed")
-                    return
+            print("Checking requirements")
+            for kind, name in requirements:
+                assert kind == "pod"
+                if not pods.get(name, ()):
+                    print("%s %s not ready, sleeping..." % (kind, name))
+                    time.sleep(10)
+                    break
+            else:
+                print("Requirements satisifed")
+                return
 
     def _query(self, selected):
         queries = []
