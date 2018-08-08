@@ -52,6 +52,18 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.38.0] August 08, 2018
+[0.38.0]: https://github.com/datawire/ambassador/compare/0.37.0...0.38.0
+
+### Major changes:
+- Feature: Default CORS configuration can now be set - @KowalczykBartek
+- BugFix: Ambassador does not crash with empty YAML config anymore - @rohan47
+
+### Minor changes:
+- DevEx: `master` is now latest, `stable` tracks the latest released version
+- DevEx: release-prep target added to Makefile to facilitate releasing process
+- DevEx: all tests now run in parallel, consuming lesser time
+- BugFix: Ambassador SIGCHLD messages are less scary looking now
 
 ## [0.37.0] July 31, 2018:
 [0.37.0]: https://github.com/datawire/ambassador/compare/0.36.0...0.37.0
