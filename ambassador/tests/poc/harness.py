@@ -428,7 +428,8 @@ class Runner:
                 ready = tuple(cs["name"] for cs in p["status"].get("containerStatuses", ()) if cs["ready"])
                 pods[name] = ready
 
-            print("Checking requirements")
+            print("Checking requirements... ", end="")
+            sys.stdout.flush()
             for kind, name in requirements:
                 assert kind == "pod"
                 if not pods.get(name, ()):
@@ -436,7 +437,7 @@ class Runner:
                     time.sleep(10)
                     break
             else:
-                print("Requirements satisifed")
+                print(" satisifed.")
                 return
 
     def _query(self, selected):
@@ -452,9 +453,10 @@ class Runner:
                     queries.append(q)
 
         if queries:
-            print("Querying %s urls" % len(queries))
+            print("Querying %s urls..." % len(queries), end="")
+            sys.stdout.flush()
             results = query(queries)
-            print("Done querying")
+            print(" done.")
 
             for r in results:
                 t = r.parent
