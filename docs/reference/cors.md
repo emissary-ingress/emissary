@@ -1,6 +1,8 @@
 ## Cross-Origin Resource Sharing
 
-Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain. 
+Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain.
+
+CORS configuration can be set for all Ambassador mappings in the [ambassador](https://www.getambassador.io/reference/modules#the-ambassador-module) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
 
 ## The `cors` attribute
 
