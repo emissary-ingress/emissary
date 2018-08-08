@@ -12,14 +12,15 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 1. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.**
 
 2. Once `master` has all the release drivers, tag `master` with an RC tag, eg `0.33.0-rc1`.
-   - Make sure that `CHANGELOG.md` and `index.html` are up to date!
-   - You don't need to do anything with the Helm chart; CI will tackle that later.
 
 3. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why.
 
 4. The RC build will be available as `quay.io/datawire/ambassador:0.33.0-rc1` and also as `quay.io/datawire/ambassador:0.33.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
-5. When you're happy with everything, tag `master` with a GA tag like `0.33.0` and let CI do its thing.
+5. When you're happy with everything, then on `master` -
+   - Run `make release-prep`, it will update `CHANGELOG.md` and `docs/index.html`. Make sure the diff looks right.
+   - You don't need to do anything with the Helm chart; CI will tackle that later.
+   - Tag `master` with a GA tag like `0.33.0` and let CI do its thing.
    - CI will retag the latest RC image as the GA image.
    - CI will update the Helm chart during the GA deploy.
 
