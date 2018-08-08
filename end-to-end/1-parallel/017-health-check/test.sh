@@ -62,3 +62,7 @@ if [ $rc -ne 0 ] || [ $status -ne 404 ]; then
     echo "/custom-health-endpoint-with-no-service HTTP check failed ($rc): $status" >&2
     exit 1
 fi
+
+if [ -n "$CLEAN_ON_SUCCESS" ]; then
+    drop_namespace ${NAMESPACE}
+fi
