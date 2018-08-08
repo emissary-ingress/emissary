@@ -17,34 +17,35 @@
 
 set -e -o pipefail
 
-HERE=$(cd $(dirname $0); pwd)
-
-cd "$HERE"
+NAMESPACE="017-health-check"
 
 ROOT=$(cd ../..; pwd)
-PATH="${ROOT}:${PATH}"
 
 source ${ROOT}/utils.sh
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
-initialize_cluster
-
-kubectl cluster-info
+python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
+    ${ROOT}/ambassador-deployment.yaml \
+    k8s/ambassador-deployment.yaml \
+    ${NAMESPACE} \
+    ${NAMESPACE}
 
 kubectl apply -f k8s/ambassador.yaml
-kubectl apply -f ${ROOT}/ambassador-deployment.yaml
+kubectl apply -f k8s/ambassador-deployment.yaml
+kubectl apply -f k8s/rbac.yaml
 
 set +e +o pipefail
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 CLUSTER=$(cluster_ip)
-APORT=$(service_port ambassador)
+APORT=$(service_port ambassador ${NAMESPACE})
 BASEURL="http://${CLUSTER}:${APORT}"
 
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
 
 status=$(curl -s --write-out "%{http_code}" "$BASEURL/custom-health-endpoint")
 rc=$?

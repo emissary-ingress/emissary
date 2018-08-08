@@ -14,6 +14,7 @@ metadata:
         - pass_through: true
           endpoint: /custom-health-endpoint-with-no-service
         - endpoint: /custom-health-endpoint
+      ambassador_id: 017-health-check
 spec:
   selector:
     service: ambassador
