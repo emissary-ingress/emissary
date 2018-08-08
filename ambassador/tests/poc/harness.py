@@ -318,7 +318,7 @@ class Runner:
 
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, t):
-            selected = set(item.callspec.getparam('t') for item in request.session.items)
+            selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
             self.setup(selected)
             # XXX: should aggregate the result of url checks
             for r in t.results:
