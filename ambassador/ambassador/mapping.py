@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
-from typing import cast as typecast
+from typing import List, Optional
 
 import hashlib
 
@@ -22,9 +21,6 @@ from .resource import Resource
 
 #############################################################################
 ## mapping.py -- the mapping configuration object for Ambassador
-##
-## Mappings are complex enough that they get their own class. Other elements
-## will likely follow, but Mapping is a big deal.
 ##
 ## Each Mapping object has a group_id that reflects the group of Mappings
 ## that it is a part of. By definition, two Mappings with the same group_id
@@ -41,36 +37,36 @@ from .resource import Resource
 # StringOrBool = Union[str, bool]
 # DictOfStringOrBool = Dict[str, StringOrBool]
 
+
 class Header:
     def __init__(self, name: str, value: Optional[str]=None, regex: Optional[bool]=False) -> None:
         self.name = name
         self.value = value
         self.regex = regex
 
+    def _get_value(self) -> str:
+        return self.value or '*'
+
+    def length(self) -> int:
+        return len(self.name) + len(self._get_value()) + (1 if self.regex else 0)
+
+    def key(self) -> str:
+        return self.name + '-' + self._get_value()
+
+
 class Mapping (Resource):
     """
     Mappings are Resources with a bunch of extra stuff.
+
+    TODO: moar docstring.
     """
 
-    @classmethod
-    def route_weight(cls, route):
-        precedence = route.get('_precedence', 0)
-        prefix = route['prefix'] if 'prefix' in route else route['regex']
-        method = route.get('method', 'GET')
-        headers = route.get('headers', [])
-
-        len_headers = 0
-
-        for hdr in headers:
-            len_headers += len(hdr['name']) + len(hdr.get('value', '*')) + (1 if hdr.get('regex', False) else 0)
-
-        weight = [ precedence, len(prefix), len_headers, prefix, method ]
-        weight += [ hdr['name'] + '-' + hdr.get('value', '*') for hdr in headers ]
-
-        if not route.get('__saved', None):
-            route['__saved'] = weight
-
-        return tuple(weight)
+    prefix: str
+    headers: List[Header]
+    method: Optional[str]
+    service: str
+    group_id: str
+    route_weight: int
 
     TransparentRouteKeys = {
         "auto_host_rewrite": True,
@@ -83,51 +79,77 @@ class Mapping (Resource):
         "use_websocket": True
     }
 
-    def __init__(self, res_key: str, location: str, obj: dict, serialization: Optional[str]) -> None:
+    def __init__(self, rkey: str, location: str="-mapping-", *,
+                 name: str,
+                 kind: str="Mapping",
+                 apiVersion: Optional[str]=None,
+                 serialization: Optional[str]=None,
+
+                 service: str,
+                 prefix: str,
+                 prefix_regex: bool=False,
+                 rewrite: Optional[str]="/",
+                 case_sensitive: bool=False,
+                 grpc: bool=False,
+                 method: str="",
+                 method_regex: bool=False,
+
+                 **kwargs) -> None:
         """
         Initialize a Mapping from the raw fields of its Resource.
         """
 
+        print("Mapping __init__ (%s %s)" % (kind, name))
+
         # First init our superclass...
 
-        super().__init__(res_key, location, obj, serialization)
+        super().__init__(rkey, location,
+                         kind=kind, name=name,
+                         apiVersion=apiVersion,
+                         serialization=serialization,
+                         service=service,
+                         prefix=prefix,
+                         prefix_regex=prefix_regex,
+                         rewrite=rewrite,
+                         case_sensitive=case_sensitive,
+                         grpc=grpc,
+                         method=method,
+                         method_regex=method_regex,
+                         **kwargs)
 
-        # ...then cache some super-useful stuff (also note the override of
-        # __getitem__, so that self["anything"] will look into self.attrsfor
-        # you)...
-
-        self.name: str = self['name']
-        self.prefix = self['prefix']
-        self.service = self['service']
-        self.method: str = self.get('method', 'GET')
-
-        # ...then build up our headers the headers. We do this unconditionally at init
-        # time because we need the headers to work out the group ID.
-        self.headers: List[Header] = []
-
-        for name, value in self.get('headers', {}).items():
-            if value == True:
-                self.headers.append(Header(name))
-            else:
-                self.headers.append(Header(name, value))
-
-        for name, value in self.get('regex_headers', {}).items():
-            self.headers.append(Header(name, value, regex=True))
-
-        if 'host' in self.attrs:
-            self.headers.append(Header(":authority", self['host'], self.get('host_regex', False)))
-
-        if 'method' in self.attrs:
-            self.headers.append(Header(":method", self['method'], self.get('method_regex', False)))
-
-        # OK. After all that we can compute the group ID.
-        self.group_id = self._group_id()
+        # # ...then build up the headers. We do this unconditionally at init
+        # # time because we need the headers to work out the group ID.
+        # self.headers = []
+        #
+        # for name, value in self.get('headers', []):
+        #     if value is True:
+        #         self.headers.append(Header(name))
+        #     else:
+        #         self.headers.append(Header(name, value))
+        #
+        # for name, value in self.get('regex_headers', {}).items():
+        #     self.headers.append(Header(name, value, regex=True))
+        #
+        # if 'host' in self:
+        #     self.headers.append(Header(":authority", self['host'], self.get('host_regex', False)))
+        #
+        # if 'method' in self:
+        #     self.headers.append(Header(":method", self['method'], self.get('method_regex', False)))
+        #
+        # # OK. After all that we can compute the group ID...
+        # self.group_id = self._group_id()
+        #
+        # # ...and the route weight.
+        # self.route_weight = self._route_weight()
 
     def _group_id(self) -> str:
-        # Yes, we're using a  cryptographic hash here. Cope. [ :) ]
+        # Yes, we're using a cryptographic hash here. Cope. [ :) ]
 
         h = hashlib.new('sha1')
-        h.update(self.method.encode('utf-8'))
+
+        # method first, but of course method might be None.
+        method = self.method or 'GET'
+        h.update(method.encode('utf-8'))
         h.update(self.prefix.encode('utf-8'))
 
         for hdr in self.headers:
@@ -137,6 +159,24 @@ class Mapping (Resource):
                 h.update(hdr.value.encode('utf-8'))
 
         return h.hexdigest()
+
+    def _route_weight(self):
+        precedence = self.get('_precedence', 0)
+        prefix = self['prefix'] if 'prefix' in self else self['regex']
+
+        len_headers = 0
+
+        for hdr in self.headers:
+            len_headers += hdr.length()
+
+        weight = [ precedence, len(prefix), len_headers, prefix, self.method ]
+        weight += [ hdr.key() for hdr in self.headers ]
+
+        # XXX What's this for again??
+        if not self.get('__saved', None):
+            self['__saved'] = weight
+
+        return tuple(weight)
 
     def save_cors_element(self, cors_key, route_key, route):
         """If self.get('cors')[cors_key] exists, and
@@ -195,7 +235,8 @@ class Mapping (Resource):
         )
 
         if self.get('prefix_regex', False):
-            route['regex'] = self['prefix']  # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
+            # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
+            route['regex'] = self['prefix']
         else:
             route['prefix'] = self['prefix']
 
@@ -234,19 +275,29 @@ class Mapping (Resource):
             route['cors'] = envoy_cors
 
         rate_limits = self.get('rate_limits')
-        if rate_limits != None:
+
+        if rate_limits:
             route['rate_limits'] = []
             for rate_limit in rate_limits:
-                rate_limits_actions = []
-                rate_limits_actions.append({'type': 'source_cluster'})
-                rate_limits_actions.append({'type': 'destination_cluster'})
-                rate_limits_actions.append({'type': 'remote_address'})
+                rate_limits_actions = [
+                    {'type': 'source_cluster'},
+                    {'type': 'destination_cluster'},
+                    {'type': 'remote_address'}
+                ]
+
                 rate_limit_descriptor = rate_limit.get('descriptor', None)
+
                 if rate_limit_descriptor:
-                    rate_limits_actions.append({'type': 'generic_key', 'descriptor_value': rate_limit_descriptor})
+                    rate_limits_actions.append({'type': 'generic_key',
+                                                'descriptor_value': rate_limit_descriptor})
+
                 rate_limit_headers = rate_limit.get('headers', [])
+
                 for rate_limit_header in rate_limit_headers:
-                    rate_limits_actions.append({'type': 'request_headers', 'header_name': rate_limit_header, 'descriptor_key': rate_limit_header})
+                    rate_limits_actions.append({'type': 'request_headers',
+                                                'header_name': rate_limit_header,
+                                                'descriptor_key': rate_limit_header})
+
                 route['rate_limits'].append({'actions': rate_limits_actions})
 
         # Even though we don't use it for generating the Envoy config, go ahead
@@ -256,44 +307,39 @@ class Mapping (Resource):
         route['_method'] = self.method
 
         # We refer to this route, of course.
-        route._mark_referenced_by(self['_source'])
+        route.referenced_by(self[ '_source' ])
 
         # There's a slew of things we'll just copy over transparently; handle
         # those.
 
-        for key, value in self.attrs.items():
+        for key, value in self.items():
             if key in Mapping.TransparentRouteKeys:
                 route[key] = value
 
         # Done!
         return route
 
-if __name__ == "__main__":
-    import sys
 
-    import json
-    import os
-
+def dump_mappings(path: str) -> None:
     import yaml
 
-    for path in sys.argv[1:]:
-        try:
-            # XXX This is a bit of a hack -- yaml.safe_load_all returns a
-            # generator, and if we don't use list() here, any exception
-            # dealing with the actual object gets deferred 
-            objects = list(yaml.safe_load_all(open(path, "r")))
-        except Exception as e:
-            print("%s: could not parse YAML: %s" % (path, e))
-            continue
+    try:
+        # XXX This is a bit of a hack -- yaml.safe_load_all returns a
+        # generator, and if we don't use list() here, any exception
+        # dealing with the actual object gets deferred
+        serialization = open(path, "r").read()
+        objects = list(yaml.safe_load_all(serialization))
 
         ocount = 0
         for obj in objects:
-            ocount += 1
             srckey = "%s.%d" % (path, ocount)
 
-            if obj['kind'] == 'Mapping':
-                m = Mapping(srckey, **obj)
+            if obj[ 'kind' ] == 'Mapping':
+                print("trying obj %s" % obj)
+                m = Mapping(srckey, path, serialization=serialization, **obj)
 
                 print("%s: %s" % (m.name, m.group_id))
 
-                # print(json.dumps(m.new_route("test_cluster"), indent=4, sort_keys=True))
+            ocount += 1
+    except Exception as e:
+        print("%s: could not parse YAML: %s" % (path, e))

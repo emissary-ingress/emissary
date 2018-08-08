@@ -1,152 +1,241 @@
-from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
-# from typing import cast as typecast
+import sys
+
+from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import cast as typecast
+
+# Is this really necessary?
+# import . as ambassador
 
 import yaml
 
-# from .utils import RichStatus, SourcedDict
-# from .mapping import Mapping
+R = TypeVar('R', bound='Resource')
 
-class Resource:
-    def __init__(self, res_key: str, location: str, attrs: Dict[str, Any], serialization: Optional[str]=None) -> None:
+
+class Resource (dict):
+    """
+    A resource that we're going to use as part of the Ambassador configuration.
+
+    Elements in a Resource:
+    - rkey is a short identifier that is used as the primary key for _all_ the
+    Ambassador classes to identify this single specific resource. It should be
+    something like "ambassador-default.1" or the like: very specific, doesn't
+    have to be fun for humans.
+
+    - location is a more human-readable string describing where the human should
+    go to find the source of this resource. "Service ambassador, namespace default,
+    object 1". This isn't really used by the Config class, but the Diagnostics class
+    makes heavy use of it.
+
+    - kind (keyword-only) is what kind of Ambassador resource this is.
+
+    - name (keyword-only) is the name of the Ambassador resource.
+
+    - apiVersion (keyword-only) specifies the API version in use. It defaults to
+    "ambassador/v0" if not specified.
+
+    - serialization (keyword-only) is the _original input serialization_, if we have
+    it, of the object. If we don't have it, this should be None -- don't just serialize
+    the object to no purpose.
+
+    - any additional keyword arguments are saved in the Resource.
+
+    :param rkey: unique identifier for this source, should be short
+    :param location: where should a human go to find the source of this resource?
+    :param kind: what kind of thing is this?
+    :param name: what's the name of this thing?
+    :param apiVersion: API version, defaults to "ambassador/v0" if not present
+    :param serialization: original input serialization of obj, if we have it
+    :param kwargs: key-value pairs that form the data object for this resource
+    """
+
+    rkey: str
+    location: str
+    kind: str
+    name: str
+    apiVersion: str
+    serialization: Optional[str]
+
+    _errors: List[str]
+    _referenced_by: Dict[str, bool]
+
+    def __init__(self, rkey: str, location: str, *,
+                 kind: str,
+                 name: str,
+                 apiVersion: Optional[str]="ambassador/v0", # not really optional
+                 serialization: Optional[str]=None,
+                 **kwargs) -> None:
+
+        if not rkey:
+            raise Exception("Resource requires rkey")
+
+        if not kind:
+            raise Exception("Resource requires kind")
+
+        if (kind != "Pragma") and not name:
+            raise Exception("Resource requires name")
+
+        if not apiVersion:
+            raise Exception("Resource requires apiVersion")
+
+        print("Resource __init__ (%s %s)" % (kind, name))
+
+        super().__init__(rkey=rkey, location=location,
+                         kind=kind, name=name,
+                         apiVersion=typecast(str, apiVersion),
+                         serialization=serialization,
+                         _errors=[],
+                         _referenced_by={},
+                         **kwargs)
+
+    def references(self, other: 'Resource'):
         """
-        A resource that we're going to use as part of the Ambassador configuration.
+        Mark another Resource as referenced by this one.
 
-        Elements in a Resource:
-        - res_key is a short identifier that is used as the primary key for _all_ the
-        Ambassador classes to identify this single specific resource. It should be
-        something like "ambassador-default.1" or the like: very specific, doesn't
-        have to be fun for humans.
-
-        - location is a more human-readable string describing where the human should
-        go to find the source of this resource. "Service ambassador, namespace default,
-        object 1". This isn't really used by the Config class, but the Diagnostics class
-        makes heavy use of it.
-
-        - obj is the actual object contained by this resource. It must contain
-        'apiVersion' and 'kind' elements like a good resource.
-
-        - serialization is the _original input serialization_, if we have it, of the
-        object. If we don't have it, this should be None -- don't just serialize the
-        object to no purpose.
-
-        :param res_key: unique identifier for this source, should be short
-        :param location: where should a human go to find the source of this resource?
-        :param attrs: dictionary containing the data object for this resource
-        :param serialization: original input serialization of obj, if we have it
+        :param other:
+        :return:
         """
 
-        self.res_key = res_key
-        self.location = location
-        self.serialization = serialization
-        self.attrs = attrs
+        other.referenced_by(self.rkey)
 
-        self.errors: List[str] = []
+    def referenced_by(self, other_rkey: str) -> None:
+        self._referenced_by[other_rkey] = True
 
-        self.kind: str = self._look_for_attr('kind')
-        self.version: str = self._look_for_attr('apiVersion')
-        self.name: str = self._look_for_attr('name')
-
-    def _look_for_attr(self, key: str) -> str:
-        if key in self.attrs:
-            return self[key]
-        else:
-            self.post_error('missing attribute: %s' % key)
-            return '<no %s>' % key
+    def is_referenced_by(self, other_rkey) -> bool:
+        return self._referenced_by.get(other_rkey, False)
 
     def post_error(self, error: str):
-        self.errors.append(error)
+        self._errors.append(error)
 
-    def __getitem__(self, key: str) -> Any:
-        """
-        Allow resource[key] to look into the attributes object directly.
+    def __getattr__(self, key: str) -> Any:
+        return self[key]
 
-        :param key: key to look up
-        :return: contents of self.attrs[key]
-        """
-        return self.attrs[key]
-
-    def get(self, key: str, *args) -> Any:
-        """
-        Allow resource.get(key, default) to work.
-
-        get is a little weird because supplying a default of None is different
-        from supplying no default at all!
-
-        :param key: key to look up
-        :param args: default value, if present
-        :return: contents of self.attrs[key]
-        """
-
-        if len(args) > 0:
-            return self.attrs.get(key, args[0])
-        else:
-            return self.attrs.get(key)
+    def __setattr__(self, key: str, value: Any) -> None:
+        self[key] = value
 
     def __str__(self) -> str:
-        return("<%s: %s>" % (self.res_key, self.kind))
+        return("<%s %s>" % (self.kind, self.rkey))
+
+    def as_dict(self) -> Dict[str, Any]:
+        ad = dict(self)
+
+        ad.pop('rkey', None)
+        ad.pop('serialization', None)
+        ad.pop('location', None)
+        ad.pop('_referenced_by', None)
+        ad.pop('_errors', None)
+
+        return ad
 
     @classmethod
-    def from_resource(
-            cls,
-            other: 'Resource',
-            res_key: Optional[str]=None,
-            location: Optional[str]=None,
-            attrs: Optional[Dict[str, Any]]=None,
-            serialization: Optional[str]=None
-        ) -> 'Resource':
+    def from_resource(cls: Type[R], other: R,
+                      rkey: Optional[str]=None,
+                      location: Optional[str]=None,
+                      kind: Optional[str]=None,
+                      name: Optional[str]=None,
+                      apiVersion: Optional[str]=None,
+                      serialization: Optional[str]=None,
+                      **kwargs) -> R:
         """
         Create a Resource by copying another Resource, possibly overriding elements
         along the way.
 
-        NOTE WELL: if you pass in attrs, we assume that your attrs is safe to use as-is
-        and DO NOT COPY IT. Otherwise, we SHALLOW COPY other.obj for the new Resource.
+        NOTE WELL: if you pass in kwargs, we assume that any values are safe to use as-is
+        and DO NOT COPY THEM. Otherwise, we SHALLOW COPY other.attrs for the new Resource.
 
         :param other: the base Resource we're copying
-        :param res_key: optional new res_key
+        :param rkey: optional new rkey
         :param location: optional new location
-        :param attrs: optional new attrs -- see discussion about copying above!
+        :param kind: optional new kind
+        :param name: optional new name
+        :param apiVersion: optional new API version
         :param serialization: optional new original input serialization
+        :param kwargs: optional new key-value pairs -- see discussion about copying above!
         """
 
-        new_res_key = res_key if res_key else other.res_key
-        new_location = location if location else other.location
-        new_serialization = serialization if serialization else other.serialization
+        # rkey and location are required positional arguments. Fine.
+        new_rkey = rkey or other.rkey
+        new_location = location or other.location
 
-        # Since other.attrs is not Optional this is kind of rank paranoia.
-        new_attrs = attrs if attrs else dict(other.attrs if other.attrs else {})
+        # Make a shallow-copied dict that we can muck with...
+        new_attrs = dict(kwargs) if kwargs else dict(other)
 
-        return Resource(new_res_key, new_location, new_attrs, new_serialization)
+        # Don't include kind or location unless it comes in on this call.
+        if kind:
+            new_attrs['kind'] = kind
+        else:
+            new_attrs.pop('kind', None)
+
+        # Don't include serialization at all if we don't have one.
+        if serialization:
+            new_attrs['serialization'] = serialization
+        elif other.serialization:
+            new_attrs['serialization'] = other.serialization
+
+        # After that, stuff other things that need propagation into it...
+        new_attrs['name'] = name or other.name
+        new_attrs['apiVersion'] = apiVersion or other.apiVersion
+
+        # ...then make sure things that shouldn't propagate are gone.
+        new_attrs.pop('rkey', None)
+        new_attrs.pop('location', None)
+        new_attrs.pop('_errors', None)
+        new_attrs.pop('_referenced_by', None)
+
+        # Finally, use new_attrs for all the keyword args when we set up the new instance.
+        return cls(new_rkey, new_location, **new_attrs)
 
     @classmethod
-    def from_yaml(klass, res_key: str, location: str, serialization: str) -> 'Resource':
+    def from_dict(cls: Type[R], rkey: str, location: str, serialization: Optional[str], attrs: Dict) -> R:
         """
-        Create a Resource from a YAML serialization. The new Resource's res_key
+        Create a Resource or subclass thereof from a dictionary. The new Resource's rkey
+        and location must be handed in explicitly.
+
+        The difference between this and simply intializing a Resource object is that
+        from_dict will introspect the attrs passed in and create whatever kind of Resource
+        matches attrs['kind'] -- so for example, if kind is "Mapping", this method will
+        return a Mapping rather than a Resource.
+
+        :param rkey: unique identifier for this source, should be short
+        :param location: where should a human go to find the source of this resource?
+        :param serialization: original input serialization of obj
+        :param attrs: dictionary from which to initialize the new object
+        """
+
+        # So this is a touch odd but here we go. We want to use the Kind here to find
+        # the correct type.
+        ambassador = sys.modules['ambassador']
+        resource_class: Type[R] = getattr(ambassador, attrs['kind'], cls)
+
+        return resource_class(rkey, location=location, serialization=serialization, **attrs)
+
+    @classmethod
+    def from_yaml(cls: Type[R], rkey: str, location: str, serialization: str) -> R:
+        """
+        Create a Resource from a YAML serialization. The new Resource's rkey
         and location must be handed in explicitly, and of course in this case the
         serialization is mandatory.
 
         Raises an exception if the serialization is not parseable.
 
-        :param res_key: unique identifier for this source, should be short
+        :param rkey: unique identifier for this source, should be short
         :param location: where should a human go to find the source of this resource?
         :param serialization: original input serialization of obj
         """
 
         attrs = yaml.safe_load(serialization)
-        return Resource(res_key, location, attrs, serialization)
+
+        return cls.from_dict(rkey, location, serialization, attrs)
 
     # Resource.INTERNAL is the magic Resource we use to represent something created by
     # Ambassador's internals.
     @classmethod
     def internal_resource(cls) -> 'Resource':
-        return cls.from_yaml(
-            "--internal--",
-            "--internal--",
-            """
-            apiVersion: ambassador/v0
-            kind: Internal
-            name: Ambassador Internals
-            description: The --internal-- source marks objects created by Ambassador's internal logic.
-            """
+        return Resource(
+            "--internal--", "--internal--",
+            kind="Internal",
+            name="Ambassador Internals",
+            version="ambassador/v0",
+            description="The --internal-- source marks objects created by Ambassador's internal logic."
         )
 
     # Resource.DIAGNOSTICS is the magic Resource we use to represent something created by
@@ -154,13 +243,10 @@ class Resource:
     # calling out diagnostics stuff actually helps with, well, diagnostics.)
     @classmethod
     def diagnostics_resource(cls) -> 'Resource':
-        return cls.from_yaml(
-            "--diagnostics--",
-            "--diagnostics--",
-            """
-            apiVersion: ambassador/v0
-            kind: Diagnostics
-            name: Ambassador Diagnostics
-            description: The --diagnostics-- source marks objects created by Ambassador to assist with diagnostics.
-            """
+        return Resource(
+            "--diagnostics--", "--diagnostics--",
+            kind="Diagnostics",
+            name="Ambassador Diagnostics",
+            version="ambassador/v0",
+            description="The --diagnostics-- source marks objects created by Ambassador to assist with diagnostics."
         )

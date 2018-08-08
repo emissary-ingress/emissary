@@ -26,6 +26,26 @@ from enum import Enum
 
 from .VERSION import Version
 
+logger = logging.getLogger("utils")
+logger.setLevel(logging.INFO)
+
+
+class TLSPaths(Enum):
+    mount_cert_dir = "/etc/certs"
+    mount_tls_crt = os.path.join(mount_cert_dir, "tls.crt")
+    mount_tls_key = os.path.join(mount_cert_dir, "tls.key")
+
+    client_mount_dir = "/etc/cacert"
+    client_mount_crt = os.path.join(client_mount_dir, "tls.crt")
+
+    cert_dir = "/ambassador/certs"
+    tls_crt = os.path.join(cert_dir, "tls.crt")
+    tls_key = os.path.join(cert_dir, "tls.key")
+
+    client_cert_dir = "/ambassador/cacert"
+    client_tls_crt = os.path.join(client_cert_dir, "tls.crt")
+
+
 class SystemInfo:
     MyHostName = socket.gethostname()
     MyResolvedName = socket.gethostbyname(socket.gethostname())
@@ -89,7 +109,7 @@ class SourcedDict (dict):
 
         # self['_referenced_by'] = []
 
-    def _mark_referenced_by(self, source):
+    def referenced_by(self, source):
         refby = self.setdefault('_referenced_by', [])
 
         if source not in refby:

@@ -76,17 +76,54 @@ ServiceInfo = Tuple[str, str, bool, str]
 # StringOrList is either a string or a list of strings.
 StringOrList = Union[str, List[str]]
 
+
 class Config:
+    # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
     runtime: ClassVar[str] = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
     namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
+    # INSTANCE VARIABLES
+    current_resource: Optional[Resource] = None
+
+    # XXX flat wrong
+    schemas: Dict[str, dict]
+    config: Dict[str, Dict[str, Resource]]
+    tls_contexts: Dict[str, Resource]
+
+    breakers: Dict[str, Resource]
+    outliers: Dict[str, Resource]
+
+    # XXX flat wrong
+    ambassador_module: Optional[Resource]
+    envoy_config: Dict[str, List[SourcedDict]]
+    envoy_clusters: Dict[str, SourcedDict]
+    envoy_routes: Dict[str, SourcedDict]
+
+    # rkey => Resource
+    sources: Dict[str, Resource]
+
+    # Allow overriding the location of a resource with a Pragma
+    location_overrides: Dict[str, Dict[str, str]]
+
+    # Set up the default probes and such.
+    # XXX These should become... Resources?
+    default_liveness_probe: Dict[str, Any]
+    default_readiness_probe: Dict[str, Any]
+    default_diagnostics: Dict[str, Any]
+
+    default_tls_config: Dict[str, Dict[str, str]]
+
+    errors: Dict[str, List[str]]
+    fatal_errors: int
+    object_errors: int
+
     def __init__(self, schema_dir_path: Optional[str]=None) -> None:
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not
             # with our Resource class.
-            schema_dir_path = resource_filename(Requirement.parse("ambassador"),"schemas")
+            schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
 
         self.schema_dir_path = schema_dir_path
 
@@ -105,23 +142,23 @@ class Config:
 
         self.logger.debug("RESET")
 
-        self.current_resource: Optional[Resource] = None
+        self.current_resource = None
 
-        # XXX flat wrong
-        self.schemas: Dict[str, dict] = {}
-        self.config: Dict[str, Dict[str, Resource]] = {}
-        self.tls_contexts: Dict[str, SourcedDict] = {}
+        self.schemas = {}
+        self.config = {}
+        self.tls_contexts = {}
 
-        # XXX flat wrong
-        self.envoy_config: Dict[str, SourcedDict] = {}
-        self.envoy_clusters: Dict[str, SourcedDict] = {}
-        self.envoy_routes: Dict[str, SourcedDict] = {}
+        self.breakers = {}
+        self.outliers = {}
 
-        # res_key => Resource
-        self.sources: Dict[str, Resource] = {}
+        self.ambassador_module = None
+        self.envoy_config = {}
+        self.envoy_clusters = {}
+        self.envoy_routes = {}
 
-        # Allow overriding the location of a resource with a Pragma
-        self.location_overrides: Dict[str, Dict[str, str]] = {}
+        self.sources = {}
+
+        self.location_overrides = {}
 
         # Save our magic internal sources.
         self.save_source(Resource.internal_resource())
@@ -158,6 +195,7 @@ class Config:
             "server": {},
             "client": {},
         }
+
         if os.path.isfile(TLSPaths.mount_tls_crt.value):
             self.default_tls_config["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
         if os.path.isfile(TLSPaths.mount_tls_key.value):
@@ -167,15 +205,38 @@ class Config:
 
         self.tls_config = None
 
-        self.errors: Dict[str, List[str]] = {}
+        self.errors = {}
         self.fatal_errors = 0
         self.object_errors = 0
+
+    def __str__(self) -> str:
+        s = [ "<Config:" ]
+
+        for kind, configs in self.config.items():
+            s.append("  %s:" % kind)
+
+            for rkey, resource in configs.items():
+                s.append("    %s" % resource)
+
+        s.append(">")
+
+        return "\n".join(s)
+
+    def dump(self, output=sys.stdout):
+        output.write("CONFIG:\n")
+
+        for kind, configs in self.config.items():
+            output.write("  %s:\n" % kind)
+
+            for rkey, resource in configs.items():
+                output.write("  %s\n" % resource)
+                output.write("  %s\n" % repr(resource))
 
     def save_source(self, resource: Resource) -> None:
         """
         Save a give Resource as a source of Ambassador config information.
         """
-        self.sources[resource.res_key] = resource
+        self.sources[resource.rkey] = resource
 
     def load_all(self, resources: Iterable[Resource]) -> None:
         """
@@ -186,24 +247,24 @@ class Config:
             # XXX I think this whole override thing should go away.
             #
             # Any override here?
-            if resource.res_key in self.location_overrides:
+            if resource.rkey in self.location_overrides:
                 # Let Pragma objects override source information for this filename.
-                override = self.location_overrides[resource.res_key]
-                resource.location = override.get('source', resource.res_key)
+                override = self.location_overrides[resource.rkey]
+                resource.location = override.get('source', resource.rkey)
 
             # Is an ambassador_id present in this object?
-            allowed_ids: StringOrList = resource.attrs.get('ambassador_id', 'default')
+            allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 
             if allowed_ids:
                 # Make sure it's a list. Yes, this is Draconian,
                 # but the jsonschema will allow only a string or a list,
-                # and guess what? Strings are iterables.
+                # and guess what? Strings are Iterables.
                 if type(allowed_ids) != list:
                     allowed_ids = typecast(StringOrList, [ allowed_ids ])
 
                 if Config.ambassador_id not in allowed_ids:
                     self.logger.debug("LOAD_ALL: skip %s; id %s not in %s" %
-                                        (resource, Config.ambassador_id, allowed_ids))
+                                      (resource, Config.ambassador_id, allowed_ids))
                     return
 
             self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
@@ -219,7 +280,7 @@ class Config:
             raise Exception("ERROR ERROR ERROR Unparseable configuration; exiting")
 
         if self.errors:
-            self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
+            self.logger.error("ERROR ERROR ERROR Starting with configuration _errors")
 
     def clean_and_copy(self, d):
         out = []
@@ -250,18 +311,18 @@ class Config:
 
         # XXX Probably don't need this data structure, since we can walk the source
         # list and get them all.
-        errors = self.errors.setdefault(resource.res_key, [])
+        errors = self.errors.setdefault(resource.rkey, [])
         errors.append(rc.toDict())
         self.logger.error("%s: %s" % (resource, rc))
 
     def process(self, resource: Resource) -> RichStatus:
         # This should be impossible.
-        if not resource or not resource.attrs:
+        if not resource:
             return RichStatus.fromError("undefined object???")
 
-        self.current_res_key = resource.res_key
+        self.current_resource = resource
 
-        if not resource.version:
+        if not resource.apiVersion:
             return RichStatus.fromError("need apiVersion")
 
         if not resource.kind:
@@ -273,7 +334,7 @@ class Config:
             return self.handle_pragma(resource)
 
         # Not a pragma. It needs a name...
-        if 'name' not in resource.attrs:
+        if 'name' not in resource:
             return RichStatus.fromError("need name")
 
         # ...and off we go. Save the source info...
@@ -300,33 +361,34 @@ class Config:
             handler(resource)
         except Exception as e:
             # Bzzzt.
+            raise
             return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))
 
         # OK, all's well.
+        self.current_resource = None
+
         return RichStatus.OK(msg="%s object processed successfully" % resource.kind)
 
     def validate_object(self, resource: Resource) -> RichStatus:
-        obj = resource.attrs
-
         # This is basically "impossible"
-        if not (("apiVersion" in obj) and ("kind" in obj) and ("name" in obj)):
+        if not (("apiVersion" in resource) and ("kind" in resource) and ("name" in resource)):
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
-        version = resource.version
+        apiVersion = resource.apiVersion
 
         # Ditch the leading ambassador/ that really needs to be there.
-        if version.startswith("ambassador/"):
-            version = version.split('/')[1]
+        if apiVersion.startswith("ambassador/"):
+            apiVersion = apiVersion.split('/')[1]
         else:
-            return RichStatus.fromError("apiVersion %s unsupported" % version)
+            return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
 
         # Do we already have this schema loaded?
-        schema_key = "%s-%s" % (version, resource.kind)
+        schema_key = "%s-%s" % (apiVersion, resource.kind)
         schema = self.schemas.get(schema_key, None)
 
         if not schema:
             # Not loaded. Go find it on disk.
-            schema_path = os.path.join(self.schema_dir_path, version,
+            schema_path = os.path.join(self.schema_dir_path, apiVersion,
                                        "%s.schema" % resource.kind)
 
             try:
@@ -346,7 +408,7 @@ class Config:
         if schema:
             # We have a schema. Does the object validate OK?
             try:
-                jsonschema.validate(obj, schema)
+                jsonschema.validate(resource.as_dict(), schema)
             except jsonschema.exceptions.ValidationError as e:
                 # Nope. Bzzzzt.
                 return RichStatus.fromError("not a valid %s: %s" % (resource.kind, e))
@@ -374,7 +436,7 @@ class Config:
 
         if allow_log:
             self.logger.debug("%s: saving %s %s" %
-                          (resource, resource.kind, resource.name))
+                              (resource, resource.kind, resource.name))
 
         storage[resource.name] = resource
 
@@ -428,20 +490,19 @@ class Config:
         Handles a Pragma object. May not be needed any more...
         """
 
-        attrs = resource.attrs
-        res_key = resource.res_key
+        rkey = resource.rkey
 
-        keylist = sorted([x for x in sorted(attrs.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
+        keylist = sorted([x for x in sorted(resource.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
 
         self.logger.debug("PRAGMA: %s" % keylist)
 
         for key in keylist:
             if key == 'source':
-                override = self.location_overrides.setdefault(res_key, {})
-                override['source'] = attrs['source']
+                override = self.location_overrides.setdefault(rkey, {})
+                override['source'] = resource['source']
 
                 self.logger.debug("PRAGMA: override %s to %s" %
-                                  (res_key, self.location_overrides[res_key]['source']))
+                                  (rkey, self.location_overrides[rkey]['source']))
 
         return RichStatus.OK(msg="handled pragma object")
 
@@ -453,7 +514,9 @@ class Config:
         # Make a new Resource from the 'config' element of this Resource
         # Note that we leave the original serialization intact, since it will
         # indeed show a human the YAML that defined this module.
-        module_resource = Resource.from_resource(resource, attrs=resource.attrs['config'])
+        #
+        # XXX This should be Module.from_resource()...
+        module_resource = Resource.from_resource(resource, kind="Module", **resource.config)
 
         self.safe_store("modules", module_resource)
 
@@ -464,10 +527,12 @@ class Config:
 
         self.safe_store("ratelimit_configs", resource)
 
-    def handle_tracingservice(self, source_key, obj, obj_name, obj_kind, obj_version):
-        return self.safe_store(source_key, "tracing_configs", obj_name, obj_kind,
-                               SourcedDict(_source=source_key, **obj))
-                           
+    def handle_tracingservice(self, resource: Resource) -> None:
+        """
+        Handles a TracingService resource.
+        """
+
+        self.safe_store("tracing_configs", resource)
 
     def handle_authservice(self, resource: Resource) -> None:
         """
@@ -476,7 +541,7 @@ class Config:
 
         self.safe_store("auth_configs", resource)
 
-    def handle_mapping(self, resource: Resource) -> None:
+    def handle_mapping(self, resource: Mapping) -> None:
         """
         Handles a Mapping resource.
 
@@ -484,8 +549,7 @@ class Config:
         object.
         """
 
-        mapping = Mapping(resource.res_key, **resource.attrs)
-        self.safe_store("mappings", mapping)
+        self.safe_store("mappings", resource)
 
     def diag_port(self):
         """
@@ -502,7 +566,7 @@ class Config:
         return "127.0.0.1:%d" % self.diag_port()
 
     def add_intermediate_cluster(self, _source: str, name: str, _service: str, urls: List[str],
-                                 type: str="strict_dns", lb_type: str="round_robin",
+                                 dns_type: str="strict_dns", lb_type: str="round_robin",
                                  cb_name: Optional[str]=None, od_name: Optional[str]=None,
                                  originate_tls: Union[str, bool]=None,
                                  grpc: Optional[bool]=False, host_rewrite: Optional[str]=None):
@@ -519,25 +583,25 @@ class Config:
                 _referenced_by=[ _source ],
                 _service=_service,
                 name=name,
-                type=type,
+                type=dns_type,
                 lb_type=lb_type,
                 urls=urls
             )
 
             if cb_name and (cb_name in self.breakers):
                 cluster['circuit_breakers'] = self.breakers[cb_name]
-                self.breakers[cb_name]._mark_referenced_by(_source)
+                self.breakers[cb_name].referenced_by(_source)
 
             if od_name and (od_name in self.outliers):
                 cluster['outlier_detection'] = self.outliers[od_name]
-                self.outliers[od_name]._mark_referenced_by(_source)
+                self.outliers[od_name].referenced_by(_source)
 
-            if originate_tls == True:
+            if originate_tls is True:
                 cluster['tls_context'] = { '_ambassador_enabled': True }
                 cluster['tls_array'] = []
-            elif (originate_tls and (originate_tls in self.tls_contexts)):
+            elif originate_tls and (originate_tls in self.tls_contexts):
                 cluster['tls_context'] = self.tls_contexts[typecast(str, originate_tls)]
-                self.tls_contexts[typecast(str, originate_tls)]._mark_referenced_by(_source)
+                self.tls_contexts[typecast(str, originate_tls)].referenced_by(_source)
 
                 tls_array: List[Dict[str, str]] = []
 
@@ -558,13 +622,12 @@ class Config:
         else:
             self.logger.debug("CLUSTER %s: referenced by %s" % (name, _source))
 
-            self.envoy_clusters[name]._mark_referenced_by(_source)
+            self.envoy_clusters[name].referenced_by(_source)
 
     # XXX This is a silly API. We should have a Cluster object that can carry what kind
     #     of cluster it is (this is a target cluster of weight 50%, this is a shadow cluster,
     #     whatever) and the API should be "add this cluster to this Mapping".
-    def add_intermediate_route(self, _source: str, mapping: Mapping, svc: str, cluster_name: str, 
-                               shadow: bool=False) -> None:
+    def add_intermediate_route(self, _source: str, mapping: Mapping, svc: str, cluster_name: str) -> None:
         """
         Adds a route to the IR. This is wicked ugly because routes are complex,
         and happen to live in an annoying bit of the IR.
@@ -589,7 +652,7 @@ class Config:
 
                     if shadow_name != cluster_name:
                         self.logger.error("mapping %s defines multiple shadows! Ignoring %s" %
-                                        (mapping['name'], cluster_name))
+                                          (mapping['name'], cluster_name))
                 else:
                     # XXX CODE DUPLICATION with mapping.py!!
                     # We're going to need to support shadow weighting later, so use a dict here.
@@ -601,9 +664,9 @@ class Config:
                 # Take the easy way out -- just add a new entry to this
                 # route's set of weighted clusters.
                 route["clusters"].append( { "name": cluster_name,
-                                            "weight": mapping.attrs.get("weight", None) } )
+                                            "weight": mapping.get("weight", None) } )
 
-            route._mark_referenced_by(_source)
+            route.referenced_by(_source)
 
             return
 
@@ -643,14 +706,14 @@ class Config:
             originate_tls = True
             name_fields = [ 'otls' ]
             svc = svc[len("https://"):]
-        elif context == True:
+        elif context is True:
             originate_tls = True
             name_fields = [ 'otls' ]
 
         # Separate if here because you need to be able to specify a context
         # even after you say "https://" for the service.
 
-        if context and (context != True):
+        if context and (context is not True):
             # We know that context is a string here.
             if context in self.tls_contexts:
                 name_fields = [ 'otls', typecast(str, context) ]
@@ -676,7 +739,7 @@ class Config:
         Given a Mapping, add the clusters we need for that Mapping to the IR.
         Returns the (possibly updated) service URL and main cluster name.
 
-        :param Mapping: Mapping for which we need clusters
+        :param mapping: Mapping for which we need clusters
         :return: Tuple of (possibly updated) service URL and main cluster name
         """
 
@@ -817,7 +880,7 @@ class Config:
             if any_changes:
                 # ...then mark the tls_module as referenced by the generated_module's
                 # source..
-                tls_module._mark_referenced_by(gen_source)
+                tls_module.referenced_by(gen_source)
 
                 # ...and copy the tls_config back in (in case the key wasn't in the tls_module 
                 # config at all originally).
@@ -831,16 +894,16 @@ class Config:
         # default values now.
 
         self.ambassador_module = SourcedDict(
-            service_port = 80,
-            admin_port = 8001,
-            diag_port = 8877,
-            auth_enabled = None,
-            liveness_probe = { "enabled": True },
-            readiness_probe = { "enabled": True },
-            diagnostics = { "enabled": True },
-            tls_config = None,
-            use_proxy_proto = False,
-            x_forwarded_proto_redirect = False,
+            service_port=80,
+            admin_port=8001,
+            diag_port=8877,
+            auth_enabled=None,
+            liveness_probe={ "enabled": True },
+            readiness_probe={ "enabled": True },
+            diagnostics={ "enabled": True },
+            tls_config=None,
+            use_proxy_proto=False,
+            x_forwarded_proto_redirect=False,
         )
 
         # Next up: let's define initial clusters, routes, and filters.
@@ -912,13 +975,15 @@ class Config:
 
         self.breakers = self.config.get("CircuitBreaker", {})
 
-        for _, breaker in self.breakers.items():
-            breaker['_referenced_by'] = []
+        # XXX why was this here?
+        # for _, breaker in self.breakers.items():
+        #     breaker['_referenced_by'] = []
 
         self.outliers = self.config.get("OutlierDetection", {})
 
-        for _, outlier in self.outliers.items():
-            outlier['_referenced_by'] = []
+        # XXX why was this here?
+        # for _, outlier in self.outliers.items():
+        #     outlier['_referenced_by'] = []
 
         # OK. Given those initial sets, let's look over our global modules.
         for module_name in modules.keys():
@@ -973,7 +1038,7 @@ class Config:
                 primary_listener['tls']['ssl_context'] = True
             redirect_cleartext_from = tmod.get('redirect_cleartext_from')
 
-        self.envoy_config['listeners'] = [ primary_listener ]
+        self.envoy_config['listeners'] = [primary_listener]
 
         if redirect_cleartext_from:
             # We only want to set `require_tls` on the primary listener when certs are present on the pod
@@ -1015,13 +1080,15 @@ class Config:
                 # Push a fake mapping to handle this.
                 name = "internal_%s_probe_mapping" % name
 
-                mappings[name] = Mapping(
-                    _from=self.ambassador_module,
-                    kind='Mapping',
-                    name=name,
-                    prefix=prefix,
-                    rewrite=rewrite,
-                    service=service
+                mappings[name] = Mapping.from_resource(
+                    self.ambassador_module,
+                    attrs=dict(
+                        kind='Mapping',
+                        name=name,
+                        prefix=prefix,
+                        rewrite=rewrite,
+                        service=service
+                    )
                 )
 
                 # self.logger.debug("PROBE %s: %s -> %s%s" % (name, prefix, service, rewrite))
@@ -1101,12 +1168,12 @@ class Config:
         # OK. When all is said and done, sort the list of routes by route weight...
         self.envoy_config['routes'] = sorted([
             route for group_id, route in self.envoy_routes.items()
-        ], reverse=True, key=Mapping.route_weight)
+       ], reverse=True, key=Mapping.route_weight)
 
         # ...then map clusters back into a list...
         self.envoy_config['clusters'] = [
             self.envoy_clusters[cluster_key] for cluster_key in sorted(self.envoy_clusters.keys())
-        ]
+       ]
 
         # ...and finally repeat for breakers and outliers, but copy them in the process so we
         # can mess with the originals.
@@ -1137,7 +1204,7 @@ class Config:
             cert_count += 1
         return cert_count
 
-    def _get_intermediate_for(self, element_list, res_keys, value):
+    def _get_intermediate_for(self, element_list, rkeys, value):
         if not isinstance(value, dict):
             return
 
@@ -1149,61 +1216,61 @@ class Config:
             value_source = value.get("_source", None)
             value_referenced_by = value.get("_referenced_by", [])
 
-            if ((value_source in res_keys) or
-                (res_keys & set(value_referenced_by))):
+            if ((value_source in rkeys) or
+                (rkeys & set(value_referenced_by))):
                 good = True
 
         if good:
             element_list.append(value)
 
-    def get_intermediate_for(self, res_key):
-        res_keys = []
+    def get_intermediate_for(self, rkey):
+        rkeys = []
 
-        if res_key.startswith("grp-"):
-            group_id = res_key[4:]
+        if rkey.startswith("grp-"):
+            group_id = rkey[4:]
 
             for route in self.envoy_config['routes']:
                 if route['_group_id'] == group_id:
-                    res_keys.append(route['_source'])
+                    rkeys.append(route['_source'])
 
                     for reference_key in route['_referenced_by']:
-                        res_keys.append(reference_key)
+                        rkeys.append(reference_key)
 
-            if not res_keys:
+            if not rkeys:
                 return {
                     "error": "No group matches %s" % group_id
                 }
         else:
-            if res_key in self.location_map:
+            if rkey in self.location_map:
                 # Exact match for a file in the source map: include all the objects
                 # in the file.
-                res_keys = self.location_map[res_key]
-            elif res_key in self.sources:
+                rkeys = self.location_map[rkey]
+            elif rkey in self.sources:
                 # Exact match for an object in a file: include only that object.
-                res_keys.append(res_key)
+                rkeys.append(rkey)
             else:
                 # No match at all. Weird.
                 return {
-                    "error": "No source matches %s" % res_key
+                    "error": "No source matches %s" % rkey
                 }
 
-        res_keys = set(res_keys)
+        rkeys = set(rkeys)
 
-        # self.logger.debug("get_intermediate_for: res_keys %s" % res_keys)
-        # self.logger.debug("get_intermediate_for: errors %s" % self.errors)
+        # self.logger.debug("get_intermediate_for: rkeys %s" % rkeys)
+        # self.logger.debug("get_intermediate_for: _errors %s" % self._errors)
 
         sources = []
 
-        for key in res_keys:
+        for key in rkeys:
             source_dict = dict(self.sources[key])
-            source_dict['errors'] = [
+            source_dict['_errors'] = [
                 {
                     'summary': error['error'].split('\n', 1)[0],
                     'text': error['error']
                 }
                 for error in self.errors.get(key, [])
-            ]
-            source_dict['res_key'] = key
+           ]
+            source_dict['rkey'] = key
 
             sources.append(source_dict)
 
@@ -1220,9 +1287,9 @@ class Config:
 
             if isinstance(value, list):
                 for v2 in value:
-                    self._get_intermediate_for(result[key], res_keys, v2)
+                    self._get_intermediate_for(result[key], rkeys, v2)
             else:
-                self._get_intermediate_for(result[key], res_keys, value)
+                self._get_intermediate_for(result[key], rkeys, value)
 
         return result
 
@@ -1356,7 +1423,8 @@ class Config:
 
         return some_enabled
 
-    def module_config_ambassador(self, name, amod, tmod):
+    def module_config_ambassador(self, name: str,
+                                 amod: Optional[Resource], tmod: Optional[Resource]):
         # Toplevel Ambassador configuration. First up, check out TLS.
 
         have_amod_tls = False
@@ -1376,7 +1444,7 @@ class Config:
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
 
-    def module_config_ratelimit(self, ratelimit_config):
+    def module_config_ratelimit(self, ratelimit_configs: Optional[Dict[str, Resource]]):
         cluster_hosts = None
         sources = []
 
@@ -1419,8 +1487,8 @@ class Config:
                                           grpc=True, host_rewrite=host_rewrite)
 
         for source in sources:
-            filter._mark_referenced_by(source)
-            self.envoy_clusters[cluster_name]._mark_referenced_by(source)
+            filter.referenced_by(source)
+            self.envoy_clusters[cluster_name].referenced_by(source)
 
         return (filter, grpc_service)
 
@@ -1465,7 +1533,7 @@ class Config:
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
+        for key in ['path_prefix', 'timeout_ms', 'cluster']:
             value = module.get(key, None)
 
             if value != None:
@@ -1564,8 +1632,8 @@ class Config:
                                           originate_tls=originate_tls, host_rewrite=host_rewrite)
 
         for source in sources:
-            filter._mark_referenced_by(source)
-            self.envoy_clusters[cluster_name]._mark_referenced_by(source)
+            filter.referenced_by(source)
+            self.envoy_clusters[cluster_name].referenced_by(source)
 
         return filter
 
@@ -1574,9 +1642,9 @@ class Config:
         # Build a set of source _files_ rather than source _objects_.
         source_files = {}
 
-        for filename, res_keys in self.location_map.items():
-            # self.logger.debug("overview -- filename %s, res_keys %d" %
-            #                   (filename, len(res_keys)))
+        for filename, rkeys in self.location_map.items():
+            # self.logger.debug("overview -- filename %s, rkeys %d" %
+            #                   (filename, len(rkeys)))
 
             # # Skip '--internal--' etc.
             # if filename.startswith('--'):
@@ -1590,19 +1658,19 @@ class Config:
                     'count': 0,
                     'plural': "objects",
                     'error_count': 0,
-                    'error_plural': "errors"
+                    'error_plural': "_errors"
                 }
             )
 
-            for res_key in res_keys:
-                # self.logger.debug("overview --- res_key %s" % res_key)
+            for rkey in rkeys:
+                # self.logger.debug("overview --- rkey %s" % rkey)
 
-                source = self.sources[res_key]
+                source = self.sources[rkey]
 
                 if ('source' in source) and not ('source' in source_dict):
                     source_dict['source'] = source['source']
 
-                raw_errors = self.errors.get(res_key, [])
+                raw_errors = self.errors.get(rkey, [])
 
                 errors = []
 
@@ -1614,16 +1682,16 @@ class Config:
                         'text': error['error']
                     })
 
-                source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "errors"
+                source_dict['error_plural'] = "error" if (source_dict['error_count'] == 1) else "_errors"
 
                 source_dict['count'] += 1
                 source_dict['plural'] = "object" if (source_dict['count'] == 1) else "objects"
 
                 object_dict = source_dict['objects']
-                object_dict[res_key] = {
-                    'key': res_key,
+                object_dict[rkey] = {
+                    'key': rkey,
                     'kind': source['kind'],
-                    'errors': errors
+                    '_errors': errors
                 }
 
         routes = []
@@ -1666,7 +1734,7 @@ class Config:
 #        out.write("\n")
 
     def to_json(self, template=None, template_dir=None):
-        template_paths = [ self.config_dir_path, self.template_dir_path ]
+        template_paths = [self.config_dir_path, self.template_dir_path]
 
         if template_dir:
             template_paths.insert(0, template_dir)
@@ -1677,12 +1745,12 @@ class Config:
 
         return(template.render(**self.envoy_config))
 
-    def dump(self):
-        print("==== config")
-        self.pretty(self.config)
-
-        print("==== envoy_config")
-        self.pretty(self.envoy_config)
+    # def dump(self):
+    #     print("==== config")
+    #     self.pretty(self.config)
+    #
+    #     print("==== envoy_config")
+    #     self.pretty(self.envoy_config)
 
 if __name__ == '__main__':
     aconf = Config(sys.argv[1])
