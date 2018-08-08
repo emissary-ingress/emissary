@@ -33,6 +33,9 @@ class AmbassadorTest(Test):
     def url(self, prefix) -> str:
         return "%s://ambassador-%s/%s" % (self.scheme(), self.name.lower(), prefix)
 
+    def ready(self, containers):
+        return containers.get(("ambassador-%s" % self.name.k8s, "ambassador"), False)
+
 @abstract_test
 class ServiceType(Node):
 
@@ -41,6 +44,9 @@ class ServiceType(Node):
 
     def manifests(self):
         return self.format(manifests.BACKEND)
+
+    def ready(self, containers):
+        return containers.get((self.path.k8s, "backend"), False)
 
 class HTTP(ServiceType):
     pass

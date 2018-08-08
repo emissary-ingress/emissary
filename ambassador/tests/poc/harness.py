@@ -3,7 +3,7 @@ from collections import OrderedDict
 from itertools import chain, product
 from typing import Any, Iterable, Mapping, Optional, Sequence, Type
 
-import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys, traceback
+import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys, time, traceback
 
 from parser import dump, load, Tag
 
@@ -184,6 +184,9 @@ class Node(ABC):
                 return True
         return False
 
+    def ready(self, containers):
+        return True
+
 class Test(Node):
 
     __test__ = False
@@ -278,6 +281,28 @@ def label(yaml, scope):
         obj["metadata"]["labels"]["scope"] = scope
     return yaml
 
+
+def query(queries: Sequence[Query]) -> Sequence[Result]:
+    jsonified = []
+    byid = {}
+
+    for q in queries:
+        jsonified.append({"test": q.parent.path, "id": id(q), "url": q.url})
+        byid[id(q)] = q
+
+    with open("/tmp/urls.json", "w") as f:
+        json.dump(jsonified, f)
+    os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log")
+    with open("/tmp/results.json") as f:
+        json_results = json.load(f)
+
+    results = []
+    for r in json_results:
+        res = r["result"]
+        q = byid[r["id"]]
+        results.append(Result(q, res))
+
+    return results
 
 class Runner:
 
@@ -384,10 +409,31 @@ class Runner:
                 f.write(yaml)
             # XXX: better prune selector label
             os.system("kubectl apply --prune -l scope=%s -f %s" % (self.scope, fname))
+            self._wait()
+
+    def _wait(self, selected):
+        for i in range(6):
+            fname = "/tmp/pods-%s.json" % self.scope
+            os.system("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
+
+            with open(fname) as f:
+                pods = json.load(f)
+
+            containers = {}
+            for p in pods["items"]:
+                for cs in p["status"].get("containerStatuses", ()):
+                    containers[(p["metadata"]["name"], cs["name"])] = cs["ready"]
+
+            for n in self.nodes:
+                if not n.ready(containers):
+                    print("pods not ready, sleeping...")
+                    time.sleep(10)
+                    break
+            else:
+                return
 
     def _query(self, selected):
         queries = []
-        byid = {}
         for t in self.tests:
             if t in selected:
                 t.pending = []
@@ -397,18 +443,11 @@ class Runner:
                     q.parent = t
                     t.pending.append(q)
                     queries.append(q)
-                    byid[id(q)] = q
 
-        with open("/tmp/urls.json", "w") as f:
-            json.dump([{"test": q.parent.path, "id": id(q), "url": q.url} for q in queries], f)
-        os.system("go run client.go -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log")
-        with open("/tmp/results.json") as f:
-            results = json.load(f)
+        results = query(queries)
 
         for r in results:
-            res = r["result"]
-            q = byid[r["id"]]
-            result = Result(q, res)
-            q.parent.queried.append(q)
-            q.parent.results.append(result)
-            q.parent.pending.remove(q)
+            t = r.parent
+            t.queried.append(r.query)
+            t.results.append(r)
+            t.pending.remove(r.query)
