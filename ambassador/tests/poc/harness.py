@@ -411,7 +411,7 @@ class Runner:
             os.system("kubectl apply --prune -l scope=%s -f %s" % (self.scope, fname))
             self._wait()
 
-    def _wait(self, selected):
+    def _wait(self):
         for i in range(6):
             fname = "/tmp/pods-%s.json" % self.scope
             os.system("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
