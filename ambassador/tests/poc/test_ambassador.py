@@ -253,4 +253,4 @@ weight: {self.weight}
         main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
         assert abs(self.weight - canary) < 25, (self.weight, canary)
 
-t = Runner("ambassador-tests", AmbassadorTest)
+t = Runner(AmbassadorTest)

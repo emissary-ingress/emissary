@@ -281,8 +281,8 @@ def label(yaml, scope):
 
 class Runner:
 
-    def __init__(self, scope, *classes):
-        self.scope = scope
+    def __init__(self, *classes, scope=None):
+        self.scope = scope or "-".join(c.__name__ for c in classes)
         self.roots = tuple(v.instantiate() for c in classes for v in variants(c))
         self.nodes = [n for r in self.roots for n in r.traversal]
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
