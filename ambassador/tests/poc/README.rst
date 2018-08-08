@@ -127,6 +127,37 @@ test tree.
 Tutorial
 ========
 
+Gotchas/Prerequisites
+---------------------
+
+ - The tooling/build in this directory isn't particularly well
+   integrated with the rest of the project, and isn't particularly
+   mature. It's fairly simple, but you may need to use the Makefile
+   contents as documentation for how to get stuff running.
+
+ - The harness (and thus the tutorial) expects you to have access to a
+   kubernetes cluster (an empty kubernaut should be fine) and also be
+   running telepresence (or teleproxy) against that cluster. If this
+   turns out to be an onerous requirement, we can move the driver into
+   the cluster, but so far I have found it to be a very convenient way
+   to work.
+
+ - Because the harness works in batches, there is generally a pause up
+   front and then all the tests run really fast. I recommend supplying
+   the `-s` option to py.test since the harness will report progress
+   to stdout and this pause will be less confusing.
+
+ - The test suite will take much longer the first time you run it
+   because none of the kubernetes resources have been created yet and
+   so it needs to wait for them to spin up. Any subsequent runs should
+   be much faster since the resources will either not need to be
+   touched at all, or only patched slightly.
+
+ - The test suite creates a bunch of /tmp/k8s-* files to store/compare
+   yaml between runs. If you want to "clear the cache" you can remove
+   these to get a clean run. This stuff could probably use pytest
+   caching extensions instead.
+
 
 Basic test skeleton
 -------------------
