@@ -30,4 +30,3 @@ config:
       # These are optional.
       cert_required: True
       cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt
-    
