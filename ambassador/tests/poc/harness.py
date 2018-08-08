@@ -9,13 +9,15 @@ from parser import dump, load, Tag
 
 COUNTERS: Mapping[Type,int] = {}
 
-SANITIZATIONS = {
-    " ": "SPACE",
-    "/t": "TAB",
-    ".": "DOT",
-    "?": "QMARK",
-    "/": "SLASH"
-}
+SANITIZATIONS = OrderedDict((
+    ("://", "SCHEME"),
+    (":", "COLON"),
+    (" ", "SPACE"),
+    ("/t", "TAB"),
+    (".", "DOT"),
+    ("?", "QMARK"),
+    ("/", "SLASH"),
+))
 
 def sanitize(obj):
     if isinstance(obj, str):
@@ -25,7 +27,7 @@ def sanitize(obj):
             elif obj.endswith(k):
                 obj = obj.replace(k, "-" + v)
             else:
-                obj.replace(k, "-" + v + "-")
+                obj = obj.replace(k, "-" + v + "-")
         return obj
     elif isinstance(obj, dict):
         return "-".join("%s-%s" % (sanitize(k), sanitize(v)) for k, v in sorted(obj.items()))
@@ -205,7 +207,10 @@ class Test(Node):
 
     @property
     def ambassador_id(self):
-        return self.parent.ambassador_id
+        if self.parent is None:
+            return self.name.k8s
+        else:
+            return self.parent.ambassador_id
 
 class Query:
 
@@ -270,7 +275,7 @@ class BackendResponse:
 class BackendResult:
 
     def __init__(self, bres):
-        self.name = bres["backend"]
+        self.name = bres.get("backend")
         self.request = BackendRequest(bres["request"]) if "request" in bres else None
         self.response = BackendResponse(bres["response"]) if "response" in bres else None
 
@@ -434,6 +439,7 @@ class Runner:
                 assert kind == "pod"
                 if not pods.get(name, ()):
                     print("%s %s not ready, sleeping..." % (kind, name))
+                    sys.stdout.flush()
                     time.sleep(10)
                     break
             else:
