@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "gitbook-cli": "^2.3.0",
+    "gitbook-plugin-anchorjs": "^2.0.1",
     "gitbook-plugin-footer": "^0.1.0",
     "gitbook-plugin-gtm": "0.0.6",
     "netlify-cli": "^1.2.2"
