@@ -136,11 +136,31 @@ Gotchas/Prerequisites
    contents as documentation for how to get stuff running.
 
  - The harness (and thus the tutorial) expects you to have access to a
-   kubernetes cluster (an empty kubernaut should be fine) and also be
-   running telepresence (or teleproxy) against that cluster. If this
-   turns out to be an onerous requirement, we can move the driver into
-   the cluster, but so far I have found it to be a very convenient way
-   to work.
+   kubernetes cluster. An empty kubernaut should be fine, although it
+   is very easy to express a lot of permutations, and so we may need
+   bigger clusters at some point soon. (It would also be pretty
+   straightforward to modify the harness to limit the batch size if
+   needed.)
+
+ - The harness (and thus the tutorial) expects you to be running
+   `teleproxy` against the cluster. Telepresence should also work,
+   with two caveats:
+
+    1. I haven't tried it.
+    2. I don't think `telepresence` recognizes when services are
+       created after it has started running, so depending on your
+       workflow with the test harness you might need to manually
+       restart it a lot.
+
+   If the tele* requirement turns out to be too
+   brittle/environmentally sensitive, we can move the traffic driver
+   into the cluster, but so far I have found it to be a very
+   convenient way to work since I can directly interact with both
+   ambassader and all the backend services it fronts.
+
+   See the "How to use" section of
+   https://github.com/datawire/teleproxy for installation
+   instructions) against that cluster.
 
  - Because the harness works in batches, there is generally a pause up
    front and then all the tests run really fast. I recommend supplying
