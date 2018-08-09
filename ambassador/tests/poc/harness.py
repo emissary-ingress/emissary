@@ -430,14 +430,20 @@ class Runner:
             pods = {}
             for p in raw_pods["items"]:
                 name = p["metadata"]["name"]
-                ready = tuple(cs["name"] for cs in p["status"].get("containerStatuses", ()) if cs["ready"])
+                statuses = tuple(cs["ready"] for cs in p["status"].get("containerStatuses", ()))
+                if not statuses:
+                    ready = False
+                else:
+                    ready = True
+                    for status in statuses:
+                        ready = ready and status
                 pods[name] = ready
 
             print("Checking requirements... ", end="")
             sys.stdout.flush()
             for kind, name in requirements:
                 assert kind == "pod"
-                if not pods.get(name, ()):
+                if not pods.get(name, False):
                     print("%s %s not ready, sleeping..." % (kind, name))
                     sys.stdout.flush()
                     time.sleep(10)
