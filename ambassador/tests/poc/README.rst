@@ -178,6 +178,47 @@ Gotchas/Prerequisites
    these to get a clean run. This stuff could probably use pytest
    caching extensions instead.
 
+Running tests
+-------------
+
+1. Get a kubernetes cluster and make sure your kubectl is pointed to it by default.
+
+2. Install teleproxy:
+
+ - go get github.com/datawire/teleproxy/cmd/teleproxy
+ - sudo chown root:wheel $(which teleproxy)
+ - sudo chmod u+s $(which teleproxy)
+
+3. Fire up teleproxy:
+
+ - teleproxy
+
+4. Run `py.test -s` from the appropriate directory:
+
+ - cd ${BLAH}/poc
+ - py.test -s
+
+Note that the first time the tests run all the resources will need to
+be created from scratch (as opposed to just patched), so they will
+take a few minutes. Subsequent test runs should only take a few
+seconds.
+
+Also note, the readiness heuristics might not be suitably tuned for
+all environments, so the queries may fail the first time they
+run. Just try running the tests again if this happens.
+
+Listing tests
+-------------
+
+If you want to see the test tree listed out, you can do the following:
+
+1. Run `py.test --collect-only` from the appropriate directy:
+
+ - cd ${BLAH}/poc
+ - py.test --collect-only
+
+You should see the full test tree flattened into a bunch of py.test
+tests named according to their path within the tree.
 
 Basic test skeleton
 -------------------
