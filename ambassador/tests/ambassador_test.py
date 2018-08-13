@@ -163,7 +163,7 @@ def test_config(testname, dirpath, configdir):
         print("---- ERRORS")
         print("%s" % "\n".join(errors))
 
-    assert not errors, ("failing, errors: %d" % len(errors))
+    assert not errors, ("failing, _errors: %d" % len(errors))
 
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
@@ -180,9 +180,9 @@ def test_diag(testname, dirpath, configdir):
     if results['warnings']:
         errors.append("[DIAG WARNINGS]\n%s" % "\n".join(results['warnings']))
 
-    if results['errors']:
-        errors.append("[DIAG ERRORS]\n%s" % "\n".join(results['errors']))
-        errorcount += len(results['errors'])
+    if results['_errors']:
+        errors.append("[DIAG ERRORS]\n%s" % "\n".join(results['_errors']))
+        errorcount += len(results['_errors'])
 
     if errors:
         print("---- ERRORS")
@@ -192,4 +192,4 @@ def test_diag(testname, dirpath, configdir):
         print("---- RECONSTITUTED ----")
         print("%s" % results['reconstituted'])
     
-    assert errorcount == 0, ("failing, errors: %d" % errorcount)
+    assert errorcount == 0, ("failing, _errors: %d" % errorcount)

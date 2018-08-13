@@ -416,7 +416,7 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     care to ensure that all inputs are fully validated using envoy's
     --mode validate option in order to ensure that we never attempt to
     restart with an invalid configuration. It also keeps a full
-    history of all configurations along with the errors from any
+    history of all configurations along with the _errors from any
     invalid configurations to aid in debugging if invalid
     configuration inputs are supplied in any annotations, or if there
     is an ambassador bug encountered when processing an annotation.

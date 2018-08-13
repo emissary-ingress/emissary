@@ -420,9 +420,9 @@ def show_overview(reqid=None):
         for obj in source['objects'].values():
             obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
-            if obj['errors']:
+            if obj['_errors']:
                 errors.extend([ (obj['key'], error['summary'])
-                                 for error in obj['errors'] ])
+                                 for error in obj['_errors'] ])
 
     tvars = dict(system=system_info(), 
                  envoy_status=envoy_status(app.estats), 
@@ -470,9 +470,9 @@ def show_intermediate(source=None, reqid=None):
         for source in result['sources']:
             source['target'] = ambassador_targets.get(source['kind'].lower(), None)
 
-            if source['errors']:
+            if source['_errors']:
                 errors.extend([ (source['filename'], error['summary'])
-                                 for error in source['errors'] ])
+                                 for error in source['_errors'] ])
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),

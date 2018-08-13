@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from .resource import Resource
-from .mapping import Mapping
-from .config import Config
+from .resource import IRResource
 from .ir import IR
-from .ambscout import AmbScout as Scout
+

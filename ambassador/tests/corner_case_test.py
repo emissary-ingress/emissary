@@ -46,7 +46,7 @@ def shell_command(testname, argv, must_fail=False, need_stdout=None, need_stderr
         print("---- ERRORS")
         print("%s" % "\n".join(errors))
 
-    assert not errors, ("failing, errors: %d" % len(errors))
+    assert not errors, ("failing, _errors: %d" % len(errors))
 
 def test_bad_config_input():
     shell_command("test_bad_config_input",
@@ -63,7 +63,7 @@ def test_bad_dump_input():
 def test_bad_yaml():
     shell_command("test_bad_yaml",
                   [ 'ambassador', 'config', CORNER_CASE_DIR, 'no-such-file' ],
-                  need_stderr='ERROR ERROR ERROR Starting with configuration errors')
+                  need_stderr='ERROR ERROR ERROR Starting with configuration _errors')
 
 def test_version():
     shell_command("test_version",

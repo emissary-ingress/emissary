@@ -71,7 +71,7 @@ def filtered_overview(ov):
 
 def sanitize_errors(ov):
     sources = ov.get('sources', {})
-    errors = ov.get('errors', {})
+    errors = ov.get('_errors', {})
     filtered = {}
 
     for key in errors.keys():
@@ -88,7 +88,7 @@ def sanitize_errors(ov):
         filtered[key] = filtlist
 
         if key in sources:
-            sources[key]['errors'] = filtlist
+            sources[key]['_errors'] = filtlist
 
     return ov
 
@@ -206,14 +206,14 @@ def diag_paranoia(configdir, outputdir):
 
                 s['count'] += 1
                 s['objects'][source_key] = {
-                    'errors': obj['errors'],
+                    '_errors': obj['_errors'],
                     'key': source_key,
                     'kind': obj['kind']
                 }
-                s['error_count'] += len(obj['errors'])
+                s['error_count'] += len(obj['_errors'])
 
             for s in sources.values():
-                s['error_plural'] = "error" if (s['error_count'] == 1) else "errors"
+                s['error_plural'] = "error" if (s['error_count'] == 1) else "_errors"
                 s['plural'] = "object" if (s['count'] == 1) else "objects"
 
             # Finally, sort 'em all.
@@ -261,7 +261,7 @@ def diag_paranoia(configdir, outputdir):
                        "\n".join(udiff)))
 
     return {
-        'errors': errors,
+        '_errors': errors,
         'warnings': warnings,
         'overview': pretty_filtered_overview,
         'reconstituted': pretty_reconstituted_lists
@@ -276,8 +276,8 @@ if __name__ == "__main__":
     if (results['warnings']):
         print("\n".join(['WARNING: %s' % x for x in results['warnings']]))
 
-    if (results['errors']):
-        print("\n".join(['ERROR: %s' % x for x in results['errors']]))
+    if (results['_errors']):
+        print("\n".join(['ERROR: %s' % x for x in results['_errors']]))
         sys.exit(1)
     else:
         sys.exit(0)

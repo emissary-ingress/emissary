@@ -3,10 +3,9 @@ import sys
 from typing import Any, Dict, List, Optional, Type, TypeVar
 from typing import cast as typecast
 
-# Is this really necessary?
-# import . as ambassador
-
 import yaml
+
+from .utils import RichStatus
 
 R = TypeVar('R', bound='Resource')
 
@@ -55,13 +54,13 @@ class Resource (dict):
     apiVersion: str
     serialization: Optional[str]
 
-    _errors: List[str]
-    _referenced_by: Dict[str, bool]
+    _errors: List[RichStatus]
+    _referenced_by: Dict[str, 'Resource']
 
     def __init__(self, rkey: str, location: str, *,
                  kind: str,
                  name: str,
-                 apiVersion: Optional[str]="ambassador/v0", # not really optional
+                 apiVersion: Optional[str]="ambassador/v0",
                  serialization: Optional[str]=None,
                  **kwargs) -> None:
 
@@ -95,15 +94,15 @@ class Resource (dict):
         :return:
         """
 
-        other.referenced_by(self.rkey)
+        other.referenced_by(self)
 
-    def referenced_by(self, other_rkey: str) -> None:
-        self._referenced_by[other_rkey] = True
+    def referenced_by(self, other: 'Resource') -> None:
+        self._referenced_by[other.rkey] = other
 
-    def is_referenced_by(self, other_rkey) -> bool:
-        return self._referenced_by.get(other_rkey, False)
+    def is_referenced_by(self, other_rkey) -> Optional['Resource']:
+        return self._referenced_by.get(other_rkey, None)
 
-    def post_error(self, error: str):
+    def post_error(self, error: RichStatus):
         self._errors.append(error)
 
     def __getattr__(self, key: str) -> Any:

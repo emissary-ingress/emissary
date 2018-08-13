@@ -34,7 +34,7 @@ __version__ = (1, 0, 1)
 
 
 class ShellException(Exception):
-    """The base exception for all shell-related errors."""
+    """The base exception for all shell-related _errors."""
     pass
 
 
@@ -70,7 +70,7 @@ class Shell(object):
 
     Optionally accepts a ``strip_empty`` parameter, which should be a boolean.
     If set to ``True``, only non-empty lines from ``Shell.output`` or
-    ``Shell.errors`` will be returned. (Default: ``True``)
+    ``Shell._errors`` will be returned. (Default: ``True``)
 
     Optionally accepts a ``die`` parameter, which should be a boolean.
     If set to ``True``, raises a CommandError if the command exits with a
@@ -115,7 +115,7 @@ class Shell(object):
         Requires a ``stdout`` parameter, which should either be the output as
         a string or ``None``.
 
-        Requires a ``stderr`` parameter, which should either be the errors as
+        Requires a ``stderr`` parameter, which should either be the _errors as
         a string or ``None``.
 
         Records nothing if the ``record_*`` options have been set to ``False``.
@@ -274,11 +274,11 @@ class Shell(object):
 
     def errors(self, raw=False):
         """
-        Returns the errors from running a command.
+        Returns the _errors from running a command.
 
         Optionally accepts a ``raw`` parameter, which should be a boolean. If
-        ``raw`` is set to ``False``, you get an array of lines of errors. If
-        ``raw`` is set to ``True``, the raw string of errors is returned.
+        ``raw`` is set to ``False``, you get an array of lines of _errors. If
+        ``raw`` is set to ``True``, the raw string of _errors is returned.
         (Default: ``False``)
 
         Example::
@@ -286,7 +286,7 @@ class Shell(object):
             >>> from shell import Shell
             >>> sh = Shell()
             >>> sh.run('ls /there-s-no-way-anyone/has/this/directory/please')
-            >>> sh.errors()
+            >>> sh._errors()
             [
                 'ls /there-s-no-way-anyone/has/this/directory/please: No such file or directory'
             ]
@@ -326,7 +326,7 @@ def shell(command, has_input=False, record_output=True, record_errors=True,
 
     Optionally accepts a ``strip_empty`` parameter, which should be a boolean.
     If set to ``True``, only non-empty lines from ``Shell.output`` or
-    ``Shell.errors`` will be returned. (Default: ``True``)
+    ``Shell._errors`` will be returned. (Default: ``True``)
 
     Optionally accepts a ``die`` parameter, which should be a boolean.
     If set to ``True``, raises a CommandError if the command exits with a

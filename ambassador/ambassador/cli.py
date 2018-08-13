@@ -124,7 +124,7 @@ def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
 
         diag_object = {
             'envoy_config': aconf.envoy_config,
-            'errors': aconf.errors,
+            '_errors': aconf.errors,
             'sources': aconf.sources,
             'source_map': aconf.source_map
         }
@@ -194,9 +194,9 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             logger.info("Generating new Envoy configuration...")
             aconf = parse_config(config_dir_path, k8s=k8s)
 
-            # If exit_on_error is set, log errors and exit with status 1
+            # If exit_on_error is set, log _errors and exit with status 1
             if exit_on_error and aconf.errors:
-                raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
+                raise Exception("_errors in: {0}".format(', '.join(aconf.errors.keys())))
 
             rc = aconf.generate_envoy_config(mode="cli", check=check)
 
