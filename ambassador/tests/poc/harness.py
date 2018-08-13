@@ -420,7 +420,7 @@ class Runner:
         requirements = [r for n in self.nodes for r in n.requirements()]
         if not requirements: return
 
-        for i in range(6):
+        for i in range(30):
             fname = "/tmp/pods-%s.json" % self.scope
             os.system("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
 
@@ -449,8 +449,10 @@ class Runner:
                     time.sleep(10)
                     break
             else:
-                print(" satisifed.")
+                print(" satisfied.")
                 return
+
+        assert False, "requirements not satisfied within 5 minutes"
 
     def _query(self, selected):
         queries = []
