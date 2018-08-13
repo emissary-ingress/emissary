@@ -99,7 +99,7 @@ class Mapping (Resource):
         Initialize a Mapping from the raw fields of its Resource.
         """
 
-        print("Mapping __init__ (%s %s)" % (kind, name))
+        # print("Mapping __init__ (%s %s)" % (kind, name))
 
         # First init our superclass...
 

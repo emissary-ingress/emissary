@@ -15,7 +15,7 @@ class IRResource (Resource):
 
     def __init__(self, ir: 'IR', aconf: Config, rkey: str, kind: str, name: str,
                  **kwargs) -> None:
-        print("IRResource __init__ (%s %s)" % (kind, name))
+        # print("IRResource __init__ (%s %s)" % (kind, name))
 
         super().__init__(rkey, "-ir-",
                          kind=kind, name=name,

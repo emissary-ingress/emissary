@@ -16,7 +16,7 @@ class ListenerResource (IRResource):
                  kind: str="IRListener",
                  name: str="ir.listener",
                  **kwargs) -> None:
-        print("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,

@@ -41,7 +41,7 @@ class TLSContext (IRResource):
         Initialize a TLSContext from the raw fields of its Resource.
         """
 
-        print("IRTLSContext __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRTLSContext __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -100,7 +100,7 @@ class TLSModule (IRResource):
         Initialize a TLSModule from the raw fields of its Resource.
         """
 
-        print("IRTLSModule __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRTLSModule __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,

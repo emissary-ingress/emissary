@@ -76,7 +76,7 @@ class Resource (dict):
         if not apiVersion:
             raise Exception("Resource requires apiVersion")
 
-        print("Resource __init__ (%s %s)" % (kind, name))
+        # print("Resource __init__ (%s %s)" % (kind, name))
 
         super().__init__(rkey=rkey, location=location,
                          kind=kind, name=name,
@@ -97,6 +97,7 @@ class Resource (dict):
         other.referenced_by(self)
 
     def referenced_by(self, other: 'Resource') -> None:
+        print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))
         self._referenced_by[other.rkey] = other
 
     def is_referenced_by(self, other_rkey) -> Optional['Resource']:
