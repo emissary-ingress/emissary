@@ -15,5 +15,6 @@
 from .resource import Resource
 from .mapping import Mapping
 from .config import Config
+from .pragma import Pragma
 from .ir import IR
 from .ambscout import AmbScout as Scout

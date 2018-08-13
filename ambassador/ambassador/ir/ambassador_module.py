@@ -43,6 +43,7 @@ class AmbassadorModule (IRResource):
 
         if amod:
             tmod = amod.get('tls', None)
+            self.referenced_by(amod)
 
         if tmod:
             # Yes. Get its contexts loaded.
