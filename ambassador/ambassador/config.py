@@ -1052,7 +1052,16 @@ class Config (object):
 
         # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
         self.envoy_config['filters'] = []
-        # Start with authentication filter
+
+        # Start with health_check filters which can either pass-though or short-circuit the router
+        for health_check in self.ambassador_module['health_checks']:
+            if 'endpoint' in health_check:
+                self.envoy_config['filters'].append(SourcedDict(name="health_check", config={
+                    "pass_through_mode": health_check['pass_through'] if 'pass_through' in health_check else False,
+                    "endpoint":  health_check['endpoint'],
+                    "cache_time_ms": 0}))  # Don't enable caching because it's incompatible with pass_through_mode=false and only returns the status-code of the response, stripping the content
+
+        # Then append the authentication filter
         auth_mod = modules.get('authentication', None)
         auth_configs = self.config.get('auth_configs', None)
         auth_filter = self.module_config_authentication("authentication", amod, auth_mod, auth_configs)
@@ -1066,15 +1075,6 @@ class Config (object):
             self.envoy_config['grpc_services'].append(ratelimit_grpc_service)
         # Then append non-configurable cors and decoder filters
         self.envoy_config['filters'].append(SourcedDict(name="cors", config={}))
-
-        # Then append the health_check filters which can either pass-though or short-circuit the router
-        for health_check in self.ambassador_module['health_checks']:
-            if 'endpoint' in health_check:
-                self.envoy_config['filters'].append(SourcedDict(name="health_check", config={
-                    "pass_through_mode": health_check['pass_through'] if 'pass_through' in health_check else False,
-                    "endpoint":  health_check['endpoint'],
-                    "cache_time_ms": 0}))  # Don't enable caching because it's incompatible with pass_through_mode=false and only returns the status-code of the response, stripping the content
-
         # Finish off with the request router
         self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config=router_config))
 

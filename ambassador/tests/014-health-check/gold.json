@@ -67,16 +67,16 @@
             },
             "filters": [
               {
-                "name": "cors",
-                "config": {}
-              },
-              {
                 "name": "health_check",
                 "config": {
                   "cache_time_ms": 0,
                   "endpoint": "/custom-health-endpoint",
                   "pass_through_mode": false
                 }
+              },
+              {
+                "name": "cors",
+                "config": {}
               },
               {
                 "name": "router",
