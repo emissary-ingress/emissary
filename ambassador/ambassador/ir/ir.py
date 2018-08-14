@@ -28,7 +28,7 @@ from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
 from .irratelimit import IRRateLimit
-from .irtls import IRTLS, TLSModule
+from .irtls import IREnvoyTLS, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 
 #from .VERSION import Version
@@ -102,7 +102,7 @@ class IR:
             self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         # OK! Start by wrangling TLS-context stuff.
-        self.tls_module = TLSModule(self, aconf)
+        self.tls_module = IRAmbassadorTLS(self, aconf)
 
         # Next, handle the "Ambassador" module.
         self.ambassador_module = IRAmbassador(self, aconf)
@@ -150,14 +150,14 @@ class IR:
 
         return self.modules.get(module_name, None)
 
-    def save_tls_context(self, ctx_name: str, ctx: IRTLS) -> bool:
+    def save_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
         if ctx_name in self.tls_contexts:
             return False
 
         self.tls_contexts[ctx_name] = ctx
         return True
 
-    def get_tls_context(self, ctx_name: str) -> Optional[IRTLS ]:
+    def get_tls_context(self, ctx_name: str) -> Optional[IREnvoyTLS ]:
         return self.tls_contexts.get(ctx_name, None)
 
     def get_tls_defaults(self, ctx_name: str) -> Optional[Dict]:

@@ -27,12 +27,12 @@ if TYPE_CHECKING:
 
 
 #############################################################################
-## tls_context.py -- the tls_context configuration object for Ambassador
+## tls.py -- the tls_context configuration object for Ambassador
 ##
-## TLSContext represents an Envoy tls_context. These are created by TLS
-## modules as the modules get loaded.
+## IREnvoyTLS is an Envoy TLS context. These are created from IRAmbassadorTLS
+## objects.
 
-class IRTLS (IRResource):
+class IREnvoyTLS (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.tlscontext",
                  kind: str="IRTLSContext",
@@ -41,10 +41,10 @@ class IRTLS (IRResource):
 
                  **kwargs) -> None:
         """
-        Initialize a TLSContext from the raw fields of its Resource.
+        Initialize an IREnvoyTLS from the raw fields of its Resource.
         """
 
-        # print("IRTLSContext __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IREnvoyTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -85,13 +85,11 @@ class IRTLS (IRResource):
         return ir.save_tls_context(self.name, self)
 
 #############################################################################
-## irtls.py -- the tls_module configuration object for Ambassador
-##
-## TLSModule represents an Ambassador TLS configuration. These will eventually
-## drive the creation of Envoy TLS contexts.
+## IRAmbassadorTLS represents an Ambassador TLS configuration, from which we
+## can create Envoy TLS configurations.
 
 
-class TLSModule (IRResource):
+class IRAmbassadorTLS (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.tlsmodule",
                  kind: str="IRTLSModule",
@@ -100,10 +98,10 @@ class TLSModule (IRResource):
 
                  **kwargs) -> None:
         """
-        Initialize a TLSModule from the raw fields of its Resource.
+        Initialize an IRAmbassadorTLS from the raw fields of its Resource.
         """
 
-        # print("IRTLSModule __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -130,7 +128,7 @@ class TLSModule (IRResource):
 
             # Create TLS contexts.
             for ctx_name in tls_module.keys():
-                IRTLS(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name ])
+                IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name ])
 
             return True
         else:

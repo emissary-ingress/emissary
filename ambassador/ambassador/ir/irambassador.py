@@ -3,7 +3,7 @@ from typing import Dict, Optional, TYPE_CHECKING
 from ..config import Config
 
 from .irresource import IRResource
-from .irtls import IRTLS
+from .irtls import IREnvoyTLS
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -50,7 +50,7 @@ class IRAmbassador (IRResource):
                 if ctx_name.startswith('_'):
                     continue
 
-                IRTLS(ir=ir, aconf=aconf, name=ctx_name, **tmod[ctx_name ])
+                IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name, **tmod[ctx_name ])
 
         # Next up, check for the special 'server' and 'client' TLS contexts.
         ctx = ir.get_tls_context('server')
