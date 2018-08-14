@@ -27,6 +27,8 @@ import time
 
 import yaml
 
+from urllib3.exceptions import ProtocolError
+
 from kubernetes import watch
 from ambassador.config import Config
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, check_cert_file, TLSPaths
@@ -331,25 +333,29 @@ def watch_loop(restarter):
     v1 = kube_v1()
 
     if v1:
-        w = watch.Watch()
+        while True:
+            try:
+                w = watch.Watch()
 
-        if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
-            watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
-        else:
-            watched = w.stream(v1.list_service_for_all_namespaces)
+                if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
+                    watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
+                else:
+                    watched = w.stream(v1.list_service_for_all_namespaces)
 
-        for evt in watched:
-            logger.debug("Event: %s %s/%s" % 
-                         (evt["type"], 
-                          evt["object"].metadata.namespace, evt["object"].metadata.name))
-            sys.stdout.flush()
+                for evt in watched:
+                    logger.debug("Event: %s %s/%s" % 
+                                 (evt["type"], 
+                                  evt["object"].metadata.namespace, evt["object"].metadata.name))
+                    sys.stdout.flush()
 
-            if evt["type"] == "DELETED":
-                restarter.delete(evt["object"])
-            else:
-                restarter.update_from_service(evt["object"])
+                    if evt["type"] == "DELETED":
+                        restarter.delete(evt["object"])
+                    else:
+                        restarter.update_from_service(evt["object"])
 
-        logger.info("watch loop exited?")
+                logger.info("watch loop exited?")
+            except ProtocolError:
+                continue
     else:
         logger.info("No K8s, idling")
 
