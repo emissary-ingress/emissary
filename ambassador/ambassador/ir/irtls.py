@@ -15,12 +15,15 @@
 import json
 import os
 
-# from typing import Dict
+from typing import TYPE_CHECKING
 
 from ..config import Config
 from ..utils import RichStatus, TLSPaths
 from ..resource import Resource
-from .resource import IRResource as IRResource
+from .irresource import IRResource as IRResource
+
+if TYPE_CHECKING:
+    from .ir import IR
 
 
 #############################################################################
@@ -29,7 +32,7 @@ from .resource import IRResource as IRResource
 ## TLSContext represents an Envoy tls_context. These are created by TLS
 ## modules as the modules get loaded.
 
-class TLSContext (IRResource):
+class IRTLS (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.tlscontext",
                  kind: str="IRTLSContext",
@@ -82,7 +85,7 @@ class TLSContext (IRResource):
         return ir.save_tls_context(self.name, self)
 
 #############################################################################
-## tls.py -- the tls_module configuration object for Ambassador
+## irtls.py -- the tls_module configuration object for Ambassador
 ##
 ## TLSModule represents an Ambassador TLS configuration. These will eventually
 ## drive the creation of Envoy TLS contexts.
@@ -127,7 +130,7 @@ class TLSModule (IRResource):
 
             # Create TLS contexts.
             for ctx_name in tls_module.keys():
-                TLSContext(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name])
+                IRTLS(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name ])
 
             return True
         else:

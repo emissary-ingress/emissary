@@ -1,24 +1,26 @@
+from typing import TYPE_CHECKING
+
 from ..config import Config
 from ..utils import RichStatus
 
-from .resource import IRResource
+from .irresource import IRResource
+
+if TYPE_CHECKING:
+    from .ir import IR
 
 
-class RateLimitResource (IRResource):
+class IRRateLimit (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.auth",
-                 kind: str="IRAuth",
-                 name: str="ir.auth",
+                 rkey: str="ir.ratelimit",
+                 kind: str="IRRateLimit",
+                 name: str="ir.ratelimit",
                  **kwargs) -> None:
         print("IRRateLimit __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            cluster="cluster_ext_auth",
+            cluster="cluster_ext_ratelimit",
             timeout_ms=5000,
-            path_prefix=None,
-            allowed_headers=[ ],
-            weight=100,
             hosts={}
         )
 

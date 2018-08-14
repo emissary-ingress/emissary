@@ -1,16 +1,15 @@
-from typing import Dict, Optional
-
-import json
+from typing import Dict, Optional, TYPE_CHECKING
 
 from ..config import Config
-# from ..utils import RichStatus, TLSPaths, check_cert_file
-# from ..resource import Resource
 
-from .resource import IRResource
-from .tls import TLSContext
+from .irresource import IRResource
+from .irtls import IRTLS
+
+if TYPE_CHECKING:
+    from .ir import IR
 
 
-class AmbassadorModule (IRResource):
+class IRAmbassador (IRResource):
     service_port: int
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -51,7 +50,7 @@ class AmbassadorModule (IRResource):
                 if ctx_name.startswith('_'):
                     continue
 
-                TLSContext(ir=ir, aconf=aconf, name=ctx_name, **tmod[ctx_name])
+                IRTLS(ir=ir, aconf=aconf, name=ctx_name, **tmod[ctx_name ])
 
         # Next up, check for the special 'server' and 'client' TLS contexts.
         ctx = ir.get_tls_context('server')

@@ -24,17 +24,17 @@ from ..mapping import Mapping
 from ..config import Config
 from ..resource import Resource
 
-from .resource import IRResource
-from .ambassador_module import AmbassadorModule
-from .auth_resource import AuthResource
-from .ratelimit_resource import RateLimitResource
-from .tls import TLSContext, TLSModule
-from .listener import ListenerFactory, ListenerResource
+from .irresource import IRResource
+from .irambassador import IRAmbassador
+from .irauth import IRAuth
+from .irratelimit import IRRateLimit
+from .irtls import IRTLS, TLSModule
+from .irlistener import ListenerFactory, IRListener
 
 #from .VERSION import Version
 
 #############################################################################
-## intermediate.py -- the Ambassador Intermediate Representation (IR)
+## ir.py -- the Ambassador Intermediate Representation (IR)
 ##
 ## After getting an ambassador.Config, you can create an ambassador.IR. The
 ## IR is the basis for everything else: you can use it to configure an Envoy
@@ -50,13 +50,13 @@ StringOrList = Union[str, List[str]]
 
 
 class IR:
-    ambassador_module: AmbassadorModule
+    ambassador_module: IRAmbassador
     # clusters: Dict[str, Cluster]
     # routes: Dict[str, Route]
 
     router_config: Dict[str, Any]
     filters: List[IRResource]
-    listeners: List[ListenerResource]
+    listeners: List[IRListener ]
 
     def __init__(self, aconf: Config) -> None:
         self.logger = logging.getLogger("ambassador.ir")
@@ -105,7 +105,7 @@ class IR:
         self.tls_module = TLSModule(self, aconf)
 
         # Next, handle the "Ambassador" module.
-        self.ambassador_module = AmbassadorModule(self, aconf)
+        self.ambassador_module = IRAmbassador(self, aconf)
 
         # Save breaker & outlier configs.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
@@ -117,10 +117,13 @@ class IR:
         #
         # ORDER MATTERS HERE.
 
-        for cls in [ AuthResource, RateLimitResource ]:
+        for cls in [ IRAuth, IRRateLimit ]:
             r = cls(self, aconf)
 
+            print("CHECKING FILTER %s (%s) %s" % (r, r.is_active(), repr(r)))
+
             if r.is_active():
+                print("SAVING FILTER %s" % r)
                 self.filters.append(r)
 
         # Then append non-configurable cors and decoder filters
@@ -147,25 +150,39 @@ class IR:
 
         return self.modules.get(module_name, None)
 
-    def save_tls_context(self, ctx_name: str, ctx: TLSContext) -> bool:
+    def save_tls_context(self, ctx_name: str, ctx: IRTLS) -> bool:
         if ctx_name in self.tls_contexts:
             return False
 
         self.tls_contexts[ctx_name] = ctx
         return True
 
-    def get_tls_context(self, ctx_name: str) -> Optional[TLSContext]:
+    def get_tls_context(self, ctx_name: str) -> Optional[IRTLS ]:
         return self.tls_contexts.get(ctx_name, None)
 
     def get_tls_defaults(self, ctx_name: str) -> Optional[Dict]:
         return self.tls_defaults.get(ctx_name, None)
 
-    def add_listener(self, listener: ListenerResource) -> None:
+    def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)
 
     def dump(self, output=sys.stdout):
         output.write("IR:\n")
 
-        output.write("  ambassador: %s\n" % repr(self.ambassador_module))
-        output.write("  tls_contexts: %s\n" % repr(self.tls_contexts))
-        output.write("  listeners: %s\n" % repr(self.listeners))
+        output.write("-- ambassador:\n")
+        output.write("%s\n" % self.ambassador_module.as_json())
+
+        output.write("-- tls_contexts:\n")
+
+        for ctx_name in sorted(self.tls_contexts.keys()):
+            output.write("%s: %s\n" % (ctx_name, self.tls_contexts[ctx_name].as_json()))
+
+        output.write("-- listeners:\n")
+
+        for listener in self.listeners:
+            output.write("%s\n" % listener.as_json())
+
+        output.write("-- filters:\n")
+
+        for filter in self.filters:
+            output.write("%s\n" % filter.as_json())

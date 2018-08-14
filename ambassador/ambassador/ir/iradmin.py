@@ -1,8 +1,11 @@
-from ..config import Config
+from ..config import Config, TYPE_CHECKING
 
-from .resource import IRResource
+from .irresource import IRResource
 
-class AdminResource (IRResource):
+if TYPE_CHECKING:
+    from .ir import IR
+
+class IRAdmin (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
 
                  admin_port: int,

@@ -1,10 +1,13 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from ..config import Config
-from .resource import IRResource
+from .irresource import IRResource
+
+if TYPE_CHECKING:
+    from .ir import IR
 
 
-class ListenerResource (IRResource):
+class IRListener (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
 
                  service_port: int,
@@ -31,7 +34,7 @@ class ListenerFactory:
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
         amod = ir.ambassador_module
         
-        primary_listener = ListenerResource(
+        primary_listener = IRListener(
             ir=ir, aconf=aconf,
             service_port=amod.service_port,
             require_tls=amod.get('x_forwarded_proto_redirect', False),
@@ -62,7 +65,7 @@ class ListenerFactory:
         ir.add_listener(primary_listener)
 
         if redirect_cleartext_from:
-            new_listener = ListenerResource(
+            new_listener = IRListener(
                 ir=ir, aconf=aconf,
                 service_port=redirect_cleartext_from,
                 use_proxy_proto=amod.use_proxy_proto,

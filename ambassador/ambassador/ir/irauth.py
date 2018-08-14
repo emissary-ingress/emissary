@@ -1,24 +1,29 @@
+from typing import TYPE_CHECKING
+
 from ..config import Config
 from ..utils import RichStatus
 from ..resource import Resource
 
-from .resource import IRResource
+from .irresource import IRResource
+
+if TYPE_CHECKING:
+    from .ir import IR
 
 
-class AuthResource (IRResource):
+class IRAuth (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
                  name: str="ir.auth",
                  **kwargs) -> None:
-        print("IRAuth __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRAuth __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             cluster="cluster_ext_auth",
             timeout_ms=5000,
             path_prefix=None,
-            allowed_headers=[ ],
+            allowed_headers=[],
             weight=100,
             hosts={},
             **kwargs)
