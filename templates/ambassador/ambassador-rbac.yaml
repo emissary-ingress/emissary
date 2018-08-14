@@ -91,6 +91,4 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
-      - name: statsd
-        image: {{STATSD_DOCKER_IMAGE}}
       restartPolicy: Always
