@@ -8,8 +8,10 @@
 
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
-* [Five minute quickstart](about/quickstart.md)
-* [Deploying to Kubernetes](user-guide/getting-started.md)
+* [Installing Ambassador](user-guide/install.md)
+  * [Kubernetes (YAML)](user-guide/getting-started.md)
+  * [Kubernetes (Helm)](user-guide/helm.md)
+  * [Docker Quickstart](about/quickstart.md)
 
 ## Guides
 
