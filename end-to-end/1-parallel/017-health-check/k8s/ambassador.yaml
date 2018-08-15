@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador
+  namespace: 017-health-check
   annotations:
     getambassador.io/config: |
       ---
@@ -12,8 +13,10 @@ metadata:
       config:
         health_checks:
         - pass_through: true
-          endpoint: /custom-health-endpoint-with-no-service
-        - endpoint: /custom-health-endpoint
+          endpoint: /custom-health-endpoint-with-no-service  # Will 404 since there is no upstream service
+        - pass_through: true
+          endpoint: /qotm/                                   # Will 200 with upstream service
+        - endpoint: /custom-health-endpoint                  # Will 200 by Envoy short-circuiting the router
       ambassador_id: 017-health-check
 spec:
   selector:

@@ -22,7 +22,7 @@ NAMESPACE="017-health-check"
 ROOT=$(cd ../..; pwd)
 
 source ${ROOT}/utils.sh
-bootstrap --cleanup ${NAMESPACE} ${ROOT}
+bootstrap ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
     ${ROOT}/ambassador-deployment.yaml \
@@ -32,6 +32,7 @@ python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-id.yfix \
 
 kubectl apply -f k8s/ambassador.yaml
 kubectl apply -f k8s/ambassador-deployment.yaml
+kubectl apply -f k8s/qotm.yaml
 kubectl apply -f k8s/rbac.yaml
 
 set +e +o pipefail
@@ -52,6 +53,14 @@ rc=$?
 
 if [ $rc -ne 0  ] || [ $status -ne 200 ]; then
     echo "/custom-health-endpoint HTTP check failed ($rc): $status" >&2
+    exit 1
+fi
+
+status=$(curl -s --output /dev/null --write-out "%{http_code}" "$BASEURL/qotm/")
+rc=$?
+
+if [ $rc -ne 0  ] || [ $status -ne 200 ]; then
+    echo "/qotm HTTP check failed ($rc): $status" >&2
     exit 1
 fi
 
