@@ -39,7 +39,7 @@
             "generate_request_id": true,
             "tracing": {
               "operation_name": "egress",
-              "request_headers_for_tags": []
+              "request_headers_for_tags": {{ tracing.tag_headers | tojson }}
             },
             {%- endif %}
             "route_config": {
