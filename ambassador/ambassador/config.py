@@ -1622,6 +1622,7 @@ class Config (object):
         cluster_hosts = None
         driver = None
         driver_config = None
+        tag_headers = None
         host_rewrite = None
         sources = []
 
@@ -1631,6 +1632,7 @@ class Config (object):
                 cluster_hosts = config.get("service", None)
                 driver = config.get("driver", None)
                 driver_config = config.get("config", {})
+                tag_headers = config.get("tag_headers", [])
                 host_rewrite = config.get("host_rewrite", None)
 
         if not cluster_hosts or not sources:
@@ -1652,6 +1654,7 @@ class Config (object):
             _source=first_source,
             driver=driver,
             config=driver_config,
+            tag_headers=tag_headers,
             cluster_name=cluster_name
         )
         self.envoy_config['tracing'] = tracing

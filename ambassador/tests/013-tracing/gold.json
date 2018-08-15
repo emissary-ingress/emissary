@@ -19,7 +19,7 @@
             "generate_request_id": true,
             "tracing": {
               "operation_name": "egress",
-              "request_headers_for_tags": []
+              "request_headers_for_tags": [":authority", ":path"]
             },
             "route_config": {
               "virtual_hosts": [
