@@ -113,12 +113,11 @@ func main() {
 
 	common.UseHandlerFunc(func (rw http.ResponseWriter, rq *http.Request) {
 		public, scopes := policy(rq.Method, rq.Host, rq.URL.Path)
-		if public {
-			responseJSON("allowed", rw, rq, http.StatusOK)
-		} else {
+		if !public {
 			token, _ := rq.Context().Value(jwtMware.Options.UserProperty).(*jwt.Token)
 			if token == nil {
 				responseJSON("unauthorized", rw, rq, http.StatusUnauthorized)
+				return
 			} else {
 				for _, scope := range scopes {
 					if !checkScope(scope, token.Raw) {
@@ -128,6 +127,7 @@ func main() {
 				}
 			}
 		}
+		responseJSON("allowed", rw, rq, http.StatusOK)
 	})
 
 	fmt.Println("Listening on http://localhost:8080")
