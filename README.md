@@ -6,53 +6,53 @@ The service depends on two environment variables: `AUTH0_DOMAIN`, and
 `.env` file.
 
 XXX: the function named "policy" in main.go will become another source
-of configuration, right now it is hardcoded. Read it and it's comment
+of configuration, right now it is hardcoded. Read it and its comment
 for more info.
 
 ## Running the service:
 
-Step 1: First build a docker image: `docker build . -t <blah>:<bleh>`
+1. Install Ambassador.
+1. First build a docker image: `docker build . -t <blah>:<bleh>`
+2. Write a k8s deployment manifests that either sets the environment variables or
+mounts a .env file appropriately.
+3. Create an Auth0 account. Then, click on the API and create a new API.
+   * AUTH0_DOMAIN example is foo.auth0.com.
+   * AUTH0_AUDIENCE is listed on the API page https://manage.auth0.com/#/apis
+4. Write a service with ambassador annotation that looks something like this. Note the `allowed_headers` stuff, that is
+   important:
 
-Step 2: Write a k8s deployment manifests that either sets the environment variables or
-        mounts a .env file appropriately.
-
-Step 3: Write a service with ambassador annotation that looks
-        something like this. Note the `allowed_headers` stuff, that is
-        important:
-
+   ```
+   ---
+   apiVersion: v1
+   kind: Service
+   metadata:
+     name: auth
+     annotations:
+      getambassador.io/config: |
+        ---
+        apiVersion: ambassador/v0
+        kind:  AuthService
+        name:  authentication
+        auth_service: auth
+        allowed_headers:
+         - "Authorization"
+         - "Client-Id"
+         - "Client-Secret"
+   spec:
+     selector:
+       deployment: auth
+     ports:
+     - protocol: TCP
+       port: 80
+       targetPort: 8080
 ```
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: auth
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
-      auth_service: auth
-      allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-spec:
-  selector:
-    deployment: auth
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-```
 
-XXX: In practice we probably want to deploy this as a sidecar, but I'm
-not 100% sure how we would tell ambassador to route to that. I'm
-guessing maybe setting auth_service to `localhost:8080` would work but
-we'd have to make sure that doesn't conflict with anything else on the
-pod.
+   XXX: In practice we probably want to deploy this as a sidecar, but I'm
+   not 100% sure how we would tell ambassador to route to that. I'm
+   guessing maybe setting auth_service to `localhost:8080` would work but
+   we'd have to make sure that doesn't conflict with anything else on the
+   pod.
 
-Step 4: Install ambassador if you haven't already.
 
 Step 5: Deploy the test backend service: `kubectl apply -f backend.yaml`
 
