@@ -355,6 +355,7 @@ def watch_loop(restarter):
 
                 logger.info("watch loop exited?")
             except ProtocolError:
+                logger.debug("watch connection has been broken. retry automatically.")
                 continue
     else:
         logger.info("No K8s, idling")
