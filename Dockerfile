@@ -8,6 +8,6 @@ ADD . /go/src
 
 RUN go get -d
 
-CMD ["go", "run", "*.go"]
+CMD ["go", "run", "controller.go", "main.go"]
 
 EXPOSE 8080
