@@ -1,10 +1,12 @@
 # Deploying Ambassador to Docker Compose for local development
 
-Docker compose is useful for local development where minikube may be undesireable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment. *It is important to note that in all changes to Ambassor configuration using this method requires a restart of the Ambassador container and thus downtime.*
+Docker compose is useful for local development where minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment.
 
-## 1. Prerequisites
+*It is important to note that any change to Ambassador's configuration using this method requires a restart of the Ambassador container and thus downtime.*
 
-We assume the latest version of Docker at the time of the writing of this guide.
+## Prerequisites
+
+We assume that you have the latest version of Docker at the time of the writing of this guide.
 
 ## 1. Creating a simple Docker Compose environment
 
@@ -356,7 +358,7 @@ driver: zipkin
 
 This will forward all of Ambassador's traces to the `tracing` service.
 
-### Make a requests and observe the traces
+### Make requests and observe the traces
 
 After reloading the docker containers and configuration we should be able to make requests to the qotm service and see the traces in the Jaeger front-end UI.
 
