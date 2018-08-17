@@ -18,7 +18,8 @@ mounts a .env file appropriately.
 3. Create an Auth0 account. Then, click on the API and create a new API.
    * AUTH0_DOMAIN example is foo.auth0.com.
    * AUTH0_AUDIENCE is listed on the API page https://manage.auth0.com/#/apis
-4. Write a service with ambassador annotation that looks something like this. Note the `allowed_headers` stuff, that is
+4. Create the policy crd: `kubectl apply -f policy-crc.yaml`
+6. Write a service with ambassador annotation that looks something like this. Note the `allowed_headers` stuff, that is
    important:
 
    ```
@@ -56,10 +57,12 @@ mounts a .env file appropriately.
 
 Step 5: Deploy the test backend service: `kubectl apply -f backend.yaml`
 
-Step 6: Do some curls with different kinds of credentials (or no
+Step 6: Apply the example policy: `kubectl apply -f example-policy.yaml`
+
+Step 7: Do some curls with different kinds of credentials (or no
 credentials) against `<host>/backend/public/`,
 `<host>/backend/private/`, and `<host>/backend/private-scoped/` to see
-different behaviors.
+the different example policies in action.
 
 You have two options for authentication. You can acquire a jwt on the
 client side somehow (either manually for use with curl or

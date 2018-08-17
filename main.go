@@ -14,17 +14,21 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
 	"strings"
 	"errors"
 	"log"
 	"os"
+	"sync/atomic"
 
 	"github.com/codegangsta/negroni"
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gobwas/glob"
 	"github.com/joho/godotenv"
+	ms "github.com/mitchellh/mapstructure"
 )
 
 type Response struct {
@@ -44,23 +48,72 @@ type JSONWebKeys struct {
 	X5c []string `json:"x5c"`
 }
 
-// XXX: this implementation will be replaced by some dynamically
-// reloadable configuration source, probably CRDs. The first return
-// result specifies whether authentication is required, the second
-// return result specifies which scopes are required for access.
-func policy(method, host, path string) (bool, []string) {
-	if path == "/backend/public/" {
-		return true, []string{}
-	} else if path == "/backend/private/" {
-		return false, []string{}
-	} else if path == "/backend/private-scoped/" {
-		return false, []string{"read:messages"}
-	} else {
-		return false, []string{}
-	}
+type Rule struct {
+	Host string
+	Path string
+	Public bool
+	Scopes string
 }
 
+func match(pattern, input string) bool {
+	g, err := glob.Compile(pattern)
+	if err != nil {
+		log.Print(err)
+		return false
+	}
+	return g.Match(input)
+}
+
+func (r Rule) match(host, path string) bool {
+	return match(r.Host, host) && match(r.Path, path)
+}
+
+var rules atomic.Value
+
+func init() {
+	rules.Store(make([]Rule, 0))
+	log.Printf("initialized")
+}
+
+// The first return result specifies whether authentication is
+// required, the second return result specifies which scopes are
+// required for access.
+func policy(method, host, path string) (bool, []string) {
+	for _, rule := range rules.Load().([]Rule) {
+		log.Printf("checking %v against %v, %v", rule, host, path)
+		if rule.match(host, path) {
+			return rule.Public, strings.Fields(rule.Scopes)
+		}
+	}
+
+	return false, []string{}
+}
+
+var kubeconfig = flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
+
 func main() {
+	flag.Parse()
+	go controller(*kubeconfig, func(uns []map[string]interface{}) {
+		newRules := make([]Rule, 0)
+		for _, un := range uns {
+			spec, ok := un["spec"].(map[string]interface{})
+			if !ok { log.Printf("malformed object, bad spec: %v", uns); continue }
+			unrules, ok := spec["rules"].([]interface{})
+			if !ok { log.Printf("malformed object, bad rules: %v", uns); continue }
+
+			for _, ur := range unrules {
+				rule := Rule{}
+				err := ms.Decode(ur, &rule)
+				if err != nil {
+					log.Print(err)
+				} else {
+					newRules = append(newRules, rule)
+					log.Print(rule)
+				}
+			}
+		}
+		rules.Store(newRules)
+	})
 
 	err := godotenv.Load()
 	if err != nil {
