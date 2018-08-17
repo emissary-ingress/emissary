@@ -1836,22 +1836,31 @@ class Config (object):
         configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
                           if key != "routes" }
 
-        # Is extauth active?
-        extauth = None
-        filters = configuration.get('filters', [])
-
-        for filter in filters:
-            if filter['name'] == 'extauth':
-                extauth = filter
-
-                extauth['_service_weight'] = 100.0 / len(extauth['_services'])
+        cluster_to_service_mapping = {
+            "cluster_ext_auth": "AuthService",
+            "cluster_ext_tracing": "TracingService",
+            "cluster_ext_ratelimit": "RateLimitService"
+        }
+        ambassador_services = []
+        for cluster in configuration.get('clusters', []):
+            maps_to_service = cluster_to_service_mapping.get(cluster['name'])
+            if maps_to_service:
+                service_weigth = 100.0 / len(cluster['urls'])
+                for url in cluster['urls']:
+                    ambassador_services.append(SourcedDict(
+                        _from=cluster,
+                        type=maps_to_service,
+                        name=url,
+                        cluster=cluster['name'],
+                        _service_weight=service_weigth
+                    ))
 
         overview = dict(sources=sorted(source_files.values(), key=lambda x: x['filename']),
                         routes=routes,
                         **configuration)
 
-        if extauth:
-            overview['extauth'] = extauth
+        if len(ambassador_services) > 0:
+            overview['ambassador_services'] = ambassador_services
 
         # self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
 
