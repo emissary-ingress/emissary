@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   name: auth
 rules:
-- apiGroups: ["stable.datawire.io/v1beta1"]
+- apiGroups: ["stable.datawire.io"]
   resources:
   - policies
   verbs: ["get", "list", "watch"]
