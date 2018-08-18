@@ -1,0 +1,70 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: auth
+rules:
+- apiGroups: ["stable.datawire.io/v1beta1"]
+  resources:
+  - policies
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: auth
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: auth
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: auth
+subjects:
+- kind: ServiceAccount
+  name: auth
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  AuthService
+      name:  authentication
+      auth_service: auth
+      allowed_headers:
+       - "Authorization"
+       - "Client-Id"
+       - "Client-Secret"
+spec:
+  selector:
+    name: auth
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: auth
+    spec:
+      serviceAccountName: auth
+      containers:
+      - name: auth
+        image: rschloming/auth:latest
+        ports:
+        - containerPort: 8080
