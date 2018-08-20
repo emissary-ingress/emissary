@@ -1,23 +1,23 @@
+## User documentation
 
-## Configuring the service:
+If you just want to try to run this as an end user, the end user documentation is here:
 
-The service depends on two environment variables: `AUTH0_DOMAIN`, and
-`AUTH0_AUDIENCE`. You an either set these directly or put them in a
-`.env` file.
+https://github.com/datawire/ambassador-pro
 
-XXX: the function named "policy" in main.go will become another source
-of configuration, right now it is hardcoded. Read it and its comment
-for more info.
+## Developer Documentation
 
-## Running the service:
+### Releasing
 
-1. Install Ambassador.
+`docker build . -t quay.io/ambassador-pro/ambassador-pro:0.1`
+`docker push quay.io/datawire/ambassador-pro:0.1`
+
+### Older documentation
+
 1. First build a docker image: `docker build . -t <blah>:<bleh>`
 2. Write a k8s deployment manifests that either sets the environment variables or
 mounts a .env file appropriately.
 3. Create an Auth0 account. Then, click on the API and create a new API.
-   * AUTH0_DOMAIN example is foo.auth0.com.
-   * AUTH0_AUDIENCE is listed on the API page https://manage.auth0.com/#/apis
+   
 4. Create the policy crd: `kubectl apply -f policy-crc.yaml`
 6. Write a service with ambassador annotation that looks something like this. Note the `allowed_headers` stuff, that is
    important:
