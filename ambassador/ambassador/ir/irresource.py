@@ -15,8 +15,6 @@ class IRResource (Resource):
     A resource within the IR.
     """
 
-    modules_handled: ClassVar[Optional[str]] = None
-
     _active: bool
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -48,6 +46,10 @@ class IRResource (Resource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # If you don't override setup, you end up with an IRResource that's always active.
         return True
+
+    def add_mappings(self, ir: 'IR', aconf: Config) -> None:
+        # If you don't override add_mappings, uh, no mappings will get added.
+        pass
 
     def as_dict(self) -> Dict:
         od = {}

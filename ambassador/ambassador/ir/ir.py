@@ -41,14 +41,6 @@ from .irlistener import ListenerFactory, IRListener
 ## IR is the basis for everything else: you can use it to configure an Envoy
 ## or to run diagnostics.
 
-# Custom types
-# ServiceInfo is a tuple of information about a service:
-# service name, service URL, originate TLS?, TLS context name
-ServiceInfo = Tuple[str, str, bool, str]
-
-# StringOrList is either a string or a list of strings.
-StringOrList = Union[str, List[str]]
-
 
 class IR:
     ambassador_module: IRAmbassador
@@ -145,6 +137,9 @@ class IR:
         ListenerFactory.load_all(self, aconf)
 
         # After listeners, handle mappings, clusters, etc.
+        for filter in self.filters:
+            filter.add_mappings(self, aconf)
+
         MappingFactory.load_all(self, aconf)
 
         # At this point we should know the full set of clusters, so we can normalize
@@ -190,7 +185,9 @@ class IR:
     def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)
 
-    def add_mapping(self, aconf: Config, mapping: IRMapping) -> None:
+    def add_mapping(self, aconf: Config, mapping: IRMapping) -> Optional[IRMappingGroup]:
+        group: Optional[IRMappingGroup] = None
+
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name
@@ -201,15 +198,18 @@ class IR:
 
                 self.groups[group.group_id] = group
             else:
-                self.groups[mapping.group_id].add_mapping(aconf, mapping)
+                group = self.groups[mapping.group_id]
+                group.add_mapping(aconf, mapping)
 
-    def has_cluster(self, rkey: str) -> bool:
-        return rkey in self.clusters
+        return group
 
-    def get_cluster(self, rkey: str) -> Optional[IRCluster]:
-        return self.clusters.get(rkey, None)
+    def has_cluster(self, name: str) -> bool:
+        return name in self.clusters
 
-    def add_cluster_for_mapping(self, cluster: IRCluster, mapping: IRMapping) -> IRCluster:
+    def get_cluster(self, name: str) -> Optional[IRCluster]:
+        return self.clusters.get(name, None)
+
+    def add_cluster(self, cluster: IRCluster) -> IRCluster:
         if not self.has_cluster(cluster.name):
             self.clusters[cluster.name] = cluster
 
@@ -239,9 +239,5 @@ class IR:
         output.write("-- groups:\n")
 
         for group in reversed(sorted(self.groups.values(), key=lambda x: x['group_weight'])):
-            # output.write("==== %s\n" % group.group_id)
-            # for k in sorted(group.keys()):
-            #     output.write("     %s: %s\n" % (k, repr(group[k])))
-            # output.flush()
             output.write("%s\n" % group.as_json())
             output.flush()

@@ -5,6 +5,7 @@ from ..utils import RichStatus
 from ..resource import Resource
 
 from .irresource import IRResource
+from .ircluster import IRCluster
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -41,14 +42,68 @@ class IRAuth (IRResource):
             for config in config_info.values():
                 self._load_auth(config)
 
-        if self.hosts:
-            # If we got here, either we have no errors or it's not a big enough
-            # deal to stop work.
-            self.logger.info("IRAuth: found some hosts! going active")
-            return True
-        else:
+        if not self.hosts:
             self.logger.info("IRAuth: found no hosts! going inactive")
             return False
+
+        self.logger.info("IRAuth: found some hosts! going active")
+
+        return True
+
+    def add_mappings(self, ir: 'IR', aconf: Config):
+        cluster_name = self.cluster
+        cluster_hosts = self.get('hosts', { '127.0.0.1:5000': ( 100, None ) })
+
+        cluster = None
+
+        for service in cluster_hosts.keys():
+            if not cluster:
+                cluster_args = {
+                    'name': cluster_name,
+                    'service': service,
+                    'host_rewrite': self.get('host_rewrite', False),
+                    # 'grpc': self.get('grpc', False)
+                }
+
+                if 'tls' in self:
+                    cluster_args['ctx_name'] = self.tls
+
+                cluster = ir.add_cluster(IRCluster(ir=ir, aconf=aconf, location=self.location, **cluster_args))
+                cluster.referenced_by(self)
+                print("AUTH ADD_MAPPINGS: %s => new cluster %s" % (service, repr(cluster)))
+            else:
+                cluster.add_url(service)
+                cluster.referenced_by(self)
+                print("AUTH ADD_MAPPINGS: %s => extant cluster %s" % (service, repr(cluster)))
+
+        #     urls = []
+        #     protocols = {}
+        #
+        #     for svc in sorted(cluster_hosts.keys()):
+        #         _, tls_context = cluster_hosts[svc]
+        #
+        #         (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
+        #
+        #         if originate_tls:
+        #             protocols['https'] = True
+        #         else:
+        #             protocols['http'] = True
+        #
+        #         if otls_name:
+        #             filter_config['cluster'] = cluster_name + "_" + otls_name
+        #             cluster_name = filter_config['cluster']
+        #
+        #         urls.append(url)
+        #
+        #     if len(protocols.keys()) != 1:
+        #         raise Exception("auth config cannot try to use both HTTP and HTTPS")
+        #
+        #     self.add_intermediate_cluster(first_source, cluster_name,
+        #                                   'extauth', urls,
+        #                                   type="strict_dns", lb_type="round_robin",
+        #                                   originate_tls=originate_tls, host_rewrite=host_rewrite)
+        #
+        # name = "internal_%s_probe_mapping" % name
 
     def _load_auth(self, module: Resource):
         for key in ['path_prefix', 'timeout_ms', 'cluster']:
@@ -86,41 +141,6 @@ class IRAuth (IRResource):
 
         if auth_service:
             self.hosts[auth_service] = ( weight, module.get('tls', None) )
-
-
-    # cluster_name = auth_resource.cluster
-    # host_rewrite = auth_resource.get('host_rewrite', False)
-    #
-    # if cluster_name not in self.clusters:
-    #     if not cluster_hosts:
-    #         cluster_hosts = { '127.0.0.1:5000': ( 100, None ) }
-    #
-    #     urls = []
-    #     protocols = {}
-    #
-    #     for svc in sorted(cluster_hosts.keys()):
-    #         _, tls_context = cluster_hosts[svc]
-    #
-    #         (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
-    #
-    #         if originate_tls:
-    #             protocols['https'] = True
-    #         else:
-    #             protocols['http'] = True
-    #
-    #         if otls_name:
-    #             filter_config['cluster'] = cluster_name + "_" + otls_name
-    #             cluster_name = filter_config['cluster']
-    #
-    #         urls.append(url)
-    #
-    #     if len(protocols.keys()) != 1:
-    #         raise Exception("auth config cannot try to use both HTTP and HTTPS")
-    #
-    #     self.add_intermediate_cluster(first_source, cluster_name,
-    #                                   'extauth', urls,
-    #                                   type="strict_dns", lb_type="round_robin",
-    #                                   originate_tls=originate_tls, host_rewrite=host_rewrite)
 
         # # Then append the rate-limit filter, because we might rate-limit based on auth headers
         # ratelimit_configs = config.get_config('ratelimit_configs')

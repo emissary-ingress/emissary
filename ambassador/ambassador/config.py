@@ -14,7 +14,7 @@
 
 import sys
 
-from typing import Any, ClassVar, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
 
 import json
@@ -25,8 +25,7 @@ import jsonschema
 
 from pkg_resources import Requirement, resource_filename
 
-from .utils import RichStatus\
-    #, SourcedDict, read_cert_secret, save_cert, TLSPaths, kube_v1, check_cert_file
+from .utils import RichStatus
 from .resource import Resource
 from .mapping import Mapping
 
@@ -37,38 +36,8 @@ from .mapping import Mapping
 ##
 ## Ambassador configures itself by creating a new Config object, which calls
 ## Config.__init__().
-##
-## __init__() sets up all the defaults for everything, then walks over all the
-## YAML it can find and calls self.load_yaml() to load each YAML file. After
-## everything is loaded, it calls self.process_all_objects() to build the
-## config objects.
-##
-## load_yaml() does the heavy lifting around YAML parsing and such, including
-## managing K8s annotations if so requested. Every object in every YAML file is
-## parsed and saved before any object is processed.
-##
-## process_all_objects() walks all the saved objects and creates an internal
-## representation of the Ambassador config in the data structures initialized
-## by __init__(). Each object is processed with self.process_object(). This
-## internal representation is called the intermediate config.
-##
-## process_object() handles a single parsed object from YAML. It uses
-## self.validate_object() to make sure of a schema match; assuming that's
-## good, most of the heavy lifting is done by a handler method. The handler
-## method for a given type is named handle_kind(), with kind in lowercase,
-## so e.g. the Mapping object is processed using the handle_mapping() method.
-##
-## After all of that, the actual Envoy config is generated from the intermediate
-## config using generate_envoy_config().
-##
-## The diag service also uses generate_intermediate_for() to extract the
-## intermediate config for a given mapping or service.
 
 # Custom types
-# ServiceInfo is a tuple of information about a service: 
-# service name, service URL, originate TLS?, TLS context name
-ServiceInfo = Tuple[str, str, bool, str]
-
 # StringOrList is either a string or a list of strings.
 StringOrList = Union[str, List[str]]
 
@@ -205,23 +174,6 @@ class Config:
 
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration _errors")
-
-    # def clean_and_copy(self, d):
-    #     out = []
-    #
-    #     for key in sorted(d.keys()):
-    #         original = d[key]
-    #         copy = dict(**original)
-    #
-    #         if '_source' in original:
-    #             del(original['_source'])
-    #
-    #         if '_referenced_by' in original:
-    #             del(original['_referenced_by'])
-    #
-    #         out.append(copy)
-    #
-    #     return out
 
     def post_error(self, rc: RichStatus, resource=None):
         if not resource:

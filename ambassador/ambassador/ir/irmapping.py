@@ -45,25 +45,36 @@ class IRMapping (IRResource):
     route_weight: List[Union[str, int]]
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
+        "add_request_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
+        "circuit_breaker": True,
+        "cors": True,
         "envoy_override": True,
         "grpc": True,
         # Do not include headers.
         "host": True,
+        "host_redirect": True,
+        "host_regex": True,
         "host_rewrite": True,
         "method": True,
         "method_regex": True,
+        "modules": True,
+        "outlier_detection": True,
         "path_redirect": True,
         # Do not include precedence.
         "prefix": True,
         "prefix_regex": True,
+        "priority": True,
+        "rate_limits": True,
         # Do not include regex_headers.
         # Do not include rewrite.
         "service": True,
         "shadow": True,
         "timeout_ms": True,
-        "use_websocket": True
+        "tls": True,
+        "use_websocket": True,
+        "weight": True,
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -407,7 +418,7 @@ class IRMappingGroup (IRResource):
                             host_rewrite=mapping.get('host_rewrite', False),
                             grpc=mapping.get('grpc', False))
 
-        stored = ir.add_cluster_for_mapping(cluster, mapping)
+        stored = ir.add_cluster(cluster)
         stored.referenced_by(mapping)
 
         # ...and return it. Done.

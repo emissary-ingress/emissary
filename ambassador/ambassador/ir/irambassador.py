@@ -30,9 +30,9 @@ class IRAmbassador (IRResource):
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.auth",
-                 kind: str="IRAuth",
-                 name: str="ir.auth",
+                 rkey: str="ir.ambassador",
+                 kind: str="IRAmbassador",
+                 name: str="ir.ambassador",
                  **kwargs) -> None:
         # print("IRAmbassador __init__ (%s %s %s)" % (kind, name, kwargs))
 
