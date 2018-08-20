@@ -240,9 +240,9 @@ def diag_paranoia(configdir, outputdir):
     if 'filters' not in reconstituted_lists:
         reconstituted_lists['filters'] = []
 
-    # Copy any 'extauth' block from the original into the reconstituted list.
-    if ('extauth' in ov) and ('extauth' not in reconstituted_lists):
-        reconstituted_lists['extauth'] = [ ov['extauth'] ]
+    # Copy any 'ambassador_services' block from the original into the reconstituted list.
+    if ('ambassador_services' in ov) and ('ambassador_services' not in reconstituted_lists):
+        reconstituted_lists['ambassador_services'] = ov['ambassador_services']
 
     # Copy any 'cors_default_envoy' block from the original into the reconstituted list.
     if ('cors_default' in ov) and ('cors_default' not in reconstituted_lists):
