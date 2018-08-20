@@ -15,7 +15,7 @@ class IRRateLimit (IRResource):
                  kind: str="IRRateLimit",
                  name: str="ir.ratelimit",
                  **kwargs) -> None:
-        print("IRRateLimit __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRRateLimit __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,

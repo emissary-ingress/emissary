@@ -1,4 +1,5 @@
 from typing import ClassVar, Dict, Optional, TYPE_CHECKING
+from typing import cast as typecast
 
 import json
 
@@ -18,13 +19,17 @@ class IRResource (Resource):
 
     _active: bool
 
-    def __init__(self, ir: 'IR', aconf: Config, rkey: str, kind: str, name: str,
+    def __init__(self, ir: 'IR', aconf: Config,
+                 rkey: str,
+                 kind: str,
+                 name: str,
+                 location: str = "-ir-",
+                 apiVersion: str="ambassador/ir",
                  **kwargs) -> None:
         # print("IRResource __init__ (%s %s)" % (kind, name))
 
-        super().__init__(rkey, "-ir-",
-                         kind=kind, name=name,
-                         apiVersion="ambassador/ir",
+        super().__init__(rkey=rkey, location=location,
+                         kind=kind, name=name, apiVersion=apiVersion,
                          **kwargs)
 
         self.logger = ir.logger
@@ -48,7 +53,7 @@ class IRResource (Resource):
         od = {}
 
         for k in self.keys():
-            if (k == 'apiVersion') or (k == 'location') or (k == 'logger'):
+            if (k == 'apiVersion') or (k == 'logger'):
                 continue
             elif k == '_referenced_by':
                 refd_by = sorted([ "%s: %s" % (k, self._referenced_by[k].location)
@@ -56,7 +61,7 @@ class IRResource (Resource):
 
                 od['_referenced_by'] = refd_by
             elif k == 'rkey':
-                od['_rkey'] = self.rkey
+                od['_rkey'] = self[k]
             elif isinstance(self[k], IRResource):
                 od[k] = self[k].as_dict()
             elif self[k] is not None:

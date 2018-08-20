@@ -1,4 +1,6 @@
-from ..config import Config, TYPE_CHECKING
+from typing import TYPE_CHECKING
+
+from ..config import Config
 
 from .irresource import IRResource
 
@@ -14,7 +16,7 @@ class IRAdmin (IRResource):
                  kind: str="IRAdmin",
                  name: str="ir.admin",
                  **kwargs) -> None:
-        print("IRAdmin __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRAdmin __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,

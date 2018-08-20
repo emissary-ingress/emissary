@@ -15,7 +15,8 @@
 import json
 import os
 
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
+from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus, TLSPaths
@@ -134,7 +135,10 @@ class IRAmbassadorTLS (IRResource):
         else:
             return False
 
-    def merge_tmods(self, tls_module: Resource, generated_module: Resource, key: str) -> Resource:
+    def merge_tmods(self,
+                    tls_module: Optional[Resource],
+                    generated_module: Optional[Resource],
+                    key: str) -> Optional[Resource]:
         """
         Merge TLS module configuration for a particular key. In the event of conflicts, the
         tls_module element wins, and an error is posted so that the diagnostics service can
@@ -158,6 +162,10 @@ class IRAmbassadorTLS (IRResource):
         elif tls_module is None:
             return generated_module
         else:
+            if TYPE_CHECKING:
+                tls_module = typecast(Resource, tls_module)
+                generated_module = typecast(Resource, generated_module)
+
             self.logger.debug("tls_module %s" % json.dumps(tls_module, indent=4))
             self.logger.debug("generated_module %s" % json.dumps(generated_module, indent=4))
 
@@ -215,63 +223,3 @@ class IRAmbassadorTLS (IRResource):
 #         if tmod.get('cacert_chain_file') is not None:
 #             cert_count += 1
 #         return cert_count
-
-
-#     def service_tls_check(self, svc: str, context: Optional[Union[str, bool]], host_rewrite: bool) -> ServiceInfo:
-#         """
-#         Uniform handling of service definitions, TLS origination, etc.
-#
-#         Here's how it goes:
-#         - If the service starts with https://, it is forced to originate TLS.
-#         - Else, if it starts with http://, it is forced to _not_ originate TLS.
-#         - Else, if the context is the boolean value True, it will originate TLS.
-#
-#         After figuring that out, if we have a context which is a string value,
-#         we try to use that context name to look up certs to use. If we can't
-#         find any, we won't send any originating cert.
-#
-#         Finally, if no port is present in the service already, we force port 443
-#         if we're originating TLS, 80 if not.
-#
-#         :param svc: URL of the service (from the Ambassador Mapping)
-#         :param context: TLS context name, or True to originate TLS but use no certs
-#         :param host_rewrite: Is host rewriting active?
-#         """
-#
-#         originate_tls: Union[str, bool] = False
-#         name_fields: List[str] = []
-#
-#         if svc.lower().startswith("http://"):
-#             originate_tls = False
-#             svc = svc[len("http://"):]
-#         elif svc.lower().startswith("https://"):
-#             originate_tls = True
-#             name_fields = [ 'otls' ]
-#             svc = svc[len("https://"):]
-#         elif context is True:
-#             originate_tls = True
-#             name_fields = [ 'otls' ]
-#
-#         # Separate if here because you need to be able to specify a context
-#         # even after you say "https://" for the service.
-#
-#         if context and (context is not True):
-#             # We know that context is a string here.
-#             if context in self.tls_contexts:
-#                 name_fields = [ 'otls', typecast(str, context) ]
-#                 originate_tls = typecast(str, context)
-#             else:
-#                 self.logger.error("Originate-TLS context %s is not defined" % context)
-#
-#         if originate_tls and host_rewrite:
-#             name_fields.append("hr-%s" % host_rewrite)
-#
-#         port = 443 if originate_tls else 80
-#         context_name = typecast(str, "_".join(name_fields) if name_fields else None)
-#
-#         svc_url = 'tcp://%s' % svc
-#
-#         if ':' not in svc:
-#             svc_url = '%s:%d' % (svc_url, port)
-#
-#         return (svc, svc_url, bool(originate_tls), context_name)

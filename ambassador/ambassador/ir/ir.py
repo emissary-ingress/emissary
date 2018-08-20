@@ -16,17 +16,18 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import sys
 
+import json
 import logging
 import os
 
 from ..utils import TLSPaths
-from ..mapping import Mapping
 from ..config import Config
-from ..resource import Resource
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
+from .ircluster import IRCluster
+from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
 from .irtls import IREnvoyTLS, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
@@ -56,7 +57,11 @@ class IR:
 
     router_config: Dict[str, Any]
     filters: List[IRResource]
-    listeners: List[IRListener ]
+    listeners: List[IRListener]
+    groups: Dict[str, IRMappingGroup]
+    clusters: Dict[str, IRCluster]
+    tls_contexts: Dict[str, IREnvoyTLS]
+    tls_defaults: Dict[str, Dict[str, str]]
 
     def __init__(self, aconf: Config) -> None:
         self.logger = logging.getLogger("ambassador.ir")
@@ -73,12 +78,14 @@ class IR:
         self.clusters = {}
 
         # Our initial configuration stuff is all empty...
-        self.routes = {}
-        self.grpc_services = []
         self.router_config = {}
         self.filters = []
         self.tracing_config = None
         self.listeners = []
+        self.groups = {}
+
+        # self.routes = {}
+        # self.grpc_services = []
 
         # Set up default TLS stuff.
         #
@@ -87,7 +94,7 @@ class IR:
         # this though.
 
         self.tls_contexts = {}
-        self.tls_defaults: Dict[str, Dict[str, str]] = {
+        self.tls_defaults = {
             "server": {},
             "client": {},
         }
@@ -120,10 +127,10 @@ class IR:
         for cls in [ IRAuth, IRRateLimit ]:
             r = cls(self, aconf)
 
-            print("CHECKING FILTER %s (%s) %s" % (r, r.is_active(), repr(r)))
+            # print("CHECKING FILTER %s (%s) %s" % (r, r.is_active(), repr(r)))
 
             if r.is_active():
-                print("SAVING FILTER %s" % r)
+                # print("SAVING FILTER %s" % r)
                 self.filters.append(r)
 
         # Then append non-configurable cors and decoder filters
@@ -137,18 +144,35 @@ class IR:
         # are, and they're handled above. So. At this point we can set up our listeners.
         ListenerFactory.load_all(self, aconf)
 
-        #  it's on to Mappings.
-        mappings = aconf.get_config("mappings") or {}
+        # After listeners, handle mappings, clusters, etc.
+        MappingFactory.load_all(self, aconf)
 
-    def get_module(self, module_name: str) -> Optional[Resource]:
-        """
-        Fetch a module from the module store. Can return None if no
-        such module exists.
+        # At this point we should know the full set of clusters, so we can normalize
+        # any long cluster names.
+        collisions: Dict[str, List[str]] = {}
+        # mangled: Dict[str, str] = {}
 
-        :param module_name: name of the module you want.
-        """
+        for name in sorted(self.clusters.keys()):
+            if len(name) > 60:
+                # Too long.
+                short_name = name[0:40]
 
-        return self.modules.get(module_name, None)
+                collision_list = collisions.setdefault(short_name, [])
+                collision_list.append(name)
+
+        for short_name in sorted(collisions.keys()):
+            name_list = collisions[short_name]
+
+            i = 0
+
+            for name in sorted(name_list):
+                mangled_name = "%s-%d" % (short_name, i)
+                i += 1
+
+                self.logger.info("%s => %s" % (name, mangled_name))
+
+                # mangled[name] = mangled_name
+                self.clusters[name]['name'] = mangled_name
 
     def save_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
         if ctx_name in self.tls_contexts:
@@ -165,6 +189,31 @@ class IR:
 
     def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)
+
+    def add_mapping(self, aconf: Config, mapping: IRMapping) -> None:
+        if mapping.is_active():
+            if mapping.group_id not in self.groups:
+                group_name = "GROUP: %s" % mapping.name
+                group = IRMappingGroup(ir=self, aconf=aconf,
+                                       location=mapping.location,
+                                       name=group_name,
+                                       mapping=mapping)
+
+                self.groups[group.group_id] = group
+            else:
+                self.groups[mapping.group_id].add_mapping(aconf, mapping)
+
+    def has_cluster(self, rkey: str) -> bool:
+        return rkey in self.clusters
+
+    def get_cluster(self, rkey: str) -> Optional[IRCluster]:
+        return self.clusters.get(rkey, None)
+
+    def add_cluster_for_mapping(self, cluster: IRCluster, mapping: IRMapping) -> IRCluster:
+        if not self.has_cluster(cluster.name):
+            self.clusters[cluster.name] = cluster
+
+        return self.clusters[cluster.name]
 
     def dump(self, output=sys.stdout):
         output.write("IR:\n")
@@ -186,3 +235,13 @@ class IR:
 
         for filter in self.filters:
             output.write("%s\n" % filter.as_json())
+
+        output.write("-- groups:\n")
+
+        for group in reversed(sorted(self.groups.values(), key=lambda x: x['group_weight'])):
+            # output.write("==== %s\n" % group.group_id)
+            # for k in sorted(group.keys()):
+            #     output.write("     %s: %s\n" % (k, repr(group[k])))
+            # output.flush()
+            output.write("%s\n" % group.as_json())
+            output.flush()

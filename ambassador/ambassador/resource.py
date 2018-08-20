@@ -97,7 +97,7 @@ class Resource (dict):
         other.referenced_by(self)
 
     def referenced_by(self, other: 'Resource') -> None:
-        print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))
+        # print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))
         self._referenced_by[other.rkey] = other
 
     def is_referenced_by(self, other_rkey) -> Optional['Resource']:
