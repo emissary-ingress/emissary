@@ -336,7 +336,7 @@ Please see [Distributed Tracing](https://www.getambassador.io/reference/services
 
 Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador as well. It is possible to integrate Ambassador into Istio's Prometheus to have all statistics and monitoring in a single place.  
 
-First we need to change our Ambassador Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by apllying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
+First we need to change our Ambassador Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
 ```sh
 $ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml
 ```
@@ -371,7 +371,7 @@ Now we need to add a `scrape` configuration to Istio's Prometheus so that it can
 $ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-istio-configmap.yaml
 ```
 
-This ConfigMap YAML is changing `prometheus` ConfigMap that is on `istio-system` Namespace and adding the following:
+This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system` Namespace and adds the following:
 ```yaml
     - job_name: 'ambassador'
       static_configs:
@@ -379,7 +379,7 @@ This ConfigMap YAML is changing `prometheus` ConfigMap that is on `istio-system`
         labels:  {'application': 'ambassador'}
 ```
 
-*Note:* Assuming ambassador-monitor service is runnning on default namespace.  
+*Note:* Assuming ambassador-monitor service is runnning in default namespace.  
 
 *Note:* You can also add the scrape by hand by using kubectl edit or dashboard.
 
