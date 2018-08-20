@@ -89,7 +89,7 @@ The YAML above does several things:
 You can see if the two Ambassador services are running correctly (and also obtain the LoadBalancer IP address when this is assigned after a few minutes) by executing the following commands:
 
 ```shell
-$ kubectl get svc
+$ kubectl get services
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
 ambassador         LoadBalancer   10.63.247.1     35.224.41.XX     80:32171/TCP     11m
 ambassador-admin   NodePort       10.63.250.17    <none>           8877:32107/TCP   12m
@@ -304,6 +304,130 @@ spec:
 Note the `tls: upstream`, which lets Ambassador know which certificate to use when communicating with that service.
 
 In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
+
+## Tracing Integration
+
+Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by Ambassador. In order to achieve an end-to-end tracing, it is possible to integrate Ambassador with Istio's Zipkin.  
+First confirm that Istio's Zipkin is up and running in the `istio-system` Namespace:
+
+```shell
+$ kubectl get service zipkin -n istio-system
+NAME      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+zipkin    ClusterIP   10.102.146.104   <none>        9411/TCP   7m
+```
+
+If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingService` annotation pointing to it:
+```yaml
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: TracingService
+      name: tracing
+      service: "zipkin.istio-system:9411"
+      driver: zipkin
+      config: {}
+```
+
+*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`.  
+Please see [Distributed Tracing](https://www.getambassador.io/reference/services/tracing-service) for more details on Tracing configuration.
+
+## Monitoring/Statistics Integration
+
+Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador as well. It is possible to integrate Ambassador into Istio's Prometheus to have all statistics and monitoring in a single place.  
+
+First we need to change our Ambassador Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
+```sh
+$ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml
+```
+
+This YAML is changing the StatsD container definition on our Deployment to use the Prometheus StatsD Exporter as a sidecar:
+```yaml
+      - name: statsd-sink
+        image: datawire/prom-statsd-exporter:0.6.0
+      restartPolicy: Always
+```
+
+Next, a Service needs to be created pointing to our `Prometheus StatsD Exporter` sidecar:
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-monitor
+  labels:
+    app: ambassador
+    service: ambassador-monitor
+spec:
+  type: ClusterIP
+  ports:
+   - port: 9102
+     name: prometheus-metrics
+  selector:
+    service: ambassador
+```
+
+Now we need to add a `scrape` configuration to Istio's Prometheus so that it can pool data from our Ambassador. This is done by applying the new ConfigMap:
+```sh
+$ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-istio-configmap.yaml
+```
+
+This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system` Namespace and adds the following:
+```yaml
+    - job_name: 'ambassador'
+      static_configs:
+      - targets: ['ambassador-monitor.default:9102']
+        labels:  {'application': 'ambassador'}
+```
+
+*Note:* Assuming ambassador-monitor service is runnning in default namespace.  
+
+*Note:* You can also add the scrape by hand by using kubectl edit or dashboard.
+
+Afer adding the `scrape`, Istio's Prometheus POD needs to be restarted:
+```sh
+$ export PROMETHEUS_POD=`kubectl get pods -n istio-system | grep prometheus | awk '{print $1}'`
+$ kubectl delete pod $PROMETHEUS_POD -n istio-system
+```
+
+More details can be found in [Statistics and Monitoring](https://www.getambassador.io/reference/statistics).
+
+
+## Grafana Dashboard
+
+Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.  
+
+First let's start the port-forwarding for Istio's Grafana service:
+```sh
+$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
+```
+
+Now, open Grafana tool by acessing: `http://localhost:3000/`
+
+To install Ambassador Dashboard:
+
+* Click on Create  
+* Select Import  
+* Enter number 4698  
+
+Now we need to adjust the Dashboard Port to reflect our Ambassador configuration:
+
+* Open the Imported Dashboard
+* Click on Settings in the Top Right corner
+* Click on Variables
+* Change the port to 80 (according to the ambassador service port)
+
+Next, adjust the Dashboard Registered Services metric:
+
+* Open the Imported Dashboard
+* Find Registered Services
+* Click on the down arrow and select Edit
+* Change the Metric to:
+```yaml
+envoy_cluster_manager_active_clusters{job="ambassador"}
+```
+
+Now lets save the changes:
+* Click on Save Dashboard in the Top Right corner
 
 ## Roadmap
 
