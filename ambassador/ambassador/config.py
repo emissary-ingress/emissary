@@ -96,12 +96,6 @@ class Config:
     # Allow overriding the location of a resource with a Pragma
     location_overrides: Dict[str, Dict[str, str]]
 
-    # Set up the default probes and such.
-    # XXX These should become... Resources?
-    default_liveness_probe: Dict[str, Any]
-    default_readiness_probe: Dict[str, Any]
-    default_diagnostics: Dict[str, Any]
-
     errors: Dict[str, List[str]]
     fatal_errors: int
     object_errors: int
@@ -145,28 +139,6 @@ class Config:
         self.save_source(Resource.internal_resource())
         self.save_source(Resource.diagnostics_resource())
 
-        # Set up the default probes and such.
-        self.default_liveness_probe = {
-            "enabled": True,
-            "prefix": "/ambassador/v0/check_alive",
-            "rewrite": "/ambassador/v0/check_alive",
-            # "service" gets added later
-        }
-
-        self.default_readiness_probe = {
-            "enabled": True,
-            "prefix": "/ambassador/v0/check_ready",
-            "rewrite": "/ambassador/v0/check_ready",
-            # "service" gets added later
-        }
-
-        self.default_diagnostics = {
-            "enabled": True,
-            "prefix": "/ambassador/v0/",
-            "rewrite": "/ambassador/v0/",
-            # "service" gets added later
-        }
-
         self.errors = {}
         self.fatal_errors = 0
         self.object_errors = 0
@@ -183,16 +155,6 @@ class Config:
         s.append(">")
 
         return "\n".join(s)
-
-    def dump(self, output=sys.stdout):
-        output.write("CONFIG:\n")
-
-        for kind, configs in self.config.items():
-            output.write("  %s:\n" % kind)
-
-            for rkey, resource in configs.items():
-                output.write("  %s\n" % resource)
-                output.write("  %s\n" % repr(resource))
 
     def save_source(self, resource: Resource) -> None:
         """
@@ -447,9 +409,6 @@ class Config:
             return module.get(key, default)
 
         return default
-
-    def each(self, name) -> Iterator[Resource]:
-        return self.config.get(name).__iter__()
 
     # XXX Misnamed. handle_pragma isn't the same signature as, say, handle_mapping.
     # XXX Is this needed any more??
