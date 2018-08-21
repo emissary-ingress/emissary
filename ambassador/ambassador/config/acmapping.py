@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-from .resource import Resource
+from .acresource import ACResource
 
 
 #############################################################################
@@ -36,9 +36,9 @@ from .resource import Resource
 # DictOfStringOrBool = Dict[str, StringOrBool]
 
 
-class Mapping (Resource):
+class ACMapping (ACResource):
     """
-    Mappings are Resources with a bunch of extra stuff.
+    ACMappings are ACResources with a bunch of extra stuff.
 
     TODO: moar docstring.
     """
@@ -63,10 +63,10 @@ class Mapping (Resource):
 
                  **kwargs) -> None:
         """
-        Initialize a Mapping from the raw fields of its Resource.
+        Initialize an ACMapping from the raw fields of its ACResource.
         """
 
-        # print("Mapping __init__ (%s %s)" % (kind, name))
+        # print("ACMapping __init__ (%s %s)" % (kind, name))
 
         # First init our superclass...
 

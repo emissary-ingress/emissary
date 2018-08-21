@@ -25,9 +25,10 @@ import jsonschema
 
 from pkg_resources import Requirement, resource_filename
 
-from .utils import RichStatus
-from .resource import Resource
-from .mapping import Mapping
+from ..utils import RichStatus
+
+from .acresource import ACResource
+from .acmapping import ACMapping
 
 #from .VERSION import Version
 
@@ -50,19 +51,19 @@ class Config:
     namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     # INSTANCE VARIABLES
-    current_resource: Optional[Resource] = None
+    current_resource: Optional[ACResource] = None
 
     # XXX flat wrong
     schemas: Dict[str, dict]
-    config: Dict[str, Dict[str, Resource]]
+    config: Dict[str, Dict[str, ACResource]]
 
-    breakers: Dict[str, Resource]
-    outliers: Dict[str, Resource]
+    breakers: Dict[str, ACResource]
+    outliers: Dict[str, ACResource]
 
-    # rkey => Resource
-    sources: Dict[str, Resource]
+    # rkey => ACResource
+    sources: Dict[str, ACResource]
 
-    # Allow overriding the location of a resource with a Pragma
+    # Allow overriding the location of a resource with a ACPragma
     location_overrides: Dict[str, Dict[str, str]]
 
     errors: Dict[str, List[str]]
@@ -72,7 +73,7 @@ class Config:
     def __init__(self, schema_dir_path: Optional[str]=None) -> None:
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not
-            # with our Resource class.
+            # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
 
         self.schema_dir_path = schema_dir_path
@@ -105,8 +106,8 @@ class Config:
         self.location_overrides = {}
 
         # Save our magic internal sources.
-        self.save_source(Resource.internal_resource())
-        self.save_source(Resource.diagnostics_resource())
+        self.save_source(ACResource.internal_resource())
+        self.save_source(ACResource.diagnostics_resource())
 
         self.errors = {}
         self.fatal_errors = 0
@@ -125,23 +126,23 @@ class Config:
 
         return "\n".join(s)
 
-    def save_source(self, resource: Resource) -> None:
+    def save_source(self, resource: ACResource) -> None:
         """
-        Save a give Resource as a source of Ambassador config information.
+        Save a given ACResource as a source of Ambassador config information.
         """
         self.sources[resource.rkey] = resource
 
-    def load_all(self, resources: Iterable[Resource]) -> None:
+    def load_all(self, resources: Iterable[ACResource]) -> None:
         """
-        Loads all of a set of Resources. It is the caller's responsibility to arrange for 
-        the set of Resources to be sorted in some way that makes sense.
+        Loads all of a set of ACResources. It is the caller's responsibility to arrange for
+        the set of ACResources to be sorted in some way that makes sense.
         """
         for resource in resources:
             # XXX I think this whole override thing should go away.
             #
             # Any override here?
             if resource.rkey in self.location_overrides:
-                # Let Pragma objects override source information for this filename.
+                # Let ACPragma objects override source information for this filename.
                 override = self.location_overrides[resource.rkey]
                 resource.location = override.get('source', resource.rkey)
 
@@ -175,7 +176,7 @@ class Config:
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration _errors")
 
-    def post_error(self, rc: RichStatus, resource=None):
+    def post_error(self, rc: RichStatus, resource: ACResource=None):
         if not resource:
             resource = self.current_resource
 
@@ -191,7 +192,7 @@ class Config:
         errors.append(rc.toDict())
         self.logger.error("%s: %s" % (resource, rc))
 
-    def process(self, resource: Resource) -> RichStatus:
+    def process(self, resource: ACResource) -> RichStatus:
         # This should be impossible.
         if not resource:
             return RichStatus.fromError("undefined object???")
@@ -245,7 +246,7 @@ class Config:
 
         return RichStatus.OK(msg="%s object processed successfully" % resource.kind)
 
-    def validate_object(self, resource: Resource) -> RichStatus:
+    def validate_object(self, resource: ACResource) -> RichStatus:
         # This is basically "impossible"
         if not (("apiVersion" in resource) and ("kind" in resource) and ("name" in resource)):
             return RichStatus.fromError("must have apiVersion, kind, and name")
@@ -292,11 +293,11 @@ class Config:
         # All good. Return an OK.
         return RichStatus.OK(msg="valid %s" % resource.kind)
 
-    def safe_store(self, storage_name: str, resource: Resource, allow_log: bool=True) -> None:
+    def safe_store(self, storage_name: str, resource: ACResource, allow_log: bool=True) -> None:
         """
-        Safely store a Resource under a given storage name. The storage_name is separate
+        Safely store a ACResource under a given storage name. The storage_name is separate
         because we may need to e.g. store a Module under the 'ratelimit' name or the like.
-        Within a storage_name bucket, the Resource will be stored under its name.
+        Within a storage_name bucket, the ACResource will be stored under its name.
 
         :param storage_name: where shall we file this?
         :param resource: what shall we file?
@@ -316,9 +317,9 @@ class Config:
 
         storage[resource.name] = resource
 
-    def save_object(self, resource: Resource, allow_log: bool=False) -> None:
+    def save_object(self, resource: ACResource, allow_log: bool=False) -> None:
         """
-        Saves a Resource using its kind as the storage class name. Sort of the
+        Saves a ACResource using its kind as the storage class name. Sort of the
         defaulted version of safe_store.
 
         :param resource: what shall we file?
@@ -330,7 +331,7 @@ class Config:
     def get_config(self, key: str) -> Any:
         return self.config.get(key, None)
 
-    def get_module(self, module_name: str) -> Optional[Resource]:
+    def get_module(self, module_name: str) -> Optional[ACResource]:
         """
         Fetch a module from the module store. Can return None if no
         such module exists.
@@ -364,9 +365,9 @@ class Config:
 
     # XXX Misnamed. handle_pragma isn't the same signature as, say, handle_mapping.
     # XXX Is this needed any more??
-    def handle_pragma(self, resource: Resource) -> RichStatus:
+    def handle_pragma(self, resource: ACResource) -> RichStatus:
         """
-        Handles a Pragma object. May not be needed any more...
+        Handles an ACPragma object. May not be needed any more...
         """
 
         rkey = resource.rkey
@@ -385,46 +386,46 @@ class Config:
 
         return RichStatus.OK(msg="handled pragma object")
 
-    def handle_module(self, resource: Resource) -> None:
+    def handle_module(self, resource: ACResource) -> None:
         """
         Handles a Module resource.
         """
 
-        # Make a new Resource from the 'config' element of this Resource
+        # Make a new ACResource from the 'config' element of this ACResource
         # Note that we leave the original serialization intact, since it will
         # indeed show a human the YAML that defined this module.
         #
         # XXX This should be Module.from_resource()...
-        module_resource = Resource.from_resource(resource, kind="Module", **resource.config)
+        module_resource = ACResource.from_resource(resource, kind="Module", **resource.config)
 
         self.safe_store("modules", module_resource)
 
-    def handle_ratelimitservice(self, resource: Resource) -> None:
+    def handle_ratelimitservice(self, resource: ACResource) -> None:
         """
         Handles a RateLimitService resource.
         """
 
         self.safe_store("ratelimit_configs", resource)
 
-    def handle_tracingservice(self, resource: Resource) -> None:
+    def handle_tracingservice(self, resource: ACResource) -> None:
         """
         Handles a TracingService resource.
         """
 
         self.safe_store("tracing_configs", resource)
 
-    def handle_authservice(self, resource: Resource) -> None:
+    def handle_authservice(self, resource: ACResource) -> None:
         """
         Handles an AuthService resource.
         """
 
         self.safe_store("auth_configs", resource)
 
-    def handle_mapping(self, resource: Mapping) -> None:
+    def handle_mapping(self, resource: ACMapping) -> None:
         """
-        Handles a Mapping resource.
+        Handles a ACMapping resource.
 
-        Mappings are complex things, so a lot of stuff gets buried in a Mapping 
+        Mappings are complex things, so a lot of stuff gets buried in a ACMapping 
         object.
         """
 

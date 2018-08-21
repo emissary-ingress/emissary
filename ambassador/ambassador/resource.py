@@ -12,7 +12,8 @@ R = TypeVar('R', bound='Resource')
 
 class Resource (dict):
     """
-    A resource that we're going to use as part of the Ambassador configuration.
+    A resource that's part of the overall Ambassador configuration world. This is
+    the base class for IR resources, Ambassador-config resources, etc.
 
     Elements in a Resource:
     - rkey is a short identifier that is used as the primary key for _all_ the
@@ -27,11 +28,6 @@ class Resource (dict):
 
     - kind (keyword-only) is what kind of Ambassador resource this is.
 
-    - name (keyword-only) is the name of the Ambassador resource.
-
-    - apiVersion (keyword-only) specifies the API version in use. It defaults to
-    "ambassador/v0" if not specified.
-
     - serialization (keyword-only) is the _original input serialization_, if we have
     it, of the object. If we don't have it, this should be None -- don't just serialize
     the object to no purpose.
@@ -41,8 +37,6 @@ class Resource (dict):
     :param rkey: unique identifier for this source, should be short
     :param location: where should a human go to find the source of this resource?
     :param kind: what kind of thing is this?
-    :param name: what's the name of this thing?
-    :param apiVersion: API version, defaults to "ambassador/v0" if not present
     :param serialization: original input serialization of obj, if we have it
     :param kwargs: key-value pairs that form the data object for this resource
     """
@@ -50,8 +44,6 @@ class Resource (dict):
     rkey: str
     location: str
     kind: str
-    name: str
-    apiVersion: str
     serialization: Optional[str]
 
     _errors: List[RichStatus]
@@ -59,8 +51,6 @@ class Resource (dict):
 
     def __init__(self, rkey: str, location: str, *,
                  kind: str,
-                 name: str,
-                 apiVersion: Optional[str]="ambassador/v0",
                  serialization: Optional[str]=None,
                  **kwargs) -> None:
 
@@ -70,18 +60,10 @@ class Resource (dict):
         if not kind:
             raise Exception("Resource requires kind")
 
-        if (kind != "Pragma") and not name:
-            raise Exception("Resource requires name")
-
-        if not apiVersion:
-            raise Exception("Resource requires apiVersion")
-
         # print("Resource __init__ (%s %s)" % (kind, name))
 
         super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name,
-                         apiVersion=typecast(str, apiVersion),
-                         serialization=serialization,
+                         kind=kind, serialization=serialization,
                          _errors=[],
                          _referenced_by={},
                          **kwargs)
@@ -131,8 +113,6 @@ class Resource (dict):
                       rkey: Optional[str]=None,
                       location: Optional[str]=None,
                       kind: Optional[str]=None,
-                      name: Optional[str]=None,
-                      apiVersion: Optional[str]=None,
                       serialization: Optional[str]=None,
                       **kwargs) -> R:
         """
@@ -146,8 +126,6 @@ class Resource (dict):
         :param rkey: optional new rkey
         :param location: optional new location
         :param kind: optional new kind
-        :param name: optional new name
-        :param apiVersion: optional new API version
         :param serialization: optional new original input serialization
         :param kwargs: optional new key-value pairs -- see discussion about copying above!
         """
@@ -159,7 +137,7 @@ class Resource (dict):
         # Make a shallow-copied dict that we can muck with...
         new_attrs = dict(kwargs) if kwargs else dict(other)
 
-        # Don't include kind or location unless it comes in on this call.
+        # Don't include kind unless it comes in on this call.
         if kind:
             new_attrs['kind'] = kind
         else:
@@ -171,17 +149,14 @@ class Resource (dict):
         elif other.serialization:
             new_attrs['serialization'] = other.serialization
 
-        # After that, stuff other things that need propagation into it...
-        new_attrs['name'] = name or other.name
-        new_attrs['apiVersion'] = apiVersion or other.apiVersion
-
-        # ...then make sure things that shouldn't propagate are gone.
+        # Make sure that things that shouldn't propagate are gone...
         new_attrs.pop('rkey', None)
         new_attrs.pop('location', None)
         new_attrs.pop('_errors', None)
         new_attrs.pop('_referenced_by', None)
 
-        # Finally, use new_attrs for all the keyword args when we set up the new instance.
+        # ...and finally, use new_attrs for all the keyword args when we set up
+        # the new instance.
         return cls(new_rkey, new_location, **new_attrs)
 
     @classmethod
@@ -204,7 +179,13 @@ class Resource (dict):
         # So this is a touch odd but here we go. We want to use the Kind here to find
         # the correct type.
         ambassador = sys.modules['ambassador']
-        resource_class: Type[R] = getattr(ambassador, attrs['kind'], cls)
+
+        resource_class: Type[R] = getattr(ambassador, attrs['kind'], None)
+
+        if not resource_class:
+            resource_class: Type[ R ] = getattr(ambassador, 'AC' + attrs[ 'kind' ], cls)
+
+        print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))
 
         return resource_class(rkey, location=location, serialization=serialization, **attrs)
 
@@ -225,28 +206,3 @@ class Resource (dict):
         attrs = yaml.safe_load(serialization)
 
         return cls.from_dict(rkey, location, serialization, attrs)
-
-    # Resource.INTERNAL is the magic Resource we use to represent something created by
-    # Ambassador's internals.
-    @classmethod
-    def internal_resource(cls) -> 'Resource':
-        return Resource(
-            "--internal--", "--internal--",
-            kind="Internal",
-            name="Ambassador Internals",
-            version="ambassador/v0",
-            description="The --internal-- source marks objects created by Ambassador's internal logic."
-        )
-
-    # Resource.DIAGNOSTICS is the magic Resource we use to represent something created by
-    # Ambassador's diagnostics logic. (We could use Resource.INTERNAL here, but explicitly
-    # calling out diagnostics stuff actually helps with, well, diagnostics.)
-    @classmethod
-    def diagnostics_resource(cls) -> 'Resource':
-        return Resource(
-            "--diagnostics--", "--diagnostics--",
-            kind="Diagnostics",
-            name="Ambassador Diagnostics",
-            version="ambassador/v0",
-            description="The --diagnostics-- source marks objects created by Ambassador to assist with diagnostics."
-        )

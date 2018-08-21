@@ -14,15 +14,15 @@
 
 from typing import List, Optional
 
-from .resource import Resource
+from .acresource import ACResource
 
 #############################################################################
 ## pragma.py -- the pragma configuration object for Ambassador
 
 
-class Pragma (Resource):
+class ACPragma (ACResource):
     """
-    Pragmas are Resources with a bunch of extra stuff.
+    ACPragmas are ACResources with a bunch of extra stuff.
 
     TODO: moar docstring.
     """
@@ -35,10 +35,10 @@ class Pragma (Resource):
 
                  **kwargs) -> None:
         """
-        Initialize a Pragma from the raw fields of its Resource.
+        Initialize an ACPragma from the raw fields of its ACResource.
         """
 
-        # print("Pragma __init__ (%s %s)" % (kind, kwargs))
+        # print("ACPragma __init__ (%s %s)" % (kind, kwargs))
 
         # First init our superclass...
 
