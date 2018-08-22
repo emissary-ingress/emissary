@@ -2,7 +2,6 @@ package: .
 flatten: true
 import:
 - package: github.com/gogo/protobuf
-  version: =0.5.0
   subpackages:
   - protoc-gen-gogofast
 - package: golang.org/x/net
