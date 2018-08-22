@@ -52,6 +52,7 @@ class IR:
     listeners: List[IRListener]
     groups: Dict[str, IRMappingGroup]
     clusters: Dict[str, IRCluster]
+    saved_resources: Dict[str, IRResource]
     tls_contexts: Dict[str, IREnvoyTLS]
     tls_defaults: Dict[str, Dict[str, str]]
 
@@ -68,6 +69,8 @@ class IR:
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.clusters = {}
+
+        self.saved_resources = {}
 
         # Our initial configuration stuff is all empty...
         self.router_config = {}
@@ -101,10 +104,10 @@ class IR:
             self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         # OK! Start by wrangling TLS-context stuff.
-        self.tls_module = IRAmbassadorTLS(self, aconf)
+        self.tls_module = self.save_resource(IRAmbassadorTLS(self, aconf))
 
         # Next, handle the "Ambassador" module.
-        self.ambassador_module = IRAmbassador(self, aconf)
+        self.ambassador_module = self.save_resource(IRAmbassador(self, aconf))
 
         # Save breaker & outlier configs.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
@@ -117,30 +120,24 @@ class IR:
         # ORDER MATTERS HERE.
 
         for cls in [ IRAuth, IRRateLimit ]:
-            r = cls(self, aconf)
-
-            # print("CHECKING FILTER %s (%s) %s" % (r, r.is_active(), repr(r)))
-
-            if r.is_active():
-                # print("SAVING FILTER %s" % r)
-                self.filters.append(r)
+            self.save_filter(cls(self, aconf))
 
         # Then append non-configurable cors and decoder filters
-        self.filters.append(IRResource(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="IRCORS",
-                                       config={}))
-        self.filters.append(IRResource(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="IRRouter",
-                                       type="decoder", config=self.router_config))
+        self.save_filter(IRResource(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="IRCORS",
+                                    config={}))
+        self.save_filter(IRResource(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="IRRouter",
+                                    type="decoder", config=self.router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
-        # are, and they're handled above. So. At this point we can set up our listeners.
+        # are, and they're handled above. So. At this point go sort out all the Mappings
         ListenerFactory.load_all(self, aconf)
-
-        # After listeners, handle mappings, clusters, etc.
-        for filter in self.filters:
-            filter.add_mappings(self, aconf)
-
         MappingFactory.load_all(self, aconf)
+
+        self.walk_saved_resources(aconf, 'add_mappings')
+
+        ListenerFactory.finalize(self, aconf)
+        MappingFactory.finalize(self, aconf)
 
         # At this point we should know the full set of clusters, so we can normalize
         # any long cluster names.
@@ -168,6 +165,20 @@ class IR:
 
                 # mangled[name] = mangled_name
                 self.clusters[name]['name'] = mangled_name
+
+    def save_resource(self, resource: IRResource) -> IRResource:
+        if resource.is_active():
+            self.saved_resources[resource.rkey] = resource
+
+        return resource
+
+    def save_filter(self, resource: IRResource) -> None:
+        if resource.is_active():
+            self.filters.append(self.save_resource(resource))
+
+    def walk_saved_resources(self, aconf, method_name):
+        for res in self.saved_resources.values():
+            getattr(res, method_name)(self, aconf)
 
     def save_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
         if ctx_name in self.tls_contexts:

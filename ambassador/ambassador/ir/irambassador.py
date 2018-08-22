@@ -3,6 +3,7 @@ from typing import ClassVar, Dict, Optional, TYPE_CHECKING
 from ..config import Config
 
 from .irresource import IRResource
+from .irmapping import IRMapping
 from .irtls import IREnvoyTLS
 
 if TYPE_CHECKING:
@@ -112,3 +113,15 @@ class IRAmbassador (IRResource):
                     cur['service'] = diag_service
 
         return True
+
+    def add_mappings(self, ir: 'IR', aconf: Config):
+        for name, cur in [
+            ( "liveness",    self.liveness_probe ),
+            ( "readiness",   self.readiness_probe ),
+            ( "diagnostics", self.diagnostics )
+        ]:
+            if cur and cur.get("enabled", False):
+                name = "internal_%s_probe_mapping" % name
+
+                mapping = IRMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location, **cur)
+                ir.add_mapping(aconf, mapping)

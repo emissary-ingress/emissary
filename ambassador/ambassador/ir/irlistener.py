@@ -79,3 +79,7 @@ class ListenerFactory:
                 new_listener.use_remote_address = amod.use_remote_address
 
             ir.add_listener(new_listener)
+
+    @classmethod
+    def finalize(cls, ir: 'IR', aconf: Config) -> None:
+        pass

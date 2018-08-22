@@ -560,22 +560,6 @@ class IRMappingGroup (IRResource):
 class MappingFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
-        # Start by setting up diagnostics and probe mappings.
-        amod = ir.ambassador_module
-
-        for name, cur in [
-            ( "liveness",    amod.liveness_probe ),
-            ( "readiness",   amod.readiness_probe ),
-            ( "diagnostics", amod.diagnostics )
-        ]:
-            if cur and cur.get("enabled", False):
-                # Push a fake mapping group to handle this.
-                name = "internal_%s_probe_mapping" % name
-
-                mapping = IRMapping(ir, aconf, rkey=amod.rkey, name=name, location=amod.location, **cur)
-                ir.add_mapping(aconf, mapping)
-
-        # Next, walk the rest of the mappings.
         config_info = aconf.get_config("mappings")
 
         if not config_info:
@@ -589,6 +573,8 @@ class MappingFactory:
             mapping = IRMapping(ir, aconf, **config)
             ir.add_mapping(aconf, mapping)
 
+    @classmethod
+    def finalize(cls, ir: 'IR', aconf: Config) -> None:
         # OK. We've created whatever IRMappings we need. Time to create the clusters
         # they need.
 
