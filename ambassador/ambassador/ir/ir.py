@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
+from typing import cast as typecast
 
 import sys
 
@@ -107,7 +108,7 @@ class IR:
         self.tls_module = self.save_resource(IRAmbassadorTLS(self, aconf))
 
         # Next, handle the "Ambassador" module.
-        self.ambassador_module = self.save_resource(IRAmbassador(self, aconf))
+        self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
 
         # Save breaker & outlier configs.
         self.breakers = aconf.get_config("CircuitBreaker") or {}

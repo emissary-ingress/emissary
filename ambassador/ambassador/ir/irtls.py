@@ -20,7 +20,7 @@ from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus, TLSPaths
-from ..resource import Resource
+from ..config import ACResource
 from .irresource import IRResource as IRResource
 
 if TYPE_CHECKING:
@@ -136,9 +136,9 @@ class IRAmbassadorTLS (IRResource):
             return False
 
     def merge_tmods(self,
-                    tls_module: Optional[Resource],
-                    generated_module: Optional[Resource],
-                    key: str) -> Optional[Resource]:
+                    tls_module: Optional[ACResource],
+                    generated_module: Optional[ACResource],
+                    key: str) -> Optional[ACResource]:
         """
         Merge TLS module configuration for a particular key. In the event of conflicts, the
         tls_module element wins, and an error is posted so that the diagnostics service can
@@ -163,8 +163,8 @@ class IRAmbassadorTLS (IRResource):
             return generated_module
         else:
             if TYPE_CHECKING:
-                tls_module = typecast(Resource, tls_module)
-                generated_module = typecast(Resource, generated_module)
+                tls_module = typecast(ACResource, tls_module)
+                generated_module = typecast(ACResource, generated_module)
 
             self.logger.debug("tls_module %s" % json.dumps(tls_module, indent=4))
             self.logger.debug("generated_module %s" % json.dumps(generated_module, indent=4))

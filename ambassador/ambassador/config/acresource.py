@@ -84,9 +84,9 @@ class ACResource (Resource):
                       rkey: Optional[str]=None,
                       location: Optional[str]=None,
                       kind: Optional[str]=None,
+                      serialization: Optional[str]=None,
                       name: Optional[str]=None,
                       apiVersion: Optional[str]=None,
-                      serialization: Optional[str]=None,
                       **kwargs) -> R:
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
