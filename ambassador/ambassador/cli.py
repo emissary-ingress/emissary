@@ -17,14 +17,18 @@ import sys
 import json
 import logging
 import os
-import time
+# import time
 import traceback
-import uuid
+# import uuid
+import yaml
 
 import clize
 from clize import Parameter
 
-from .config import Config
+from .config import Config, ACResource
+from .ir import IR
+from .envoy import V1Config
+
 from .utils import RichStatus
 
 from .VERSION import Version
@@ -44,33 +48,34 @@ logger.setLevel(logging.DEBUG)
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
-    if Config.scout:
-        result = Config.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
-                                     runtime=Config.runtime, **kwargs)
-
-        logger.debug("Scout %s, result: %s" %
-                     ("disabled" if Config.scout.disabled else "enabled", result))
+    # if Config.scout:
+    #     result = Config.scout_report(action=what, mode="cli", exception=str(e), traceback=tb,
+    #                                  runtime=Config.runtime, **kwargs)
+    #
+    #     logger.debug("Scout %s, result: %s" %
+    #                  ("disabled" if Config.scout.disabled else "enabled", result))
 
     logger.error("%s: %s\n%s" % (what, e, tb))
 
     show_notices()
 
 def show_notices(printer=logger.log):
-    if Config.scout_notices:
-        for notice in Config.scout_notices:
-            try:
-                if isinstance(notice, str):
-                    printer(logging.WARNING, notice)
-                else:
-                    lvl = notice['level'].upper()
-                    msg = notice['message']
-
-                    if isinstance(lvl, str):
-                        lvl = getattr(logging, lvl, logging.INFO)
-
-                    printer(lvl, msg)
-            except KeyError:
-                printer(logging.WARNING, json.dumps(notice))
+    # if Config.scout_notices:
+    #     for notice in Config.scout_notices:
+    #         try:
+    #             if isinstance(notice, str):
+    #                 printer(logging.WARNING, notice)
+    #             else:
+    #                 lvl = notice['level'].upper()
+    #                 msg = notice['message']
+    #
+    #                 if isinstance(lvl, str):
+    #                     lvl = getattr(logging, lvl, logging.INFO)
+    #
+    #                 printer(lvl, msg)
+    #         except KeyError:
+    #             printer(logging.WARNING, json.dumps(notice))
+    print("CANNOT SHOW NOTICES RIGHT NOW")
 
 def stdout_printer(lvl, msg):
     print("%s: %s" % (logging.getLevelName(lvl), msg))
@@ -82,28 +87,55 @@ def version():
 
     print("Ambassador %s" % __version__)
 
-    if Config.scout:
-        Config.scout_report(action="version", mode="cli")
-        show_notices(printer=stdout_printer)
+    # if Config.scout:
+    #     Config.scout_report(action="version", mode="cli")
+    #     show_notices(printer=stdout_printer)
 
 def showid():
     """
     Show Ambassador's installation ID
     """
 
-    if Config.scout:
-        print("%s" % Config.scout.install_id)
+    # if Config.scout:
+    #     print("%s" % Config.scout.install_id)
+    #
+    #     Config.scout_report(action="showid", mode="cli")
+    #
+    #     show_notices(printer=stdout_printer)
+    # else:
+    #     print("unknown")
+    print("CANNOT SHOW ID RIGHT NOW")
 
-        Config.scout_report(action="showid", mode="cli")
+def fetch_resources(config_dir_path):
+    all_resources = []
 
-        show_notices(printer=stdout_printer)
-    else:
-        print("unknown")
+    for filename in os.listdir(config_dir_path):
+        filepath = os.path.join(config_dir_path, filename)
 
-def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_path=None):
+        if not os.path.isfile(filepath):
+            continue
+
+        serialization = open(filepath, "r").read()
+
+        objects = list(yaml.safe_load_all(serialization))
+
+        ocount = 0
+
+        for obj in objects:
+            ocount += 1
+            rkey = "%s.%d" % (os.path.basename(filepath), ocount)
+
+            r = ACResource.from_dict(rkey, rkey, serialization, obj)
+
+            all_resources.append(r)
+
+    return all_resources
+
+def parse_config(config_dir_path, schema_dir_path=None):
     try:
-        return Config(config_dir_path, k8s=k8s,
-                      template_dir_path=template_dir_path, schema_dir_path=schema_dir_path)
+        resources = fetch_resources(config_dir_path)
+        aconf = Config(schema_dir_path=schema_dir_path)
+        aconf.load_all(resources)
     except Exception as e:
         handle_exception("EXCEPTION from parse_config", e,
                          config_dir_path=config_dir_path, template_dir_path=template_dir_path,
@@ -112,7 +144,7 @@ def parse_config(config_dir_path, k8s=False, template_dir_path=None, schema_dir_
         # This is fatal.
         sys.exit(1)
 
-def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
+def dump(config_dir_path:Parameter.REQUIRED):
     """
     Dump the intermediate form of an Ambassador configuration for debugging
 
@@ -120,16 +152,19 @@ def dump(config_dir_path:Parameter.REQUIRED, *, k8s=False):
     """
 
     try:
-        aconf = parse_config(config_dir_path, k8s=k8s)
+        resources = fetch_resources(config_dir_path)
+        aconf = Config()
+        aconf.load_all(resources)
 
-        diag_object = {
-            'envoy_config': aconf.envoy_config,
-            '_errors': aconf.errors,
-            'sources': aconf.sources,
-            'source_map': aconf.source_map
-        }
-
-        json.dump(diag_object, sys.stdout, indent=4, sort_keys=True)
+        # diag_object = {
+        #     'envoy_config': aconf.envoy_config,
+        #     '_errors': aconf.errors,
+        #     'sources': aconf.sources,
+        #     'source_map': aconf.source_map
+        # }
+        #
+        # json.dump(diag_object, sys.stdout, indent=4, sort_keys=True)
+        aconf.dump()
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
@@ -144,10 +179,10 @@ def validate(config_dir_path:Parameter.REQUIRED, *, k8s=False):
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param k8s: If set, assume configuration files are annotated K8s manifests
     """
-    config(config_dir_path, os.devnull, k8s=k8s, exit_on_error=True)
+    config(config_dir_path, os.devnull, exit_on_error=True)
 
 def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *,
-           check=False, k8s=False, exit_on_error=False):
+           check=False, exit_on_error=False):
     """
     Generate an Envoy configuration
 
@@ -192,23 +227,25 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # Either we didn't need to check, or the check didn't turn up
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
-            aconf = parse_config(config_dir_path, k8s=k8s)
+
+            resources = fetch_resources(config_dir_path)
+            aconf = Config()
+            aconf.load_all(resources)
 
             # If exit_on_error is set, log _errors and exit with status 1
             if exit_on_error and aconf.errors:
                 raise Exception("_errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            rc = aconf.generate_envoy_config(mode="cli", check=check)
+            ir = IR(aconf)
+            v1config = V1Config(ir)
+            rc = RichStatus.OK(msg="huh")
 
             if rc:
-                aconf.pretty(rc.envoy_config, out=open(output_json_path, "w"))
+                with open(output_json_path, "w") as output:
+                    output.write(v1config.as_json())
+                    output.write("\n")
             else:
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
-                logger.error("Raw template output:")
-                logger.error("%s" % rc.raw)
-        else:
-            Config.scout_report(action="config", result=True,
-                                mode="cli", generated=False, check=check)
 
 
         show_notices()

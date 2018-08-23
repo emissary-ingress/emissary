@@ -578,28 +578,28 @@ class MappingFactory:
         # OK. We've created whatever IRMappings we need. Time to create the clusters
         # they need.
 
-        print("CLUSTERS")
+        # print("CLUSTERS")
         for group in ir.groups.values():
-            print("\n  %s (%s, %s):" % (group.name, group.group_id, group.group_weight))
+            # print("\n  %s (%s, %s):" % (group.name, group.group_id, group.group_weight))
 
             group.finalize(ir, aconf)
 
-            hdrstring = ""
-
-            if group.headers:
-                hdrstring = " [ %s ]" % ",".join([ "%s%s%s" % (h.name, "~" if h.regex else "=", h.value)
-                                                   for h in group.headers ])
-
-            print("    %s %s%s:" % (group.get('method', 'ANY'), group.prefix, hdrstring))
-
-            mappings = reversed(sorted(group.mappings, key=lambda x: x['route_weight']))
-
-            for mapping in mappings:
-                print("      %d%% => %s rewrite %s" % (mapping.weight, mapping.service, mapping.rewrite))
-
-                ctx = mapping.cluster.get('tls_context', None)
-                ctx_name = ctx.name if ctx else "(none)"
-
-                print("        cluster %s: TLS %s" % (mapping.cluster.name, ctx_name))
-                print("          refs %s" % ", ".join(mapping.cluster._referenced_by))
-                print("          urls %s" % ", ".join(mapping.cluster.urls))
+            # hdrstring = ""
+            #
+            # if group.headers:
+            #     hdrstring = " [ %s ]" % ",".join([ "%s%s%s" % (h.name, "~" if h.regex else "=", h.value)
+            #                                        for h in group.headers ])
+            #
+            # print("    %s %s%s:" % (group.get('method', 'ANY'), group.prefix, hdrstring))
+            #
+            # mappings = reversed(sorted(group.mappings, key=lambda x: x['route_weight']))
+            #
+            # for mapping in mappings:
+                # print("      %d%% => %s rewrite %s" % (mapping.weight, mapping.service, mapping.rewrite))
+                #
+                # ctx = mapping.cluster.get('tls_context', None)
+                # ctx_name = ctx.name if ctx else "(none)"
+                #
+                # print("        cluster %s: TLS %s" % (mapping.cluster.name, ctx_name))
+                # print("          refs %s" % ", ".join(mapping.cluster._referenced_by))
+                # print("          urls %s" % ", ".join(mapping.cluster.urls))

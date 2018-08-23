@@ -70,7 +70,7 @@ class ACResource (Resource):
         if not apiVersion:
             raise Exception("ACResource requires apiVersion")
 
-        print("ACResource __init__ (%s %s)" % (kind, name))
+        # print("ACResource __init__ (%s %s)" % (kind, name))
 
         super().__init__(rkey=rkey, location=location,
                          kind=kind, name=name,
