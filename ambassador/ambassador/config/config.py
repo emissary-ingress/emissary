@@ -14,6 +14,7 @@
 
 import sys
 
+from pprint import pprint
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
 
@@ -125,6 +126,14 @@ class Config:
         s.append(">")
 
         return "\n".join(s)
+
+    def dump(self) -> None:
+        for kind, configs in self.config.items():
+            print("%s:" % kind)
+
+            for rkey, config in configs.items():
+                print("  %s:" % rkey)
+                pprint(config)
 
     def save_source(self, resource: ACResource) -> None:
         """

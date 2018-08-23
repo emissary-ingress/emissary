@@ -70,11 +70,11 @@ class IRAuth (IRResource):
 
                 cluster = ir.add_cluster(IRCluster(ir=ir, aconf=aconf, location=self.location, **cluster_args))
                 cluster.referenced_by(self)
-                print("AUTH ADD_MAPPINGS: %s => new cluster %s" % (service, repr(cluster)))
+                # print("AUTH ADD_MAPPINGS: %s => new cluster %s" % (service, repr(cluster)))
             else:
                 cluster.add_url(service)
                 cluster.referenced_by(self)
-                print("AUTH ADD_MAPPINGS: %s => extant cluster %s" % (service, repr(cluster)))
+                # print("AUTH ADD_MAPPINGS: %s => extant cluster %s" % (service, repr(cluster)))
 
         #     urls = []
         #     protocols = {}
@@ -148,3 +148,24 @@ class IRAuth (IRResource):
         # if ratelimit_filter and ratelimit_grpc_service:
         #     self.config['filters'].append(ratelimit_filter)
         #     self.config['grpc_services'].append(ratelimit_grpc_service)
+
+    # def v1config(self):
+    #     config = {
+    #         "name": "extauth"
+    #     }
+    #
+    #     if self.get('allowed_headers', []):
+    #         config['allowed_headers'] = self.allowed_headers
+    #
+    #
+    #
+    #     return {
+    #         "allowed_headers": [
+    #             "x-qotm-session"
+    #         ],
+    #         "cluster": "cluster_ext_auth",
+    #         "name": "ir.auth",
+    #         "path_prefix": "/extauth",
+    #         "timeout_ms": 5000,
+    #         "weight": 100
+    #     }

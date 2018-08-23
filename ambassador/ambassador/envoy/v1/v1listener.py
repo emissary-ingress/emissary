@@ -13,11 +13,36 @@
 # limitations under the License
 
 from typing import List, TYPE_CHECKING
+from typing import cast as typecast
 
 from ...ir.irlistener import IRListener
+from ...ir.irmapping import IRMapping
+from ...ir import IRResource
 
 if TYPE_CHECKING:
     from . import V1Config
+
+
+# XXX This is probably going to go away!
+class V1Filter(dict):
+    def __init__(self, filter: IRResource) -> None:
+        super().__init__()
+
+        self['name'] = filter.name
+        self['config'] = {}
+
+        if 'config' in filter:
+            self['config'] = filter.config
+        else:
+            for k in filter.keys():
+                if (k.startswith('_') or
+                    ((k == 'kind') or (k == 'location') or (k == 'logger'))):
+                    continue
+
+                self['config'][k] = filter[k]
+
+        if filter.get('type', None):
+           self['type'] = filter.type
 
 
 class V1Listener(dict):
@@ -50,7 +75,128 @@ class V1Listener(dict):
                 if "cert_required" in ctx:
                     lctx["require_client_certificate"] = ctx["cert_required"]
 
-        self["filters"] = []
+        hcm_config = {
+            "codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "access_log": [
+                {
+                    "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                    "path": "/dev/fd/1"
+                }
+            ],
+            "filters": [ V1Filter(filter) for filter in config.ir.filters ]
+        }
+
+        if "use_remote_address" in listener:
+            hcm_config["use_remote_address"] = listener.use_remote_address
+
+        if "tracing" in listener:
+            hcm_config["tracing"] = {
+                "generate_request_id": True,
+                "tracing": {
+                    "operation_name": "egress",
+                    "request_headers_for_tags": []
+                }
+            }
+
+        routes = self.get_routes(config, listener)
+
+        vhosts = {
+            "name": "backend",
+            "domains": [ "*" ],
+            "routes": routes
+        }
+
+        if listener.get("require_tls", False):
+            vhosts["require_ssl"] = "all"
+
+        self["filters"] = [
+            {
+                "type": "read",
+                "name": "http_connection_manager",
+                "config": hcm_config,
+                "route_config": {
+                    "virtual_hosts": vhosts
+                }
+            }
+        ]
+
+    def get_routes(self, config: 'V1Config', listener: 'IRListener') -> List[dict]:
+        routes = []
+
+        for group in reversed(sorted(config.ir.groups.values(), key=lambda x: x['group_weight'])):
+            route = {
+                "timeout_ms": group.get("timeout_ms", 3000),
+            }
+
+            if "prefix" in group:
+                route["prefix"] = group.prefix
+
+            if "regex" in group:
+                route["regex"] = group.regex
+
+            if "case_sensitive" in group:
+                route["case_sensitive"] = group.case_sensitive
+
+            if "cors" in group:
+                route["cors"] = group.cors
+            elif "cors_default" in group:
+                route["cors"] = group.cors_default
+
+            if "rate_limits" in group:
+                route["rate_limits"] = group.rate_limits
+
+            if "priority" in group:
+                route["priority"] = group.priority
+
+            if "use_websocket" in group:
+                route["use_websocket"] = group.use_websocket
+
+            if "headers" in group:
+                route["headers"] = group.headers
+
+            if group.get("host_redirect", None):
+                route["host_redirect"] = typecast(IRMapping, group.host_redirect).service
+
+                if group.get("path_redirect", None):
+                    route["path_redirect"] = group.path_redirect
+            else:
+                if "prefix_rewrite" in group:
+                    route["prefix_rewrite"] = group.prefix_rewrite
+
+                if "host_rewrite" in group:
+                    route["host_rewrite"] = group.host_rewrite
+
+                if "auto_host_rewrite " in group:
+                    route["auto_host_rewrite"] = group.auto_host_rewrite
+
+                if "request_headers_to_add" in group:
+                    route["request_headers_to_add"] = group.request_headers_to_add
+
+                if "use_websocket" in group:
+                    route["cluster"] = group.mappings[0].cluster.name
+                else:
+                    route["weighted_clusters"] = {
+                        "clusters": [ {
+                                "name": mapping.cluster.name,
+                                "weight": mapping.weight
+                            } for mapping in group.mappings
+                        ]
+                    }
+                    # print("WEIGHTED_CLUSTERS %s" % route["weighted_clusters"])
+
+                if group.get("shadows", []):
+                    route["shadow"] = {
+                        "cluster": group.shadows[0].name
+                    }
+
+            if "envoy_override" in group:
+                for key in group.envoy_override.keys():
+                    route[key] = group.envoy_override[key]
+
+            routes.append(route)
+
+        return routes
 
     @classmethod
     def generate(self, config: 'V1Config') -> List['V1Listener']:

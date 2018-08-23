@@ -34,15 +34,15 @@ class V1Config:
         # Toplevel stuff.
         self.admin: V1Admin = V1Admin.generate(self)
 
-        print("v1.admin %s" % self.admin)
+        # print("v1.admin %s" % self.admin)
 
         self.listeners: List[V1Listener] = V1Listener.generate(self)
 
-        print("v1.listeners %s" % self.listeners)
+        # print("v1.listeners %s" % self.listeners)
 
         self.clustermgr: V1ClusterManager = V1ClusterManager.generate(self)
 
-        print("v1.clustermgr %s" % self.clustermgr)
+        # print("v1.clustermgr %s" % self.clustermgr)
 
         # self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
 
@@ -56,13 +56,13 @@ class V1Config:
         # if self.tracing:
         #     d['tracing'] = self.tracing
 
-        print("V1 %s" % d)
+        # print("V1 %s" % d)
 
         return d
 
     def as_json(self):
         d = self.as_dict()
 
-        print("V1.as_json %s" % d)
+        # print("V1.as_json %s" % d)
 
         return json.dumps(d, sort_keys=True, indent=4)

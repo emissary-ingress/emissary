@@ -185,7 +185,7 @@ class Resource (dict):
         if not resource_class:
             resource_class = getattr(ambassador, 'AC' + attrs[ 'kind' ], cls)
 
-        print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))
+        # print("%s.from_dict: %s => %s" % (cls, attrs['kind'], resource_class))
 
         return resource_class(rkey, location=location, serialization=serialization, **attrs)
 

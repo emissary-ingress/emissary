@@ -43,7 +43,7 @@ logging.basicConfig(
 
 # logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
 logger = logging.getLogger("ambassador")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
@@ -232,11 +232,15 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             aconf = Config()
             aconf.load_all(resources)
 
+            # aconf.dump()
+
             # If exit_on_error is set, log _errors and exit with status 1
             if exit_on_error and aconf.errors:
                 raise Exception("_errors in: {0}".format(', '.join(aconf.errors.keys())))
 
             ir = IR(aconf)
+            ir.dump(output=open("ir.json", "w"))
+
             v1config = V1Config(ir)
             rc = RichStatus.OK(msg="huh")
 
