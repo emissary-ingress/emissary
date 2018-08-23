@@ -12,7 +12,14 @@ To deploy Ambassador in your default namespace, first you need to check if Kuber
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 ```
 
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled.
+If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create
+clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
+
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+
+```
+$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```
 
 If RBAC is enabled:
 
@@ -26,17 +33,17 @@ Without RBAC, you can use:
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
-For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace). 
+We recommend downloading the YAML files and exploring the content. You will see
+that an `ambassador-admin` NodePort Service is created (which provides an
+Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
 
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
 
-```
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-```
 
 ## 2. Defining the Ambassador Service
 
-Ambassador is deployed as a Kubernetes service.  Create the following YAML and put it in a file called `ambassador-service.yaml`.
+Ambassador is deployed as a Kubernetes Service that references the ambassador
+Deployment you deployed previously. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -58,7 +65,7 @@ Deploy this service with `kubectl`:
 $ kubectl apply -f ambassador-service.yaml
 ```
 
-The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`. All HTTP traffic will be evaulated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type, you'll need to change this to a different type of service, e.g., `NodePort`.
+The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
 
 ## 3. Creating your first route
 
@@ -91,9 +98,9 @@ Then, apply it to the Kubernetes with `kubectl`:
 $ kubectl apply -f httpbin.yaml
 ```
 
-When the service is deployed, Ambassador will notice the `getambassador.io/config` annotation on the service, and use the `Mapping` contained in it to configure the route.  (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `service`s.)
+When the service is deployed, Ambassador will notice the `getambassador.io/config` annotation on the service, and use the `Mapping` contained in it to configure the route.  (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `Service`s.)
 
-In this case, the mapping creates a route that will route traffic from `/httpbin/` to the public `httpbin.org` service. Note that we are using the `host_rewrite` attribute for the `httpbin_mapping` &mdash; this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
+In this case, the mapping creates a route that will route traffic from the `/httpbin/` endpoint to the public `httpbin.org` service. Note that we are using the `host_rewrite` attribute for the `httpbin_mapping` &mdash; this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
 
 ## 4. Testing the Mapping
 
@@ -115,7 +122,7 @@ You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`
 $ curl 35.36.37.38/httpbin/
 ```
 
-or on minikube: 
+or on minikube:
 
 ```shell
 $ minikube service list
@@ -128,9 +135,21 @@ $ minikube service list
 $ curl http://192.168.99.107:31893/httpbin/
 ```
 
+or on Docker for Mac/Windows
+
+```shell
+$ kubectl get svc
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+ambassador         LoadBalancer   10.106.108.64    localhost     80:32324/TCP     13m
+ambassador-admin   NodePort       10.107.188.149   <none>        8877:30993/TCP   14m
+httpbin            ClusterIP      10.107.77.153    <none>        80/TCP           13m
+kubernetes         ClusterIP      10.96.0.1        <none>        443/TCP          84d
+$ curl http://localhost/httpbin/
+```
+
 ## 5. Adding a Service
 
-You can add a service just by deploying it with an appropriate annotation. For example, we can deploy the QoTM service locally in this cluster and automatically map it through Ambassador by creating `qotm.yaml` with the following:
+You can add a Service route simply by deploying it with an appropriate Ambassador annotation. For example, we can deploy the QoTM service locally in this cluster, and automatically map it through Ambassador by creating `qotm.yaml` with the following configuration:
 
 ```yaml
 ---
@@ -179,7 +198,7 @@ spec:
             memory: 100Mi
 ```
 
-and then applying it with
+and then applying it with:
 
 ```
 kubectl apply -f qotm.yaml
@@ -188,7 +207,7 @@ kubectl apply -f qotm.yaml
 A few seconds after the QoTM service is running, Ambassador should be configured for it. Try it with
 
 ```shell
-$ curl 35.36.37.38/qotm/
+$ curl http://${AMBASSADOR_IP}/qotm/
 ```
 
 ## 6. The Diagnostics Service in Kubernetes
