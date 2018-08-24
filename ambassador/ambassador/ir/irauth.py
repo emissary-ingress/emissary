@@ -1,21 +1,22 @@
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from ..config import Config
 from ..utils import RichStatus
 from ..resource import Resource
 
-from .irresource import IRResource
+from .irfilter import IRFilter
 from .ircluster import IRCluster
 
 if TYPE_CHECKING:
     from .ir import IR
 
 
-class IRAuth (IRResource):
+class IRAuth (IRFilter):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
-                 name: str="ir.auth",
+                 name: str="extauth",
+                 type: Optional[str] = "decoder",
                  **kwargs) -> None:
         # print("IRAuth __init__ (%s %s %s)" % (kind, name, kwargs))
 
@@ -27,6 +28,7 @@ class IRAuth (IRResource):
             allowed_headers=[],
             weight=100,
             hosts={},
+            type=type,
             **kwargs)
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
@@ -149,23 +151,16 @@ class IRAuth (IRResource):
         #     self.config['filters'].append(ratelimit_filter)
         #     self.config['grpc_services'].append(ratelimit_grpc_service)
 
-    # def v1config(self):
-    #     config = {
-    #         "name": "extauth"
-    #     }
-    #
-    #     if self.get('allowed_headers', []):
-    #         config['allowed_headers'] = self.allowed_headers
-    #
-    #
-    #
-    #     return {
-    #         "allowed_headers": [
-    #             "x-qotm-session"
-    #         ],
-    #         "cluster": "cluster_ext_auth",
-    #         "name": "ir.auth",
-    #         "path_prefix": "/extauth",
-    #         "timeout_ms": 5000,
-    #         "weight": 100
-    #     }
+    def config_dict(self):
+        config = {
+            "cluster": self.cluster
+        }
+
+        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+            if self.get(key, None):
+                config[key] = self[key]
+
+        if self.get('allowed_headers', []):
+            config['allowed_headers'] = self.allowed_headers
+
+        return config

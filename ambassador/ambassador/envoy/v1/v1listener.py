@@ -17,7 +17,7 @@ from typing import cast as typecast
 
 from ...ir.irlistener import IRListener
 from ...ir.irmapping import IRMapping
-from ...ir import IRResource
+from ...ir.irfilter import IRFilter
 
 if TYPE_CHECKING:
     from . import V1Config
@@ -25,21 +25,11 @@ if TYPE_CHECKING:
 
 # XXX This is probably going to go away!
 class V1Filter(dict):
-    def __init__(self, filter: IRResource) -> None:
+    def __init__(self, filter: IRFilter) -> None:
         super().__init__()
 
         self['name'] = filter.name
-        self['config'] = {}
-
-        if 'config' in filter:
-            self['config'] = filter.config
-        else:
-            for k in filter.keys():
-                if (k.startswith('_') or
-                    ((k == 'kind') or (k == 'location') or (k == 'logger'))):
-                    continue
-
-                self['config'][k] = filter[k]
+        self['config'] = filter.config_dict()
 
         if filter.get('type', None):
            self['type'] = filter.type

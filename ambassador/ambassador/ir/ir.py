@@ -27,6 +27,7 @@ from ..config import Config
 from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
+from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
@@ -124,10 +125,10 @@ class IR:
             self.save_filter(cls(self, aconf))
 
         # Then append non-configurable cors and decoder filters
-        self.save_filter(IRResource(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="IRCORS",
-                                    config={}))
-        self.save_filter(IRResource(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="IRRouter",
-                                    type="decoder", config=self.router_config))
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors",
+                                  name="cors", config={}))
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router",
+                                  name="router", type="decoder", config=self.router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
