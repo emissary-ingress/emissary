@@ -127,13 +127,13 @@ class Config:
 
         return "\n".join(s)
 
-    def dump(self) -> None:
+    def dump(self, output=sys.stdout) -> None:
         for kind, configs in self.config.items():
-            print("%s:" % kind)
+            output.write("%s:\n" % kind)
 
             for rkey, config in configs.items():
-                print("  %s:" % rkey)
-                pprint(config)
+                output.write("  %s:\n" % rkey)
+                pprint(config, stream=output)
 
     def save_source(self, resource: ACResource) -> None:
         """
