@@ -232,7 +232,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             aconf = Config()
             aconf.load_all(resources)
 
-            # aconf.dump()
+            aconf.dump(output=open("ac.json", "w"))
 
             # If exit_on_error is set, log _errors and exit with status 1
             if exit_on_error and aconf.errors:
