@@ -31,82 +31,39 @@ Rather than do all that logic by hand, we'll use the Envoy `go-control-plane` fo
 - Once the `Server` is running, Envoy can open a gRPC stream to it.
   - On connection, Envoy will get handed the most recent `Snapshot` that the `Server`'s `SnapshotCache` knows about.
   - Whenever a newer `Snapshot` is added to the `SnapshotCache`, that `Snapshot` will get sent to the Envoy.
-- We manage the `SnapshotCache` using our `configurator` object, which knows how to listen to `stdin` and HTTP requests to change objects and post new Snapshots.
-  - Obviously this piece has to be rewritten for the real world.
+- We manage the `SnapshotCache` by loading envoy configuration files from json or protobuf files on disk.
+  - By default when we get a SIGHUP we reload the configuration.
+  - When passed the -watch argument we reload whenever any file in the directory changes.
 
 Running Ambex
 =============
 
-Run `make` to build everything. Then in one window
+Run `make` to build the ambex binary. Then in one window run
 
 ```shell
-docker run -it --rm --name ambex-shell \
-       -p8000:8000 -p9000:9000 -v $(pwd)/mountpoint:/application \
-       datawire/ambassador-envoy-alpine-stripped:v1.5.0-232-g6557e9ea7 \
-       /bin/sh
+./ambex example
 ```
-
-to start a shell running in a Docker container.
-
-In that shell:
+or
 
 ```shell
-cd /application
-./ambex -debug
+./ambex -watch example
 ```
+to start the ADS server.
 
-and you'll have the Ambex server running.
-
-In another window, 
+And in another window run
 
 ```shell
-docker exec -it ambex-shell /bin/sh
+make run
 ```
+to launch envoy with a bootstrap configuration that points to the locally running ambex.
 
-to get another shell running in the Docker container. In that shell, start Envoy:
+You should now be able to run some curls in (yet) another shell:
 
 ```shell
-cd /application
-./envoy-stripped-binary -l debug -c bootstrap-ads.yaml
+curl localhost:8080/hello
+...
+curl localhost:8080/get
+...
 ```
-
-and you should see Ambex and Envoy working out Envoy configuration.
-
-Back at the host, you can test this by starting two QoTM services, in two other windows, from the main Ambex directory (you'll need Python 3 and Flask for this). One should be
-
-```shell
-python qotm.py 5000 v-one
-```
-
-and the other
-
-```shell
-python qotm.py 6000 v-two
-```
-
-Then you can test from yet another host window:
-
-```shell
-curl http://localhost:8000/qotm/
-```
-
-which should always return `v-one` as the hostname for now.
-
-After that, fire up the full-on test script:
-
-```shell
-python loop.py http://127.0.0.1:8000/qotm/
-```
-
-and then start up the evil swapping loop:
-
-```shell
-while true; do
-    curl -v 'http://localhost:9000/mapping?name=qotm-mapping&prefix=%2Fqotm%2F&cluster=qotm-2&update=true'
-    sleep 1
-    curl -v 'http://localhost:9000/mapping?name=qotm-mapping&prefix=%2Fqotm%2F&cluster=qotm-1&update=true'
-    sleep 1
-done
-```
-
-You should see the test script swapping between "1"s and "2"s in its output, but it should happily keep running. (You may see it hang without crashing -- this seems to be a flakiness in the Docker setup we're using, rather than something horrible. It's much less likely if you run Envoy without any `-l` argument.)
+Edit and/or add more files to the example directory in order to play
+with more configurations.
