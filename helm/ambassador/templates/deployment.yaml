@@ -23,12 +23,26 @@ spec:
         prometheus.io/port: "9102"
     spec:
       serviceAccountName: {{ template "ambassador.serviceAccountName" . }}
+      volumes:
+      - name: stats-exporter-mapping-config
+        configMap:
+          name: '{{ template "ambassador.fullname" . }}-config'
+          items:
+          - key: configuration
+            path: mapping-config.yaml
       containers:
         - name: statsd-sink
           image: "{{ .Values.exporter.image }}"
           ports:
           - name: metrics
             containerPort: 9102
+          - name: listener
+            containerPort: 8125
+          args: ["-statsd.listen-address=:8125", "-statsd.mapping-config=/statsd-exporter/mapping-config.yaml"]
+          volumeMounts:
+          - name: stats-exporter-mapping-config
+            mountPath: /statsd-exporter/
+            readOnly: true
         - name: ambassador
           image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
