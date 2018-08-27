@@ -23,8 +23,8 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:0.38.0
     ports:
-    # expose port 80
-    - 80
+    # expose port 80 via 8080 on the host machine
+    - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -118,7 +118,7 @@ Once again, restart ambassador and test the new mapping:
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service
-curl localhost:8080/qotm/quote
+curl localhost:8080/qotm/quote/1
 
 # the response body should be a json object with a quote
 {
@@ -145,8 +145,7 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:0.38.0
     ports:
-    # expose port 80
-    - 80
+    - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -184,7 +183,7 @@ docker-compose up -d
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service
-curl localhost:8080/qotm/quote
+curl localhost:8080/qotm/quote/1
 
 # the response body should be a json object with a quote
 {
@@ -230,8 +229,7 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:0.38.0
     ports:
-    # expose port 80
-    - 80
+    - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -316,8 +314,7 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:0.38.0
     ports:
-    # expose port 80
-    - 80
+    - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -370,7 +367,7 @@ docker-compose up -d
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service as many times as you would like
-curl -I localhost:8080/qotm/quote
+curl --user username:password localhost:8080/qotm/quote/1
 ```
 
 In a browser you can go to [http://localhost:16686/](http://localhost:16686/) and search for traces. To make this demonstration more useful one should implement Zipkin tracing middleware into their webserver.
