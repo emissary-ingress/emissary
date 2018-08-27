@@ -12,6 +12,7 @@
   * [Kubernetes (YAML)](user-guide/getting-started.md)
   * [Kubernetes (Helm)](user-guide/helm.md)
   * [Docker Quickstart](about/quickstart.md)
+  * [Docker Compose](user-guide/docker-compose.md)
 
 ## Guides
 
