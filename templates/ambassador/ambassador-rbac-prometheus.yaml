@@ -55,7 +55,7 @@ kind: ConfigMap
 metadata:
   name: ambassador-config
 data:
-  configuration: ''
+  exporterConfiguration: ''
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -76,7 +76,7 @@ spec:
         configMap:
           name: ambassador-config
           items:
-          - key: configuration
+          - key: exporterConfiguration
             path: mapping-config.yaml
       containers:
       - name: ambassador

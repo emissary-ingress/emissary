@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: '{{ template "ambassador.fullname" . }}-config'
 data:
-  configuration:
+  exporterConfiguration:
 {{- if .Values.exporter.configuration }} |
 {{ .Values.exporter.configuration | indent 4 }}
 {{- else }} ''

@@ -28,7 +28,7 @@ spec:
         configMap:
           name: '{{ template "ambassador.fullname" . }}-config'
           items:
-          - key: configuration
+          - key: exporterConfiguration
             path: mapping-config.yaml
       containers:
         - name: statsd-sink
