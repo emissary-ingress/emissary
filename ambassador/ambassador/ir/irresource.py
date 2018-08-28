@@ -1,5 +1,4 @@
 from typing import ClassVar, Dict, Optional, TYPE_CHECKING
-from typing import cast as typecast
 
 import json
 
@@ -29,7 +28,7 @@ class IRResource (Resource):
         super().__init__(rkey=rkey, location=location,
                          kind=kind, name=name, apiVersion=apiVersion,
                          **kwargs)
-
+        self.ir = ir
         self.logger = ir.logger
 
         self.set_active(self.setup(ir, aconf))
@@ -55,7 +54,8 @@ class IRResource (Resource):
         od = {}
 
         for k in self.keys():
-            if (k == 'apiVersion') or (k == 'logger'):
+            if (k == 'apiVersion') or (k == 'logger') or (k == 'ir'):
+                # print(k)
                 continue
             elif k == '_referenced_by':
                 refd_by = sorted([ "%s: %s" % (k, self._referenced_by[k].location)
@@ -75,4 +75,91 @@ class IRResource (Resource):
     def as_json(self, indent=4, sort_keys=True, **kwargs):
         return json.dumps(self.as_dict(), indent=indent, sort_keys=sort_keys, **kwargs)
 
+    @staticmethod
+    def normalize_service(service: str) -> str:
+        normalized_service = service
 
+        if service.lower().startswith("http://"):
+            normalized_service = service[len("http://"):]
+        elif service.lower().startswith("https://"):
+            normalized_service = service[len("https://"):]
+
+        return normalized_service
+
+    def is_service_tls(self, service: str, context: dict) -> bool:
+        is_tls: bool = False
+
+        if service.lower().startswith("https://"):
+            is_tls = True
+
+        if context is not None:
+            if context in self.ir.tls_contexts:
+                is_tls = True
+
+        return is_tls
+
+    def get_service_url(self, service: str, context: dict) -> str:
+        normalized_service = self.normalize_service(service)
+        is_tls = self.is_service_tls(normalized_service, context)
+
+        service_url = 'tcp://%s' % normalized_service
+
+        port = 443 if is_tls else 80
+        if ':' not in normalized_service:
+            service_url = '%s:%d' % (service_url, port)
+
+        return service_url
+
+    def get_name_fields(self, service: str, context: dict, host_rewrite) -> str:
+        name_fields = None
+        is_tls = self.is_service_tls(service, context)
+
+        if is_tls:
+            name_fields = ['otls']
+
+        if context is not None:
+            if context in self.ir.tls_contexts:
+                name_fields.append(context)
+
+        if is_tls and host_rewrite:
+            name_fields.append("hr-%s" % host_rewrite)
+
+        return "_".join(name_fields) if name_fields else None
+
+    # def service_tls_check(self, svc, context, host_rewrite):
+    #     originate_tls = False
+    #     name_fields = None
+    #
+    #     if svc.lower().startswith("http://"):
+    #         originate_tls = False
+    #         svc = svc[len("http://"):]
+    #     elif svc.lower().startswith("https://"):
+    #         originate_tls = True
+    #         name_fields = [ 'otls' ]
+    #         svc = svc[len("https://"):]
+    #     elif context == True:
+    #         originate_tls = True
+    #         name_fields = [ 'otls' ]
+    #
+    #     # Separate if here because you need to be able to specify a context
+    #     # even after you say "https://" for the service.
+    #
+    #     if context and (context != True):
+    #         if context in self.tls_contexts:
+    #             name_fields = [ 'otls', context ]
+    #             originate_tls = context
+    #         else:
+    #             self.logger.error("Originate-TLS context %s is not defined" % context)
+    #
+    #     if originate_tls and host_rewrite:
+    #         name_fields.append("hr-%s" % host_rewrite)
+    #
+    #     port = 443 if originate_tls else 80
+    #     context_name = "_".join(name_fields) if name_fields else None
+    #
+    #     svc_url = 'tcp://%s' % svc
+    #
+    #     if ':' not in svc:
+    #         svc_url = '%s:%d' % (svc_url, port)
+    #
+    #     return (svc, svc_url, originate_tls, context_name)

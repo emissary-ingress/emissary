@@ -3,8 +3,6 @@ import sys
 from typing import Any, Dict, List, Optional, Type, TypeVar
 from typing import cast as typecast
 
-import yaml
-
 from ..utils import RichStatus
 from ..resource import Resource
 

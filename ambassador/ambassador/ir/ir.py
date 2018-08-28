@@ -33,6 +33,7 @@ from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
 from .irtls import IREnvoyTLS, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
+from .irtracing import IRTracing
 
 #from .VERSION import Version
 
@@ -121,7 +122,7 @@ class IR:
         #
         # ORDER MATTERS HERE.
 
-        for cls in [ IRAuth, IRRateLimit ]:
+        for cls in [IRAuth, IRRateLimit, IRTracing]:
             self.save_filter(cls(self, aconf))
 
         # Then append non-configurable cors and decoder filters
@@ -232,6 +233,7 @@ class IR:
         output.write("IR:\n")
 
         output.write("-- ambassador:\n")
+        # print(self.ambassador_module.as_dict())
         output.write("%s\n" % self.ambassador_module.as_json())
 
         output.write("-- tls_contexts:\n")
@@ -252,5 +254,6 @@ class IR:
         output.write("-- groups:\n")
 
         for group in reversed(sorted(self.groups.values(), key=lambda x: x['group_weight'])):
+            print(group.as_dict())
             output.write("%s\n" % group.as_json())
             output.flush()
