@@ -16,13 +16,13 @@ spec:
   ports:
     {{- if .Values.service.enableHttp }}
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPorts.http }}
+      targetPort: http
       protocol: TCP
       name: http
     {{- end }}
     {{- if .Values.service.enableHttps }}
     - port: 443
-      targetPort: {{ .Values.service.targetPorts.https }}
+      targetPort: https
       protocol: TCP
       name: https
     {{- end }}
