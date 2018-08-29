@@ -41,11 +41,7 @@ DOCKER_REGISTRY=$(slashify "$DOCKER_REGISTRY")
 # Default to using DOCKER_REGISTRY, but allow overriding.
 AMREG=$(slashify "${AMBASSADOR_REGISTRY:-$DOCKER_REGISTRY}")
 
-# Default to using DOCKER_REGISTRY, but allow overriding.
-STREG=$(slashify "${STATSD_REGISTRY:-$DOCKER_REGISTRY}")
-
 cat <<EOF
 export DOCKER_REGISTRY="$DOCKER_REGISTRY"
 export AMREG="$AMREG"
-export STREG="$STREG"
 EOF

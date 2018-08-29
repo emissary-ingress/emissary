@@ -19,12 +19,12 @@ It will download `kubernaut` if necessary, allocate a `kubernaut` cluster, then 
   make E2E_TEST_NAME=001-simple e2e
   ```
 
-- Running tests with a specific Ambassador(or statsd) image
+- Running tests with a specific Ambassador image
 
   This is particularly useful when you have only made changes to the end-to-end tests
 
   ```
-  make AMBASSADOR_DOCKER_IMAGE=quay.io/datawire/ambassador:0.37.0 STATSD_DOCKER_IMAGE=quay.io/datawire/statsd:0.37.0 e2e
+  make AMBASSADOR_DOCKER_IMAGE=quay.io/datawire/ambassador:0.37.0 e2e
   ```
 
 - Clean up test artifacts (among other generated junk)

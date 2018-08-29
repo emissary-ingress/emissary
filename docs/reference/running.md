@@ -10,8 +10,6 @@ Ambassador relies on Kubernetes for reliability, availability, and scalability. 
 
 The default configuration of Ambassador includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
 
-The default configuration also includes a `statsd` sidecar for collecting and forwarding StatsD statistics to your metrics infrastructure. If you are not collecting metrics, you should delete the `statsd` sidecar.
-
 ## Running as non-root
 
 Starting with Ambassador 0.35, we support running Ambassador as non-root. This is the recommended configuration, and will be the default configuration in future releases. We recommend you configure Ambassador to run as non-root as follows:

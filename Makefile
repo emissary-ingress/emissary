@@ -100,10 +100,8 @@ endif
 
 ifeq ($(DOCKER_REGISTRY), -)
 AMBASSADOR_DOCKER_REPO ?= ambassador
-STATSD_DOCKER_REPO ?= statsd
 else
 AMBASSADOR_DOCKER_REPO ?= $(DOCKER_REGISTRY)/ambassador
-STATSD_DOCKER_REPO ?= $(DOCKER_REGISTRY)/statsd
 endif
 
 DOCKER_OPTS =
@@ -112,9 +110,6 @@ NETLIFY_SITE=datawire-ambassador
 
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-
-STATSD_DOCKER_TAG ?= $(GIT_VERSION)
-STATSD_DOCKER_IMAGE ?= $(STATSD_DOCKER_REPO):$(STATSD_DOCKER_TAG)
 
 SCOUT_APP_KEY=
 
@@ -161,9 +156,6 @@ print-vars:
 	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
-	@echo "STATSD_DOCKER_REPO      = $(STATSD_DOCKER_REPO)"
-	@echo "STATSD_DOCKER_TAG       = $(STATSD_DOCKER_TAG)"
-	@echo "STATSD_DOCKER_IMAGE     = $(STATSD_DOCKER_IMAGE)"
 
 export-vars:
 	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
@@ -183,15 +175,9 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
-	@echo "export STATSD_DOCKER_REPO='$(STATSD_DOCKER_REPO)'"
-	@echo "export STATSD_DOCKER_TAG='$(STATSD_DOCKER_TAG)'"
-	@echo "export STATSD_DOCKER_IMAGE='$(STATSD_DOCKER_IMAGE)'"
 
 ambassador-docker-image:
 	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
-
-statsd-docker-image:
-	docker build -q $(DOCKER_OPTS) -t $(STATSD_DOCKER_IMAGE) ./statsd
 
 docker-login:
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
@@ -199,28 +185,20 @@ docker-login:
 
 	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_REGISTRY)
 
-docker-images: ambassador-docker-image statsd-docker-image
+docker-images: ambassador-docker-image
 
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python end-to-end/linify.py push.log; \
-		echo "PUSH $(STATSD_DOCKER_IMAGE)"; \
-		docker push $(STATSD_DOCKER_IMAGE) | python end-to-end/linify.py push.log; \
 		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
 			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python end-to-end/linify.py push.log; \
-			echo "PUSH $(STATSD_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-			docker tag $(STATSD_DOCKER_IMAGE) $(STATSD_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-			docker push $(STATSD_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python end-to-end/linify.py push.log; \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python end-to-end/linify.py push.log; \
-			echo "PUSH $(STATSD_DOCKER_REPO):$(LATEST_RC)"; \
-			docker tag $(STATSD_DOCKER_IMAGE) $(STATSD_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(STATSD_DOCKER_REPO):$(LATEST_RC) | python end-to-end/linify.py push.log; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
@@ -235,7 +213,7 @@ version:
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests: venv website-yaml
-	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE) $(STATSD_DOCKER_IMAGE)
+	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
 website-yaml:
 	mkdir -p docs/yaml
@@ -244,7 +222,7 @@ website-yaml:
 		-type f \
 		-exec sed \
 			-i''\
-			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g;s|{{STATSD_DOCKER_IMAGE}}|$(STATSD_DOCKER_REPO):$(VERSION)|g" \
+			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g" \
 			{} \;
 
 website: website-yaml
@@ -305,11 +283,8 @@ release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-		docker pull $(STATSD_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker tag $(STATSD_DOCKER_REPO):$(LATEST_RC) $(STATSD_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker push $(STATSD_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website publish-website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		make helm-update; \
