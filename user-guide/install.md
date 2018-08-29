@@ -2,9 +2,21 @@
 
 Ambassador can be installed in a variety of ways. The most common approach to installing Ambassador is directly on Kubernetes with our default, customizable manifest.
 
-| [![Kubernetes](/images/kubernetes.png)](getting-started) | 
-| --- |
-| Ambassador is designed to run in Kubernetes for production. [Deploy to Kubernetes via YAML.](getting-started) |
+## Kubernetes
+
+
+<table>
+<tr>
+<td>
+<a href="getting-started"><img src="/images/kubernetes.png"></a>
+</td>
+<td>
+Ambassador is designed to run in Kubernetes for production. <a href="getting-started">Deploy to Kubernetes via YAML</a>.
+</td>
+</tr>
+</table>
+
+## Other methods
 
 You can also install Ambassador using Helm, Docker, or Docker Compose.
 
