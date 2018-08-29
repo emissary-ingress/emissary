@@ -205,7 +205,7 @@ ifneq ($(DOCKER_REGISTRY), -)
 		exit 1; \
 	fi
 endif
-		
+
 version:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
@@ -253,7 +253,7 @@ e2e: e2e-versioned-manifests
 	fi
 
 setup-develop: venv
-	venv/bin/pip install -q -e ambassador/.
+	venv/bin/pip -v install -q -e ambassador/.
 
 test: version setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
@@ -302,8 +302,8 @@ venv: version venv/bin/activate
 
 venv/bin/activate: dev-requirements.txt ambassador/.
 	test -d venv || virtualenv venv --python python3
-	venv/bin/pip install -q -Ur dev-requirements.txt
-	venv/bin/pip install -q -e ambassador/.
+	venv/bin/pip -v install -q -Ur dev-requirements.txt
+	venv/bin/pip -v install -q -e ambassador/.
 	touch venv/bin/activate
 
 # ------------------------------------------------------------------------------
