@@ -1,6 +1,6 @@
 # Deploying Ambassador to Docker Compose for local development
 
-Docker compose is useful for local development where minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment.
+Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment.
 
 *It is important to note that any change to Ambassador's configuration using this method requires a restart of the Ambassador container and thus downtime.*
 
