@@ -189,7 +189,7 @@ class V1Listener(dict):
         return routes
 
     @classmethod
-    def generate(self, config: 'V1Config') -> List['V1Listener']:
+    def generate(cls, config: 'V1Config') -> List['V1Listener']:
         listeners: List['V1Listener'] = []
 
         for listener in config.ir.listeners:

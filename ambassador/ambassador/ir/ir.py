@@ -78,7 +78,7 @@ class IR:
         # Our initial configuration stuff is all empty...
         self.router_config = {}
         self.filters = []
-        self.tracing_config = None
+        self.tracing_config = {}
         self.listeners = []
         self.groups = {}
 
@@ -126,10 +126,9 @@ class IR:
             self.save_filter(cls(self, aconf))
 
         # Then append non-configurable cors and decoder filters
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors",
-                                  name="cors", config={}))
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router",
-                                  name="router", type="decoder", config=self.router_config))
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={}))
+        print("Router config is: {}".format(self.router_config))
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=self.router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
@@ -254,6 +253,5 @@ class IR:
         output.write("-- groups:\n")
 
         for group in reversed(sorted(self.groups.values(), key=lambda x: x['group_weight'])):
-            print(group.as_dict())
             output.write("%s\n" % group.as_json())
             output.flush()

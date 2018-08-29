@@ -4,6 +4,7 @@ from ..config import Config
 from ..utils import RichStatus
 
 from .irresource import IRResource
+from .ircluster import IRCluster
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -33,18 +34,40 @@ class IRTracing (IRResource):
             return False
 
         # Now that validations are done, we can dive in
-        config = list(aconf.get_config('tracing_configs').values())[0]
-        self.referenced_by(config)
-
-        source = config.get('source')
-        service = config.get('service')
-        driver = config.get('driver')
-        driver_config = config.get("config", {})
 
         # Not sure about host_rewrite. The original implementation has code for it, but no documentation.
         # host_rewrite = config.get("host_rewrite")
 
+        self.ir.router_config['start_child_span'] = True
+
         return True
+
+    def add_mappings(self, ir: 'IR', aconf: Config):
+        config = list(aconf.get_config('tracing_configs').values())[0]
+        self.referenced_by(config)
+
+        ir.tracing_config = {
+            'cluster_name': self.name,
+            'source': config.get('source'),
+            'service': config.get('service'),
+            'driver': config.get('driver'),
+            'driver_config': config.get("config", {}),
+            'host_rewrite': config.get("host_rewrite", None)
+        }
+
+        cluster = ir.add_cluster(
+            IRCluster(
+                ir=ir,
+                aconf=aconf,
+                location=self.location,
+                service=ir.tracing_config['service'],
+                name=self.cluster,
+                host_rewrite=ir.tracing_config['host_rewrite'],
+                source=ir.tracing_config['source']
+            )
+        )
+
+        cluster.add_url(ir.tracing_config['service'])
 
         # if tracing_config:
         #     for config in tracing_config.values():

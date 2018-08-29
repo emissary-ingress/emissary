@@ -22,6 +22,7 @@ from ...ir import IR
 from .v1admin import V1Admin
 from .v1listener import V1Listener
 from .v1clustermanager import V1ClusterManager
+from .v1tracing import V1Tracing
 
 #############################################################################
 ## v1config.py -- the Envoy V1 configuration engine
@@ -44,13 +45,14 @@ class V1Config:
 
         # print("v1.clustermgr %s" % self.clustermgr)
 
-        # self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
+        self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
 
     def as_dict(self):
         d = {
             'admin': self.admin,
             'listeners': self.listeners,
-            'cluster_manager': self.clustermgr
+            'cluster_manager': self.clustermgr,
+            'tracing': self.tracing
         }
 
         # if self.tracing:
