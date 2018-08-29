@@ -33,9 +33,13 @@ python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
     adep-tmp.yaml \
+    adep-tmp-2.yaml
+
+python ${ROOT}/yfix.py ${ROOT}/fixes/enable-statsd.yfix \
+    adep-tmp-2.yaml \
     k8s/ambassador-deployment.yaml
 
-rm -f adep-tmp.yaml
+rm -f adep-tmp*.yaml
 
 kubectl apply -f k8s/rbac.yaml
 
