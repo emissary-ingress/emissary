@@ -59,6 +59,8 @@ echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
 
+sleep 10
+
 if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1
 fi
