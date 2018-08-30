@@ -24,8 +24,7 @@ class V1Tracing(dict):
     def __init__(self, config: 'V1Config') -> None:
         super().__init__()
 
-        self['tracing'] = {
-            "http": {
+        self['http'] = {
                 "driver": {
                     "type": config.ir.tracing_config['driver'],
                     "config": {
@@ -33,7 +32,6 @@ class V1Tracing(dict):
                     }
                 }
             }
-        }
 
     @classmethod
     def generate(cls, config: 'V1Config') -> 'V1Tracing':

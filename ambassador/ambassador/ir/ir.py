@@ -127,7 +127,6 @@ class IR:
 
         # Then append non-configurable cors and decoder filters
         self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={}))
-        print("Router config is: {}".format(self.router_config))
         self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=self.router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
@@ -197,6 +196,17 @@ class IR:
 
     def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)
+
+    def add_to_listener(self, listener_name: str, **kwargs) -> bool:
+        for listener in self.listeners:
+            if listener.get('name') == listener_name:
+                listener.update(kwargs)
+                return True
+        return False
+
+    def add_to_primary_listener(self, **kwargs) -> bool:
+        primary_listener = 'ir.listener'
+        return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRMapping) -> Optional[IRMappingGroup]:
         group: Optional[IRMappingGroup] = None

@@ -47,7 +47,7 @@ class IRTracing (IRResource):
         self.referenced_by(config)
 
         ir.tracing_config = {
-            'cluster_name': self.name,
+            'cluster_name': self.cluster,
             'source': config.get('source'),
             'service': config.get('service'),
             'driver': config.get('driver'),
@@ -67,7 +67,8 @@ class IRTracing (IRResource):
             )
         )
 
-        cluster.add_url(ir.tracing_config['service'])
+        if not ir.add_to_primary_listener(tracing=True):
+            raise Exception("Failed to update primary listener with tracing config")
 
         # if tracing_config:
         #     for config in tracing_config.values():
