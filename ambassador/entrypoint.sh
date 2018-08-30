@@ -97,6 +97,33 @@ handle_int() {
     echo "Exiting due to Control-C"
 }
 
+wait_for_ready() {
+    host=$1
+    is_ready=1
+    sleep_for_seconds=4
+    while true; do
+        sleep ${sleep_for_seconds}
+        if getent hosts statsd-sink; then
+            echo "$host exists"
+            is_ready=0
+            break
+        else
+            echo "$host is not reachable, trying again in ${sleep_for_seconds} seconds ..."
+        fi
+    done
+    return ${is_ready}
+}
+
+handle_statsd() {
+    STATSD_HOST=$1
+    echo "Waiting till $STATSD_HOST is reachable"
+
+    if wait_for_ready ${STATSD_HOST}; then
+        echo "$STATSD_HOST is reachable, starting socat ..."
+        socat -d UDP-RECVFROM:8125,fork UDP-SENDTO:${STATSD_HOST}:8125
+    fi
+}
+
 # set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
@@ -120,6 +147,14 @@ pids="${pids:+${pids} }${RESTARTER_PID}:envoy"
 
 /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${RESTARTER_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
+
+if [ "$(echo ${STATSD_ENABLED} | tr "[:upper:]" "[:lower:]")" = "true" ]; then
+    echo "STATSD_ENABLED is set to true"
+    STATSD_HOST="statsd-sink"
+    handle_statsd ${STATSD_HOST} &
+else
+    echo "STATSD_ENABLED is not set to true, no stats will be exposed"
+fi
 
 echo "AMBASSADOR: waiting"
 echo "PIDS: $pids"

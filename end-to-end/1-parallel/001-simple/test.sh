@@ -33,9 +33,13 @@ python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
     adep-tmp.yaml \
+    adep-tmp-2.yaml
+
+python ${ROOT}/yfix.py ${ROOT}/fixes/enable-statsd.yfix \
+    adep-tmp-2.yaml \
     k8s/ambassador-deployment.yaml
 
-rm -f adep-tmp.yaml
+rm -f adep-tmp*.yaml
 
 kubectl apply -f k8s/rbac.yaml
 
@@ -58,6 +62,8 @@ echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
+
+sleep 10
 
 if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1

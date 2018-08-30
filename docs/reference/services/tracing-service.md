@@ -16,11 +16,19 @@ name: tracing
 service: "example-zipkin:9411"
 driver: zipkin
 config: {}
+tag_headers:
+- ":authority"
+- ":path"
 ```
 
 - `service` gives the URL of the external HTTP trace service.
 - `driver` provides the driver information that handles communicating with the `service`. Supported values are `lightstep` and `zipkin`.
 - `config` provides additional configuration options for the selected `driver`.
+- `tag_headers` (optional) if present, specifies a list of other HTTP request headers which will be used as tags in the trace's span.
+
+Please note that you must use the HTTP/2 preudo-header names. For example:
+- the `host` header should be specified as the `:authority` header; and
+- the `method` header should be specified as the `:method` header.
 
 ##### `lightstep` driver configurations:
 - `access_token_file` provides the location of the file containing the access token to the LightStep API.

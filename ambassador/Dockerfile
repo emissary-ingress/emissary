@@ -41,7 +41,7 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-RUN apk --no-cache add curl python3
+RUN apk --no-cache add curl python3 socat
 
 # Set WORKDIR to /ambassador which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a

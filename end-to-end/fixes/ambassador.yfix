@@ -6,4 +6,3 @@ SET spec/template/spec/containers/0/imagePullPolicy Always
 DELETE spec/template/spec/containers/0/livenessProbe
 DELETE spec/template/spec/containers/0/readinessProbe
 DELETE spec/template/spec/containers/0/resources
-SET spec/template/spec/containers/1/image $2
