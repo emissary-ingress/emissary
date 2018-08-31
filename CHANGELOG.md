@@ -1,11 +1,5 @@
 # Changelog
 
-## WARNING WARNING WARNING
-
-**Ambassador 0.35.0 partially fixes support for websockets.** Please read the description of 0.35.0 below for more information.
-
-**Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is fixed in 0.35.0, but read the description below for an important caveat.
-
 ## BREAKING NEWS
 
 - In Ambassador 0.36.0, the Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
@@ -25,12 +19,6 @@
 - Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above. This bug is fixed in Ambassador 0.35.0.
 
 - As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
-
-- As of **0.26.0**, the `authentication` module is deprecated in favor of the `AuthService` resource type, as discussed in [the Ambassador reference](https://getambassador.io/docs/reference/module).
-
-- As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
-
-- The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
 <!---
 Add release notes right after this point.
@@ -286,6 +274,7 @@ You can also use `adminService.type=LoadBalancer`.
 
 ### Changed
 
+- The `authentication` module is deprecated in favor of the `AuthService` resource type.
 - Support redirecting cleartext connections on port 80 to HTTPS on port 443
 - Streamline end-to-end tests and, hopefully, allow them to work well without Kubernaut
 - Clean up some documentation (thanks @lavoiedn!)
