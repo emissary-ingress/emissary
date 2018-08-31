@@ -8,8 +8,32 @@ As an example, for a given service `usersvc`, here are some interesting statisti
 - `envoy.cluster.usersvc_cluster.upstream_rq_2xx` is the total number of requests to which `usersvc` responded with an HTTP response indicating success. This value divided by the prior one, taken on an rolling window basis, represents the recent success rate of the service. There are corresponding `4xx` and `5xx` counters that can help clarify the nature of unsuccessful requests.
 - `envoy.cluster.usersvc_cluster.upstream_rq_time` is a StatsD timer that tracks the latency in milliseconds of `usersvc` from Ambassador's perspective. StatsD timers include information about means, standard deviations, and decile values.
 
-Statistics are exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol. Ambassador automatically sends statistics information to a Kubernetes service called `statsd-sink` using typical StatsD protocol settings, UDP to port 8125. We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
+#### Exposing statistics via StatsD
 
+Statistics are exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol.
+
+To expose statistics via StatsD, you will need to set an environment variable `STATSD_ENABLED: true` to Ambassador's Kubernetes Deployment YAML. To set this environment variable, run `kubectl edit deployment ambassador` and add the variable to `spec.template.spec.containers[0].env`.
+
+The YAML snippet will look something like -
+
+```yaml
+<redacted>
+    spec:
+      containers:
+      - env:
+        - name: STATSD_ENABLED
+          value: "true"
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: <ambassador image>
+        imagePullPolicy: IfNotPresent
+<redacted>
+```
+
+ Ambassador automatically sends statistics information to a Kubernetes service called `statsd-sink` using typical StatsD protocol settings, UDP to port 8125. We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
 
 ## Graphite
 
