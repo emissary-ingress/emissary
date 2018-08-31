@@ -57,15 +57,16 @@ Format:
 
 ### Major Changes:
 
-- BugFix: The statsd container has been removed by default in order to avoid DoSing kubernetes dns. The functionality can be re-enabled by setting the `STATSD_ENABLED` environment varibale to `true` in the ambassador deployment yaml.
-- Docs: Added detailed Ambassador + Istio Integration Documentation. - @feitnomore
+- BugFix: The statsd container has been removed by default in order to avoid DoSing Kubernetes DNS. The functionality can be re-enabled by setting the `STATSD_ENABLED` environment variable to `true` in the Ambassador deployment YAML (#568).
+- Docs: Added detailed Ambassador + Istio Integration Documentation on monitoring and distributed tracing. - @feitnomore
 
 ### Minor Changes:
 
-- Docs: Added instructions for running ambassador with docker compose. - @bcatcho
-- BugFix: Fix ambassador to more aggressively reconnect to kubernetes. - @nmatsui
-- Feature: Diagnostic view displays AuthService, RateLimitService, and TracingService. - @alexgervais
-- Feature: Enable Ambassador to tag tracing spans with request headers. - @alexgervais
+- Docs: Added instructions for running Ambassador with Docker Compose. - @bcatcho
+- BugFix: Fix Ambassador to more aggressively reconnect to Kubernetes (#554). - @nmatsui
+- Feature: Diagnostic view displays AuthService, RateLimitService, and TracingService (#730). - @alexgervais
+- Feature: Enable Ambassador to tag tracing spans with request headers via `tag_headers`. - @alexgervais
+
 ## [0.38.0] August 08, 2018
 [0.38.0]: https://github.com/datawire/ambassador/compare/0.37.0...0.38.0
 
