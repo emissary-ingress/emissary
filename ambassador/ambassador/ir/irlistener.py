@@ -13,7 +13,6 @@ class IRListener (IRResource):
                  service_port: int,
                  require_tls: bool,
                  use_proxy_proto: bool,
-                 use_remote_address: Optional[bool]=None,
 
                  rkey: str="ir.listener",
                  kind: str="IRListener",
@@ -26,7 +25,6 @@ class IRListener (IRResource):
             service_port=service_port,
             require_tls=require_tls,
             use_proxy_proto=use_proxy_proto,
-            use_remote_address=use_remote_address,
             **kwargs)
 
 class ListenerFactory:
@@ -40,9 +38,6 @@ class ListenerFactory:
             require_tls=amod.get('x_forwarded_proto_redirect', False),
             use_proxy_proto=amod.use_proxy_proto,
         )
-
-        if 'use_remote_address' in amod:
-            primary_listener.use_remote_address = amod.use_remote_address
 
         # If x_forwarded_proto_redirect is set, then we enable require_tls in primary listener,
         # which in turn sets require_ssl to true in envoy aconf. Once set, then all requests
@@ -76,7 +71,7 @@ class ListenerFactory:
             )
 
             if 'use_remote_address' in amod:
-                new_listener.use_remote_address = amod.use_remote_address
+                ir.ambassador_module.use_remote_address = True
 
             ir.add_listener(new_listener)
 

@@ -30,6 +30,9 @@ import yaml
 from kubernetes import watch
 from ambassador.config import Config
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, check_cert_file, TLSPaths
+from ambassador.cli import fetch_resources
+from ambassador.ir import IR
+from ambassador.envoy.v1.v1config import V1Config
 
 from ambassador.VERSION import Version
 
@@ -163,15 +166,25 @@ class Restarter(threading.Thread):
         logger.info("generating config with gencount %d (%d change%s)" % 
                     (self.restart_count, changes, plural))
 
-        aconf = Config(output)
-        rc = aconf.generate_envoy_config(mode="kubewatch",
-                                         generation_count=self.restart_count)
+        resources = fetch_resources(output)
+        aconf = Config()
+        aconf.load_all(resources)
+        ir = IR(aconf)
+        v1config = V1Config(ir)
 
-        logger.info("Scout reports %s" % json.dumps(rc.scout_result))       
+        envoy_config = "%s-%s" % (output, "envoy.json")
+        with open(envoy_config, "w") as o:
+            o.write(v1config.as_json())
+            o.write("\n")
 
-        if rc:
-            envoy_config = "%s-%s" % (output, "envoy.json")
-            aconf.pretty(rc.envoy_config, out=open(envoy_config, "w"))
+    # rc = aconf.generate_envoy_config(mode="kubewatch",
+        #                                  generation_count=self.restart_count)
+
+        # logger.info("Scout reports %s" % json.dumps(rc.scout_result))
+
+        if v1config:
+            # envoy_config = "%s-%s" % (output, "envoy.json")
+            # aconf.pretty(v1config.envoy_config, out=open(envoy_config, "w"))
             try:
                 result = subprocess.check_output(["/usr/local/bin/envoy", "--base-id", "1", "--mode", "validate",
                                                   "-c", envoy_config])
@@ -183,9 +196,9 @@ class Restarter(threading.Thread):
                 with open(envoy_config) as fd:
                     logger.info(fd.read())
         else:
-            logger.info("Could not generate new Envoy configuration: %s" % rc.error)
+            # logger.info("Could not generate new Envoy configuration: %s" % rc.error)
             logger.info("Raw template output:")
-            logger.info("%s" % rc.raw)
+            # logger.info("%s" % rc.raw)
 
         raise ValueError("Unable to generate config")
 

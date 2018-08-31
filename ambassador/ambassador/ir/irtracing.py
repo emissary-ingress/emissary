@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class IRTracing (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.tracing",
-                 kind: str="IRTracing",
+                 kind: str="ir.tracing",
                  name: str="tracing",
                  **kwargs) -> None:
 
@@ -39,7 +39,6 @@ class IRTracing (IRResource):
         # host_rewrite = config.get("host_rewrite")
 
         self.ir.router_config['start_child_span'] = True
-
         return True
 
     def add_mappings(self, ir: 'IR', aconf: Config):
