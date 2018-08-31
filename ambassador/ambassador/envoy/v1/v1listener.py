@@ -139,8 +139,9 @@ class V1Listener(dict):
             if "use_websocket" in group:
                 route["use_websocket"] = group.use_websocket
 
-            if "headers" in group:
+            if len(group.get('headers', [])) > 0:
                 route["headers"] = group.headers
+            # print(len(group.get('headers', [])) > 0)
 
             if group.get("host_redirect", None):
                 route["host_redirect"] = typecast(IRMapping, group.host_redirect).service
