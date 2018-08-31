@@ -7,12 +7,12 @@ https://github.com/datawire/ambassador-pro
 ## Developer Documentation
 
 ### Releasing
-
-`docker build . -t quay.io/ambassador-pro/ambassador-pro:0.1`
-`docker push quay.io/datawire/ambassador-pro:0.1`
+```
+$ docker build . -t quay.io/ambassador-pro/ambassador-pro:0.1
+$ docker push quay.io/datawire/ambassador-pro:0.1`
+```
 
 ### Older documentation
-
 1. First build a docker image: `docker build . -t <blah>:<bleh>`
 2. Write a k8s deployment manifests that either sets the environment variables or
 mounts a .env file appropriately.
@@ -20,9 +20,9 @@ mounts a .env file appropriately.
    
 4. Create the policy crd: `kubectl apply -f policy-crc.yaml`
 6. Write a service with ambassador annotation that looks something like this. Note the `allowed_headers` stuff, that is
-   important:
+  important:
 
-   ```
+  ```
    ---
    apiVersion: v1
    kind: Service
@@ -46,7 +46,7 @@ mounts a .env file appropriately.
      - protocol: TCP
        port: 80
        targetPort: 8080
-```
+  ```
 
    XXX: In practice we probably want to deploy this as a sidecar, but I'm
    not 100% sure how we would tell ambassador to route to that. I'm

@@ -14,22 +14,27 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
-	"net/http"
-	"strings"
-	"errors"
 	"log"
+	"net/http"
 	"os"
+	"strings"
 	"sync/atomic"
+	"time"
 
+	jw "github.com/auth0/go-jwt-middleware"
 	"github.com/codegangsta/negroni"
-	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gobwas/glob"
 	"github.com/joho/godotenv"
 	ms "github.com/mitchellh/mapstructure"
 )
+
+func init() {
+	// If version is not set, make that clear.
+}
 
 type Response struct {
 	Message string `json:"message"`
@@ -40,17 +45,17 @@ type Jwks struct {
 }
 
 type JSONWebKeys struct {
-	Kty string `json:"kty"`
-	Kid string `json:"kid"`
-	Use string `json:"use"`
-	N string `json:"n"`
-	E string `json:"e"`
+	Kty string   `json:"kty"`
+	Kid string   `json:"kid"`
+	Use string   `json:"use"`
+	N   string   `json:"n"`
+	E   string   `json:"e"`
 	X5c []string `json:"x5c"`
 }
 
 type Rule struct {
-	Host string
-	Path string
+	Host   string
+	Path   string
 	Public bool
 	Scopes string
 }
@@ -97,9 +102,15 @@ func main() {
 		newRules := make([]Rule, 0)
 		for _, un := range uns {
 			spec, ok := un["spec"].(map[string]interface{})
-			if !ok { log.Printf("malformed object, bad spec: %v", uns); continue }
+			if !ok {
+				log.Printf("malformed object, bad spec: %v", uns)
+				continue
+			}
 			unrules, ok := spec["rules"].([]interface{})
-			if !ok { log.Printf("malformed object, bad rules: %v", uns); continue }
+			if !ok {
+				log.Printf("malformed object, bad rules: %v", uns)
+				continue
+			}
 
 			for _, ur := range unrules {
 				rule := Rule{}
@@ -121,33 +132,50 @@ func main() {
 	}
 
 	common := negroni.Classic()
-	common.UseFunc(func (rw http.ResponseWriter, rq *http.Request, next http.HandlerFunc) {
-		client_id := rq.Header.Get("Client-Id")
-		client_secret := rq.Header.Get("Client-Secret")
+	common.UseFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		client_id := r.Header.Get("Client-Id")
+		client_secret := r.Header.Get("Client-Secret")
 		if client_id != "" {
 			auth, err := clientCredentials(client_id, client_secret)
 			if err != nil {
 				log.Println(err)
 			} else {
-				rq.Header.Set("Authorization", fmt.Sprintf("%s %s", auth.Type, auth.Token))
+				r.Header.Set("Authorization", fmt.Sprintf("%s %s", auth.Type, auth.Token))
 			}
 		}
-		next(rw, rq)
+		next(w, r)
 	})
 
-	jwtMware := jwtmiddleware.New(jwtmiddleware.Options {
+	jwtMware := jw.New(jw.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+			c := token.Claims.(jwt.MapClaims)
+
 			// Verify 'aud' claim
-			aud := os.Getenv("AUTH0_AUDIENCE")
-			checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-			if !checkAud {
-				return token, errors.New("Invalid audience.")
+			if !c.VerifyAudience(os.Getenv("AUTH0_AUDIENCE"), false) {
+				return token, errors.New("Invalid audience")
 			}
+
 			// Verify 'iss' claim
-			iss := "https://" + os.Getenv("AUTH0_DOMAIN") + "/"
-			checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
-			if !checkIss {
-				return token, errors.New("Invalid issuer.")
+			// TODO(gsagula): this doesn't need to be allocated everytime.
+			iss := fmt.Sprintf("https://%s/", os.Getenv("AUTH0_DOMAIN"))
+			if !c.VerifyIssuer(iss, false) {
+				return token, errors.New("Invalid issuer")
+			}
+
+			// Verify 'exp'
+			now := time.Now().Unix()
+			if c.VerifyExpiresAt(now, false) == false {
+				return token, errors.New("Token is expired")
+			}
+
+			// Verify `iat`
+			if c.VerifyIssuedAt(now, false) == false {
+				return token, errors.New("Token used before issued")
+			}
+
+			// Verify `iat`
+			if c.VerifyNotBefore(now, false) == false {
+				return token, errors.New("Token is not valid yet")
 			}
 
 			cert, err := getPemCert(token)
@@ -158,29 +186,29 @@ func main() {
 			result, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 			return result, nil
 		},
-		SigningMethod: jwt.SigningMethodRS256,
+		SigningMethod:       jwt.SigningMethodRS256,
 		CredentialsOptional: true,
 	})
 
 	common.UseFunc(jwtMware.HandlerWithNext)
 
-	common.UseHandlerFunc(func (rw http.ResponseWriter, rq *http.Request) {
-		public, scopes := policy(rq.Method, rq.Host, rq.URL.Path)
+	common.UseHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		public, scopes := policy(r.Method, r.Host, r.URL.Path)
 		if !public {
-			token, _ := rq.Context().Value(jwtMware.Options.UserProperty).(*jwt.Token)
+			token, _ := r.Context().Value(jwtMware.Options.UserProperty).(*jwt.Token)
 			if token == nil {
-				responseJSON("unauthorized", rw, rq, http.StatusUnauthorized)
+				responseJSON("unauthorized", w, r, http.StatusUnauthorized)
 				return
 			} else {
 				for _, scope := range scopes {
 					if !checkScope(scope, token.Raw) {
-						responseJSON("forbidden", rw, rq, http.StatusForbidden)
+						responseJSON("forbidden", w, r, http.StatusForbidden)
 						return
 					}
 				}
 			}
 		}
-		responseJSON("allowed", rw, rq, http.StatusOK)
+		responseJSON("allowed", w, r, http.StatusOK)
 	})
 
 	fmt.Println("Listening on http://localhost:8080")
@@ -188,29 +216,33 @@ func main() {
 }
 
 type AuthRequest struct {
-	ClientId string `json:"client_id"`
+	ClientId     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
-	Audience string `json:"audience"`
-	GrantType string `json:"grant_type"`
+	Audience     string `json:"audience"`
+	GrantType    string `json:"grant_type"`
 }
 
 type AuthResponse struct {
 	Token string `json:"access_token"`
-	Type string `json:"token_type"`
+	Type  string `json:"token_type"`
 }
 
 func clientCredentials(client_id, client_secret string) (auth AuthResponse, err error) {
 	req := AuthRequest{
-		ClientId: client_id,
+		ClientId:     client_id,
 		ClientSecret: client_secret,
-		Audience: os.Getenv("AUTH0_AUDIENCE"),
-		GrantType: "client_credentials",
+		Audience:     os.Getenv("AUTH0_AUDIENCE"),
+		GrantType:    "client_credentials",
 	}
 	body, err := json.Marshal(req)
-	if err != nil { return }
-	resp, err := http.Post("https://" + os.Getenv("AUTH0_DOMAIN") + "/oauth/token", "application/json",
+	if err != nil {
+		return
+	}
+	resp, err := http.Post("https://"+os.Getenv("AUTH0_DOMAIN")+"/oauth/token", "application/json",
 		bytes.NewReader(body))
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
 		err = json.NewDecoder(resp.Body).Decode(&auth)
