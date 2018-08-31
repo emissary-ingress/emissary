@@ -27,6 +27,8 @@ service:
   #     config:
   #       diagnostics:
   #         enabled: false
+  # loadBalancerSourceRanges:
+  #   - YOUR_IP_RANGE
 
 adminService:
   create: true

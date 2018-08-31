@@ -1,6 +1,6 @@
 # Ambassador
 
-Ambassador is an open source, Kubernetes-native [microservices API gateway](https://www.getambassador.io/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io/). 
+Ambassador is an open source, Kubernetes-native [microservices API gateway](https://www.getambassador.io/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io/).
 
 ## TL;DR;
 
@@ -11,7 +11,7 @@ $ helm install datawire/ambassador
 
 ## Introduction
 
-This chart bootstraps an [Ambassador](https://www.getambassador.io) deployment on 
+This chart bootstraps an [Ambassador](https://www.getambassador.io) deployment on
 a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 ## Prerequisites
@@ -26,7 +26,7 @@ To install the chart with the release name `my-release`:
 $ helm install --name my-release datawire/ambassador
 ```
 
-The command deploys Ambassador API gateway on the Kubernetes cluster in the default configuration. 
+The command deploys Ambassador API gateway on the Kubernetes cluster in the default configuration.
 The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 ## Uninstalling the Chart
@@ -45,11 +45,11 @@ The following tables lists the configurable parameters of the Ambassador chart a
 
 | Parameter                       | Description                                | Default                                                    |
 | ------------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| `image.repository` | Image | `quay.io/datawire/ambassador` 
-| `image.tag` | Image tag | `0.35.0` 
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` 
-| `replicaCount`  | Number of Ambassador replicas  | `1` 
-| `resources` | CPU/memory resource requests/limits | None 
+| `image.repository` | Image | `quay.io/datawire/ambassador`
+| `image.tag` | Image tag | `0.35.0`
+| `image.pullPolicy` | Image pull policy | `IfNotPresent`
+| `replicaCount`  | Number of Ambassador replicas  | `1`
+| `resources` | CPU/memory resource requests/limits | None
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
 | `serviceAccount.create` | If `true`, create a new service account | `true`
 | `serviceAccount.name` | Service account to be used | `ambassador`
@@ -59,6 +59,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `service.targetPorts.https` | Sets the targetPort that maps to the service's port 443 | `443`
 | `service.type` | Service type to be used | `LoadBalancer`
 | `service.annotations` | Annotations to apply to Ambassador service | none
+| `service.loadBalancerSourceRanges` | Passed to cloud provider load balancer if created (e.g: AWS ELB) | none
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`
 | `adminService.type` | Ambassador's admin service type to be used | `ClusterIP`
 | `exporter.image` | Prometheus exporter image | `datawire/prom-statsd-exporter:0.6.0`
