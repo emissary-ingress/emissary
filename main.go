@@ -22,7 +22,6 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
-	"time"
 
 	jw "github.com/auth0/go-jwt-middleware"
 	"github.com/codegangsta/negroni"
@@ -162,22 +161,6 @@ func main() {
 				return token, errors.New("Invalid issuer")
 			}
 
-			// Verify 'exp'
-			now := time.Now().Unix()
-			if c.VerifyExpiresAt(now, false) == false {
-				return token, errors.New("Token is expired")
-			}
-
-			// Verify `iat`
-			if c.VerifyIssuedAt(now, false) == false {
-				return token, errors.New("Token used before issued")
-			}
-
-			// Verify `iat`
-			if c.VerifyNotBefore(now, false) == false {
-				return token, errors.New("Token is not valid yet")
-			}
-
 			cert, err := getPemCert(token)
 			if err != nil {
 				panic(err.Error())
@@ -197,22 +180,37 @@ func main() {
 		if !public {
 			token, _ := r.Context().Value(jwtMware.Options.UserProperty).(*jwt.Token)
 			if token == nil {
-				responseJSON("unauthorized", w, r, http.StatusUnauthorized)
+				redirect(w, r)
 				return
-			} else {
-				for _, scope := range scopes {
-					if !checkScope(scope, token.Raw) {
-						responseJSON("forbidden", w, r, http.StatusForbidden)
-						return
-					}
+			}
+
+			if err := token.Claims.Valid(); err != nil {
+				redirect(w, r)
+				return
+			}
+
+			for _, scope := range scopes {
+				if !checkScope(scope, token.Raw) {
+					responseJSON("forbidden", w, r, http.StatusForbidden)
+					return
 				}
 			}
 		}
+
 		responseJSON("allowed", w, r, http.StatusOK)
 	})
 
 	fmt.Println("Listening on http://localhost:8080")
 	http.ListenAndServe("0.0.0.0:8080", common)
+}
+
+func redirect(w http.ResponseWriter, r *http.Request) {
+	target := "https://" + r.Host + r.URL.Path
+	if len(r.URL.RawQuery) > 0 {
+		target += "?" + r.URL.RawQuery
+	}
+	log.Printf("redirect to: %s", target)
+	http.Redirect(w, r, target, http.StatusTemporaryRedirect)
 }
 
 type AuthRequest struct {
@@ -238,7 +236,7 @@ func clientCredentials(client_id, client_secret string) (auth AuthResponse, err 
 	if err != nil {
 		return
 	}
-	resp, err := http.Post("https://"+os.Getenv("AUTH0_DOMAIN")+"/oauth/token", "application/json",
+	resp, err := http.Post(fmt.Sprintf("https://%s/oauth/token", os.Getenv("AUTH0_DOMAIN")), "application/json",
 		bytes.NewReader(body))
 	if err != nil {
 		return
