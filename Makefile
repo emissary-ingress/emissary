@@ -222,7 +222,7 @@ website-yaml:
 		-type f \
 		-exec sed \
 			-i''\
-			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g;" \
+			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g" \
 			{} \;
 
 website: website-yaml

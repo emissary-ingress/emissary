@@ -75,7 +75,7 @@ kubectl apply -f k8s/auth-2.yaml
 wait_for_pods ${NAMESPACE}
 
 wait_for_extauth_enabled "$BASEURL"
-sleep 5 # Not sure why this is sometimes relevant.
+sleep 20 # Not sure why this is sometimes relevant.
 
 if ! check_diag "$BASEURL" 3 "Auth 1 and 2"; then
     exit 1
