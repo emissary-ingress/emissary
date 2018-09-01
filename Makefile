@@ -1,7 +1,9 @@
+.SHELL: /bin/bash
+
 .PHONY: run
 run: build
 	@echo " >>> running oauth server"
-	./ambassador-oauth ] 
+	./ambassador-oauth 
 
 .PHONY: build
 build: tools vendor
@@ -11,7 +13,7 @@ build: tools vendor
 .PHONY: clean
 clean:
 	@echo " >>> cleaning compiled objects and binaries"
-	@go clean -tags netgo -i ./...
+	@go clean -i ./...
 
 vendor:
 	@echo " >>> installing dependencies"

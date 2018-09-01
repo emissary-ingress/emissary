@@ -189,6 +189,7 @@ func main() {
 				return
 			}
 
+			// We might need to do consent here.
 			for _, scope := range scopes {
 				if !checkScope(scope, token.Raw) {
 					responseJSON("forbidden", w, r, http.StatusForbidden)
