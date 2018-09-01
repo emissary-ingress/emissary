@@ -3,9 +3,19 @@ FROM golang:1.10.3-alpine3.8
 # install git
 RUN apk add git openssl && rm /var/cache/apk/*
 
-WORKDIR /go/src
-ADD . /go/src
+RUN  mkdir -p /go/src \
+  && mkdir -p /go/bin \
+  && mkdir -p /go/pkg
 
-CMD ["go", "run", "controller.go", "main.go"]
+ENV GOPATH=/go
+ENV PATH=$GOPATH/bin:$PATH 
+
+RUN mkdir -p $GOPATH/src/app 
+ADD . $GOPATH/src/app
+
+WORKDIR $GOPATH/src/app 
+RUN go install 
+
+CMD ["app"]
 
 EXPOSE 8080

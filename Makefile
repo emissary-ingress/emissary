@@ -1,14 +1,14 @@
 .SHELL: /bin/bash
 
 .PHONY: run
-run: build
+run: install
 	@echo " >>> running oauth server"
-	./ambassador-oauth 
+	ambassador-oauth 
 
-.PHONY: build
-build: tools vendor
+.PHONY: install
+install: tools vendor
 	@echo " >>> building"
-	@go build ./...
+	@go install
 
 .PHONY: clean
 clean:
