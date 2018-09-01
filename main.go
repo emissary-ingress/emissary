@@ -23,7 +23,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	jw "github.com/auth0/go-jwt-middleware"
+	jwtmid "github.com/auth0/go-jwt-middleware"
 	"github.com/codegangsta/negroni"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gobwas/glob"
@@ -31,18 +31,17 @@ import (
 	ms "github.com/mitchellh/mapstructure"
 )
 
-func init() {
-	// If version is not set, make that clear.
-}
-
+// Response TODO(gsagula): comment
 type Response struct {
 	Message string `json:"message"`
 }
 
+// Jwks TODO(gsagula): comment
 type Jwks struct {
 	Keys []JSONWebKeys `json:"keys"`
 }
 
+// JSONWebKeys TODO(gsagula): comment
 type JSONWebKeys struct {
 	Kty string   `json:"kty"`
 	Kid string   `json:"kid"`
@@ -52,6 +51,7 @@ type JSONWebKeys struct {
 	X5c []string `json:"x5c"`
 }
 
+// Rule TODO(gsagula): comment
 type Rule struct {
 	Host   string
 	Path   string
@@ -132,10 +132,10 @@ func main() {
 
 	common := negroni.Classic()
 	common.UseFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		client_id := r.Header.Get("Client-Id")
-		client_secret := r.Header.Get("Client-Secret")
-		if client_id != "" {
-			auth, err := clientCredentials(client_id, client_secret)
+		cid := r.Header.Get("Client-Id")
+		secret := r.Header.Get("Client-Secret")
+		if cid != "" {
+			auth, err := clientCredentials(cid, secret)
 			if err != nil {
 				log.Println(err)
 			} else {
@@ -145,17 +145,16 @@ func main() {
 		next(w, r)
 	})
 
-	jwtMware := jw.New(jw.Options{
+	jwtMware := jwtmid.New(jwtmid.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			c := token.Claims.(jwt.MapClaims)
-
 			// Verify 'aud' claim
 			if !c.VerifyAudience(os.Getenv("AUTH0_AUDIENCE"), false) {
 				return token, errors.New("Invalid audience")
 			}
 
 			// Verify 'iss' claim
-			// TODO(gsagula): this doesn't need to be allocated everytime.
+			// TODO(gsagula): this string doesn't need to be instantianted everytime. Inspect other occurrences in the code.
 			iss := fmt.Sprintf("https://%s/", os.Getenv("AUTH0_DOMAIN"))
 			if !c.VerifyIssuer(iss, false) {
 				return token, errors.New("Invalid issuer")
@@ -185,11 +184,12 @@ func main() {
 			}
 
 			if err := token.Claims.Valid(); err != nil {
+				// TODO(gsagula): consider logging the error.
 				redirect(w, r)
 				return
 			}
 
-			// We might need to do consent here.
+			// TODO(gsagula): considere redirecting to consent uri and logging the error.
 			for _, scope := range scopes {
 				if !checkScope(scope, token.Raw) {
 					responseJSON("forbidden", w, r, http.StatusForbidden)
@@ -206,6 +206,7 @@ func main() {
 }
 
 func redirect(w http.ResponseWriter, r *http.Request) {
+	// TODO(gsagula): need the correct target.
 	target := "https://" + r.Host + r.URL.Path
 	if len(r.URL.RawQuery) > 0 {
 		target += "?" + r.URL.RawQuery
@@ -214,22 +215,24 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, target, http.StatusTemporaryRedirect)
 }
 
+// AuthRequest TODO(gsagula): comment
 type AuthRequest struct {
-	ClientId     string `json:"client_id"`
+	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
 	Audience     string `json:"audience"`
 	GrantType    string `json:"grant_type"`
 }
 
+// AuthResponse TODO(gsagula): comment
 type AuthResponse struct {
 	Token string `json:"access_token"`
 	Type  string `json:"token_type"`
 }
 
-func clientCredentials(client_id, client_secret string) (auth AuthResponse, err error) {
+func clientCredentials(cid, secret string) (auth AuthResponse, err error) {
 	req := AuthRequest{
-		ClientId:     client_id,
-		ClientSecret: client_secret,
+		ClientID:     cid,
+		ClientSecret: secret,
 		Audience:     os.Getenv("AUTH0_AUDIENCE"),
 		GrantType:    "client_credentials",
 	}
@@ -251,6 +254,7 @@ func clientCredentials(client_id, client_secret string) (auth AuthResponse, err 
 	return
 }
 
+// CustomClaims TODO(gsagula): comment
 type CustomClaims struct {
 	Scope string `json:"scope"`
 	jwt.StandardClaims
@@ -276,18 +280,17 @@ var pemCert = ""
 
 func getPemCert(token *jwt.Token) (string, error) {
 	var err error
+	// TODO(gsagula): does this ever evaluate to true?
 	if pemCert != "" {
 		return pemCert, nil
-	} else {
-		pemCert, err = getPemCertUncached(token)
-		return pemCert, err
 	}
+	pemCert, err := getPemCertUncached(token)
+	return pemCert, err
 }
 
 func getPemCertUncached(token *jwt.Token) (string, error) {
 	cert := ""
-	resp, err := http.Get("https://" + os.Getenv("AUTH0_DOMAIN") + "/.well-known/jwks.json")
-
+	resp, err := http.Get(fmt.Sprintf("https://%s/.well-known/jwks.json", os.Getenv("AUTH0_DOMAIN")))
 	if err != nil {
 		return cert, err
 	}
@@ -300,14 +303,14 @@ func getPemCertUncached(token *jwt.Token) (string, error) {
 		return cert, err
 	}
 
-	for k, _ := range jwks.Keys {
+	for k := range jwks.Keys {
 		if token.Header["kid"] == jwks.Keys[k].Kid {
 			cert = "-----BEGIN CERTIFICATE-----\n" + jwks.Keys[k].X5c[0] + "\n-----END CERTIFICATE-----"
 		}
 	}
 
 	if cert == "" {
-		err := errors.New("Unable to find appropriate key.")
+		err := errors.New("Unable to find appropriate key")
 		return cert, err
 	}
 

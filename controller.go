@@ -1,38 +1,39 @@
 package main
 
 import (
-	//	"log"
 	"os"
 	"os/user"
 	"path/filepath"
 	"time"
-	//	"k8s.io/api/core/v1"
-	//	"k8s.io/apimachinery/pkg/fields"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
-	//	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+// LW TODO(gsagula): comment
 type LW struct {
 	resource dynamic.NamespaceableResourceInterface
 }
 
+// List TODO(gsagula): comment
 func (lw LW) List(options v1.ListOptions) (runtime.Object, error) {
 	return lw.resource.List(options)
 }
 
+// Watch TODO(gsagula): comment
 func (lw LW) Watch(options v1.ListOptions) (watch.Interface, error) {
 	return lw.resource.Watch(options)
 }
 
+// Controller TODO(gsagula): comment
 func controller(kubeconfig string, reconciler func([]map[string]interface{})) {
 	var config *rest.Config
 	var err error
@@ -66,10 +67,6 @@ func controller(kubeconfig string, reconciler func([]map[string]interface{})) {
 		Version:  "v1beta1",
 		Resource: "policies",
 	})
-	/*	resource := dyn.Resource(schema.GroupVersionResource {
-		Version: "v1",
-		Resource: "services",
-	})*/
 
 	var store cache.Store
 
