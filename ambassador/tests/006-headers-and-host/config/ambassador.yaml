@@ -1,0 +1,12 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  cors:
+    origins: http://foo.example,http://bar.example
+    methods: POST, GET, OPTIONS
+    headers: Content-Type
+    credentials: true
+    exposed_headers: X-Custom-Header
+    max_age: "86400"

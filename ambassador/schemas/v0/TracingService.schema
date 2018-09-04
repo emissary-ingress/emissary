@@ -23,6 +23,10 @@
                 "collector_endpoint": { "type": "string" }
             },
             "additionalProperties": false
+        },
+        "tag_headers": {
+            "type": "array",
+            "items": { "type": "string" }
         }
     },
     "required": [ "apiVersion", "kind", "name", "driver", "service" ],

@@ -175,7 +175,11 @@
                 "config": {
                     "collector_cluster": "cluster_ext_tracing"
                 },
-                "driver": "zipkin"
+                "driver": "zipkin",
+                "tag_headers": [
+                    ":authority",
+                    ":path"
+                ]
             }
         ]
     },
@@ -226,7 +230,7 @@
             "kind": "TracingService",
             "name": "tracing",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing:5000\n"
+            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing:5000\ntag_headers:\n- :authority\n- :path\n"
         }
     }
 }

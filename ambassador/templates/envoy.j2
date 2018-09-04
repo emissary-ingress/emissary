@@ -39,7 +39,7 @@
             "generate_request_id": true,
             "tracing": {
               "operation_name": "egress",
-              "request_headers_for_tags": []
+              "request_headers_for_tags": {{ tracing.tag_headers | tojson }}
             },
             {%- endif %}
             "route_config": {
@@ -57,7 +57,11 @@
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.regex -%}"regex": {{ route.regex | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
-                      {%- if route.cors -%}"cors": {{ route.cors | tojson }},{% endif %}
+                      {%- if route.cors -%}
+                        "cors": {{ route.cors | tojson }},
+                      {% elif cors_default %}
+                        "cors": {{ cors_default | tojson }},
+                      {% endif %}
                       {%- if route.rate_limits -%}"rate_limits": {{ route.rate_limits | tojson }},{% endif %}
                       {%- if route.priority -%}"priority": "{{ route.priority }}",{% endif %}
                       {%- if route.use_websocket -%}"use_websocket": {{ route.use_websocket | tojson }},{% endif %}
