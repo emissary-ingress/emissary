@@ -183,7 +183,7 @@ class Config:
             raise Exception("ERROR ERROR ERROR Unparseable configuration; exiting")
 
         if self.errors:
-            self.logger.error("ERROR ERROR ERROR Starting with configuration _errors")
+            self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
     def post_error(self, rc: RichStatus, resource: ACResource=None):
         if not resource:

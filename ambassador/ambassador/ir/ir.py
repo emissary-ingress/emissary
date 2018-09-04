@@ -17,7 +17,6 @@ from typing import cast as typecast
 
 import sys
 
-import json
 import logging
 import os
 
@@ -143,7 +142,6 @@ class IR:
         # At this point we should know the full set of clusters, so we can normalize
         # any long cluster names.
         collisions: Dict[str, List[str]] = {}
-        # mangled: Dict[str, str] = {}
 
         for name in sorted(self.clusters.keys()):
             if len(name) > 60:
@@ -163,8 +161,6 @@ class IR:
                 i += 1
 
                 self.logger.info("%s => %s" % (name, mangled_name))
-
-                # mangled[name] = mangled_name
                 self.clusters[name]['name'] = mangled_name
 
     def save_resource(self, resource: IRResource) -> IRResource:
