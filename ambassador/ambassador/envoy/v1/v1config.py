@@ -62,16 +62,7 @@ class V1Config:
         if self.is_tracing:
             d['tracing'] = self.tracing
 
-        # if self.tracing:
-        #     d['tracing'] = self.tracing
-
-        # print("V1 %s" % d)
-
         return d
 
     def as_json(self):
-        d = self.as_dict()
-
-        # print("V1.as_json %s" % d)
-
-        return json.dumps(d, sort_keys=True, indent=4)
+        return json.dumps(self.as_dict(), sort_keys=True, indent=4)

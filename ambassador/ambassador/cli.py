@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import List, Optional
+
 import sys
 
 import json
@@ -36,14 +38,14 @@ from .VERSION import Version
 __version__ = Version
 
 logging.basicConfig(
-    level=logging.INFO, # if appDebug else logging.INFO,
+    level=logging.DEBUG, # if appDebug else logging.INFO,
     format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 # logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
 logger = logging.getLogger("ambassador")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
@@ -106,65 +108,137 @@ def showid():
     #     print("unknown")
     print("CANNOT SHOW ID RIGHT NOW")
 
-def fetch_resources(config_dir_path):
-    all_resources = []
+class ResourceFetcher:
+    def __init__(self, config_dir_path: str, k8s: bool=False) -> None:
+        self.resources: List[ACResource] = []
 
-    for filename in os.listdir(config_dir_path):
-        filepath = os.path.join(config_dir_path, filename)
+        for filename in os.listdir(config_dir_path):
+            filepath = os.path.join(config_dir_path, filename)
 
-        if not os.path.isfile(filepath):
-            continue
+            if not os.path.isfile(filepath):
+                continue
 
-        serialization = open(filepath, "r").read()
+            self.filename: Optional[str] = filename
+            self.filepath: Optional[str] = filepath
+            self.ocount: int = 1
 
+            logging.debug("init filename %s ocount %d" % (self.filename, self.ocount))
+
+            serialization = open(filepath, "r").read()
+
+            self.load_yaml(serialization, k8s=k8s)
+
+            logging.debug("parsed filename %s ocount %d" % (self.filename, self.ocount))
+
+            self.filename = None
+            self.filepath = None
+            self.ocount = 0
+
+    def load_yaml(self, serialization: str, rkey: Optional[str]=None, k8s: bool=False) -> None:
         objects = list(yaml.safe_load_all(serialization))
 
-        ocount = 0
-
         for obj in objects:
-            ocount += 1
-            rkey = "%s.%d" % (os.path.basename(filepath), ocount)
+            if k8s:
+                self.extract_k8s(serialization, obj)
+            else:
+                if not rkey:
+                    rkey = "%s.%d" % (self.filename, self.ocount)
 
-            r = ACResource.from_dict(rkey, rkey, serialization, obj)
+                r = ACResource.from_dict(rkey, rkey, serialization, obj)
 
-            all_resources.append(r)
+                self.resources.append(r)
 
-    return all_resources
+            self.ocount += 1
 
-def parse_config(config_dir_path, schema_dir_path=None):
-    try:
-        resources = fetch_resources(config_dir_path)
-        aconf = Config(schema_dir_path=schema_dir_path)
-        aconf.load_all(resources)
-    except Exception as e:
-        handle_exception("EXCEPTION from parse_config", e,
-                         config_dir_path=config_dir_path, template_dir_path=template_dir_path,
-                         schema_dir_path=schema_dir_path)
+    def extract_k8s(self, serialization: str, obj: dict) -> None:
+        kind = obj.get('kind', None)
 
-        # This is fatal.
-        sys.exit(1)
+        if kind != "Service":
+            logger.debug("%s.%s: ignoring K8s %s object" % (self.filepath, self.ocount, kind))
+            return
 
-def dump(config_dir_path:Parameter.REQUIRED):
+        metadata = obj.get('metadata', None)
+
+        if not metadata:
+            logger.debug("%s.%s: ignoring unannotated K8s %s" % (self.filepath, self.ocount, kind))
+            return
+
+        # Use metadata to build a unique resource identifier
+        resource_name = metadata.get('name')
+
+        # This should never happen as the name field is required in metadata for Service
+        if not resource_name:
+            logger.debug("%s.%s: ignoring unnamed K8s %s" % (self.filepath, self.ocount, kind))
+            return
+
+        resource_namespace = metadata.get('namespace', 'default')
+
+        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
+        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+
+        annotations = metadata.get('annotations', None)
+
+        if annotations:
+            annotations = annotations.get('getambassador.io/config', None)
+
+        # self.logger.debug("annotations %s" % annotations)
+
+        if not annotations:
+            logger.debug("%s.%s: ignoring K8s %s without Ambassador annotation" % (self.filepath, self.ocount, kind))
+            return
+
+        self.filename += ":annotation"
+        self.load_yaml(annotations, rkey=resource_identifier)
+
+    def __iter__(self):
+        return self.resources.__iter__()
+
+def fetch_resources(config_dir_path: str, k8s=False):
+    fetcher = ResourceFetcher(config_dir_path, k8s=k8s)
+    return fetcher.__iter__()
+
+def dump(config_dir_path:Parameter.REQUIRED, *,
+         k8s=False, aconf=False, ir=False, v1=False):
     """
-    Dump the intermediate form of an Ambassador configuration for debugging
+    Dump various forms of an Ambassador configuration for debugging
+
+    Use --aconf, --ir, and --envoy to control what gets dumped. If none are requested, the IR
+    will be dumped.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param k8s: If set, assume configuration files are annotated K8s manifests
+    :param aconf: If set, dump the Ambassador config
+    :param ir: If set, dump the IR
+    :param v1: If set, dump the Envoy V1 config
     """
 
+    if not (aconf or ir or v1):
+        ir = True
+
+    dump_aconf = aconf
+    dump_ir = ir
+    dump_v1 = v1
+
     try:
-        resources = fetch_resources(config_dir_path)
+        resources = fetch_resources(config_dir_path, k8s=k8s)
         aconf = Config()
         aconf.load_all(resources)
 
-        # diag_object = {
-        #     'envoy_config': aconf.envoy_config,
-        #     '_errors': aconf.errors,
-        #     'sources': aconf.sources,
-        #     'source_map': aconf.source_map
-        # }
-        #
-        # json.dump(diag_object, sys.stdout, indent=4, sort_keys=True)
-        aconf.dump()
+        if dump_aconf:
+            json.dump(aconf.as_dict(), sys.stdout, sort_keys=True, indent=4)
+            sys.stdout.write("\n")
+
+        ir = IR(aconf)
+
+        if dump_ir:
+            json.dump(ir.as_dict(), sys.stdout, sort_keys=True, indent=4)
+            sys.stdout.write("\n")
+
+        if dump_v1:
+            v1config = V1Config(ir)
+            json.dump(v1config.as_dict(), sys.stdout, sort_keys=True, indent=4)
+            sys.stdout.write("\n")
+
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
@@ -179,10 +253,10 @@ def validate(config_dir_path:Parameter.REQUIRED, *, k8s=False):
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param k8s: If set, assume configuration files are annotated K8s manifests
     """
-    config(config_dir_path, os.devnull, exit_on_error=True)
+    config(config_dir_path, os.devnull, k8s=k8s, exit_on_error=True)
 
 def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIRED, *,
-           check=False, exit_on_error=False):
+           check=False, k8s=False, ir=None, aconf=None, exit_on_error=False):
     """
     Generate an Envoy configuration
 
@@ -191,12 +265,17 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
     :param check: If set, generate configuration only if it doesn't already exist
     :param k8s: If set, assume configuration files are annotated K8s manifests
     :param exit_on_error: If set, will exit with status 1 on any configuration error
+    :param ir: Pathname to which to dump the IR (not dumped if not present)
+    :param aconf: Pathname to which to dump the aconf (not dumped if not present)
     """
 
     try:
         logger.debug("CHECK MODE  %s" % check)
         logger.debug("CONFIG DIR  %s" % config_dir_path)
         logger.debug("OUTPUT PATH %s" % output_json_path)
+
+        dump_aconf: Optional[str] = aconf
+        dump_ir: Optional[str] = ir
 
         # Bypass the existence check...
         output_exists = False
@@ -228,18 +307,25 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
 
-            resources = fetch_resources(config_dir_path)
+            resources = fetch_resources(config_dir_path, k8s=k8s)
             aconf = Config()
             aconf.load_all(resources)
 
-            aconf.dump(output=open("ac.json", "w"))
+            if dump_aconf:
+                with open(dump_aconf, "w") as output:
+                    output.write(aconf.as_json())
+                    output.write("\n")
 
             # If exit_on_error is set, log _errors and exit with status 1
             if exit_on_error and aconf.errors:
-                raise Exception("_errors in: {0}".format(', '.join(aconf.errors.keys())))
+                raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
             ir = IR(aconf)
-            ir.dump(output=open("ir.json", "w"))
+
+            if dump_ir:
+                with open(dump_ir, "w") as output:
+                    output.write(ir.as_json())
+                    output.write("\n")
 
             v1config = V1Config(ir)
             rc = RichStatus.OK(msg="huh")
@@ -250,7 +336,6 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
                     output.write("\n")
             else:
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
-
 
         show_notices()
     except Exception as e:

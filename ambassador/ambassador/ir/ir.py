@@ -17,6 +17,7 @@ from typing import cast as typecast
 
 import sys
 
+import json
 import logging
 import os
 
@@ -222,6 +223,9 @@ class IR:
 
         return group
 
+    def ordered_groups(self) -> List[IRMappingGroup]:
+        return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
+
     def has_cluster(self, name: str) -> bool:
         return name in self.clusters
 
@@ -234,30 +238,15 @@ class IR:
 
         return self.clusters[cluster.name]
 
-    def dump(self, output=sys.stdout):
-        output.write("IR:\n")
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            'ambassador': self.ambassador_module.as_dict(),
+            'tls_contexts': { ctx_name: self.tls_contexts[ctx_name].as_dict()
+                              for ctx_name in sorted(self.tls_contexts.keys()) },
+            'listeners': [ listener.as_dict() for listener in self.listeners ],
+            'filters': [ filter.as_dict() for filter in self.filters ],
+            'groups': [ group.as_dict() for group in self.ordered_groups() ]
+        }
 
-        output.write("-- ambassador:\n")
-        # print(self.ambassador_module.as_dict())
-        output.write("%s\n" % self.ambassador_module.as_json())
-
-        output.write("-- tls_contexts:\n")
-
-        for ctx_name in sorted(self.tls_contexts.keys()):
-            output.write("%s: %s\n" % (ctx_name, self.tls_contexts[ctx_name].as_json()))
-
-        output.write("-- listeners:\n")
-
-        for listener in self.listeners:
-            output.write("%s\n" % listener.as_json())
-
-        output.write("-- filters:\n")
-
-        for filter in self.filters:
-            output.write("%s\n" % filter.as_json())
-
-        output.write("-- groups:\n")
-
-        for group in reversed(sorted(self.groups.values(), key=lambda x: x['group_weight'])):
-            output.write("%s\n" % group.as_json())
-            output.flush()
+    def as_json(self):
+        return json.dumps(self.as_dict(), sort_keys=True, indent=4)

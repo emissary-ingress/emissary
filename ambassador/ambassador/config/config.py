@@ -14,7 +14,6 @@
 
 import sys
 
-from pprint import pprint
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
 
@@ -127,13 +126,22 @@ class Config:
 
         return "\n".join(s)
 
-    def dump(self, output=sys.stdout) -> None:
+    def as_dict(self) -> Dict[str, Any]:
+        od = {
+            '_errors': self.errors,
+            '_sources': self.sources,
+        }
+
         for kind, configs in self.config.items():
-            output.write("%s:\n" % kind)
+            od[kind] = {}
 
             for rkey, config in configs.items():
-                output.write("  %s:\n" % rkey)
-                pprint(config, stream=output)
+                od[kind][rkey] = config.as_dict()
+
+        return od
+
+    def as_json(self):
+        return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
     def save_source(self, resource: ACResource) -> None:
         """
