@@ -149,8 +149,8 @@ class V1Listener(dict):
                 if group.get("path_redirect", None):
                     route["path_redirect"] = group.path_redirect
             else:
-                if "prefix_rewrite" in group:
-                    route["prefix_rewrite"] = group.prefix_rewrite
+                if "rewrite" in group:
+                    route["prefix_rewrite"] = group.rewrite
 
                 if "host_rewrite" in group:
                     route["host_rewrite"] = group.host_rewrite

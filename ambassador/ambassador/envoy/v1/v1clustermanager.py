@@ -24,7 +24,7 @@ class V1ClusterManager(dict):
     def __init__(self, config: 'V1Config', clusters: List[V1Cluster]) -> None:
         super().__init__()
 
-        self['clusters'] = clusters
+        self['clusters'] = sorted(clusters, key=lambda cluster: cluster['name'])
 
     @classmethod
     def generate(cls, config: 'V1Config') -> 'V1ClusterManager':
