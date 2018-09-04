@@ -33,6 +33,7 @@ from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
 from .irtls import IREnvoyTLS, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
+from .irtracing import IRTracing
 
 #from .VERSION import Version
 
@@ -77,7 +78,7 @@ class IR:
         # Our initial configuration stuff is all empty...
         self.router_config = {}
         self.filters = []
-        self.tracing_config = None
+        self.tracing_config = {}
         self.listeners = []
         self.groups = {}
 
@@ -121,14 +122,12 @@ class IR:
         #
         # ORDER MATTERS HERE.
 
-        for cls in [ IRAuth, IRRateLimit ]:
+        for cls in [IRAuth, IRRateLimit, IRTracing]:
             self.save_filter(cls(self, aconf))
 
         # Then append non-configurable cors and decoder filters
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors",
-                                  name="cors", config={}))
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router",
-                                  name="router", type="decoder", config=self.router_config))
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={}))
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=self.router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
@@ -198,6 +197,17 @@ class IR:
     def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)
 
+    def add_to_listener(self, listener_name: str, **kwargs) -> bool:
+        for listener in self.listeners:
+            if listener.get('name') == listener_name:
+                listener.update(kwargs)
+                return True
+        return False
+
+    def add_to_primary_listener(self, **kwargs) -> bool:
+        primary_listener = 'ir.listener'
+        return self.add_to_listener(primary_listener, **kwargs)
+
     def add_mapping(self, aconf: Config, mapping: IRMapping) -> Optional[IRMappingGroup]:
         group: Optional[IRMappingGroup] = None
 
@@ -232,6 +242,7 @@ class IR:
         output.write("IR:\n")
 
         output.write("-- ambassador:\n")
+        # print(self.ambassador_module.as_dict())
         output.write("%s\n" % self.ambassador_module.as_json())
 
         output.write("-- tls_contexts:\n")

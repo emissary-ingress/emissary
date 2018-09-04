@@ -44,9 +44,6 @@ class V1Listener(dict):
         if listener.use_proxy_proto:
             self["use_proxy_proto"] = True
 
-        if "use_remote_address" in listener:
-            self["use_remote_address"] = listener.use_remote_address
-
         if 'tls_context' in listener:
             ctx = listener.tls_context
 
@@ -65,20 +62,34 @@ class V1Listener(dict):
                 if "cert_required" in ctx:
                     lctx["require_client_certificate"] = ctx["cert_required"]
 
+        routes = self.get_routes(config, listener)
+
+        vhosts = [
+            {
+                "name": "backend",
+                "domains": [ "*" ],
+                "routes": routes
+            }
+        ]
+
+        if listener.get("require_tls", False):
+            vhosts["require_ssl"] = "all"
+
         hcm_config = {
             "codec_type": "auto",
             "stat_prefix": "ingress_http",
+            "use_remote_address": config.ir.ambassador_module.get('use_remote_address', False),
             "access_log": [
                 {
                     "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
                     "path": "/dev/fd/1"
                 }
             ],
+            "route_config": {
+                "virtual_hosts": vhosts,
+            },
             "filters": [ V1Filter(filter) for filter in config.ir.filters ]
         }
-
-        if "use_remote_address" in listener:
-            hcm_config["use_remote_address"] = listener.use_remote_address
 
         if "tracing" in listener:
             hcm_config["tracing"] = {
@@ -89,25 +100,11 @@ class V1Listener(dict):
                 }
             }
 
-        routes = self.get_routes(config, listener)
-
-        vhosts = {
-            "name": "backend",
-            "domains": [ "*" ],
-            "routes": routes
-        }
-
-        if listener.get("require_tls", False):
-            vhosts["require_ssl"] = "all"
-
         self["filters"] = [
             {
                 "type": "read",
                 "name": "http_connection_manager",
                 "config": hcm_config,
-                "route_config": {
-                    "virtual_hosts": vhosts
-                }
             }
         ]
 
@@ -142,8 +139,9 @@ class V1Listener(dict):
             if "use_websocket" in group:
                 route["use_websocket"] = group.use_websocket
 
-            if "headers" in group:
+            if len(group.get('headers', [])) > 0:
                 route["headers"] = group.headers
+            # print(len(group.get('headers', [])) > 0)
 
             if group.get("host_redirect", None):
                 route["host_redirect"] = typecast(IRMapping, group.host_redirect).service
@@ -189,7 +187,7 @@ class V1Listener(dict):
         return routes
 
     @classmethod
-    def generate(self, config: 'V1Config') -> List['V1Listener']:
+    def generate(cls, config: 'V1Config') -> List['V1Listener']:
         listeners: List['V1Listener'] = []
 
         for listener in config.ir.listeners:

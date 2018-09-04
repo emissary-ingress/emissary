@@ -26,7 +26,6 @@ class IRAuth (IRFilter):
             timeout_ms=5000,
             path_prefix=None,
             allowed_headers=[],
-            weight=100,
             hosts={},
             type=type,
             **kwargs)

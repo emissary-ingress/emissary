@@ -100,6 +100,8 @@ class IRCluster (IRResource):
             if not ctx:
                 errors.append("Originate-TLS context %s is not defined" % ctx_name)
 
+        # TODO: lots of duplication of here, need to replace with broken down functions
+
         if service.lower().startswith("https://"):
             service = service[len("https://"):]
 

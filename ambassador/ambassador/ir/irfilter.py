@@ -21,6 +21,5 @@ class IRFilter(IRResource):
             **kwargs)
 
     def config_dict(self):
-        config = {}
-
+        config = self.config
         return config
