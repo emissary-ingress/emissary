@@ -78,7 +78,6 @@ class V1Listener(dict):
         hcm_config = {
             "codec_type": "auto",
             "stat_prefix": "ingress_http",
-            "use_remote_address": config.ir.ambassador_module.get('use_remote_address', False),
             "access_log": [
                 {
                     "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -90,6 +89,9 @@ class V1Listener(dict):
             },
             "filters": [ V1Filter(filter) for filter in config.ir.filters ]
         }
+
+        if config.ir.ambassador_module.get('use_remote_address', False):
+            hcm_config["use_remote_address"] = True
 
         if "tracing" in listener:
             hcm_config["tracing"] = {
