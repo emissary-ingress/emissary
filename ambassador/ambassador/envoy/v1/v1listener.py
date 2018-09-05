@@ -61,16 +61,14 @@ class V1Listener(dict):
 
         routes = self.get_routes(config, listener)
 
-        vhosts = [
-            {
-                "name": "backend",
-                "domains": [ "*" ],
-                "routes": routes
-            }
-        ]
+        vhost = {
+            "name": "backend",
+            "domains": [ "*" ],
+            "routes": routes
+        }
 
         if listener.get("require_tls", False):
-            vhosts["require_ssl"] = "all"
+            vhost["require_ssl"] = "all"
 
         hcm_config = {
             "codec_type": "auto",
@@ -82,7 +80,7 @@ class V1Listener(dict):
                 }
             ],
             "route_config": {
-                "virtual_hosts": vhosts,
+                "virtual_hosts": [ vhost ]
             },
             "filters": [ V1Filter(filter) for filter in config.ir.filters ]
         }
