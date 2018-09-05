@@ -58,7 +58,7 @@ class IRResource (Resource):
                 # print(k)
                 continue
             elif k == '_referenced_by':
-                refd_by = sorted([ "%s: %s" % (k, self._referenced_by[k].location)
+                refd_by = sorted([ self._referenced_by[k].location
                                    for k in self._referenced_by.keys() ])
 
                 od['_referenced_by'] = refd_by
