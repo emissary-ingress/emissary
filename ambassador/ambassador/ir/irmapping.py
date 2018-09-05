@@ -97,7 +97,7 @@ class IRMapping (IRResource):
         hdrs = []
 
         if 'headers' in kwargs:
-            for name, value in kwargs.get('headers', []):
+            for name, value in kwargs.get('headers', {}).items():
                 if value is True:
                     hdrs.append(Header(name))
                 else:

@@ -129,7 +129,10 @@ class IRAmbassadorTLS (IRResource):
 
             # Create TLS contexts.
             for ctx_name in tls_module.keys():
-                IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name ])
+                ctx = tls_module[ctx_name]
+
+                if isinstance(ctx, dict):
+                    IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name])
 
             return True
         else:

@@ -48,16 +48,12 @@ class V1Listener(dict):
             ctx = listener.tls_context
 
             if ctx:
-                lctx = {
-                    "cert_chain_file": ctx.cert_chain_file,
-                    "private_key_file": ctx.private_key_file
-                }
+                lctx = {}
 
-                if "alpn_protocols" in ctx:
-                    lctx["alpn_protocols"] = ctx["alpn_protocols"]
-
-                if "cacert_chain_file" in ctx:
-                    lctx["cacert_chain_file"] = ctx["cacert_chain_file"]
+                for key in [ "cert_chain_file", "private_key_file",
+                             "alpn_protocols", "cacert_chain_file" ]:
+                    if key in ctx:
+                        lctx[key] = ctx[key]
 
                 if "cert_required" in ctx:
                     lctx["require_client_certificate"] = ctx["cert_required"]
