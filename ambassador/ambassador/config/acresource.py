@@ -1,9 +1,9 @@
-import sys
-
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import List, Optional, Type, TypeVar
 from typing import cast as typecast
 
-from ..utils import RichStatus
+import os
+import yaml
+
 from ..resource import Resource
 
 R = TypeVar('R', bound='ACResource')
@@ -117,3 +117,101 @@ class ACResource (Resource):
             version="ambassador/v0",
             description="The --diagnostics-- source marks objects created by Ambassador to assist with diagnostics."
         )
+
+
+########
+## ResourceFetcher and fetch_resources are the Canonical Way to load ambassador config
+## resources from disk.
+
+
+class ResourceFetcher:
+    def __init__(self, config_dir_path: str, logger, k8s: bool=False) -> None:
+        self.logger = logger
+        self.resources: List[ACResource] = []
+
+        for filename in os.listdir(config_dir_path):
+            filepath = os.path.join(config_dir_path, filename)
+
+            if not os.path.isfile(filepath):
+                continue
+
+            self.filename: Optional[str] = filename
+            self.filepath: Optional[str] = filepath
+            self.ocount: int = 1
+
+            self.logger.debug("init filename %s ocount %d" % (self.filename, self.ocount))
+
+            serialization = open(filepath, "r").read()
+
+            self.load_yaml(serialization, k8s=k8s)
+
+            self.logger.debug("parsed filename %s ocount %d" % (self.filename, self.ocount))
+
+            self.filename = None
+            self.filepath = None
+            self.ocount = 0
+
+    def load_yaml(self, serialization: str, rkey: Optional[str]=None, k8s: bool=False) -> None:
+        objects = list(yaml.safe_load_all(serialization))
+
+        for obj in objects:
+            if k8s:
+                self.extract_k8s(serialization, obj)
+            else:
+                if not rkey:
+                    rkey = "%s.%d" % (self.filename, self.ocount)
+
+                r = ACResource.from_dict(rkey, rkey, serialization, obj)
+
+                self.resources.append(r)
+
+            self.ocount += 1
+
+    def extract_k8s(self, serialization: str, obj: dict) -> None:
+        kind = obj.get('kind', None)
+
+        if kind != "Service":
+            self.logger.debug("%s.%s: ignoring K8s %s object" % (self.filepath, self.ocount, kind))
+            return
+
+        metadata = obj.get('metadata', None)
+
+        if not metadata:
+            self.logger.debug("%s.%s: ignoring unannotated K8s %s" % (self.filepath, self.ocount, kind))
+            return
+
+        # Use metadata to build a unique resource identifier
+        resource_name = metadata.get('name')
+
+        # This should never happen as the name field is required in metadata for Service
+        if not resource_name:
+            self.logger.debug("%s.%s: ignoring unnamed K8s %s" % (self.filepath, self.ocount, kind))
+            return
+
+        resource_namespace = metadata.get('namespace', 'default')
+
+        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
+        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+
+        annotations = metadata.get('annotations', None)
+
+        if annotations:
+            annotations = annotations.get('getambassador.io/config', None)
+
+        # self.logger.debug("annotations %s" % annotations)
+
+        if not annotations:
+            self.logger.debug("%s.%s: ignoring K8s %s without Ambassador annotation" %
+                              (self.filepath, self.ocount, kind))
+            return
+
+        self.filename += ":annotation"
+        self.load_yaml(annotations, rkey=resource_identifier)
+
+    def __iter__(self):
+        return self.resources.__iter__()
+
+
+def fetch_resources(config_dir_path: str, logger, k8s=False):
+    fetcher = ResourceFetcher(config_dir_path, logger, k8s=k8s)
+    return fetcher.__iter__()

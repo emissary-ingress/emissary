@@ -27,7 +27,7 @@ import yaml
 import clize
 from clize import Parameter
 
-from .config import Config, ACResource
+from .config import Config, fetch_resources
 from .ir import IR
 from .envoy import V1Config
 
@@ -108,95 +108,6 @@ def showid():
     #     print("unknown")
     print("CANNOT SHOW ID RIGHT NOW")
 
-class ResourceFetcher:
-    def __init__(self, config_dir_path: str, k8s: bool=False) -> None:
-        self.resources: List[ACResource] = []
-
-        for filename in os.listdir(config_dir_path):
-            filepath = os.path.join(config_dir_path, filename)
-
-            if not os.path.isfile(filepath):
-                continue
-
-            self.filename: Optional[str] = filename
-            self.filepath: Optional[str] = filepath
-            self.ocount: int = 1
-
-            logging.debug("init filename %s ocount %d" % (self.filename, self.ocount))
-
-            serialization = open(filepath, "r").read()
-
-            self.load_yaml(serialization, k8s=k8s)
-
-            logging.debug("parsed filename %s ocount %d" % (self.filename, self.ocount))
-
-            self.filename = None
-            self.filepath = None
-            self.ocount = 0
-
-    def load_yaml(self, serialization: str, rkey: Optional[str]=None, k8s: bool=False) -> None:
-        objects = list(yaml.safe_load_all(serialization))
-
-        for obj in objects:
-            if k8s:
-                self.extract_k8s(serialization, obj)
-            else:
-                if not rkey:
-                    rkey = "%s.%d" % (self.filename, self.ocount)
-
-                r = ACResource.from_dict(rkey, rkey, serialization, obj)
-
-                self.resources.append(r)
-
-            self.ocount += 1
-
-    def extract_k8s(self, serialization: str, obj: dict) -> None:
-        kind = obj.get('kind', None)
-
-        if kind != "Service":
-            logger.debug("%s.%s: ignoring K8s %s object" % (self.filepath, self.ocount, kind))
-            return
-
-        metadata = obj.get('metadata', None)
-
-        if not metadata:
-            logger.debug("%s.%s: ignoring unannotated K8s %s" % (self.filepath, self.ocount, kind))
-            return
-
-        # Use metadata to build a unique resource identifier
-        resource_name = metadata.get('name')
-
-        # This should never happen as the name field is required in metadata for Service
-        if not resource_name:
-            logger.debug("%s.%s: ignoring unnamed K8s %s" % (self.filepath, self.ocount, kind))
-            return
-
-        resource_namespace = metadata.get('namespace', 'default')
-
-        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
-        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
-
-        annotations = metadata.get('annotations', None)
-
-        if annotations:
-            annotations = annotations.get('getambassador.io/config', None)
-
-        # self.logger.debug("annotations %s" % annotations)
-
-        if not annotations:
-            logger.debug("%s.%s: ignoring K8s %s without Ambassador annotation" % (self.filepath, self.ocount, kind))
-            return
-
-        self.filename += ":annotation"
-        self.load_yaml(annotations, rkey=resource_identifier)
-
-    def __iter__(self):
-        return self.resources.__iter__()
-
-def fetch_resources(config_dir_path: str, k8s=False):
-    fetcher = ResourceFetcher(config_dir_path, k8s=k8s)
-    return fetcher.__iter__()
-
 def dump(config_dir_path:Parameter.REQUIRED, *,
          k8s=False, aconf=False, ir=False, v1=False):
     """
@@ -213,32 +124,35 @@ def dump(config_dir_path:Parameter.REQUIRED, *,
     """
 
     if not (aconf or ir or v1):
+        aconf = True
         ir = True
+        v1 = True
 
     dump_aconf = aconf
     dump_ir = ir
     dump_v1 = v1
 
+    od = {}
+
     try:
-        resources = fetch_resources(config_dir_path, k8s=k8s)
+        resources = fetch_resources(config_dir_path, logger, k8s=k8s)
         aconf = Config()
         aconf.load_all(resources)
 
         if dump_aconf:
-            json.dump(aconf.as_dict(), sys.stdout, sort_keys=True, indent=4)
-            sys.stdout.write("\n")
+            od['aconf'] = aconf.as_dict()
 
         ir = IR(aconf)
 
         if dump_ir:
-            json.dump(ir.as_dict(), sys.stdout, sort_keys=True, indent=4)
-            sys.stdout.write("\n")
+            od['ir'] = ir.as_dict()
 
         if dump_v1:
             v1config = V1Config(ir)
-            json.dump(v1config.as_dict(), sys.stdout, sort_keys=True, indent=4)
-            sys.stdout.write("\n")
+            od['v1'] = v1config.as_dict()
 
+        json.dump(od, sys.stdout, sort_keys=True, indent=4)
+        sys.stdout.write("\n")
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
@@ -307,7 +221,7 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
 
-            resources = fetch_resources(config_dir_path, k8s=k8s)
+            resources = fetch_resources(config_dir_path, logger, k8s=k8s)
             aconf = Config()
             aconf.load_all(resources)
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from .acresource import ACResource
+from .acresource import ACResource, fetch_resources
 from .acmapping import ACMapping
 from .acpragma import ACPragma
 from .config import Config
