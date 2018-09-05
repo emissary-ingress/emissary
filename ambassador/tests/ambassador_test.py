@@ -3,16 +3,34 @@ from typing import Any
 import sys
 
 import difflib
-import errno
+# import errno
 import json
 import logging
-import functools
+# import functools
 import os
 import pytest
+import re
 
-from shell import shell
+# from shell import shell
 
 from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
+from ambassador.config import fetch_resources
+from ambassador import Config, IR
+from ambassador.envoy import V1Config
+
+from ambassador.VERSION import Version
+
+__version__ = Version
+
+logging.basicConfig(
+    level=logging.DEBUG, # if appDebug else logging.INFO,
+    format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+# logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
+logger = logging.getLogger("ambassador")
+logger.setLevel(logging.DEBUG)
 
 VALIDATOR_IMAGE = "quay.io/datawire/ambassador-envoy:v1.7.0-64-g09ba72b1-alpine-stripped"
 
@@ -99,21 +117,24 @@ def as_sourceddict(res: dict) -> Any:
         return res
 
 class old_ir (dict):
-    def __init__(self, ir: dict) -> None:
+    def __init__(self, aconf: dict, ir: dict, v1config: dict) -> None:
         super().__init__()
 
-        self['admin'] = {
-            '_source': ir['ambassador']['location'],
-            'admin_port': ir['ambassador']['admin_port']
+        econf = {
+            'admin': {
+                '_source': ir['ambassador']['location'],
+                'admin_port': ir['ambassador']['admin_port']
+            },
+            'listeners': [ as_sourceddict(x) for x in ir['listeners'] ],
+            'filters': [ as_sourceddict(x) for x in ir['filters'] ],
+            'routes': [],
+            'clusters': []
         }
 
-        self['listeners'] = [ as_sourceddict(x) for x in ir['listeners'] ]
-
-        for l in self['listeners']:
+        for l in econf['listeners']:
             for k in [ '_referenced_by', 'name', 'serialization' ]:
                 l.pop(k, None)
 
-        self['routes'] = []
         clusters = {}
 
         for group in sorted(ir['groups'], key=lambda g: g['group_id']):
@@ -141,10 +162,10 @@ class old_ir (dict):
                 })
 
                 if cname not in clusters:
-                    print("NEW CLUSTER %s" % cname)
+                    # print("NEW CLUSTER %s" % cname)
                     clusters[cname] = cluster
                 else:
-                    print("REPEAT CLUSTER %s" % cname)
+                    # print("REPEAT CLUSTER %s" % cname)
                     clusters[cname] = cluster
 
             if 'shadows' in route:
@@ -172,9 +193,7 @@ class old_ir (dict):
             if ('headers' in route) and not route['headers']:
                 del(route['headers'])
 
-            self['routes'].append(route)
-
-        self['clusters'] = []
+            econf['routes'].append(route)
 
         for cluster in sorted(clusters.values(), key=lambda x: x['name']):
             envoy_cluster = as_sourceddict(cluster)
@@ -186,16 +205,67 @@ class old_ir (dict):
             if 'serialization' in envoy_cluster:
                 del(envoy_cluster['serialization'])
 
-            self['clusters'].append(envoy_cluster)
+            econf['clusters'].append(envoy_cluster)
 
-def get_old_ir(ir):
-    return { 'envoy_config': dict(old_ir(ir)) }
+        self['envoy_config'] = econf
+
+        # XXX This can't be right. The IR class needs its own error handling.
+        self['errors'] = aconf['_errors']
+        self['sources'] = {}
+        self['source_map'] = {}
+
+        for key, src in aconf['_sources'].items():
+            key_base = key
+            key_index = None
+
+            if re.search(r'\.\d+$', key):
+                key_base, key_index = os.path.splitext(key)
+
+                while key_index.startswith('.'):
+                    key_index = key_index[1:]
+
+            src_dict = {
+                '_source': key_base,
+                'filename': key_base,
+            }
+
+            for from_key, to_key in [ ( 'kind', 'kind'),
+                                      ( 'name', 'name'),
+                                      ( 'version', 'version'),
+                                      ( 'description', 'description'),
+                                      ( 'serialization', 'yaml' ) ]:
+                if from_key in src:
+                    src_dict[to_key] = src[from_key]
+
+            if key_index is not None:
+                src_dict['index'] = int(key_index)
+
+            if 'version' not in src_dict:
+                src_dict['version'] = 'ambassador/v0'
+
+            if key.startswith('--'):
+                src_dict['index'] = 0
+                src_dict['version'] = 'v0'
+                src_dict.pop('yaml', None)
+
+                if key == '--diagnostics--':
+                    src_dict['kind'] = 'diagnostics'
+
+            self['sources'][key] = src_dict
+
+            if key != '--diagnostics--':
+                src_map = self['source_map'].setdefault(key_base, {})
+                src_map[key] = True
+
+def get_old_intermediate(aconf, ir, v1config):
+    return dict(old_ir(aconf.as_dict(), ir.as_dict(), v1config.as_dict()))
 
 #### Test functions
 
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
 def test_config(testname, dirpath, configdir):
+    global logger
     errors = []
 
     if not os.path.isdir(configdir):
@@ -203,93 +273,93 @@ def test_config(testname, dirpath, configdir):
 
     print("==== checking intermediate output")
 
-    ambassador = shell([ 'ambassador', 'dump', configdir ])
+    resources = fetch_resources(configdir, logger)
+    aconf = Config()
+    aconf.load_all(resources)
 
-    if ambassador.code != 0:
-        errors.append('ambassador dump failed! %s' % ambassador.code)
-    else:
-        current_raw = ambassador.output(raw=True)
-        current = None
-        gold = None
+    ir = IR(aconf)
+    v1config = V1Config(ir)
 
-        try:
-            current = sanitize_errors(json.loads(current_raw))
-        except json.decoder.JSONDecodeError as e:
-            errors.append("current intermediate was unparseable?")
+    # tmp = {
+    #     'aconf': aconf.as_dict(),
+    #     'ir': ir.as_dict(),
+    #     'v1config': v1config.as_dict()
+    # }
+    #
+    # json.dump(tmp, sys.stdout, sort_keys=True, indent=4)
 
-        if current:
-            current = get_old_ir(current)
-            current['envoy_config'] = filtered_overview(current['envoy_config'])
+    current = get_old_intermediate(aconf, ir, v1config)
+    current['envoy_config'] = filtered_overview(current['envoy_config'])
 
-            current_path = os.path.join(dirpath, "intermediate.json")
-            json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
+    current_path = os.path.join(dirpath, "intermediate.json")
+    json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
 
-            gold_path = os.path.join(dirpath, "gold.intermediate.json")
+    gold_path = os.path.join(dirpath, "gold.intermediate.json")
 
-            if os.path.exists(gold_path):
-                udiff = unified_diff(gold_path, current_path)
+    if os.path.exists(gold_path):
+        udiff = unified_diff(gold_path, current_path)
 
-                if udiff:
-                    errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+        if udiff:
+            errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
 
-    print("==== checking config generation")
-
-    envoy_json_out = os.path.join(dirpath, "envoy.json")
-
-    try:
-        os.unlink(envoy_json_out)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
-
-    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
-
-    print(ambassador.errors(raw=True))    
-
-    if ambassador.code != 0:
-        errors.append('ambassador failed! %s' % ambassador.code)
-    else:
-        envoy = shell([ 'docker', 'run', 
-                            '--rm',
-                            '-v', '%s:/etc/ambassador-config' % dirpath,
-                            VALIDATOR_IMAGE,
-                            '/usr/local/bin/envoy',
-                               '--base-id', '1',
-                               '--mode', 'validate',
-                               '--service-cluster', 'test',
-                               '-c', '/etc/ambassador-config/envoy.json' ],
-                      verbose=True)
-
-        envoy_succeeded = (envoy.code == 0)
-
-        if not envoy_succeeded:
-            errors.append('envoy failed! %s' % envoy.code)
-
-        envoy_output = list(envoy.output())
-
-        if envoy_succeeded:
-            if not envoy_output[-1].strip().endswith(' OK'):
-                errors.append('envoy validation failed!')
-
-        gold_path = os.path.join(dirpath, "gold.json")
-
-        if os.path.exists(gold_path):
-            udiff = unified_diff(gold_path, envoy_json_out)
-
-            if udiff:
-                errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
-
-    print("==== checking short-circuit with existing config")
-
-    ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
-
-    print(ambassador.errors(raw=True))
-
-    if ambassador.code != 0:
-        errors.append('ambassador repeat check failed! %s' % ambassador.code)
-
-    if 'Output file exists' not in ambassador.errors(raw=True):
-        errors.append('ambassador repeat check did not short circuit??')
+    # print("==== checking config generation")
+    #
+    # envoy_json_out = os.path.join(dirpath, "envoy.json")
+    #
+    # try:
+    #     os.unlink(envoy_json_out)
+    # except OSError as e:
+    #     if e.errno != errno.ENOENT:
+    #         raise
+    #
+    # ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+    #
+    # print(ambassador.errors(raw=True))
+    #
+    # if ambassador.code != 0:
+    #     errors.append('ambassador failed! %s' % ambassador.code)
+    # else:
+    #     envoy = shell([ 'docker', 'run',
+    #                         '--rm',
+    #                         '-v', '%s:/etc/ambassador-config' % dirpath,
+    #                         VALIDATOR_IMAGE,
+    #                         '/usr/local/bin/envoy',
+    #                            '--base-id', '1',
+    #                            '--mode', 'validate',
+    #                            '--service-cluster', 'test',
+    #                            '-c', '/etc/ambassador-config/envoy.json' ],
+    #                   verbose=True)
+    #
+    #     envoy_succeeded = (envoy.code == 0)
+    #
+    #     if not envoy_succeeded:
+    #         errors.append('envoy failed! %s' % envoy.code)
+    #
+    #     envoy_output = list(envoy.output())
+    #
+    #     if envoy_succeeded:
+    #         if not envoy_output[-1].strip().endswith(' OK'):
+    #             errors.append('envoy validation failed!')
+    #
+    #     gold_path = os.path.join(dirpath, "gold.json")
+    #
+    #     if os.path.exists(gold_path):
+    #         udiff = unified_diff(gold_path, envoy_json_out)
+    #
+    #         if udiff:
+    #             errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
+    #
+    # print("==== checking short-circuit with existing config")
+    #
+    # ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
+    #
+    # print(ambassador.errors(raw=True))
+    #
+    # if ambassador.code != 0:
+    #     errors.append('ambassador repeat check failed! %s' % ambassador.code)
+    #
+    # if 'Output file exists' not in ambassador.errors(raw=True):
+    #     errors.append('ambassador repeat check did not short circuit??')
 
     if errors:
         print("---- ERRORS")

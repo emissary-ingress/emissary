@@ -102,7 +102,7 @@ class ACResource (Resource):
             kind="Internal",
             name="Ambassador Internals",
             version="ambassador/v0",
-            description="The --internal-- source marks objects created by Ambassador's internal logic."
+            description="The '--internal--' source marks objects created by Ambassador's internal logic."
         )
 
     # ACResource.DIAGNOSTICS is the magic ACResource we use to represent something created by
@@ -115,7 +115,7 @@ class ACResource (Resource):
             kind="Diagnostics",
             name="Ambassador Diagnostics",
             version="ambassador/v0",
-            description="The --diagnostics-- source marks objects created by Ambassador to assist with diagnostics."
+            description="The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
         )
 
 
