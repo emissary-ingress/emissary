@@ -115,7 +115,7 @@ SCOUT_APP_KEY=
 
 all: test docker-push website
 
-clean:
+clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -206,11 +206,13 @@ ifneq ($(DOCKER_REGISTRY), -)
 	fi
 endif
 
-version:
+ambassador/ambassador/VERSION.py:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+
+version: ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests: venv website-yaml
 	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
@@ -252,10 +254,45 @@ e2e: e2e-versioned-manifests
 		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
 	fi
 
-setup-develop: venv
+TELEPROXY_VERSION=0.1.0
+# This should maybe be replaced with a lighterweight dependency if we
+# don't currently depend on go
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+
+venv/bin/teleproxy:
+	curl -o venv/bin/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+	sudo chown root venv/bin/teleproxy
+	sudo chmod go-w venv/bin/teleproxy
+	sudo chmod a+sx venv/bin/teleproxy
+
+venv/bin/kubernaut:
+	curl -o venv/bin/kubernaut http://releases.datawire.io/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+
+venv/bin/ambassador:
 	venv/bin/pip -v install -q -e ambassador/.
 
-test: version setup-develop
+setup-develop: venv venv/bin/teleproxy venv/bin/ambassador
+
+KUBERNAUT=end-to-end/kubernaut
+
+cluster.yaml:
+	$(KUBERNAUT) discard
+	$(KUBERNAUT) claim
+	cp ~/.kube/kubernaut cluster.yaml
+	rm -f /tmp/k8s-*.yaml
+	skill -INT teleproxy
+	venv/bin/teleproxy -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+
+shell: setup-develop cluster.yaml
+	KUBECONFIG=$(shell pwd)/cluster.yaml bash --init-file releng/init.sh -i
+
+clean-test:
+	rm cluster.yaml
+	$(KUBERNAUT) discard
+	skill -INT teleproxy
+
+test: version setup-develop cluster.yaml
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
 
 update-aws:
