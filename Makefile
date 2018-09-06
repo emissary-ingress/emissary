@@ -256,7 +256,10 @@ setup-develop: venv
 	venv/bin/pip install -e ambassador/.
 
 test: version setup-develop
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
+	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing $(TEST_NAME)
+
+test-list: setup-develop
+	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \

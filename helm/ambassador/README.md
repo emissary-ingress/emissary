@@ -58,6 +58,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `service.targetPorts.http` | Sets the targetPort that maps to the service's port 80 | `80`
 | `service.targetPorts.https` | Sets the targetPort that maps to the service's port 443 | `443`
 | `service.type` | Service type to be used | `LoadBalancer`
+| `service.loadBalancerIP` | If the loadBalancerIP field is not specified, an ephemeral IP will be assigned to the loadBalancer. If the loadBalancerIP is specified, but the cloud provider does not support the feature, the field will be ignored | none
 | `service.annotations` | Annotations to apply to Ambassador service | none
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`
 | `adminService.type` | Ambassador's admin service type to be used | `ClusterIP`
