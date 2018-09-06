@@ -32,7 +32,7 @@ class IRResource (Resource):
                  rkey: str,
                  kind: str,
                  name: str,
-                 location: str = "-ir-",
+                 location: str = "--internal--",
                  apiVersion: str="ambassador/ir",
                  **kwargs) -> None:
         # print("IRResource __init__ (%s %s)" % (kind, name))

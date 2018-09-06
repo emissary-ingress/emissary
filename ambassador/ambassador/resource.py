@@ -85,10 +85,10 @@ class Resource (dict):
 
     def referenced_by(self, other: 'Resource') -> None:
         # print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))
-        self._referenced_by[other.rkey] = other
+        self._referenced_by[other.location] = other
 
-    def is_referenced_by(self, other_rkey) -> Optional['Resource']:
-        return self._referenced_by.get(other_rkey, None)
+    def is_referenced_by(self, other_location) -> Optional['Resource']:
+        return self._referenced_by.get(other_location, None)
 
     def post_error(self, error: RichStatus):
         self._errors.append(error)
