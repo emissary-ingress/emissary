@@ -254,27 +254,29 @@ e2e: e2e-versioned-manifests
 		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
 	fi
 
+TELEPROXY=venv/bin/teleproxy
 TELEPROXY_VERSION=0.1.0
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
-venv/bin/teleproxy:
-	curl -o venv/bin/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
-	sudo chown root venv/bin/teleproxy
-	sudo chmod go-w venv/bin/teleproxy
-	sudo chmod a+sx venv/bin/teleproxy
+$(TELEPROXY):
+	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+	sudo chown root $(TELEPROXY)
+	sudo chmod go-w $(TELEPROXY)
+	sudo chmod a+sx $(TELEPROXY)
 
-venv/bin/kubernaut:
-	curl -o venv/bin/kubernaut http://releases.datawire.io/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+KUBERNAUT=venv/bin/kubernaut
+
+$(KUBERNAUT):
+	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+	chmod +x $(KUBERNAUT)
 
 venv/bin/ambassador:
 	venv/bin/pip -v install -q -e ambassador/.
 
-setup-develop: venv venv/bin/teleproxy venv/bin/ambassador
-
-KUBERNAUT=end-to-end/kubernaut
+setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
 
 cluster.yaml:
 	$(KUBERNAUT) discard
@@ -282,13 +284,13 @@ cluster.yaml:
 	cp ~/.kube/kubernaut cluster.yaml
 	rm -f /tmp/k8s-*.yaml
 	skill -INT teleproxy
-	venv/bin/teleproxy -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
 
 shell: setup-develop cluster.yaml
 	KUBECONFIG=$(shell pwd)/cluster.yaml bash --init-file releng/init.sh -i
 
 clean-test:
-	rm cluster.yaml
+	rm -f cluster.yaml
 	$(KUBERNAUT) discard
 	skill -INT teleproxy
 
