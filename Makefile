@@ -115,7 +115,7 @@ SCOUT_APP_KEY=
 
 all: test docker-push website
 
-clean:
+clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -176,7 +176,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
-ambassador-docker-image:
+ambassador-docker-image: version
 	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
 
 docker-login:
@@ -205,12 +205,14 @@ ifneq ($(DOCKER_REGISTRY), -)
 		exit 1; \
 	fi
 endif
-		
-version:
+
+ambassador/ambassador/VERSION.py:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+
+version: ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests: venv website-yaml
 	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
@@ -252,13 +254,59 @@ e2e: e2e-versioned-manifests
 		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
 	fi
 
-setup-develop: venv
-	venv/bin/pip install -q -e ambassador/.
+TELEPROXY=venv/bin/teleproxy
+TELEPROXY_VERSION=0.1.0
+# This should maybe be replaced with a lighterweight dependency if we
+# don't currently depend on go
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
 
-test: version setup-develop
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing $(TEST_NAME)
+$(TELEPROXY):
+	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+	sudo chown root $(TELEPROXY)
+	sudo chmod go-w $(TELEPROXY)
+	sudo chmod a+sx $(TELEPROXY)
 
-test-list: setup-develop
+KUBERNAUT=venv/bin/kubernaut
+
+$(KUBERNAUT):
+	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+	chmod +x $(KUBERNAUT)
+
+venv/bin/ambassador:
+	venv/bin/pip -v install -q -e ambassador/.
+
+setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
+
+cluster.yaml:
+	$(KUBERNAUT) discard
+	$(KUBERNAUT) claim
+	cp ~/.kube/kubernaut cluster.yaml
+	rm -f /tmp/k8s-*.yaml
+	skill -INT teleproxy
+	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+
+teleproxy-restart:
+	skill -INT teleproxy
+	sleep 0.25 # wait for exit...
+	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+
+KUBECONFIG=$(shell pwd)/cluster.yaml
+
+shell: setup-develop cluster.yaml
+	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	KUBECONFIG=$(KUBECONFIG) \
+	bash --init-file releng/init.sh -i
+
+clean-test:
+	rm -f cluster.yaml
+	$(KUBERNAUT) discard
+	skill -INT teleproxy
+
+test: version setup-develop cluster.yaml
+	cd ambassador && KUBECONFIG=$(KUBECONFIG) PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
+
+test-list: version setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
 
 update-aws:
@@ -305,8 +353,8 @@ venv: version venv/bin/activate
 
 venv/bin/activate: dev-requirements.txt ambassador/.
 	test -d venv || virtualenv venv --python python3
-	venv/bin/pip install -q -Ur dev-requirements.txt
-	venv/bin/pip install -q -e ambassador/.
+	venv/bin/pip -v install -q -Ur dev-requirements.txt
+	venv/bin/pip -v install -q -e ambassador/.
 	touch venv/bin/activate
 
 # ------------------------------------------------------------------------------
