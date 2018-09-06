@@ -73,12 +73,16 @@ class IRAmbassador (IRResource):
                 tmod['kind'] = 'Module'
                 tmod['name'] = 'tls-from-ambassador-module'
 
-        if not tmod:
-            # Nothing in the Ambassador module. Check for a TLS module.
-            tmod = self.get("tls_module", None)
+        if not tmod and ir.tls_module:
+            # Nothing in the Ambassador module, but we have a TLS module.
+            tmod = ir.tls_module.as_dict()
 
         if tmod:
-            self.logger.debug("final TLS module: %s" % json.dumps(tmod, sort_keys=True, indent=4))
+            # self.logger.debug("final TLS module: %s" % json.dumps(tmod, sort_keys=True, indent=4))
+            default_location = self.location
+
+            if amod:
+                default_location = amod.location
 
             # Create TLS contexts.
             for ctx_name, ctx in tmod.items():
@@ -86,9 +90,16 @@ class IRAmbassador (IRResource):
                     continue
 
                 if isinstance(ctx, dict):
-                    IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
-                               location=ctx.get('location', amod.location),
-                               **ctx)
+                    ctxloc = tmod.get('location', default_location)
+                    etls = IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
+                                      location=ctxloc, **ctx)
+
+                    if ir.save_tls_context(ctx_name, etls):
+                        self.logger.debug("created context %s from %s" % (ctx_name, ctxloc))
+                        # self.logger.debug(etls.as_json())
+                    else:
+                        self.logger.debug("not updating context %s from %s" % (ctx_name, ctxloc))
+                        # self.logger.debug(etls.as_json())
 
         # Next up, check for the special 'server' and 'client' TLS contexts.
         ctx = ir.get_tls_context('server')

@@ -83,7 +83,7 @@ class IREnvoyTLS (IRResource):
         #             self.cert_chain_file = TLSPaths.tls_crt.value
         #             self.private_key_file = TLSPaths.tls_key.value
 
-        return ir.save_tls_context(self.name, self)
+        return True
 
 #############################################################################
 ## IRAmbassadorTLS represents an Ambassador TLS configuration, from which we
@@ -123,9 +123,9 @@ class IRAmbassadorTLS (IRResource):
 
         # OK, done. Merge the result back in.
         if tls_module:
-            self.logger.debug("TLS module getting merged: %s" % tls_module.as_json())
+            # self.logger.debug("TLS module getting merged: %s" % tls_module.as_json())
             self.update(tls_module)
-            self.logger.debug("TLS module after merge: %s" % self.as_json())
+            # self.logger.debug("TLS module after merge: %s" % self.as_json())
 
             return True
         else:
