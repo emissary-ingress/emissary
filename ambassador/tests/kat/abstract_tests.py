@@ -1,3 +1,5 @@
+import os
+
 from abc import abstractmethod
 from typing import Any, Iterable, Optional, Sequence, Type
 
@@ -14,9 +16,8 @@ class AmbassadorTest(Test):
     def __init__(self, mappings = ()):
         self.mappings = list(mappings)
 
-    # XXX: should use format for manifests and change templates to manifests
     def manifests(self) -> str:
-        return self.format(manifests.AMBASSADOR, image="quay.io/datawire/ambassador:0.35.3")
+        return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"])
 
     @abstractmethod
     def scheme(self) -> str:
