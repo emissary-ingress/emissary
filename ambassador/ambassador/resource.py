@@ -3,6 +3,7 @@ import sys
 from typing import Any, Dict, List, Optional, Type, TypeVar
 from typing import cast as typecast
 
+import json
 import yaml
 
 from .utils import RichStatus
@@ -111,6 +112,9 @@ class Resource (dict):
         ad.pop('_errors', None)
 
         return ad
+
+    def as_json(self, indent=4, sort_keys=True, **kwargs):
+        return json.dumps(self.as_dict(), indent=indent, sort_keys=sort_keys, **kwargs)
 
     @classmethod
     def from_resource(cls: Type[R], other: R,

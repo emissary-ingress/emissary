@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING
 
 from ..config import Config
 from .irresource import IRResource
@@ -8,6 +8,10 @@ if TYPE_CHECKING:
 
 
 class IRListener (IRResource):
+    @staticmethod
+    def helper_contexts(res: IRResource, k: str) -> Tuple[str, dict]:
+        return k, { ctx_key: ctx.as_dict() for ctx_key, ctx in res[k].items() }
+
     def __init__(self, ir: 'IR', aconf: Config,
 
                  service_port: int,
@@ -26,6 +30,8 @@ class IRListener (IRResource):
             require_tls=require_tls,
             use_proxy_proto=use_proxy_proto,
             **kwargs)
+
+        self.add_dict_helper('tls_contexts', IRListener.helper_contexts)
 
 class ListenerFactory:
     @classmethod

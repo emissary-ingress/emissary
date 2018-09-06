@@ -1,5 +1,5 @@
 from ambassador.utils import RichStatus
-from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from ..config import Config
 
@@ -336,6 +336,15 @@ class IRMappingGroup (IRResource):
         'timeout_ms': True
     }
 
+    @staticmethod
+    def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
+        return k, list(reversed(sorted([ x.as_dict() for x in res.mappings ],
+                                         key=lambda x: x[ 'route_weight' ])))
+
+    @staticmethod
+    def helper_shadows(res: IRResource, k: str) -> Tuple[str, List[dict]]:
+        return k, list([ x.as_dict() for x in res[k] ])
+
     def __init__(self, ir: 'IR', aconf: Config,
                  location: str,
                  mapping: IRMapping,
@@ -355,6 +364,9 @@ class IRMappingGroup (IRResource):
             ir=ir, aconf=aconf, rkey=rkey, location=location, kind=kind, name=name,
             mappings=[], host_redirect=None, shadows=[], **kwargs
         )
+
+        self.add_dict_helper('mappings', IRMappingGroup.helper_mappings)
+        self.add_dict_helper('shadows', IRMappingGroup.helper_shadows)
 
         # Time to lift a bunch of core stuff from the first mapping up into the
         # group.
@@ -535,32 +547,6 @@ class IRMappingGroup (IRResource):
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
             return []
-
-    def as_dict(self) -> Dict:
-        od: Dict[str, Any] = {}
-
-        for k in self.keys():
-            if (k == 'apiVersion') or (k == 'logger') or (k == 'serialization') or (k == 'ir'):
-                continue
-            elif k == '_referenced_by':
-                refd_by = sorted(self._referenced_by.keys())
-
-                od['_referenced_by'] = refd_by
-            elif k == 'rkey':
-                od['_rkey'] = self[k]
-            elif isinstance(self[k], IRResource):
-                od[k] = self[k].as_dict()
-            elif k == 'mappings':
-                mapping_dicts = reversed(sorted([ x.as_dict() for x in self.mappings ],
-                                                key=lambda x: x['route_weight']))
-                od[k] = list(mapping_dicts)
-            elif k == 'shadows':
-                od[k] = list([ x.as_dict() for x in self[k] ])
-            elif self[k] is not None:
-                od[k] = self[k]
-
-        # print("returning %s" % repr(od))
-        return od
 
 
 class MappingFactory:

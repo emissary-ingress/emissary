@@ -1,6 +1,4 @@
-from typing import ClassVar, Dict, Optional, TYPE_CHECKING
-
-import json
+from typing import Any, ClassVar, Dict, List, Tuple, TYPE_CHECKING
 
 from ..config import Config
 from ..resource import Resource
@@ -13,6 +11,20 @@ class IRResource (Resource):
     """
     A resource within the IR.
     """
+
+    @staticmethod
+    def helper_sort_keys(res: 'IRResource', k: str) -> Tuple[str, List[str]]:
+        return k, list(sorted(res[k].keys()))
+
+    @staticmethod
+    def helper_rkey(res: 'IRResource', k: str) -> Tuple[str, str]:
+        return '_rkey', res[k]
+
+    __as_dict_helpers: ClassVar[Dict[str, Any]] = {
+        "apiVersion": "drop",
+        "logger": "drop",
+        "ir": "drop"
+    }
 
     _active: bool
 
@@ -31,7 +43,14 @@ class IRResource (Resource):
         self.ir = ir
         self.logger = ir.logger
 
+        self.__as_dict_helpers = IRResource.__as_dict_helpers
+        self.add_dict_helper("_referenced_by", IRResource.helper_sort_keys)
+        self.add_dict_helper("rkey", IRResource.helper_rkey)
+
         self.set_active(self.setup(ir, aconf))
+
+    def add_dict_helper(self, key: str, helper) -> None:
+        self.__as_dict_helpers[key] = helper
 
     def set_active(self, active: bool) -> None:
         self._active = active
@@ -51,29 +70,28 @@ class IRResource (Resource):
         pass
 
     def as_dict(self) -> Dict:
-        od = {}
+        od: Dict[str, Any] = {}
 
         for k in self.keys():
-            if (k == 'apiVersion') or (k == 'logger') or (k == 'ir'):
-                # print(k)
+            if k.startswith('__') or k.startswith("_IRResource__"):
                 continue
-            elif k == '_referenced_by':
-                refd_by = sorted([ self._referenced_by[k].location
-                                   for k in self._referenced_by.keys() ])
 
-                od['_referenced_by'] = refd_by
-            elif k == 'rkey':
-                od['_rkey'] = self[k]
+            helper = self.__as_dict_helpers.get(k, None)
+
+            if helper == "drop":
+                continue
+
+            if helper:
+                new_k, v = helper(self, k)
+
+                if new_k and v:
+                    od[new_k] = v
             elif isinstance(self[k], IRResource):
                 od[k] = self[k].as_dict()
             elif self[k] is not None:
                 od[k] = self[k]
 
-        # print("returning %s" % repr(od))
         return od
-
-    def as_json(self, indent=4, sort_keys=True, **kwargs):
-        return json.dumps(self.as_dict(), indent=indent, sort_keys=sort_keys, **kwargs)
 
     @staticmethod
     def normalize_service(service: str) -> str:
