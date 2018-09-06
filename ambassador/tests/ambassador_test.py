@@ -133,40 +133,36 @@ class old_ir (dict):
             'clusters': []
         }
 
-        for idx in range(len(econf['listeners'])):
-            e_lst = econf['listeners'][idx]
-
+        for listener in econf['listeners']:
             for k in [ '_referenced_by', 'name', 'serialization' ]:
-                e_lst.pop(k, None)
+                listener.pop(k, None)
 
-            if idx < len(v1config[ 'listeners' ]):
-                v1_lst = v1config[ 'listeners' ][ idx ]
+            if 'tls_contexts' in listener:
+                ssl_context = {}
+                found_some = False
+                location = None
 
-                if 'ssl_context' in v1_lst:
-                    e_tls = dict(v1_lst['ssl_context'])
-                    e_tls['ssl_context'] = True
+                for ctx_name, ctx in listener['tls_contexts'].items():
+                    for key in [ "cert_chain_file", "private_key_file",
+                                 "alpn_protocols", "cacert_chain_file",
+                                 "cert_required", "redirect_cleartext_from" ]:
+                        if key in ctx:
+                            ssl_context[key] = ctx[key]
+                            found_some = True
 
-                    if 'require_client_certificate' in e_tls:
-                        e_tls['cert_required'] = e_tls['require_client_certificate']
-                        del(e_tls['require_client_certificate'])
+                    if not location and ('_source' in ctx):
+                        location = ctx['_source']
+                        logger.debug('ctx %s sets location to %s' % (ctx_name, location))
 
-                    src = None
+                if found_some:
+                    if not location:
+                        location = ir['ambassador']['location']
+                        logger.debug('no location, defaulting to %s' % location)
 
-                    if e_lst['tls_contexts']:
-                        for ctx_name, ctx in e_lst['tls_contexts'].items():
-                            ctx_src = ctx.get('_source', None)
-                            print("atest ctx %s source %s" % (ctx_name, ctx_src))
-                            print(json.dumps(ctx, sort_keys=True, indent=4))
+                    ssl_context['_source'] = location
+                    listener['tls'] = ssl_context
 
-                            if ctx_src and not src:
-                                src = ctx_src
-
-                    if src:
-                       e_tls['_source'] = src
-
-                    e_lst['tls'] = e_tls
-
-            e_lst.pop('tls_contexts', None)
+                del(listener['tls_contexts'])
 
         clusters = {}
 
