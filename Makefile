@@ -286,8 +286,10 @@ cluster.yaml:
 	skill -INT teleproxy
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
 
+KUBECONFIG=$(shell pwd)/cluster.yaml
+
 shell: setup-develop cluster.yaml
-	KUBECONFIG=$(shell pwd)/cluster.yaml bash --init-file releng/init.sh -i
+	KUBECONFIG=$(KUBECONFIG) bash --init-file releng/init.sh -i
 
 clean-test:
 	rm -f cluster.yaml
@@ -295,7 +297,7 @@ clean-test:
 	skill -INT teleproxy
 
 test: version setup-develop cluster.yaml
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
+	cd ambassador && KUBECONFIG=$(KUBECONFIG) PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
