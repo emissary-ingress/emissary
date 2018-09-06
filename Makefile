@@ -176,7 +176,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
-ambassador-docker-image:
+ambassador-docker-image: version
 	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
 
 docker-login:
