@@ -304,7 +304,10 @@ clean-test:
 	skill -INT teleproxy
 
 test: version setup-develop cluster.yaml
-	cd ambassador && KUBECONFIG=$(KUBECONFIG) PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
+	cd ambassador && KUBECONFIG=$(KUBECONFIG) PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
+
+test-list: version setup-develop
+	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
