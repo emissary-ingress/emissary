@@ -16,6 +16,7 @@ spec:
   template:
     metadata:
       labels:
+        service: {{ template "ambassador.name" . }}
         app: {{ template "ambassador.name" . }}
         release: {{ .Release.Name }}
       annotations:
