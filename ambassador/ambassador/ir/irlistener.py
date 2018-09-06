@@ -42,7 +42,7 @@ class ListenerFactory:
             ir=ir, aconf=aconf, location=amod.location,
             service_port=amod.service_port,
             require_tls=amod.get('x_forwarded_proto_redirect', False),
-            use_proxy_proto=amod.use_proxy_proto,
+            use_proxy_proto=amod.use_proxy_proto
         )
 
         # If x_forwarded_proto_redirect is set, then we enable require_tls in primary listener,
@@ -84,6 +84,9 @@ class ListenerFactory:
         if contexts:
             primary_listener['tls_contexts'] = contexts
 
+        if 'use_remote_address' in amod:
+            primary_listener.use_remote_address = amod.use_remote_address
+
         ir.add_listener(primary_listener)
 
         if redirect_cleartext_from:
@@ -98,7 +101,7 @@ class ListenerFactory:
             )
 
             if 'use_remote_address' in amod:
-                ir.ambassador_module.use_remote_address = True
+                new_listener.use_remote_address = amod.use_remote_address
 
             ir.add_listener(new_listener)
 
