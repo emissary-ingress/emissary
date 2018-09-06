@@ -68,6 +68,10 @@ class Resource (dict):
                          _referenced_by={},
                          **kwargs)
 
+    def sourced_by(self, other: 'Resource'):
+        self.rkey = other.rkey
+        self.location = other.location
+
     def references(self, other: 'Resource'):
         """
         Mark another Resource as referenced by this one.

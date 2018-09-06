@@ -59,8 +59,10 @@ class IRAmbassador (IRResource):
         tmod: Optional[Dict] = None
 
         if amod:
-            tmod = amod.get('tls', None)
+            self.sourced_by(amod)
             self.referenced_by(amod)
+
+            tmod = amod.get('tls', None)
 
         if tmod:
             # Yes. Get its contexts loaded.
@@ -124,4 +126,5 @@ class IRAmbassador (IRResource):
                 name = "internal_%s_probe_mapping" % name
 
                 mapping = IRMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location, **cur)
+                mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)

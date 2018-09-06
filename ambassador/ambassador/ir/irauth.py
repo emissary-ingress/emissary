@@ -107,7 +107,10 @@ class IRAuth (IRFilter):
         # name = "internal_%s_probe_mapping" % name
 
     def _load_auth(self, module: Resource):
-        for key in ['path_prefix', 'timeout_ms', 'cluster']:
+        if self.location == '--internal--':
+            self.sourced_by(module)
+
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
             value = module.get(key, None)
 
             if value:

@@ -33,7 +33,7 @@ class ListenerFactory:
         amod = ir.ambassador_module
         
         primary_listener = IRListener(
-            ir=ir, aconf=aconf,
+            ir=ir, aconf=aconf, location=amod.location,
             service_port=amod.service_port,
             require_tls=amod.get('x_forwarded_proto_redirect', False),
             use_proxy_proto=amod.use_proxy_proto,
@@ -61,7 +61,7 @@ class ListenerFactory:
 
         if redirect_cleartext_from:
             new_listener = IRListener(
-                ir=ir, aconf=aconf,
+                ir=ir, aconf=aconf, location=amod.location,
                 service_port=redirect_cleartext_from,
                 use_proxy_proto=amod.use_proxy_proto,
                 # Note: no TLS context here, this is a cleartext listener.

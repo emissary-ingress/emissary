@@ -13,10 +13,12 @@ class IRFilter(IRResource):
                  rkey: str = "ir.filter",
                  kind: str = "IRFilter",
                  name: str = "ir.filter",
+                 location: str = "--internal--",
                  type: Optional[str] = None,
                  **kwargs) -> None:
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            location=location,
             type=type,
             **kwargs)
 
