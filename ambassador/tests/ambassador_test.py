@@ -235,9 +235,12 @@ class old_ir (dict):
                                       ( 'name', 'name'),
                                       ( 'version', 'version'),
                                       ( 'description', 'description'),
-                                      ( 'serialization', 'yaml' ) ]:
+                                      # ( 'serialization', 'yaml' )
+                                    ]:
                 if from_key in src:
                     src_dict[to_key] = src[from_key]
+
+            src_dict.pop('serialization', None)
 
             if key_index is not None:
                 src_dict['index'] = int(key_index)
@@ -261,6 +264,22 @@ class old_ir (dict):
 
 def get_old_intermediate(aconf, ir, v1config):
     return dict(old_ir(aconf.as_dict(), ir.as_dict(), v1config.as_dict()))
+
+def kill_yaml(res: dict) -> Any:
+    if isinstance(res, list):
+        return [ kill_yaml(x) for x in res ]
+    elif isinstance(res, dict):
+        od = {}
+
+        for key in res.keys():
+            if key == 'yaml':
+                continue
+
+            od[key] = kill_yaml(res[key])
+
+        return od
+    else:
+        return res
 
 #### Test functions
 
@@ -299,7 +318,18 @@ def test_config(testname, dirpath, configdir):
     gold_path = os.path.join(dirpath, "gold.intermediate.json")
 
     if os.path.exists(gold_path):
-        udiff = unified_diff(gold_path, current_path)
+        gold_parsed = None
+
+        try:
+            gold_parsed = json.load(open(gold_path, "r"))
+        except json.decoder.JSONDecodeError as e:
+            errors.append("%s was unparseable?" % gold_path)
+
+        gold_no_yaml = kill_yaml(gold_parsed)
+        gold_no_yaml_path = os.path.join(dirpath, "gold.no_yaml.json")
+        json.dump(gold_no_yaml, open(gold_no_yaml_path, "w"), sort_keys=True, indent=4)
+
+        udiff = unified_diff(gold_no_yaml_path, current_path)
 
         if udiff:
             errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
