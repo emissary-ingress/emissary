@@ -45,19 +45,22 @@ class V1Listener(dict):
         if listener.use_proxy_proto:
             self["use_proxy_proto"] = True
 
-        if 'tls_context' in listener:
-            ctx = listener.tls_context
-
-            if ctx:
-                lctx = {}
-
+        if 'tls_contexts' in listener:
+            ssl_context = {}
+            found_some = False
+            for ctx_name, ctx in listener.tls_contexts.items():
                 for key in [ "cert_chain_file", "private_key_file",
                              "alpn_protocols", "cacert_chain_file" ]:
                     if key in ctx:
-                        lctx[key] = ctx[key]
+                        ssl_context[key] = ctx[key]
+                        found_some = True
 
                 if "cert_required" in ctx:
-                    lctx["require_client_certificate"] = ctx["cert_required"]
+                    ssl_context["require_client_certificate"] = ctx["cert_required"]
+                    found_some = True
+                    
+            if found_some:
+                self['ssl_context'] = ssl_context
 
         routes = self.get_routes(config, listener)
 

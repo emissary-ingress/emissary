@@ -133,9 +133,40 @@ class old_ir (dict):
             'clusters': []
         }
 
-        for l in econf['listeners']:
+        for idx in range(len(econf['listeners'])):
+            e_lst = econf['listeners'][idx]
+
             for k in [ '_referenced_by', 'name', 'serialization' ]:
-                l.pop(k, None)
+                e_lst.pop(k, None)
+
+            if idx < len(v1config[ 'listeners' ]):
+                v1_lst = v1config[ 'listeners' ][ idx ]
+
+                if 'ssl_context' in v1_lst:
+                    e_tls = dict(v1_lst['ssl_context'])
+                    e_tls['ssl_context'] = True
+
+                    if 'require_client_certificate' in e_tls:
+                        e_tls['cert_required'] = e_tls['require_client_certificate']
+                        del(e_tls['require_client_certificate'])
+
+                    src = None
+
+                    if e_lst['tls_contexts']:
+                        for ctx_name, ctx in e_lst['tls_contexts'].items():
+                            ctx_src = ctx.get('_source', None)
+                            print("atest ctx %s source %s" % (ctx_name, ctx_src))
+                            print(json.dumps(ctx, sort_keys=True, indent=4))
+
+                            if ctx_src and not src:
+                                src = ctx_src
+
+                    if src:
+                       e_tls['_source'] = src
+
+                    e_lst['tls'] = e_tls
+
+            e_lst.pop('tls_contexts', None)
 
         clusters = {}
 

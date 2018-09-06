@@ -55,13 +55,22 @@ class ListenerFactory:
 
         redirect_cleartext_from = None
 
-        # Is TLS termination enabled?
-        ctx = ir.get_tls_context('server')
+        # What do we know about TLS?
+        # XXX This will have to change as we mess more with arbitrary contexts.
+        contexts = {}
 
-        if ctx:
-            # Yes.
-            primary_listener.tls_context = ctx
-            redirect_cleartext_from = ctx.get('redirect_cleartext_from')
+        for ctxname in [ 'server', 'client' ]:
+            ctx = ir.get_tls_context(ctxname)
+
+            if ctx and ctx.enabled:
+                contexts[ctxname] = ctx
+
+                if ctx.get('cacert_chain_file'):
+                    # This is a termination context.
+                    redirect_cleartext_from = ctx.get('redirect_cleartext_from', None)
+
+        if contexts:
+            primary_listener['tls_contexts'] = contexts
 
         ir.add_listener(primary_listener)
 

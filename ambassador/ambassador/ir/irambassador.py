@@ -1,5 +1,7 @@
 from typing import ClassVar, Dict, Optional, TYPE_CHECKING
 
+import json
+
 from ..config import Config
 
 from .irresource import IRResource
@@ -64,13 +66,29 @@ class IRAmbassador (IRResource):
 
             tmod = amod.get('tls', None)
 
+            if tmod:
+                # XXX Hackery! There should be a way to make this an IRAmbassadorTLS...
+                tmod['rkey'] = amod.rkey
+                tmod['location'] = amod.location
+                tmod['kind'] = 'Module'
+                tmod['name'] = 'tls-from-ambassador-module'
+
+        if not tmod:
+            # Nothing in the Ambassador module. Check for a TLS module.
+            tmod = self.get("tls_module", None)
+
         if tmod:
-            # Yes. Get its contexts loaded.
-            for ctx_name in tmod.keys():
+            self.logger.debug("final TLS module: %s" % json.dumps(tmod, sort_keys=True, indent=4))
+
+            # Create TLS contexts.
+            for ctx_name, ctx in tmod.items():
                 if ctx_name.startswith('_'):
                     continue
 
-                IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name, **tmod[ctx_name ])
+                if isinstance(ctx, dict):
+                    IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
+                               location=ctx.get('location', amod.location),
+                               **ctx)
 
         # Next up, check for the special 'server' and 'client' TLS contexts.
         ctx = ir.get_tls_context('server')

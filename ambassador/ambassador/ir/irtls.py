@@ -123,16 +123,9 @@ class IRAmbassadorTLS (IRResource):
 
         # OK, done. Merge the result back in.
         if tls_module:
-            self.logger.debug("tmod after merge: %s" % json.dumps(tls_module.as_dict(), indent=4))
+            self.logger.debug("TLS module getting merged: %s" % tls_module.as_json())
             self.update(tls_module)
-            self.logger.debug("TLS module after merge: %s" % json.dumps(self.as_dict(), indent=4))
-
-            # Create TLS contexts.
-            for ctx_name in tls_module.keys():
-                ctx = tls_module[ctx_name]
-
-                if isinstance(ctx, dict):
-                    IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name, **tls_module[ctx_name])
+            self.logger.debug("TLS module after merge: %s" % self.as_json())
 
             return True
         else:
