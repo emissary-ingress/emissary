@@ -439,7 +439,14 @@ class IRMappingGroup (IRResource):
         total_weight = 0.0
         unspecified_mappings = 0
 
-        if not self.get('rewrite', None):
+        rewrite = self.get('rewrite', None)
+        if not rewrite:
+            # If an empty string has been explicitly specified in the mapping, then we do not need to specify rewrite
+            # at all
+            self.pop('rewrite')
+        elif rewrite is None:
+            # By default, the prefix is rewritten to /, so e.g., if we map /prefix1/ to the service service1, then
+            # http://ambassador.example.com/prefix1/foo/bar would effectively be written to http://service1/foo/bar
             self.rewrite = '/'
 
         # if mapping.get('prefix_regex', False):

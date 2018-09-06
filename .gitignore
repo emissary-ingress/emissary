@@ -9,6 +9,7 @@ __pycache__
 VERSION.py
 .pytest_cache
 .mypy_cache
+cluster.yaml
 
 ambassador.egg-info
 build
