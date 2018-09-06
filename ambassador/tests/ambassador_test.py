@@ -145,21 +145,30 @@ class old_ir (dict):
                 for ctx_name, ctx in listener['tls_contexts'].items():
                     for key in [ "cert_chain_file", "private_key_file",
                                  "alpn_protocols", "cacert_chain_file",
-                                 "cert_required", "redirect_cleartext_from" ]:
+                                 "cert_required" ]:
                         if key in ctx:
                             ssl_context[key] = ctx[key]
                             found_some = True
+
+                    # Handle redirect_cleartext_from specially -- found_some should NOT
+                    # be set if it's the only thing present.
+                    if "redirect_cleartext_from" in ctx:
+                        ssl_context["redirect_cleartext_from"] = ctx["redirect_cleartext_from"]
 
                     if not location and ('_source' in ctx):
                         location = ctx['_source']
                         logger.debug('ctx %s sets location to %s' % (ctx_name, location))
 
-                if found_some:
+                if ssl_context:
                     if not location:
                         location = ir['ambassador']['location']
                         logger.debug('no location, defaulting to %s' % location)
 
                     ssl_context['_source'] = location
+
+                    if found_some:
+                        ssl_context['ssl_context'] = True
+
                     listener['tls'] = ssl_context
 
                 del(listener['tls_contexts'])
