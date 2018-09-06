@@ -16,7 +16,7 @@ class AmbassadorTest(Test):
 
     # XXX: should use format for manifests and change templates to manifests
     def manifests(self) -> str:
-        return self.format(manifests.AMBASSADOR, image="quay.io/datawire/ambassador:0.35.3")
+        return self.format(manifests.AMBASSADOR, image="quay.io/datawire/ambassador:0.39.0")
 
     @abstractmethod
     def scheme(self) -> str:
