@@ -543,8 +543,7 @@ class IRMappingGroup (IRResource):
             if (k == 'apiVersion') or (k == 'logger') or (k == 'serialization') or (k == 'ir'):
                 continue
             elif k == '_referenced_by':
-                refd_by = sorted([ "%s: %s" % (k, self._referenced_by[k].location)
-                                   for k in self._referenced_by.keys() ])
+                refd_by = sorted(self._referenced_by.keys())
 
                 od['_referenced_by'] = refd_by
             elif k == 'rkey':

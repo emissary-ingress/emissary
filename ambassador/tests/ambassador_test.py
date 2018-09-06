@@ -109,8 +109,10 @@ def as_sourceddict(res: dict) -> Any:
 
             sd[key] = as_sourceddict(res[key])
 
-        if '_referenced_by' in res:
-            sd['_referenced_by'] = sorted(res['_referenced_by'])
+        refs = res.get('_referenced_by', [])
+
+        if refs:
+            sd['_referenced_by'] = sorted(refs)
 
         return sd
     else:
