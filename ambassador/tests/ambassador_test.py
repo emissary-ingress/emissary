@@ -173,8 +173,6 @@ class old_ir (dict):
 
                 del(listener['tls_contexts'])
 
-        clusters = {}
-
         for group in sorted(ir['groups'], key=lambda g: g['group_id']):
             route = as_sourceddict(group)
 
@@ -198,13 +196,6 @@ class old_ir (dict):
                     'name': mapping['cluster']['name'],
                     'weight': mapping['weight']
                 })
-
-                if cname not in clusters:
-                    # print("NEW CLUSTER %s" % cname)
-                    clusters[cname] = cluster
-                else:
-                    # print("REPEAT CLUSTER %s" % cname)
-                    clusters[cname] = cluster
 
             if 'shadows' in route:
                 if route['shadows']:
@@ -239,7 +230,7 @@ class old_ir (dict):
 
             econf['routes'].append(route)
 
-        for cluster in sorted(clusters.values(), key=lambda x: x['name']):
+        for cluster in sorted(ir['clusters'].values(), key=lambda x: x['name']):
             envoy_cluster = as_sourceddict(cluster)
 
             if "service" in envoy_cluster:
@@ -250,6 +241,21 @@ class old_ir (dict):
                 del(envoy_cluster['serialization'])
 
             econf['clusters'].append(envoy_cluster)
+
+        if 'tracing' in ir:
+            tracing = as_sourceddict(ir['tracing'])
+
+            etrace = {
+                '_source': tracing['_source'],
+                'cluster_name': tracing['cluster']['name'],
+                'config': tracing['driver_config'],
+                'driver': tracing['driver']
+            }
+
+            if 'tag_headers' in tracing:
+                etrace['tag_headers'] = tracing['tag_headers']
+
+            econf['tracing'] = etrace
 
         self['envoy_config'] = econf
 

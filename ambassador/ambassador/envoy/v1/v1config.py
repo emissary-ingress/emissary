@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import json
 import logging
@@ -30,7 +30,6 @@ from .v1tracing import V1Tracing
 
 class V1Config:
     def __init__(self, ir: IR) -> None:
-        self.is_tracing = False
         self.ir = ir
 
         # Toplevel stuff.
@@ -45,12 +44,8 @@ class V1Config:
         self.clustermgr: V1ClusterManager = V1ClusterManager.generate(self)
 
         # print("v1.clustermgr %s" % self.clustermgr)
+        self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
 
-        tracing_key = 'ir.tracing'
-        if tracing_key in self.ir.saved_resources:
-            if self.ir.saved_resources[tracing_key].is_active():
-                self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
-                self.is_tracing = True
 
     def as_dict(self):
         d = {
@@ -59,7 +54,7 @@ class V1Config:
             'cluster_manager': self.clustermgr,
         }
 
-        if self.is_tracing:
+        if self.tracing:
             d['tracing'] = self.tracing
 
         return d

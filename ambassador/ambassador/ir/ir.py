@@ -48,6 +48,7 @@ from .irtracing import IRTracing
 class IR:
     ambassador_module: IRAmbassador
     tls_module: Optional[IRAmbassadorTLS]
+    tracing: Optional[IRTracing]
     router_config: Dict[str, Any]
     filters: List[IRResource]
     listeners: List[IRListener]
@@ -74,9 +75,8 @@ class IR:
         self.saved_resources = {}
 
         # Our initial configuration stuff is all empty...
-        self.router_config = {}
         self.filters = []
-        self.tracing_config = {}
+        self.tracing = None
         self.listeners = []
         self.groups = {}
 
@@ -115,18 +115,28 @@ class IR:
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
 
+        # Save tracing settings.
+        self.tracing = self.save_resource(IRTracing(self, aconf))
+
         # After the Ambassador and TLS modules are done, we need to set up the
-        # filter chains, which requires checking in on the tracing, auth, and
+        # filter chains, which requires checking in on the auth, and
         # ratelimit configuration stuff.
         #
         # ORDER MATTERS HERE.
 
-        for cls in [IRAuth, IRRateLimit, IRTracing]:
+        for cls in [IRAuth, IRRateLimit]:
             self.save_filter(cls(self, aconf))
 
-        # Then append non-configurable cors and decoder filters
+        # Then append non-configurable cors filter...
         self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={}))
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=self.router_config))
+
+        # ...and the marginally-configurable router filter.
+        router_config = {}
+
+        if self.tracing:
+            router_config['start_child_span'] = True
+
+        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
@@ -239,14 +249,21 @@ class IR:
         return self.clusters[cluster.name]
 
     def as_dict(self) -> Dict[str, Any]:
-        return {
+        od = {
             'ambassador': self.ambassador_module.as_dict(),
-            'tls_contexts': { ctx_name: self.tls_contexts[ctx_name].as_dict()
-                              for ctx_name in sorted(self.tls_contexts.keys()) },
+            'clusters': { cluster_name: cluster.as_dict()
+                          for cluster_name, cluster in self.clusters.items() },
+            'tls_contexts': { ctx_name: ctx.as_dict()
+                              for ctx_name, ctx in self.tls_contexts.items() },
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filter.as_dict() for filter in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ]
         }
+
+        if self.tracing:
+            od['tracing'] = self.tracing.as_dict()
+
+        return od
 
     def as_json(self):
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
