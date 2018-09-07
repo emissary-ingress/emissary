@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, List
 from ..common import EnvoyRoute
 
 from ...ir.irlistener import IRListener
+from ...ir.irfilter import IRFilter
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -38,6 +39,7 @@ class V2StaticResources(dict):
     @classmethod
     def generate(cls, config: 'V2Config') -> 'V2StaticResources':
         return V2StaticResources(config)
+
 
 class V2Listener(dict):
     def __init__(self, config: 'V2Config', listener: IRListener) -> None:
@@ -71,34 +73,6 @@ class V2Listener(dict):
             }
         ]
 
-        filters = [
-            {
-                'name': 'wha',
-                "config": {
-                  "stat_prefix": "ingress_http",
-                  "route_config": {
-                    "name": "local_route",
-                    "virtual_hosts": [
-                      {
-                        "name": "local_service",
-                        "domains": [
-                          "*"
-                        ],
-                          "routes": self.parse_routes(config)
-                      },
-                    ],
-                  },
-                },
-            },
-        ]
-
-        filter_chains = [
-            {
-                'filters': filters,
-                'use_proxy_proto': listener.get('use_proxy_proto')
-            }
-        ]
-
         self.update({
             'address': {
                 'socket_address': {
@@ -107,10 +81,41 @@ class V2Listener(dict):
                     'protocol': 'TCP'
                 }
             },
-            'filter_chains': filter_chains
+            'filter_chains': [
+                {
+                    'filters': [
+                        {
+                            'name': 'envoy.http_connection_manager',
+                            'config': {
+                                'stat_prefix': 'ingress_http',
+                                'access_log': [
+                                    {
+                                        'config': {
+                                            'path': '/dev/fd/1',
+                                            'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
+                                        }
+                                    }
+                                ],
+                                'route_config': {
+                                    'virtual_hosts': [
+                                        {
+                                            'name': 'backend',
+                                            'domains': [
+                                                '*'
+                                            ],
+                                            'routes': self.get_routes(config)
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    'use_proxy_proto': listener.get('use_proxy_proto')
+                }
+            ]
         })
 
-    def parse_routes(self, config: 'V2Config'):
+    def get_routes(self, config: 'V2Config'):
         routes = []
 
         for group in reversed(sorted(config.ir.groups.values(), key=lambda x: x['group_weight'])):
@@ -120,7 +125,7 @@ class V2Listener(dict):
                 'match': {
                     envoy_route: group.get('prefix'),
                     'case_sensitive': group.get('case_sensitive'),
-                    'headers': group.get('headers')
+                    'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
                 },
                 'route': {
                     'cors': group.get('cors') if group.get('cors', False) else group.get('cors_default'),
@@ -153,3 +158,13 @@ class V2Listener(dict):
             routes.append(route)
 
         return routes
+
+
+class V2Filter(dict):
+    def __init__(self, filter: IRFilter) -> None:
+        super().__init__()
+
+        self.update({
+            'name': filter.name,
+            'config': filter.config_dict()
+        })
