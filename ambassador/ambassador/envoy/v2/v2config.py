@@ -19,6 +19,7 @@ import json
 from ...ir import IR
 
 from .v2admin import V2Admin
+from .v2_static_resources import V2StaticResources
 
 # from .v1listener import V1Listener
 # from .v1clustermanager import V1ClusterManager
@@ -36,6 +37,8 @@ class V2Config:
 
         # Toplevel stuff.
         self.admin: V2Admin = V2Admin.generate(self)
+
+        self.static_resources = V2StaticResources.generate(self)
 #
 #         # print("v1.admin %s" % self.admin)
 #
@@ -57,6 +60,7 @@ class V2Config:
     def as_dict(self):
         d = {
             'admin': self.admin,
+            'static_resources': self.static_resources
             # 'listeners': self.listeners,
             # 'cluster_manager': self.clustermgr,
         }
