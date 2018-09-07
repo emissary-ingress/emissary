@@ -18,6 +18,7 @@ import json
 
 from ...ir import IR
 
+from ..common import sanitize_pre_json
 from .v2admin import V2Admin
 from .v2_static_resources import V2StaticResources
 
@@ -71,4 +72,4 @@ class V2Config:
         return d
 
     def as_json(self):
-        return json.dumps(self.as_dict(), sort_keys=True, indent=4)
+        return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)

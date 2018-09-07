@@ -27,3 +27,17 @@ class EnvoyRoute:
             return self.regex
         else:
             return self.prefix
+
+
+def sanitize_pre_json(input):
+    # Removes all potential null values
+    if isinstance(input, dict):
+        for key, value in list(input.items()):
+            if value is None:
+                del input[key]
+            else:
+                sanitize_pre_json(value)
+    elif isinstance(input, list):
+        for item in input:
+            sanitize_pre_json(item)
+    return input
