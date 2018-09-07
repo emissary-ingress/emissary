@@ -30,6 +30,7 @@ from clize import Parameter
 from .config import Config, fetch_resources
 from .ir import IR
 from .envoy import V1Config
+from .envoy import V2Config
 
 from .utils import RichStatus
 
@@ -109,7 +110,7 @@ def showid():
     print("CANNOT SHOW ID RIGHT NOW")
 
 def dump(config_dir_path:Parameter.REQUIRED, *,
-         k8s=False, aconf=False, ir=False, v1=False):
+         k8s=False, aconf=False, ir=False, v1=False, v2=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -123,14 +124,16 @@ def dump(config_dir_path:Parameter.REQUIRED, *,
     :param v1: If set, dump the Envoy V1 config
     """
 
-    if not (aconf or ir or v1):
+    if not (aconf or ir or v1 or v2):
         aconf = True
         ir = True
         v1 = True
+        v2 = True
 
     dump_aconf = aconf
     dump_ir = ir
     dump_v1 = v1
+    dump_v2 = v2
 
     od = {}
 
@@ -150,6 +153,10 @@ def dump(config_dir_path:Parameter.REQUIRED, *,
         if dump_v1:
             v1config = V1Config(ir)
             od['v1'] = v1config.as_dict()
+
+        if dump_v2:
+            v2config = V2Config(ir)
+            od['v2'] = v2config.as_dict()
 
         json.dump(od, sys.stdout, sort_keys=True, indent=4)
         sys.stdout.write("\n")
@@ -247,6 +254,16 @@ def config(config_dir_path:Parameter.REQUIRED, output_json_path:Parameter.REQUIR
             if rc:
                 with open(output_json_path, "w") as output:
                     output.write(v1config.as_json())
+                    output.write("\n")
+            else:
+                logger.error("Could not generate new Envoy configuration: %s" % rc.error)
+
+            v2config = V2Config(ir)
+            rc = RichStatus.OK(msg="huh_v2")
+
+            if rc:
+                with open(output_json_path + '.v2', "w") as output:
+                    output.write(v2config.as_json())
                     output.write("\n")
             else:
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
