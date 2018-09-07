@@ -164,6 +164,7 @@ class ResourceFetcher:
                 r = ACResource.from_dict(rkey, rkey, serialization, obj)
 
                 self.resources.append(r)
+                rkey = None
 
             self.ocount += 1
 
