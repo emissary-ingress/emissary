@@ -14,8 +14,8 @@
 
 from typing import List, TYPE_CHECKING
 from typing import cast as typecast
-from enum import Enum
 
+from ..common import EnvoyRoute
 from ...ir.irlistener import IRListener
 from ...ir.irmapping import IRMapping
 from ...ir.irfilter import IRFilter
@@ -108,13 +108,6 @@ class V1Listener(dict):
             }
         ]
 
-    @staticmethod
-    def _get_envoy_route(group: IRMapping) -> str:
-        if group.get('prefix_regex', False):
-            return EnvoyRoute.regex.value
-        else:
-            return EnvoyRoute.prefix.value
-
     def get_routes(self, config: 'V1Config', listener: 'IRListener') -> List[dict]:
         routes = []
 
@@ -123,7 +116,7 @@ class V1Listener(dict):
                 "timeout_ms": group.get("timeout_ms", 3000),
             }
 
-            envoy_route = self._get_envoy_route(group)
+            envoy_route = EnvoyRoute(group).envoy_route
             route[envoy_route] = group.get('prefix')
 
             if "regex" in group:
@@ -201,9 +194,3 @@ class V1Listener(dict):
             listeners.append(V1Listener(config, listener))
 
         return listeners
-
-
-class EnvoyRoute(Enum):
-    prefix = 'prefix'
-    path = 'path'
-    regex = 'regex'
