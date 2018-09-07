@@ -69,17 +69,23 @@ class IRResource (Resource):
         # If you don't override add_mappings, uh, no mappings will get added.
         pass
 
+    def skip_key(self, k: str) -> bool:
+        if k.startswith('__') or k.startswith("_IRResource__"):
+            return True
+
+        if self.__as_dict_helpers.get(k, None) == 'drop':
+            return True
+
+        return False
+
     def as_dict(self) -> Dict:
         od: Dict[str, Any] = {}
 
         for k in self.keys():
-            if k.startswith('__') or k.startswith("_IRResource__"):
+            if self.skip_key(k):
                 continue
 
             helper = self.__as_dict_helpers.get(k, None)
-
-            if helper == "drop":
-                continue
 
             if helper:
                 new_k, v = helper(self, k)

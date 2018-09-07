@@ -190,7 +190,7 @@ class old_ir (dict):
                     del(route[from_name])
 
             route['clusters'] = []
-            for mapping in group['mappings']:
+            for mapping in group.get('mappings', []):
                 cluster = mapping['cluster']
                 cname = cluster['name']
 
@@ -216,6 +216,12 @@ class old_ir (dict):
 
             if ('host_redirect' in route) and (not route['host_redirect']):
                 del(route['host_redirect'])
+
+            if route.get('prefix_regex', False):
+                # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
+                route['regex'] = route['prefix']
+                route.pop('prefix', None)
+                route.pop('prefix_regex', None)
 
             # print("WTFO route %s" % json.dumps(route, sort_keys=True, indent=4))
 

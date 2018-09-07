@@ -118,7 +118,7 @@ class V1Listener(dict):
     def get_routes(self, config: 'V1Config', listener: 'IRListener') -> List[dict]:
         routes = []
 
-        for group in reversed(sorted(config.ir.groups.values(), key=lambda x: x['group_weight'])):
+        for group in config.ir.ordered_groups():
             route = {
                 "timeout_ms": group.get("timeout_ms", 3000),
             }

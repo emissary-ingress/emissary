@@ -336,10 +336,20 @@ class IRMappingGroup (IRResource):
         'timeout_ms': True
     }
 
+    DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
+    DoNotFlattenKeys.update({
+        'cluster': True,
+        'host': True,
+        'name': True,
+        'route_weight': True,
+        'service': True,
+        'weight': True,
+    })
+
     @staticmethod
     def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
         return k, list(reversed(sorted([ x.as_dict() for x in res.mappings ],
-                                         key=lambda x: x[ 'route_weight' ])))
+                                         key=lambda x: x['route_weight'])))
 
     @staticmethod
     def helper_shadows(res: IRResource, k: str) -> Tuple[str, List[dict]]:
@@ -374,9 +384,6 @@ class IRMappingGroup (IRResource):
         if ('group_weight' not in self) and ('route_weight' in mapping):
             self.group_weight = mapping.route_weight
 
-        if ('rewrite' not in self) and ('rewrite' in mapping):
-            self.rewrite = mapping.rewrite
-
         for k in IRMappingGroup.CoreMappingKeys:
             if (k not in self) and (k in mapping):
                 self[k] = mapping[k]
@@ -389,9 +396,6 @@ class IRMappingGroup (IRResource):
         for k in IRMappingGroup.CoreMappingKeys:
             if (k in mapping) and (mapping[k] != self[k]):
                 mismatches.append(k)
-
-        if ('rewrite' in mapping) and (mapping.rewrite != self.rewrite):
-            mismatches.append('rewrite')
 
         if mismatches:
             raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
@@ -445,27 +449,26 @@ class IRMappingGroup (IRResource):
         :param aconf: the Config we're working from
         :return: a list of the IRClusters this Group uses
         """
-        
-        # First up,  
-        
+
+        for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
+            for k in mapping.keys():
+                if k.startswith('_') or mapping.skip_key(k) or (k in IRMappingGroup.DoNotFlattenKeys):
+                    continue
+
+                self[k] = mapping[k]
+
         total_weight = 0.0
         unspecified_mappings = 0
 
-        rewrite = self.get('rewrite', None)
-        if not rewrite:
-            # If an empty string has been explicitly specified in the mapping, then we do not need to specify rewrite
-            # at all
-            self.pop('rewrite')
-        elif rewrite is None:
-            # By default, the prefix is rewritten to /, so e.g., if we map /prefix1/ to the service service1, then
-            # http://ambassador.example.com/prefix1/foo/bar would effectively be written to http://service1/foo/bar
-            self.rewrite = '/'
+        # If no rewrite was given at all, default the rewrite to "/", so /, so e.g., if we map
+        # /prefix1/ to the service service1, then http://ambassador.example.com/prefix1/foo/bar
+        # would effectively be written to http://service1/foo/bar
+        #
+        # If they did give a rewrite, leave it alone so that the Envoy config can correctly
+        # handle an empty rewrite as no rewriting at all.
 
-        # if mapping.get('prefix_regex', False):
-        #     # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
-        #     route['regex'] = mapping['prefix']
-        # else:
-        #     route['prefix'] = mapping['prefix']
+        if 'rewrite' not in self:
+            self.rewrite = "/"
 
         if self.shadows:
             # Only one shadow is supported right now.
