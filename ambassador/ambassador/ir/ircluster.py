@@ -102,6 +102,9 @@ class IRCluster (IRResource):
 
         # TODO: lots of duplication of here, need to replace with broken down functions
 
+        # Save the original service for name computation later.
+        original_service = service
+
         if service.lower().startswith("https://"):
             service = service[len("https://"):]
 
@@ -127,7 +130,7 @@ class IRCluster (IRResource):
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
 
-        name_fields.append(service)
+        name_fields.append(original_service)
         name = "_".join(name_fields)
         name = re.sub(r'[^0-9A-Za-z_]', '_', name)
 
