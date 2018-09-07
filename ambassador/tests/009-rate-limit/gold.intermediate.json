@@ -24,11 +24,11 @@
                 "_referenced_by": [
                     "rate-limit-service.yaml.1"
                 ],
-                "_service": "extratelimit",
+                "_service": "example-rate-limit:5000",
                 "_source": "rate-limit-service.yaml.1",
                 "features": "http2",
                 "lb_type": "round_robin",
-                "name": "cluster_ext_ratelimit",
+                "name": "cluster_example_rate_limit_5000",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://example-rate-limit:5000"
@@ -75,8 +75,8 @@
         ],
         "grpc_services": [
             {
-                "_source": "--internal--",
-                "cluster_name": "cluster_ext_ratelimit",
+                "_source": "rate-limit-service.yaml.1",
+                "cluster_name": "cluster_example_rate_limit_5000",
                 "name": "rate_limit_service"
             }
         ],

@@ -130,7 +130,8 @@ class old_ir (dict):
             'listeners': [ as_sourceddict(x) for x in ir['listeners'] ],
             'filters': [ as_sourceddict(x) for x in ir['filters'] ],
             'routes': [],
-            'clusters': []
+            'clusters': [],
+            'grpc_services': []
         }
 
         for listener in econf['listeners']:
@@ -188,6 +189,8 @@ class old_ir (dict):
                     del(route[from_name])
 
             route['clusters'] = []
+            rl_actions = []
+            
             for mapping in group.get('mappings', []):
                 cluster = mapping['cluster']
                 cname = cluster['name']
@@ -196,6 +199,34 @@ class old_ir (dict):
                     'name': mapping['cluster']['name'],
                     'weight': mapping['weight']
                 })
+
+                rate_limits = mapping.get('rate_limits')
+
+                if rate_limits:
+                    for rate_limit in rate_limits:
+                        rate_limits_actions = [
+                            {'type': 'source_cluster'},
+                            {'type': 'destination_cluster'},
+                            {'type': 'remote_address'}
+                        ]
+
+                        rate_limit_descriptor = rate_limit.get('descriptor', None)
+
+                        if rate_limit_descriptor:
+                            rate_limits_actions.append({'type': 'generic_key',
+                                                        'descriptor_value': rate_limit_descriptor})
+
+                        rate_limit_headers = rate_limit.get('headers', [])
+
+                        for rate_limit_header in rate_limit_headers:
+                            rate_limits_actions.append({'type': 'request_headers',
+                                                        'header_name': rate_limit_header,
+                                                        'descriptor_key': rate_limit_header})
+
+                        rl_actions.append({'actions': rate_limits_actions})
+
+            if rl_actions:
+                route['rate_limits'] = rl_actions
 
             if 'shadows' in route:
                 if route['shadows']:
@@ -256,6 +287,35 @@ class old_ir (dict):
                 etrace['tag_headers'] = tracing['tag_headers']
 
             econf['tracing'] = etrace
+
+        if 'grpc_services' in ir:
+            gsvc = []
+            for svc_name in sorted(ir['grpc_services'].keys()):
+                cluster = as_sourceddict(ir['grpc_services'][svc_name])
+
+                gsvc.append({
+                    '_source': cluster['_source'],
+                    'cluster_name': cluster['name'],
+                    'name': svc_name
+                })
+
+            econf['grpc_services'] = gsvc
+
+        filters = []
+
+        for filter in econf['filters']:
+            flt = {
+                '_source': filter.get('_source', '???'),
+                'config': filter.get('driver_config', {}),
+                'name': filter.get('name', '???')
+            }
+
+            if 'type' in filter:
+                flt['type'] = filter['type']
+
+            filters.append(flt)
+
+        econf['filters'] = filters
 
         self['envoy_config'] = econf
 

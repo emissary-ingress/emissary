@@ -3,53 +3,57 @@ from typing import TYPE_CHECKING
 from ..config import Config
 from ..utils import RichStatus
 
-from .irresource import IRResource
+from .irfilter import IRFilter
+from .ircluster import IRCluster
 
 if TYPE_CHECKING:
     from .ir import IR
 
 
-class IRRateLimit (IRResource):
+class IRRateLimit (IRFilter):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.ratelimit",
                  kind: str="IRRateLimit",
-                 name: str="ir.ratelimit",
+                 name: str="rate_limit",    # This is a key for Envoy! You can't just change it.
                  **kwargs) -> None:
         # print("IRRateLimit __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            cluster="cluster_ext_ratelimit",
-            timeout_ms=5000,
-            hosts={}
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, type='decoder'
         )
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         config_info = aconf.get_config("ratelimit_configs")
 
         if not config_info:
+            ir.logger.debug("IRRateLimit: no ratelimit config, bailing")
+            # No tracing info. Be done.
             return False
 
-        assert(len(config_info) > 0)    # really rank paranoia on my part...
-
-        self.logger.debug("ratelimit_configs: %s" % config_info)
-
-        all_configs = config_info.values()
-        config = all_configs[0]
-
-        if len(all_configs) > 1:
-            self.post_error(RichStatus.fromError("only one RateLimitService is supported",
-                                                 module=config))
+        configs = config_info.values()
+        number_configs = len(configs)
+        if number_configs is not 1:
+            self.post_error(
+                RichStatus.fromError("only one RateLimitService is supported, got {}".format(number_configs)))
             return False
 
-        rlservice = config.get("service", None)
+        config = list(configs)[0]
 
-        if not rlservice:
+        service = config.get("service", None)
+
+        if not service:
             self.post_error(RichStatus.fromError("service is required in RateLimitService",
                                                  module=config))
             return False
 
-        self.referenced_by(config)
+        # OK, we have a valid config.
+        self.sourced_by(config)
+
+        self.service = service
+        self.name = "rate_limit"    # This is a key for Envoy, so we force it, just in case.
+
+        # XXX host_rewrite actually isn't in the schema right now.
+        self.host_rewrite = config.get('host_rewrite', None)
 
         # host_rewrite = config.get("host_rewrite", None)
         #
@@ -81,4 +85,29 @@ class IRRateLimit (IRResource):
         #                                   type="strict_dns", lb_type="round_robin",
         #                                   grpc=True, host_rewrite=host_rewrite)
 
+        self.referenced_by(config)
+
         return True
+
+    def add_mappings(self, ir: 'IR', aconf: Config):
+        cluster = ir.add_cluster(
+            IRCluster(
+                ir=ir,
+                aconf=aconf,
+                location=self.location,
+                service=self.service,
+                grpc=True,
+                host_rewrite=self.get('host_rewrite', None)
+            )
+        )
+
+        cluster.referenced_by(self)
+
+        grpc_service = ir.add_grpc_service("rate_limit_service", cluster)
+
+        self.cluster = cluster
+        self.driver_config = {
+            "domain": "ambassador",
+            "request_type": "both",
+            "timeout_ms": 20
+        }

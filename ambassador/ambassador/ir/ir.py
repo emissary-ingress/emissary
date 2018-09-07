@@ -54,6 +54,7 @@ class IR:
     listeners: List[IRListener]
     groups: Dict[str, IRMappingGroup]
     clusters: Dict[str, IRCluster]
+    grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
     tls_contexts: Dict[str, IREnvoyTLS]
     tls_defaults: Dict[str, Dict[str, str]]
@@ -71,6 +72,7 @@ class IR:
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.clusters = {}
+        self.grpc_services = {}
 
         self.saved_resources = {}
 
@@ -248,11 +250,25 @@ class IR:
 
         return self.clusters[cluster.name]
 
+    def has_grpc_service(self, name: str) -> bool:
+        return name in self.grpc_services
+
+    def add_grpc_service(self, name: str, cluster: IRCluster) -> IRCluster:
+        if not self.has_grpc_service(name):
+            if not self.has_cluster(cluster.name):
+                self.clusters[cluster.name] = cluster
+
+            self.grpc_services[name] = cluster
+
+        return self.grpc_services[name]
+
     def as_dict(self) -> Dict[str, Any]:
         od = {
             'ambassador': self.ambassador_module.as_dict(),
             'clusters': { cluster_name: cluster.as_dict()
                           for cluster_name, cluster in self.clusters.items() },
+            'grpc_services': { svc_name: cluster.as_dict()
+                               for svc_name, cluster in self.grpc_services.items() },
             'tls_contexts': { ctx_name: ctx.as_dict()
                               for ctx_name, ctx in self.tls_contexts.items() },
             'listeners': [ listener.as_dict() for listener in self.listeners ],
