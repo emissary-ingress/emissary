@@ -31,7 +31,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
-from .irtls import IREnvoyTLS, IRAmbassadorTLS
+from .irtls import TLSModuleFactory, IRAmbassadorTLS, IREnvoyTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 
@@ -47,9 +47,7 @@ from .irtracing import IRTracing
 
 class IR:
     ambassador_module: IRAmbassador
-    # clusters: Dict[str, Cluster]
-    # routes: Dict[str, Route]
-
+    tls_module: Optional[IRAmbassadorTLS]
     router_config: Dict[str, Any]
     filters: List[IRResource]
     listeners: List[IRListener]
@@ -91,6 +89,7 @@ class IR:
         # in TLSModule or TLSContext? So far it's the only place we need anything like
         # this though.
 
+        self.tls_module = None
         self.tls_contexts = {}
         self.tls_defaults = {
             "server": {},
@@ -107,7 +106,7 @@ class IR:
             self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         # OK! Start by wrangling TLS-context stuff.
-        self.tls_module = self.save_resource(IRAmbassadorTLS(self, aconf))
+        TLSModuleFactory.load_all(self, aconf)
 
         # Next, handle the "Ambassador" module.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
@@ -137,6 +136,7 @@ class IR:
 
         self.walk_saved_resources(aconf, 'add_mappings')
 
+        TLSModuleFactory.finalize(self, aconf)
         ListenerFactory.finalize(self, aconf)
         MappingFactory.finalize(self, aconf)
 

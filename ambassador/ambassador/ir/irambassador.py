@@ -6,7 +6,7 @@ from ..config import Config
 
 from .irresource import IRResource
 from .irmapping import IRMapping
-from .irtls import IREnvoyTLS
+from .irtls import IREnvoyTLS, IRAmbassadorTLS
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -58,39 +58,43 @@ class IRAmbassador (IRResource):
         amod = aconf.get_module("ambassador")
 
         # Is there a TLS module in the Ambassador module?
-        tmod: Optional[Dict] = None
-
         if amod:
             self.sourced_by(amod)
             self.referenced_by(amod)
 
-            tmod = amod.get('tls', None)
+            amod_tls = amod.get('tls', None)
 
-            if tmod:
-                # XXX Hackery! There should be a way to make this an IRAmbassadorTLS...
-                tmod['rkey'] = amod.rkey
-                tmod['location'] = amod.location
-                tmod['kind'] = 'Module'
-                tmod['name'] = 'tls-from-ambassador-module'
+            if amod_tls:
+                ir.logger.debug("IRAmbassador saving TLS module: %s" %
+                                json.dumps(amod_tls, sort_keys=True, indent=4))
 
-        if not tmod and ir.tls_module:
-            # Nothing in the Ambassador module, but we have a TLS module.
-            tmod = ir.tls_module.as_dict()
+                # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
+                # this painless.
+                new_args = dict(amod_tls)
+                new_rkey = new_args.pop('rkey', amod.rkey)
+                new_kind = new_args.pop('kind', 'Module')
+                new_name = new_args.pop('name', 'tls-from-ambassador-module')
+                new_location = new_args.pop('location', amod.location)
 
-        if tmod:
-            # self.logger.debug("final TLS module: %s" % json.dumps(tmod, sort_keys=True, indent=4))
-            default_location = self.location
+                # Overwrite any existing TLS module.
+                ir.tls_module = IRAmbassadorTLS(ir, aconf,
+                                                rkey=new_rkey,
+                                                kind=new_kind,
+                                                name=new_name,
+                                                location=new_location,
+                                                **new_args)
 
-            if amod:
-                default_location = amod.location
+        if ir.tls_module:
+            self.logger.debug("final TLS module: %s" %
+                              json.dumps(ir.tls_module.as_dict(), sort_keys=True, indent=4))
 
             # Create TLS contexts.
-            for ctx_name, ctx in tmod.items():
+            for ctx_name, ctx in ir.tls_module.items():
                 if ctx_name.startswith('_'):
                     continue
 
                 if isinstance(ctx, dict):
-                    ctxloc = tmod.get('location', default_location)
+                    ctxloc = ir.tls_module.get('location', self.location)
                     etls = IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
                                       location=ctxloc, **ctx)
 
@@ -119,7 +123,8 @@ class IRAmbassador (IRResource):
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
                      'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics', 'x_forwarded_proto_redirect' ]:
+                     'use_proxy_proto', 'use_remote_address', 'diagnostics',
+                     'x_forwarded_proto_redirect' ]:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self[key] = amod[key]

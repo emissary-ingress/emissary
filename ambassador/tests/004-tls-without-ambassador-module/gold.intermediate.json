@@ -2,17 +2,17 @@
     "envoy_config": {
         "admin": [
             {
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "admin_port": 8001
             }
         ],
         "clusters": [
             {
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
                 "_service": "127.0.0.1:8877",
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -76,9 +76,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -100,9 +100,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -148,9 +148,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",

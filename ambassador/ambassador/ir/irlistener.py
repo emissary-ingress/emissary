@@ -60,6 +60,8 @@ class ListenerFactory:
         contexts = {}
         ctx_location = amod.location
 
+        override_source = bool(amod.location == '--internal--')
+
         for ctxname in [ 'server', 'client' ]:
             ctx = ir.get_tls_context(ctxname)
 
@@ -70,6 +72,10 @@ class ListenerFactory:
 
             if ctx.enabled:
                 contexts[ctxname] = ctx
+
+                if override_source:
+                    primary_listener.sourced_by(ctx)
+                    override_source = False
 
                 # XXX Should we be making sure that this is a termination context somehow??
                 if 'redirect_cleartext_from' in ctx:
