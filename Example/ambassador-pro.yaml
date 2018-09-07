@@ -70,6 +70,8 @@ spec:
         ports:
         - containerPort: 8080
         env:
+          - name: AUTH0_CALLBACK_URL
+            value: http://104.198.34.129/callback
           - name: AUTH0_DOMAIN
             value: gsagula.auth0.com
           - name: AUTH0_AUDIENCE
@@ -78,3 +80,5 @@ spec:
             value: -_lWmw3zOpFXdY6XR9cgk-vfSdtYwaC6
           - name: AUTH0_SCOPES
             value: offline_access openid profile
+          - name: AUTH0_ON_FAILURE
+            value: login

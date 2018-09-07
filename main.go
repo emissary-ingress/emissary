@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -40,10 +39,28 @@ const (
 	Letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	// RedirectURLFmt is a template string for redirect url.
 	RedirectURLFmt = "https://%s/authorize?audience=%s&response_type=code&redirect_uri=%s&client_id=%s&state=%s&scope=%s"
+	// TokenURLFmt is used for exchanging the authorization code.
+	TokenURLFmt = "https://%s/oauth/token"
+	// WellKnownURLFmt ..
+	WellKnownURLFmt = "https://%s/.well-known/jwks.json"
 	// AuthorizeFmt is a template string for the authorize post request payload.
 	AuthorizeFmt = "{\"grant_type\":\"authorization_code\",\"client_id\": \"%s\",\"code\": \"%s\",\"redirect_uri\": \"%s\"}"
 	// StateSignature secret is used to sign the authorization state value.
 	StateSignature = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3"
+	// ClientIDKey header key
+	ClientIDKey = "Client-Id"
+	// ClientSECKey header key
+	ClientSECKey = "Client-Secret"
+	// AccessTokenCookie cookie's name
+	AccessTokenCookie = "access_token"
+	// AuthzKEY header key.
+	AuthzKEY = "Authorization"
+	// StringNIL is used for empty string comparisson
+	StringNIL = ""
+	// ContentTYPE HTTP header key
+	ContentTYPE = "Content-Type"
+	// ApplicationJSON HTTP header value
+	ApplicationJSON = "Application/Json"
 )
 
 // Response TODO(gsagula): comment
@@ -74,6 +91,17 @@ type Rule struct {
 	Scopes string
 }
 
+// TokenResponse used for de-serializing response from /oauth/token
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	IDToken      string `json:"id_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+}
+
+var kubeconfig = flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
+
 func match(pattern, input string) bool {
 	g, err := glob.Compile(pattern)
 	if err != nil {
@@ -88,11 +116,36 @@ func (r Rule) match(host, path string) bool {
 }
 
 var rules atomic.Value
-var states map[string]string
+
+// Map is used to to track state and the initial request url, so
+// it the call can be redirected after acquiring the access token.
+var stateURLKv map[string]string
 
 func init() {
 	rules.Store(make([]Rule, 0))
-	states = make(map[string]string)
+	stateURLKv = make(map[string]string)
+}
+
+// The first return result specifies whether authentication is
+// required, the second return result specifies which scopes are
+// required for access.
+func policy(method, host, path string) (bool, []string) {
+	for _, rule := range rules.Load().([]Rule) {
+		log.Printf("checking %v against %v, %v", rule, host, path)
+		if rule.match(host, path) {
+			return rule.Public, strings.Fields(rule.Scopes)
+		}
+	}
+	return false, []string{}
+}
+
+func main() {
+	flag.Parse()
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("failed to load from .env file")
+	}
 
 	go controller(*kubeconfig, func(uns []map[string]interface{}) {
 		newRules := make([]Rule, 0)
@@ -120,68 +173,26 @@ func init() {
 		}
 		rules.Store(newRules)
 	})
-}
-
-// The first return result specifies whether authentication is
-// required, the second return result specifies which scopes are
-// required for access.
-func policy(method, host, path string) (bool, []string) {
-	for _, rule := range rules.Load().([]Rule) {
-		log.Printf("checking %v against %v, %v", rule, host, path)
-		if rule.match(host, path) {
-			return rule.Public, strings.Fields(rule.Scopes)
-		}
-	}
-	return false, []string{}
-}
-
-var kubeconfig = flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
-
-// TokenResponse used for de-serializing response from /oauth/token
-type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	IDToken      string `json:"id_token"`
-	TokenType    string `json:"token_type"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
-}
-
-// RandomString .. this can be optimized..
-func RandomString(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = Letters[rand.Intn(len(Letters))]
-	}
-	return string(b)
-}
-
-func main() {
-	flag.Parse()
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("not loaded from .env file")
-	}
 
 	common := negroni.Classic()
 	common.UseFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		// We get token if has code...
 		if r.URL.Path == "/callback" {
-			if err := r.URL.Query().Get("error"); err != "" {
+			if err := r.URL.Query().Get("error"); err != StringNIL {
 				responseJSON(err, w, r, http.StatusUnauthorized)
 				return
 			}
 
-			key := r.URL.Query().Get("state")
-			if !validateState(key) {
+			stateKEY := r.URL.Query().Get("state")
+			if !validateState(stateKEY) && stateURLKv[stateKEY] == StringNIL {
 				http.Redirect(w, r, "/", http.StatusFound)
 				return
 			}
 
 			code := r.URL.Query().Get("code")
-			if code != "" {
+			if code != StringNIL {
 				// Remove hardcoded stuff..
-				url := "https://gsagula.auth0.com/oauth/token"
+				url := fmt.Sprintf(TokenURLFmt, os.Getenv("AUTH0_DOMAIN"))
 
 				// This needs to be https...
 				redirectURL := fmt.Sprintf("http://%s%s", r.Host, r.URL.Path)
@@ -195,7 +206,7 @@ func main() {
 					return
 				}
 
-				req.Header.Add("content-type", "application/json")
+				req.Header.Add(ContentTYPE, ApplicationJSON)
 				res, reserr := http.DefaultClient.Do(req)
 				if reserr != nil {
 					log.Println(reserr)
@@ -218,29 +229,32 @@ func main() {
 					return
 				}
 
-				log.Printf("setting auth_session cookie")
-				expiration := time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second)
-				cookie := http.Cookie{Name: "auth_session", Value: tokenRES.AccessToken, Expires: expiration, Domain: r.Host}
-				http.SetCookie(w, &cookie)
-				http.Redirect(w, r, states[key], http.StatusFound)
-				delete(states, key)
+				log.Printf("setting %s cookie", AccessTokenCookie)
+				http.SetCookie(w, &http.Cookie{
+					Name:    AccessTokenCookie,
+					Value:   tokenRES.AccessToken,
+					Expires: time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second),
+					Domain:  r.Host},
+				)
+				http.Redirect(w, r, stateURLKv[stateKEY], http.StatusFound)
+				delete(stateURLKv, stateKEY)
 			}
 		}
 
 		// Check for auth_session cookie
-		cookie, err := r.Cookie("auth_session")
+		cookie, err := r.Cookie(AccessTokenCookie)
 		if err == nil {
-			r.Header.Set("Authorization", fmt.Sprintf("%s %s", "Bearer", cookie.Value))
+			r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", "Bearer", cookie.Value))
 		} else {
 			// Check for Client-Id and Client-Secret headers
-			cid := r.Header.Get("Client-Id")
-			secret := r.Header.Get("Client-Secret")
-			if cid != "" && secret != "" {
+			cid := r.Header.Get(ClientIDKey)
+			secret := r.Header.Get(ClientSECKey)
+			if cid != StringNIL && secret != StringNIL {
 				auth, err := clientCredentials(cid, secret)
 				if err != nil {
 					log.Println(err)
 				} else {
-					r.Header.Set("Authorization", fmt.Sprintf("%s %s", auth.Type, auth.Token))
+					r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", auth.Type, auth.Token))
 				}
 			}
 		}
@@ -258,9 +272,7 @@ func main() {
 			}
 
 			// Verify 'iss' claim
-			// TODO(gsagula): this string doesn't need to be instantianted everytime. Inspect other occurrences in the code.
-			iss := fmt.Sprintf("https://%s/", os.Getenv("AUTH0_DOMAIN"))
-			if !c.VerifyIssuer(iss, false) {
+			if !c.VerifyIssuer(fmt.Sprintf("https://%s/", os.Getenv("AUTH0_DOMAIN")), false) {
 				return token, errors.New("Invalid issuer")
 			}
 
@@ -283,20 +295,32 @@ func main() {
 		if !public {
 			token, _ := r.Context().Value(jwtMware.Options.UserProperty).(*jwt.Token)
 			if token == nil {
-				authorize(w, r)
+				if os.Getenv("AUTH0_ON_FAILURE") == "login" {
+					authorize(w, r)
+				} else {
+					responseJSON("unauthorized", w, r, http.StatusUnauthorized)
+				}
 				return
 			}
 
 			if err := token.Claims.Valid(); err != nil {
 				// TODO(gsagula): consider logging the error.
-				authorize(w, r)
+				if os.Getenv("AUTH0_ON_FAILURE") == "login" {
+					authorize(w, r)
+				} else {
+					responseJSON("unauthorized", w, r, http.StatusUnauthorized)
+				}
 				return
 			}
 
 			// TODO(gsagula): considere redirecting to consent uri and logging the error.
 			for _, scope := range scopes {
 				if !checkScope(scope, token.Raw) {
-					responseJSON("forbidden", w, r, http.StatusForbidden)
+					if os.Getenv("AUTH0_ON_FAILURE") == "login" {
+						authorize(w, r)
+					} else {
+						responseJSON("unauthorized", w, r, http.StatusUnauthorized)
+					}
 					return
 				}
 			}
@@ -304,9 +328,10 @@ func main() {
 
 		responseJSON("allowed", w, r, http.StatusOK)
 	})
-
-	log.Println("listening on :8080")
-	http.ListenAndServe("0.0.0.0:8080", common)
+	log.Println("serving on port 8080")
+	if err := http.ListenAndServe(":8080", common); err != nil {
+		log.Println(err)
+	}
 }
 
 func signState(url string) string {
@@ -315,7 +340,7 @@ func signState(url string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	states[key] = url
+	stateURLKv[key] = url
 	return key
 }
 
@@ -337,16 +362,16 @@ func authorize(w http.ResponseWriter, r *http.Request) {
 		buf.WriteString(r.URL.RawQuery)
 	}
 
-	state := signState(buf.String())
-	states[state] = buf.String()
+	stateKEY := signState(buf.String())
+	stateURLKv[stateKEY] = buf.String()
 
 	redirectURL := fmt.Sprintf(
 		RedirectURLFmt,
 		os.Getenv("AUTH0_DOMAIN"),
 		os.Getenv("AUTH0_AUDIENCE"),
-		fmt.Sprintf("http://%s/callback", r.Host),
+		os.Getenv("AUTH0_CALLBACK_URL"),
 		os.Getenv("AUTH0_CLIENT_ID"),
-		state,
+		stateKEY,
 		os.Getenv("AUTH0_SCOPES"),
 	)
 
@@ -379,7 +404,7 @@ func clientCredentials(cid, secret string) (auth AuthResponse, err error) {
 	if err != nil {
 		return
 	}
-	resp, err := http.Post(fmt.Sprintf("https://%s/oauth/token", os.Getenv("AUTH0_DOMAIN")), "application/json",
+	resp, err := http.Post(fmt.Sprintf(TokenURLFmt, os.Getenv("AUTH0_DOMAIN")), ApplicationJSON,
 		bytes.NewReader(body))
 	if err != nil {
 		return
@@ -413,11 +438,11 @@ func checkScope(scope string, tokenString string) bool {
 	return hasScope
 }
 
-var pemCert = ""
+var pemCert = StringNIL
 
 func getPemCert(token *jwt.Token) (string, error) {
 	var err error
-	if pemCert != "" {
+	if pemCert != StringNIL {
 		return pemCert, nil
 	}
 	pemCert, err := getPemCertUncached(token)
@@ -425,8 +450,8 @@ func getPemCert(token *jwt.Token) (string, error) {
 }
 
 func getPemCertUncached(token *jwt.Token) (string, error) {
-	cert := ""
-	resp, err := http.Get(fmt.Sprintf("https://%s/.well-known/jwks.json", os.Getenv("AUTH0_DOMAIN")))
+	cert := StringNIL
+	resp, err := http.Get(fmt.Sprintf(WellKnownURLFmt, os.Getenv("AUTH0_DOMAIN")))
 	if err != nil {
 		return cert, err
 	}
@@ -445,7 +470,7 @@ func getPemCertUncached(token *jwt.Token) (string, error) {
 		}
 	}
 
-	if cert == "" {
+	if cert == StringNIL {
 		err := errors.New("Unable to find appropriate key")
 		return cert, err
 	}
@@ -462,13 +487,12 @@ func responseJSON(message string, w http.ResponseWriter, r *http.Request, status
 	}
 
 	if statusCode == http.StatusOK {
-		w.Header().Set("Authorization", r.Header.Get("Authorization"))
-		if r.Header.Get("Client-Secret") != "" {
-			w.Header().Set("Client-Secret", "")
-		}
+		w.Header().Set(AuthzKEY, r.Header.Get(AuthzKEY))
+		w.Header().Del(ClientSECKey)
+	} else {
+		w.Write(jsonResponse)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(ContentTYPE, ApplicationJSON)
 	w.WriteHeader(statusCode)
-	w.Write(jsonResponse)
 }
