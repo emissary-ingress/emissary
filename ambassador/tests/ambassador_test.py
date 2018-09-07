@@ -306,7 +306,7 @@ class old_ir (dict):
         for filter in econf['filters']:
             flt = {
                 '_source': filter.get('_source', '???'),
-                'config': filter.get('driver_config', {}),
+                'config': filter.get('config', {}),
                 'name': filter.get('name', '???')
             }
 

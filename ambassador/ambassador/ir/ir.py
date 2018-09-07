@@ -130,7 +130,9 @@ class IR:
             self.save_filter(cls(self, aconf))
 
         # Then append non-configurable cors filter...
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={}))
+        self.save_filter(IRFilter(ir=self, aconf=aconf,
+                                  rkey="ir.cors", kind="ir.cors", name="cors",
+                                  config={}))
 
         # ...and the marginally-configurable router filter.
         router_config = {}
@@ -138,7 +140,9 @@ class IR:
         if self.tracing:
             router_config['start_child_span'] = True
 
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=router_config))
+        self.save_filter(IRFilter(ir=self, aconf=aconf,
+                                  rkey="ir.router", kind="ir.router", name="router", type="decoder",
+                                  config=router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there

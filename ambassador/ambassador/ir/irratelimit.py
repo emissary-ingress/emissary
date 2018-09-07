@@ -106,7 +106,7 @@ class IRRateLimit (IRFilter):
         grpc_service = ir.add_grpc_service("rate_limit_service", cluster)
 
         self.cluster = cluster
-        self.driver_config = {
+        self.config = {
             "domain": "ambassador",
             "request_type": "both",
             "timeout_ms": 20

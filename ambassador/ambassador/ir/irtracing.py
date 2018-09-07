@@ -38,7 +38,8 @@ class IRTracing (IRResource):
         number_configs = len(configs)
         if number_configs is not 1:
             self.post_error(
-                RichStatus.fromError("exactly one TracingService is supported, got {}".format(number_configs)))
+                RichStatus.fromError("exactly one TracingService is supported, got {}".format(number_configs),
+                                     module=config))
             return False
 
         config = list(configs)[0]
@@ -88,29 +89,3 @@ class IRTracing (IRResource):
 
         # if not ir.add_to_primary_listener(tracing=True):
         #     raise Exception("Failed to update primary listener with tracing config")
-
-        # if tracing_config:
-        #     for config in tracing_config.values():
-        #         sources.append(config['_source'])
-        #         cluster_hosts = config.get("service", None)
-        #         driver = config.get("driver", None)
-        #         driver_config = config.get("config", {})
-        #         host_rewrite = config.get("host_rewrite", None)
-        #  if not cluster_hosts or not sources:
-        #     return
-        #  cluster_name = "cluster_ext_tracing"
-        #  first_source = sources.pop(0)
-        #  if cluster_name not in self.envoy_clusters:
-        #     (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
-        #     self.add_intermediate_cluster(first_source, cluster_name,
-        #                                   'exttracing', [url],
-        #                                   type="strict_dns", lb_type="round_robin",
-        #                                   host_rewrite=host_rewrite)
-        #  driver_config['collector_cluster'] = cluster_name
-        # tracing = SourcedDict(
-        #     _source=first_source,
-        #     driver=driver,
-        #     config=driver_config,
-        #     cluster_name=cluster_name
-        # )
-        # self.envoy_config['tracing'] = tracing
