@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: auth
+  name: ambassador-pro
 rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
@@ -12,59 +12,69 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: auth
+  name: ambassador-pro
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: auth
+  name: ambassador-pro
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: auth
+  name: ambassador-pro
 subjects:
 - kind: ServiceAccount
-  name: auth
-  namespace: default
+  name: ambassador-pro
+  namespace: datawire
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth
+  name: ambassador-pro
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  AuthService
       name:  authentication
-      auth_service: auth
+      auth_service: ambassador-pro
       allowed_headers:
        - "Authorization"
        - "Client-Id"
        - "Client-Secret"
 spec:
   selector:
-    name: auth
+    name: ambassador-pro
   ports:
-  - protocol: TCP
+  - nodePort: 32752
     port: 80
+    protocol: TCP
     targetPort: 8080
   type: LoadBalancer
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: auth
+  name: ambassador-pro
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: auth
+        name: ambassador-pro
     spec:
-      serviceAccountName: auth
+      serviceAccountName: ambassador-pro
       containers:
-      - name: auth
-        image: rschloming/auth:latest
+      - name: ambassador-pro
+        image: gcr.io/datawireio/ambassador-oauth:dev
         ports:
         - containerPort: 8080
+        env:
+          - name: AUTH0_DOMAIN
+            value: gsagula.auth0.com
+          - name: AUTH0_AUDIENCE
+            value: https://gsagula.auth0.com/api/v2/
+          - name: AUTH0_CLIENT_ID
+            value: -_lWmw3zOpFXdY6XR9cgk-vfSdtYwaC6
+          - name: AUTH0_SCOPES
+            value: offline_access openid profile

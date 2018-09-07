@@ -13,15 +13,19 @@ package main
 
 import (
 	"bytes"
+	"crypto"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	jwtmid "github.com/auth0/go-jwt-middleware"
 	"github.com/codegangsta/negroni"
@@ -29,6 +33,17 @@ import (
 	"github.com/gobwas/glob"
 	"github.com/joho/godotenv"
 	ms "github.com/mitchellh/mapstructure"
+)
+
+const (
+	// Letters is used for random string generator.
+	Letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	// RedirectURLFmt is a template string for redirect url.
+	RedirectURLFmt = "https://%s/authorize?audience=%s&response_type=code&redirect_uri=%s&client_id=%s&state=%s&scope=%s"
+	// AuthorizeFmt is a template string for the authorize post request payload.
+	AuthorizeFmt = "{\"grant_type\":\"authorization_code\",\"client_id\": \"%s\",\"code\": \"%s\",\"redirect_uri\": \"%s\"}"
+	// StateSignature secret is used to sign the authorization state value.
+	StateSignature = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3"
 )
 
 // Response TODO(gsagula): comment
@@ -73,30 +88,12 @@ func (r Rule) match(host, path string) bool {
 }
 
 var rules atomic.Value
+var states map[string]string
 
 func init() {
 	rules.Store(make([]Rule, 0))
-	log.Printf("initialized")
-}
+	states = make(map[string]string)
 
-// The first return result specifies whether authentication is
-// required, the second return result specifies which scopes are
-// required for access.
-func policy(method, host, path string) (bool, []string) {
-	for _, rule := range rules.Load().([]Rule) {
-		log.Printf("checking %v against %v, %v", rule, host, path)
-		if rule.match(host, path) {
-			return rule.Public, strings.Fields(rule.Scopes)
-		}
-	}
-
-	return false, []string{}
-}
-
-var kubeconfig = flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
-
-func main() {
-	flag.Parse()
 	go controller(*kubeconfig, func(uns []map[string]interface{}) {
 		newRules := make([]Rule, 0)
 		for _, un := range uns {
@@ -110,44 +107,151 @@ func main() {
 				log.Printf("malformed object, bad rules: %v", uns)
 				continue
 			}
-
 			for _, ur := range unrules {
 				rule := Rule{}
 				err := ms.Decode(ur, &rule)
 				if err != nil {
 					log.Print(err)
 				} else {
+					log.Printf("loading rule: %v", rule)
 					newRules = append(newRules, rule)
-					log.Print(rule)
 				}
 			}
 		}
 		rules.Store(newRules)
 	})
+}
+
+// The first return result specifies whether authentication is
+// required, the second return result specifies which scopes are
+// required for access.
+func policy(method, host, path string) (bool, []string) {
+	for _, rule := range rules.Load().([]Rule) {
+		log.Printf("checking %v against %v, %v", rule, host, path)
+		if rule.match(host, path) {
+			return rule.Public, strings.Fields(rule.Scopes)
+		}
+	}
+	return false, []string{}
+}
+
+var kubeconfig = flag.String("kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
+
+// TokenResponse used for de-serializing response from /oauth/token
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	IDToken      string `json:"id_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+}
+
+// RandomString .. this can be optimized..
+func RandomString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = Letters[rand.Intn(len(Letters))]
+	}
+	return string(b)
+}
+
+func main() {
+	flag.Parse()
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Print("Error loading .env file")
+		log.Println("not loaded from .env file")
 	}
 
 	common := negroni.Classic()
 	common.UseFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		cid := r.Header.Get("Client-Id")
-		secret := r.Header.Get("Client-Secret")
-		if cid != "" {
-			auth, err := clientCredentials(cid, secret)
-			if err != nil {
-				log.Println(err)
-			} else {
-				r.Header.Set("Authorization", fmt.Sprintf("%s %s", auth.Type, auth.Token))
+		// We get token if has code...
+		if r.URL.Path == "/callback" {
+			if err := r.URL.Query().Get("error"); err != "" {
+				responseJSON(err, w, r, http.StatusUnauthorized)
+				return
+			}
+
+			key := r.URL.Query().Get("state")
+			if !validateState(key) {
+				http.Redirect(w, r, "/", http.StatusFound)
+				return
+			}
+
+			code := r.URL.Query().Get("code")
+			if code != "" {
+				// Remove hardcoded stuff..
+				url := "https://gsagula.auth0.com/oauth/token"
+
+				// This needs to be https...
+				redirectURL := fmt.Sprintf("http://%s%s", r.Host, r.URL.Path)
+				payload := strings.NewReader(fmt.Sprintf(AuthorizeFmt, os.Getenv("AUTH0_CLIENT_ID"), code, redirectURL))
+
+				log.Println("authorizing..")
+				req, reqerr := http.NewRequest("POST", url, payload)
+				if reqerr != nil {
+					log.Println(reqerr)
+					responseJSON("access_denied", w, r, http.StatusUnauthorized)
+					return
+				}
+
+				req.Header.Add("content-type", "application/json")
+				res, reserr := http.DefaultClient.Do(req)
+				if reserr != nil {
+					log.Println(reserr)
+					responseJSON("access_denied", w, r, http.StatusUnauthorized)
+					return
+				}
+
+				defer res.Body.Close()
+				body, readerr := ioutil.ReadAll(res.Body)
+				if readerr != nil {
+					log.Println(readerr)
+					responseJSON("access_denied", w, r, http.StatusUnauthorized)
+					return
+				}
+
+				tokenRES := TokenResponse{}
+				if err := json.Unmarshal(body, &tokenRES); err != nil {
+					log.Println(err)
+					responseJSON("access_denied", w, r, http.StatusUnauthorized)
+					return
+				}
+
+				log.Printf("setting auth_session cookie")
+				expiration := time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second)
+				cookie := http.Cookie{Name: "auth_session", Value: tokenRES.AccessToken, Expires: expiration, Domain: r.Host}
+				http.SetCookie(w, &cookie)
+				http.Redirect(w, r, states[key], http.StatusFound)
+				delete(states, key)
 			}
 		}
+
+		// Check for auth_session cookie
+		cookie, err := r.Cookie("auth_session")
+		if err == nil {
+			r.Header.Set("Authorization", fmt.Sprintf("%s %s", "Bearer", cookie.Value))
+		} else {
+			// Check for Client-Id and Client-Secret headers
+			cid := r.Header.Get("Client-Id")
+			secret := r.Header.Get("Client-Secret")
+			if cid != "" && secret != "" {
+				auth, err := clientCredentials(cid, secret)
+				if err != nil {
+					log.Println(err)
+				} else {
+					r.Header.Set("Authorization", fmt.Sprintf("%s %s", auth.Type, auth.Token))
+				}
+			}
+		}
+
 		next(w, r)
 	})
 
 	jwtMware := jwtmid.New(jwtmid.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			c := token.Claims.(jwt.MapClaims)
+
 			// Verify 'aud' claim
 			if !c.VerifyAudience(os.Getenv("AUTH0_AUDIENCE"), false) {
 				return token, errors.New("Invalid audience")
@@ -179,13 +283,13 @@ func main() {
 		if !public {
 			token, _ := r.Context().Value(jwtMware.Options.UserProperty).(*jwt.Token)
 			if token == nil {
-				redirect(w, r)
+				authorize(w, r)
 				return
 			}
 
 			if err := token.Claims.Valid(); err != nil {
 				// TODO(gsagula): consider logging the error.
-				redirect(w, r)
+				authorize(w, r)
 				return
 			}
 
@@ -201,18 +305,53 @@ func main() {
 		responseJSON("allowed", w, r, http.StatusOK)
 	})
 
-	fmt.Println("Listening on http://localhost:8080")
+	log.Println("listening on :8080")
 	http.ListenAndServe("0.0.0.0:8080", common)
 }
 
-func redirect(w http.ResponseWriter, r *http.Request) {
-	// TODO(gsagula): need the correct target.
-	target := "https://" + r.Host + r.URL.Path
-	if len(r.URL.RawQuery) > 0 {
-		target += "?" + r.URL.RawQuery
+func signState(url string) string {
+	token := jwt.New(&jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256})
+	key, err := token.SignedString([]byte(StateSignature))
+	if err != nil {
+		log.Fatal(err)
 	}
-	log.Printf("redirect to: %s", target)
-	http.Redirect(w, r, target, http.StatusTemporaryRedirect)
+	states[key] = url
+	return key
+}
+
+func validateState(key string) bool {
+	token, err := jwt.Parse(key, func(token *jwt.Token) (interface{}, error) {
+		return []byte(StateSignature), nil
+	})
+	if err != nil || !token.Valid {
+		return false
+	}
+	return true
+}
+
+func authorize(w http.ResponseWriter, r *http.Request) {
+	var buf bytes.Buffer
+	buf.WriteString(r.URL.Path)
+	if len(r.URL.RawQuery) > 0 {
+		buf.WriteString("?")
+		buf.WriteString(r.URL.RawQuery)
+	}
+
+	state := signState(buf.String())
+	states[state] = buf.String()
+
+	redirectURL := fmt.Sprintf(
+		RedirectURLFmt,
+		os.Getenv("AUTH0_DOMAIN"),
+		os.Getenv("AUTH0_AUDIENCE"),
+		fmt.Sprintf("http://%s/callback", r.Host),
+		os.Getenv("AUTH0_CLIENT_ID"),
+		state,
+		os.Getenv("AUTH0_SCOPES"),
+	)
+
+	log.Printf("authorizing with the IDP.")
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
 // AuthRequest TODO(gsagula): comment
@@ -262,9 +401,7 @@ type CustomClaims struct {
 
 func checkScope(scope string, tokenString string) bool {
 	token, _ := jwt.ParseWithClaims(tokenString, &CustomClaims{}, nil)
-
 	claims, _ := token.Claims.(*CustomClaims)
-
 	hasScope := false
 	result := strings.Split(claims.Scope, " ")
 	for i := range result {
@@ -280,7 +417,6 @@ var pemCert = ""
 
 func getPemCert(token *jwt.Token) (string, error) {
 	var err error
-	// TODO(gsagula): does this ever evaluate to true?
 	if pemCert != "" {
 		return pemCert, nil
 	}
@@ -319,7 +455,6 @@ func getPemCertUncached(token *jwt.Token) (string, error) {
 
 func responseJSON(message string, w http.ResponseWriter, r *http.Request, statusCode int) {
 	response := Response{message}
-
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -329,9 +464,10 @@ func responseJSON(message string, w http.ResponseWriter, r *http.Request, status
 	if statusCode == http.StatusOK {
 		w.Header().Set("Authorization", r.Header.Get("Authorization"))
 		if r.Header.Get("Client-Secret") != "" {
-			w.Header().Set("Client-Secret", "-")
+			w.Header().Set("Client-Secret", "")
 		}
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(jsonResponse)
