@@ -26,7 +26,7 @@ For production usage, Ambassador runs in Kubernetes. For a Kubernetes deployment
 
 If you are looking for a Kubernetes ingress controller, Ambassador provides a superset of the functionality of a typical ingress controller. (It does the traditional routing, and layers on a raft of configuration options.) This blog post covers [Kubernetes ingress](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
-You can also use Helm to install Ambassador. For more information, see the instructions in the [Helm chart README](helm/ambassador/README.md).
+You can also use Helm to install Ambassador. For more information, see the instructions in the [Helm installation documentation](https://www.getambassador.io/user-guide/helm).
 
 Community
 =========

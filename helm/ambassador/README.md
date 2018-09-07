@@ -55,9 +55,10 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `serviceAccount.name` | Service account to be used | `ambassador`
 | `service.enableHttp` | if port 80 should be opened for service | `true`
 | `service.enableHttps` | if port 443 should be opened for service | `true`
-| `service.targetPorts.http` | Sets the targetPort that maps to the service's port 80 | `80`
-| `service.targetPorts.https` | Sets the targetPort that maps to the service's port 443 | `443`
+| `service.targetPorts.http` | Sets the targetPort that maps to the service's cleartext port | `80`
+| `service.targetPorts.https` | Sets the targetPort that maps to the service's TLS port | `443`
 | `service.type` | Service type to be used | `LoadBalancer`
+| `service.loadBalancerIP` | If the loadBalancerIP field is not specified, an ephemeral IP will be assigned to the loadBalancer. If the loadBalancerIP is specified, but the cloud provider does not support the feature, the field will be ignored | none
 | `service.annotations` | Annotations to apply to Ambassador service | none
 | `service.loadBalancerSourceRanges` | Passed to cloud provider load balancer if created (e.g: AWS ELB) | none
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`
@@ -66,6 +67,8 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `timing.restart` | The minimum number of seconds between Envoy restarts | none
 | `timing.drain` | The number of seconds that the Envoy will wait for open connections to drain on a restart | none
 | `timing.shutdown` | The number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart | none
+
+Make sure the configured `service.targetPorts.http` and `service.targetPorts.https` ports match your Ambassador Module's `service_port` and `redirect_cleartext_from` configurations. 
 
 If you intend to use `service.annotations`, remember to include the annotation key, for example:
 
@@ -82,6 +85,8 @@ service:
       config:
         diagnostics:
           enabled: false
+        redirect_cleartext_from: 80
+        service_port: 443
 ```
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
