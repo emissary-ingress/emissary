@@ -58,7 +58,7 @@ class IRResource (Resource):
     def is_active(self) -> bool:
         return self._active
 
-    def __nonzero__(self) -> bool:
+    def __bool__(self) -> bool:
         return self._active and not self._errors
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:

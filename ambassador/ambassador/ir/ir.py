@@ -48,7 +48,7 @@ from .irtracing import IRTracing
 class IR:
     ambassador_module: IRAmbassador
     tls_module: Optional[IRAmbassadorTLS]
-    tracing: Optional[IRTracing]
+    tracing: IRTracing
     router_config: Dict[str, Any]
     filters: List[IRResource]
     listeners: List[IRListener]

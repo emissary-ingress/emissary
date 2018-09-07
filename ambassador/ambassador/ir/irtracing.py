@@ -30,6 +30,7 @@ class IRTracing (IRResource):
         config_info = aconf.get_config('tracing_configs')
 
         if not config_info:
+            ir.logger.debug("IRTracing: no tracing config, bailing")
             # No tracing info. Be done.
             return False
 
