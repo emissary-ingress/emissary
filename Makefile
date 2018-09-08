@@ -309,7 +309,11 @@ clean-test:
 	$(call kill_teleproxy)
 
 test: version setup-develop cluster.yaml
-	cd ambassador && KUBECONFIG=$(KUBECONFIG) PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
+	cd ambassador && \
+	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	KUBECONFIG=$(KUBECONFIG) \
+	PATH=$(shell pwd)/venv/bin:$(PATH) \
+	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
 
 test-list: version setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
