@@ -288,6 +288,8 @@ cluster.yaml:
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
 
+setup-test: cluster.yaml
+
 teleproxy-restart:
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
@@ -298,6 +300,7 @@ KUBECONFIG=$(shell pwd)/cluster.yaml
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
 	KUBECONFIG=$(KUBECONFIG) \
+	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
 clean-test:
