@@ -295,6 +295,9 @@ teleproxy-restart:
 	sleep 0.25 # wait for exit...
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
 
+teleproxy-stop:
+	$(call kill_teleproxy)
+
 KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
