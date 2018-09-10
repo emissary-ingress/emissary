@@ -149,13 +149,6 @@ class IRAuth (IRFilter):
         if auth_service:
             self.hosts[auth_service] = ( weight, module.get('tls', None) )
 
-        # # Then append the rate-limit filter, because we might rate-limit based on auth headers
-        # ratelimit_configs = config.get_config('ratelimit_configs')
-        # (ratelimit_filter, ratelimit_grpc_service) = self.module_config_ratelimit(ratelimit_configs)
-        # if ratelimit_filter and ratelimit_grpc_service:
-        #     self.config['filters'].append(ratelimit_filter)
-        #     self.config['grpc_services'].append(ratelimit_grpc_service)
-
     def config_dict(self):
         config = {
             "cluster": self.cluster.name

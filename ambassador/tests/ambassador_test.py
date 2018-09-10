@@ -336,16 +336,11 @@ class old_ir (dict):
                     'cluster': filter['cluster']['name']
                 }
 
-                print("initial extauth config %s" % repr(config))
-
                 for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
                     if filter.get(key, None):
                         config[key] = filter[key]
 
                 flt['_services'] = list(sorted(filter['hosts'].keys()))
-
-                print("final extauth config %s" % repr(config))
-
                 flt['config'] = config
 
             filters.append(flt)
