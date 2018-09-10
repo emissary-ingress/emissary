@@ -2,14 +2,14 @@
     "envoy_config": {
         "admin": [
             {
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "admin_port": 8001
             }
         ],
         "clusters": [
             {
                 "_referenced_by": [
-                    "--internal--",
+                    "ambassador.yaml.1",
                     "mapping-diag.yaml.1"
                 ],
                 "_service": "127.0.0.1:8877",
@@ -40,7 +40,7 @@
                     "mapping-cors-array.yaml.2"
                 ],
                 "_service": "cors-array:8080",
-                "_source": "mapping-cors-array.yaml.2",
+                "_source": "mapping-cors-array.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_cors_array_8080",
                 "type": "strict_dns",
@@ -65,10 +65,10 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "extauth",
+                "_service": "example-auth:3000",
                 "_source": "auth.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_ext_auth",
+                "name": "cluster_example_auth_3000",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
@@ -80,7 +80,8 @@
                     "mapping-qotm.yaml.3"
                 ],
                 "_service": "httpbin.org:80",
-                "_source": "mapping-httpbin.yaml.1",
+                "_source": "mapping-qotm.yaml.3",
+                "host_rewrite": "httpbin.org",
                 "lb_type": "round_robin",
                 "name": "cluster_httpbin_org_80",
                 "type": "strict_dns",
@@ -133,7 +134,7 @@
                         "x-authenticated-as",
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_ext_auth",
+                    "cluster": "cluster_example_auth_3000",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -149,7 +150,7 @@
         ],
         "listeners": [
             {
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "require_tls": false,
                 "service_port": 80,
                 "use_proxy_proto": false
@@ -168,9 +169,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -224,9 +225,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -374,9 +375,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
