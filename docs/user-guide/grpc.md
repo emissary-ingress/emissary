@@ -37,9 +37,9 @@ service: grpc-example
 
 Note the `grpc: true` line -- this is the necessary magic when mapping a gRPC service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
-## Deploying `Hello World`
+## Deploying `gRPC Example`
 
-To deploy and map `Hello World`, we can use the following YAML:
+To deploy and map `gRPC Example`, we can use the following YAML:
 
 ```yaml
 ---
@@ -88,17 +88,17 @@ spec:
       restartPolicy: Always
 ```
 
-(We tell the gRPC service to run on port 9999, then map the container's port 80 inbound to simplify the `Mapping`. There's no magic behind these port numbers: anything will work as long as you're consistent in when mapping everything.)
+(We tell the gRPC service to run on port 50052, then map the container's port 80 inbound to simplify the `Mapping`. There's no magic behind these port numbers: anything will work as long as you're consistent in when mapping everything.)
 
 This is available from getambassador.io, so you can simply
 
 ```shell
-kubectl apply -f https://getambassador.io/yaml/demo/demo-grpc.yaml
+curl https://raw.githubusercontent.com/datawire/grpc-example/master/grpc_example.yaml | kubectl apply -f -
 ```
 
 or, as always, you can use a local file instead.
 
-## Testing `Hello World`
+## Testing `gRPC Example`
 
 Now you should be able to access your service. We'll need the hostname for the Ambassador service, which you can get with
 
@@ -117,12 +117,19 @@ and the `EXTERNAL-IP` element is what we want. We'll call that `$AMBASSADORHOST`
 
 To run the example echo server, clone the [grpc-example repository](https://github.com/datawire/grpc-example).
 
+```shell
+git clone https://github.com/datawire/grpc-example.git
+```
+
 Once the repository is cloned, change to the `client` directory and run the client application with 
 ```shell
-python client.py --channel ${AMBASSADORHOST}:${AMBASSADORPORT}
+cd ./grpc-example/client/
+python client.py --channel ${AMBASSADORHOST}:${AMBASSADORPORT} --message Hello!
 ```
 
 The `--channel` option must be set and specifies the ip/host and port to route the gRPC traffic to.
+
+The `--message` option allows you to set your own message. It is optional and will send a default message if left blank.
 
 
 ## Using over TLS
@@ -131,9 +138,10 @@ To initiate a gRPC call over a secure channel with TLS you need to do a couple o
 
 First, ALPN protocol http2 must be enabled in the TLS module by `alpn_protocols: h2`
 
-Second, the client application needs a root cert to authenticate with you CA. The example graph service in this document allows you to enable this by setting the`—tls` flag when invoking the client application. You will also need to set the port to `443` with the `—channel` flag. 
+Second, the client application needs a root cert to authenticate with you CA. The example grpc service in this document allows you to enable this by setting the`—tls` flag when invoking the client application. Also ensure you set the port to `443` with the `—channel` flag. 
 
 For more information on gRPC and TLS visit: https://grpc.io/docs/guides/auth.html
+
 For more information on the ambassador TLS module visit [TLS termination guide](/user-guide/tls-termination.html)
 
 ## Note
