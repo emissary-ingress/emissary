@@ -118,6 +118,14 @@ def as_sourceddict(res: dict) -> Any:
     else:
         return res
 
+def cors_clean(cors):
+    sd = as_sourceddict(cors)
+    sd.pop('_referenced_by', None)
+    sd.pop('_source', None)
+    sd.pop('name', None)
+
+    return sd
+
 class old_ir (dict):
     def __init__(self, aconf: dict, ir: dict, v1config: dict) -> None:
         super().__init__()
@@ -133,6 +141,9 @@ class old_ir (dict):
             'clusters': [],
             'grpc_services': []
         }
+
+        if 'cors' in ir['ambassador']:
+            econf['cors_default'] = cors_clean(ir['ambassador']['cors'])
 
         for listener in econf['listeners']:
             for k in [ '_referenced_by', 'name', 'serialization' ]:
@@ -187,6 +198,16 @@ class old_ir (dict):
                 if from_name in route:
                     route[to_name] = route[from_name]
                     del(route[from_name])
+
+            if 'cors' in route:
+                route['cors'] = cors_clean(route['cors'])
+
+            if 'add_request_headers' in route:
+                to_add = [ { "key": k, "value": v }
+                           for k, v in route['add_request_headers'].items() ]
+
+                route['request_headers_to_add'] = to_add
+                del(route['add_request_headers'])
 
             route['clusters'] = []
             rl_actions = []

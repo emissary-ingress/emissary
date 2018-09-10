@@ -5,6 +5,7 @@ from ..config import Config
 
 from .irresource import IRResource
 from .ircluster import IRCluster
+from .ircors import IRCORS
 
 import hashlib
 
@@ -127,6 +128,18 @@ class IRMapping (IRResource):
         # ...and the route weight.
         self.route_weight = self._route_weight()
 
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # If we have CORS stuff, normalize it.
+        if 'cors' in self:
+            self.cors = IRCORS(ir=ir, aconf=aconf, location=self.location, **self.cors)
+
+            if self.cors:
+                self.cors.referenced_by(self)
+            else:
+                return False
+
+        return True
+
     def _group_id(self) -> str:
         # Yes, we're using a cryptographic hash here. Cope. [ :) ]
 
@@ -160,55 +173,6 @@ class IRMapping (IRResource):
 
         return tuple(weight)
 
-    # def save_cors_element(self, cors_key, route_key, route):
-    #     """If self.get('cors')[cors_key] exists, and
-    #     - is a list, e.g. ["1","2","3"], then route[route_key] is set as "1, 2, 3"
-    #     - is something else, then set route[route_key] as it is
-    #
-    #     :param cors_key: key to exist in self.get('cors'), i.e. Ambassador's config
-    #     :param route_key: key to save to in envoy's cors configuration
-    #     :param route: envoy's cors configuration
-    #     """
-    #     cors = self.get('cors')
-    #     if cors.get(cors_key) is not None:
-    #         if type(cors.get(cors_key)) is list:
-    #             route[ route_key ] = ", ".join(cors.get(cors_key))
-    #         else:
-    #             route[ route_key ] = cors.get(cors_key)
-    #
-    # def generate_route_cors(self):
-    #     """Generates envoy's cors configuration from ambassador's cors configuration
-    #
-    #     :return generated envoy cors configuration
-    #     :rtype: dict
-    #     """
-    #
-    #     cors = self.get('cors')
-    #     if cors is None:
-    #         return
-    #
-    #     route_cors = {'enabled': True}
-    #     # cors['origins'] cannot be treated like other keys, because if it's a
-    #     # list, then it remains as is, but if it's a string, then it's
-    #     # converted to a list
-    #     origins = cors.get('origins')
-    #     if origins is not None:
-    #         if type(origins) is list:
-    #             route_cors[ 'allow_origin' ] = origins
-    #         elif type(origins) is str:
-    #             route_cors[ 'allow_origin' ] = origins.split(',')
-    #         else:
-    #             print("invalid cors configuration supplied - {}".format(origins))
-    #             return
-    #
-    #     self.save_cors_element('max_age', 'max_age', route_cors)
-    #     self.save_cors_element('credentials', 'allow_credentials', route_cors)
-    #     self.save_cors_element('methods', 'allow_methods', route_cors)
-    #     self.save_cors_element('headers', 'allow_headers', route_cors)
-    #     self.save_cors_element('exposed_headers', 'expose_headers', route_cors)
-    #     return route_cors
-    #
-    #
     # def new_route(self, svc, cluster_name) -> SourcedDict:
     #     route = SourcedDict(
     #         _source=self[ '_source' ],
@@ -252,10 +216,6 @@ class IRMapping (IRResource):
     #         route[ 'request_headers_to_add' ] = [ ]
     #         for key, value in add_request_headers.items():
     #             route[ 'request_headers_to_add' ].append({"key": key, "value": value})
-    #
-    #     envoy_cors = self.generate_route_cors()
-    #     if envoy_cors:
-    #         route[ 'cors' ] = envoy_cors
     #
     #     rate_limits = self.get('rate_limits')
     #

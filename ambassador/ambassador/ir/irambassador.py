@@ -7,6 +7,7 @@ from ..config import Config
 from .irresource import IRResource
 from .irmapping import IRMapping
 from .irtls import IREnvoyTLS, IRAmbassadorTLS
+from .ircors import IRCORS
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -147,6 +148,15 @@ class IRAmbassador (IRResource):
 
                 if not cur.get('service', None):
                     cur['service'] = diag_service
+
+        # Finally, default CORS stuff.
+        if amod and ('cors' in amod):
+            self.cors = IRCORS(ir=ir, aconf=aconf, location=self.location, **amod.cors)
+
+            if self.cors:
+                self.cors.referenced_by(self)
+            else:
+                return False
 
         return True
 
