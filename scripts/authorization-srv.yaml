@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: auth0-service
+  namespace: datawire
   annotations:
     getambassador.io/config: |
       ---
@@ -17,7 +18,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: auth0-service
+    name: auth0-service
   ports:
   - protocol: TCP 
     port: 80
@@ -27,6 +28,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: auth0-service
+  namespace: datawire
 spec:
   replicas: 1
   strategy:
@@ -34,7 +36,7 @@ spec:
   template:
     metadata:
       labels:
-        app: auth0-service
+        name: auth0-service
     spec:
       serviceAccountName: ambassador
       containers:
@@ -44,10 +46,10 @@ spec:
         - containerPort: 8080
         env:
           - name: AUTH_CALLBACK_URL
-            value: http://{YOU LB IP}/callback
+            value: http://35.230.19.92/callback
           - name: AUTH_DOMAIN
-            value: user.auth0.com
+            value: gsagula.auth0.com
           - name: AUTH_AUDIENCE
-            value: https://user.auth0.com/api/v2/
+            value: https://gsagula.auth0.com/api/v2/
           - name: AUTH_CLIENT_ID
-            value: app_client_id
+            value: -_lWmw3zOpFXdY6XR9cgk-vfSdtYwaC6
