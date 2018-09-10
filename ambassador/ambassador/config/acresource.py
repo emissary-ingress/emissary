@@ -6,7 +6,7 @@ import yaml
 
 from ..resource import Resource
 
-R = TypeVar('R', bound='ACResource')
+R = TypeVar('R', bound=Resource)
 
 
 class ACResource (Resource):
