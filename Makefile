@@ -8,7 +8,7 @@ run: install
 .PHONY: install
 install: tools vendor
 	@echo " >>> building"
-	@go install
+	@go install ./cmd/...
 
 .PHONY: clean
 clean:
@@ -17,7 +17,7 @@ clean:
 
 vendor:
 	@echo " >>> installing dependencies"
-	@dep ensure
+	@dep ensure -vendor-only
 
 format:
 	@echo " >>> running format"

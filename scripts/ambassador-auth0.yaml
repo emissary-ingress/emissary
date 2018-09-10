@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth0-service
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  AuthService
+      name:  authentication
+      auth_service: auth0-service
+      allowed_headers:
+       - "Authorization"
+       - "Client-Id"
+       - "Client-Secret"
+spec:
+  type: ClusterIP
+  selector:
+    name: ambassador
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+    name: http-auth0-service

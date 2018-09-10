@@ -26,10 +26,6 @@
 
 
 [[constraint]]
-  name = "github.com/codegangsta/negroni"
-  version = "0.3.0"
-
-[[constraint]]
   name = "github.com/dgrijalva/jwt-go"
   version = "3.2.0"
 
@@ -56,3 +52,11 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/meatballhat/negroni-logrus"
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.6.2"
