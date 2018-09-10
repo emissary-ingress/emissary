@@ -15,13 +15,14 @@ class IRFilter(IRResource):
                  name: str = "ir.filter",
                  location: str = "--internal--",
                  type: Optional[str] = None,
+                 config: Optional[dict] = None,
                  **kwargs) -> None:
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             location=location,
             type=type,
+            config=config,
             **kwargs)
 
-    def config_dict(self):
-        config = self.config
-        return config
+    def config_dict(self) -> Optional[dict]:
+        return self.config

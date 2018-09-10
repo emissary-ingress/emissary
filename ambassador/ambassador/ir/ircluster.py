@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 import re
@@ -85,7 +85,6 @@ class IRCluster (IRResource):
         name_fields: List[str] = [ "cluster" ]
         ctx: Optional[IREnvoyTLS] = None
         errors: List[str] = []
-        tls_array: Optional[List[Dict[str, Any]]] = None
 
         # If we have a ctx_name, does it match a real context?
         if ctx_name:
@@ -155,17 +154,12 @@ class IRCluster (IRResource):
             "service": service
         }
 
+        if host_rewrite:
+            new_args['host_rewrite'] = host_rewrite
+
         if originate_tls:
             if ctx:
                 new_args['tls_context'] = typecast(IREnvoyTLS, ctx)
-
-                new_args['tls_array'] = [
-                    { 'key': key, 'value': ctx[key] }
-                    for key in sorted(typecast(IREnvoyTLS, ctx).keys()) if not key.startswith('_')
-                ]
-
-                if host_rewrite:
-                    new_args['tls_array'].append({'key': 'sni', 'value': host_rewrite })
 
         if grpc:
             new_args['features'] = 'http2'
@@ -191,3 +185,9 @@ class IRCluster (IRResource):
         self.urls.append(url)
 
         return self.urls
+
+    def tls_array(self) -> Optional[List[Dict[str, str]]]:
+        if self.tls_context:
+            return self.tls_context.as_array(self.host_rewrite)
+        else:
+            return None

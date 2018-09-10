@@ -57,25 +57,28 @@ class IRAuth (IRFilter):
 
         cluster = None
 
-        for service in cluster_hosts.keys():
+        # print("AUTH ADD_MAPPINGS: %s" % self.as_json())
+
+        for service, params in cluster_hosts.items():
+            weight, ctx_name = params
+
             if not cluster:
                 cluster_args = {
                     'name': cluster_name,
                     'service': service,
                     'host_rewrite': self.get('host_rewrite', False),
+                    'ctx_name': ctx_name,
                     # 'grpc': self.get('grpc', False)
                 }
 
-                if 'tls' in self:
-                    cluster_args['ctx_name'] = self.tls
-
                 cluster = ir.add_cluster(IRCluster(ir=ir, aconf=aconf, location=self.location, **cluster_args))
                 cluster.referenced_by(self)
-                # print("AUTH ADD_MAPPINGS: %s => new cluster %s" % (service, repr(cluster)))
             else:
                 cluster.add_url(service)
                 cluster.referenced_by(self)
-                # print("AUTH ADD_MAPPINGS: %s => extant cluster %s" % (service, repr(cluster)))
+
+        self.cluster = cluster
+        self.referenced_by(cluster)
 
         #     urls = []
         #     protocols = {}
@@ -155,7 +158,7 @@ class IRAuth (IRFilter):
 
     def config_dict(self):
         config = {
-            "cluster": self.cluster
+            "cluster": self.cluster.name
         }
 
         for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:

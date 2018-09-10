@@ -247,7 +247,7 @@ class old_ir (dict):
 
             # print("WTFO route %s" % json.dumps(route, sort_keys=True, indent=4))
 
-            for k in [ 'mappings', 'name', 'serialization' ]:
+            for k in [ 'mappings', 'name', 'serialization', 'tls' ]:
                 route.pop(k, None)
 
             if not route.get('_method', ''):
@@ -270,6 +270,24 @@ class old_ir (dict):
 
             if 'serialization' in envoy_cluster:
                 del(envoy_cluster['serialization'])
+
+            if 'tls_context' in envoy_cluster:
+                ctx = envoy_cluster['tls_context']
+                host_rewrite = envoy_cluster.get('host_rewrite', None)
+
+                tls_array = []
+
+                for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
+                    if k in ctx:
+                        tls_array.append({'key': k, 'value': ctx[k]})
+
+                if host_rewrite:
+                    tls_array.append({'key': 'sni', 'value': host_rewrite})
+
+                ctx.pop("enabled", None)
+                ctx.pop("name", None)
+
+                envoy_cluster['tls_array'] = tls_array
 
             econf['clusters'].append(envoy_cluster)
 
@@ -312,6 +330,23 @@ class old_ir (dict):
 
             if 'type' in filter:
                 flt['type'] = filter['type']
+
+            if flt['name'] == 'extauth':
+                config = {
+                    'cluster': filter['cluster']['name']
+                }
+
+                print("initial extauth config %s" % repr(config))
+
+                for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+                    if filter.get(key, None):
+                        config[key] = filter[key]
+
+                flt['_services'] = list(sorted(filter['hosts'].keys()))
+
+                print("final extauth config %s" % repr(config))
+
+                flt['config'] = config
 
             filters.append(flt)
 
