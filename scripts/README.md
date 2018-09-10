@@ -1,96 +1,59 @@
-# Ambassador Pro
+## Setup and deployment:
 
-Ambassador Pro is a set of paid add-on modules to the Ambassador open source API Gateway. The first functionality that will be available in Ambassador Pro is authentication. If you're interested in being an early adopter of Ambassador Pro, contact hello@datawire.io.
-
-## Installation
-
-Note: Ambassador Pro currently installs as an independent service. In the future, we expect to support a sidecar deployment model.
-
-1. Install Ambassador.
-2. Clone this repository; you'll need the YAML configuration.
-   
-   ```
-   git clone https://github.com/datawire/ambassador-pro
-   ```
-
-2. In the `ambassador-pro.yaml`, configure the `AUTH0_DOMAIN` and `AUTH0_AUDIENCE` environment variables based on your Auth0 configuration. (You'll need to create a custom API if you haven't already.)
-   * The AUTH0_DOMAIN is your Auth0 domain, e.g., foo.auth0.com.
-   * AUTH0_AUDIENCE is listed on the API page https://manage.auth0.com/#/apis
-   * Configure the `namespace` field appropriately for the `ClusterRoleBinding`, and is the namespace where your Ambassador and Ambassador Pro service is deployed.
-3. Deploy the authentication service: `kubectl apply -f ambassador-pro.yaml`.
-4. Create the policy CRD: `kubectl apply -f policy-crd.yaml`.
-
-## Quick Start / Example
-
-Authentication policies are managed using the `policy` CRD. Note that this CRD is in alpha state, and the schema is *subject to change*.
-
-In this quick start, we'll create a route to the public httpbin.org service and manage access to the service.
-
-1. Deploy the `httpbin` service: `kubectl apply -f httpbin.yaml`.
-2. Verify that the httpbin service works correctly, e.g,
-
-   ```
-   $ curl http://$AMBASSADOR_IP/httpbin/ip
-   {
-    "origin": "35.205.31.151"
-   }
-   $ curl http://$AMBASSADOR_IP/httpbin/user-agent
-   {
-    "user-agent": "curl/7.54.0"
-   }
-   ```
-
-3. Deploy the sample security policy: `kubectl apply -f httpbin-policy.yaml`. This policies gives public access to `/httpbin/ip` but restricts access to `/httpbin/user-agent`.
-4. Test this out:
-
-   ```
-   $ curl http://$AMBASSADOR_IP/httpbin/ip
-   {
-    "origin": "35.205.31.151"
-   }
-   $ curl http://$AMBASSADOR_IP/httpbin/user-agent
-   {"message":"unauthorized"}
-   ```
-
-5. Get a JWT from Auth0. To do this, click on APIs, then the custom API you're using for the Ambassador Authentication service, and then the Test tab.
-
-   ```
-   $ curl --header 'authorization: Bearer eyeJdfasdf...' http://$AMBASSADOR_IP/httpbin/user-agent
-   {
-     "user-agent": "curl/7.54.0"
-   }
-   ```
-
-## Configuration
-
-Ambassador Authentication supports creating arbitrary rules for authentication. By default, Ambassador Authentication returns unauthenticated requests. Each rule can have the following values:
-
-| Value     | Example    | Description |
-| -----     | -------    | -----------                  |
-| `host`    | "*", "foo.com" | the Host that a given rule should match |
-| `path`    | "/foo/url/"    | the URL path that a given rule should match to |
-| `public`  | true           | a boolean that indicates whether or not authentication is required; default false |
-| `scopes`  | "read:contacts" | the rights that need to be granted in a given API |
-
-The following is a complete example of a policy:
-
+1. Create a k8s cluster with at least 3 nodes.
+2. Make sure that you have cluster-admin permissions:
 ```
-apiVersion: stable.datawire.io/v1beta1
-kind: Policy
-metadata:
-  name: httpbin-policy
-spec:
-  # everything defaults to private; you can create rules to make stuff
-  # public, and you can create rules to require additional scopes
-  # which will be automatically checked
-  rules:
-   - host: "*"
-     path: /httpbin/ip
-     public: true
-   - host: "*"
-     path: /httpbin/user-agent/*
-     public: false
-   - host: "*"
-     path: /httpbin/headers/*
-     scopes: "read:test"
+$ kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user user@datawire.io
 ```
+
+3. Deploy Ambassador
+```
+$ kubectl apply -f scripts/ambassador.yaml
+```
+
+4. Get Ambassador LB IP address
+
+5. Edit “scripts/authorization-srv.yaml” by changing AUTH_CALLBACK_URL to point to your LB IP address.
+```
+e.g. http://{YOUR LB IP}/callback 
+```
+6. Create an Auth0 application and set your callback to http://{YOUR LB IP}/callback   In app `Connections`, make sure that `google-oauth2` is enabled.
+
+7. Edit “scripts/authorization-srv.yaml” by changing AUTH_DOMAIN to your Auth0 App domain.
+```
+e.g.  gsagula.auth0.com
+```
+
+8.  Edit “scripts/authorization-srv.yaml” by changing AUTH_AUDIENCE to your Auth0 App audience.
+```
+e.g.  https://gsagula.auth0.com/api/v2/
+```
+
+9.  Edit “scripts/authorization-srv.yaml” by changing AUTH_CLIENT_ID to your Auth0 App client-id.
+```
+e.g. -_lWmw3zOpFXdY6XR9cgk-vfSdtYwaC6 
+```
+
+10.  Deploy the following:
+```
+$ kubectl apply -f scripts/httpbin.yaml 
+$ kubectl apply -f scripts/policy-crd.yaml
+$ kubectl apply -f scripts/httpbin-policy.yaml
+$ kubectl apply -f scripts/authorization-srv.yaml
+```
+###From any browser:
+
+1. Go to `http://{YOUR LB IP}/httpbin/ip`.
+```
+This should show your IP address embedded in a JSON message. 
+```
+2. Go to http://{YOUR LB IP}/httpbin/headers
+```
+This should take you to the 3-leg auth flow. By signing in with your good account, you should get silently redirect back to the original address and yours headers should be embedded in a JSON message.
+```
+3. Go to http://{YOUR LB IP}/httpbin/user-agent
+```
+This should show emediately your user-agent embedded in a JSON message.
+```
+4. Open you browser's admin tool and delete your access_token cookie.
+5. Try again to navigate to `http://{YOUR LB IP}/httpbin/user-agent`. You should be prompt with the 3-leg auth flow again.

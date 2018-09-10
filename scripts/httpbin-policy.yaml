@@ -1,3 +1,4 @@
+# HTTPBIN Policy
 apiVersion: stable.datawire.io/v1beta1
 kind: Policy
 metadata:
