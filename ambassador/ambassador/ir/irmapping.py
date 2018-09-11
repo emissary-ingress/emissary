@@ -379,6 +379,8 @@ class IRMappingGroup (IRResource):
                 if host_redirect:
                     errstr = "MappingGroup %s: ignoring host_redirect since shadow is set" % self.group_id
                     aconf.post_error(RichStatus.fromError(errstr), resource=self)
+
+                    self.pop('host_redirect', None)
         elif host_redirect:
             self.host_redirect = mapping
         else:
@@ -492,7 +494,7 @@ class IRMappingGroup (IRResource):
                          self.mappings[0].name
                 self.post_error(RichStatus.fromError(errmsg))
 
-        if not self.host_redirect:
+        if not self.get('host_redirect', None):
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 

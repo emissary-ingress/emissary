@@ -161,6 +161,9 @@ class IRCluster (IRResource):
         if originate_tls:
             if ctx:
                 new_args['tls_context'] = typecast(IREnvoyTLS, ctx)
+            else:
+                new_args['tls_context'] = IREnvoyTLS(ir=ir, aconf=aconf, location=location,
+                                                     enabled=True)
 
         if grpc:
             new_args['features'] = 'http2'
