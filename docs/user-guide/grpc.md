@@ -2,7 +2,7 @@
 
 ---
 
-Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
+Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required. By default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
 ## Example
 
@@ -14,7 +14,7 @@ After completing [Getting Started](/user-guide/getting-started.html), you'll hav
 
 Ambassador `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full service name, including the package path. 
 
-For `Hello World`, in its [proto definition file](https://github.com/datawire/grpc-example/blob/master/helloworld/helloworld.proto), we see
+For the `hello world` method, in its [proto definition file](https://github.com/datawire/grpc-example/blob/master/helloworld/helloworld.proto), we see
 
 ```
 package helloworld;
