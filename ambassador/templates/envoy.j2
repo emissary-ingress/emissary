@@ -53,7 +53,7 @@
                   "routes": [
                     {% for route in routes %}
                     {
-                      "timeout_ms": {{ route.timeout_ms or 3000 }},
+                      "timeout_ms": {{ route.timeout_ms if (route.timeout_ms == 0 or route.timeout_ms) else 3000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.regex -%}"regex": {{ route.regex | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}

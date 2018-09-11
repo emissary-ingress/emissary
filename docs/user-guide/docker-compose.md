@@ -301,7 +301,7 @@ x-envoy-upstream-service-time: 2
 
 ## 5. Tracing
 
-As a final example we will configure ambassador to send Zikin traces to Jaeger. Integrating Zipkin into your services can be a vital glimpse into the performance bottlenecks of a distributed system.
+As a final example we will configure Ambassador to send Zipkin traces to Jaeger. Integrating Zipkin into your services can be a vital glimpse into the performance bottlenecks of a distributed system.
 
 ### Add the Jaeger container to the docker-compose.yaml file
 
@@ -357,7 +357,7 @@ This will forward all of Ambassador's traces to the `tracing` service.
 
 ### Make requests and observe the traces
 
-After reloading the docker containers and configuration we should be able to make requests to the qotm service and see the traces in the Jaeger front-end UI.
+After reloading the Docker containers and configuration we should be able to make requests to the qotm service and see the traces in the Jaeger front-end UI.
 
 ```bash
 # start all new containers (eg. tracing)
@@ -374,4 +374,4 @@ In a browser you can go to [http://localhost:16686/](http://localhost:16686/) an
 
 ## Next Steps
 
-We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a kubernetes cluster. Of course, there will be differences between docker-compose and the kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
+We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.

@@ -2,27 +2,27 @@
 
 ---
 
-Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
+Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required. By default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
 ## Example
 
 This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
 
-After completing [Getting Started](/user-guide/getting-started.html), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding the [Hello World gRPC service](https://github.com/grpc/grpc-go/tree/master/examples/helloworld) for this tutorial. 
+After completing [Getting Started](/user-guide/getting-started.html), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding an example [echo gRPC service](https://github.com/datawire/grpc-example) for this tutorial. 
 
 ## Mapping gRPC Services
 
 Ambassador `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full service name, including the package path. 
 
-For `Hello World`, in its [proto definition file](https://github.com/grpc/grpc-go/blob/master/examples/helloworld/helloworld/helloworld.proto), we see
+For the `hello world` method, in its [proto definition file](https://github.com/datawire/grpc-example/blob/master/helloworld/helloworld.proto), we see
 
 ```
 package helloworld;
 
-service Greeter { ... }
+service Greeter1 { ... }
 ```
 
-so its URL prefix is `helloworld.Greeter`, and a reasonable `Mapping` would be:
+so its URL prefix is `helloworld.Greeter1`, and a reasonable `Mapping` would be:
 
 ```yaml
 ---
@@ -30,16 +30,16 @@ apiVersion: ambassador/v0
 kind: Mapping
 name: grpc_mapping
 grpc: true
-prefix: /helloworld.Greeter/
-rewrite: /helloworld.Greeter/
-service: grpc-greet
+prefix: /helloworld.Greeter1/
+rewrite: /helloworld.Greeter1/
+service: grpc-example
 ```
 
 Note the `grpc: true` line -- this is the necessary magic when mapping a gRPC service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
-## Deploying `Hello World`
+## Deploying `gRPC Example`
 
-To deploy and map `Hello World`, we can use the following YAML:
+To deploy and map `gRPC Example`, we can use the following YAML:
 
 ```yaml
 ---
@@ -47,8 +47,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: grpc-greet
-  name: grpc-greet
+    service: grpc-example
+  name: grpc-example
   annotations:
     getambassador.io/config: |
       ---
@@ -56,54 +56,49 @@ metadata:
       kind: Mapping
       name: grpc_mapping
       grpc: true
-      prefix: /helloworld.Greeter/
-      rewrite: /helloworld.Greeter/
-      service: grpc-greet
+      prefix: /helloworld.Greeter1/
+      rewrite: /helloworld.Greeter1/
+      service: grpc-example
 spec:
   type: ClusterIP
   ports:
   - port: 80
-    name: grpc-greet
+    name: grpc-example
     targetPort: grpc-api
   selector:
-    service: grpc-greet
+    service: grpc-example
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: grpc-greet
+  name: grpc-example
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        service: grpc-greet
+        service: grpc-example
     spec:
       containers:
       - name: grpc-greet
-        image: enm10k/grpc-hello-world
+        image: nkrause/grpc_example:latest
         ports:
         - name: grpc-api
-          containerPort: 9999
-        env:
-          - name: PORT
-            value: "9999"
-        command:
-          - greeter_server
+          containerPort: 50052
       restartPolicy: Always
 ```
 
-(We tell the gRPC service to run on port 9999, then map the container's port 80 inbound to simplify the `Mapping`. There's no magic behind these port numbers: anything will work as long as you're consistent in when mapping everything.)
+(We tell the gRPC service to run on port 50052, then map the container's port 80 inbound to simplify the `Mapping`. There's no magic behind these port numbers: anything will work as long as you're consistent in when mapping everything.)
 
 This is available from getambassador.io, so you can simply
 
 ```shell
-kubectl apply -f https://getambassador.io/yaml/demo/demo-grpc.yaml
+curl https://raw.githubusercontent.com/datawire/grpc-example/master/grpc_example.yaml | kubectl apply -f -
 ```
 
 or, as always, you can use a local file instead.
 
-## Testing `Hello World`
+## Testing `gRPC Example`
 
 Now you should be able to access your service. We'll need the hostname for the Ambassador service, which you can get with
 
@@ -120,17 +115,34 @@ ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 
 and the `EXTERNAL-IP` element is what we want. We'll call that `$AMBASSADORHOST`. You'll also need the port: if you haven't explicitly configured Ambassador otherwise, this should be 80 for an HTTP Ambassador or 443 for an HTTPS Ambassador. We'll call that `$AMBASSADORPORT`.
 
-To test `Hello World`, we can use the Docker image `enm10k/grpc-hello-world`:
+To run the example echo server, clone the [grpc-example repository](https://github.com/datawire/grpc-example).
 
 ```shell
-docker run -e ADDRESS=${AMBASSADORHOST}:${AMBASSADORPORT} enm10k/grpc-hello-world greeter_client
+git clone https://github.com/datawire/grpc-example.git
 ```
 
-Note: If you're trying this out using `NodePort` on minikube and running the docker command above on your host machine, make sure to pass the `--network host` parameter to the docker command.
+Once the repository is cloned, change to the `client` directory and run the client application with 
+```shell
+cd ./grpc-example/client/
+python client.py --channel ${AMBASSADORHOST}:${AMBASSADORPORT} --message Hello!
+```
+
+The `--channel` option must be set and specifies the ip/host and port to route the gRPC traffic to.
+
+The `--message` option allows you to set your own message. It is optional and will send a default message if left blank.
+
 
 ## Using over TLS
 
-To enable grpc over TLS, ALPN protocol http2 `alpn_protocols: h2` must be added to the TLS module configuration. Refer to [TLS termination guide](/user-guide/tls-termination.html) for more information.
+To initiate a gRPC call over a secure channel with TLS you need to do a couple of things:
+
+First, ALPN protocol http2 must be enabled in the TLS module by `alpn_protocols: h2`
+
+Second, the client application needs a root cert to authenticate with you CA. The example grpc service in this document allows you to enable this by setting the`—tls` flag when invoking the client application. Also ensure you set the port to `443` with the `—channel` flag. 
+
+For more information on gRPC and TLS visit: https://grpc.io/docs/guides/auth.html
+
+For more information on the ambassador TLS module visit [TLS termination guide](/user-guide/tls-termination.html)
 
 ## Note
 

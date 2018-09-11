@@ -16,6 +16,7 @@ spec:
   template:
     metadata:
       labels:
+        service: {{ template "ambassador.name" . }}
         app: {{ template "ambassador.name" . }}
         release: {{ .Release.Name }}
       annotations:
@@ -24,14 +25,19 @@ spec:
     spec:
       serviceAccountName: {{ template "ambassador.serviceAccountName" . }}
       containers:
+        - name: statsd-sink
+          image: "{{ .Values.exporter.image }}"
+          ports:
+          - name: metrics
+            containerPort: 9102
         - name: ambassador
           image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.service.targetPorts.http }}
             - name: https
-              containerPort: 443
+              containerPort: {{ .Values.service.targetPorts.https }}
             - name: admin
               containerPort: 8877
           env:
