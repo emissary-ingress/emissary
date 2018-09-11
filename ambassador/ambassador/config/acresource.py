@@ -6,7 +6,7 @@ import yaml
 
 from ..resource import Resource
 
-R = TypeVar('R', bound='ACResource')
+R = TypeVar('R', bound=Resource)
 
 
 class ACResource (Resource):
@@ -164,6 +164,7 @@ class ResourceFetcher:
                 r = ACResource.from_dict(rkey, rkey, serialization, obj)
 
                 self.resources.append(r)
+                rkey = None
 
             self.ocount += 1
 

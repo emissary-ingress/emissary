@@ -32,7 +32,7 @@ class IRResource (Resource):
                  rkey: str,
                  kind: str,
                  name: str,
-                 location: str = "-ir-",
+                 location: str = "--internal--",
                  apiVersion: str="ambassador/ir",
                  **kwargs) -> None:
         # print("IRResource __init__ (%s %s)" % (kind, name))
@@ -58,7 +58,7 @@ class IRResource (Resource):
     def is_active(self) -> bool:
         return self._active
 
-    def __nonzero__(self) -> bool:
+    def __bool__(self) -> bool:
         return self._active and not self._errors
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
@@ -69,17 +69,23 @@ class IRResource (Resource):
         # If you don't override add_mappings, uh, no mappings will get added.
         pass
 
+    def skip_key(self, k: str) -> bool:
+        if k.startswith('__') or k.startswith("_IRResource__"):
+            return True
+
+        if self.__as_dict_helpers.get(k, None) == 'drop':
+            return True
+
+        return False
+
     def as_dict(self) -> Dict:
         od: Dict[str, Any] = {}
 
         for k in self.keys():
-            if k.startswith('__') or k.startswith("_IRResource__"):
+            if self.skip_key(k):
                 continue
 
             helper = self.__as_dict_helpers.get(k, None)
-
-            if helper == "drop":
-                continue
 
             if helper:
                 new_k, v = helper(self, k)

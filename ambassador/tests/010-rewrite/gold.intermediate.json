@@ -26,6 +26,7 @@
                 ],
                 "_service": "httpbin.org",
                 "_source": "mapping-rewrite.yaml.1",
+                "host_rewrite": "httpbin.org",
                 "lb_type": "round_robin",
                 "name": "cluster_http___httpbin_org",
                 "type": "strict_dns",
@@ -134,8 +135,8 @@
                     }
                 ],
                 "host_rewrite": "httpbin.org",
-                "regex": "^\\/http(.*)\\/$",
-                "prefix_rewrite": ""
+                "prefix_rewrite": "",
+                "regex": "^\\/http(.*)\\/$"
             },
             {
                 "__saved": [

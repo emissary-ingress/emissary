@@ -83,7 +83,19 @@ class IREnvoyTLS (IRResource):
         #             self.cert_chain_file = TLSPaths.tls_crt.value
         #             self.private_key_file = TLSPaths.tls_key.value
 
-        return ir.save_tls_context(self.name, self)
+        return True
+
+    def as_array(self, host_rewrite: Optional[str]):
+        tls_array = []
+
+        for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
+            if k in self:
+                tls_array.append({ 'key': k, 'value': self[k] })
+
+        if host_rewrite:
+            tls_array.append({'key': 'sni', 'value': host_rewrite })
+
+        return tls_array
 
 #############################################################################
 ## IRAmbassadorTLS represents an Ambassador TLS configuration, from which we
@@ -102,7 +114,7 @@ class IRAmbassadorTLS (IRResource):
         Initialize an IRAmbassadorTLS from the raw fields of its Resource.
         """
 
-        # print("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
+        print("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -110,7 +122,9 @@ class IRAmbassadorTLS (IRResource):
             **kwargs
         )
 
-    def setup(self, ir: 'IR', aconf: Config):
+class TLSModuleFactory:
+    @classmethod
+    def load_all(cls, ir: 'IR', aconf: Config) -> None:
         assert(ir)
 
         # Check for the tls and tls-from-ambassador-certs Modules...
@@ -118,20 +132,36 @@ class IRAmbassadorTLS (IRResource):
         generated_module = aconf.get_module('tls-from-ambassador-certs')
 
         # ...and merge them into a single set of configs.
-        tls_module = self.merge_tmods(tls_module, generated_module, 'server')
-        tls_module = self.merge_tmods(tls_module, generated_module, 'client')
+        tls_module = cls.merge_tmods(ir, tls_module, generated_module, 'server')
+        tls_module = cls.merge_tmods(ir, tls_module, generated_module, 'client')
 
         # OK, done. Merge the result back in.
         if tls_module:
-            self.logger.debug("TLS module getting merged: %s" % tls_module.as_json())
-            self.update(tls_module)
-            self.logger.debug("TLS module after merge: %s" % self.as_json())
+            ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
 
-            return True
-        else:
-            return False
+            # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
+            # this painless.
+            new_args = dict(tls_module.as_dict())
+            new_rkey = new_args.pop('rkey', tls_module.rkey)
+            new_kind = new_args.pop('kind', tls_module.kind)
+            new_name = new_args.pop('name', tls_module.name)
+            new_location = new_args.pop('location', tls_module.location)
 
-    def merge_tmods(self,
+            ir.tls_module = IRAmbassadorTLS(ir, aconf,
+                                            rkey=new_rkey,
+                                            kind=new_kind,
+                                            name=new_name,
+                                            location=new_location,
+                                            **new_args)
+
+            ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+
+    @classmethod
+    def finalize(cls, ir: 'IR', aconf: Config) -> None:
+        pass
+
+    @staticmethod
+    def merge_tmods(ir: 'IR',
                     tls_module: Optional[ACResource],
                     generated_module: Optional[ACResource],
                     key: str) -> Optional[ACResource]:
@@ -162,8 +192,8 @@ class IRAmbassadorTLS (IRResource):
                 tls_module = typecast(ACResource, tls_module)
                 generated_module = typecast(ACResource, generated_module)
 
-            self.logger.debug("tls_module %s" % json.dumps(tls_module, indent=4))
-            self.logger.debug("generated_module %s" % json.dumps(generated_module, indent=4))
+            ir.logger.debug("tls_module %s" % json.dumps(tls_module, indent=4))
+            ir.logger.debug("generated_module %s" % json.dumps(generated_module, indent=4))
 
             # OK, no easy cases. We know that both modules exist: grab the config dicts.
             tls_config = tls_module.get(key, {})
@@ -179,13 +209,13 @@ class IRAmbassadorTLS (IRResource):
                         # No -- post an error, but let the version from the TLS module win.
                         errfmt = "CONFLICT in TLS config for {}.{}: using {} from TLS module in {}"
                         errstr = errfmt.format(key, ckey, tls_config[ckey], tls_module.location)
-                        self.post_error(RichStatus.fromError(errstr))
+                        ir.post_error(RichStatus.fromError(errstr))
                     else:
                         # They have the same value. Worth mentioning in debug.
-                        self.logger.debug("merge_tmods: {}.{} duplicated with same value".format(key, ckey))
+                        ir.logger.debug("merge_tmods: {}.{} duplicated with same value".format(key, ckey))
                 else:
                     # ckey only exists in gen_aconf. Copy it over.
-                    self.logger.debug("merge_tmods: copy {}.{} from gen_config".format(key, ckey))
+                    ir.logger.debug("merge_tmods: copy {}.{} from gen_config".format(key, ckey))
                     tls_config[ckey] = gen_config[ckey]
                     any_changes = True
 

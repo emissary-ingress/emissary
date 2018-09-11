@@ -31,7 +31,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
-from .irtls import IREnvoyTLS, IRAmbassadorTLS
+from .irtls import TLSModuleFactory, IRAmbassadorTLS, IREnvoyTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 
@@ -47,14 +47,14 @@ from .irtracing import IRTracing
 
 class IR:
     ambassador_module: IRAmbassador
-    # clusters: Dict[str, Cluster]
-    # routes: Dict[str, Route]
-
+    tls_module: Optional[IRAmbassadorTLS]
+    tracing: IRTracing
     router_config: Dict[str, Any]
     filters: List[IRResource]
     listeners: List[IRListener]
     groups: Dict[str, IRMappingGroup]
     clusters: Dict[str, IRCluster]
+    grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
     tls_contexts: Dict[str, IREnvoyTLS]
     tls_defaults: Dict[str, Dict[str, str]]
@@ -72,13 +72,13 @@ class IR:
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.clusters = {}
+        self.grpc_services = {}
 
         self.saved_resources = {}
 
         # Our initial configuration stuff is all empty...
-        self.router_config = {}
         self.filters = []
-        self.tracing_config = {}
+        self.tracing = None
         self.listeners = []
         self.groups = {}
 
@@ -91,6 +91,7 @@ class IR:
         # in TLSModule or TLSContext? So far it's the only place we need anything like
         # this though.
 
+        self.tls_module = None
         self.tls_contexts = {}
         self.tls_defaults = {
             "server": {},
@@ -107,7 +108,7 @@ class IR:
             self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         # OK! Start by wrangling TLS-context stuff.
-        self.tls_module = self.save_resource(IRAmbassadorTLS(self, aconf))
+        TLSModuleFactory.load_all(self, aconf)
 
         # Next, handle the "Ambassador" module.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
@@ -116,18 +117,32 @@ class IR:
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
 
+        # Save tracing settings.
+        self.tracing = self.save_resource(IRTracing(self, aconf))
+
         # After the Ambassador and TLS modules are done, we need to set up the
-        # filter chains, which requires checking in on the tracing, auth, and
+        # filter chains, which requires checking in on the auth, and
         # ratelimit configuration stuff.
         #
         # ORDER MATTERS HERE.
 
-        for cls in [IRAuth, IRRateLimit, IRTracing]:
+        for cls in [IRAuth, IRRateLimit]:
             self.save_filter(cls(self, aconf))
 
-        # Then append non-configurable cors and decoder filters
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.cors", kind="ir.cors", name="cors", config={}))
-        self.save_filter(IRFilter(ir=self, aconf=aconf, rkey="ir.router", kind="ir.router", name="router", type="decoder", config=self.router_config))
+        # Then append non-configurable cors filter...
+        self.save_filter(IRFilter(ir=self, aconf=aconf,
+                                  rkey="ir.cors", kind="ir.cors", name="cors",
+                                  config={}))
+
+        # ...and the marginally-configurable router filter.
+        router_config = {}
+
+        if self.tracing:
+            router_config['start_child_span'] = True
+
+        self.save_filter(IRFilter(ir=self, aconf=aconf,
+                                  rkey="ir.router", kind="ir.router", name="router", type="decoder",
+                                  config=router_config))
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
@@ -137,6 +152,7 @@ class IR:
 
         self.walk_saved_resources(aconf, 'add_mappings')
 
+        TLSModuleFactory.finalize(self, aconf)
         ListenerFactory.finalize(self, aconf)
         MappingFactory.finalize(self, aconf)
 
@@ -238,15 +254,36 @@ class IR:
 
         return self.clusters[cluster.name]
 
+    def has_grpc_service(self, name: str) -> bool:
+        return name in self.grpc_services
+
+    def add_grpc_service(self, name: str, cluster: IRCluster) -> IRCluster:
+        if not self.has_grpc_service(name):
+            if not self.has_cluster(cluster.name):
+                self.clusters[cluster.name] = cluster
+
+            self.grpc_services[name] = cluster
+
+        return self.grpc_services[name]
+
     def as_dict(self) -> Dict[str, Any]:
-        return {
+        od = {
             'ambassador': self.ambassador_module.as_dict(),
-            'tls_contexts': { ctx_name: self.tls_contexts[ctx_name].as_dict()
-                              for ctx_name in sorted(self.tls_contexts.keys()) },
+            'clusters': { cluster_name: cluster.as_dict()
+                          for cluster_name, cluster in self.clusters.items() },
+            'grpc_services': { svc_name: cluster.as_dict()
+                               for svc_name, cluster in self.grpc_services.items() },
+            'tls_contexts': { ctx_name: ctx.as_dict()
+                              for ctx_name, ctx in self.tls_contexts.items() },
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filter.as_dict() for filter in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ]
         }
+
+        if self.tracing:
+            od['tracing'] = self.tracing.as_dict()
+
+        return od
 
     def as_json(self):
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)

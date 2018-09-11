@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from . import V1Config
@@ -23,14 +23,15 @@ class V1Tracing(dict):
         super().__init__()
 
         self['http'] = {
-                "driver": {
-                    "type": config.ir.tracing_config['driver'],
-                    "config": {
-                        "collector_cluster": config.ir.tracing_config['cluster_name']
-                    }
-                }
+            "driver": {
+                "type": config.ir.tracing['driver'],
+                "config": config.ir.tracing['driver_config']
             }
+        }
 
     @classmethod
-    def generate(cls, config: 'V1Config') -> 'V1Tracing':
+    def generate(cls, config: 'V1Config') -> Optional['V1Tracing']:
+        if not config.ir.tracing:
+            return None
+
         return V1Tracing(config)

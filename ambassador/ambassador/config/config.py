@@ -345,7 +345,7 @@ class Config:
 
         self.safe_store(resource.kind, resource, allow_log=allow_log)
 
-    def get_config(self, key: str) -> Any:
+    def get_config(self, key: str) -> Optional[Dict[str, ACResource]]:
         return self.config.get(key, None)
 
     def get_module(self, module_name: str) -> Optional[ACResource]:

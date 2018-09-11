@@ -118,6 +118,14 @@ def as_sourceddict(res: dict) -> Any:
     else:
         return res
 
+def cors_clean(cors):
+    sd = as_sourceddict(cors)
+    sd.pop('_referenced_by', None)
+    sd.pop('_source', None)
+    sd.pop('name', None)
+
+    return sd
+
 class old_ir (dict):
     def __init__(self, aconf: dict, ir: dict, v1config: dict) -> None:
         super().__init__()
@@ -130,45 +138,52 @@ class old_ir (dict):
             'listeners': [ as_sourceddict(x) for x in ir['listeners'] ],
             'filters': [ as_sourceddict(x) for x in ir['filters'] ],
             'routes': [],
-            'clusters': []
+            'clusters': [],
+            'grpc_services': []
         }
 
-        for idx in range(len(econf['listeners'])):
-            e_lst = econf['listeners'][idx]
+        if 'cors' in ir['ambassador']:
+            econf['cors_default'] = cors_clean(ir['ambassador']['cors'])
 
+        for listener in econf['listeners']:
             for k in [ '_referenced_by', 'name', 'serialization' ]:
-                e_lst.pop(k, None)
+                listener.pop(k, None)
 
-            if idx < len(v1config[ 'listeners' ]):
-                v1_lst = v1config[ 'listeners' ][ idx ]
+            if 'tls_contexts' in listener:
+                ssl_context = {}
+                found_some = False
+                location = None
 
-                if 'ssl_context' in v1_lst:
-                    e_tls = dict(v1_lst['ssl_context'])
-                    e_tls['ssl_context'] = True
+                for ctx_name, ctx in listener['tls_contexts'].items():
+                    for key in [ "cert_chain_file", "private_key_file",
+                                 "alpn_protocols", "cacert_chain_file",
+                                 "cert_required" ]:
+                        if key in ctx:
+                            ssl_context[key] = ctx[key]
+                            found_some = True
 
-                    if 'require_client_certificate' in e_tls:
-                        e_tls['cert_required'] = e_tls['require_client_certificate']
-                        del(e_tls['require_client_certificate'])
+                    # Handle redirect_cleartext_from specially -- found_some should NOT
+                    # be set if it's the only thing present.
+                    if "redirect_cleartext_from" in ctx:
+                        ssl_context["redirect_cleartext_from"] = ctx["redirect_cleartext_from"]
 
-                    src = None
+                    if not location and ('_source' in ctx):
+                        location = ctx['_source']
+                        logger.debug('ctx %s sets location to %s' % (ctx_name, location))
 
-                    if e_lst['tls_contexts']:
-                        for ctx_name, ctx in e_lst['tls_contexts'].items():
-                            ctx_src = ctx.get('_source', None)
-                            print("atest ctx %s source %s" % (ctx_name, ctx_src))
-                            print(json.dumps(ctx, sort_keys=True, indent=4))
+                if ssl_context:
+                    if not location:
+                        location = ir['ambassador']['location']
+                        logger.debug('no location, defaulting to %s' % location)
 
-                            if ctx_src and not src:
-                                src = ctx_src
+                    ssl_context['_source'] = location
 
-                    if src:
-                       e_tls['_source'] = src
+                    if found_some:
+                        ssl_context['ssl_context'] = True
 
-                    e_lst['tls'] = e_tls
+                    listener['tls'] = ssl_context
 
-            e_lst.pop('tls_contexts', None)
-
-        clusters = {}
+                del(listener['tls_contexts'])
 
         for group in sorted(ir['groups'], key=lambda g: g['group_id']):
             route = as_sourceddict(group)
@@ -184,8 +199,20 @@ class old_ir (dict):
                     route[to_name] = route[from_name]
                     del(route[from_name])
 
+            if 'cors' in route:
+                route['cors'] = cors_clean(route['cors'])
+
+            if 'add_request_headers' in route:
+                to_add = [ { "key": k, "value": v }
+                           for k, v in route['add_request_headers'].items() ]
+
+                route['request_headers_to_add'] = to_add
+                del(route['add_request_headers'])
+
             route['clusters'] = []
-            for mapping in group['mappings']:
+            rl_actions = []
+            
+            for mapping in group.get('mappings', []):
                 cluster = mapping['cluster']
                 cname = cluster['name']
 
@@ -194,12 +221,33 @@ class old_ir (dict):
                     'weight': mapping['weight']
                 })
 
-                if cname not in clusters:
-                    # print("NEW CLUSTER %s" % cname)
-                    clusters[cname] = cluster
-                else:
-                    # print("REPEAT CLUSTER %s" % cname)
-                    clusters[cname] = cluster
+                rate_limits = mapping.get('rate_limits')
+
+                if rate_limits:
+                    for rate_limit in rate_limits:
+                        rate_limits_actions = [
+                            {'type': 'source_cluster'},
+                            {'type': 'destination_cluster'},
+                            {'type': 'remote_address'}
+                        ]
+
+                        rate_limit_descriptor = rate_limit.get('descriptor', None)
+
+                        if rate_limit_descriptor:
+                            rate_limits_actions.append({'type': 'generic_key',
+                                                        'descriptor_value': rate_limit_descriptor})
+
+                        rate_limit_headers = rate_limit.get('headers', [])
+
+                        for rate_limit_header in rate_limit_headers:
+                            rate_limits_actions.append({'type': 'request_headers',
+                                                        'header_name': rate_limit_header,
+                                                        'descriptor_key': rate_limit_header})
+
+                        rl_actions.append({'actions': rate_limits_actions})
+
+            if rl_actions:
+                route['rate_limits'] = rl_actions
 
             if 'shadows' in route:
                 if route['shadows']:
@@ -212,9 +260,15 @@ class old_ir (dict):
             if ('host_redirect' in route) and (not route['host_redirect']):
                 del(route['host_redirect'])
 
+            if route.get('prefix_regex', False):
+                # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
+                route['regex'] = route['prefix']
+                route.pop('prefix', None)
+                route.pop('prefix_regex', None)
+
             # print("WTFO route %s" % json.dumps(route, sort_keys=True, indent=4))
 
-            for k in [ 'mappings', 'name', 'serialization' ]:
+            for k in [ 'mappings', 'name', 'serialization', 'tls' ]:
                 route.pop(k, None)
 
             if not route.get('_method', ''):
@@ -228,7 +282,7 @@ class old_ir (dict):
 
             econf['routes'].append(route)
 
-        for cluster in sorted(clusters.values(), key=lambda x: x['name']):
+        for cluster in sorted(ir['clusters'].values(), key=lambda x: x['name']):
             envoy_cluster = as_sourceddict(cluster)
 
             if "service" in envoy_cluster:
@@ -238,7 +292,81 @@ class old_ir (dict):
             if 'serialization' in envoy_cluster:
                 del(envoy_cluster['serialization'])
 
+            if 'tls_context' in envoy_cluster:
+                ctx = envoy_cluster['tls_context']
+                host_rewrite = envoy_cluster.get('host_rewrite', None)
+
+                tls_array = []
+
+                for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
+                    if k in ctx:
+                        tls_array.append({'key': k, 'value': ctx[k]})
+
+                if host_rewrite:
+                    tls_array.append({'key': 'sni', 'value': host_rewrite})
+
+                ctx.pop("enabled", None)
+                ctx.pop("name", None)
+
+                envoy_cluster['tls_array'] = tls_array
+
             econf['clusters'].append(envoy_cluster)
+
+        if 'tracing' in ir:
+            tracing = as_sourceddict(ir['tracing'])
+
+            etrace = {
+                '_source': tracing['_source'],
+                'cluster_name': tracing['cluster']['name'],
+                'config': tracing['driver_config'],
+                'driver': tracing['driver']
+            }
+
+            if 'tag_headers' in tracing:
+                etrace['tag_headers'] = tracing['tag_headers']
+
+            econf['tracing'] = etrace
+
+        if 'grpc_services' in ir:
+            gsvc = []
+            for svc_name in sorted(ir['grpc_services'].keys()):
+                cluster = as_sourceddict(ir['grpc_services'][svc_name])
+
+                gsvc.append({
+                    '_source': cluster['_source'],
+                    'cluster_name': cluster['name'],
+                    'name': svc_name
+                })
+
+            econf['grpc_services'] = gsvc
+
+        filters = []
+
+        for filter in econf['filters']:
+            flt = {
+                '_source': filter.get('_source', '???'),
+                'config': filter.get('config', {}),
+                'name': filter.get('name', '???')
+            }
+
+            if 'type' in filter:
+                flt['type'] = filter['type']
+
+            if flt['name'] == 'extauth':
+                config = {
+                    'cluster': filter['cluster']['name']
+                }
+
+                for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+                    if filter.get(key, None):
+                        config[key] = filter[key]
+
+                flt['_services'] = list(sorted(filter['hosts'].keys()))
+                flt['config'] = config
+
+            filters.append(flt)
+
+        econf['filters'] = filters
 
         self['envoy_config'] = econf
 
