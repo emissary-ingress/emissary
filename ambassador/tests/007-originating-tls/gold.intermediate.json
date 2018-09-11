@@ -92,6 +92,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth-tls.yaml.1"
+                ],
                 "_services": [
                     "https://example-auth:3000"
                 ],

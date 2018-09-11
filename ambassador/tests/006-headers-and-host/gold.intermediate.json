@@ -124,6 +124,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
                 "_services": [
                     "example-auth:3000"
                 ],

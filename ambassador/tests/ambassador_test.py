@@ -217,7 +217,7 @@ class old_ir (dict):
                 cname = cluster['name']
 
                 route['clusters'].append({
-                    'name': mapping['cluster']['name'],
+                    'name': cname,
                     'weight': mapping['weight']
                 })
 
@@ -249,13 +249,12 @@ class old_ir (dict):
             if rl_actions:
                 route['rate_limits'] = rl_actions
 
-            if 'shadows' in route:
-                if route['shadows']:
-                    route['shadow'] = {
-                        'name': route['shadows'][0]['cluster']['name']
-                    }
+            shadows = route.pop('shadows', None)
 
-                del(route['shadows'])
+            if shadows:
+                route['shadow'] = {
+                    'name': shadows[0]['cluster']['name']
+                }
 
             if ('host_redirect' in route) and (not route['host_redirect']):
                 del(route['host_redirect'])
@@ -351,6 +350,9 @@ class old_ir (dict):
 
             if 'type' in filter:
                 flt['type'] = filter['type']
+
+            if '_referenced_by' in filter:
+                flt[ '_referenced_by' ] = filter[ '_referenced_by' ]
 
             if flt['name'] == 'extauth':
                 config = {

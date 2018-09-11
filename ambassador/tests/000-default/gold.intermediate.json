@@ -59,6 +59,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
                 "_services": [
                     "demo.getambassador.io"
                 ],
