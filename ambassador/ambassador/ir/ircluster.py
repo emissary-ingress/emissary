@@ -18,6 +18,7 @@ from typing import cast as typecast
 import re
 
 from ..config import Config
+from ..utils import RichStatus
 
 from .irresource import IRResource
 from .irtls import IREnvoyTLS
@@ -191,3 +192,25 @@ class IRCluster (IRResource):
             return self.tls_context.as_array(self.host_rewrite)
         else:
             return None
+
+    def merge(self, other: 'IRCluster') -> bool:
+        # Is this mergeable?
+
+        mismatches = []
+
+        for key in [ 'type', 'lb_type', 'host_rewrite',
+                     'tls_context', 'originate_tls', 'features' ]:
+            if self.get(key, None) != other.get(key, None):
+                mismatches.append(key)
+
+        if mismatches:
+            self.post_error(RichStatus.fromError("cannot merge cluster %s: mismatched attributes %s" %
+                                                 (other.name, ", ".join(mismatches))))
+            return False
+
+        # All good.
+        for url in other.urls:
+            self.add_url(url)
+            self.referenced_by(other)
+
+        return True

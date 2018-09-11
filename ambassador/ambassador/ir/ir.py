@@ -254,6 +254,15 @@ class IR:
 
         return self.clusters[cluster.name]
 
+    def merge_cluster(self, cluster: IRCluster) -> bool:
+        extant = self.get_cluster(cluster.name)
+
+        if extant:
+            return extant.merge(cluster)
+        else:
+            self.add_cluster(cluster)
+            return True
+
     def has_grpc_service(self, name: str) -> bool:
         return name in self.grpc_services
 

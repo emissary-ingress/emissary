@@ -52,33 +52,42 @@ class IRAuth (IRFilter):
         return True
 
     def add_mappings(self, ir: 'IR', aconf: Config):
-        cluster_name = self.cluster
         cluster_hosts = self.get('hosts', { '127.0.0.1:5000': ( 100, None ) })
 
-        cluster = None
+        self.cluster = None
 
-        # print("AUTH ADD_MAPPINGS: %s" % self.as_json())
+        # self.ir.logger.debug("AUTH ADD_MAPPINGS: %s" % self.as_json())
 
         for service, params in cluster_hosts.items():
-            weight, ctx_name = params
+            weight, ctx_name, location = params
 
-            if not cluster:
-                cluster_args = {
-                    'name': cluster_name,
-                    'service': service,
-                    'host_rewrite': self.get('host_rewrite', False),
-                    'ctx_name': ctx_name,
-                    # 'grpc': self.get('grpc', False)
-                }
+            cluster = IRCluster(
+                ir=ir, aconf=aconf, location=location,
+                service=service,
+                host_rewrite=self.get('host_rewrite', False),
+                ctx_name=ctx_name,
+                # grpc=self.get('grpc', False)
+            )
 
-                cluster = ir.add_cluster(IRCluster(ir=ir, aconf=aconf, location=self.location, **cluster_args))
-                cluster.referenced_by(self)
+            cluster.referenced_by(self)
+
+            cluster_good = True
+
+            if self.cluster:
+                if not self.cluster.merge(cluster):
+                    self.post_error(RichStatus.fromError("auth canary %s can only change service!" % cluster.name))
+                    cluster_good = False
+                    # self.ir.logger.debug("BAD MERGE %s" % cluster.as_json())
+                # else:
+                #     self.ir.logger.debug("GOOD MERGE %s" % cluster.as_json())
             else:
-                cluster.add_url(service)
-                cluster.referenced_by(self)
+                self.cluster = cluster
+                # self.ir.logger.debug("SET CLUSTER %s" % cluster.as_json())
 
-        self.cluster = cluster
-        self.referenced_by(cluster)
+        if cluster_good:
+            # self.ir.logger.debug("GOOD CLUSTER %s" % self.cluster.as_json())
+            ir.add_cluster(self.cluster)
+            self.referenced_by(self.cluster)
 
         #     urls = []
         #     protocols = {}
@@ -147,7 +156,7 @@ class IRAuth (IRFilter):
         weight = 100    # Can't support arbitrary weights right now.
 
         if auth_service:
-            self.hosts[auth_service] = ( weight, module.get('tls', None) )
+            self.hosts[auth_service] = ( weight, module.get('tls', None), module.location )
 
     def config_dict(self):
         config = {
