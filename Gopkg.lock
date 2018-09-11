@@ -122,7 +122,7 @@
     "pagination",
   ]
   pruneopts = "UT"
-  revision = "0e258f4b7cabeaad280d3c24f308347fc6ba51f0"
+  revision = "d3d2712922bfab7d32b0c1c1a9fe539a17138930"
 
 [[projects]]
   digest = "1:8ec8d88c248041a6df5f6574b87bc00e7e0b493881dad2e7ef47b11dc69093b5"
@@ -213,7 +213,7 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "0709b304e793a5edb4a2c0145f281ecdc20838a4"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
 
 [[projects]]
   branch = "master"
