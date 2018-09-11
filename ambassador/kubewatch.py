@@ -168,7 +168,7 @@ class Restarter(threading.Thread):
         logger.info("generating config with gencount %d (%d change%s)" % 
                     (self.restart_count, changes, plural))
 
-        resources = fetch_resources(output)
+        resources = fetch_resources(output, logger)
         aconf = Config()
         aconf.load_all(resources)
         ir = IR(aconf)
