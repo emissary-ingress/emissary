@@ -7,13 +7,14 @@ import (
 	"crypto"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	jwtm "github.com/auth0/go-jwt-middleware"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,8 +23,6 @@ const (
 	AuthzKEY = "Authorization"
 	// ClientSECKey header key
 	ClientSECKey = "Client-Secret"
-	// StateSignature secret is used to sign the authorization state value.
-	StateSignature = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3"
 	// RedirectURLFmt is a template string for redirect url.
 	RedirectURLFmt = "https://%s/authorize?audience=%s&response_type=code&redirect_uri=%s&client_id=%s&state=%s&scope=%s"
 	// ContentTYPE HTTP header key
@@ -34,20 +33,17 @@ const (
 	EmptyString = ""
 	// AccessTokenCookie cookie's name
 	AccessTokenCookie = "access_token"
+	// DefaultScopes for 3rd party providers.
+	DefaultScopes = "offline_access openid profile" // TODO(gsagula): get the scopes from the list
 )
-
-// Map is used to to track state and the initial request url, so
-// it the call can be redirected after acquiring the access token.
-var stateURLKv map[string]string
 
 // Handler ..
 type Handler struct {
-	Config *config.Config
-	Logger *logrus.Logger
-	Ctrl   *Controller
-	Jwt    *jwtm.JWTMiddleware
-	// TODO(gsagula): Make this atomic and remove expired keys.
-	StateKV *map[string]string
+	Config     *config.Config
+	Logger     *logrus.Logger
+	Ctrl       *Controller
+	Jwt        *jwtm.JWTMiddleware
+	PrivateKey string
 }
 
 // Authorize ..
@@ -56,13 +52,13 @@ func (h *Handler) Authorize(w http.ResponseWriter, r *http.Request) {
 	if !public {
 		token, _ := r.Context().Value(h.Jwt.Options.UserProperty).(*jwt.Token)
 		if token == nil {
-			h.Logger.Info("Token nil")
+			h.Logger.Info("authorization token not present")
 			h.verify(w, r)
 			return
 		}
 
 		if err := token.Claims.Valid(); err != nil {
-			h.Logger.Info("Claim invalid")
+			h.Logger.Info("invalid authorization token")
 			h.verify(w, r)
 			return
 		}
@@ -70,28 +66,16 @@ func (h *Handler) Authorize(w http.ResponseWriter, r *http.Request) {
 		// TODO(gsagula): consider redirecting to consent uri and logging the error.
 		for _, scope := range scopes {
 			if !checkScope(scope, token.Raw) {
-				h.Logger.Info("Scope invalid")
+				h.Logger.Infof("invalid scope: %s", scope)
 				h.verify(w, r)
 				return
 			}
 		}
 	}
 
-	h.Logger.Info("Success")
 	w.Header().Set(AuthzKEY, r.Header.Get(AuthzKEY))
 	w.Header().Del(ClientSECKey)
 	w.WriteHeader(http.StatusOK)
-}
-
-// CustomClaims TODO(gsagula): comment
-type CustomClaims struct {
-	Scope string `json:"scope"`
-	jwt.StandardClaims
-}
-
-// Response TODO(gsagula): comment
-type Response struct {
-	Message string `json:"message"`
 }
 
 func (h *Handler) verify(w http.ResponseWriter, r *http.Request) {
@@ -105,43 +89,58 @@ func (h *Handler) verify(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(jsonResponse)
 	} else {
-		var buf bytes.Buffer
-		buf.WriteString(r.URL.Path)
-		if len(r.URL.RawQuery) > 0 {
-			buf.WriteString("?")
-			buf.WriteString(r.URL.RawQuery)
-		}
-
-		stateKEY := h.signState(buf.String())
-		//TODO(gsagula): avoid copying..
-		storage := *h.StateKV
-		storage[stateKEY] = buf.String()
-
-		redirectURL := fmt.Sprintf(
+		// TODO(gsagula): make duration configurable.
+		authURL := fmt.Sprintf(
 			RedirectURLFmt,
 			h.Config.Domain,
 			h.Config.Audience,
 			h.Config.CallbackURL,
 			h.Config.ClientID,
-			stateKEY,
-			"offline_access openid profile", // TODO(gsagula): get the scopes from the list
+			h.signState(r, h.Config.StateTTL),
+			DefaultScopes,
 		)
 
-		h.Logger.Info("authorizing with the identity provider.")
-		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		h.Logger.Debugf("redirecting to authorize endpoint: %s", authURL)
+		http.Redirect(w, r, authURL, http.StatusSeeOther)
 	}
 }
 
-func (h *Handler) signState(url string) string {
-	token := jwt.New(&jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256})
-	key, err := token.SignedString([]byte(StateSignature))
-	if err != nil {
-		log.Fatal(err)
+func (h *Handler) signState(r *http.Request, exp time.Duration) string {
+	// TODO(gsagula): add to an util lib.
+	var buf bytes.Buffer
+	buf.WriteString(r.URL.Path)
+	if len(r.URL.RawQuery) > 0 {
+		buf.WriteString("?")
+		buf.WriteString(r.URL.RawQuery)
 	}
-	//TODO(gsagula): avoid copying..
-	storage := *h.StateKV
-	storage[key] = url
+
+	token := jwt.New(&jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256})
+	token.Claims = jwt.MapClaims{
+		"exp":  time.Now().Add(exp).Unix(),            // time when the token will expire (10 minutes from now)
+		"jti":  uuid.Must(uuid.NewV4(), nil).String(), // a unique identifier for the token
+		"iat":  time.Now().Unix(),                     // when the token was issued/created (now)
+		"nbf":  0,                                     // time before which the token is not yet valid (2 minutes ago)
+		"path": buf.String(),                          // the subject/principal is whom the token is about
+	}
+
+	key, err := token.SignedString([]byte(h.PrivateKey))
+	if err != nil {
+		h.Logger.Fatalf("failed to sign state")
+	}
+
+	h.Logger.Debugf("state key: %s", key)
 	return key
+}
+
+// CustomClaims TODO(gsagula): comment
+type CustomClaims struct {
+	Scope string `json:"scope"`
+	jwt.StandardClaims
+}
+
+// Response TODO(gsagula): comment
+type Response struct {
+	Message string `json:"message"`
 }
 
 func checkScope(scope string, tokenString string) bool {

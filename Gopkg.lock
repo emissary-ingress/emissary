@@ -176,6 +176,14 @@
   version = "1.0.1"
 
 [[projects]]
+  digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -408,6 +416,7 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/gobwas/glob",
     "github.com/mitchellh/mapstructure",
+    "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/urfave/negroni",
     "k8s.io/apimachinery/pkg/apis/meta/v1",

@@ -316,12 +316,12 @@ func InClusterConfig() (*Config, error) {
 		return nil, fmt.Errorf("unable to load in-cluster configuration, KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined")
 	}
 
-	token, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	token, err := ioutil.ReadFile(fmt.Sprintf("%s/var/run/secrets/kubernetes.io/serviceaccount/token", os.Getenv("TELEPRESENCE_ROOT")))
 	if err != nil {
 		return nil, err
 	}
 	tlsClientConfig := TLSClientConfig{}
-	rootCAFile := "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	rootCAFile := fmt.Sprintf("%s/var/run/secrets/kubernetes.io/serviceaccount/ca.crt", os.Getenv("TELEPRESENCE_ROOT"))
 	if _, err := certutil.NewPool(rootCAFile); err != nil {
 		glog.Errorf("Expected to load root CA config from %s, but got err: %v", rootCAFile, err)
 	} else {

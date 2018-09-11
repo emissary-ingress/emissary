@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"time"
 )
 
 //Config ..
@@ -16,6 +17,7 @@ type Config struct {
 	Kubeconfig    string
 	DenyOnFailure bool
 	Quiet         bool
+	StateTTL      time.Duration
 }
 
 // NewConfig ..
@@ -30,10 +32,15 @@ func NewConfig() (*Config, error) {
 	flag.StringVar(&c.Scheme, "scheme", "https", "use secure scheme when calling the authorization server")
 	flag.StringVar(&c.CallbackURL, "callback_url", os.Getenv("AUTH_CALLBACK_URL"), "url that the idp should call the authorization server")
 
+	var stateTTL int64
+	flag.Int64Var(&stateTTL, "state_ttl", 5, "TTL (in minutes) of a signed state token; default 5")
+
 	var onFailure string
 	flag.StringVar(&onFailure, "on_failure", os.Getenv("AUTH_ON_FAILURE"), "tells the app what to do in case of failure; eg. <deny>")
 
 	flag.Parse()
+
+	c.StateTTL = time.Duration(stateTTL) * time.Minute
 
 	if onFailure == "deny" {
 		c.DenyOnFailure = true

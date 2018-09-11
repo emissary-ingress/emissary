@@ -39,9 +39,10 @@ const (
 
 // Callback ...
 type Callback struct {
-	Logger  *logrus.Logger
-	Config  *config.Config
-	StateKV *map[string]string
+	Logger     *logrus.Logger
+	Config     *config.Config
+	StateKV    *map[string]string
+	PrivateKey string
 }
 
 func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -52,9 +53,29 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 			return
 		}
 
-		stateKEY := r.URL.Query().Get("state")
-		storage := *c.StateKV
-		if !c.validateState(stateKEY) && storage[stateKEY] == EmptyString {
+		state := r.URL.Query().Get("state")
+		if state == EmptyString {
+			c.Logger.Warnf("host: %s did not provide state param", r.Host)
+			http.Redirect(rw, r, "/", http.StatusFound)
+			return
+		}
+
+		token, err := jwt.Parse(state, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["path"])
+			}
+			return []byte(c.PrivateKey), nil
+		})
+
+		if err != nil {
+			c.Logger.Warnf("error parsing signed state: %v", err)
+			http.Redirect(rw, r, "/", http.StatusFound)
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !(ok && token.Valid) {
+			c.Logger.Errorf("state validation failed: %v", err)
 			http.Redirect(rw, r, "/", http.StatusFound)
 			return
 		}
@@ -62,10 +83,7 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		code := r.URL.Query().Get("code")
 		if code != EmptyString {
 			url := fmt.Sprintf(TokenURLFmt, c.Config.Domain)
-
-			// This needs to be https...
-			redirectURL := fmt.Sprintf("http://%s%s", r.Host, r.URL.Path)
-			payload := strings.NewReader(fmt.Sprintf(AuthorizeFmt, c.Config.ClientID, code, redirectURL))
+			payload := strings.NewReader(fmt.Sprintf(AuthorizeFmt, c.Config.ClientID, code, c.Config.CallbackURL))
 
 			c.Logger.Info("authorizing with idp")
 			req, reqerr := http.NewRequest("POST", url, payload)
@@ -103,10 +121,9 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 				Domain:  r.Host},
 			)
 
-			c.Logger.Infof("redirecting to: %s", storage[stateKEY])
-			http.Redirect(rw, r, storage[stateKEY], http.StatusFound)
-			delete(storage, stateKEY)
-			c.Logger.Infof("callback complete for host: %s", r.Host)
+			redirectPath := claims["path"].(string)
+			c.Logger.Infof("redirecting to path: %s", redirectPath)
+			http.Redirect(rw, r, redirectPath, http.StatusFound)
 			return
 		}
 	}
