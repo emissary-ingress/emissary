@@ -155,7 +155,7 @@ class V1Listener(dict):
                 if "host_rewrite" in group:
                     route["host_rewrite"] = group.host_rewrite
 
-                if "auto_host_rewrite " in group:
+                if "auto_host_rewrite" in group:
                     route["auto_host_rewrite"] = group.auto_host_rewrite
 
                 if "request_headers_to_add" in group:
