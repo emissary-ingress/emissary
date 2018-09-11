@@ -288,16 +288,22 @@ cluster.yaml:
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
 
+setup-test: cluster.yaml
+
 teleproxy-restart:
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+
+teleproxy-stop:
+	$(call kill_teleproxy)
 
 KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
 	KUBECONFIG=$(KUBECONFIG) \
+	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
 clean-test:
@@ -306,7 +312,11 @@ clean-test:
 	$(call kill_teleproxy)
 
 test: version setup-develop cluster.yaml
-	cd ambassador && KUBECONFIG=$(KUBECONFIG) PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
+	cd ambassador && \
+	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	KUBECONFIG=$(KUBECONFIG) \
+	PATH=$(shell pwd)/venv/bin:$(PATH) \
+	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
 
 test-list: version setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
