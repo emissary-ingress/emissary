@@ -66,8 +66,8 @@ class IRAmbassador (IRResource):
             amod_tls = amod.get('tls', None)
 
             if amod_tls:
-                ir.logger.debug("IRAmbassador saving TLS module: %s" %
-                                json.dumps(amod_tls, sort_keys=True, indent=4))
+                # ir.logger.debug("IRAmbassador saving TLS module: %s" %
+                #                 json.dumps(amod_tls, sort_keys=True, indent=4))
 
                 # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
                 # this painless.

@@ -178,7 +178,7 @@ class Config:
                                       (resource, Config.ambassador_id, allowed_ids))
                     continue
 
-            self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
+            # self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
 
             rc = self.process(resource)
 
@@ -248,8 +248,8 @@ class Config:
         if not handler:
             handler = self.save_object
             self.logger.warning("%s: no handler for %s, just saving" % (resource, resource.kind))
-        else:
-            self.logger.debug("%s: handling %s..." % (resource, resource.kind))
+        # else:
+        #     self.logger.debug("%s: handling %s..." % (resource, resource.kind))
 
         try:
             handler(resource)
@@ -391,15 +391,15 @@ class Config:
 
         keylist = sorted([x for x in sorted(resource.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
 
-        self.logger.debug("PRAGMA: %s" % keylist)
+        # self.logger.debug("PRAGMA: %s" % keylist)
 
         for key in keylist:
             if key == 'source':
                 override = self.location_overrides.setdefault(rkey, {})
                 override['source'] = resource['source']
 
-                self.logger.debug("PRAGMA: override %s to %s" %
-                                  (rkey, self.location_overrides[rkey]['source']))
+                # self.logger.debug("PRAGMA: override %s to %s" %
+                #                   (rkey, self.location_overrides[rkey]['source']))
 
         return RichStatus.OK(msg="handled pragma object")
 

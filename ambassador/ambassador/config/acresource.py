@@ -139,13 +139,13 @@ class ResourceFetcher:
             self.filepath: Optional[str] = filepath
             self.ocount: int = 1
 
-            self.logger.debug("init filename %s ocount %d" % (self.filename, self.ocount))
+            # self.logger.debug("init filename %s ocount %d" % (self.filename, self.ocount))
 
             serialization = open(filepath, "r").read()
 
             self.load_yaml(serialization, k8s=k8s)
 
-            self.logger.debug("parsed filename %s ocount %d" % (self.filename, self.ocount))
+            # self.logger.debug("parsed filename %s ocount %d" % (self.filename, self.ocount))
 
             self.filename = None
             self.filepath = None

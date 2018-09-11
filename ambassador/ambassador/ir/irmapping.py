@@ -128,6 +128,8 @@ class IRMapping (IRResource):
         # ...and the route weight.
         self.route_weight = self._route_weight()
 
+        # self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
+
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # If we have CORS stuff, normalize it.
         if 'cors' in self:
@@ -360,6 +362,8 @@ class IRMappingGroup (IRResource):
         if mismatches:
             raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
                             (self.group_id, mapping.name, ", ".join(mismatches)))
+
+        # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
         host_redirect = mapping.get('host_redirect', False)
         shadow = mapping.get('shadow', False)
