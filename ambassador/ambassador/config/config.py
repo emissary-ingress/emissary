@@ -201,12 +201,12 @@ class Config:
             raise Exception("FATAL: trying to post an error from a totally unknown resource??")
 
         self.save_source(resource)
-        resource.post_error(rc.toDict())
+        resource.post_error(rc)
 
         # XXX Probably don't need this data structure, since we can walk the source
         # list and get them all.
         errors = self.errors.setdefault(resource.rkey, [])
-        errors.append(rc.toDict())
+        errors.append(rc.as_dict())
         self.logger.error("%s: %s" % (resource, rc))
 
     def process(self, resource: ACResource) -> RichStatus:

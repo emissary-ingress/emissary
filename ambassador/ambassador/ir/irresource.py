@@ -21,6 +21,10 @@ class IRResource (Resource):
     def helper_rkey(res: 'IRResource', k: str) -> Tuple[str, str]:
         return '_rkey', res[k]
 
+    @staticmethod
+    def helper_list(res: 'IRResource', k: str) -> Tuple[str, list]:
+        return k, list([ x.as_dict() for x in res[k] ])
+
     __as_dict_helpers: ClassVar[Dict[str, Any]] = {
         "apiVersion": "drop",
         "logger": "drop",
@@ -45,6 +49,7 @@ class IRResource (Resource):
         self.logger = ir.logger
 
         self.__as_dict_helpers = IRResource.__as_dict_helpers
+        self.add_dict_helper("_errors", IRResource.helper_list)
         self.add_dict_helper("_referenced_by", IRResource.helper_sort_keys)
         self.add_dict_helper("rkey", IRResource.helper_rkey)
 
