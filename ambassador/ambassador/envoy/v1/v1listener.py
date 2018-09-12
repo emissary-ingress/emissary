@@ -144,10 +144,10 @@ class V1Listener(dict):
             # print(len(group.get('headers', [])) > 0)
 
             if group.get("host_redirect", None):
-                route["host_redirect"] = group.host_redirect
+                route["host_redirect"] = group.host_redirect.service
 
-                if group.get("path_redirect", None):
-                    route["path_redirect"] = group.path_redirect
+                if "path_redirect" in group.host_redirect:
+                    route["path_redirect"] = group.host_redirect.path_redirect
             else:
                 if "rewrite" in group:
                     route["prefix_rewrite"] = group.rewrite
