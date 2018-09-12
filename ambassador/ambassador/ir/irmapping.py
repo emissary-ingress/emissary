@@ -76,6 +76,9 @@ class IRMapping (IRResource):
         "tls": True,
         "use_websocket": True,
         "weight": True,
+
+        # Include the serialization, too.
+        "serialization": True,
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -383,7 +386,7 @@ class IRMappingGroup (IRResource):
 
         if shadow and host_redirect:
             errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
-            aconf.post_error(RichStatus.fromError(errstr), resource=self)
+            aconf.post_error(RichStatus.fromError(errstr), resource=mapping)
 
             mapping.pop('host_redirect', None)
             mapping.pop('path_redirect', None)
