@@ -63,9 +63,6 @@ class Config:
     # rkey => ACResource
     sources: Dict[str, ACResource]
 
-    # Allow overriding the location of a resource with a ACPragma
-    location_overrides: Dict[str, Dict[str, str]]
-
     errors: Dict[str, List[str]]
     fatal_errors: int
     object_errors: int
@@ -102,8 +99,6 @@ class Config:
         self.outliers = {}
 
         self.sources = {}
-
-        self.location_overrides = {}
 
         # Save our magic internal sources.
         self.save_source(ACResource.internal_resource())
@@ -155,14 +150,6 @@ class Config:
         the set of ACResources to be sorted in some way that makes sense.
         """
         for resource in resources:
-            # XXX I think this whole override thing should go away.
-            #
-            # Any override here?
-            if resource.rkey in self.location_overrides:
-                # Let ACPragma objects override source information for this filename.
-                override = self.location_overrides[resource.rkey]
-                resource.location = override.get('source', resource.rkey)
-
             # Is an ambassador_id present in this object?
             allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 
@@ -222,12 +209,7 @@ class Config:
         if not resource.kind:
             return RichStatus.fromError("need kind")
 
-        # Is this a pragma object?
-        if resource.kind == 'Pragma':
-            # Yes. Handle this inline and be done.
-            return self.handle_pragma(resource)
-
-        # Not a pragma. It needs a name...
+        # Make sure this resource has a name...
         if 'name' not in resource:
             return RichStatus.fromError("need name")
 
@@ -294,7 +276,7 @@ class Config:
                 if schema:
                     self.schemas[schema_key] = typecast(Dict[Any, Any], schema)
             except OSError:
-                self.logger.debug("no schema at %s, skipping" % schema_path)
+                self.logger.debug("no schema at %s, not validating" % schema_path)
             except json.decoder.JSONDecodeError as e:
                 self.logger.warning("corrupt schema at %s, skipping (%s)" %
                                     (schema_path, e))
@@ -379,29 +361,6 @@ class Config:
             return module.get(key, default)
 
         return default
-
-    # XXX Misnamed. handle_pragma isn't the same signature as, say, handle_mapping.
-    # XXX Is this needed any more??
-    def handle_pragma(self, resource: ACResource) -> RichStatus:
-        """
-        Handles an ACPragma object. May not be needed any more...
-        """
-
-        rkey = resource.rkey
-
-        keylist = sorted([x for x in sorted(resource.keys()) if ((x != 'apiVersion') and (x != 'kind'))])
-
-        # self.logger.debug("PRAGMA: %s" % keylist)
-
-        for key in keylist:
-            if key == 'source':
-                override = self.location_overrides.setdefault(rkey, {})
-                override['source'] = resource['source']
-
-                # self.logger.debug("PRAGMA: override %s to %s" %
-                #                   (rkey, self.location_overrides[rkey]['source']))
-
-        return RichStatus.OK(msg="handled pragma object")
 
     def handle_module(self, resource: ACResource) -> None:
         """

@@ -139,13 +139,13 @@ class ResourceFetcher:
             self.filepath: Optional[str] = filepath
             self.ocount: int = 1
 
-            # self.logger.debug("init filename %s ocount %d" % (self.filename, self.ocount))
+            # self.logger.debug("%s: init ocount %d" % (self.filename, self.ocount))
 
             serialization = open(filepath, "r").read()
 
             self.load_yaml(serialization, k8s=k8s)
 
-            # self.logger.debug("parsed filename %s ocount %d" % (self.filename, self.ocount))
+            # self.logger.debug("%s: parsed ocount %d" % (self.filename, self.ocount))
 
             self.filename = None
             self.filepath = None
@@ -156,19 +156,12 @@ class ResourceFetcher:
 
         for obj in objects:
             if k8s:
-                self.extract_k8s(serialization, obj)
+                self.extract_k8s(obj)
+                self.ocount += 1
             else:
-                if not rkey:
-                    rkey = "%s.%d" % (self.filename, self.ocount)
+                self.ocount = self.process_object(obj, rkey)
 
-                r = ACResource.from_dict(rkey, rkey, serialization, obj)
-
-                self.resources.append(r)
-                rkey = None
-
-            self.ocount += 1
-
-    def extract_k8s(self, serialization: str, obj: dict) -> None:
+    def extract_k8s(self, obj: dict) -> None:
         kind = obj.get('kind', None)
 
         if kind != "Service":
@@ -208,6 +201,40 @@ class ResourceFetcher:
 
         self.filename += ":annotation"
         self.load_yaml(annotations, rkey=resource_identifier)
+
+    def process_object(self, obj: dict, rkey: Optional[str]=None) -> int:
+        self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))
+
+        # Is this a pragma object?
+        if obj['kind'] == 'Pragma':
+            # Yes. Handle this inline and be done.
+            keylist = sorted([ x for x in sorted(obj.keys()) if ((x != 'apiVersion') and (x != 'kind')) ])
+
+            # self.logger.debug("PRAGMA %s" % ", ".join(keylist))
+
+            for key in keylist:
+                if key == 'source':
+                    self.filename = obj['source']
+
+                    self.logger.debug("PRAGMA: override source_name to %s" % self.filename)
+
+            return self.ocount
+
+        # Not a pragma.
+
+        if not rkey:
+            rkey = "%s.%d" % (self.filename, self.ocount)
+
+        # Fine. Fine fine fine.
+        serialization = yaml.safe_dump(obj, default_flow_style=False)
+
+        r = ACResource.from_dict(rkey, rkey, serialization, obj)
+        self.resources.append(r)
+
+        self.logger.debug("%s.%d: save %s %s" %
+                          (self.filename, self.ocount, obj['kind'], obj['name']))
+
+        return self.ocount + 1
 
     def __iter__(self):
         return self.resources.__iter__()

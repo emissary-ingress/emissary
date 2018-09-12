@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional, Tuple
 
 import sys
 
@@ -42,6 +42,7 @@ TESTDIR = DIR
 DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
 MATCHES = [ n for n in os.listdir(TESTDIR) 
             if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+# MATCHES = [ '006-headers-and-host' ]
 
 os.environ['SCOUT_DISABLE'] = "1"
 
@@ -136,6 +137,18 @@ def cluster_sort_key(cluster):
     result = tuple(result)
 
     return result
+
+def split_key(key) -> Tuple[str, Optional[str]]:
+    key_base = key
+    key_index = None
+
+    if re.search(r'\.\d+$', key):
+        key_base, key_index = os.path.splitext(key)
+
+        while key_index.startswith('.'):
+            key_index = key_index[1:]
+
+    return key_base, key_index
 
 class old_ir (dict):
     def __init__(self, aconf: dict, ir: dict, v1config: dict) -> None:
@@ -401,27 +414,26 @@ class old_ir (dict):
             key_base = key
             key_index = None
 
-            if re.search(r'\.\d+$', key):
-                key_base, key_index = os.path.splitext(key)
+            if 'rkey' in src:
+                key_base, key_index = split_key(key)
 
-                while key_index.startswith('.'):
-                    key_index = key_index[1:]
+            location, _ = split_key(src.get('location', key))
 
             src_dict = {
-                '_source': key_base,
-                'filename': key_base,
+                '_source': location,
+                'filename': key_base
             }
 
             for from_key, to_key in [ ( 'kind', 'kind'),
                                       ( 'name', 'name'),
                                       ( 'version', 'version'),
                                       ( 'description', 'description'),
-                                      # ( 'serialization', 'yaml' )
+                                      ( 'serialization', 'yaml' )
                                     ]:
                 if from_key in src:
                     src_dict[to_key] = src[from_key]
 
-            src_dict.pop('serialization', None)
+            # src_dict.pop('serialization', None)
 
             if key_index is not None:
                 src_dict['index'] = int(key_index)
@@ -447,20 +459,22 @@ def get_old_intermediate(aconf, ir, v1config):
     return dict(old_ir(aconf.as_dict(), ir.as_dict(), v1config.as_dict()))
 
 def kill_yaml(res: Any) -> Any:
-    if isinstance(res, list):
-        return [ kill_yaml(x) for x in res ]
-    elif isinstance(res, dict):
-        od = {}
+    return res
 
-        for key in res.keys():
-            if key == 'yaml':
-                continue
-
-            od[key] = kill_yaml(res[key])
-
-        return od
-    else:
-        return res
+    # if isinstance(res, list):
+    #     return [ kill_yaml(x) for x in res ]
+    # elif isinstance(res, dict):
+    #     od = {}
+    #
+    #     for key in res.keys():
+    #         if key == 'yaml':
+    #             continue
+    #
+    #         od[key] = kill_yaml(res[key])
+    #
+    #     return od
+    # else:
+    #     return res
 
 def normalize_gold(gold: dict) -> dict:
     normalized = kill_yaml(gold)
