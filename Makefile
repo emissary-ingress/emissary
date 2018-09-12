@@ -113,7 +113,7 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 SCOUT_APP_KEY=
 
-all: test docker-push website
+all: docker-push test website
 
 clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
@@ -133,7 +133,7 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf docs/node_modules
-	-rm -r venv 2> /dev/null && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
+	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
 	@printf "$($*)"
@@ -255,7 +255,7 @@ e2e: e2e-versioned-manifests
 	fi
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.1.0
+TELEPROXY_VERSION=0.1.1
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
 GOOS=$(shell go env GOOS)
