@@ -69,11 +69,11 @@ def filtered_overview(ov):
 
             filtered[key] = [ obj ]
 
-    return sanitize_errors(filtered)
+    return filtered
 
 def sanitize_errors(ov):
     sources = ov.get('sources', {})
-    errors = ov.get('_errors', {})
+    errors = ov.get('errors', {})
     filtered = {}
 
     for key in errors.keys():
@@ -90,7 +90,7 @@ def sanitize_errors(ov):
         filtered[key] = filtlist
 
         if key in sources:
-            sources[key]['_errors'] = filtlist
+            sources[key]['errors'] = filtlist
 
     return ov
 

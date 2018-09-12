@@ -501,6 +501,7 @@ def test_config(testname, dirpath, configdir):
 
     current = get_old_intermediate(aconf, ir, v1config)
     current['envoy_config'] = filtered_overview(current['envoy_config'])
+    current = sanitize_errors(current)
 
     current_path = os.path.join(dirpath, "intermediate.json")
     json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
