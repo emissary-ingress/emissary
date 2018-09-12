@@ -49,7 +49,7 @@ class IRMapping (IRResource):
         "add_request_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
-        "circuit_breaker": True,
+        # "circuit_breaker": True,
         "cors": True,
         "envoy_override": True,
         "grpc": True,
@@ -61,7 +61,7 @@ class IRMapping (IRResource):
         "method": True,
         "method_regex": True,
         "modules": True,
-        "outlier_detection": True,
+        # "outlier_detection": True,
         "path_redirect": True,
         # Do not include precedence.
         "prefix": True,
@@ -128,7 +128,10 @@ class IRMapping (IRResource):
         # ...and the route weight.
         self.route_weight = self._route_weight()
 
-        # self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
+        if ('circuit_breaker' in kwargs) or ('outlier_detection' in kwargs):
+            self.post_error(RichStatus.fromError("circuit_breaker and outlier_detection are not supported"))
+
+    # self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # If we have CORS stuff, normalize it.
