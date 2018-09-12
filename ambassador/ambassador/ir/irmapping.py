@@ -305,7 +305,9 @@ class IRMappingGroup (IRResource):
     DoNotFlattenKeys.update({
         'cluster': True,
         'host': True,
+        'kind': True,
         'name': True,
+        'rkey': True,
         'route_weight': True,
         'service': True,
         'weight': True,
@@ -332,11 +334,14 @@ class IRMappingGroup (IRResource):
         if 'host_redirect' in kwargs:
             raise Exception("IRMappingGroup cannot accept a host_redirect as a keyword argument")
 
+        if 'path_redirect' in kwargs:
+            raise Exception("IRMappingGroup cannot accept a path_redirect as a keyword argument")
+
         if ('shadow' in kwargs) or ('shadows' in kwargs):
             raise Exception("IRMappingGroup cannot accept shadow or shadows as a keyword argument")
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location, kind=kind, name=name,
+            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name,
             mappings=[], host_redirect=None, shadows=[], **kwargs
         )
 
@@ -368,31 +373,52 @@ class IRMappingGroup (IRResource):
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
+        # Per the schema, host_redirect and shadow are Booleans. They won't be _saved_ as
+        # Booleans, though: instead we just save the Mapping that they're a part of.
         host_redirect = mapping.get('host_redirect', False)
         shadow = mapping.get('shadow', False)
 
+        # First things first: if both shadow and host_redirect are set in this Mapping,
+        # we're going to let shadow win. Kill the host_redirect part.
+
+        if shadow and host_redirect:
+            errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
+            aconf.post_error(RichStatus.fromError(errstr), resource=self)
+
+            mapping.pop('host_redirect', None)
+            mapping.pop('path_redirect', None)
+
+        # OK. Is this a shadow Mapping?
         if shadow:
+            # Yup. Make sure that we don't have multiple shadows.
             if self.shadows:
-                errstr = "MappingGroup %s: cannot accept %s as second shadow after %s" % \
-                         (self.group_id, mapping.name, self.shadows[0].name)
+                errstr = "cannot accept %s as second shadow after %s" % \
+                         (mapping.name, self.shadows[0].name)
                 aconf.post_error(RichStatus.fromError(errstr), resource=self)
             else:
+                # All good. Save it.
                 self.shadows.append(mapping)
-
-                if host_redirect:
-                    errstr = "MappingGroup %s: ignoring host_redirect since shadow is set" % self.group_id
-                    aconf.post_error(RichStatus.fromError(errstr), resource=self)
-
-                    self.pop('host_redirect', None)
         elif host_redirect:
-            self.host_redirect = mapping
+            # Not a shadow, but a host_redirect. Make sure we don't have multiples of
+            # those either.
+
+            if self.host_redirect:
+                errstr = "cannot accept %s as second host_redirect after %s" % \
+                         (mapping.name, self.host_redirect.name)
+                aconf.post_error(RichStatus.fromError(errstr), resource=self)
+            else:
+                # All good. Save it.
+                self.host_redirect = mapping
         else:
+            # Neither shadow nor host_redirect: save it.
             self.mappings.append(mapping)
 
             if mapping.route_weight > self.group_weight:
                 self.group_weight = mapping.group_weight
 
         self.referenced_by(mapping)
+
+        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
     def add_cluster_for_mapping(self, ir: 'IR', aconf: Config, mapping: IRMapping) -> IRCluster:
         # Find or create the cluster for this Mapping...
@@ -419,12 +445,28 @@ class IRMappingGroup (IRResource):
         :return: a list of the IRClusters this Group uses
         """
 
+        # verbose = (self.group_id == '2d4a2a00ac0bc25be1b3cebc93b69c73fc9aeaea')
+        #
+        # if verbose:
+        #     self.ir.logger.debug("%s: FINALIZING: %s" % (self, self.as_json()))
+
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
+            # if verbose:
+            #     self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
+
             for k in mapping.keys():
                 if k.startswith('_') or mapping.skip_key(k) or (k in IRMappingGroup.DoNotFlattenKeys):
+                    # if verbose:
+                    #     self.ir.logger.debug("%s: don't flatten %s" % (self, k))
                     continue
 
+                # if verbose:
+                #     self.ir.logger.debug("%s: flatten %s" % (self, k))
+
                 self[k] = mapping[k]
+
+        # if verbose:
+        #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
         total_weight = 0.0
         unspecified_mappings = 0

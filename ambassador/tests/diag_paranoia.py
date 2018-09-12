@@ -26,11 +26,12 @@ def mark_referenced_by(obj, refby):
 Uniqifiers = {
     'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
+    'clusters': lambda x: ( x['_source'], x['name'] ),
     'outliers': lambda x: x['name'],
     'filters': lambda x: x['name'],
     'grpc_services': lambda x: x['name'],
     'tls': lambda x: "TLS",
-    'tls': lambda x: "cors_default",    
+    # 'tls': lambda x: "cors_default",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename'],

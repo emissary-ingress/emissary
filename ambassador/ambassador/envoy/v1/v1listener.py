@@ -144,7 +144,7 @@ class V1Listener(dict):
             # print(len(group.get('headers', [])) > 0)
 
             if group.get("host_redirect", None):
-                route["host_redirect"] = typecast(IRMapping, group.host_redirect).service
+                route["host_redirect"] = group.host_redirect
 
                 if group.get("path_redirect", None):
                     route["path_redirect"] = group.path_redirect

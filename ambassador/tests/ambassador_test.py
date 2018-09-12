@@ -126,6 +126,17 @@ def cors_clean(cors):
 
     return sd
 
+def cluster_sort_key(cluster):
+    result = []
+
+    for k in [ 'location', '_source', 'name' ]:
+        if k in cluster:
+            result.append(cluster[k])
+
+    result = tuple(result)
+
+    return result
+
 class old_ir (dict):
     def __init__(self, aconf: dict, ir: dict, v1config: dict) -> None:
         super().__init__()
@@ -256,8 +267,13 @@ class old_ir (dict):
                     'name': shadows[0]['cluster']['name']
                 }
 
-            if ('host_redirect' in route) and (not route['host_redirect']):
-                del(route['host_redirect'])
+            host_redirect_mapping = route.pop('host_redirect', None)
+
+            if host_redirect_mapping:
+                route['host_redirect'] = host_redirect_mapping['service']
+
+                if 'path_redirect' in host_redirect_mapping:
+                    route['path_redirect'] = host_redirect_mapping['path_redirect']
 
             if route.get('prefix_regex', False):
                 # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
@@ -281,7 +297,7 @@ class old_ir (dict):
 
             econf['routes'].append(route)
 
-        for cluster in sorted(ir['clusters'].values(), key=lambda x: x['name']):
+        for cluster in sorted(ir['clusters'].values(), key=cluster_sort_key):
             envoy_cluster = as_sourceddict(cluster)
 
             if "service" in envoy_cluster:
@@ -300,6 +316,10 @@ class old_ir (dict):
                 for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
                     if k in ctx:
                         tls_array.append({'key': k, 'value': ctx[k]})
+
+                if not tls_array:
+                    ctx['_ambassador_enabled'] = True
+                    ctx.pop("_source", None)
 
                 if host_rewrite:
                     tls_array.append({'key': 'sni', 'value': host_rewrite})
@@ -426,7 +446,7 @@ class old_ir (dict):
 def get_old_intermediate(aconf, ir, v1config):
     return dict(old_ir(aconf.as_dict(), ir.as_dict(), v1config.as_dict()))
 
-def kill_yaml(res: dict) -> Any:
+def kill_yaml(res: Any) -> Any:
     if isinstance(res, list):
         return [ kill_yaml(x) for x in res ]
     elif isinstance(res, dict):
@@ -441,6 +461,15 @@ def kill_yaml(res: dict) -> Any:
         return od
     else:
         return res
+
+def normalize_gold(gold: dict) -> dict:
+    normalized = kill_yaml(gold)
+
+    if 'envoy_config' in normalized:
+        if 'clusters' in normalized['envoy_config']:
+            normalized['envoy_config']['clusters'].sort(key=cluster_sort_key)
+
+    return normalized
 
 #### Test functions
 
@@ -486,7 +515,7 @@ def test_config(testname, dirpath, configdir):
         except json.decoder.JSONDecodeError as e:
             errors.append("%s was unparseable?" % gold_path)
 
-        gold_no_yaml = kill_yaml(gold_parsed)
+        gold_no_yaml = normalize_gold(gold_parsed)
         gold_no_yaml_path = os.path.join(dirpath, "gold.no_yaml.json")
         json.dump(gold_no_yaml, open(gold_no_yaml_path, "w"), sort_keys=True, indent=4)
 
