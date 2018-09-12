@@ -505,14 +505,6 @@ def test_config(testname, dirpath, configdir):
     ir = IR(aconf)
     v1config = V1Config(ir)
 
-    # tmp = {
-    #     'aconf': aconf.as_dict(),
-    #     'ir': ir.as_dict(),
-    #     'v1config': v1config.as_dict()
-    # }
-    #
-    # json.dump(tmp, sys.stdout, sort_keys=True, indent=4)
-
     current = get_old_intermediate(aconf, ir, v1config)
     current['envoy_config'] = filtered_overview(current['envoy_config'])
     current = sanitize_errors(current)
@@ -520,6 +512,7 @@ def test_config(testname, dirpath, configdir):
     current_path = os.path.join(dirpath, "intermediate.json")
     json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
 
+    # Check the IR against its gold file, if that gold file exists.
     gold_path = os.path.join(dirpath, "gold.intermediate.json")
 
     if os.path.exists(gold_path):
@@ -539,20 +532,18 @@ def test_config(testname, dirpath, configdir):
         if udiff:
             errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
 
-    # print("==== checking config generation")
-    #
-    # envoy_json_out = os.path.join(dirpath, "envoy.json")
-    #
-    # try:
-    #     os.unlink(envoy_json_out)
-    # except OSError as e:
-    #     if e.errno != errno.ENOENT:
-    #         raise
-    #
-    # ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
-    #
-    # print(ambassador.errors(raw=True))
-    #
+    # Check the V1 config against its gold file, if it exists (and it should).
+    gold_path = os.path.join(dirpath, "gold.json")
+
+    if os.path.exists(gold_path):
+        v1path = os.path.join(dirpath, "v1.json")
+        json.dump(v1config.as_dict(), open(v1path, "w"), sort_keys=True, indent=4)
+
+        udiff = unified_diff(gold_path, v1path)
+
+        if udiff:
+            errors.append("gold.json and v1.json do not match!\n\n%s" % "\n".join(udiff))
+
     # if ambassador.code != 0:
     #     errors.append('ambassador failed! %s' % ambassador.code)
     # else:
@@ -577,14 +568,6 @@ def test_config(testname, dirpath, configdir):
     #     if envoy_succeeded:
     #         if not envoy_output[-1].strip().endswith(' OK'):
     #             errors.append('envoy validation failed!')
-    #
-    #     gold_path = os.path.join(dirpath, "gold.json")
-    #
-    #     if os.path.exists(gold_path):
-    #         udiff = unified_diff(gold_path, envoy_json_out)
-    #
-    #         if udiff:
-    #             errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
     #
     # print("==== checking short-circuit with existing config")
     #
