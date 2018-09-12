@@ -203,7 +203,7 @@ class ResourceFetcher:
         self.load_yaml(annotations, rkey=resource_identifier)
 
     def process_object(self, obj: dict, rkey: Optional[str]=None) -> int:
-        self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))
+        # self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))
 
         # Is this a pragma object?
         if obj['kind'] == 'Pragma':
