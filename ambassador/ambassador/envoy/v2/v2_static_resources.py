@@ -142,13 +142,17 @@ class V2Listener(dict):
                     },
                 },
                 'redirect': {
-                    'host_redirect': group.get('host_redirect'),
-                    'path_redirect': group.get('path_redirect'),
                     'prefix_rewrite': group.get('rewrite'),
                     'host_rewrite': group.get('host_rewrite'),
                     'auto_host_rewrite': group.get('auto_host_rewrite'),
-                    }
                 }
+            }
+
+            host_redirect = group.get('host_redirect', None)
+
+            if host_redirect:
+                route['redirect']['host_redirect'] = host_redirect.service
+                route['redirect']['path_redirect'] = host_redirect.path_redirect
 
             # if 'shadows' in group:
             #     route['route'].update({
