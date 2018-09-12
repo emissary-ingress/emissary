@@ -1647,7 +1647,7 @@ class Config (object):
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'exttracing', [url],
                                           type="strict_dns", lb_type="round_robin",
-                                          host_rewrite=host_rewrite)
+                                          grpc=True if driver == "lightstep" else False, host_rewrite=host_rewrite)
 
         driver_config['collector_cluster'] = cluster_name
         tracing = SourcedDict(
