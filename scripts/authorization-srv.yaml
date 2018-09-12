@@ -33,6 +33,9 @@ spec:
   replicas: 1
   strategy:
     type: RollingUpdate
+  selector:
+    matchLabels:
+      name: auth0-service
   template:
     metadata:
       labels:
@@ -41,15 +44,15 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: auth0-service
-        image: quay.io/datawire/ambassador-pro:0.0.1
+        image: quay.io/datawire/ambassador-pro:0.0.2
         ports:
         - containerPort: 8080
         env:
           - name: AUTH_CALLBACK_URL
-            value: http://35.230.19.92/callback
+            value: http://35.230.52.23/callback
           - name: AUTH_DOMAIN
-            value: gsagula.auth0.com
+            value: rus123.auth0.com
           - name: AUTH_AUDIENCE
-            value: https://gsagula.auth0.com/api/v2/
+            value: https://rus123.auth0.com/api/v2/
           - name: AUTH_CLIENT_ID
-            value: -_lWmw3zOpFXdY6XR9cgk-vfSdtYwaC6
+            value: zTqxrmhGMqZ1J2TjML6QQTsh_kYqJrKv

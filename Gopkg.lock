@@ -144,6 +144,14 @@
   version = "v0.3.6"
 
 [[projects]]
+  branch = "master"
+  digest = "1:67af90f6f6551eed6e14b16833c68ff9e6a3d1e11ea296df70693b24744c24d1"
+  name = "github.com/joonix/log"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d2d3f2f4a80658c67a0bc44021dcac30f3017c06"
+
+[[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
   name = "github.com/json-iterator/go"
   packages = ["."]
@@ -415,6 +423,7 @@
     "github.com/auth0/go-jwt-middleware",
     "github.com/dgrijalva/jwt-go",
     "github.com/gobwas/glob",
+    "github.com/joonix/log",
     "github.com/mitchellh/mapstructure",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",

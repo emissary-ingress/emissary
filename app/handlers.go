@@ -161,8 +161,9 @@ func checkScope(scope string, tokenString string) bool {
 // required, the second return result specifies which scopes are
 // required for access.
 func (h *Handler) policy(method, host, path string) (bool, []string) {
+	h.Logger.Infof("checking policy for request: %s  %s %s", method, host, path)
 	for _, rule := range h.Ctrl.Rules.Load().([]Rule) {
-		h.Logger.Infof("checking %v against %v, %v", rule, host, path)
+		h.Logger.Debugf("checking %v against %v, %v", rule, host, path)
 		if rule.match(host, path) {
 			return rule.Public, strings.Fields(rule.Scopes)
 		}

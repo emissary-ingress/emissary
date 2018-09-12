@@ -46,7 +46,7 @@ type Callback struct {
 }
 
 func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	c.Logger.Infof("callback midleware path requested: %s", r.URL.Path)
+	c.Logger.Info("callback midleware path requested")
 	if r.URL.Path == "/callback" {
 		if err := r.URL.Query().Get("error"); err != EmptyString {
 			unauthorized(rw, r)
@@ -103,23 +103,29 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 			defer res.Body.Close()
 			body, readerr := ioutil.ReadAll(res.Body)
 			if readerr != nil {
+				c.Logger.Error("failed to read authorization HTTP body response")
 				unauthorized(rw, r)
 				return
 			}
 
 			tokenRES := TokenResponse{}
 			if err := json.Unmarshal(body, &tokenRES); err != nil {
+				c.Logger.Error("failed to parse authorization response")
 				unauthorized(rw, r)
 				return
 			}
 
+			c.Logger.Infof("authorized: %s, access_token %v bytes, token_id: %v bytes",
+				tokenRES.TokenType,
+				len(tokenRES.AccessToken),
+				len(tokenRES.IDToken))
 			c.Logger.Infof("setting %s cookie", AccessTokenCookie)
+
 			http.SetCookie(rw, &http.Cookie{
 				Name:    AccessTokenCookie,
 				Value:   tokenRES.AccessToken,
 				Expires: time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second),
-				Domain:  r.Host},
-			)
+			})
 
 			redirectPath := claims["path"].(string)
 			c.Logger.Infof("redirecting to path: %s", redirectPath)
@@ -128,15 +134,10 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		}
 	}
 
-	c.Logger.Info("checking for auth_session cookie")
-	cookie, err := r.Cookie(AccessTokenCookie)
-	if err == nil {
-		c.Logger.Info("setting authorization header")
-		r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", "Bearer", cookie.Value))
-	} else {
+	cid := r.Header.Get(ClientIDKey)
+	secret := r.Header.Get(ClientSECKey)
+	if cid != "" && secret != "" {
 		// Check for Client-Id and Client-Secret headers
-		cid := r.Header.Get(ClientIDKey)
-		secret := r.Header.Get(ClientSECKey)
 		if cid != EmptyString && secret != EmptyString {
 			auth, err := c.clientCredentials(cid, secret)
 			if err != nil {
@@ -144,6 +145,15 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 			} else {
 				r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", auth.Type, auth.Token))
 			}
+		}
+	} else {
+		c.Logger.Infof("checking %s cookie", AccessTokenCookie)
+		cookie, err := r.Cookie(AccessTokenCookie)
+		if err == nil {
+			c.Logger.Info("setting authorization header")
+			r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", "Bearer", cookie.Value))
+		} else {
+			c.Logger.Warnf("%s cookie %v", AccessTokenCookie, err)
 		}
 	}
 

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/datawire/ambassador-oauth/app"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/logger"
@@ -10,36 +8,42 @@ import (
 	"github.com/urfave/negroni"
 )
 
-// StateSignature secret is used to sign the authorization state value.
-const PKey = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3"
+// PKey secret is used to sign the authorization state value.
+const PKey = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3" // TODO(gsagula): make PKey cli configurable.
 
 func main() {
 	// Config
-	c, err := config.NewConfig()
-	if err != nil {
-		log.Fatalf("terminating: %v", err)
-	}
+	cfg := config.New()
 
 	// Logger
-	l := logger.NewLogger(c)
+	log := logger.New(cfg)
 
 	// K8s controller
-	ctrl := &app.Controller{Logger: l, Config: c}
+	ctrl := &app.Controller{Logger: log, Config: cfg}
 	ctrl.Watch()
 
 	// Handler
-	h := app.Handler{Config: c, Logger: l, Ctrl: ctrl, PrivateKey: PKey}
+	hdr := app.Handler{Config: cfg, Logger: log, Ctrl: ctrl, PrivateKey: PKey}
 
 	// Common
-	// TODO(gsagula): get rid of the old POC design and refactor jwt midleware & authorize handler.
 	common := negroni.New()
-	common.Use(&middleware.Logger{Logger: l})
-	common.Use(negroni.NewRecovery())
-	common.Use(&middleware.Callback{Logger: l, Config: c, PrivateKey: PKey})
-	jwt := &middleware.Jwt{Logger: l, Config: c}
-	h.Jwt = jwt.Middleware()
-	common.UseFunc(h.Jwt.HandlerWithNext)
-	common.UseHandlerFunc(h.Authorize)
+	common.Use(&middleware.Logger{Logger: log})
+
+	// TODO(gsagula): make PrintStack cli configurable.
+	common.Use(&negroni.Recovery{
+		Logger:     log,
+		PrintStack: true,
+		StackAll:   false,
+		StackSize:  1024 * 8,
+		Formatter:  &negroni.TextPanicFormatter{},
+	})
+	common.Use(&middleware.Callback{Logger: log, Config: cfg, PrivateKey: PKey})
+
+	// TODO(gsagula): replace this with our own middleware.
+	jwt := &middleware.Jwt{Logger: log, Config: cfg}
+	hdr.Jwt = jwt.Middleware()
+	common.UseFunc(hdr.Jwt.HandlerWithNext)
+	common.UseHandlerFunc(hdr.Authorize)
 
 	// Server
 	common.Run(":8080")

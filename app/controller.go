@@ -36,7 +36,6 @@ type Controller struct {
 // Watch .. TODO(gsagula): channel this up..
 func (c *Controller) Watch() {
 	c.Logger.Info("initializing k8s watcher..")
-
 	c.Rules.Store(make([]Rule, 0))
 
 	go controller(c.Config.Kubeconfig, func(uns []map[string]interface{}) {
@@ -58,9 +57,10 @@ func (c *Controller) Watch() {
 				rule := Rule{}
 				err := ms.Decode(ur, &rule)
 				if err != nil {
-					log.Print(err)
+					c.Logger.Error(err)
 				} else {
-					c.Logger.Infof("loading rule: %v", rule)
+					c.Logger.Infof("loading rule: host=%s, path=%s, public=%v, scopes=%s",
+						rule.Host, rule.Path, rule.Public, rule.Scopes)
 					newRules = append(newRules, rule)
 				}
 			}
@@ -154,7 +154,7 @@ func controller(kubeconfig string, reconciler func([]map[string]interface{})) {
 	store, controller := cache.NewInformer(
 		LW{resource},
 		nil,
-		60*time.Second,
+		5*time.Minute,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				reconcile()
