@@ -426,7 +426,7 @@ class old_ir (dict):
 
             for from_key, to_key in [ ( 'kind', 'kind'),
                                       ( 'name', 'name'),
-                                      ( 'version', 'version'),
+                                      ( 'apiVersion', 'version'),
                                       ( 'description', 'description'),
                                       ( 'serialization', 'yaml' )
                                     ]:
