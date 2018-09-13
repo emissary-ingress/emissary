@@ -14,6 +14,20 @@
   * [Docker Quickstart](about/quickstart.md)
   * [Docker Compose](user-guide/docker-compose.md)
 
+## Concepts
+
+* Decentralized configuration
+  * Self-service model / developer-led
+* Ambassador Architecture: Performance, Scalability, Availability
+  * Envoy as a Control Plane vs Data Plane*
+  * Why we chose Envoy*
+  * Microservices API Gateways
+* Using Ambassador in your organization
+  * GitOps
+  * Testing with an API Gateway* 
+  * Using an API Gateway to facilitiate a transition from Monolith to Microservices
+
+
 ## Guides
 
 * [Adding Authentication](user-guide/auth-tutorial.md)
