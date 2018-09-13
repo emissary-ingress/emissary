@@ -58,6 +58,39 @@ With this approach, there is no centralized Ambassador configuration file -- the
 * Organizational scalability: Configuring individual routes in Ambassador is the responsibility of service owners, instead of a centralized team.
 * Maintainability: If a service is deleted, the route disappears with the service. All of the machinery used to manage Kubernetes manifests can be used with Ambassador without modification.
 
-## Decentralized versus centralized configuration
+## Centralized configuration
 
-While it's possible to centralize all of Ambassador's configuration in a single file, we do not recommend this approach, as it negates one of the core features of Ambassador. 
+It's possible as a migration strategy to start with a centralized Ambassador configuration that contains all the necessary mappings (you can create a dummy `service` for this). In general, though, this approach is not recommended.
+
+## Ingress resources
+
+Astute Kubernetes observers may note that this decentralized model is not unique to Ambassador. In fact, Ingress controllers and Ingress resources can be used in a similar way. In this approach, a Kubernetes service stays unmodified, and a separate Ingress resource can be added to the Kubernetes manifest. You'd end up with something that looks like:
+
+```
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: MyApp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 9376
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-service-ingress
+spec:
+  backend:
+    serviceName: my-service
+    servicePort: 80
+```
+
+Ambassador has chosen not to support ingress resources for the following reasons:
+
+* The ingress API is extremely limited, and supports only a small subset of Ambassador's features
+* The ingress API has been in beta for a number of years, and there is the possibility of it being deprecated altogether
+* Having a separate object that is associated with the `service` object 
