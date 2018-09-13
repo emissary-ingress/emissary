@@ -16,6 +16,7 @@ os.environ['SCOUT_DISABLE'] = "1"
 
 DIR = os.path.dirname(__file__)
 CORNER_CASE_DIR = os.path.join(DIR, "corner_cases")
+ENABLED = bool(os.environ.get('CORNER_CASE', ""))
 
 def shell_command(testname, argv, must_fail=False, need_stdout=None, need_stderr=None, verbose=True):
     errors = []
@@ -49,28 +50,47 @@ def shell_command(testname, argv, must_fail=False, need_stdout=None, need_stderr
     assert not errors, ("failing, _errors: %d" % len(errors))
 
 def test_bad_config_input():
-    shell_command("test_bad_config_input",
-                  [ 'ambassador', 'config', 'no-such-directory', 'no-such-file' ],
-                  must_fail=True,
-                  need_stderr='Exception: ERROR ERROR ERROR')
+    if not ENABLED:
+        pytest.xfail("corner case tests are disabled")
+    else:
+        shell_command("test_bad_config_input",
+                      [ 'ambassador', 'config', 'no-such-directory', 'no-such-file' ],
+                      must_fail=True,
+                      need_stderr='Exception: ERROR ERROR ERROR')
 
 def test_bad_dump_input():
+    if not ENABLED:
+        pytest.xfail("corner case tests are disabled")
+        return
+
     shell_command("test_bad_dump_input",
                   [ 'ambassador', 'dump', 'no-such-directory' ],
                   must_fail=True,
                   need_stderr='Exception: ERROR ERROR ERROR')
 
 def test_bad_yaml():
+    if not ENABLED:
+        pytest.xfail("corner case tests are disabled")
+        return
+
     shell_command("test_bad_yaml",
                   [ 'ambassador', 'config', CORNER_CASE_DIR, 'no-such-file' ],
                   need_stderr='ERROR ERROR ERROR Starting with configuration _errors')
 
 def test_version():
+    if not ENABLED:
+        pytest.xfail("corner case tests are disabled")
+        return
+
     shell_command("test_version",
                   [ 'ambassador', '--version' ],
                   need_stdout='Ambassador %s' % Version)
 
 def test_showid():
+    if not ENABLED:
+        pytest.xfail("corner case tests are disabled")
+        return
+
     install_id = uuid.uuid4().hex.upper()
     os.environ['AMBASSADOR_SCOUT_ID'] = install_id
 
