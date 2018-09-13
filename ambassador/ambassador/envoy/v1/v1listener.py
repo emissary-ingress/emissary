@@ -88,13 +88,11 @@ class V1Listener(dict):
         if 'use_remote_address' in config.ir.ambassador_module:
             hcm_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
-        if "tracing" in listener:
+        if config.ir.tracing:
+            hcm_config["generate_request_id"] = True
             hcm_config["tracing"] = {
-                "generate_request_id": True,
-                "tracing": {
-                    "operation_name": "egress",
-                    "request_headers_for_tags": []
-                }
+                "operation_name": "egress",
+                "request_headers_for_tags": config.ir.tracing.get('tag_headers', [])
             }
 
         self["filters"] = [
@@ -154,8 +152,14 @@ class V1Listener(dict):
                 if "path_redirect" in group.host_redirect:
                     route["path_redirect"] = group.host_redirect.path_redirect
             else:
-                if "rewrite" in group:
-                    route["prefix_rewrite"] = group.rewrite
+                # Don't include prefix_rewrite unless group.rewrite is present and not
+                # empty. The special handling is so that using rewrite: "" in an
+                # Ambassador mapping doesn't rewrite the path at all, which can be
+                # important in regex mappings.
+                rewrite = group.get("rewrite", None)
+
+                if rewrite:
+                    route["prefix_rewrite"] = rewrite
 
                 if "host_rewrite" in group:
                     route["host_rewrite"] = group.host_rewrite
