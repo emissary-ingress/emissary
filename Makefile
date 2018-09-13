@@ -113,7 +113,9 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 SCOUT_APP_KEY=
 
-all: version setup-develop docker-push test website
+# "make" by itself doesn't make the website. It takes too long and it doesn't
+# belong in the inner dev loop.
+all: version setup-develop docker-push test
 
 clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
