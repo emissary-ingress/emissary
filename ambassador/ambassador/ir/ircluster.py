@@ -18,6 +18,7 @@ from typing import cast as typecast
 import re
 
 from ..config import Config
+from ..utils import RichStatus
 
 from .irresource import IRResource
 from .irtls import IREnvoyTLS
@@ -51,6 +52,8 @@ class IRCluster (IRResource):
 
                  service: str,   # REQUIRED
 
+                 marker: Optional[str] = None,  # extra marker for this context name
+
                  ctx_name: Optional[Union[str, bool]]=None,
                  host_rewrite: Optional[str]=None,
 
@@ -82,9 +85,16 @@ class IRCluster (IRResource):
         # if we're originating TLS, 80 if not.
 
         originate_tls: bool = False
-        name_fields: List[str] = [ "cluster" ]
+        name_fields: List[str] = [ 'cluster' ]
         ctx: Optional[IREnvoyTLS] = None
         errors: List[str] = []
+
+        # Do we have a marker?
+        if marker:
+            name_fields.append(marker)
+
+        # Toss in the original service before we mess with it, too.
+        name_fields.append(service)
 
         # If we have a ctx_name, does it match a real context?
         if ctx_name:
@@ -100,9 +110,6 @@ class IRCluster (IRResource):
                 errors.append("Originate-TLS context %s is not defined" % ctx_name)
 
         # TODO: lots of duplication of here, need to replace with broken down functions
-
-        # Save the original service for name computation later.
-        original_service = service
 
         if service.lower().startswith("https://"):
             service = service[len("https://"):]
@@ -129,7 +136,6 @@ class IRCluster (IRResource):
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
 
-        name_fields.append(original_service)
         name = "_".join(name_fields)
         name = re.sub(r'[^0-9A-Za-z_]', '_', name)
 
@@ -160,6 +166,9 @@ class IRCluster (IRResource):
         if originate_tls:
             if ctx:
                 new_args['tls_context'] = typecast(IREnvoyTLS, ctx)
+            else:
+                new_args['tls_context'] = IREnvoyTLS(ir=ir, aconf=aconf, location=location,
+                                                     enabled=True)
 
         if grpc:
             new_args['features'] = 'http2'
@@ -186,8 +195,24 @@ class IRCluster (IRResource):
 
         return self.urls
 
-    def tls_array(self) -> Optional[List[Dict[str, str]]]:
-        if self.tls_context:
-            return self.tls_context.as_array(self.host_rewrite)
-        else:
-            return None
+    def merge(self, other: 'IRCluster') -> bool:
+        # Is this mergeable?
+
+        mismatches = []
+
+        for key in [ 'type', 'lb_type', 'host_rewrite',
+                     'tls_context', 'originate_tls', 'features' ]:
+            if self.get(key, None) != other.get(key, None):
+                mismatches.append(key)
+
+        if mismatches:
+            self.post_error(RichStatus.fromError("cannot merge cluster %s: mismatched attributes %s" %
+                                                 (other.name, ", ".join(mismatches))))
+            return False
+
+        # All good.
+        for url in other.urls:
+            self.add_url(url)
+            self.referenced_by(other)
+
+        return True

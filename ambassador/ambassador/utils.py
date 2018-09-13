@@ -81,7 +81,7 @@ class RichStatus:
 
         return "<RichStatus %s%s>" % ("OK" if self else "BAD", astr)
 
-    def toDict(self):
+    def as_dict(self):
         d = { 'ok': self.ok }
 
         for key in self.info.keys():

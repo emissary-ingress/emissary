@@ -133,7 +133,7 @@
             "filters": [
               {"type": "decoder",
                 "name": "extauth",
-                "config": {"allowed_headers": ["x-extauth-required", "x-authenticated-as", "x-qotm-session"], "cluster": "cluster_ext_auth", "path_prefix": "/auth/v0", "timeout_ms": 5000}
+                "config": {"allowed_headers": ["x-extauth-required", "x-authenticated-as", "x-qotm-session"], "cluster": "cluster_extauth_demo_getambassador_io", "path_prefix": "/auth/v0", "timeout_ms": 5000}
               },{
                 "name": "cors",
                 "config": {}
@@ -176,15 +176,15 @@
           
         ]},
       {
-        "name": "cluster_ext_auth",
+        "name": "cluster_extauth_demo_getambassador_io",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
-        "lb_type": "round_robin",        
+        "lb_type": "round_robin",
         "hosts": [
           {
             "url": "tcp://demo.getambassador.io:80"
           }
-          
+
         ]},
       {
         "name": "cluster_httpbin_org_80",
@@ -199,7 +199,5 @@
         ]}
       
     ]
-  },
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }

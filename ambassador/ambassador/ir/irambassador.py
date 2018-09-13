@@ -66,8 +66,8 @@ class IRAmbassador (IRResource):
             amod_tls = amod.get('tls', None)
 
             if amod_tls:
-                ir.logger.debug("IRAmbassador saving TLS module: %s" %
-                                json.dumps(amod_tls, sort_keys=True, indent=4))
+                # ir.logger.debug("IRAmbassador saving TLS module: %s" %
+                #                 json.dumps(amod_tls, sort_keys=True, indent=4))
 
                 # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
                 # this painless.
@@ -129,6 +129,10 @@ class IRAmbassador (IRResource):
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self[key] = amod[key]
+
+        # Do they want statsd?
+        if amod and ('statsd' in amod):
+            self['statsd'] = amod['statsd']
 
         # Next up: diag port & services.
         diag_port = aconf.module_lookup('ambassador', 'diag_port', 8877)

@@ -20,9 +20,11 @@ import logging
 from ...ir import IR
 
 from .v1admin import V1Admin
+from .v1statsd import V1Statsd
 from .v1listener import V1Listener
 from .v1clustermanager import V1ClusterManager
 from .v1tracing import V1Tracing
+from .v1grpcservice import V1GRPCService
 
 #############################################################################
 ## v1config.py -- the Envoy V1 configuration engine
@@ -32,20 +34,12 @@ class V1Config:
     def __init__(self, ir: IR) -> None:
         self.ir = ir
 
-        # Toplevel stuff.
         self.admin: V1Admin = V1Admin.generate(self)
-
-        # print("v1.admin %s" % self.admin)
-
+        self.statsd: V1Statsd = V1Statsd.generate(self)
         self.listeners: List[V1Listener] = V1Listener.generate(self)
-
-        # print("v1.listeners %s" % self.listeners)
-
         self.clustermgr: V1ClusterManager = V1ClusterManager.generate(self)
-
-        # print("v1.clustermgr %s" % self.clustermgr)
         self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
-
+        self.grpc_services: Optional[Dict[str, V1GRPCService]] = V1GRPCService.generate(self)
 
     def as_dict(self):
         d = {
@@ -56,6 +50,13 @@ class V1Config:
 
         if self.tracing:
             d['tracing'] = self.tracing
+
+        for svc_name in sorted(self.grpc_services.keys()):
+            d[svc_name] = dict(self.grpc_services[svc_name])
+
+        if self.statsd and self.statsd.get('enabled', False):
+            d['stats_flush_interval_ms'] = 1000
+            d['statsd_udp_ip_address'] = '127.0.0.1:8125'
 
         return d
 

@@ -57,6 +57,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "rate-limit-service.yaml.1"
+                ],
                 "_source": "rate-limit-service.yaml.1",
                 "config": {
                     "domain": "ambassador",

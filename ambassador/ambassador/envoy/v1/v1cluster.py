@@ -16,6 +16,8 @@ from typing import List, TYPE_CHECKING
 
 from ...ir.ircluster import IRCluster
 
+from .v1tls import V1TLSContext
+
 if TYPE_CHECKING:
     from . import V1Config
 
@@ -57,11 +59,14 @@ class V1Cluster(dict):
             #     "interval_ms": outlier.interval_ms or 3000
             # }
 
-        # "ssl_context": {
-        #   {% for entry in cluster.tls_array %}
-        #   "{{ entry.key }}": "{{ entry.value }}"{{ "," if not loop.last }}
-        #   {% endfor %}
-        # }{%- endif -%}
+        if 'tls_context' in cluster:
+            ctx = cluster.tls_context
+            host_rewrite = cluster.get('host_rewrite', None)
+
+            envoy_ctx = V1TLSContext(ctx=ctx, host_rewrite=host_rewrite)
+
+            if envoy_ctx:
+                self['ssl_context'] = dict(envoy_ctx)
 
     @classmethod
     def generate(self, config: 'V1Config') -> List['V1Cluster']:

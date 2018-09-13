@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional, Tuple
 
 import sys
 
@@ -42,6 +42,7 @@ TESTDIR = DIR
 DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
 MATCHES = [ n for n in os.listdir(TESTDIR) 
             if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
+# MATCHES = [ '006-headers-and-host' ]
 
 os.environ['SCOUT_DISABLE'] = "1"
 
@@ -125,6 +126,29 @@ def cors_clean(cors):
     sd.pop('name', None)
 
     return sd
+
+def cluster_sort_key(cluster):
+    result = []
+
+    for k in [ 'location', '_source', 'name' ]:
+        if k in cluster:
+            result.append(cluster[k])
+
+    result = tuple(result)
+
+    return result
+
+def split_key(key) -> Tuple[str, Optional[str]]:
+    key_base = key
+    key_index = None
+
+    if re.search(r'\.\d+$', key):
+        key_base, key_index = os.path.splitext(key)
+
+        while key_index.startswith('.'):
+            key_index = key_index[1:]
+
+    return key_base, key_index
 
 class old_ir (dict):
     def __init__(self, aconf: dict, ir: dict, v1config: dict) -> None:
@@ -217,7 +241,7 @@ class old_ir (dict):
                 cname = cluster['name']
 
                 route['clusters'].append({
-                    'name': mapping['cluster']['name'],
+                    'name': cname,
                     'weight': mapping['weight']
                 })
 
@@ -249,16 +273,20 @@ class old_ir (dict):
             if rl_actions:
                 route['rate_limits'] = rl_actions
 
-            if 'shadows' in route:
-                if route['shadows']:
-                    route['shadow'] = {
-                        'name': route['shadows'][0]['cluster']['name']
-                    }
+            shadows = route.pop('shadows', None)
 
-                del(route['shadows'])
+            if shadows:
+                route['shadow'] = {
+                    'name': shadows[0]['cluster']['name']
+                }
 
-            if ('host_redirect' in route) and (not route['host_redirect']):
-                del(route['host_redirect'])
+            host_redirect_mapping = route.pop('host_redirect', None)
+
+            if host_redirect_mapping:
+                route['host_redirect'] = host_redirect_mapping['service']
+
+                if 'path_redirect' in host_redirect_mapping:
+                    route['path_redirect'] = host_redirect_mapping['path_redirect']
 
             if route.get('prefix_regex', False):
                 # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
@@ -282,7 +310,7 @@ class old_ir (dict):
 
             econf['routes'].append(route)
 
-        for cluster in sorted(ir['clusters'].values(), key=lambda x: x['name']):
+        for cluster in sorted(ir['clusters'].values(), key=cluster_sort_key):
             envoy_cluster = as_sourceddict(cluster)
 
             if "service" in envoy_cluster:
@@ -301,6 +329,10 @@ class old_ir (dict):
                 for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
                     if k in ctx:
                         tls_array.append({'key': k, 'value': ctx[k]})
+
+                if not tls_array:
+                    ctx['_ambassador_enabled'] = True
+                    ctx.pop("_source", None)
 
                 if host_rewrite:
                     tls_array.append({'key': 'sni', 'value': host_rewrite})
@@ -352,6 +384,9 @@ class old_ir (dict):
             if 'type' in filter:
                 flt['type'] = filter['type']
 
+            if '_referenced_by' in filter:
+                flt[ '_referenced_by' ] = filter[ '_referenced_by' ]
+
             if flt['name'] == 'extauth':
                 config = {
                     'cluster': filter['cluster']['name']
@@ -379,27 +414,26 @@ class old_ir (dict):
             key_base = key
             key_index = None
 
-            if re.search(r'\.\d+$', key):
-                key_base, key_index = os.path.splitext(key)
+            if 'rkey' in src:
+                key_base, key_index = split_key(key)
 
-                while key_index.startswith('.'):
-                    key_index = key_index[1:]
+            location, _ = split_key(src.get('location', key))
 
             src_dict = {
-                '_source': key_base,
-                'filename': key_base,
+                '_source': location,
+                'filename': key_base
             }
 
             for from_key, to_key in [ ( 'kind', 'kind'),
                                       ( 'name', 'name'),
-                                      ( 'version', 'version'),
+                                      ( 'apiVersion', 'version'),
                                       ( 'description', 'description'),
-                                      # ( 'serialization', 'yaml' )
+                                      ( 'serialization', 'yaml' )
                                     ]:
                 if from_key in src:
                     src_dict[to_key] = src[from_key]
 
-            src_dict.pop('serialization', None)
+            # src_dict.pop('serialization', None)
 
             if key_index is not None:
                 src_dict['index'] = int(key_index)
@@ -424,21 +458,32 @@ class old_ir (dict):
 def get_old_intermediate(aconf, ir, v1config):
     return dict(old_ir(aconf.as_dict(), ir.as_dict(), v1config.as_dict()))
 
-def kill_yaml(res: dict) -> Any:
-    if isinstance(res, list):
-        return [ kill_yaml(x) for x in res ]
-    elif isinstance(res, dict):
-        od = {}
+def kill_yaml(res: Any) -> Any:
+    return res
 
-        for key in res.keys():
-            if key == 'yaml':
-                continue
+    # if isinstance(res, list):
+    #     return [ kill_yaml(x) for x in res ]
+    # elif isinstance(res, dict):
+    #     od = {}
+    #
+    #     for key in res.keys():
+    #         if key == 'yaml':
+    #             continue
+    #
+    #         od[key] = kill_yaml(res[key])
+    #
+    #     return od
+    # else:
+    #     return res
 
-            od[key] = kill_yaml(res[key])
+def normalize_gold(gold: dict) -> dict:
+    normalized = kill_yaml(gold)
 
-        return od
-    else:
-        return res
+    if 'envoy_config' in normalized:
+        if 'clusters' in normalized['envoy_config']:
+            normalized['envoy_config']['clusters'].sort(key=cluster_sort_key)
+
+    return normalized
 
 #### Test functions
 
@@ -451,7 +496,7 @@ def test_config(testname, dirpath, configdir):
     if not os.path.isdir(configdir):
         errors.append("configdir %s is not a directory" % configdir)
 
-    print("==== checking intermediate output")
+    print("==== loading resources")
 
     resources = fetch_resources(configdir, logger)
     aconf = Config()
@@ -460,20 +505,16 @@ def test_config(testname, dirpath, configdir):
     ir = IR(aconf)
     v1config = V1Config(ir)
 
-    # tmp = {
-    #     'aconf': aconf.as_dict(),
-    #     'ir': ir.as_dict(),
-    #     'v1config': v1config.as_dict()
-    # }
-    #
-    # json.dump(tmp, sys.stdout, sort_keys=True, indent=4)
+    print("==== checking IR")
 
     current = get_old_intermediate(aconf, ir, v1config)
     current['envoy_config'] = filtered_overview(current['envoy_config'])
+    current = sanitize_errors(current)
 
     current_path = os.path.join(dirpath, "intermediate.json")
     json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
 
+    # Check the IR against its gold file, if that gold file exists.
     gold_path = os.path.join(dirpath, "gold.intermediate.json")
 
     if os.path.exists(gold_path):
@@ -484,7 +525,7 @@ def test_config(testname, dirpath, configdir):
         except json.decoder.JSONDecodeError as e:
             errors.append("%s was unparseable?" % gold_path)
 
-        gold_no_yaml = kill_yaml(gold_parsed)
+        gold_no_yaml = normalize_gold(gold_parsed)
         gold_no_yaml_path = os.path.join(dirpath, "gold.no_yaml.json")
         json.dump(gold_no_yaml, open(gold_no_yaml_path, "w"), sort_keys=True, indent=4)
 
@@ -493,20 +534,20 @@ def test_config(testname, dirpath, configdir):
         if udiff:
             errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
 
-    # print("==== checking config generation")
-    #
-    # envoy_json_out = os.path.join(dirpath, "envoy.json")
-    #
-    # try:
-    #     os.unlink(envoy_json_out)
-    # except OSError as e:
-    #     if e.errno != errno.ENOENT:
-    #         raise
-    #
-    # ambassador = shell([ 'ambassador', 'config', '--check', configdir, envoy_json_out ])
-    #
-    # print(ambassador.errors(raw=True))
-    #
+    print("==== checking V1")
+
+    # Check the V1 config against its gold file, if it exists (and it should).
+    gold_path = os.path.join(dirpath, "gold.json")
+
+    if os.path.exists(gold_path):
+        v1path = os.path.join(dirpath, "v1.json")
+        json.dump(v1config.as_dict(), open(v1path, "w"), sort_keys=True, indent=4)
+
+        udiff = unified_diff(gold_path, v1path)
+
+        if udiff:
+            errors.append("gold.json and v1.json do not match!\n\n%s" % "\n".join(udiff))
+
     # if ambassador.code != 0:
     #     errors.append('ambassador failed! %s' % ambassador.code)
     # else:
@@ -531,14 +572,6 @@ def test_config(testname, dirpath, configdir):
     #     if envoy_succeeded:
     #         if not envoy_output[-1].strip().endswith(' OK'):
     #             errors.append('envoy validation failed!')
-    #
-    #     gold_path = os.path.join(dirpath, "gold.json")
-    #
-    #     if os.path.exists(gold_path):
-    #         udiff = unified_diff(gold_path, envoy_json_out)
-    #
-    #         if udiff:
-    #             errors.append("gold.json and envoy.json do not match!\n\n%s" % "\n".join(udiff))
     #
     # print("==== checking short-circuit with existing config")
     #

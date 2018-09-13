@@ -68,7 +68,7 @@
                 "_service": "example-auth:3000",
                 "_source": "auth.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_example_auth_3000",
+                "name": "cluster_extauth_example_auth_3000",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
@@ -124,6 +124,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
                 "_services": [
                     "example-auth:3000"
                 ],
@@ -134,7 +137,7 @@
                         "x-authenticated-as",
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_example_auth_3000",
+                    "cluster": "cluster_extauth_example_auth_3000",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -563,7 +566,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  cors:\n    credentials: true\n    exposed_headers: X-Custom-Header\n    headers: Content-Type\n    max_age: '86400'\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example,http://bar.example\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  cors:\n    credentials: true\n    exposed_headers: X-Custom-Header\n    headers: Content-Type\n    max_age: '86400'\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example,http://bar.example\n  statsd:\n    enabled: true\nkind: Module\nname: ambassador\n"
         },
         "auth.yaml.1": {
             "_source": "auth.yaml",

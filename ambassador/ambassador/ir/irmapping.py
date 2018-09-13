@@ -49,7 +49,7 @@ class IRMapping (IRResource):
         "add_request_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
-        "circuit_breaker": True,
+        # "circuit_breaker": True,
         "cors": True,
         "envoy_override": True,
         "grpc": True,
@@ -61,7 +61,7 @@ class IRMapping (IRResource):
         "method": True,
         "method_regex": True,
         "modules": True,
-        "outlier_detection": True,
+        # "outlier_detection": True,
         "path_redirect": True,
         # Do not include precedence.
         "prefix": True,
@@ -76,6 +76,9 @@ class IRMapping (IRResource):
         "tls": True,
         "use_websocket": True,
         "weight": True,
+
+        # Include the serialization, too.
+        "serialization": True,
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -127,6 +130,11 @@ class IRMapping (IRResource):
 
         # ...and the route weight.
         self.route_weight = self._route_weight()
+
+        if ('circuit_breaker' in kwargs) or ('outlier_detection' in kwargs):
+            self.post_error(RichStatus.fromError("circuit_breaker and outlier_detection are not supported"))
+
+    # self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # If we have CORS stuff, normalize it.
@@ -300,7 +308,9 @@ class IRMappingGroup (IRResource):
     DoNotFlattenKeys.update({
         'cluster': True,
         'host': True,
+        'kind': True,
         'name': True,
+        'rkey': True,
         'route_weight': True,
         'service': True,
         'weight': True,
@@ -327,11 +337,14 @@ class IRMappingGroup (IRResource):
         if 'host_redirect' in kwargs:
             raise Exception("IRMappingGroup cannot accept a host_redirect as a keyword argument")
 
+        if 'path_redirect' in kwargs:
+            raise Exception("IRMappingGroup cannot accept a path_redirect as a keyword argument")
+
         if ('shadow' in kwargs) or ('shadows' in kwargs):
             raise Exception("IRMappingGroup cannot accept shadow or shadows as a keyword argument")
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, location=location, kind=kind, name=name,
+            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name,
             mappings=[], host_redirect=None, shadows=[], **kwargs
         )
 
@@ -361,23 +374,46 @@ class IRMappingGroup (IRResource):
             raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
                             (self.group_id, mapping.name, ", ".join(mismatches)))
 
+        # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
+
+        # Per the schema, host_redirect and shadow are Booleans. They won't be _saved_ as
+        # Booleans, though: instead we just save the Mapping that they're a part of.
         host_redirect = mapping.get('host_redirect', False)
         shadow = mapping.get('shadow', False)
 
+        # First things first: if both shadow and host_redirect are set in this Mapping,
+        # we're going to let shadow win. Kill the host_redirect part.
+
+        if shadow and host_redirect:
+            errstr = "At most one of host_redirect and shadow may be set; ignoring host_redirect"
+            aconf.post_error(RichStatus.fromError(errstr), resource=mapping)
+
+            mapping.pop('host_redirect', None)
+            mapping.pop('path_redirect', None)
+
+        # OK. Is this a shadow Mapping?
         if shadow:
+            # Yup. Make sure that we don't have multiple shadows.
             if self.shadows:
-                errstr = "MappingGroup %s: cannot accept %s as second shadow after %s" % \
-                         (self.group_id, mapping.name, self.shadows[0].name)
+                errstr = "cannot accept %s as second shadow after %s" % \
+                         (mapping.name, self.shadows[0].name)
                 aconf.post_error(RichStatus.fromError(errstr), resource=self)
             else:
+                # All good. Save it.
                 self.shadows.append(mapping)
-
-                if host_redirect:
-                    errstr = "MappingGroup %s: ignoring host_redirect since shadow is set" % self.group_id
-                    aconf.post_error(RichStatus.fromError(errstr), resource=self)
         elif host_redirect:
-            self.host_redirect = mapping
+            # Not a shadow, but a host_redirect. Make sure we don't have multiples of
+            # those either.
+
+            if self.host_redirect:
+                errstr = "cannot accept %s as second host_redirect after %s" % \
+                         (mapping.name, self.host_redirect.name)
+                aconf.post_error(RichStatus.fromError(errstr), resource=self)
+            else:
+                # All good. Save it.
+                self.host_redirect = mapping
         else:
+            # Neither shadow nor host_redirect: save it.
             self.mappings.append(mapping)
 
             if mapping.route_weight > self.group_weight:
@@ -385,14 +421,18 @@ class IRMappingGroup (IRResource):
 
         self.referenced_by(mapping)
 
-    def add_cluster_for_mapping(self, ir: 'IR', aconf: Config, mapping: IRMapping) -> IRCluster:
+        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
+
+    def add_cluster_for_mapping(self, ir: 'IR', aconf: Config, mapping: IRMapping,
+                                marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
                             ctx_name=mapping.get('tls', None),
                             host_rewrite=mapping.get('host_rewrite', False),
-                            grpc=mapping.get('grpc', False))
+                            grpc=mapping.get('grpc', False),
+                            marker=marker)
 
         stored = ir.add_cluster(cluster)
         stored.referenced_by(mapping)
@@ -410,12 +450,28 @@ class IRMappingGroup (IRResource):
         :return: a list of the IRClusters this Group uses
         """
 
+        # verbose = (self.group_id == '2d4a2a00ac0bc25be1b3cebc93b69c73fc9aeaea')
+        #
+        # if verbose:
+        #     self.ir.logger.debug("%s: FINALIZING: %s" % (self, self.as_json()))
+
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
+            # if verbose:
+            #     self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
+
             for k in mapping.keys():
                 if k.startswith('_') or mapping.skip_key(k) or (k in IRMappingGroup.DoNotFlattenKeys):
+                    # if verbose:
+                    #     self.ir.logger.debug("%s: don't flatten %s" % (self, k))
                     continue
 
+                # if verbose:
+                #     self.ir.logger.debug("%s: flatten %s" % (self, k))
+
                 self[k] = mapping[k]
+
+        # if verbose:
+        #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
         total_weight = 0.0
         unspecified_mappings = 0
@@ -435,7 +491,7 @@ class IRMappingGroup (IRResource):
             shadow = self.shadows[0]
 
             # The shadow is an IRMapping. Save the cluster for it.
-            shadow.cluster = self.add_cluster_for_mapping(ir, aconf, shadow)
+            shadow.cluster = self.add_cluster_for_mapping(ir, aconf, shadow, marker='shadow')
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 
@@ -488,7 +544,7 @@ class IRMappingGroup (IRResource):
                          self.mappings[0].name
                 self.post_error(RichStatus.fromError(errmsg))
 
-        if not self.host_redirect:
+        if not self.get('host_redirect', None):
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 

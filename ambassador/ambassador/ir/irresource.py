@@ -2,6 +2,7 @@ from typing import Any, ClassVar, Dict, List, Tuple, TYPE_CHECKING
 
 from ..config import Config
 from ..resource import Resource
+from ..utils import RichStatus
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -19,6 +20,10 @@ class IRResource (Resource):
     @staticmethod
     def helper_rkey(res: 'IRResource', k: str) -> Tuple[str, str]:
         return '_rkey', res[k]
+
+    @staticmethod
+    def helper_list(res: 'IRResource', k: str) -> Tuple[str, list]:
+        return k, list([ x.as_dict() for x in res[k] ])
 
     __as_dict_helpers: ClassVar[Dict[str, Any]] = {
         "apiVersion": "drop",
@@ -44,6 +49,7 @@ class IRResource (Resource):
         self.logger = ir.logger
 
         self.__as_dict_helpers = IRResource.__as_dict_helpers
+        self.add_dict_helper("_errors", IRResource.helper_list)
         self.add_dict_helper("_referenced_by", IRResource.helper_sort_keys)
         self.add_dict_helper("rkey", IRResource.helper_rkey)
 
@@ -68,6 +74,10 @@ class IRResource (Resource):
     def add_mappings(self, ir: 'IR', aconf: Config) -> None:
         # If you don't override add_mappings, uh, no mappings will get added.
         pass
+
+    def post_error(self, error: RichStatus):
+        super().post_error(error)
+        self.ir.logger.error("%s: %s" % (self, error))
 
     def skip_key(self, k: str) -> bool:
         if k.startswith('__') or k.startswith("_IRResource__"):

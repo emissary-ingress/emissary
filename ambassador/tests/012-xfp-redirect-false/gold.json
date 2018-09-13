@@ -122,8 +122,5 @@
         ]}
       
     ]
-  },
-  
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }

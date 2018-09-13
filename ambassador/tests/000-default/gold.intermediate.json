@@ -23,13 +23,25 @@
             },
             {
                 "_referenced_by": [
-                    "auth.yaml.1",
+                    "auth.yaml.1"
+                ],
+                "_service": "demo.getambassador.io",
+                "_source": "auth.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_extauth_demo_getambassador_io",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://demo.getambassador.io:80"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-cqrs.yaml.1",
                     "mapping-cqrs.yaml.2",
                     "mapping-qotm.yaml.1"
                 ],
                 "_service": "demo.getambassador.io",
-                "_source": "auth.yaml.1",
+                "_source": "mapping-cqrs.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_demo_getambassador_io",
                 "type": "strict_dns",
@@ -59,6 +71,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
                 "_services": [
                     "demo.getambassador.io"
                 ],
@@ -69,7 +84,7 @@
                         "x-authenticated-as",
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_demo_getambassador_io",
+                    "cluster": "cluster_extauth_demo_getambassador_io",
                     "path_prefix": "/auth/v0",
                     "timeout_ms": 5000
                 },

@@ -85,18 +85,6 @@ class IREnvoyTLS (IRResource):
 
         return True
 
-    def as_array(self, host_rewrite: Optional[str]):
-        tls_array = []
-
-        for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
-            if k in self:
-                tls_array.append({ 'key': k, 'value': self[k] })
-
-        if host_rewrite:
-            tls_array.append({'key': 'sni', 'value': host_rewrite })
-
-        return tls_array
-
 #############################################################################
 ## IRAmbassadorTLS represents an Ambassador TLS configuration, from which we
 ## can create Envoy TLS configurations.
@@ -137,7 +125,7 @@ class TLSModuleFactory:
 
         # OK, done. Merge the result back in.
         if tls_module:
-            ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
+            # ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
 
             # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
             # this painless.
@@ -154,7 +142,7 @@ class TLSModuleFactory:
                                             location=new_location,
                                             **new_args)
 
-            ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+            # ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:

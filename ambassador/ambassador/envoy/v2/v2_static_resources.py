@@ -128,7 +128,6 @@ class V2Listener(dict):
                     'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
                 },
                 'route': {
-                    'cors': group.get('cors') if group.get('cors', False) else group.get('cors_default'),
                     'priority': group.get('priority'),
                     'use_websocket': group.get('use_websocket'),
                     'weighted_clusters': {
@@ -142,13 +141,30 @@ class V2Listener(dict):
                     },
                 },
                 'redirect': {
-                    'host_redirect': group.get('host_redirect'),
-                    'path_redirect': group.get('path_redirect'),
                     'prefix_rewrite': group.get('rewrite'),
                     'host_rewrite': group.get('host_rewrite'),
                     'auto_host_rewrite': group.get('auto_host_rewrite'),
-                    }
                 }
+            }
+
+            host_redirect = group.get('host_redirect', None)
+
+            if host_redirect:
+                route['redirect']['host_redirect'] = host_redirect.service
+                route['redirect']['path_redirect'] = host_redirect.path_redirect
+
+            cors = None
+
+            if "cors" in group:
+                cors = group.cors.as_dict()
+            elif "cors" in config.ir.ambassador_module:
+                cors = config.ir.ambassador_module.cors.as_dict()
+
+            if cors:
+                for key in [ "_active", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+                    cors.pop(key, None)
+
+                route['cors'] = cors
 
             # if 'shadows' in group:
             #     route['route'].update({

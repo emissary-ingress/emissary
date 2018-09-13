@@ -26,11 +26,12 @@ def mark_referenced_by(obj, refby):
 Uniqifiers = {
     'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
+    'clusters': lambda x: ( x['_source'], x['name'] ),
     'outliers': lambda x: x['name'],
     'filters': lambda x: x['name'],
     'grpc_services': lambda x: x['name'],
     'tls': lambda x: "TLS",
-    'tls': lambda x: "cors_default",    
+    # 'tls': lambda x: "cors_default",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename'],
@@ -68,11 +69,11 @@ def filtered_overview(ov):
 
             filtered[key] = [ obj ]
 
-    return sanitize_errors(filtered)
+    return filtered
 
 def sanitize_errors(ov):
     sources = ov.get('sources', {})
-    errors = ov.get('_errors', {})
+    errors = ov.get('errors', {})
     filtered = {}
 
     for key in errors.keys():
@@ -89,7 +90,7 @@ def sanitize_errors(ov):
         filtered[key] = filtlist
 
         if key in sources:
-            sources[key]['_errors'] = filtlist
+            sources[key]['errors'] = filtlist
 
     return ov
 

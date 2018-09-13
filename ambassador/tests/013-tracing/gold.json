@@ -117,17 +117,6 @@
 
         ]},
       {
-        "name": "cluster_ext_tracing",
-        "connect_timeout_ms": 3000,
-        "type": "strict_dns",
-        "lb_type": "round_robin",
-        "hosts": [
-          {
-            "url": "tcp://example-tracing:5000"
-          }
-
-        ]},
-      {
         "name": "cluster_qotm",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
@@ -137,8 +126,18 @@
             "url": "tcp://qotm:80"
           }
 
-        ]}
+        ]},
+      {
+        "name": "cluster_tracing_example_tracing_5000",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://example-tracing:5000"
+          }
 
+        ]}
     ]
   },
   "tracing": {
@@ -146,12 +145,9 @@
       "driver": {
         "type": "zipkin",
         "config": {
-          "collector_cluster": "cluster_ext_tracing"
+          "collector_cluster": "cluster_tracing_example_tracing_5000"
         }
       }
     }
-  },
-
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }
