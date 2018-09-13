@@ -110,7 +110,7 @@ class CaseSensitive(OptionTest):
             idx = q.url.find("/", q.url.find("://") + 3)
             upped = q.url[:idx] + q.url[idx:].upper()
             assert upped != q.url
-            yield Query(upped, xfail="this is broken")
+            yield Query(upped)
 
 class AutoHostRewrite(OptionTest):
 
