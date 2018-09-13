@@ -19,7 +19,10 @@ SHELL = bash
 # Welcome to the Ambassador Makefile...
 
 .FORCE:
-.PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images publish-website helm
+.PHONY: \
+    .FORCE clean version setup-develop print-vars \
+    docker-login docker-push docker-images publish-website helm \
+    teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
 # -----------
@@ -113,7 +116,9 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 SCOUT_APP_KEY=
 
-all: test docker-push website
+# "make" by itself doesn't make the website. It takes too long and it doesn't
+# belong in the inner dev loop.
+all: version setup-develop docker-push test
 
 clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
@@ -133,7 +138,7 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf docs/node_modules
-	-rm -r venv 2> /dev/null && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
+	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
 	@printf "$($*)"
@@ -255,7 +260,7 @@ e2e: e2e-versioned-manifests
 	fi
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.1.0
+TELEPROXY_VERSION=0.1.1
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
 GOOS=$(shell go env GOOS)
@@ -278,7 +283,7 @@ venv/bin/ambassador:
 
 setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
 
-kill_teleproxy = $(shell ps waxu | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{print $$2}' | xargs --no-run-if-empty kill -INT)
+kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml:
 	$(KUBERNAUT) discard
@@ -297,6 +302,14 @@ teleproxy-restart:
 
 teleproxy-stop:
 	$(call kill_teleproxy)
+	sleep 0.25 # wait for exit...
+	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
+		echo "teleproxy still running" >&2; \
+		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
+		false; \
+	else \
+		echo "teleproxy stopped" >&2; \
+	fi
 
 KUBECONFIG=$(shell pwd)/cluster.yaml
 
@@ -308,7 +321,7 @@ shell: setup-develop cluster.yaml
 
 clean-test:
 	rm -f cluster.yaml
-	$(KUBERNAUT) discard
+	test -x $(KUBERNAUT) && $(KUBERNAUT) discard || true
 	$(call kill_teleproxy)
 
 test: version setup-develop cluster.yaml

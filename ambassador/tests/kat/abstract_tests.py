@@ -1,5 +1,7 @@
 import os
 
+import shutil
+
 from abc import abstractmethod
 from typing import Any, Iterable, Optional, Sequence, Type
 
@@ -117,7 +119,12 @@ class AmbassadorTest(Test):
             content = result.stdout
         secret = yaml.load(content)
         data = secret['data']
-        dir = tempfile.mkdtemp(prefix=self.path.k8s, suffix="secret")
+        # dir = tempfile.mkdtemp(prefix=self.path.k8s, suffix="secret")
+        dir = "/tmp/%s-screwoff-%s" % (self.path.k8s, 'secret')
+
+        shutil.rmtree(dir, ignore_errors=True)
+        os.mkdir(dir, 0o777)
+
         for k, v in data.items():
             with open(os.path.join(dir, k), "wb") as f:
                 f.write(base64.decodebytes(bytes(v, "utf8")))
