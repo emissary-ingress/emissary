@@ -113,7 +113,7 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 SCOUT_APP_KEY=
 
-all: docker-push test website
+all: version setup-develop docker-push test website
 
 clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
@@ -308,7 +308,7 @@ shell: setup-develop cluster.yaml
 
 clean-test:
 	rm -f cluster.yaml
-	$(KUBERNAUT) discard
+	test -x $(KUBERNAUT) && $(KUBERNAUT) discard || true
 	$(call kill_teleproxy)
 
 test: version setup-develop cluster.yaml
