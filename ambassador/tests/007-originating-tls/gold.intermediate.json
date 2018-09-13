@@ -27,7 +27,7 @@
                 "_service": "example-auth:3000",
                 "_source": "auth-tls.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_otls_https___example_auth_3000",
+                "name": "cluster_extauth_https___example_auth_3000_otls",
                 "tls_array": [
                     {
                         "key": "cert_chain_file",
@@ -59,7 +59,7 @@
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_otls_upstream_qotm",
+                "name": "cluster_qotm_otls_upstream",
                 "tls_array": [
                     {
                         "key": "cert_chain_file",
@@ -103,7 +103,7 @@
                     "allowed_headers": [
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_otls_https___example_auth_3000",
+                    "cluster": "cluster_extauth_https___example_auth_3000_otls",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -173,7 +173,7 @@
                 "_source": "mapping-qotm.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_otls_upstream_qotm",
+                        "name": "cluster_qotm_otls_upstream",
                         "weight": 100.0
                     }
                 ],

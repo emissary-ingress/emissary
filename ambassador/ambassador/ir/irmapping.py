@@ -423,14 +423,16 @@ class IRMappingGroup (IRResource):
 
         # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
-    def add_cluster_for_mapping(self, ir: 'IR', aconf: Config, mapping: IRMapping) -> IRCluster:
+    def add_cluster_for_mapping(self, ir: 'IR', aconf: Config, mapping: IRMapping,
+                                marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
                             ctx_name=mapping.get('tls', None),
                             host_rewrite=mapping.get('host_rewrite', False),
-                            grpc=mapping.get('grpc', False))
+                            grpc=mapping.get('grpc', False),
+                            marker=marker)
 
         stored = ir.add_cluster(cluster)
         stored.referenced_by(mapping)
@@ -489,7 +491,7 @@ class IRMappingGroup (IRResource):
             shadow = self.shadows[0]
 
             # The shadow is an IRMapping. Save the cluster for it.
-            shadow.cluster = self.add_cluster_for_mapping(ir, aconf, shadow)
+            shadow.cluster = self.add_cluster_for_mapping(ir, aconf, shadow, marker='shadow')
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 

@@ -70,7 +70,7 @@
             "filters": [
               {"type": "decoder",
                 "name": "extauth",
-                "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_ext_auth_otls_upstream", "path_prefix": "/extauth", "timeout_ms": 5000}
+                "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_extauth_https___example_auth_3000_otls", "path_prefix": "/extauth", "timeout_ms": 5000}
               },{
                 "name": "cors",
                 "config": {}
@@ -102,7 +102,7 @@
 
         ]},
       {
-        "name": "cluster_ext_auth_otls_upstream",
+        "name": "cluster_extauth_https___example_auth_3000_otls",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin",
@@ -139,7 +139,5 @@
         }}
 
     ]
-  },
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }

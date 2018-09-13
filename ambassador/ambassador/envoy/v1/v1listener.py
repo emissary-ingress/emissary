@@ -15,10 +15,15 @@
 from typing import List, TYPE_CHECKING
 from typing import cast as typecast
 
+import json
+
 from ..common import EnvoyRoute
 from ...ir.irlistener import IRListener
-from ...ir.irmapping import IRMapping
+# from ...ir.irmapping import IRMapping
 from ...ir.irfilter import IRFilter
+
+from .v1tls import V1TLSContext
+from .v1ratelimit import V1RateLimits
 
 if TYPE_CHECKING:
     from . import V1Config
@@ -46,21 +51,13 @@ class V1Listener(dict):
             self["use_proxy_proto"] = True
 
         if 'tls_contexts' in listener:
-            ssl_context = {}
-            found_some = False
-            for ctx_name, ctx in listener.tls_contexts.items():
-                for key in [ "cert_chain_file", "private_key_file",
-                             "alpn_protocols", "cacert_chain_file" ]:
-                    if key in ctx:
-                        ssl_context[key] = ctx[key]
-                        found_some = True
+            envoy_ctx = V1TLSContext()
 
-                if "cert_required" in ctx:
-                    ssl_context["require_client_certificate"] = ctx["cert_required"]
-                    found_some = True
-                    
-            if found_some:
-                self['ssl_context'] = ssl_context
+            for ctx_name, ctx in listener.tls_contexts.items():
+                envoy_ctx.add_context(ctx)
+
+            if envoy_ctx:
+                self['ssl_context'] = dict(envoy_ctx)
 
         routes = self.get_routes(config, listener)
 
@@ -88,8 +85,8 @@ class V1Listener(dict):
             "filters": [ V1Filter(filter) for filter in config.ir.filters ]
         }
 
-        if config.ir.ambassador_module.get('use_remote_address', False):
-            hcm_config["use_remote_address"] = True
+        if 'use_remote_address' in config.ir.ambassador_module:
+            hcm_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
         if "tracing" in listener:
             hcm_config["tracing"] = {
@@ -125,13 +122,21 @@ class V1Listener(dict):
             if "case_sensitive" in group:
                 route["case_sensitive"] = group.case_sensitive
 
+            cors = None
+
             if "cors" in group:
-                route["cors"] = group.cors
-            elif "cors_default" in group:
-                route["cors"] = group.cors_default
+                cors = group.cors.as_dict()
+            elif "cors" in config.ir.ambassador_module:
+                cors = config.ir.ambassador_module.cors.as_dict()
+
+            if cors:
+                for key in [ "_active", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+                    cors.pop(key, None)
+
+                route['cors'] = cors
 
             if "rate_limits" in group:
-                route["rate_limits"] = group.rate_limits
+                route["rate_limits"] = V1RateLimits(group.rate_limits)
 
             if "priority" in group:
                 route["priority"] = group.priority
@@ -158,8 +163,11 @@ class V1Listener(dict):
                 if "auto_host_rewrite" in group:
                     route["auto_host_rewrite"] = group.auto_host_rewrite
 
-                if "request_headers_to_add" in group:
-                    route["request_headers_to_add"] = group.request_headers_to_add
+                if "add_request_headers" in group:
+                    route["request_headers_to_add"] = [
+                        {"key": k, "value": v}
+                        for k, v in group.add_request_headers.items()
+                    ]
 
                 if "use_websocket" in group:
                     route["cluster"] = group.mappings[0].cluster.name
@@ -168,14 +176,14 @@ class V1Listener(dict):
                         "clusters": [ {
                                 "name": mapping.cluster.name,
                                 "weight": mapping.weight
-                            } for mapping in group.mappings
+                            } for mapping in sorted(group.mappings, key=lambda x: x.name)
                         ]
                     }
                     # print("WEIGHTED_CLUSTERS %s" % route["weighted_clusters"])
 
                 if group.get("shadows", []):
                     route["shadow"] = {
-                        "cluster": group.shadows[0].name
+                        "cluster": group.shadows[0].cluster.name
                     }
 
             if "envoy_override" in group:
@@ -183,6 +191,9 @@ class V1Listener(dict):
                     route[key] = group.envoy_override[key]
 
             routes.append(route)
+
+            # print("GROUP %s %s" % (group.name, group.group_id))
+            # print("ROUTE: %s" % json.dumps(route, sort_keys=True, indent=4))
 
         return routes
 

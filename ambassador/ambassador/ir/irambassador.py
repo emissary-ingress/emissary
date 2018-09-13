@@ -130,6 +130,10 @@ class IRAmbassador (IRResource):
                 # Yes. It overrides the default.
                 self[key] = amod[key]
 
+        # Do they want statsd?
+        if amod and ('statsd' in amod):
+            self['statsd'] = amod['statsd']
+
         # Next up: diag port & services.
         diag_port = aconf.module_lookup('ambassador', 'diag_port', 8877)
         diag_service = "127.0.0.1:%d" % diag_port

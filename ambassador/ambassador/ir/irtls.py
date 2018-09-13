@@ -85,18 +85,6 @@ class IREnvoyTLS (IRResource):
 
         return True
 
-    def as_array(self, host_rewrite: Optional[str]):
-        tls_array = []
-
-        for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
-            if k in self:
-                tls_array.append({ 'key': k, 'value': self[k] })
-
-        if host_rewrite:
-            tls_array.append({'key': 'sni', 'value': host_rewrite })
-
-        return tls_array
-
 #############################################################################
 ## IRAmbassadorTLS represents an Ambassador TLS configuration, from which we
 ## can create Envoy TLS configurations.

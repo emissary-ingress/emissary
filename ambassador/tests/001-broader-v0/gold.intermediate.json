@@ -42,7 +42,7 @@
                 "_service": "canary-auth:3000",
                 "_source": "auth-2.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_http___canary_auth_3000",
+                "name": "cluster_extauth_http___canary_auth_3000",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://canary-auth:3000",
@@ -84,7 +84,7 @@
                 "_source": "mapping-google.yaml.1",
                 "host_rewrite": "google.com",
                 "lb_type": "round_robin",
-                "name": "cluster_otls_hr_google_com_https___google_com",
+                "name": "cluster_https___google_com_otls_hr_google_com",
                 "tls_array": [
                     {
                         "key": "sni",
@@ -202,7 +202,7 @@
                 "_service": "httpbin.org",
                 "_source": "mapping-redirector.yaml.2",
                 "lb_type": "round_robin",
-                "name": "cluster_httpbin_org",
+                "name": "cluster_shadow_httpbin_org",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://httpbin.org:80"
@@ -216,7 +216,7 @@
                 "_source": "mapping-httpbin-shadow.yaml.1",
                 "host_rewrite": "httpbin.org",
                 "lb_type": "round_robin",
-                "name": "cluster_otls_hr_httpbin_org_https___myservice_org_",
+                "name": "cluster_shadow_https___myservice_org__otls_hr_httpbin_org",
                 "tls_array": [
                     {
                         "key": "sni",
@@ -265,7 +265,7 @@
                     "allowed_headers": [
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_http___canary_auth_3000",
+                    "cluster": "cluster_extauth_http___canary_auth_3000",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -347,7 +347,7 @@
                 "prefix": "/httpbin/",
                 "prefix_rewrite": "/",
                 "shadow": {
-                    "name": "cluster_otls_hr_httpbin_org_https___myservice_org_"
+                    "name": "cluster_shadow_https___myservice_org__otls_hr_httpbin_org"
                 },
                 "timeout_ms": 50
             },
@@ -650,7 +650,7 @@
                 "prefix": "/qotm/",
                 "prefix_rewrite": "/",
                 "shadow": {
-                    "name": "cluster_httpbin_org"
+                    "name": "cluster_shadow_httpbin_org"
                 },
                 "timeout_ms": 50
             },
@@ -808,7 +808,7 @@
                 "_source": "mapping-google.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_otls_hr_google_com_https___google_com",
+                        "name": "cluster_https___google_com_otls_hr_google_com",
                         "weight": 100.0
                     }
                 ],
@@ -996,7 +996,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  statsd:\n    enabled: true\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
         },
         "auth-2.yaml.1": {
             "_source": "auth-2.yaml",

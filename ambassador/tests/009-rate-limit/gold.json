@@ -139,7 +139,7 @@
 
         ]},
       {
-        "name": "cluster_ext_ratelimit",
+        "name": "cluster_example_rate_limit_5000",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin","features": "http2",
@@ -166,10 +166,7 @@
   "rate_limit_service": {
     "type": "grpc_service",
     "config": {
-      "cluster_name": "cluster_ext_ratelimit"
+      "cluster_name": "cluster_example_rate_limit_5000"
     }
-  },
-
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }

@@ -78,7 +78,8 @@ class IRTracing (IRResource):
                 aconf=aconf,
                 location=self.location,
                 service=self.service,
-                host_rewrite=self.get('host_rewrite', None)
+                host_rewrite=self.get('host_rewrite', None),
+                marker='tracing'
             )
         )
 

@@ -496,7 +496,7 @@ def test_config(testname, dirpath, configdir):
     if not os.path.isdir(configdir):
         errors.append("configdir %s is not a directory" % configdir)
 
-    print("==== checking intermediate output")
+    print("==== loading resources")
 
     resources = fetch_resources(configdir, logger)
     aconf = Config()
@@ -504,6 +504,8 @@ def test_config(testname, dirpath, configdir):
 
     ir = IR(aconf)
     v1config = V1Config(ir)
+
+    print("==== checking IR")
 
     current = get_old_intermediate(aconf, ir, v1config)
     current['envoy_config'] = filtered_overview(current['envoy_config'])
@@ -531,6 +533,8 @@ def test_config(testname, dirpath, configdir):
 
         if udiff:
             errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+
+    print("==== checking V1")
 
     # Check the V1 config against its gold file, if it exists (and it should).
     gold_path = os.path.join(dirpath, "gold.json")

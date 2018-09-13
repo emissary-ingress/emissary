@@ -80,7 +80,7 @@
                       "timeout_ms": 3000,"prefix": "/qotm/quote/","prefix_rewrite": "/quote/","weighted_clusters": {
                               "clusters": [
                                   
-                                    { "name": "cluster_qotm_cb_default", "weight": 100.0 }
+                                    { "name": "cluster_qotm", "weight": 100.0 }
                                   
                               ]
                           }
@@ -102,7 +102,7 @@
                       "timeout_ms": 3000,"prefix": "/service/","prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
-                                    { "name": "cluster_qotm_cb_default_od_default", "weight": 100.0 }
+                                    { "name": "cluster_qotm", "weight": 100.0 }
                                   
                               ]
                           }
@@ -233,7 +233,7 @@
                       "timeout_ms": 50,"prefix": "/qotm/","prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
-                                    { "name": "cluster_qotm_cb_custom", "weight": 100.0 }
+                                    { "name": "cluster_qotm", "weight": 100.0 }
                                   
                               ]
                           },
@@ -291,7 +291,7 @@
             "filters": [
               {"type": "decoder",
                 "name": "extauth",
-                "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_ext_auth", "path_prefix": "/extauth", "timeout_ms": 5000}
+                "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_extauth_http___canary_auth_3000", "path_prefix": "/extauth", "timeout_ms": 5000}
               },{
                 "name": "cors",
                 "config": {}
@@ -334,7 +334,7 @@
           
         ]},
       {
-        "name": "cluster_ext_auth",
+        "name": "cluster_extauth_http___canary_auth_3000",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin",        
@@ -429,68 +429,6 @@
           }
           
         ]},
-      {
-        "name": "cluster_qotm_cb_custom",
-        "connect_timeout_ms": 3000,
-        "type": "strict_dns",
-        "lb_type": "round_robin",        
-        "hosts": [
-          {
-            "url": "tcp://qotm:80"
-          }
-          
-        ],
-        "circuit_breakers": {
-          "default": {
-            "max_connections": 1,
-            "max_pending_requests": 3,
-            "max_requests": 2,
-            "max_retries": 4
-          }
-        }},
-      {
-        "name": "cluster_qotm_cb_default",
-        "connect_timeout_ms": 3000,
-        "type": "strict_dns",
-        "lb_type": "round_robin",        
-        "hosts": [
-          {
-            "url": "tcp://qotm:80"
-          }
-          
-        ],
-        "circuit_breakers": {
-          "default": {
-            "max_connections": 1024,
-            "max_pending_requests": 1024,
-            "max_requests": 1024,
-            "max_retries": 3
-          }
-        }},
-      {
-        "name": "cluster_qotm_cb_default_od_default",
-        "connect_timeout_ms": 3000,
-        "type": "strict_dns",
-        "lb_type": "round_robin",        
-        "hosts": [
-          {
-            "url": "tcp://qotm:80"
-          }
-          
-        ],
-        "circuit_breakers": {
-          "default": {
-            "max_connections": 1024,
-            "max_pending_requests": 1024,
-            "max_requests": 1024,
-            "max_retries": 3
-          }
-        },
-        "outlier_detection": {
-          "consecutive_5xx": 5,
-          "max_ejection_percent": 100,
-          "interval_ms": 3000
-        }},
       {
         "name": "cluster_qotm_tspace",
         "connect_timeout_ms": 3000,
