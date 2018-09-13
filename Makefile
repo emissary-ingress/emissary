@@ -19,7 +19,10 @@ SHELL = bash
 # Welcome to the Ambassador Makefile...
 
 .FORCE:
-.PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images publish-website helm
+.PHONY: \
+    .FORCE clean version setup-develop print-vars \
+    docker-login docker-push docker-images publish-website helm \
+    teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
 # -----------
@@ -280,7 +283,7 @@ venv/bin/ambassador:
 
 setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
 
-kill_teleproxy = $(shell ps waxu | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{print $$2}' | xargs --no-run-if-empty kill -INT)
+kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml:
 	$(KUBERNAUT) discard
@@ -299,6 +302,14 @@ teleproxy-restart:
 
 teleproxy-stop:
 	$(call kill_teleproxy)
+	sleep 0.25 # wait for exit...
+	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
+		echo "teleproxy still running" >&2; \
+		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
+		false; \
+	else \
+		echo "teleproxy stopped" >&2; \
+	fi
 
 KUBECONFIG=$(shell pwd)/cluster.yaml
 
