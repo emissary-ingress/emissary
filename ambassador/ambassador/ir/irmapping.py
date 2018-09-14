@@ -367,7 +367,8 @@ class IRMappingGroup (IRResource):
         mismatches = []
 
         for k in IRMappingGroup.CoreMappingKeys:
-            if (k in mapping) and (mapping[k] != self[k]):
+            if (k in mapping) and ((k not in self) or
+                                   (mapping[k] != self[k])):
                 mismatches.append(k)
 
         if mismatches:
