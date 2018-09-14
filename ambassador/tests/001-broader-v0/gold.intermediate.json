@@ -336,7 +336,7 @@
                     "mapping-httpbin-shadow.yaml.1",
                     "mapping-httpbin.yaml.1"
                 ],
-                "_source": "mapping-httpbin.yaml.1",
+                "_source": "mapping-httpbin-shadow.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_http___httpbin_org",
@@ -651,8 +651,7 @@
                 "prefix_rewrite": "/",
                 "shadow": {
                     "name": "cluster_shadow_httpbin_org"
-                },
-                "timeout_ms": 50
+                }
             },
             {
                 "__saved": [
@@ -1185,7 +1184,7 @@
             "kind": "Mapping",
             "name": "bad_redirect_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: bad_redirect_mapping\npath_redirect: /ip/\nprefix: /qotm/\nservice: httpbin.org\nshadow: true\ntimeout_ms: 50\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: bad_redirect_mapping\npath_redirect: /ip/\nprefix: /qotm/\nservice: httpbin.org\nshadow: true\n"
         },
         "mapping-websocket.yaml.1": {
             "_source": "mapping-websocket.yaml",

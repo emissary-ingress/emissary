@@ -309,6 +309,7 @@ class IRMappingGroup (IRResource):
         'cluster': True,
         'host': True,
         'kind': True,
+        'location': True,
         'name': True,
         'rkey': True,
         'route_weight': True,
@@ -367,12 +368,13 @@ class IRMappingGroup (IRResource):
         mismatches = []
 
         for k in IRMappingGroup.CoreMappingKeys:
-            if (k in mapping) and (mapping[k] != self[k]):
-                mismatches.append(k)
+            if (k in mapping) and ((k not in self) or
+                                   (mapping[k] != self[k])):
+                mismatches.append((k, mapping[k], self.get(k, '-unset-')))
 
         if mismatches:
             raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
-                            (self.group_id, mapping.name, ", ".join(mismatches)))
+                            (self.name, mapping.name, ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])))
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 

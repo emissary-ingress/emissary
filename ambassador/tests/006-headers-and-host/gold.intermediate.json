@@ -50,6 +50,21 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-httpbin.yaml.1",
+                    "mapping-qotm.yaml.3"
+                ],
+                "_service": "httpbin.org:80",
+                "_source": "mapping-httpbin.yaml.1",
+                "host_rewrite": "httpbin.org",
+                "lb_type": "round_robin",
+                "name": "cluster_httpbin_org_80",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://httpbin.org:80"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
                 "_service": "demo.getambassador.io",
@@ -72,21 +87,6 @@
                 "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
-                ]
-            },
-            {
-                "_referenced_by": [
-                    "mapping-httpbin.yaml.1",
-                    "mapping-qotm.yaml.3"
-                ],
-                "_service": "httpbin.org:80",
-                "_source": "mapping-qotm.yaml.3",
-                "host_rewrite": "httpbin.org",
-                "lb_type": "round_robin",
-                "name": "cluster_httpbin_org_80",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://httpbin.org:80"
                 ]
             },
             {
