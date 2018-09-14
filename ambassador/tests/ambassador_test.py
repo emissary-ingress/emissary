@@ -507,8 +507,8 @@ def test_config(testname, dirpath, configdir):
     raw = list(fetch_resources(configdir, logger))
     resources = sorted(raw, key=lambda x: x.rkey)
 
-    # print("raw:    %s" % ", ".join([ x.rkey for x in raw ]))
-    # print("sorted: %s" % ", ".join([ x.rkey for x in resources ]))
+    print("raw:    %s" % ", ".join([ x.rkey for x in raw ]))
+    print("sorted: %s" % ", ".join([ x.rkey for x in resources ]))
 
     aconf = Config()
     aconf.load_all(resources)
