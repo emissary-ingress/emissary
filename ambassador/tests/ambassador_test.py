@@ -270,6 +270,8 @@ class old_ir (dict):
 
                         rl_actions.append({'actions': rate_limits_actions})
 
+            route['clusters'].sort(key=cluster_sort_key)
+
             if rl_actions:
                 route['rate_limits'] = rl_actions
 
@@ -483,6 +485,10 @@ def normalize_gold(gold: dict) -> dict:
         if 'clusters' in normalized['envoy_config']:
             normalized['envoy_config']['clusters'].sort(key=cluster_sort_key)
 
+        for route in normalized['envoy_config'].get('routes', []):
+            if 'clusters' in route:
+                route['clusters'].sort(key=cluster_sort_key)
+
     return normalized
 
 #### Test functions
@@ -498,7 +504,12 @@ def test_config(testname, dirpath, configdir):
 
     print("==== loading resources")
 
-    resources = fetch_resources(configdir, logger)
+    raw = list(fetch_resources(configdir, logger))
+    resources = sorted(raw, key=lambda x: x.rkey)
+
+    # print("raw:    %s" % ", ".join([ x.rkey for x in raw ]))
+    # print("sorted: %s" % ", ".join([ x.rkey for x in resources ]))
+
     aconf = Config()
     aconf.load_all(resources)
 

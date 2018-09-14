@@ -230,7 +230,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 50,"prefix": "/qotm/","prefix_rewrite": "/","weighted_clusters": {
+                      "timeout_ms": 3000,"prefix": "/qotm/","prefix_rewrite": "/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_qotm", "weight": 100.0 }
