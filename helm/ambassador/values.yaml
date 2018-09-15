@@ -8,6 +8,10 @@ image:
   repository: quay.io/datawire/ambassador
   pullPolicy: IfNotPresent
 
+deployment: {}
+  # Sets AMBASSADOR_ID env var within Deployment
+  # ambassadorId: default
+
 service:
   enableHttp: true
   enableHttps: true

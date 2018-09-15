@@ -51,6 +51,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `replicaCount`  | Number of Ambassador replicas  | `1` 
 | `resources` | CPU/memory resource requests/limits | None 
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
+| `deployment.ambassadorId` | Sets the AMBASSADOR_ID | `default`
 | `serviceAccount.create` | If `true`, create a new service account | `true`
 | `serviceAccount.name` | Service account to be used | `ambassador`
 | `service.enableHttp` | if port 80 should be opened for service | `true`
