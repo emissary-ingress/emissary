@@ -1,0 +1,131 @@
+#!/usr/bin/env python
+
+import os, re, shlex, subprocess, textwrap
+
+from kat import parser
+
+def run(cmd, **kwargs):
+    for arg in "stdout", "stderr":
+        if arg not in kwargs:
+            kwargs[arg] = subprocess.PIPE
+    return subprocess.run(["sh", "-c", cmd], **kwargs)
+
+def terminal_size():
+    result = run("stty size")
+    result.check_returncode()
+    return tuple(int(x) for x in result.stdout.split())
+
+ROWS, COLS = terminal_size()
+
+def project(obj, key, value):
+    if key in ("kind", "apiVersion"): return value
+
+    if isinstance(value, str):
+        result = re.sub(r"[a-zA-Z0-9]*", "AN", value)
+        if obj["kind"] == "Mapping" \
+           and key == "prefix" \
+           and obj.get("prefix_regex", False):
+            result = "RE:%s" % result
+
+        return result
+    else:
+        return value
+
+def merge(kinds, kind):
+    result = {}
+    for obj in kinds[kind]:
+        for k, v in obj.items():
+            if k not in result:
+                result[k] = [project(obj, k, v)]
+            else:
+                values = result[k]
+                p = project(obj, k, v)
+                if p not in values: values.append(p)
+    return result
+
+def print_merged(obj):
+    for k, v in obj.items():
+        print("%s:" % k)
+        for s in v:
+            print("  %s" % s)
+
+KINDS = ("Mapping", "Module", "AuthService", "TracingService", "RateLimitService")
+
+def doit(filenames):
+    inputs = []
+
+    for filename in filenames:
+        inputs += doit_toit(filename)
+
+    kinds = {}
+
+    for i in inputs:
+        objs = parser.load("blah", i, parser.Tag.MAPPING, parser.Tag.NULL)
+        for o in objs:
+            if o is None: continue
+            kind = o["kind"]
+            if kind not in kinds:
+                kinds[kind] = []
+            kinds[kind].append(o)
+
+    for k, v in kinds.items():
+        print("%s: %s" % (k, len(v)))
+
+
+    for kind in KINDS:
+        if kind in kinds:
+            merged = merge(kinds, kind)
+            print("====================")
+            print_merged(merged)
+
+# XXX: maybe map values into categories before merging, e.g. pure
+# alpha, embedded special, special beginning, special end, regex vs
+# string, etc?
+
+def get_inputs(obj):
+    for k, v in obj.items():
+        if k == "apiVersion" and v == "ambassador/v0":
+            yield parser.dump([obj])
+            break
+
+    if "metadata" in obj:
+        annotation = obj["metadata"].get("annotations", {}).get("getambassador.io/config")
+        if annotation:
+            yield annotation
+
+    if "items" in obj:
+        for o in obj["items"]:
+            yield from get_inputs(o)
+
+def doit_toit(filename):
+    with open(filename) as fd:
+        try:
+            content = parser.load(filename, fd, parser.Tag.MAPPING)
+        except Exception as e:
+            print("Failed to parse %s: %s" % (filename, e))
+            return []
+
+    inputs = []
+
+    for obj in content:
+        inputs.extend(get_inputs(obj))
+
+    return inputs
+
+def find_yaml(start, pattern):
+    result = run('find %s -name "%s" | xargs fgrep -l ambassador/v0' % (start, pattern))
+    if result.returncode:
+        print((result.stdout + result.stderr).decode('utf-8'))
+    result.check_returncode()
+    return [line.strip() for line in result.stdout.decode('utf-8').splitlines()]
+
+print(textwrap.fill("Please note that this script scrapes inputs from the files in /tmp/k8s-*.yaml that the kat tests use to check manifest differences. If you haven't run the cat tests recently (without cleaning) the the results of this script will be inaccurate for KAT coverage."))
+
+print()
+
+input("Press enter to continue.")
+
+print("################OLD YAML################")
+doit(find_yaml(os.path.dirname(os.path.dirname(__file__)), "*.yaml"))
+print("################KAT YAML################")
+doit(find_yaml("/tmp", "k8s-*.yaml"))
