@@ -3,32 +3,21 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	jwt "github.com/dgrijalva/jwt-go"
+
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	// AuthzKEY header key.
-	AuthzKEY = "Authorization"
-	// ClientIDKey header key
-	ClientIDKey = "Client-Id"
-	// ClientSECKey header key
-	ClientSECKey = "Client-Secret"
-	// StateSignature secret is used to sign the authorization state value.
-	StateSignature = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3"
-	// ContentTYPE HTTP header key
-	ContentTYPE = "Content-Type"
-	// ApplicationJSON HTTP header value
-	ApplicationJSON = "Application/Json"
-	// EmptyString ...
-	EmptyString = ""
 	// TokenURLFmt is used for exchanging the authorization code.
 	TokenURLFmt = "https://%s/oauth/token"
 	// AuthorizeFmt is a template string for the authorize post request payload.
@@ -36,154 +25,6 @@ const (
 	// AccessTokenCookie cookie's name
 	AccessTokenCookie = "access_token"
 )
-
-// Callback ...
-type Callback struct {
-	Logger     *logrus.Logger
-	Config     *config.Config
-	StateKV    *map[string]string
-	PrivateKey string
-}
-
-func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	c.Logger.Info("callback midleware path requested")
-	if r.URL.Path == "/callback" {
-		if err := r.URL.Query().Get("error"); err != EmptyString {
-			unauthorized(rw, r)
-			return
-		}
-
-		state := r.URL.Query().Get("state")
-		if state == EmptyString {
-			c.Logger.Warnf("host: %s did not provide state param", r.Host)
-			http.Redirect(rw, r, "/", http.StatusFound)
-			return
-		}
-
-		token, err := jwt.Parse(state, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["path"])
-			}
-			return []byte(c.PrivateKey), nil
-		})
-
-		if err != nil {
-			c.Logger.Warnf("error parsing signed state: %v", err)
-			http.Redirect(rw, r, "/", http.StatusFound)
-			return
-		}
-
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !(ok && token.Valid) {
-			c.Logger.Errorf("state validation failed: %v", err)
-			http.Redirect(rw, r, "/", http.StatusFound)
-			return
-		}
-
-		code := r.URL.Query().Get("code")
-		if code != EmptyString {
-			url := fmt.Sprintf(TokenURLFmt, c.Config.Domain)
-			payload := strings.NewReader(fmt.Sprintf(AuthorizeFmt, c.Config.ClientID, code, c.Config.CallbackURL))
-
-			c.Logger.Info("authorizing with idp")
-			req, reqerr := http.NewRequest("POST", url, payload)
-			if reqerr != nil {
-				c.Logger.Errorf("calling idp: %v", reqerr)
-				unauthorized(rw, r)
-				return
-			}
-
-			req.Header.Add(ContentTYPE, ApplicationJSON)
-			res, reserr := http.DefaultClient.Do(req)
-			if reserr != nil {
-				unauthorized(rw, r)
-				return
-			}
-
-			defer res.Body.Close()
-			body, readerr := ioutil.ReadAll(res.Body)
-			if readerr != nil {
-				c.Logger.Error("failed to read authorization HTTP body response")
-				unauthorized(rw, r)
-				return
-			}
-
-			tokenRES := TokenResponse{}
-			if err := json.Unmarshal(body, &tokenRES); err != nil {
-				c.Logger.Error("failed to parse authorization response")
-				unauthorized(rw, r)
-				return
-			}
-
-			c.Logger.Infof("authorized: %s, access_token %v bytes, token_id: %v bytes",
-				tokenRES.TokenType,
-				len(tokenRES.AccessToken),
-				len(tokenRES.IDToken))
-			c.Logger.Infof("setting %s cookie", AccessTokenCookie)
-
-			http.SetCookie(rw, &http.Cookie{
-				Name:    AccessTokenCookie,
-				Value:   tokenRES.AccessToken,
-				Expires: time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second),
-			})
-
-			redirectPath := claims["path"].(string)
-			c.Logger.Infof("redirecting to path: %s", redirectPath)
-			http.Redirect(rw, r, redirectPath, http.StatusFound)
-			return
-		}
-	}
-
-	cid := r.Header.Get(ClientIDKey)
-	secret := r.Header.Get(ClientSECKey)
-	if cid != "" && secret != "" {
-		// Check for Client-Id and Client-Secret headers
-		if cid != EmptyString && secret != EmptyString {
-			auth, err := c.clientCredentials(cid, secret)
-			if err != nil {
-				c.Logger.Error(err)
-			} else {
-				r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", auth.Type, auth.Token))
-			}
-		}
-	} else {
-		c.Logger.Infof("checking %s cookie", AccessTokenCookie)
-		cookie, err := r.Cookie(AccessTokenCookie)
-		if err == nil {
-			c.Logger.Info("setting authorization header")
-			r.Header.Set(AuthzKEY, fmt.Sprintf("%s %s", "Bearer", cookie.Value))
-		} else {
-			c.Logger.Warnf("%s cookie %v", AccessTokenCookie, err)
-		}
-	}
-
-	next(rw, r)
-}
-
-func (c *Callback) clientCredentials(cid, secret string) (auth AuthResponse, err error) {
-	req := AuthRequest{
-		ClientID:     cid,
-		ClientSecret: secret,
-		Audience:     c.Config.Audience,
-		GrantType:    "client_credentials",
-	}
-	body, err := json.Marshal(req)
-	if err != nil {
-		return
-	}
-	resp, err := http.Post(fmt.Sprintf(TokenURLFmt, c.Config.Domain), ApplicationJSON,
-		bytes.NewReader(body))
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 200 {
-		err = json.NewDecoder(resp.Body).Decode(&auth)
-	} else {
-		err = fmt.Errorf("%v", resp.Status)
-	}
-	return
-}
 
 // AuthResponse TODO(gsagula): comment
 type AuthResponse struct {
@@ -204,14 +45,176 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-func (c *Callback) validateState(key string) bool {
-	token, err := jwt.Parse(key, func(token *jwt.Token) (interface{}, error) {
-		return []byte(StateSignature), nil
-	})
-	if err != nil || !token.Valid {
-		return false
+// TokenResponse used for de-serializing response from /oauth/token
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	IDToken      string `json:"id_token"`
+	TokenType    string `json:"token_type"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+}
+
+// Callback ...
+type Callback struct {
+	Logger *logrus.Logger
+	Config *config.Config
+	Secret *secret.Secret
+}
+
+func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	if r.URL.Path == "/callback" {
+		c.Logger.Debug("received callback request")
+		if err := r.URL.Query().Get("error"); err != "" {
+			unauthorized(rw, r)
+			return
+		}
+
+		redirectPath, err := c.checkState(r)
+		if err != nil {
+			c.Logger.Errorf("check state failed: %v", err)
+			rw.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		var tokenRES *TokenResponse
+		tokenRES, err = c.checkCode(r)
+		if err != nil {
+			c.Logger.Errorf("check code failed: %v", err)
+			unauthorized(rw, r)
+			return
+		}
+
+		c.Logger.Debug("authorized: %s, access_token %v bytes, token_id: %v bytes",
+			tokenRES.TokenType,
+			len(tokenRES.AccessToken),
+			len(tokenRES.IDToken),
+		)
+		c.Logger.Debug("setting %s cookie", AccessTokenCookie)
+
+		http.SetCookie(rw, &http.Cookie{
+			Name:    AccessTokenCookie,
+			Value:   tokenRES.AccessToken,
+			Expires: time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second),
+		})
+
+		c.Logger.Debugf("redirecting to path: %s", redirectPath)
+		http.Redirect(rw, r, redirectPath, http.StatusFound)
+		return
 	}
-	return true
+
+	// TODO(gagula): clean this up.
+	cid := r.Header.Get("Client-Id")
+	secret := r.Header.Get("Client-Secret")
+	if cid != "" && secret != "" {
+		auth, err := c.clientCredentials(cid, secret)
+		if err != nil {
+			c.Logger.Error(err)
+		} else {
+			r.Header.Set("Authorization", fmt.Sprintf("%s %s", auth.Type, auth.Token))
+		}
+	} else {
+		c.Logger.Debugf("checking %s cookie", AccessTokenCookie)
+		cookie, err := r.Cookie(AccessTokenCookie)
+		if err != nil {
+			c.Logger.Warnf("%s cookie %v", AccessTokenCookie, err)
+		} else {
+			c.Logger.Debug("setting authorization header")
+			r.Header.Set("Authorization", fmt.Sprintf("%s %s", "Bearer", cookie.Value))
+		}
+	}
+
+	next(rw, r)
+}
+
+func (c *Callback) checkState(r *http.Request) (string, error) {
+	state := r.URL.Query().Get("state")
+	if state == "" {
+		return "", errors.New("empty state param")
+	}
+
+	// TODO(gsagula): use parse with claims
+	token, err := jwt.Parse(state, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return "", fmt.Errorf("unexpected signing method %v", token.Header["path"])
+		}
+		return c.Secret.GetPublicKey(), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !(ok && token.Valid) {
+		return "", errors.New("state token validation failed")
+	}
+
+	return claims["path"].(string), nil
+}
+
+func (c *Callback) checkCode(r *http.Request) (*TokenResponse, error) {
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		return nil, errors.New("request does not contain code")
+	}
+
+	url := fmt.Sprintf(TokenURLFmt, c.Config.Domain)
+	payload := strings.NewReader(fmt.Sprintf(AuthorizeFmt, c.Config.ClientID, code, c.Config.CallbackURL))
+
+	var req *http.Request
+	var res *http.Response
+	var body []byte
+	var err error
+
+	if req, err = http.NewRequest("POST", url, payload); err != nil {
+		return nil, err
+	}
+
+	c.Logger.Debug("authorizing with the idp")
+	req.Header.Add("Content-Type", "Application/Json")
+
+	res, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	token := &TokenResponse{}
+	if err = json.Unmarshal(body, token); err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
+func (c *Callback) clientCredentials(cid, secret string) (auth AuthResponse, err error) {
+	req := AuthRequest{
+		ClientID:     cid,
+		ClientSecret: secret,
+		Audience:     c.Config.Audience,
+		GrantType:    "client_credentials",
+	}
+	body, err := json.Marshal(req)
+	if err != nil {
+		c.Logger.Errorf("checking credentials: %v", err)
+		return
+	}
+	resp, err := http.Post(fmt.Sprintf(TokenURLFmt, c.Config.Domain), "Application/Json", bytes.NewReader(body))
+	if err != nil {
+		c.Logger.Errorf("checking credentials: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		err = json.NewDecoder(resp.Body).Decode(&auth)
+	} else {
+		err = fmt.Errorf("%v", resp.Status)
+	}
+	return
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request) {
@@ -220,16 +223,7 @@ func unauthorized(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set(ContentTYPE, ApplicationJSON)
+	w.Header().Set("Content-Type", "Application/Json")
 	w.WriteHeader(http.StatusUnauthorized)
 	w.Write(jsonResponse)
-}
-
-// TokenResponse used for de-serializing response from /oauth/token
-type TokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	IDToken      string `json:"id_token"`
-	TokenType    string `json:"token_type"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
 }

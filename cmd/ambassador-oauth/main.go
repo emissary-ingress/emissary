@@ -3,46 +3,82 @@ package main
 import (
 	"github.com/datawire/ambassador-oauth/app"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/logger"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
 	"github.com/datawire/ambassador-oauth/middleware"
 	"github.com/urfave/negroni"
 )
 
-// PKey secret is used to sign the authorization state value.
-const PKey = "vg=pgHoAAWgCsGuKBX,U3qrUGmqrPGE3" // TODO(gsagula): make PKey cli configurable.
-
 func main() {
 	// Config
-	cfg := config.New()
+	config := config.New()
+	if config == nil {
+		panic("config object cannot be nil")
+	}
 
 	// Logger
-	log := logger.New(cfg)
+	logger := logger.New(config)
+	if logger == nil {
+		panic("logger object cannot be nil")
+	}
+
+	// RSA keys
+	secret := secret.New(config, logger)
+	if secret == nil {
+		logger.Fatal("keys object cannot be nil")
+	}
+
+	// Certificate Util
+	discovery := discovery.New(config)
+	if discovery == nil {
+		logger.Fatal("certificate util object cannot be nil")
+	}
 
 	// K8s controller
-	ctrl := &app.Controller{Logger: log, Config: cfg}
+	ctrl := &app.Controller{
+		Logger: logger,
+		Config: config,
+	}
 	ctrl.Watch()
 
 	// Handler
-	hdr := app.Handler{Config: cfg, Logger: log, Ctrl: ctrl, PrivateKey: PKey}
+	hdr := app.Handler{
+		Config: config,
+		Logger: logger,
+		Ctrl:   ctrl,
+		Secret: secret,
+	}
 
-	// Common
-	common := negroni.New()
-	common.Use(&middleware.Logger{Logger: log})
+	// Middlewares
+	loggerMW := &middleware.Logger{Logger: logger}
 
-	// TODO(gsagula): make PrintStack cli configurable.
-	common.Use(&negroni.Recovery{
-		Logger:     log,
-		PrintStack: true,
+	recoveryMW := &negroni.Recovery{
+		Logger:     logger,
+		PrintStack: false,
 		StackAll:   false,
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
-	})
-	common.Use(&middleware.Callback{Logger: log, Config: cfg, PrivateKey: PKey})
+	}
 
-	// TODO(gsagula): replace this with our own middleware.
-	jwt := &middleware.Jwt{Logger: log, Config: cfg}
-	hdr.Jwt = jwt.Middleware()
-	common.UseFunc(hdr.Jwt.HandlerWithNext)
+	jwtMW := &middleware.JWT{
+		Logger:    logger,
+		Config:    config,
+		Discovery: discovery,
+	}
+
+	callbackMW := &middleware.Callback{
+		Logger: logger,
+		Config: config,
+		Secret: secret,
+	}
+
+	// Negroni
+	common := negroni.New()
+	common.Use(loggerMW)
+	common.Use(recoveryMW)
+	common.Use(callbackMW)
+	common.Use(jwtMW)
 	common.UseHandlerFunc(hdr.Authorize)
 
 	// Server

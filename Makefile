@@ -15,6 +15,11 @@ clean:
 	@echo " >>> cleaning compiled objects and binaries"
 	@go clean -i ./...
 
+.PHONY: test
+test:
+	@echo " >>> testing code.."
+	@go test -i ./...
+
 vendor:
 	@echo " >>> installing dependencies"
 	@dep ensure -vendor-only

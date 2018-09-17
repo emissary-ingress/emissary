@@ -35,7 +35,7 @@ type Controller struct {
 
 // Watch .. TODO(gsagula): channel this up..
 func (c *Controller) Watch() {
-	c.Logger.Info("initializing k8s watcher..")
+	c.Logger.Debug("initializing k8s watcher..")
 	c.Rules.Store(make([]Rule, 0))
 
 	go controller(c.Config.Kubeconfig, func(uns []map[string]interface{}) {
@@ -43,13 +43,13 @@ func (c *Controller) Watch() {
 		for _, un := range uns {
 			spec, ok := un["spec"].(map[string]interface{})
 			if !ok {
-				c.Logger.Infof("malformed object, bad spec: %v", uns)
+				c.Logger.Debugf("malformed object, bad spec: %v", uns)
 				continue
 			}
 
 			unrules, ok := spec["rules"].([]interface{})
 			if !ok {
-				c.Logger.Infof("malformed object, bad rules: %v", uns)
+				c.Logger.Debugf("malformed object, bad rules: %v", uns)
 				continue
 			}
 
@@ -59,7 +59,7 @@ func (c *Controller) Watch() {
 				if err != nil {
 					c.Logger.Error(err)
 				} else {
-					c.Logger.Infof("loading rule: host=%s, path=%s, public=%v, scopes=%s",
+					c.Logger.Debugf("loading rule: host=%s, path=%s, public=%v, scopes=%s",
 						rule.Host, rule.Path, rule.Public, rule.Scopes)
 					newRules = append(newRules, rule)
 				}

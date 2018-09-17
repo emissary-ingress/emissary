@@ -3,109 +3,71 @@ package middleware
 // TODO(gsagula): lots to clean up in this file
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 
-	jwtm "github.com/auth0/go-jwt-middleware"
+	jwtmidleware "github.com/auth0/go-jwt-middleware"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	// WellKnownURLFmt ..
-	WellKnownURLFmt = "https://%s/.well-known/jwks.json"
-)
-
-// Jwt ...
-type Jwt struct {
-	Logger *logrus.Logger
-	Config *config.Config
+// JWT ...
+type JWT struct {
+	Logger    *logrus.Logger
+	Config    *config.Config
+	Discovery *discovery.Discovery
+	mw        *jwtmidleware.JWTMiddleware
 }
 
-// Middleware ..
-func (j *Jwt) Middleware() *jwtm.JWTMiddleware {
-	m := jwtm.New(jwtm.Options{
+// ServeHTTP ..
+func (j *JWT) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	if j.mw == nil {
+		j.init()
+	}
+
+	err := j.mw.CheckJWT(rw, r)
+
+	// If there was an error, do not call next.
+	if err == nil && next != nil {
+		next(rw, r)
+	}
+}
+
+func (j *JWT) init() {
+	j.mw = jwtmidleware.New(jwtmidleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			c := token.Claims.(jwt.MapClaims)
-			// Verify 'aud' claim
-			if !c.VerifyAudience(j.Config.Audience, false) {
-				return token, errors.New("Invalid audience")
+			claims := token.Claims.(jwt.MapClaims)
+			// Verifies 'aud' claim
+			if !claims.VerifyAudience(j.Config.Audience, false) {
+				return token, errors.New("invalid audience")
 			}
 
-			// Verify 'iss' claim
-			if !c.VerifyIssuer(fmt.Sprintf("https://%s/", j.Config.Domain), false) {
-				return token, errors.New("Invalid issuer")
+			// Verifies 'iss' claim
+			if !claims.VerifyIssuer(fmt.Sprintf("https://%s/", j.Config.Domain), false) {
+				return token, errors.New("invalid issuer")
 			}
 
-			cert, err := j.getPemCert(token)
+			// Validates time based claims "exp, iat, nbf".
+			if err := token.Claims.Valid(); err != nil {
+				return token, err
+			}
+
+			// Validates key id header
+			if token.Header["kid"] == nil {
+				return token, errors.New("missing kid")
+			}
+
+			cert, err := j.Discovery.GetPemCert(token.Header["kid"].(string))
 			if err != nil {
-				panic(err.Error())
+				j.Logger.Fatal(err)
 			}
 
-			result, _ := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
-			return result, nil
+			return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 		},
 		SigningMethod:       jwt.SigningMethodRS256,
 		CredentialsOptional: true,
 	})
-
-	return m
-}
-
-// JSONWebKeys TODO(gsagula): comment
-type JSONWebKeys struct {
-	Kty string   `json:"kty"`
-	Kid string   `json:"kid"`
-	Use string   `json:"use"`
-	N   string   `json:"n"`
-	E   string   `json:"e"`
-	X5c []string `json:"x5c"`
-}
-
-// Jwks TODO(gsagula): comment
-type Jwks struct {
-	Keys []JSONWebKeys `json:"keys"`
-}
-
-var pemCert = EmptyString
-
-func (j *Jwt) getPemCert(token *jwt.Token) (string, error) {
-	var err error
-	if pemCert != EmptyString {
-		return pemCert, nil
-	}
-	pemCert, err := j.getPemCertUncached(token)
-	return pemCert, err
-}
-
-func (j *Jwt) getPemCertUncached(token *jwt.Token) (string, error) {
-	cert := EmptyString
-	resp, err := http.Get(fmt.Sprintf(WellKnownURLFmt, j.Config.Domain))
-	if err != nil {
-		return cert, err
-	}
-	defer resp.Body.Close()
-
-	var jwks = Jwks{}
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
-
-	if err != nil {
-		return cert, err
-	}
-
-	for k := range jwks.Keys {
-		if token.Header["kid"] == jwks.Keys[k].Kid {
-			cert = "-----BEGIN CERTIFICATE-----\n" + jwks.Keys[k].X5c[0] + "\n-----END CERTIFICATE-----"
-		}
-	}
-
-	if cert == EmptyString {
-		err := errors.New("Unable to find appropriate key")
-		return cert, err
-	}
-
-	return cert, nil
 }
