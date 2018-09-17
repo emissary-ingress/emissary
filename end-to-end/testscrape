@@ -43,13 +43,23 @@ def merge(kinds, kind):
                 if p not in values: values.append(p)
     return result
 
-def print_merged(obj):
+def print_merged(obj, kind):
     for k, v in obj.items():
         print("%s:" % k)
-        for s in v:
-            print("  %s" % s)
 
-KINDS = ("Mapping", "Module", "AuthService", "TracingService", "RateLimitService")
+        if kind.startswith('Module-') and k == 'kind':
+            print("  %s" % kind)
+        else:
+            for s in v:
+                print("  %s" % s)
+
+KINDS = {
+    "Mapping": True,
+    "Module": True,
+    "AuthService": True,
+    "TracingService": True,
+    "RateLimitService": True
+}
 
 def doit(filenames):
     inputs = []
@@ -64,6 +74,11 @@ def doit(filenames):
         for o in objs:
             if o is None: continue
             kind = o["kind"]
+
+            if kind == 'Module':
+                kind = "%s-%s" % (kind, o["name"])
+                KINDS[kind] = True
+
             if kind not in kinds:
                 kinds[kind] = []
             kinds[kind].append(o)
@@ -72,11 +87,11 @@ def doit(filenames):
         print("%s: %s" % (k, len(v)))
 
 
-    for kind in KINDS:
+    for kind in sorted(KINDS.keys()):
         if kind in kinds:
             merged = merge(kinds, kind)
             print("====================")
-            print_merged(merged)
+            print_merged(merged, kind)
 
 # XXX: maybe map values into categories before merging, e.g. pure
 # alpha, embedded special, special beginning, special end, regex vs
@@ -126,6 +141,6 @@ print()
 input("Press enter to continue.")
 
 print("################OLD YAML################")
-doit(find_yaml(os.path.dirname(os.path.dirname(__file__)), "*.yaml"))
+doit(find_yaml(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "*.yaml"))
 print("################KAT YAML################")
-doit(find_yaml("/tmp", "k8s-*.yaml"))
+doit(find_yaml("/tmp/", "k8s-*.yaml"))
