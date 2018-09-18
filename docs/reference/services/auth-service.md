@@ -81,7 +81,7 @@ The 200 response should not contain any body, but may contain arbitrary headers.
 
 ### Preventing the Request from Continuing (any HTTP status code other than 200)
 
-Any HTTP status code other than 200 from the external auth service tells Ambassador **not** to allow the request to continue. In this case, the entire response from the external auth service - including the status code, the headers, and the body - is handed back to the client verbatim. This gives the external auth service **complete** control over the entine response presented to the client.
+Any HTTP status code other than 200 from the external auth service tells Ambassador **not** to allow the request to continue. In this case, the entire response from the external auth service - including the status code, the headers, and the body - is handed back to the client verbatim. This gives the external auth service **complete** control over the entire response presented to the client.
 
 Giving the external auth service control over the response on failure allows many different types of auth mechanisms, for example:
 
