@@ -63,6 +63,96 @@ def get_source(svc):
 def get_filename(svc):
     return "%s-%s.yaml" % (svc.metadata.name, svc.metadata.namespace)
 
+
+"""
+Base class for threads that react to kubernetes cluster changes. Because kube_v1's watch API is blocking, 
+only one type of resource can be monitored (for example list_service_for_all_namespaces). 
+"""
+class BlockingWatcherBase(threading.Thread):
+
+    def __init__(self):
+        threading.Thread.__init__(self, daemon=False)
+
+    def run(self):
+        while True:
+            # this is in a loop because sometimes the auth expires
+            # or the connection dies  
+            try:
+                logger.debug("Start executing watch logic.")
+                v1 = kube_v1()
+                self.invoke_watching_logic(v1)
+  
+            except KeyboardInterrupt:
+                raise
+            except:
+                logger.exception("Could not executie watching code.")
+            finally:
+                time.sleep(60)
+   
+    """
+    This method will be invoked in never-ending while-loop, providing kubernetes API as parameter.
+    @param v1: kubernetes client.
+    @raise keyError: raises an exception
+    """
+    def invokeWatchingLogic(self, v1):
+        raise NotImplementedError("Please Implement this method")
+
+"""
+Thread responsible for detecting certificate rotation. 
+Each time when the secret in Ambassador's namespace change, it will restart Ambassador.
+"""
+class CertRotationWatcher(BlockingWatcherBase):
+
+    def __init__(self, restarter):
+        BlockingWatcherBase.__init__(self)
+        self.restarter = restarter
+
+    def invoke_watching_logic(self, v1):
+        while True:
+            if v1:
+                w = watch.Watch()
+                watched = w.stream(v1.list_secret_for_all_namespaces)
+
+                for evt in watched:
+                    logger.info(evt)
+                    if (((evt["type"] == "ADDED") or (evt["type"] == "MODIFIED")) and (evt["object"].metadata.namespace == self.restarter.namespace)):
+                        logger.info("detected secret change in Ambassador's namespace - perform hot-restart")
+                        self.restarter.poke()
+
+                logger.info("cert rotation watcher loop exited?")
+            else:
+                logger.info("No K8s, idling")
+                
+class ServicesWatcher(BlockingWatcherBase):
+
+    def __init__(self, restarter):
+        BlockingWatcherBase.__init__(self)
+        self.restarter = restarter
+
+    def invoke_watching_logic(self, v1):
+        if v1:
+            w = watch.Watch()
+
+            if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
+                watched = w.stream(v1.list_namespaced_service, namespace=self.restarter.namespace)
+            else:
+                watched = w.stream(v1.list_service_for_all_namespaces)
+
+            for evt in watched:
+                logger.debug("Event: %s %s/%s" % 
+                            (evt["type"], 
+                            evt["object"].metadata.namespace, evt["object"].metadata.name))
+                sys.stdout.flush()
+
+                if evt["type"] == "DELETED":
+                    self.restarter.delete(evt["object"])
+                else:
+                    self.restarter.update_from_service(evt["object"])
+
+            logger.info("watch loop exited?")
+        else:
+            logger.info("No K8s, idling")
+
 class Restarter(threading.Thread):
 
     def __init__(self, ambassador_config_dir, namespace, envoy_config_file, delay, pid):
@@ -329,37 +419,6 @@ def sync(restarter):
     logger.debug("Generating initial Envoy config")
     restarter.restart()
 
-def watch_loop(restarter):
-    v1 = kube_v1()
-
-    if v1:
-        while True:
-            try:
-                w = watch.Watch()
-
-                if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
-                    watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
-                else:
-                    watched = w.stream(v1.list_service_for_all_namespaces)
-
-                for evt in watched:
-                    logger.debug("Event: %s %s/%s" % 
-                                 (evt["type"], 
-                                  evt["object"].metadata.namespace, evt["object"].metadata.name))
-                    sys.stdout.flush()
-
-                    if evt["type"] == "DELETED":
-                        restarter.delete(evt["object"])
-                    else:
-                        restarter.update_from_service(evt["object"])
-
-                logger.info("watch loop exited?")
-            except ProtocolError:
-                logger.debug("watch connection has been broken. retry automatically.")
-                continue
-    else:
-        logger.info("No K8s, idling")
-
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
 @click.argument("ambassador_config_dir")
@@ -431,7 +490,6 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     """
 
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
-
     restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
 
     if mode == "sync":
@@ -439,18 +497,14 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     elif mode == "watch":
         restarter.start()
 
-        while True:
-            try:
-                # this is in a loop because sometimes the auth expires
-                # or the connection dies
-                logger.debug("starting watch loop")
-                watch_loop(restarter)
-            except KeyboardInterrupt:
-                raise
-            except:
-                logger.exception("could not watch for Kubernetes service changes")
-            finally:
-                time.sleep(60)
+        serviceChangesWatch = ServicesWatcher(restarter)
+        certChangesWatch = CertRotationWatcher(restarter) 
+
+        serviceChangesWatch.start()
+        certChangesWatch.start()
+
+        serviceChangesWatch.join()
+        certChangesWatch.join()
     else:
          raise ValueError(mode)
 

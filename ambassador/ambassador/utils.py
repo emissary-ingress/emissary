@@ -20,6 +20,7 @@ import threading
 import time
 import os
 import logging
+import base64
 
 from kubernetes import client, config
 from enum import Enum
@@ -45,7 +46,10 @@ class TLSPaths(Enum):
     client_cert_dir = "/ambassador/cacert"
     client_tls_crt = os.path.join(client_cert_dir, "tls.crt")
 
-
+    istio_cert_dir = "/istio/certs"
+    istio_cert_chain = "cert-chain.pem"
+    istio_key = "key.pem"
+    
 class SystemInfo (object):
     MyHostName = socket.gethostname()
     MyResolvedName = socket.gethostbyname(socket.gethostname())
@@ -209,6 +213,13 @@ def save_cert(cert, key, dir):
     if key:
         open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
 
+def save_base64_to_file(dir, file_name, value):
+    try:
+        os.makedirs(dir)
+    except FileExistsError:
+        pass
+
+    open(os.path.join(dir, file_name), "wb").write(base64.standard_b64decode(value))
 
 def kube_v1():
     # Assume we got nothin'.

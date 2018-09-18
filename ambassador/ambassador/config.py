@@ -29,7 +29,7 @@ from pkg_resources import Requirement, resource_filename
 
 from jinja2 import Environment, FileSystemLoader
 
-from .utils import RichStatus, SourcedDict, read_cert_secret, save_cert, TLSPaths, kube_v1, check_cert_file
+from .utils import RichStatus, SourcedDict, read_cert_secret, save_cert, save_base64_to_file, TLSPaths, kube_v1, check_cert_file
 from .mapping import Mapping
 
 from scout import Scout
@@ -1501,6 +1501,25 @@ class Config (object):
                                     secret, TLSPaths.client_cert_dir.value))
                                 save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
                                 tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+
+                elif context_name == 'upstream_secret':
+                    self.logger.info("Received upstream_secret configuration {}".format(context))
+
+                    secret_name = context.get("secret_name", "istio.default")
+                    cert_chain_secret_key = context.get("pem_chain_key", "cert-chain.pem")
+                    key_pem_secret_key = context.get("key_pem_key", "key.pem")
+
+                    (_, _, istio_default_certs) = read_cert_secret(kube_v1(), secret_name, self.namespace)
+                
+                    save_base64_to_file(TLSPaths.istio_cert_dir.value, TLSPaths.istio_cert_chain.value, istio_default_certs[cert_chain_secret_key])
+                    save_base64_to_file(TLSPaths.istio_cert_dir.value, TLSPaths.istio_key.value, istio_default_certs[key_pem_secret_key])
+                   
+                    cert_chain_destination = os.path.join(TLSPaths.istio_cert_dir.value, TLSPaths.istio_cert_chain.value)
+                    key_destination = os.path.join(TLSPaths.istio_cert_dir.value, TLSPaths.istio_key.value)
+
+                    tls_configuration = {'cert_chain_file': cert_chain_destination, 'private_key_file': key_destination}
+                    self.tls_contexts["upstream"] = SourcedDict(_from=tmod, **tls_configuration)
+                    self.logger.info("Saving upstream tls configuration directly from secrets {}".format(tls_configuration))
 
                 else:
                     # This is a wholly new thing.
