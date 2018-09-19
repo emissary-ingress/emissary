@@ -1,7 +1,5 @@
 package controller
 
-// TODO(gsagula): lots to clean up in this package
-
 import (
 	"log"
 	"os"

@@ -82,8 +82,7 @@ func (a *App) Handler() http.Handler {
 		Secret: a.Secret,
 	}
 
-	// HTTP handler.
-	// Note that middleware are executed in order.
+	// HTTP handler (note that middlewares are executed in order).
 	n := negroni.New()
 	n.Use(loggerMW)
 	n.Use(recoveryMW)
