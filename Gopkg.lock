@@ -6,11 +6,11 @@
   name = "cloud.google.com/go"
   packages = ["compute/metadata"]
   pruneopts = "UT"
-  revision = "c728a003b238b26cef9ab6753a5dc424b331c3ad"
-  version = "v0.27.0"
+  revision = "97efc2c9ffd9fe8ef47f7f3203dc60bbca547374"
+  version = "v0.28.0"
 
 [[projects]]
-  digest = "1:ba5927f32e6b520f1844122cbac163926baa361a2087b80c928f17482eb09f51"
+  digest = "1:2d3844e5885201d66031ff641b0f62e77e3af35fb35480ba10e13e15b268ecb1"
   name = "github.com/Azure/go-autorest"
   packages = [
     "autorest",
@@ -21,8 +21,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "a35eae345f69bbfbe3b8fa0b1d3fe98f8430b21a"
-  version = "v10.15.3"
+  revision = "a88c19ef2016e095f0b6c3b451074b4663f53bed"
+  version = "v10.15.4"
 
 [[projects]]
   branch = "master"
@@ -110,7 +110,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:05bdd4ab281e293670675a3b197bd2cd621faaf2e6ea956cbce6012faf01ba74"
+  digest = "1:91d8d69f4245029778bdb0aed7e12551c82e4fe128d9deacc99b718e53dd5861"
   name = "github.com/gophercloud/gophercloud"
   packages = [
     ".",
@@ -122,7 +122,7 @@
     "pagination",
   ]
   pruneopts = "UT"
-  revision = "d3d2712922bfab7d32b0c1c1a9fe539a17138930"
+  revision = "45f1c769265325fa6edae517f41dda5dcd34b325"
 
 [[projects]]
   digest = "1:8ec8d88c248041a6df5f6574b87bc00e7e0b493881dad2e7ef47b11dc69093b5"
@@ -236,7 +236,7 @@
     "idna",
   ]
   pruneopts = "UT"
-  revision = "161cd47e91fd58ac17490ef4d742dc98bb4cf60e"
+  revision = "26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2"
 
 [[projects]]
   branch = "master"
@@ -254,14 +254,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:374fc90fcb026e9a367e3fad29e988e5dd944b68ca3f24a184d77abc5307dda4"
+  digest = "1:49edbccdd6fb213dcf45486b0c939b788740451e5f2ff77aa42ca742d10da449"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "d0be0721c37eeb5299f245a996a483160fc36940"
+  revision = "1561086e645b2809fb9f8a1e2a38160bf8d53bf4"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -295,7 +295,7 @@
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
 
 [[projects]]
-  digest = "1:c8907869850adaa8bd7631887948d0684f3787d0912f1c01ab72581a6c34432e"
+  digest = "1:193950893ea275f89ed92e5da11ed8fa1436872f755a9ea5d4afa83dc9d9c3a8"
   name = "google.golang.org/appengine"
   packages = [
     ".",
@@ -310,8 +310,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
-  version = "v1.1.0"
+  revision = "ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"

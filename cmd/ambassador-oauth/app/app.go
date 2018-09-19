@@ -22,8 +22,7 @@ type App struct {
 	Controller *controller.Controller
 }
 
-// Handler returns an app handler that should can be consumed by an HTTP server. This
-// facilitates integration testing @see main_test.go
+// Handler returns an app handler that should be consumed by an HTTP server.
 func (a *App) Handler() http.Handler {
 	// Config
 	if a.Config == nil {

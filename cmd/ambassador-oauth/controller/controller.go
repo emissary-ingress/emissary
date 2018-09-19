@@ -26,14 +26,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// Controller is a custom Kubernetes controller
+// Controller is a custom Kubernetes controller that monitor k8s
+// cluster and load all the rules used by this app for authorizing
+// api calls.
 type Controller struct {
 	Logger *logrus.Logger
 	Config *config.Config
 	Rules  atomic.Value
 }
 
-// Watch .. TODO(gsagula): channel this up..
+// Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch() {
 	c.Logger.Debug("initializing k8s watcher..")
 	c.Rules.Store(make([]Rule, 0))
@@ -69,7 +71,7 @@ func (c *Controller) Watch() {
 	})
 }
 
-// Rule ...
+// Rule TODO(gsagula): comment
 type Rule struct {
 	Host   string
 	Path   string
@@ -77,7 +79,7 @@ type Rule struct {
 	Scopes string
 }
 
-// Match
+// Match TODO(gsagula): comment
 func (r Rule) Match(host, path string) bool {
 	return match(r.Host, host) && match(r.Path, path)
 }

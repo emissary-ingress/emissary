@@ -10,7 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//Config TODO(gsagula): comment
+// Config is an sigleton-object that holds all configuration values
+// used by this app.
 type Config struct {
 	Audience      string
 	CallbackURL   string
@@ -28,13 +29,14 @@ type Config struct {
 
 var instance *Config
 
-// New TODO(gsagula): comment
+// New loads all the env variables, cli parameters and returns
+// a reference to the config instance.
 func New() *Config {
 	if instance == nil {
 		instance = &Config{}
 
 		flag.StringVar(&instance.Kubeconfig, "kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
-		flag.StringVar(&instance.Level, "level", logrus.ErrorLevel.String(), "restrict logs to error only")
+		flag.StringVar(&instance.Level, "level", logrus.DebugLevel.String(), "restrict logs to error only")
 		flag.StringVar(&instance.Audience, "audience", os.Getenv("AUTH_AUDIENCE"), "audience provided by the identity provider")
 		flag.StringVar(&instance.Domain, "domain", os.Getenv("AUTH_DOMAIN"), "authorization service domain")
 		flag.StringVar(&instance.ClientID, "client_id", os.Getenv("AUTH_CLIENT_ID"), "client id provided by the identity provider")
@@ -53,7 +55,6 @@ func New() *Config {
 
 		instance.StateTTL = time.Duration(stateTTL) * time.Minute
 
-		// TODO(gsagula): create a const for this.
 		if onFailure == "deny" {
 			instance.DenyOnFailure = true
 		} else {

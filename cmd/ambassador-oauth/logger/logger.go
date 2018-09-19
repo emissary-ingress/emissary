@@ -10,7 +10,7 @@ import (
 
 var instance *logrus.Logger
 
-// New ..
+// New TODO(gsagula): comment
 func New(c *config.Config) *logrus.Logger {
 	// Whatever common logger configurations we need, should
 	// be placed here.

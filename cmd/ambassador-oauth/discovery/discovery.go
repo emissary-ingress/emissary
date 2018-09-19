@@ -57,7 +57,7 @@ type JWKSlice struct {
 	Keys []JWK `json:"keys"`
 }
 
-// GetPemCert ..
+// GetPemCert TODO(gsagula): comment
 // TODO(gsagula): This should return []byte instead of string.
 func (d *Discovery) GetPemCert(kid string) (string, error) {
 	if cert := d.getCert(kid); cert != "" {

@@ -13,6 +13,7 @@ metadata:
       prefix: /httpbin/
       service: httpbin.org:80
       host_rewrite: httpbin.org
+      timeout_ms: 5000
 spec:
   type: NodePort
   ports:
