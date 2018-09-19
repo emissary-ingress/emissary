@@ -1,4 +1,4 @@
-package app
+package controller
 
 // TODO(gsagula): lots to clean up in this package
 
@@ -77,7 +77,8 @@ type Rule struct {
 	Scopes string
 }
 
-func (r Rule) match(host, path string) bool {
+// Match
+func (r Rule) Match(host, path string) bool {
 	return match(r.Host, host) && match(r.Path, path)
 }
 

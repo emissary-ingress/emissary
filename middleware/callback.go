@@ -7,23 +7,23 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
+	"github.com/datawire/ambassador-oauth/util"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	// TokenURLFmt is used for exchanging the authorization code.
-	TokenURLFmt = "https://%s/oauth/token"
-	// AuthorizeFmt is a template string for the authorize post request payload.
-	AuthorizeFmt = "{\"grant_type\":\"authorization_code\",\"client_id\": \"%s\",\"code\": \"%s\",\"redirect_uri\": \"%s\"}"
 	// AccessTokenCookie cookie's name
 	AccessTokenCookie = "access_token"
+	// Code is the default grant used in for this handler.
+	Code = "authorization_code"
+	// CallbackPath is the default callback path URL
+	CallbackPath = "/callback"
 )
 
 // AuthResponse TODO(gsagula): comment
@@ -40,18 +40,21 @@ type AuthRequest struct {
 	GrantType    string `json:"grant_type"`
 }
 
-// Response TODO(gsagula): comment
-type Response struct {
-	Message string `json:"message"`
-}
-
-// TokenResponse used for de-serializing response from /oauth/token
+// TokenResponse used for de-serializing response from /oauth/token.
 type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	IDToken      string `json:"id_token"`
 	TokenType    string `json:"token_type"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int64  `json:"expires_in"`
+}
+
+// AuthorizationRequest ..
+type AuthorizationRequest struct {
+	GrantType   string `json:"grant_type"`
+	ClientID    string `json:"client_id"`
+	Code        string `json:"code"`
+	RedirectURL string `json:"redirect_uri"`
 }
 
 // Callback ...
@@ -62,10 +65,10 @@ type Callback struct {
 }
 
 func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	if r.URL.Path == "/callback" {
+	if r.URL.Path == CallbackPath {
 		c.Logger.Debug("received callback request")
 		if err := r.URL.Query().Get("error"); err != "" {
-			unauthorized(rw, r)
+			util.ToJSONResponse(rw, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
 		}
 
@@ -80,7 +83,7 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		tokenRES, err = c.checkCode(r)
 		if err != nil {
 			c.Logger.Errorf("check code failed: %v", err)
-			unauthorized(rw, r)
+			util.ToJSONResponse(rw, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
 		}
 
@@ -132,7 +135,6 @@ func (c *Callback) checkState(r *http.Request) (string, error) {
 		return "", errors.New("empty state param")
 	}
 
-	// TODO(gsagula): use parse with claims
 	token, err := jwt.Parse(state, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return "", fmt.Errorf("unexpected signing method %v", token.Header["path"])
@@ -158,26 +160,46 @@ func (c *Callback) checkCode(r *http.Request) (*TokenResponse, error) {
 		return nil, errors.New("request does not contain code")
 	}
 
-	url := fmt.Sprintf(TokenURLFmt, c.Config.Domain)
-	payload := strings.NewReader(fmt.Sprintf(AuthorizeFmt, c.Config.ClientID, code, c.Config.CallbackURL))
+	// TODO(gsagula): find a better way to handle this.
+	var url string
+	if c.Config.Scheme == "" {
+		url = fmt.Sprintf("%s/oauth/token", c.Config.Domain)
+	} else {
+		url = fmt.Sprintf("%s://%s/oauth/token", c.Config.Scheme, c.Config.Domain)
+	}
 
 	var req *http.Request
 	var res *http.Response
+	var payload []byte
 	var body []byte
 	var err error
 
-	if req, err = http.NewRequest("POST", url, payload); err != nil {
+	payload, err = json.Marshal(&AuthorizationRequest{
+		GrantType:   Code,
+		ClientID:    c.Config.ClientID,
+		Code:        code,
+		RedirectURL: c.Config.CallbackURL,
+	})
+	if err != nil {
 		return nil, err
 	}
 
-	c.Logger.Debug("authorizing with the idp")
+	req, err = http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Add("Content-Type", "Application/Json")
 
+	c.Logger.Debug("authorizing with the idp")
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("idp response status: %s", res.Status)
+	}
 
 	body, err = ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -188,6 +210,7 @@ func (c *Callback) checkCode(r *http.Request) (*TokenResponse, error) {
 	if err = json.Unmarshal(body, token); err != nil {
 		return nil, err
 	}
+
 	return token, nil
 }
 
@@ -203,27 +226,19 @@ func (c *Callback) clientCredentials(cid, secret string) (auth AuthResponse, err
 		c.Logger.Errorf("checking credentials: %v", err)
 		return
 	}
-	resp, err := http.Post(fmt.Sprintf(TokenURLFmt, c.Config.Domain), "Application/Json", bytes.NewReader(body))
+
+	url := fmt.Sprintf("%s://%s/oauth/token", c.Config.Scheme, c.Config.Domain)
+	resp, err := http.Post(url, "Application/Json", bytes.NewReader(body))
 	if err != nil {
 		c.Logger.Errorf("checking credentials: %v", err)
 		return
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode == 200 {
 		err = json.NewDecoder(resp.Body).Decode(&auth)
 	} else {
 		err = fmt.Errorf("%v", resp.Status)
 	}
 	return
-}
-
-func unauthorized(w http.ResponseWriter, r *http.Request) {
-	jsonResponse, err := json.Marshal(&Response{"unauthorized"})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "Application/Json")
-	w.WriteHeader(http.StatusUnauthorized)
-	w.Write(jsonResponse)
 }

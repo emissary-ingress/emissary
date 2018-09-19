@@ -18,7 +18,7 @@ clean:
 .PHONY: test
 test:
 	@echo " >>> testing code.."
-	@go test -i ./...
+	@go test cmd/ambassador-oauth/*.go
 
 vendor:
 	@echo " >>> installing dependencies"

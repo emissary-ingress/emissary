@@ -27,11 +27,18 @@ var instance *Discovery
 func New(cfg *config.Config) *Discovery {
 	if instance == nil {
 		instance = &Discovery{
-			url:   fmt.Sprintf("https://%s/.well-known/jwks.json", cfg.Domain),
 			cache: make(map[string]*JWK),
 			mux:   &sync.RWMutex{},
 		}
+		if cfg.Scheme == "" {
+			instance.url = fmt.Sprintf("%s/.well-known/jwks.json", cfg.Domain)
+		} else {
+			instance.url = fmt.Sprintf("%s://%s/.well-known/jwks.json", cfg.Scheme, cfg.Domain)
+		}
 	}
+
+	instance.fetchWebKeys()
+
 	return instance
 }
 
@@ -51,6 +58,7 @@ type JWKSlice struct {
 }
 
 // GetPemCert ..
+// TODO(gsagula): This should return []byte instead of string.
 func (d *Discovery) GetPemCert(kid string) (string, error) {
 	if cert := d.getCert(kid); cert != "" {
 		return cert, nil

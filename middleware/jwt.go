@@ -29,11 +29,12 @@ func (j *JWT) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Handl
 	}
 
 	err := j.mw.CheckJWT(rw, r)
-
-	// If there was an error, do not call next.
-	if err == nil && next != nil {
-		next(rw, r)
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
 	}
+
+	next(rw, r)
 }
 
 func (j *JWT) init() {
@@ -46,7 +47,7 @@ func (j *JWT) init() {
 			}
 
 			// Verifies 'iss' claim
-			if !claims.VerifyIssuer(fmt.Sprintf("https://%s/", j.Config.Domain), false) {
+			if !claims.VerifyIssuer(fmt.Sprintf("%s://%s/", j.Config.Scheme, j.Config.Domain), false) {
 				return token, errors.New("invalid issuer")
 			}
 
