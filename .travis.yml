@@ -5,8 +5,8 @@ language: go
 services:
   - docker
 
-
-global:
+env:
+  global:
     - PATH=~/bin:$PATH
     - DOCKER_REGISTRY=quay.io/datawire
     - DOCKER_REPO=quay.io/datawire/ambassador-pro
