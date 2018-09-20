@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import re
+from urllib.parse import urlparse
 
 import jsonschema
 import semantic_version
@@ -712,7 +713,7 @@ class Config (object):
     def add_intermediate_cluster(self, _source, name, _service, urls,
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None, originate_tls=None,
-                                 grpc=False, host_rewrite=None):
+                                 grpc=False, host_rewrite=None, ssl_context=None):
         if name not in self.envoy_clusters:
             self.logger.debug("CLUSTER %s: new from %s" % (name, _source))
 
@@ -747,6 +748,12 @@ class Config (object):
                     if key.startswith('_'):
                         continue
 
+                    tls_array.append({ 'key': key, 'value': value })
+                    cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
+            elif ssl_context:
+                cluster['tls_context'] = ssl_context
+                tls_array = []
+                for key, value in ssl_context.items():
                     tls_array.append({ 'key': key, 'value': value })
                     cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
 
@@ -1644,10 +1651,19 @@ class Config (object):
 
         if cluster_name not in self.envoy_clusters:
             (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
+            grpc = False
+            ssl_context = None
+            if driver == "lightstep":
+                grpc = True
+                parsed_url = urlparse(url)
+                ssl_context = {
+                    "ca_cert_file": "/etc/ssl/certs/ca-certificates.crt",
+                    "verify_subject_alt_name": [parsed_url.hostname]
+                }
             self.add_intermediate_cluster(first_source, cluster_name,
                                           'exttracing', [url],
                                           type="strict_dns", lb_type="round_robin",
-                                          host_rewrite=host_rewrite)
+                                          host_rewrite=host_rewrite, grpc=grpc, ssl_context=ssl_context)
 
         driver_config['collector_cluster'] = cluster_name
         tracing = SourcedDict(
