@@ -44,15 +44,15 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: auth0-service
-        image: quay.io/datawire/ambassador-pro:0.0.2
+        image: ${IMAGE}
         ports:
         - containerPort: 8080
         env:
           - name: AUTH_CALLBACK_URL
-            value: http://35.230.52.23/callback
+            value: ${AUTH_CALLBACK_URL}
           - name: AUTH_DOMAIN
-            value: rus123.auth0.com
+            value: ${AUTH_DOMAIN}
           - name: AUTH_AUDIENCE
-            value: https://rus123.auth0.com/api/v2/
+            value: ${AUTH_AUDIENCE}
           - name: AUTH_CLIENT_ID
-            value: zTqxrmhGMqZ1J2TjML6QQTsh_kYqJrKv
+            value: ${AUTH_CLIENT_ID}

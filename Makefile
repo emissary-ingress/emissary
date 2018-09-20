@@ -1,3 +1,12 @@
+NAME=ambassador-pro
+
+REGISTRY=quay.io
+REGISTRY_NAMESPACE=datawire
+VERSION=0.0.2
+K8S_DIR=scripts
+
+include k8s.make
+
 .SHELL: /bin/bash
 
 .PHONY: run
@@ -11,7 +20,7 @@ install: tools vendor
 	@go install ./cmd/...
 
 .PHONY: clean
-clean:
+clean: clean-k8s
 	@echo " >>> cleaning compiled objects and binaries"
 	@go clean -i ./...
 
