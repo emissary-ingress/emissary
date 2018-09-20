@@ -43,12 +43,7 @@ $ kubectl apply -f scripts/ambassador.yaml
 
 5. Create an Auth0 application and set your callback to `http://{EXTERNAL IP}/callback`. In the app `Connections`, make sure that `google-oauth2` is enabled.
 
-6. Copy `env.sh.in to env.sh` and fill in the following variables:
-
-   - Set EXTERNAL_IP to your ambassador's external address from step 4.
-   - Set AUTH_DOMAIN to your Auth0 app domain.
-   - Set AUTH_AUDIENCE to your Auth0 app audience.
-   - Set AUTH_CLIENT_ID to your Auth0 app client-id.
+6. Copy `env.sh.in to env.sh` and fill in the variables according to the comments.
 
 7.  Run `make deploy`
 

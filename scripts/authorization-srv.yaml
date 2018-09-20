@@ -44,7 +44,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: auth0-service
-        image: quay.io/datawire/ambassador-pro:0.0.2
+        image: ${IMAGE}
         ports:
         - containerPort: 8080
         env:

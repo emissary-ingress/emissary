@@ -1,4 +1,4 @@
 *.log
 .vscode/
-manifests/
+k8s_build/
 env.sh
