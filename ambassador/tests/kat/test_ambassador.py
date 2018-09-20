@@ -1,14 +1,15 @@
 import json
 import pytest
 
-from typing import Any, Iterable, Optional, Sequence, Type
+from typing import ClassVar, Dict, Sequence, Tuple, Union
 
-from kat.harness import abstract_test, variant, variants, Query, Runner
+from kat.harness import abstract_test, _instantiate, sanitize, variant, variants, Query, Runner
 from kat import manifests
 
-from abstract_tests import AmbassadorTest, MappingTest, OptionTest, ServiceType
+from abstract_tests import AmbassadorBaseTest, AmbassadorMixin, AmbassadorTest, MappingTest, OptionTest, ServiceType, Node, Test
 
-class TLS(AmbassadorTest):
+class TLS(AmbassadorMixin, AmbassadorTest):
+    VARIES_BY = MappingTest
 
     def config(self):
         yield self, """
@@ -34,9 +35,11 @@ config:
 #    def scheme(self) -> str:
 #        return "http"
 
-class Plain(AmbassadorTest):
 
-    def config(self):
+class Plain(AmbassadorMixin, AmbassadorTest):
+    VARIES_BY = MappingTest
+
+    def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
 apiVersion: ambassador/v0
@@ -47,6 +50,7 @@ config: {}
 
     def scheme(self) -> str:
         return "http"
+
 
 # XXX: should put this somewhere better
 def unique(variants):
@@ -88,8 +92,10 @@ service: http://{self.target.path.k8s}
 
 class AddRequestHeaders(OptionTest):
 
-    VALUES = ({"foo": "bar"},
-              {"moo": "arf"})
+    VALUES: ClassVar[Sequence[Dict[str, str]]] = (
+        { "foo": "bar" },
+        { "moo": "arf" }
+    )
 
     def config(self):
         yield "add_request_headers: %s" % json.dumps(self.value)
@@ -185,4 +191,83 @@ weight: {self.weight}
         main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
         assert abs(self.weight - canary) < 25, (self.weight, canary)
 
-t = Runner(AmbassadorTest)
+
+class AmbassadorIDTest (Test):
+
+    @classmethod
+    def variants(cls):
+        yield variant(variants(AmbassadorIDInnerTest))
+
+    def config(self):
+        if False: yield
+
+    def manifests(self):
+        m = self.format(manifests.BACKEND)
+        print("AmbassadorIDTest: %s" % m)
+        return m
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
+
+class AmbassadorIDInnerTest (AmbassadorMixin, AmbassadorBaseTest):
+    def config(self) -> Union[ str, Tuple[ Node, str ] ]:
+        yield self, """
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config: {}
+"""
+
+    # # You MUST define scheme in order for this class not to be considered abstract.
+    def scheme(self) -> str:
+        return "http"
+
+    @classmethod
+    def variants(cls):
+        c = 0
+        for v in variants(AmbassadorIDOptions):
+            yield variant(v, name=str(c))
+            c += 1
+
+    def __init__(self, idoptions: 'AmbassadorIDOptions'):
+        super().__init__(mappings=(), ambassador_id=idoptions.value)
+
+    #     ambid = idoptions.value
+    #     print("AmbassadorIDInnerTest ambid %s" % ambid)
+    #
+    #     self.plain = Plain(mappings=(), ambassador_id=ambid)
+    #     self.plain.name = "{self.name}-%s" % sanitize(ambid)
+    #
+    #     self.config = self.plain.config
+    #     self.manifests = self.plain.manifests
+    #     self.requirements = self.plain.requirements
+
+
+class AmbassadorIDOptions (Test):
+
+    @classmethod
+    def variants(cls):
+        for val in [
+            "id_test_one",
+            [ "id_test_one", "id_test_two" ]
+        ]:
+            yield variant(val, name=sanitize(val))
+
+    def __init__(self, value = None):
+        self.value = value
+
+    def check(self):
+        print("%s CHECK HO" % self.name)
+        assert False, "kaboom"
+
+
+# pytest will find this because Runner is a toplevel callable object in a file
+# that pytest is willing to look inside.
+#
+# Also note:
+# - Runner(cls) will look for variants of _every subclass_ of cls.
+# - Any class you pass to Runner needs to be standalone (it must have its
+#   own manifests and be able to set up its own world).
+main = Runner(AmbassadorTest, AmbassadorIDTest)

@@ -3,12 +3,39 @@ import os
 import shutil
 
 from abc import abstractmethod
-from typing import Any, Iterable, Optional, Sequence, Type
+from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Type
+from typing import cast as typecast
 
-from kat.harness import abstract_test, sanitize, variant, variants, Node, Test
+from kat.harness import abstract_test, sanitize, variant, variants, Name, Node, Test
 from kat import manifests
 
 AMBASSADOR_LOCAL = """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {self.path.k8s}
+spec:
+  type: NodePort
+  ports:
+   - port: 80
+  selector:
+    service: {self.path.k8s}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {self.path.k8s}-admin
+  name: {self.path.k8s}-admin
+spec:
+  type: NodePort
+  ports:
+  - name: {self.path.k8s}-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: {self.path.k8s}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -65,19 +92,35 @@ def run(*args, **kwargs):
 
 DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
 
-@abstract_test
-class AmbassadorTest(Test):
 
-    OFFSET = 0
+class AmbassadorMixin:
+    """
+    AmbassadorMixin is a way for any test to decide that it should run an
+    Ambassador.
+    """
+
+    OFFSET: ClassVar[int] = 0
+    VARIES_BY: ClassVar[Optional[Type]] = None
+    IMAGE_BUILT: ClassVar[bool] = False
+
+    _index: Optional[int] = None
+    _ambassador_id: Optional[str] = None
+    name: Name
+    path: Name
 
     @classmethod
-    def variants(cls):
-        yield variant(variants(MappingTest))
+    def variants(cls) -> Generator[variant, None, None]:
+        if not cls.VARIES_BY:
+            yield
+        else:
+            yield variant(variants(cls.VARIES_BY))
 
-    def __init__(self, mappings = ()):
-        self.mappings = list(mappings)
-        self.index = AmbassadorTest.OFFSET
-        AmbassadorTest.OFFSET += 1
+    # def __init__(self, mappings: Tuple['MappingTest'] = (), ambassador_id: Optional[str] = None):
+    #     self.mappings = list(mappings)
+    #     self.index = AmbassadorTest.OFFSET
+    #     self._ambassador_id = ambassador_id
+    #
+    #     AmbassadorTest.OFFSET += 1
 
     def manifests(self) -> str:
         if DEV:
@@ -85,7 +128,26 @@ class AmbassadorTest(Test):
         else:
             return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"])
 
-    IMAGE_BUILT = False
+    # Will tear this out of the harness shortly
+    @property
+    def ambassador_id(self) -> str:
+        if self._ambassador_id is None:
+            return self.name.k8s
+        else:
+            return typecast(str, self._ambassador_id)
+
+    @ambassador_id.setter
+    def ambassador_id(self, val: str) -> None:
+        self._ambassador_id = val
+
+    @property
+    def index(self) -> int:
+        if self._index is None:
+            # lock here?
+            self._index = AmbassadorMixin.OFFSET
+            AmbassadorMixin.OFFSET += 1
+
+        return typecast(int, self._index)
 
     def pre_query(self):
         if not DEV: return
@@ -95,8 +157,8 @@ class AmbassadorTest(Test):
 
         image = os.environ["AMBASSADOR_DOCKER_IMAGE"]
 
-        if not AmbassadorTest.IMAGE_BUILT:
-            AmbassadorTest.IMAGE_BUILT = True
+        if not AmbassadorMixin.IMAGE_BUILT:
+            AmbassadorMixin.IMAGE_BUILT = True
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             print("Starting docker build...", end="")
             sys.stdout.flush()
@@ -120,7 +182,7 @@ class AmbassadorTest(Test):
         secret = yaml.load(content)
         data = secret['data']
         # dir = tempfile.mkdtemp(prefix=self.path.k8s, suffix="secret")
-        dir = "/tmp/%s-screwoff-%s" % (self.path.k8s, 'secret')
+        dir = "/tmp/%s-ambassadormixin-%s" % (self.path.k8s, 'secret')
 
         shutil.rmtree(dir, ignore_errors=True)
         os.mkdir(dir, 0o777)
@@ -161,6 +223,32 @@ class AmbassadorTest(Test):
         if not DEV:
             yield ("pod", "%s" % self.name.k8s)
 
+
+@abstract_test
+class AmbassadorBaseTest(Test):
+
+    mappings: List['MappingTest']
+
+    # @abstractmethod
+    # @classmethod
+    # def variants(cls) -> Generator[variant, None, None]:
+    #     pass
+
+    def __init__(self, mappings: Tuple['MappingTest'] = (), ambassador_id: Optional[str] = None):
+        self.mappings = list(mappings)
+
+        if ambassador_id:
+            self.ambassador_id = ambassador_id
+
+    @abstractmethod
+    def scheme(self) -> str:
+        pass
+
+
+@abstract_test
+class AmbassadorTest(AmbassadorBaseTest):
+    pass
+
 @abstract_test
 class ServiceType(Node):
 
@@ -192,7 +280,7 @@ class MappingTest(Test):
 @abstract_test
 class OptionTest(Test):
 
-    VALUES: Any = None
+    VALUES: ClassVar[Any] = None
 
     @classmethod
     def variants(cls):
