@@ -95,9 +95,10 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		c.Logger.Debug("setting %s cookie", AccessTokenCookie)
 
 		http.SetCookie(rw, &http.Cookie{
-			Name:    AccessTokenCookie,
-			Value:   tokenRES.AccessToken,
-			Expires: time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second),
+			Name:     AccessTokenCookie,
+			Value:    tokenRES.AccessToken,
+			HttpOnly: true,
+			Expires:  time.Now().Add(time.Duration(tokenRES.ExpiresIn) * time.Second),
 		})
 
 		c.Logger.Debugf("redirecting to path: %s", redirectPath)

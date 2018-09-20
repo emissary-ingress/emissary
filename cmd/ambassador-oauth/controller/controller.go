@@ -106,7 +106,6 @@ func (lw LW) Watch(options v1.ListOptions) (watch.Interface, error) {
 	return lw.resource.Watch(options)
 }
 
-// Controller TODO(gsagula): comment
 func controller(kubeconfig string, reconciler func([]map[string]interface{})) {
 	var config *rest.Config
 	var err error
