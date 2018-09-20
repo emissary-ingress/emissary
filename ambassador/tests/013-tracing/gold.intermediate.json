@@ -1,0 +1,236 @@
+{
+    "envoy_config": {
+        "admin": [
+            {
+                "_source": "--internal--",
+                "admin_port": 8001
+            }
+        ],
+        "clusters": [
+            {
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_service": "127.0.0.1:8877",
+                "_source": "--internal--",
+                "lb_type": "round_robin",
+                "name": "cluster_127_0_0_1_8877",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://127.0.0.1:8877"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "tracing-service.yaml.1"
+                ],
+                "_service": "exttracing",
+                "_source": "tracing-service.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_ext_tracing",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://example-tracing:5000"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_service": "qotm",
+                "_source": "mapping-qotm.yaml.1",
+                "lb_type": "round_robin",
+                "name": "cluster_qotm",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://qotm:80"
+                ]
+            }
+        ],
+        "filters": [
+            {
+                "_source": "--internal--",
+                "config": {},
+                "name": "cors"
+            },
+            {
+                "_source": "--internal--",
+                "config": {
+                    "start_child_span": true
+                },
+                "name": "router",
+                "type": "decoder"
+            }
+        ],
+        "listeners": [
+            {
+                "_source": "--internal--",
+                "require_tls": false,
+                "service_port": 80,
+                "use_proxy_proto": false
+            }
+        ],
+        "routes": [
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
+                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready"
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
+                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive"
+            },
+            {
+                "__saved": [
+                    0,
+                    6,
+                    0,
+                    "/qotm/",
+                    "GET"
+                ],
+                "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-qotm.yaml.1"
+                ],
+                "_source": "mapping-qotm.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_qotm",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/qotm/",
+                "prefix_rewrite": "/"
+            },
+            {
+                "__saved": [
+                    0,
+                    15,
+                    0,
+                    "/ambassador/v0/",
+                    "GET"
+                ],
+                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "--internal--"
+                ],
+                "_source": "--internal--",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/",
+                "prefix_rewrite": "/ambassador/v0/"
+            }
+        ],
+        "tracing": [
+            {
+                "_source": "tracing-service.yaml.1",
+                "cluster_name": "cluster_ext_tracing",
+                "config": {
+                    "collector_cluster": "cluster_ext_tracing"
+                },
+                "driver": "zipkin",
+                "tag_headers": [
+                    ":authority",
+                    ":path"
+                ]
+            }
+        ]
+    },
+    "errors": {},
+    "source_map": {
+        "--internal--": {
+            "--internal--": true
+        },
+        "mapping-qotm.yaml": {
+            "mapping-qotm.yaml.1": true
+        },
+        "tracing-service.yaml": {
+            "tracing-service.yaml.1": true
+        }
+    },
+    "sources": {
+        "--diagnostics--": {
+            "_source": "--diagnostics--",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "filename": "--diagnostics--",
+            "index": 0,
+            "kind": "diagnostics",
+            "name": "Ambassador Diagnostics",
+            "version": "v0"
+        },
+        "--internal--": {
+            "_source": "--internal--",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "filename": "--internal--",
+            "index": 0,
+            "kind": "Internal",
+            "name": "Ambassador Internals",
+            "version": "v0"
+        },
+        "mapping-qotm.yaml.1": {
+            "_source": "mapping-qotm.yaml",
+            "filename": "mapping-qotm.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "qotm_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_mapping\nprefix: /qotm/\nservice: qotm\n"
+        },
+        "tracing-service.yaml.1": {
+            "_source": "tracing-service.yaml",
+            "filename": "tracing-service.yaml",
+            "index": 1,
+            "kind": "TracingService",
+            "name": "tracing",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing:5000\ntag_headers:\n- :authority\n- :path\n"
+        }
+    }
+}

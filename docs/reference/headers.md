@@ -30,7 +30,7 @@ will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has 
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  qotm_mapping
+name:  qotm_mode_mapping
 prefix: /qotm/
 headers:
   x-qotm-mode: true
@@ -38,7 +38,7 @@ service: qotm-mode
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  qotm_mapping
+name:  qotm_regular_mapping
 prefix: /qotm/
 service: qotm-regular
 ```

@@ -22,35 +22,82 @@ That will build an Ambassador Docker image for you but not push it anywhere. To 
 Branching
 ---------
 
-1. `master` is the branch from which Ambassador releases are cut. There should be no other activity on `master`.
+* The current release of Ambassador lives on `stable`.
 
-2. **All development must be on branches cut from `master`.** When you have things working and tested, submit a pull request back to `master`.
-   - There is a special type of branch for e.g. minor doc changes called `nobuild`. Any branch that matches `^nobuild.*` skips all CI activities for that branch.
-   
-3. Once your branch is at a point where it's ready for review and testing, open a GitHub PR against `master`.
+* Development on the next upcoming release of Ambassador happens on `master` (which is the default branch when you clone Ambassador).
+
+### Making Code Changes
+
+1. **All development must be on branches cut from `master`**. 
+   - The name of the branch isn't all that relevant, except:
+   - A branch whose name starts with `nobuild.` will skip CI activities. This is intended for e.g. minor doc changes.
+
+2. If your development takes any significant time, **merge master back into your branch regularly**.
+   - Think "every morning" and "right before submitting a pull request."
+
+3. When you have things working and tested, **submit a pull request back to `master`**.
+   - Make sure you merge `master` _into_ your branch right before submitting the PR!
    - The PR will trigger CI to perform a build and run tests.
    - Tests **must** be passing for the PR to be merged.
 
 4. When all is well, maintainers will merge the PR into `master`.
 
-5. Releases are driven by the maintainers applying tags to `master`.
+5. Maintainers will PR from `master` into `stable` for releases.
 
-Documentation Changes
----------------------
+### Making Documentation Changes
 
-Note that documentation changes _still follow the PR process_. If you're making minor changes (fixing typos, for example) it's OK to use a `nobuild` branch as above. If you're doing significant changes, you might want to allow CI to run by using a branch name `doc/major-doc-changes` or the like.
+1. Documentation changes happen on branches cut from **`stable`**, not `master`.
+
+2. It's OK for minor doc changes (fixing typos, etc) to use a `nobuild.` branch. If you're doing significant changes, let CI run so you can preview the docs -- use a branch name like `doc/major-doc-changes` or the like.
+
+3. **If you have a doc change open when we do a release, it's your job to merge from `stable` into your doc branch.** You should avoid this.
+
+4. When you have things edited as you like them, **submit a PR back to `stable`**.
+
+5. Maintainers (code or doc) will merge the PR to `stable`, then merge the changes from `stable` back into `master`.
+
+Developer Quickstart/Inner Loop
+-------------------------------
+
+### Quickstart:
+
+1. git clone ...
+2. From git root type `make shell`
+3. Run `py.test -k tests_i_care_about`
+4. Edit code.
+5. Go back to 3.
+
+### Details:
+
+Note that `make shell` will do a bunch of setup the first time it
+runs, but subsequent runs should be instantaneous.
+
+You can create as many dev shells as you want. They will all share the
+same kubernaut cluster and teleproxy session behind the scenes.
+
+The first time you run the test_ambassador suite it will apply a bunch
+of yaml to kubernaut cluster used by your dev session. Be patient,
+this will be much faster the second time.
+
+If you want to release the kubernaut cluster and kill teleproxy, then
+run `make clean-test`. This will happen automatically when you run
+`make clean`.
+
+If you change networks and your dns configuration changes, you will
+need to restart teleproxy. You can do this with the `make
+teleproxy-restart` target.
 
 Unit Tests
 ----------
 
-Unit tests for Ambassador are run on every build. **You are strongly encouraged to add tests when you add features, and you should never ever commit code with failing unit tests.** 
+Unit tests for Ambassador are run on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.** 
 
 For more information on the unit tests, see [their README](ambassador/tests/README.md).
 
 End-to-End Tests
 ----------------
 
-Ambassador's end-to-end tests are run by CI for pull requests, release candidates, and releases: we will not release an Ambassador for which the end-to-end tests are failing. **Again, you are strongly encouraged to add end-to-end test coverage for features you add.** 
+Ambassador's end-to-end tests are run by CI for pull requests, release candidates, and releases: we will not release an Ambassador for which the end-to-end tests are failing. **Again, you will be asked to add end-to-end test coverage for features you add.** 
 
 For more information on the end-to-end tests, see [their README](end-to-end/README.md).
 

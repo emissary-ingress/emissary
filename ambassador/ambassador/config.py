@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import re
+from urllib.parse import urlparse
 
 import jsonschema
 import semantic_version
@@ -29,7 +30,7 @@ from pkg_resources import Requirement, resource_filename
 
 from jinja2 import Environment, FileSystemLoader
 
-from .utils import RichStatus, SourcedDict
+from .utils import RichStatus, SourcedDict, read_cert_secret, save_cert, TLSPaths, kube_v1, check_cert_file
 from .mapping import Mapping
 
 from scout import Scout
@@ -235,6 +236,7 @@ class Config (object):
 
         self.schema_dir_path = schema_dir_path
         self.template_dir_path = template_dir_path
+        self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
         self.logger = logging.getLogger("ambassador.config")
 
@@ -313,12 +315,12 @@ class Config (object):
             "server": {},
             "client": {},
         }
-        if os.path.isfile("/etc/certs/tls.crt"):
-            self.default_tls_config["server"]["cert_chain_file"] = "/etc/certs/tls.crt"
-        if os.path.isfile("/etc/certs/tls.key"):
-            self.default_tls_config["server"]["private_key_file"] = "/etc/certs/tls.key"
-        if os.path.isfile("/etc/cacert/tls.crt"):
-            self.default_tls_config["client"]["cacert_chain_file"] = "/etc/cacert/tls.crt"
+        if os.path.isfile(TLSPaths.mount_tls_crt.value):
+            self.default_tls_config["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
+        if os.path.isfile(TLSPaths.mount_tls_key.value):
+            self.default_tls_config["server"]["private_key_file"] = TLSPaths.mount_tls_key.value
+        if os.path.isfile(TLSPaths.client_mount_crt.value):
+            self.default_tls_config["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         self.tls_config = None
 
@@ -444,6 +446,11 @@ class Config (object):
             else:
                 # No pragma involved here; just default to the filename.
                 self.source = self.filename
+
+            # Is the object empty?
+            if obj == None :
+                self.logger.debug("Annotation has empty config")
+                return
 
             # Is an ambassador_id present in this object?
             allowed_ids = obj.get('ambassador_id', 'default')
@@ -681,6 +688,10 @@ class Config (object):
         return self.safe_store(source_key, "ratelimit_configs", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
 
+    def handle_tracingservice(self, source_key, obj, obj_name, obj_kind, obj_version):
+        return self.safe_store(source_key, "tracing_configs", obj_name, obj_kind,
+                               SourcedDict(_source=source_key, **obj))
+
     def handle_authservice(self, source_key, obj, obj_name, obj_kind, obj_version):
         return self.safe_store(source_key, "auth_configs", obj_name, obj_kind,
                                SourcedDict(_source=source_key, **obj))
@@ -702,7 +713,7 @@ class Config (object):
     def add_intermediate_cluster(self, _source, name, _service, urls,
                                  type="strict_dns", lb_type="round_robin",
                                  cb_name=None, od_name=None, originate_tls=None,
-                                 grpc=False, host_rewrite=None):
+                                 grpc=False, host_rewrite=None, ssl_context=None):
         if name not in self.envoy_clusters:
             self.logger.debug("CLUSTER %s: new from %s" % (name, _source))
 
@@ -737,6 +748,12 @@ class Config (object):
                     if key.startswith('_'):
                         continue
 
+                    tls_array.append({ 'key': key, 'value': value })
+                    cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
+            elif ssl_context:
+                cluster['tls_context'] = ssl_context
+                tls_array = []
+                for key, value in ssl_context.items():
                     tls_array.append({ 'key': key, 'value': value })
                     cluster['tls_array'] = sorted(tls_array, key=lambda x: x['key'])
 
@@ -1037,6 +1054,13 @@ class Config (object):
         if amod or tmod:
             self.module_config_ambassador("ambassador", amod, tmod)
 
+        router_config = {}
+
+        tracing_configs = self.config.get('tracing_configs', None)
+        self.module_config_tracing(tracing_configs)
+        if 'tracing' in self.envoy_config:
+            router_config['start_child_span'] = True
+
         # !!!! WARNING WARNING WARNING !!!! Filters are actually ORDER-DEPENDENT.
         self.envoy_config['filters'] = []
         # Start with authentication filter
@@ -1053,7 +1077,7 @@ class Config (object):
             self.envoy_config['grpc_services'].append(ratelimit_grpc_service)
         # Then append non-configurable cors and decoder filters
         self.envoy_config['filters'].append(SourcedDict(name="cors", config={}))
-        self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config={}))
+        self.envoy_config['filters'].append(SourcedDict(type="decoder", name="router", config=router_config))
 
         # For mappings, start with empty sets for everything.
         mappings = self.config.get("mappings", {})
@@ -1441,6 +1465,26 @@ class Config (object):
                     # ...and merge in the server-side defaults.
                     tmp_config.update(self.default_tls_config['server'])
                     tmp_config.update(tmod['server'])
+
+                    # Check if secrets are supplied for TLS termination and/or TLS auth
+                    secret = context.get('secret')
+                    if secret is not None:
+                        self.logger.debug("config.server.secret is {}".format(secret))
+                        # If /{etc,ambassador}/certs/tls.crt does not exist, then load the secrets
+                        if check_cert_file(TLSPaths.mount_tls_crt.value):
+                            self.logger.debug("Secret already exists, taking no action for secret {}".format(secret))
+                        elif check_cert_file(TLSPaths.tls_crt.value):
+                            tmp_config['cert_chain_file'] = TLSPaths.tls_crt.value
+                            tmp_config['private_key_file'] = TLSPaths.tls_key.value
+                        else:
+                            (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret, self.namespace)
+                            if server_cert and server_key:
+                                self.logger.debug("saving contents of secret {} to {}".format(
+                                    secret, TLSPaths.cert_dir.value))
+                                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
+                                tmp_config['cert_chain_file'] = TLSPaths.tls_crt.value
+                                tmp_config['private_key_file'] = TLSPaths.tls_key.value
+
                 elif context_name == 'client':
                     # Client-side TLS is enabled.
                     self.logger.debug("TLS client certs enabled!")
@@ -1449,6 +1493,22 @@ class Config (object):
                     # Merge in the client-side defaults.
                     tmp_config.update(self.default_tls_config['client'])
                     tmp_config.update(tmod['client'])
+
+                    secret = context.get('secret')
+                    if secret is not None:
+                        self.logger.debug("config.client.secret is {}".format(secret))
+                        if check_cert_file(TLSPaths.client_mount_crt.value):
+                            self.logger.debug("Secret already exists, taking no action for secret {}".format(secret))
+                        elif check_cert_file(TLSPaths.client_tls_crt.value):
+                            tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+                        else:
+                            (client_cert, _, _) = read_cert_secret(kube_v1(), secret, self.namespace)
+                            if client_cert:
+                                self.logger.debug("saving contents of secret {} to  {}".format(
+                                    secret, TLSPaths.client_cert_dir.value))
+                                save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
+                                tmp_config['cacert_chain_file'] = TLSPaths.client_tls_crt.value
+
                 else:
                     # This is a wholly new thing.
                     self.tls_contexts[context_name] = SourcedDict(
@@ -1479,6 +1539,9 @@ class Config (object):
         if not have_amod_tls and tmod:
             self.tls_config_helper(name, tmod, tmod)
 
+        if amod and ('cors' in amod):
+            self.parse_and_save_default_cors(amod)
+            
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
         for key in [ 'service_port', 'admin_port', 'diag_port',
@@ -1487,6 +1550,33 @@ class Config (object):
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self.set_config_ambassador(amod, key, amod[key])
+
+    def parse_and_save_default_cors(self, amod):
+        cors_default_temp = {'enabled': True}
+        cors = amod['cors']
+        origins = cors.get('origins')
+        if origins is not None:
+            if type(origins) is list:
+                cors_default_temp['allow_origin'] = origins
+            elif type(origins) is str:
+                cors_default_temp['allow_origin'] = origins.split(',')
+            else:
+                print("invalid cors configuration supplied - {}".format(origins))
+                return
+
+        self.save_cors_default_element("max_age", "max_age", cors_default_temp, cors)
+        self.save_cors_default_element("credentials", "allow_credentials", cors_default_temp, cors)
+        self.save_cors_default_element("methods", "allow_methods", cors_default_temp, cors)
+        self.save_cors_default_element("headers", "allow_headers", cors_default_temp, cors)
+        self.save_cors_default_element("exposed_headers", "expose_headers", cors_default_temp, cors)                           
+        self.envoy_config['cors_default'] = cors_default_temp
+
+    def save_cors_default_element(self, cors_key, route_key, cors_dest, cors_source):                    
+        if cors_source.get(cors_key) is not None:
+            if type(cors_source.get(cors_key)) is list:
+                cors_dest[route_key] = ", ".join(cors_source.get(cors_key))
+            else:
+                cors_dest[route_key] = cors_source.get(cors_key)
 
     def module_config_ratelimit(self, ratelimit_config):
         cluster_hosts = None
@@ -1534,6 +1624,56 @@ class Config (object):
             self.envoy_clusters[cluster_name]._mark_referenced_by(source)
 
         return (filter, grpc_service)
+
+    def module_config_tracing(self, tracing_config):
+        cluster_hosts = None
+        driver = None
+        driver_config = None
+        tag_headers = None
+        host_rewrite = None
+        sources = []
+
+        if tracing_config:
+            for config in tracing_config.values():
+                sources.append(config['_source'])
+                cluster_hosts = config.get("service", None)
+                driver = config.get("driver", None)
+                driver_config = config.get("config", {})
+                tag_headers = config.get("tag_headers", [])
+                host_rewrite = config.get("host_rewrite", None)
+
+        if not cluster_hosts or not sources:
+            return
+
+        cluster_name = "cluster_ext_tracing"
+
+        first_source = sources.pop(0)
+
+        if cluster_name not in self.envoy_clusters:
+            (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
+            grpc = False
+            ssl_context = None
+            if driver == "lightstep":
+                grpc = True
+                parsed_url = urlparse(url)
+                ssl_context = {
+                    "ca_cert_file": "/etc/ssl/certs/ca-certificates.crt",
+                    "verify_subject_alt_name": [parsed_url.hostname]
+                }
+            self.add_intermediate_cluster(first_source, cluster_name,
+                                          'exttracing', [url],
+                                          type="strict_dns", lb_type="round_robin",
+                                          host_rewrite=host_rewrite, grpc=grpc, ssl_context=ssl_context)
+
+        driver_config['collector_cluster'] = cluster_name
+        tracing = SourcedDict(
+            _source=first_source,
+            driver=driver,
+            config=driver_config,
+            tag_headers=tag_headers,
+            cluster_name=cluster_name
+        )
+        self.envoy_config['tracing'] = tracing
 
     def auth_helper(self, sources, config, cluster_hosts, module):
         sources.append(module['_source'])
@@ -1712,22 +1852,31 @@ class Config (object):
         configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
                           if key != "routes" }
 
-        # Is extauth active?
-        extauth = None
-        filters = configuration.get('filters', [])
-
-        for filter in filters:
-            if filter['name'] == 'extauth':
-                extauth = filter
-
-                extauth['_service_weight'] = 100.0 / len(extauth['_services'])
+        cluster_to_service_mapping = {
+            "cluster_ext_auth": "AuthService",
+            "cluster_ext_tracing": "TracingService",
+            "cluster_ext_ratelimit": "RateLimitService"
+        }
+        ambassador_services = []
+        for cluster in configuration.get('clusters', []):
+            maps_to_service = cluster_to_service_mapping.get(cluster['name'])
+            if maps_to_service:
+                service_weigth = 100.0 / len(cluster['urls'])
+                for url in cluster['urls']:
+                    ambassador_services.append(SourcedDict(
+                        _from=cluster,
+                        type=maps_to_service,
+                        name=url,
+                        cluster=cluster['name'],
+                        _service_weight=service_weigth
+                    ))
 
         overview = dict(sources=sorted(source_files.values(), key=lambda x: x['filename']),
                         routes=routes,
                         **configuration)
 
-        if extauth:
-            overview['extauth'] = extauth
+        if len(ambassador_services) > 0:
+            overview['ambassador_services'] = ambassador_services
 
         # self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
 

@@ -11,11 +11,3 @@ cors:
   credentials: true
   exposed_headers: X-Custom-Header
   max_age: "86400"
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  cors_all_mapping
-prefix: /cors-all/
-service: cors
-cors:
-  origins: "*"

@@ -35,6 +35,13 @@
                 "path": "/dev/fd/1"
               }
             ],
+            {% if tracing -%}
+            "generate_request_id": true,
+            "tracing": {
+              "operation_name": "egress",
+              "request_headers_for_tags": {{ tracing.tag_headers | tojson }}
+            },
+            {%- endif %}
             "route_config": {
               "virtual_hosts": [
                 {
@@ -46,11 +53,15 @@
                   "routes": [
                     {% for route in routes %}
                     {
-                      "timeout_ms": {{ route.timeout_ms or 3000 }},
+                      "timeout_ms": {{ route.timeout_ms if (route.timeout_ms == 0 or route.timeout_ms) else 3000 }},
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.regex -%}"regex": {{ route.regex | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
-                      {%- if route.cors -%}"cors": {{ route.cors | tojson }},{% endif %}
+                      {%- if route.cors -%}
+                        "cors": {{ route.cors | tojson }},
+                      {% elif cors_default %}
+                        "cors": {{ cors_default | tojson }},
+                      {% endif %}
                       {%- if route.rate_limits -%}"rate_limits": {{ route.rate_limits | tojson }},{% endif %}
                       {%- if route.priority -%}"priority": "{{ route.priority }}",{% endif %}
                       {%- if route.use_websocket -%}"use_websocket": {{ route.use_websocket | tojson }},{% endif %}
@@ -111,6 +122,16 @@
     "address": "tcp://127.0.0.1:{{ admin.admin_port }}",
     "access_log_path": "/tmp/admin_access_log"
   },
+  {% if tracing %}
+  "tracing": {
+    "http": {
+      "driver": {
+        "type": "{{ tracing.driver }}",
+        "config": {{ tracing.config | tojson }}
+      }
+    }
+  },
+  {% endif %}
   "cluster_manager": {
     "clusters": [
       {% for cluster in clusters -%}
@@ -142,7 +163,7 @@
         }{%- endif -%}{%- if cluster.tls_context -%},
         "ssl_context": {
           {% for entry in cluster.tls_array %}
-          "{{ entry.key }}": "{{ entry.value }}"{{ "," if not loop.last }}
+          "{{ entry.key }}": {{ entry.value | tojson }}{{ "," if not loop.last }}
           {% endfor %}
         }{%- endif -%}
       }{{ "," if not loop.last }}

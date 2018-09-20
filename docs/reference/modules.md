@@ -60,6 +60,14 @@ config:
   # `X-FORWARDED-PROTO: https` header set, and redirects all the other
   # requests to HTTPS if this field is set to true.
   # x_forwarded_proto_redirect: false
+
+  # Set default CORS configuration for all mappings in the cluster. See CORS syntax at https://www.getambassador.io/reference/cors.html
+  # cors:
+  #   origins: http://foo.example,http://bar.example
+  #   methods: POST, GET, OPTIONS
+  #   ...
+  #   ...
+
 ```
 
 #### `use_remote_address`

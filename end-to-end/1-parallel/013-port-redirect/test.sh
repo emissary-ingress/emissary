@@ -21,7 +21,7 @@ NAMESPACE="013-port-redirect"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
     ${ROOT}/ambassador-deployment.yaml \
@@ -51,7 +51,7 @@ REDIRECTURL="http://${CLUSTER}:${REDIRECTPORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $ADMINURL/ambassador/v0/diag/"
 
-wait_for_ready "$ADMINURL"
+wait_for_ready "$ADMINURL" ${NAMESPACE}
 
 if ! check_diag "$ADMINURL" 1 "QOTM present"; then
     exit 1

@@ -1,0 +1,4 @@
+MATCH kind Deployment
+MKDICT spec/template/spec/containers/0/env/2
+SET spec/template/spec/containers/0/env/2/name STATSD_ENABLED
+SET spec/template/spec/containers/0/env/2/value true

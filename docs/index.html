@@ -22,7 +22,7 @@
          "operatingSystem": "Kubernetes 1.6 or later"
          "downloadUrl": "https://www.getambassador.io/",
          "author": "Datawire",
-         "version": "0.31",
+         "version": "0.39",
          "offers": {
            "@type": "Offer",
            "priceCurrency": "USD",
@@ -59,7 +59,7 @@
                 </a>
                 <ul class="main-navigation">
                     <li>
-                        <a href="/user-guide/getting-started">Get Started</a>
+                        <a href="/user-guide/install">Get Started</a>
                     </li>
                     <li>
                         <a href="/features">Features</a>
@@ -108,12 +108,12 @@
             </div>
             <div class="text-center text-md text-black">
                 <div class="version-number">
-                    0.35.3
+                    0.39.0
                 </div>
                 <div>
                     <!-- <strong class="font-bold ">Ambassador 0.33 correctly supports <a href="reference/shadowing">shadowing</a></strong> -->
                 </div>
-                <a target="_blank" class="font-light text-black" href="https://blog.getambassador.io/ambassador-0-35-release-7c48c8b1ec94">Read the blog post</a>
+                <a target="_blank" class="font-light text-black" href="https://blog.getambassador.io/ambassador-0-39-released-de7855fb3638">Read the blog post</a>
             </div>
         </section>
         <section id="tabs" class="bg-blue">
@@ -155,7 +155,7 @@
                         <p>
                             Ambassador uses the high performance
                             <a target="_blank" href="https://www.envoyproxy.io">Envoy Proxy</a>, which processes
-                            over 2M requests/second at Lyft. Ambassador runs as a sidecar to Envoy, insuring that you
+                            over 2M requests/second at Lyft. Ambassador runs as a sidecar to Envoy, ensuring that you
                             get raw Envoy performance.
                         </p>
                     </div>
@@ -190,8 +190,40 @@
                                         easy and the fact that I can do that just by creating a service and annotating
                                         it is awesome! Without Ambassador I don’t know how we would have easily made
                                         all the different web services comprising Kubeflow available to users."</p>
-                                    <p><span class="author">Jeremy Lewi, Software Engineer, Google</span></p>
+                                    <p>
+                                        <span class="author">
+                                            Jeremy Lewi, Software Engineer, <a href="https://www.kubeflow.org">Google Kubeflow</a>
+                                        </span>
+                                    </p>
                                 </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="quote">
+                                <img class="logo hidden-xs" src="/images/quote.svg">
+                                <div class="quote-content">
+                                    <p>"Ever since the inception of Kubernetes, we’ve witnessed a community of ideas
+                                        coming together and evolving best practices. Ambassador is one of the building
+                                        blocks we adopted and are proud to be contributing to."</p>
+                                    <p>
+                                        <span class="author">
+                                            Alexandre Gervais, Staff Software Engineer at <a href="https://www.appdirect.com">AppDirect</a>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                             <div class="quote">
+                                    <img class="logo hidden-xs" src="/images/quote.svg">
+                                    <div class="quote-content">
+                                        <p>"Regarding Ambassador, all I hear around our company is pure joy."</p>
+                                        <p>
+                                            <span class="author">
+                                                Carlos Yakimov, Solutions Architect, <a href="https://www.falabella.com">Falabella</a>
+                                            </span>
+                                        </p>
+                                    </div>
                             </div>
                         </div>
                     </div>
@@ -222,7 +254,7 @@ docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VE
                         </li>
                     </ol>
                     <div class="text-center">
-                        <a href="/user-guide/getting-started" id="get-started-btn-bottom" class="btn btn-red">Get Started</a>
+                        <a href="/user-guide/install" id="get-started-btn-bottom" class="btn btn-red">Get Started</a>
                     </div>
                 </div>
             </div>
@@ -257,7 +289,7 @@ docker run -it -p 8080:80 --name=ambassador --rm quay.io/datawire/ambassador:{VE
         <footer class="white-bg">
             <ul class="main-navigation flex-center">
                 <li>
-                    <a href="/user-guide/getting-started">Get Started</a>
+                    <a href="/user-guide/install">Get Started</a>
                 </li>
                 <li>
                     <a href="/features">Features</a>

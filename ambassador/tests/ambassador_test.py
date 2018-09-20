@@ -12,7 +12,7 @@ from shell import shell
 
 from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
 
-VALIDATOR_IMAGE = "datawire/ambassador-envoy-alpine:v1.5.0-116-g7ccb25882"
+VALIDATOR_IMAGE = "quay.io/datawire/ambassador-envoy:v1.7.0-64-g09ba72b1-alpine-stripped"
 
 DIR = os.path.dirname(__file__)
 EXCLUDES = [ "__pycache__" ] 
@@ -124,6 +124,7 @@ def test_config(testname, dirpath, configdir):
                             '/usr/local/bin/envoy',
                                '--base-id', '1',
                                '--mode', 'validate',
+                               '--service-cluster', 'test',
                                '-c', '/etc/ambassador-config/envoy.json' ],
                       verbose=True)
 

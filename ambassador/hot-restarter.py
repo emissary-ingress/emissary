@@ -94,7 +94,7 @@ def sigchld_handler(signum, frame):
       print ("PID={} exited with code={}".format(ret_pid, exit_code))
       if exit_code == 0:
         # Normal exit. We assume this was on purpose.
-        pass
+        print("Child process exited gracefully, everything looks fine.")
       else:
         # Something bad happened. We need to tear everything down so that whoever started the
         # restarter can know about this situation and restart the whole thing.

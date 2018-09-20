@@ -26,7 +26,7 @@
 # and then read DATAWIRE/README.md.
 
 # FROM datawire/ambassador-envoy-alpine-stripped:v1.6.0-446-g100a92e2
-FROM datawire/ambassador-envoy-alpine-stripped:v1.7.0-59-g07c6a004
+FROM quay.io/datawire/ambassador-envoy:v1.7.0-64-g09ba72b1-alpine-stripped
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -41,7 +41,7 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-RUN apk --no-cache add curl python3
+RUN apk --no-cache add curl python3 socat
 
 # Set WORKDIR to /ambassador which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a

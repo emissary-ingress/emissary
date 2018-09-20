@@ -8,13 +8,17 @@
 
 * [Why Ambassador?](about/why-ambassador.md)
 * [Features and Benefits](about/features-and-benefits.md)
-* [Five minute quickstart](about/quickstart.md)
-* [Deploying to Kubernetes](user-guide/getting-started.md)
+* [Installing Ambassador](user-guide/install.md)
+  * [Kubernetes (YAML)](user-guide/getting-started.md)
+  * [Kubernetes (Helm)](user-guide/helm.md)
+  * [Docker Quickstart](about/quickstart.md)
+  * [Docker Compose](user-guide/docker-compose.md)
 
 ## Guides
 
 * [Adding Authentication](user-guide/auth-tutorial.md)
 * [Adding Rate Limiting](user-guide/rate-limiting-tutorial.md)
+* [Adding Tracing](user-guide/tracing-tutorial.md)
 * [Use gRPC with Ambassador](user-guide/grpc.md)
 * [TLS Termination](user-guide/tls-termination.md)
 * [Istio and Ambassador](user-guide/with-istio.md)
@@ -39,6 +43,7 @@
   * [External Services](reference/services/services.md)
     * [Authentication](reference/services/auth-service.md)
     * [Rate Limiting](reference/services/rate-limit-service.md)
+    * [Tracing](reference/services/tracing-service.md)
   * [Advanced configuration topics](reference/advanced.md)
 * [Running Ambassador](reference/running.md)
   * [Diagnostics](reference/diagnostics.md)

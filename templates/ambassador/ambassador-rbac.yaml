@@ -78,7 +78,14 @@ spec:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
-              fieldPath: metadata.namespace          
+              fieldPath: metadata.namespace
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -91,6 +98,4 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
-      - name: statsd
-        image: {{STATSD_DOCKER_IMAGE}}
       restartPolicy: Always

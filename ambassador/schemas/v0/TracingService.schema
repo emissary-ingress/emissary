@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "https://getambassador.io/schemas/tracing.json",
+
+    "type": "object",
+    "properties": {
+        "apiVersion": { "enum": ["ambassador/v0"] },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+        
+        "driver": { "enum": ["lightstep", "zipkin"] },
+        "service": { "type": "string" },
+        "config": {
+            "type": "object",
+            "properties": {
+                "access_token_file": { "type": "string" },
+                "collector_endpoint": { "type": "string" }
+            },
+            "additionalProperties": false
+        },
+        "tag_headers": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+    },
+    "required": [ "apiVersion", "kind", "name", "driver", "service" ],
+    "additionalProperties": false
+}

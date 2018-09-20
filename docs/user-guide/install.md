@@ -1,0 +1,25 @@
+# Installing Ambassador
+
+Ambassador can be installed in a variety of ways. The most common approach to installing Ambassador is directly on Kubernetes with our default, customizable manifest.
+
+## Kubernetes
+
+
+<table>
+<tr>
+<td>
+<a href="getting-started"><img src="/images/kubernetes.png"></a>
+</td>
+<td>
+Ambassador is designed to run in Kubernetes for production. <a href="getting-started">Deploy to Kubernetes via YAML</a>.
+</td>
+</tr>
+</table>
+
+## Other methods
+
+You can also install Ambassador using Helm, Docker, or Docker Compose.
+
+| [![Helm](/images/helm.png)](helm) | [![Docker](/images/docker.png)](/about/quickstart) | [![Docker Compose](/images/docker-compose.png)](docker-compose)
+| --- | --- | --- |
+| Helm is a package manager for Kubernetes. Ambassador comes pre-packaged as a Helm chart. [Deploy to Kubernetes via Helm.](helm) | The Docker install will let you try Ambassador locally in seconds, but is not supported for production. [Try via Docker.](/about/quickstart) | The Docker Compose setup gives you a local development environment (a good alternative to Minikube), but is not suitable for production. [Set up with Docker Compose.](docker-compose)

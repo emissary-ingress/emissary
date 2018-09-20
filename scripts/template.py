@@ -31,13 +31,11 @@ if registry and not registry.endswith("/"):
     registry += "/"
 
 ambassador_registry = os.environ.get('AMBASSADOR_REGISTRY', registry)
-statsd_registry = os.environ.get('STATSD_REGISTRY', registry)
 
 TemplateVars = dict(os.environ)
 
 TemplateVars['DOCKER_REGISTRY'] = registry
 TemplateVars['AMREG'] = ambassador_registry
-TemplateVars['STREG'] = statsd_registry
 # TemplateVars['VERSION'] = os.environ.get('VERSION')
 
 template = sys.stdin.read()

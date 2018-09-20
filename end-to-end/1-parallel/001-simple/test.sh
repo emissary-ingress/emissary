@@ -21,7 +21,7 @@ NAMESPACE="001-simple"
 cd $(dirname $0)
 ROOT=$(cd ../..; pwd)
 source ${ROOT}/utils.sh
-bootstrap ${NAMESPACE} ${ROOT}
+bootstrap --cleanup ${NAMESPACE} ${ROOT}
 
 rm -f adep-tmp.yaml
 
@@ -33,9 +33,13 @@ python ${ROOT}/yfix.py ${ROOT}/fixes/test-dep.yfix \
 
 python ${ROOT}/yfix.py ${ROOT}/fixes/ambassador-not-root.yfix \
     adep-tmp.yaml \
+    adep-tmp-2.yaml
+
+python ${ROOT}/yfix.py ${ROOT}/fixes/enable-statsd.yfix \
+    adep-tmp-2.yaml \
     k8s/ambassador-deployment.yaml
 
-rm -f adep-tmp.yaml
+rm -f adep-tmp*.yaml
 
 kubectl apply -f k8s/rbac.yaml
 
@@ -57,7 +61,9 @@ BASEURL="http://${CLUSTER}:${APORT}"
 echo "Base URL $BASEURL"
 echo "Diag URL $BASEURL/ambassador/v0/diag/"
 
-wait_for_ready "$BASEURL"
+wait_for_ready "$BASEURL" ${NAMESPACE}
+
+sleep 10
 
 if ! check_diag "$BASEURL" 1 "No annotated services"; then
     exit 1
@@ -65,7 +71,7 @@ fi
 
 kubectl apply -f k8s/qotm.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 sleep 10 
 
@@ -81,7 +87,7 @@ fi
 
 kubectl apply -f k8s/authsvc.yaml
 
-wait_for_pods
+wait_for_pods ${NAMESPACE}
 
 wait_for_extauth_running "$BASEURL"
 
