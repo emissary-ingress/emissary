@@ -6,6 +6,9 @@ https://github.com/datawire/ambassador-pro
 
 ## Developer Documentation
 
+### Cloning
+Project should be cloned in `$GOPATH/src/github.com/datawire/ambassador-oauth/`.
+
 ### Installing
 ```
 $ make install

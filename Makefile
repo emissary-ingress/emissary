@@ -27,7 +27,7 @@ clean: clean-k8s
 .PHONY: test
 test:
 	@echo " >>> testing code.."
-	@go test cmd/ambassador-oauth/*.go
+	@go test ../...
 
 vendor:
 	@echo " >>> installing dependencies"

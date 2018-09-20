@@ -38,7 +38,7 @@ func (c *Controller) Watch() {
 	c.Logger.Debug("initializing k8s watcher..")
 	c.Rules.Store(make([]Rule, 0))
 
-	go controller(c.Config.Kubeconfig, func(uns []map[string]interface{}) {
+	go c.controller(c.Config.Kubeconfig, func(uns []map[string]interface{}) {
 		newRules := make([]Rule, 0)
 		for _, un := range uns {
 			spec, ok := un["spec"].(map[string]interface{})
@@ -106,67 +106,69 @@ func (lw LW) Watch(options v1.ListOptions) (watch.Interface, error) {
 	return lw.resource.Watch(options)
 }
 
-func controller(kubeconfig string, reconciler func([]map[string]interface{})) {
+func (c *Controller) controller(kubeconfig string, reconciler func([]map[string]interface{})) {
 	var config *rest.Config
 	var err error
 	if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 		config, err = rest.InClusterConfig()
 		if err != nil {
-			panic(err)
+			c.Logger.Error(err)
 		}
 	} else {
 		if kubeconfig == "" {
 			current, err := user.Current()
 			if err != nil {
-				panic(err)
+				c.Logger.Error(err)
 			}
 			home := current.HomeDir
 			kubeconfig = filepath.Join(home, ".kube/config")
 		}
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			panic(err.Error())
+			c.Logger.Error(err)
 		}
 	}
 
-	dyn, err := dynamic.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	resource := dyn.Resource(schema.GroupVersionResource{
-		Group:    "stable.datawire.io",
-		Version:  "v1beta1",
-		Resource: "policies",
-	})
-
-	var store cache.Store
-
-	reconcile := func() {
-		objs := store.List()
-		uns := make([]map[string]interface{}, len(objs))
-		for idx, obj := range objs {
-			uns[idx] = obj.(*unstructured.Unstructured).UnstructuredContent()
+	if config != nil {
+		dyn, err := dynamic.NewForConfig(config)
+		if err != nil {
+			c.Logger.Error(err)
 		}
-		reconciler(uns)
+
+		resource := dyn.Resource(schema.GroupVersionResource{
+			Group:    "stable.datawire.io",
+			Version:  "v1beta1",
+			Resource: "policies",
+		})
+
+		var store cache.Store
+
+		reconcile := func() {
+			objs := store.List()
+			uns := make([]map[string]interface{}, len(objs))
+			for idx, obj := range objs {
+				uns[idx] = obj.(*unstructured.Unstructured).UnstructuredContent()
+			}
+			reconciler(uns)
+		}
+
+		store, controller := cache.NewInformer(
+			LW{resource},
+			nil,
+			5*time.Minute,
+			cache.ResourceEventHandlerFuncs{
+				AddFunc: func(obj interface{}) {
+					reconcile()
+				},
+				UpdateFunc: func(oldObj, newObj interface{}) {
+					reconcile()
+				},
+				DeleteFunc: func(obj interface{}) {
+					reconcile()
+				},
+			},
+		)
+
+		controller.Run(make(chan struct{}))
 	}
-
-	store, controller := cache.NewInformer(
-		LW{resource},
-		nil,
-		5*time.Minute,
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				reconcile()
-			},
-			UpdateFunc: func(oldObj, newObj interface{}) {
-				reconcile()
-			},
-			DeleteFunc: func(obj interface{}) {
-				reconcile()
-			},
-		},
-	)
-
-	controller.Run(make(chan struct{}))
 }
