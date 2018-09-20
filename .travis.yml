@@ -23,8 +23,4 @@ global:
 
 before_install:
 - docker build . -t quay.io/ambassador-pro/ambassador-pro:$TRAVIS_COMMIT
-
-
-  
-
-
+- docker push quay.io/datawire/ambassador-pro:$TRAVIS_COMMIT
