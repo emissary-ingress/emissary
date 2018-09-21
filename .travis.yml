@@ -13,5 +13,5 @@ before_install:
 jobs:
   include:
   - stage: building
-    script: docker build . -t ${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
-    script: docker push ${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
+      - script: docker build . -t ${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
+      - script: docker push ${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
