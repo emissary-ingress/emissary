@@ -3,7 +3,6 @@
 set -e
 set -u
 
-
 if [ -z "$DOCKER_USERNAME" ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 if [ -z "$DOCKER_PASSWORD" ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 
