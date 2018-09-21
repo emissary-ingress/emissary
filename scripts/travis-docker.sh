@@ -13,6 +13,6 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   docker build . -t "$DOCKER_REGISTRY"/"$DOCKER_REPO":dev
 else
   # Build, test and push.
-  docker build . -t "$DOCKER_REGISTRY"/"$DOCKER_REPO":"$TRAVIS_PULL_REQUEST"
-  docker push "$DOCKER_REGISTRY"/"$DOCKER_REPO":"$TRAVIS_PULL_REQUEST"; 
+  docker build . -t "$DOCKER_REGISTRY"/"$DOCKER_REPO":"pull-$TRAVIS_PULL_REQUEST"
+  docker push "$DOCKER_REGISTRY"/"$DOCKER_REPO":"pull-$TRAVIS_PULL_REQUEST"; 
 fi
