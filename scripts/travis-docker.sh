@@ -8,5 +8,11 @@ if [ -z "$DOCKER_PASSWORD" ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; f
 
 printf "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"
 
-docker build . -t "$DOCKER_REGISTRY"/"$DOCKER_REPO":"$TRAVIS_COMMIT"
-docker push "$DOCKER_REGISTRY"/"$DOCKER_REPO":"$TRAVIS_COMMIT"
+if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  # Build and test.
+  docker build . -t "$DOCKER_REGISTRY"/"$DOCKER_REPO":dev
+else
+  # Build, test and push.
+  docker build . -t "$DOCKER_REGISTRY"/"$DOCKER_REPO":"$TRAVIS_PULL_REQUEST"
+  docker push "$DOCKER_REGISTRY"/"$DOCKER_REPO":"$TRAVIS_PULL_REQUEST"; 
+fi
