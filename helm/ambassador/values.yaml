@@ -6,7 +6,7 @@ ambassador:
   id: default
 
 namespace:
-  single:
+  single: false
   # name: default
 
 replicaCount: 1
