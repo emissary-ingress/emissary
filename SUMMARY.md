@@ -22,7 +22,7 @@
 * [Microservices API Gateways](about/microservices-api-gateways.md)
 * Using Ambassador in your organization
   * [Testing with an API Gateway](https://blog.getambassador.io/next-level-testing-with-an-api-gateway-and-continuous-delivery-9cbb9c4564b5)
-  * [Using an API Gateway to facilitiate a transition from Monolith to Microservices](https://blog.getambassador.io/using-api-gateways-to-facilitate-your-transition-from-monolith-to-microservices-5e630da24717)
+  * [Transitioning from Monolith to Microservices](https://blog.getambassador.io/using-api-gateways-to-facilitate-your-transition-from-monolith-to-microservices-5e630da24717)
 
 ## Guides
 
