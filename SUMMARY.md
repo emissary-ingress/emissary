@@ -20,9 +20,7 @@
 * [Ambassador Architecture](concepts/architecture.md)
   * [Why Ambassador uses Envoy Proxy](https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef)
 * [Microservices API Gateways](about/microservices-api-gateways.md)
-* Using Ambassador in your organization
-  * [Testing with an API Gateway](https://blog.getambassador.io/next-level-testing-with-an-api-gateway-and-continuous-delivery-9cbb9c4564b5)
-  * [Transitioning from Monolith to Microservices](https://blog.getambassador.io/using-api-gateways-to-facilitate-your-transition-from-monolith-to-microservices-5e630da24717)
+* [Using Ambassador in your organization](concepts/using-ambassador-in-org.md)
 
 ## Guides
 
