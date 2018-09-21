@@ -16,17 +16,13 @@
 
 ## Concepts
 
-* Decentralized configuration
-  * Self-service model / developer-led
-* Ambassador Architecture: Performance, Scalability, Availability
-  * Envoy as a Control Plane vs Data Plane*
-  * Why we chose Envoy*
-  * Microservices API Gateways
+* [Decentralized configuration](concepts/developers.md)
+* [Ambassador Architecture](concepts/architecture.md)
+  * [Why Ambassador uses Envoy Proxy](https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef)
+* [Microservices API Gateways](about/microservices-api-gateways.md)
 * Using Ambassador in your organization
-  * GitOps
-  * Testing with an API Gateway* 
-  * Using an API Gateway to facilitiate a transition from Monolith to Microservices
-
+  * [Testing with an API Gateway](https://blog.getambassador.io/next-level-testing-with-an-api-gateway-and-continuous-delivery-9cbb9c4564b5)
+  * [Using an API Gateway to facilitiate a transition from Monolith to Microservices](https://blog.getambassador.io/using-api-gateways-to-facilitate-your-transition-from-monolith-to-microservices-5e630da24717)
 
 ## Guides
 
@@ -64,7 +60,7 @@
   * [Ambassador with AWS](reference/ambassador-with-aws.md)
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
-* [Microservices API Gateways](about/microservices-api-gateways.md)
+
 
 ## Developers
 
