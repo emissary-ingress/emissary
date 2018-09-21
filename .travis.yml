@@ -4,6 +4,8 @@ services:
 - docker
 env:
   global:
+  - DOCKER_REGISTRY=quay.io/datawire
+  - DOCKER_REPO=ambassador-pro
   - secure: Wvi4QIy1EfLYeVMkb/x49jA0MOIqzwuE0FaOcpfmZnn2+Jrw8ZXXUT3ZK6B7ROTE5uYlVyCsHLtgZRpA2Sj1zyPorYfQ05FSh2ULDTm3LW/MvzSb+q83EMQyy8yw+fQsBHoedbm+Ygbw4mVaV1DgK5MvUHBvetQqhkhv8v2dM90xDErXKY75pJaNCX1sZiqWvLyLx89Wq5wCGwwhDgeKz3iPa/uLC7VZgxPNkdNEWDInwzf0xuukYivVOQSgYE8qW6OWSqtdwRHPJbMu8kEh/cDa1nWmIby4XaaV3jgSjmzFWGRYCQeW8P/Hpzk9LvNSMc9gqdiwRCgMJ97OMpYclLIKHpcY0p4KghS3/mAZMtaqirXFWc9yUsQ9ZQ1Raw5iN5eqkci/5bF6auKOvYZ49ufjIXiok2h3djK3/L5bSIDqtWNOsHfOxXp0vxz4k0tqSho+T+6YpOR4y1Z4Vi7Q6b1c1xnWlhOWrqPni4w0oPkYnbh3Pv0jE7PCSZoCQySrRP3Vp/iEeT/yY0++9/RuOn4eIUBvRKezUrge+oRLNOKkaCOZ35CV5RjaQvTODmNIm5Xg0HvDQkyi1weJG+4U4DUE4cTKT5sFtkUuqjOlcnMEYAqXmVA3Z7koGCpSn4tMi428HcRuCOfotd9huHxQRH/tQ0oVFBbQJjHnbqRfd38=
   - secure: l8nQVSKVwYpLZTBoMVYnFGxaIbpb0mYCk+fhz5uJQi+P1MkvbXiFcVLrnWqwC/A7Xc+d3v/QHV6fib5sZXaABPLl+Z+fpFc/Q7eLFVfZBVoGVxupfNsF4co7oUMhH6+yJSYjOZTZoqIosp5qJdfLRGgJZYIJgv0cG00G1BmF1HaehzSgp8AaOqdzg0Lzh0IYiksUKbgvEo1JXW9i++xY5gOeu5GMjPsg2mSM3jGa38SBxNd9ftTr2Sx6XQSKIXa17oZkT5CTo3VZrz0dKSKdjB3m9Yud3gvNo1NqrkdbOaUPZSwUDvCYJxz9ADb51bBm0ahuw+TrkEXMcOhE37YZyUXieBpDgc8puKGkkpPKWtfBCV/2AxKJSfrU6BRW0zK8ne6IQgg1VZVLpVNTmTA4mvuJreqkXe0ACGsqp9sbVFVl3IkteSevyl2cLLWrVNKJlStrIOnyBNTqq2qBdDmYB+8SKfF57YSG+rRXRgw/voB95BcVfG6UrQZnmPdGSDXW80RzLnwq6vTonT8XrbF44QG65Fz77mPrNrYYr3ptr5BRn4MEb6ET9todY+JFEn2DnLntjfEcDSIkBrSB4VGxPnh37Q9qF7BP+cTAKQKoHHpQwNW9DvUII7oLcsEAeueS9ngKCx1qPa6VxkbtRHGSPlUbuQMrEUkplZePGLT/nHU=
 before_install:
@@ -11,6 +13,6 @@ before_install:
 jobs:
   include:
   - stage: building
-    script: docker build . -t ${DOCKER_REPO}:${TRAVIS_COMMIT}
+    script: docker build . -t ${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
   - stage: pushing
-    script: docker push ${DOCKER_REPO}:${TRAVIS_COMMIT}
+    script: docker push ${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
