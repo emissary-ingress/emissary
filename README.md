@@ -32,7 +32,7 @@ $ docker push quay.io/datawire/ambassador-pro:0.x
 
 ## CI & Images
 * CI [repo](https://travis-ci.com/datawire/ambassador-oauth) will build and test on every commit.
-* An docker image will be pushed to [docker registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags) on every pull-request. The images will be tagged with the correspondent PR number.
+* An docker image will be pushed to [docker registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags) on every pull-request. The images will be tagged with the correspondent PR number prefixed with `pull-`.
 
 ## Setup and deployment:
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/app"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/logger"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
@@ -15,12 +16,18 @@ func main() {
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)
+	ct := &controller.Controller{
+		Config: c,
+		Logger: l,
+	}
+	ct.Watch()
 
 	a := app.App{
-		Config:    c,
-		Logger:    l,
-		Secret:    s,
-		Discovery: d,
+		Config:     c,
+		Logger:     l,
+		Secret:     s,
+		Discovery:  d,
+		Controller: ct,
 	}
 
 	// Server

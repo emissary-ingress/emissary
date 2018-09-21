@@ -112,63 +112,61 @@ func (c *Controller) controller(kubeconfig string, reconciler func([]map[string]
 	if os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 		config, err = rest.InClusterConfig()
 		if err != nil {
-			c.Logger.Error(err)
+			c.Logger.Fatal(err)
 		}
 	} else {
 		if kubeconfig == "" {
 			current, err := user.Current()
 			if err != nil {
-				c.Logger.Error(err)
+				c.Logger.Fatal(err)
 			}
 			home := current.HomeDir
 			kubeconfig = filepath.Join(home, ".kube/config")
 		}
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			c.Logger.Error(err)
+			c.Logger.Fatal(err)
 		}
 	}
 
-	if config != nil {
-		dyn, err := dynamic.NewForConfig(config)
-		if err != nil {
-			c.Logger.Error(err)
+	dyn, err := dynamic.NewForConfig(config)
+	if err != nil {
+		c.Logger.Fatal(err)
+	}
+
+	resource := dyn.Resource(schema.GroupVersionResource{
+		Group:    "stable.datawire.io",
+		Version:  "v1beta1",
+		Resource: "policies",
+	})
+
+	var store cache.Store
+
+	reconcile := func() {
+		objs := store.List()
+		uns := make([]map[string]interface{}, len(objs))
+		for idx, obj := range objs {
+			uns[idx] = obj.(*unstructured.Unstructured).UnstructuredContent()
 		}
+		reconciler(uns)
+	}
 
-		resource := dyn.Resource(schema.GroupVersionResource{
-			Group:    "stable.datawire.io",
-			Version:  "v1beta1",
-			Resource: "policies",
-		})
-
-		var store cache.Store
-
-		reconcile := func() {
-			objs := store.List()
-			uns := make([]map[string]interface{}, len(objs))
-			for idx, obj := range objs {
-				uns[idx] = obj.(*unstructured.Unstructured).UnstructuredContent()
-			}
-			reconciler(uns)
-		}
-
-		store, controller := cache.NewInformer(
-			LW{resource},
-			nil,
-			5*time.Minute,
-			cache.ResourceEventHandlerFuncs{
-				AddFunc: func(obj interface{}) {
-					reconcile()
-				},
-				UpdateFunc: func(oldObj, newObj interface{}) {
-					reconcile()
-				},
-				DeleteFunc: func(obj interface{}) {
-					reconcile()
-				},
+	store, controller := cache.NewInformer(
+		LW{resource},
+		nil,
+		5*time.Minute,
+		cache.ResourceEventHandlerFuncs{
+			AddFunc: func(obj interface{}) {
+				reconcile()
 			},
-		)
+			UpdateFunc: func(oldObj, newObj interface{}) {
+				reconcile()
+			},
+			DeleteFunc: func(obj interface{}) {
+				reconcile()
+			},
+		},
+	)
 
-		controller.Run(make(chan struct{}))
-	}
+	controller.Run(make(chan struct{}))
 }
