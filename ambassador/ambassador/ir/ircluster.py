@@ -130,7 +130,7 @@ class IRCluster (IRResource):
             # No scheme, but we have a context.
             originate_tls = True
             name_fields.append('otls')
-            name_fields.append(typecast(str, ctx_name))
+            name_fields.append(ctx.name)
 
         # XXX Should this be checking originate_tls? Why does it do that? 
         if originate_tls and host_rewrite:
