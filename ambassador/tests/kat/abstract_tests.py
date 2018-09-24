@@ -198,7 +198,7 @@ class AmbassadorMixin:
                      "-v", "%s:/var/run/secrets/kubernetes.io/serviceaccount" % dir,
                      "-e", "KUBERNETES_SERVICE_HOST=kubernetes",
                      "-e", "KUBERNETES_SERVICE_PORT=443",
-                     "-e", "AMBASSADOR_ID=%s" % self.path.k8s,
+                     "-e", "AMBASSADOR_ID=%s" % self.ambassador_id,
                      image)
         result.check_returncode()
         self.deadline = time.time() + 3
@@ -276,7 +276,7 @@ class GRPC(ServiceType):
     pass
 
 @abstract_test
-class MappingTest(Test):
+class MappingBaseTest(Test):
 
     target: ServiceType
     options: Sequence['OptionTest']
@@ -284,6 +284,10 @@ class MappingTest(Test):
     def __init__(self, target: ServiceType, options = ()) -> None:
         self.target = target
         self.options = list(options)
+
+@abstract_test
+class MappingTest(MappingBaseTest):
+    pass
 
 @abstract_test
 class OptionTest(Test):

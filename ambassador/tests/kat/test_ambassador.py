@@ -1,12 +1,13 @@
 import json
 import pytest
 
-from typing import ClassVar, Dict, Sequence, Tuple, Union
+from typing import ClassVar, Dict, List, Sequence, Tuple, Union
 
 from kat.harness import abstract_test, _instantiate, sanitize, variant, variants, Query, Runner
 from kat import manifests
 
-from abstract_tests import AmbassadorBaseTest, AmbassadorMixin, AmbassadorTest, MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import AmbassadorBaseTest, AmbassadorMixin, AmbassadorTest, HTTP
+from abstract_tests import MappingBaseTest, MappingTest, OptionTest, ServiceType, Node, Test
 
 class TLS(AmbassadorMixin, AmbassadorTest):
     VARIES_BY = MappingTest
@@ -252,7 +253,7 @@ class AmbassadorIDTest (Test):
 
 
 class AmbassadorIDInnerTest (AmbassadorMixin, AmbassadorBaseTest):
-    def config(self) -> Union[ str, Tuple[ Node, str ] ]:
+    def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
 apiVersion: ambassador/v0
@@ -268,12 +269,16 @@ config: {}
     @classmethod
     def variants(cls):
         c = 0
-        for v in variants(AmbassadorIDOptions):
-            yield variant(v, name=str(c))
+        for v_idopts in variants(AmbassadorIDOptions):
+            yield variant(v_idopts, variants(AmbassadorIDMappings), name=str(c))
             c += 1
 
-    def __init__(self, idoptions: 'AmbassadorIDOptions'):
-        super().__init__(mappings=(), ambassador_id=idoptions.value)
+    def __init__(self, idoptions: 'AmbassadorIDOptions', mappings=List['AmbassadorIDMappings']):
+        print("idoptions %s" % repr(idoptions))
+
+        super().__init__(mappings=mappings, ambassador_id=idoptions.ambassador_runs_as)
+        self.ambassador_id_findme = idoptions.ambassador_id_findme
+        self.ambassador_id_missme = idoptions.ambassador_id_missme
 
     #     ambid = idoptions.value
     #     print("AmbassadorIDInnerTest ambid %s" % ambid)
@@ -285,23 +290,80 @@ config: {}
     #     self.manifests = self.plain.manifests
     #     self.requirements = self.plain.requirements
 
+class AmbassadorIDMappings (Test):
+    CTR: ClassVar[int] = 0
+
+    @classmethod
+    def variants(cls):
+        for prefix in [ 'findme', 'missme' ]:
+            yield variant(prefix, name=prefix)
+
+    def config(self):
+        print("AmbassadorIDMapping trying to add to %s" % self.parent.parent.name)
+        yield self.parent.parent, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.mapping_name}
+prefix: /{self.prefix}/
+rewrite: /{self.prefix}/ 
+service: http://{self.target.name}
+""")
+
+    @property
+    def ambassador_id(self) -> str:
+        return getattr(self.parent, "ambassador_id_%s" % self.prefix)
+
+    def queries(self):
+        yield Query(self.parent.url(self.prefix + "/"))
+
+    def check(self):
+        print("%s: WTFO results %s" % (self.name, self.results))
+
+        for r in self.results:
+            print("%s: result %s" % (self.name, repr(r)))
+
+            if r.backend:
+                assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+
+    def __init__(self, prefix: str):
+        self.prefix = prefix
+        self.mapping_name = "idmapping-%d" % AmbassadorIDMappings.CTR
+
+        # What a crock.
+        self.target = Node()
+        self.target.name = "ambassadoridtest"
+
+        AmbassadorIDMappings.CTR += 1
+
 
 class AmbassadorIDOptions (Test):
 
     @classmethod
     def variants(cls):
         for val in [
-            "id_test_one",
-            [ "id_test_one", "id_test_two" ]
+            {
+                "name": "scalars",
+                "ambassador_runs_as": "id_test_one",
+                "ambassador_id_findme": "id_test_one",
+                "ambassador_id_missme": "id_test_two"
+            },
+            {
+                "name": "arrays",
+                "ambassador_runs_as": "id_test_one",
+                "ambassador_id_findme": [ "id_test_one", "id_test_two" ],
+                "ambassador_id_missme": [ "id_test_two", "id_test_three" ]
+            }
         ]:
-            yield variant(val, name=sanitize(val))
+            yield variant(val, name=sanitize(val["name"]))
 
-    def __init__(self, value = None):
-        self.value = value
+    def __init__(self, idoptions = None):
+        for k, v in idoptions.items():
+            setattr(self, k, v)
 
-    def check(self):
-        print("%s CHECK HO" % self.name)
-        assert False, "kaboom"
+    # def check(self):
+    #     print("%s CHECK HO" % self.name)
+    #     assert False, "kaboom"
 
 
 # pytest will find this because Runner is a toplevel callable object in a file
@@ -311,4 +373,6 @@ class AmbassadorIDOptions (Test):
 # - Runner(cls) will look for variants of _every subclass_ of cls.
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
-main = Runner(AmbassadorTest, AmbassadorIDTest)
+main = Runner(AmbassadorTest
+              # , AmbassadorIDTest
+             )
