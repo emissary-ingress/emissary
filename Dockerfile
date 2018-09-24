@@ -1,17 +1,16 @@
 FROM golang:1.10.3-alpine3.8
 
 # install git
-RUN apk add git openssl && rm /var/cache/apk/*
+RUN apk add make git openssl && rm /var/cache/apk/*
 
 RUN go get -u github.com/golang/dep/...
 
-WORKDIR $GOPATH/src/github.com/datawire/ambassador-oauth 
-COPY Gopkg.toml Gopkg.lock ./
+WORKDIR $GOPATH/src/github.com/datawire/ambassador-oauth
+COPY . ./
 
-RUN dep ensure -vendor-only
-
-COPY . $GOPATH/src/github.com/datawire/ambassador-oauth
-RUN go install ./cmd/...
+RUN make vendor
+RUN make install
+RUN make test
 
 CMD ["ambassador-oauth"]
 

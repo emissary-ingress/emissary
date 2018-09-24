@@ -12,6 +12,7 @@ import (
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/app"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/logger"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
@@ -68,14 +69,20 @@ func NewAPPTestServer(url string) (*httptest.Server, *app.App) {
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)
+	ct := &controller.Controller{
+		Config: c,
+		Logger: l,
+	}
+	ct.Rules.Store(make([]controller.Rule, 0))
 
 	c.Scheme = ""
 
 	app := &app.App{
-		Config:    c,
-		Logger:    l,
-		Secret:    s,
-		Discovery: d,
+		Config:     c,
+		Logger:     l,
+		Secret:     s,
+		Discovery:  d,
+		Controller: ct,
 	}
 
 	return httptest.NewServer(app.Handler()), app

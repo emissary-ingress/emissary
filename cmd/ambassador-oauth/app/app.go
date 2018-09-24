@@ -44,18 +44,11 @@ func (a *App) Handler() http.Handler {
 		a.Logger.Fatal("certificate util object cannot be nil")
 	}
 
-	// K8s controller
-	ctrl := &controller.Controller{
-		Logger: a.Logger,
-		Config: a.Config,
-	}
-	ctrl.Watch()
-
 	// Handlers
 	authz := handler.Authorize{
 		Config: a.Config,
 		Logger: a.Logger,
-		Ctrl:   ctrl,
+		Ctrl:   a.Controller,
 		Secret: a.Secret,
 	}
 
