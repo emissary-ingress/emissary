@@ -20,6 +20,14 @@ If needed, you can get JSON output from the diagnostic service, instead of HTML:
 
 `curl http://localhost:8877/ambassador/v0/diag/?json=true`
 
+## Health status
+
+Ambassador displays the health of a service in the diagnostics UI. Health is computed as successful requests / total requests and expressed as a percentage. The total requests comes from nvoy `upstream_rq_pending_total` stat. Successful requests is calculated by substracting `upstream_rq_4xx` and `upstream_rq_5xx` from the total. 
+
+Red is used when the success rate ranges from 0% - 70%.
+Yellow is used when the success rate ranges from 70% - 90%.
+Green is used when the success rate is > 90%.
+
 ## Troubleshooting
 
 If the diagnostics service does not provide sufficient information, Kubernetes and Envoy provide additional debugging information.

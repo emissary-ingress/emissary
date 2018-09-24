@@ -82,7 +82,7 @@ metadata:
 type: kubernetes.io/service-account-token
 """
 
-import base64, subprocess, sys, tempfile, time, yaml
+import base64, pytest, subprocess, sys, tempfile, time, yaml
 
 def run(*args, **kwargs):
     for arg in "stdout", "stderr":
@@ -167,7 +167,8 @@ class AmbassadorMixin:
                 result.check_returncode()
                 print("done.")
             except Exception as e:
-                raise RuntimeError(result.stdout + b"\n" + result.stderr) from e
+                print((result.stdout + b"\n" + result.stderr).decode("utf8"))
+                pytest.exit("container failed to build")
 
         fname = "/tmp/k8s-%s.yaml" % self.path.k8s
         if os.path.exists(fname):
@@ -207,6 +208,13 @@ class AmbassadorMixin:
             now = time.time()
             if now < self.deadline:
                 time.sleep(self.deadline - now)
+            result = run("docker", "ps", "-qf", "name=%s" % self.path.k8s)
+            result.check_returncode()
+            if not result.stdout.strip():
+                result = run("docker", "logs", self.path.k8s)
+                result.check_returncode()
+                print(result.stdout.decode("utf8"), end="")
+                pytest.exit("container failed to start")
         return ()
 
     @abstractmethod

@@ -2,6 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+ambassador:
+  id: default
+
+namespace:
+  single: false
+  # name: default
+
 replicaCount: 1
 
 image:
@@ -13,8 +20,8 @@ service:
   enableHttps: true
 
   targetPorts:
-    http: http
-    https: https
+    http: 80
+    https: 443
 
   type: LoadBalancer
   port: 80

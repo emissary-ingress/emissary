@@ -147,6 +147,47 @@ class Rewrite(OptionTest):
         for r in self.parent.results:
             assert r.backend.request.url.path == self.value
 
+class TLSOrigination(MappingTest):
+
+    IMPLICIT = """
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: https://{self.target.path.k8s}
+    """
+
+    EXPLICIT = """
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: {self.target.path.k8s}
+tls: true
+    """
+
+    @classmethod
+    def variants(cls):
+        for v in variants(ServiceType):
+            for name, dfn in ("IMPLICIT", cls.IMPLICIT), ("EXPLICIT", cls.EXPLICIT):
+                yield variant(v, dfn, name="{self.target.name}-%s" % name)
+
+    def __init__(self, target, definition):
+        self.target = target
+        self.definition = definition
+
+    def config(self):
+        yield self.target, self.format(self.definition)
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"), xfail="tls origination is not working yet")
+
+    def check(self):
+        for r in self.results:
+            assert r.backend.request.tls.enabled
+
 class CanaryMapping(MappingTest):
 
     @classmethod
