@@ -67,7 +67,18 @@ tolerations: []
 affinity: {}
 
 exporter:
-  image: datawire/prom-statsd-exporter:0.6.0
+  image: prom/statsd-exporter:v0.6.0
+  # You can configure the statsd exporter to modify the behavior of mappings and other features.
+  # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration
+  # Uncomment the following line if you wish to specify a custom configuration:
+  # configuration: |
+  #   ---
+  #   mappings:
+  #   - match: 'envoy.cluster.*.upstream_cx_connect_ms'
+  #     name: "envoy_cluster_upstream_cx_connect_time"
+  #     timer_type: 'histogram'
+  #     labels:
+  #       cluster_name: "$1"
 
 timing:
   # sets the minimum number of seconds between Envoy restarts

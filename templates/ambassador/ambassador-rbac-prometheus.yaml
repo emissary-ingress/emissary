@@ -50,6 +50,13 @@ subjects:
   name: ambassador
   namespace: default
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ambassador-config
+data:
+  exporterConfiguration: ''
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -64,6 +71,13 @@ spec:
         service: ambassador
     spec:
       serviceAccountName: ambassador
+      volumes:
+      - name: stats-exporter-mapping-config
+        configMap:
+          name: ambassador-config
+          items:
+          - key: exporterConfiguration
+            path: mapping-config.yaml
       containers:
       - name: ambassador
         image: {{AMBASSADOR_DOCKER_IMAGE}}
@@ -99,5 +113,15 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: statsd-sink
-        image: datawire/prom-statsd-exporter:0.6.0
+        image: prom/statsd-exporter:v0.6.0
+        ports:
+        - name: metrics
+          containerPort: 9102
+        - name: listener
+          containerPort: 8125
+        args: ["-statsd.listen-address=:8125", "-statsd.mapping-config=/statsd-exporter/mapping-config.yaml"]
+        volumeMounts:
+        - name: stats-exporter-mapping-config
+          mountPath: /statsd-exporter/
+          readOnly: true
       restartPolicy: Always
