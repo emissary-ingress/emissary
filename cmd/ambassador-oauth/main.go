@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
+
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/app"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
@@ -16,6 +18,8 @@ func main() {
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)
+	cl := client.NewRestClient(c.BaseURL)
+
 	ct := &controller.Controller{
 		Config: c,
 		Logger: l,
@@ -28,6 +32,7 @@ func main() {
 		Secret:     s,
 		Discovery:  d,
 		Controller: ct,
+		Rest:       cl,
 	}
 
 	// Server

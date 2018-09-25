@@ -7,16 +7,17 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/app"
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/logger"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
-	"github.com/datawire/ambassador-oauth/middleware"
 	"github.com/datawire/ambassador-oauth/util"
 )
 
@@ -30,7 +31,7 @@ func NewIDPTestServer() *httptest.Server {
 		// }
 
 		if r.URL.Path == "/oauth/token" {
-			authREQ := &middleware.AuthorizationRequest{}
+			authREQ := &client.AuthorizationRequest{}
 			body, err := ioutil.ReadAll(r.Body)
 			r.Body.Close()
 			if err != nil {
@@ -42,7 +43,7 @@ func NewIDPTestServer() *httptest.Server {
 			}
 
 			if authREQ.Code == "authorize" {
-				util.ToJSONResponse(w, http.StatusOK, &middleware.TokenResponse{
+				util.ToJSONResponse(w, http.StatusOK, &client.AuthorizationResponse{
 					AccessToken:  "mocked_token_123",
 					IDToken:      "mocked_id_token_123",
 					TokenType:    "Bearer",
@@ -58,24 +59,30 @@ func NewIDPTestServer() *httptest.Server {
 	return httptest.NewServer(h)
 }
 
-// NewIDPTestServer returns an instance of the authorization server.
-func NewAPPTestServer(url string) (*httptest.Server, *app.App) {
+// NewAPPTestServer returns an instance of the authorization server.
+func NewAPPTestServer(idpURL string) (*httptest.Server, *app.App) {
+	u, err := url.Parse(idpURL)
+	if err != nil {
+		panic(err)
+	}
+
 	os.Setenv("AUTH_AUDIENCE", "friends")
-	os.Setenv("AUTH_DOMAIN", url)
-	os.Setenv("AUTH_CALLBACK_URL", fmt.Sprintf("%s/callback", url))
+	os.Setenv("AUTH_DOMAIN", fmt.Sprintf("%s:%s", u.Hostname(), u.Port()))
+	os.Setenv("AUTH_CALLBACK_URL", fmt.Sprintf("%s/callback", idpURL))
 	os.Setenv("AUTH_CLIENT_ID", "foo")
 
 	c := config.New()
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)
+
 	ct := &controller.Controller{
 		Config: c,
 		Logger: l,
 	}
 	ct.Rules.Store(make([]controller.Rule, 0))
 
-	c.Scheme = ""
+	cl := client.NewRestClient(u)
 
 	app := &app.App{
 		Config:     c,
@@ -83,6 +90,7 @@ func NewAPPTestServer(url string) (*httptest.Server, *app.App) {
 		Secret:     s,
 		Discovery:  d,
 		Controller: ct,
+		Rest:       cl,
 	}
 
 	return httptest.NewServer(app.Handler()), app

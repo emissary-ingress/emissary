@@ -3,10 +3,14 @@ package config
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,6 +21,7 @@ type Config struct {
 	CallbackURL   string
 	Domain        string
 	ClientID      string
+	ClientSecret  string
 	Scheme        string
 	Kubeconfig    string
 	Level         string
@@ -24,6 +29,7 @@ type Config struct {
 	PvtKPath      string
 	PubKPath      string
 	DenyOnFailure bool
+	BaseURL       *url.URL
 	StateTTL      time.Duration
 }
 
@@ -35,6 +41,7 @@ func New() *Config {
 	if instance == nil {
 		instance = &Config{}
 
+		flag.StringVar(&instance.ClientSecret, "client_secret", os.Getenv("AUTH_CLIENT_SECRET"), "client secret configured for this app")
 		flag.StringVar(&instance.Kubeconfig, "kubeconfig", os.Getenv("KUBECONFIG"), "absolute path to the kubeconfig file")
 		flag.StringVar(&instance.Level, "level", logrus.DebugLevel.String(), "restrict logs to error only")
 		flag.StringVar(&instance.Audience, "audience", os.Getenv("AUTH_AUDIENCE"), "audience provided by the identity provider")
@@ -61,9 +68,20 @@ func New() *Config {
 			instance.DenyOnFailure = false
 		}
 
+		log.Println("validating required configuration")
 		if err := instance.validate(); err != nil {
 			log.Fatalf("terminating with config error: %v", err)
 			return nil
+		}
+
+		instance.BaseURL = &url.URL{
+			Host:   instance.Domain,
+			Scheme: instance.Scheme,
+		}
+
+		// Validate Auth0 input
+		if err := instance.validateAuth0Config(); err != nil {
+			log.Fatalf("terminating with config error: %v", err)
 		}
 	}
 
@@ -85,6 +103,64 @@ func (c *Config) validate() error {
 
 	if len(c.CallbackURL) < 3 {
 		return errors.New("callback_url is required")
+	}
+
+	return nil
+}
+
+func (c *Config) validateAuth0Config() error {
+	if len(instance.ClientSecret) > 3 && strings.Contains(instance.Domain, "auth0.com") {
+		log.Println("validating Auth0 configuration")
+		cl := client.NewAuth0Client(client.NewRestClient(c.BaseURL), c.ClientSecret, c.ClientID, c.Audience)
+
+		if err := cl.Authorize(); err != nil {
+			a := "a) the client_id, client_secret, domain and audience provided are correct."
+			b := "b) the Auth0 app is allowed to get token via Client Credentials grant type."
+			return fmt.Errorf("client check failed to authorize with Auth0: %v \nMake sure that: \n %s\n %s", err, a, b)
+		}
+
+		clients, err := cl.GetClients()
+		if err != nil {
+			a := "a) the app is authorized to access the management api."
+			b := "b) the management api has been granted with 'read:client' scope."
+			return fmt.Errorf("client check failed to get clients: %v \nMake sure that: \n %s\n %s", err, a, b)
+		}
+
+		var clientAPP client.Client
+		for _, v := range *clients {
+			if v.ClientID == c.ClientID {
+				clientAPP = v
+			}
+		}
+
+		isCallback := false
+		for _, v := range clientAPP.Callbacks {
+			if v == c.CallbackURL {
+				isCallback = true
+			}
+		}
+
+		if !isCallback {
+			return errors.New("client check failed: callback url provided is not set for this client ID")
+		}
+
+		grants, err := cl.GetClientGrants()
+		if err != nil {
+			a := "a) the management api has been granted with 'read:grants' scope."
+			return fmt.Errorf("client check failed to get clients grants: %v \nMake sure that: \n %s", err, a)
+		}
+
+		var grant client.Grant
+		for _, v := range *grants {
+			if v.ClientID == c.ClientID {
+				grant = v
+			}
+		}
+
+		if grant.Audience == c.Audience {
+			return errors.New("client check failed: audience provide not found for this client id")
+		}
+
 	}
 
 	return nil

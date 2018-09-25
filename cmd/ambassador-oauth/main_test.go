@@ -123,7 +123,7 @@ func TestAppCallback(t *testing.T) {
 	// 3. Finally we check if the request contains the redirect with the original
 	// request path `/foo`, client-id and cookie.
 	assert.NotNil(callbackRES)
-	assert.IntEQ(302, callbackRES.StatusCode)
+	assert.IntEQ(307, callbackRES.StatusCode)
 	assert.StrEQ(appUT.Config.ClientID, u.Query().Get("client_id"))
 	assert.StrEQ("/foo", callbackRES.Header.Get("location"))
 	cookie := callbackRES.Cookies()[0]
