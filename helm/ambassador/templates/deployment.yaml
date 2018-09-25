@@ -83,6 +83,12 @@ spec:
             value: {{ .Values.timing.shutdown | quote }}
           {{- end -}}
           {{- end }}
+          {{- if .Values.deployment }}
+          {{- if .Values.deployment.ambassadorId }}
+          - name: AMBASSADOR_ID
+            value: {{ .Values.deployment.ambassadorId | quote }}
+          {{- end -}}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /ambassador/v0/check_alive
