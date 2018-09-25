@@ -56,10 +56,11 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		}
 
 		rq := &client.AuthorizationRequest{
-			GrantType:   Code,
-			ClientID:    c.Config.ClientID,
-			Code:        code,
-			RedirectURL: c.Config.CallbackURL,
+			GrantType:    Code,
+			ClientID:     c.Config.ClientID,
+			Code:         code,
+			RedirectURL:  c.Config.CallbackURL,
+			ClientSecret: c.Config.ClientSecret,
 		}
 
 		var rs *client.AuthorizationResponse
