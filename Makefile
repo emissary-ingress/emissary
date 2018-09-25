@@ -30,7 +30,7 @@ SHELL = bash
 # The name of the main branch (e.g. "stable"). This is set as an variable because it makes it easy to develop and test
 # new automation code on a branch that is simulating the purpose of the main branch.
 #
-MAIN_BRANCH ?= stable
+MAIN_BRANCH ?= master
 
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
 # use what is defined.
