@@ -12,7 +12,7 @@ To get the IP address of Ambassador, run the following commands:
 NOTE: It may take a few minutes for the LoadBalancer IP to be available.
      You can watch the status of by running 'kubectl get svc -w  --namespace {{ .Release.Namespace }} {{ template "ambassador.fullname" . }}'
 
-  On GKE:
+  On GKE/Azure:
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "ambassador.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
   On AWS:
