@@ -63,6 +63,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `service.type` | Service type to be used | `LoadBalancer`
 | `service.loadBalancerIP` | IP address to assign (if cloud provider supports it) | `""`
 | `service.annotations` | Annotations to apply to Ambassador service | none
+| `service.loadBalancerSourceRanges` | Passed to cloud provider load balancer if created (e.g: AWS ELB) | none
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`
 | `adminService.type` | Ambassador's admin service type to be used | `ClusterIP`
 | `exporter.image` | Prometheus exporter image | `prom/statsd-exporter:v0.6.0`

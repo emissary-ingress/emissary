@@ -32,3 +32,7 @@ spec:
   selector:
     app: {{ template "ambassador.name" . }}
     release: {{ .Release.Name }}
+{{- with .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml . | indent 4 }}
+{{- end }}
