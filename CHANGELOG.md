@@ -49,6 +49,7 @@ Format:
 - Feature: Add service label in Helm chart (#778). Thanks to @sarce.
 - Feature: Add support for load balancer IP in Helm chart (#765). Thanks to @sarce.
 - Feature: Support prometheus mapping configurations (#746). Thanks to @bcatcho.
+- Bugfix: Add AMBASSADOR_VERIFY_SSL_FALSE flag (#782, #807). Thanks to @sonrier.
 - Bugfix: Fix Ambassador single namespace in Helm chart (#827). Thanks to @sarce.
 - Bugfix: Fix Helm templates and default values (#826).
 - Bugfix: Add `stats-sink` back to Helm chart (#763).
