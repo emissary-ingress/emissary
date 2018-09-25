@@ -211,7 +211,7 @@ class AmbassadorMixin:
             result = run("docker", "ps", "-qf", "name=%s" % self.path.k8s)
             result.check_returncode()
             if not result.stdout.strip():
-                result = run("docker", "logs", self.path.k8s)
+                result = run("docker", "logs", self.path.k8s, stderr=subprocess.STDOUT)
                 result.check_returncode()
                 print(result.stdout.decode("utf8"), end="")
                 pytest.exit("container failed to start")
