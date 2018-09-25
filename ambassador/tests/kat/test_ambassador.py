@@ -183,7 +183,7 @@ tls: true
         yield self.target, self.format(self.definition)
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="tls origination is not working yet")
+        yield Query(self.parent.url(self.name + "/"))
 
     def check(self):
         for r in self.results:
