@@ -29,6 +29,7 @@ from clize import Parameter
 
 from .config import Config, fetch_resources
 from .ir import IR
+from .diagnostics import Diagnostics
 from .envoy import V1Config
 from .envoy import V2Config
 
@@ -110,7 +111,7 @@ def showid():
     print("CANNOT SHOW ID RIGHT NOW")
 
 def dump(config_dir_path:Parameter.REQUIRED, *,
-         k8s=False, aconf=False, ir=False, v1=False, v2=False):
+         k8s=False, aconf=False, ir=False, v1=False, v2=False, diag=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -122,18 +123,22 @@ def dump(config_dir_path:Parameter.REQUIRED, *,
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
     :param v1: If set, dump the Envoy V1 config
+    :param v2: If set, dump the Envoy V2 config
+    :param diag: If set, dump the Diagnostics overview
     """
 
-    if not (aconf or ir or v1 or v2):
+    if not (aconf or ir or v1 or v2 or diag):
         aconf = True
         ir = True
         v1 = True
         v2 = True
+        diag = False
 
     dump_aconf = aconf
     dump_ir = ir
     dump_v1 = v1
     dump_v2 = v2
+    dump_diag = diag
 
     od = {}
 
@@ -146,17 +151,25 @@ def dump(config_dir_path:Parameter.REQUIRED, *,
             od['aconf'] = aconf.as_dict()
 
         ir = IR(aconf)
+        v1config = V1Config(ir)
+        elements = v1config.elements
+
+        v2config = V2Config(ir)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
 
         if dump_v1:
-            v1config = V1Config(ir)
             od['v1'] = v1config.as_dict()
 
         if dump_v2:
-            v2config = V2Config(ir)
             od['v2'] = v2config.as_dict()
+            elements = v2config.elements
+
+        if dump_diag:
+            diag = Diagnostics(ir)
+            od['diag'] = diag.as_dict()
+            od['elements'] = elements
 
         json.dump(od, sys.stdout, sort_keys=True, indent=4)
         sys.stdout.write("\n")

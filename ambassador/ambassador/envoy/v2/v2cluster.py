@@ -16,14 +16,14 @@ from typing import List, TYPE_CHECKING
 
 from ...ir.ircluster import IRCluster
 
-from .v1tls import V1TLSContext
+from .v2tls import V2TLSContext
 
 if TYPE_CHECKING:
-    from . import V1Config
+    from . import V2Config
 
 
-class V1Cluster(dict):
-    def __init__(self, config: 'V1Config', cluster: IRCluster) -> None:
+class V2Cluster(dict):
+    def __init__(self, config: 'V2Config', cluster: IRCluster) -> None:
         super().__init__()
 
         self["name"] = cluster.name
@@ -63,16 +63,16 @@ class V1Cluster(dict):
             ctx = cluster.tls_context
             host_rewrite = cluster.get('host_rewrite', None)
 
-            envoy_ctx = V1TLSContext(ctx=ctx, host_rewrite=host_rewrite)
+            envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=host_rewrite)
 
             if envoy_ctx:
                 self['ssl_context'] = dict(envoy_ctx)
 
     @classmethod
-    def generate(self, config: 'V1Config') -> None:
+    def generate(self, config: 'V2Config') -> None:
         config.clusters = []
 
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
-            cluster = config.save_element('cluster', ircluster, V1Cluster(config, ircluster))
+            cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
             config.clusters.append(cluster)
 

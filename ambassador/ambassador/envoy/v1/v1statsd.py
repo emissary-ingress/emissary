@@ -30,5 +30,6 @@ class V1Statsd(dict):
             self['enabled'] = False
 
     @classmethod
-    def generate(self, config: 'V1Config') -> 'V1Admin':
-        return V1Statsd(config)
+    def generate(self, config: 'V1Config') -> None:
+        # Save this under the Ambassador module as well.
+        config.statsd = config.save_element('statsd', config.ir.ambassador_module, V1Statsd(config))

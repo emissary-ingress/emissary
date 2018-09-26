@@ -18,10 +18,13 @@ import json
 import logging
 
 from ...ir import IR
+from ..common import EnvoyConfig
 
 from .v1admin import V1Admin
 from .v1statsd import V1Statsd
+from .v1route import V1Route
 from .v1listener import V1Listener
+from .v1cluster import V1Cluster
 from .v1clustermanager import V1ClusterManager
 from .v1tracing import V1Tracing
 from .v1grpcservice import V1GRPCService
@@ -30,16 +33,27 @@ from .v1grpcservice import V1GRPCService
 ## v1config.py -- the Envoy V1 configuration engine
 
 
-class V1Config:
-    def __init__(self, ir: IR) -> None:
-        self.ir = ir
+class V1Config (EnvoyConfig):
+    admin: V1Admin
+    statsd: V1Statsd
+    routes: List[V1Route]
+    listeners: List[V1Listener]
+    clusters: List[V1Cluster]
+    clustermgr: V1ClusterManager
+    tracing: Optional[V1Tracing]
+    grpc_services: Optional[Dict[str, V1GRPCService]]
 
-        self.admin: V1Admin = V1Admin.generate(self)
-        self.statsd: V1Statsd = V1Statsd.generate(self)
-        self.listeners: List[V1Listener] = V1Listener.generate(self)
-        self.clustermgr: V1ClusterManager = V1ClusterManager.generate(self)
-        self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
-        self.grpc_services: Optional[Dict[str, V1GRPCService]] = V1GRPCService.generate(self)
+    def __init__(self, ir: IR) -> None:
+        super().__init__(ir)
+
+        V1Admin.generate(self)
+        V1Statsd.generate(self)
+        V1Route.generate(self)
+        V1Listener.generate(self)
+        V1Cluster.generate(self)
+        V1ClusterManager.generate(self)
+        V1Tracing.generate(self)
+        V1GRPCService.generate(self)
 
     def as_dict(self):
         d = {
