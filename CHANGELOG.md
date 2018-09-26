@@ -1,11 +1,5 @@
 # Changelog
 
-## WARNING WARNING WARNING
-
-**Ambassador 0.35.0 partially fixes support for websockets.** Please read the description of 0.35.0 below for more information.
-
-**Ambassador 0.34.2 and 0.34.3 cannot support websockets.** This is fixed in 0.35.0, but read the description below for an important caveat.
-
 ## BREAKING NEWS
 
 - In Ambassador 0.36.0, the Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
@@ -25,12 +19,6 @@
 - Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above. This bug is fixed in Ambassador 0.35.0.
 
 - As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
-
-- As of **0.26.0**, the `authentication` module is deprecated in favor of the `AuthService` resource type, as discussed in [the Ambassador reference](https://getambassador.io/docs/reference/module).
-
-- As of **0.22.0**, Ambassador is distributed via `quay.io` rather than DockerHub. If you are not using Datawire's published Kubernetes manifests, you will have to update your manifests!
-
-- The `statsd` container is likely to be dropped from our default published YAML soon. If you rely on the `statsd` container, consider switching now to local YAML.
 
 <!---
 Add release notes right after this point.
@@ -52,20 +40,39 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.40.0] September 25, 2018
+
+### Minor changes:
+
+- Feature: Allow users to override the `STATSD_HOST` value (#810). Thanks to @rsyvarth.
+- Feature: Support LightStep distributed tracing (#796). Thanks to @alexgervais.
+- Feature: Add service label in Helm chart (#778). Thanks to @sarce.
+- Feature: Add support for load balancer IP in Helm chart (#765). Thanks to @sarce.
+- Feature: Support prometheus mapping configurations (#746). Thanks to @bcatcho.
+- Feature: Add support for `loadBalancerSourceRanges` to Helm chart (#764). Thanks to @mtbdeano.
+- Feature: Support for namespaces and Ambassador ID in Helm chart (#588, #643). Thanks to @MichielDeMey and @jstol.
+- Bugfix: Add AMBASSADOR_VERIFY_SSL_FALSE flag (#782, #807). Thanks to @sonrier.
+- Bugfix: Fix Ambassador single namespace in Helm chart (#827). Thanks to @sarce.
+- Bugfix: Fix Helm templates and default values (#826).
+- Bugfix: Add `stats-sink` back to Helm chart (#763).
+- Bugfix: Allow setting `timeout_ms` to 0 for gRPC streaming services (#545). Thanks to @lovers36.
+- Bugfix: Update Flask to 0.12.3 
+
 ## [0.39.0] August 30, 2018
 [0.39.0]: https://github.com/datawire/ambassador/compare/0.38.0...0.39.0
 
 ### Major Changes:
 
-- BugFix: The statsd container has been removed by default in order to avoid DoSing kubernetes dns. The functionality can be re-enabled by setting the `STATSD_ENABLED` environment varibale to `true` in the ambassador deployment yaml.
-- Docs: Added detailed Ambassador + Istio Integration Documentation. - @feitnomore
+- BugFix: The statsd container has been removed by default in order to avoid DoSing Kubernetes DNS. The functionality can be re-enabled by setting the `STATSD_ENABLED` environment variable to `true` in the Ambassador deployment YAML (#568).
+- Docs: Added detailed Ambassador + Istio Integration Documentation on monitoring and distributed tracing. - @feitnomore
 
 ### Minor Changes:
 
-- Docs: Added instructions for running ambassador with docker compose. - @bcatcho
-- BugFix: Fix ambassador to more aggressively reconnect to kubernetes. - @nmatsui
-- Feature: Diagnostic view displays AuthService, RateLimitService, and TracingService. - @alexgervais
-- Feature: Enable Ambassador to tag tracing spans with request headers. - @alexgervais
+- Docs: Added instructions for running Ambassador with Docker Compose. - @bcatcho
+- BugFix: Fix Ambassador to more aggressively reconnect to Kubernetes (#554). - @nmatsui
+- Feature: Diagnostic view displays AuthService, RateLimitService, and TracingService (#730). - @alexgervais
+- Feature: Enable Ambassador to tag tracing spans with request headers via `tag_headers`. - @alexgervais
+
 ## [0.38.0] August 08, 2018
 [0.38.0]: https://github.com/datawire/ambassador/compare/0.37.0...0.38.0
 
@@ -285,6 +292,7 @@ You can also use `adminService.type=LoadBalancer`.
 
 ### Changed
 
+- The `authentication` module is deprecated in favor of the `AuthService` resource type.
 - Support redirecting cleartext connections on port 80 to HTTPS on port 443
 - Streamline end-to-end tests and, hopefully, allow them to work well without Kubernaut
 - Clean up some documentation (thanks @lavoiedn!)

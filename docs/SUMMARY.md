@@ -14,6 +14,14 @@
   * [Docker Quickstart](about/quickstart.md)
   * [Docker Compose](user-guide/docker-compose.md)
 
+## Concepts
+
+* [Decentralized configuration](concepts/developers.md)
+* [Ambassador Architecture](concepts/architecture.md)
+  * [Why Ambassador uses Envoy Proxy](https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef)
+* [Microservices API Gateways](about/microservices-api-gateways.md)
+* [Using Ambassador in your organization](concepts/using-ambassador-in-org.md)
+
 ## Guides
 
 * [Adding Authentication](user-guide/auth-tutorial.md)
@@ -50,7 +58,7 @@
   * [Ambassador with AWS](reference/ambassador-with-aws.md)
 * [Upgrading Ambassador](reference/upgrading.md)
 * [Statistics and Monitoring](reference/statistics.md)
-* [Microservices API Gateways](about/microservices-api-gateways.md)
+
 
 ## Developers
 

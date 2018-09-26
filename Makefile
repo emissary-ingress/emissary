@@ -19,7 +19,10 @@ SHELL = bash
 # Welcome to the Ambassador Makefile...
 
 .FORCE:
-.PHONY: .FORCE clean version setup-develop print-vars docker-login docker-push docker-images publish-website helm
+.PHONY: \
+    .FORCE clean version setup-develop print-vars \
+    docker-login docker-push docker-images publish-website helm \
+    teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
 # -----------
@@ -113,9 +116,11 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 SCOUT_APP_KEY=
 
-all: test docker-push website
+# "make" by itself doesn't make the website. It takes too long and it doesn't
+# belong in the inner dev loop.
+all: version setup-develop docker-push test
 
-clean:
+clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -133,7 +138,7 @@ clean:
 
 clobber: clean
 	-rm -rf docs/node_modules
-	-rm -r venv 2> /dev/null && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
+	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
 	@printf "$($*)"
@@ -176,7 +181,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
-ambassador-docker-image:
+ambassador-docker-image: version
 	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
 
 docker-login:
@@ -205,12 +210,14 @@ ifneq ($(DOCKER_REGISTRY), -)
 		exit 1; \
 	fi
 endif
-		
-version:
+
+ambassador/ambassador/VERSION.py:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
 	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+
+version: ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests: venv website-yaml
 	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
@@ -252,11 +259,80 @@ e2e: e2e-versioned-manifests
 		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
 	fi
 
-setup-develop: venv
-	venv/bin/pip install -q -e ambassador/.
+TELEPROXY=venv/bin/teleproxy
+TELEPROXY_VERSION=0.1.1
+# This should maybe be replaced with a lighterweight dependency if we
+# don't currently depend on go
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
 
-test: version setup-develop
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing
+$(TELEPROXY):
+	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+	sudo chown root $(TELEPROXY)
+	sudo chmod go-w $(TELEPROXY)
+	sudo chmod a+sx $(TELEPROXY)
+
+KUBERNAUT=venv/bin/kubernaut
+
+$(KUBERNAUT):
+	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+	chmod +x $(KUBERNAUT)
+
+venv/bin/ambassador:
+	venv/bin/pip -v install -q -e ambassador/.
+
+setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
+
+kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
+
+cluster.yaml:
+	$(KUBERNAUT) discard
+	$(KUBERNAUT) claim
+	cp ~/.kube/kubernaut cluster.yaml
+	rm -f /tmp/k8s-*.yaml
+	$(call kill_teleproxy)
+	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+
+setup-test: cluster.yaml
+
+teleproxy-restart:
+	$(call kill_teleproxy)
+	sleep 0.25 # wait for exit...
+	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+
+teleproxy-stop:
+	$(call kill_teleproxy)
+	sleep 0.25 # wait for exit...
+	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
+		echo "teleproxy still running" >&2; \
+		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
+		false; \
+	else \
+		echo "teleproxy stopped" >&2; \
+	fi
+
+KUBECONFIG=$(shell pwd)/cluster.yaml
+
+shell: setup-develop cluster.yaml
+	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	KUBECONFIG=$(KUBECONFIG) \
+	AMBASSADOR_DEV=1 \
+	bash --init-file releng/init.sh -i
+
+clean-test:
+	rm -f cluster.yaml
+	test -x $(KUBERNAUT) && $(KUBERNAUT) discard || true
+	$(call kill_teleproxy)
+
+test: version setup-develop cluster.yaml
+	cd ambassador && \
+	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	KUBECONFIG=$(KUBECONFIG) \
+	PATH=$(shell pwd)/venv/bin:$(PATH) \
+	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
+
+test-list: version setup-develop
+	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
@@ -302,8 +378,8 @@ venv: version venv/bin/activate
 
 venv/bin/activate: dev-requirements.txt ambassador/.
 	test -d venv || virtualenv venv --python python3
-	venv/bin/pip install -q -Ur dev-requirements.txt
-	venv/bin/pip install -q -e ambassador/.
+	venv/bin/pip -v install -q -Ur dev-requirements.txt
+	venv/bin/pip -v install -q -e ambassador/.
 	touch venv/bin/activate
 
 # ------------------------------------------------------------------------------

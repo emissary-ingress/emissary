@@ -35,6 +35,8 @@ The YAML snippet will look something like -
 
  Ambassador automatically sends statistics information to a Kubernetes service called `statsd-sink` using typical StatsD protocol settings, UDP to port 8125. We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
 
+ You may also override the StatsD host by setting the `STATSD_HOST` environment variable. This can be useful if you have an existing StatsD sink available in your cluster.
+
 ## Graphite
 
 [Graphite](http://graphite.readthedocs.org/) is a web-based realtime graphing system. Spin up an example Graphite setup:
@@ -55,6 +57,51 @@ This sets up Graphite access at `http://localhost:8080/`.
 The `statsd-sink` service referenced in this example is built on the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter), and configured in this [Dockerfile](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-exporter/Dockerfile).
 
 Add a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration.
+
+### Configuring metrics mappings for Prometheus
+
+It may be desirable to change how metrics produced by the `statsd-sink` are named, labeled and grouped.
+
+For example, by default each service that the API Gateway serves will create a new metric using its name. For the service called `usersvc` you will see this metric: `envoy.cluster.usersvc_cluster.upstream_rq_total`. This may lead to problems if you are trying to create a single aggregate that is the sum of all similar metrics from different services. In this case it is common to differentiate the metrics for an individual service with a `label`. This can be done using a mapping.
+
+[Follow this guide](https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration) to learn how to modify your mappings.
+
+#### Configuring for Helm
+
+If you deploy using helm the value that you should change is `exporter.configuration`. Set it to something like this:
+
+```yaml
+exporter:
+  configuration: |
+    ---
+    mappings:
+    - match: 'envoy.cluster.*.upstream_rq_total'
+      name: "envoy_cluster_upstream_rq_total"
+      timer_type: 'histogram'
+      labels:
+        cluster_name: "$1"
+```
+
+#### Configuring for kubectl
+
+In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/templates/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
+
+```yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ambassador-config
+data:
+  exporterConfiguration: |
+    ---
+    mappings:
+    - match: 'envoy.cluster.*.upstream_rq_total'
+      name: "envoy_cluster_upstream_rq_total"
+      timer_type: 'histogram'
+      labels:
+        cluster_name: "$1"
+```
 
 ### The Prometheus Operator
 

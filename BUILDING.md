@@ -56,6 +56,37 @@ Branching
 
 5. Maintainers (code or doc) will merge the PR to `stable`, then merge the changes from `stable` back into `master`.
 
+Developer Quickstart/Inner Loop
+-------------------------------
+
+### Quickstart:
+
+1. git clone ...
+2. From git root type `make shell`
+3. Run `py.test -k tests_i_care_about`
+4. Edit code.
+5. Go back to 3.
+
+### Details:
+
+Note that `make shell` will do a bunch of setup the first time it
+runs, but subsequent runs should be instantaneous.
+
+You can create as many dev shells as you want. They will all share the
+same kubernaut cluster and teleproxy session behind the scenes.
+
+The first time you run the test_ambassador suite it will apply a bunch
+of yaml to kubernaut cluster used by your dev session. Be patient,
+this will be much faster the second time.
+
+If you want to release the kubernaut cluster and kill teleproxy, then
+run `make clean-test`. This will happen automatically when you run
+`make clean`.
+
+If you change networks and your dns configuration changes, you will
+need to restart teleproxy. You can do this with the `make
+teleproxy-restart` target.
+
 Unit Tests
 ----------
 
@@ -87,7 +118,7 @@ Normal Workflow
 
    If you're using Minikube and don't want to push at all, set `DOCKER_REGISTRY` to "-".
 
-   You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY` and `STATSD_REGISTRY`. See the files in `templates` for more here.
+   You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY`. See the files in `templates` for more here.
 
 1. Use a private branch cut from `master` for your work.
 

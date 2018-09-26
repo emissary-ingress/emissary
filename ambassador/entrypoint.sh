@@ -68,7 +68,7 @@ diediedie() {
     else
         echo "No config generated."
     fi
-    
+
     ambassador_exit 1
 }
 
@@ -150,7 +150,8 @@ pids="${pids:+${pids} }$!:kubewatch"
 
 if [ "$(echo ${STATSD_ENABLED} | tr "[:upper:]" "[:lower:]")" = "true" ]; then
     echo "STATSD_ENABLED is set to true"
-    STATSD_HOST="statsd-sink"
+    # Fallback to statsd-sink if a host isn't provided
+    STATSD_HOST="${STATSD_HOST:-statsd-sink}"
     handle_statsd ${STATSD_HOST} &
 else
     echo "STATSD_ENABLED is not set to true, no stats will be exposed"

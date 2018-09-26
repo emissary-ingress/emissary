@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ template "ambassador.fullname" . }}-config'
+data:
+  exporterConfiguration:
+{{- if .Values.exporter.configuration }} |
+{{ .Values.exporter.configuration | indent 4 }}
+{{- else }} ''
+{{- end }}
