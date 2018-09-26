@@ -41,13 +41,14 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 ## [0.40.0] September 25, 2018
+[0.40.0]: https://github.com/datawire/ambassador/compare/0.39.0...0.40.0
 
 ### Minor changes:
 
 - Feature: Allow users to override the `STATSD_HOST` value (#810). Thanks to @rsyvarth.
 - Feature: Support LightStep distributed tracing (#796). Thanks to @alexgervais.
 - Feature: Add service label in Helm chart (#778). Thanks to @sarce.
-- Feature: Add support for load balancer IP in Helm chart (#765). Thanks to @sarce.
+- Feature: Add support for load balancer IP in Helm chart (#765). Thanks to @larsha.
 - Feature: Support prometheus mapping configurations (#746). Thanks to @bcatcho.
 - Feature: Add support for `loadBalancerSourceRanges` to Helm chart (#764). Thanks to @mtbdeano.
 - Feature: Support for namespaces and Ambassador ID in Helm chart (#588, #643). Thanks to @MichielDeMey and @jstol.
@@ -56,7 +57,7 @@ Format:
 - Bugfix: Fix Helm templates and default values (#826).
 - Bugfix: Add `stats-sink` back to Helm chart (#763).
 - Bugfix: Allow setting `timeout_ms` to 0 for gRPC streaming services (#545). Thanks to @lovers36.
-- Bugfix: Update Flask to 0.12.3 
+- Bugfix: Update Flask to 0.12.3.
 
 ## [0.39.0] August 30, 2018
 [0.39.0]: https://github.com/datawire/ambassador/compare/0.38.0...0.39.0
