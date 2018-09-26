@@ -118,7 +118,7 @@ Normal Workflow
 
    If you're using Minikube and don't want to push at all, set `DOCKER_REGISTRY` to "-".
 
-   You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY` and `STATSD_REGISTRY`. See the files in `templates` for more here.
+   You can separately tweak the registry from which images will be _pulled_ using `AMBASSADOR_REGISTRY`. See the files in `templates` for more here.
 
 1. Use a private branch cut from `master` for your work.
 

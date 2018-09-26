@@ -127,6 +127,10 @@ The list syntax (shown in `mapping_used_2` above) permits including a given obje
 
 If no `AMBASSADOR_ID` is assigned to an Ambassador, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
 
+## `AMBASSADOR_VERIFY_SSL_FALSE`
+
+By default, Ambassador will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
+
 ## Reconfiguration Timing Configuration
 
 Ambassador is constantly watching for changes to the service annotations. When changes are observed, Ambassador generates a new Envoy configuration and restarts the Envoy handling the heavy lifting of routing. Three environment variables provide control over the timing of this reconfiguration:

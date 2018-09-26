@@ -226,6 +226,10 @@ def kube_v1():
         # we'll crash, and Kubernetes will kill the pod. That's probably not an
         # unreasonable response.
         config.load_incluster_config()
+        if "AMBASSADOR_VERIFY_SSL_FALSE" in os.environ:
+            configuration = client.Configuration()
+            configuration.verify_ssl=False
+            client.Configuration.set_default(configuration)
         k8s_api = client.CoreV1Api()
     else:
         # Here, we might be running in docker, in which case we'll likely not
