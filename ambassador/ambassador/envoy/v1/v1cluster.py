@@ -64,9 +64,7 @@ class V1Cluster(dict):
             host_rewrite = cluster.get('host_rewrite', None)
 
             envoy_ctx = V1TLSContext(ctx=ctx, host_rewrite=host_rewrite)
-
-            if envoy_ctx:
-                self['ssl_context'] = dict(envoy_ctx)
+            self['ssl_context'] = dict(envoy_ctx)
 
     @classmethod
     def generate(self, config: 'V1Config') -> None:
