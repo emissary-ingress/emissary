@@ -24,12 +24,18 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
    - CI will retag the latest RC image as the GA image.
    - CI will update the Helm chart during the GA deploy.
 
-   **Note well** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
+   **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
-   **Note well** that after this CI build, `helm install` will refer to the new GA release, but the docs will not have been updated yet! So try to minimize the time you spend between this step and the next.
+   **Note** that after this CI build, `helm install` will refer to the new GA release, but the docs will not have been updated yet! So try to minimize the time you spend between this step and the next.
 
-6. Finally, PR `master` into `stable`.
+   **Note** On the GA tag, a special build of the website from `master` is pushed to production. This updates the version number on the website, but it does *not* update the blog post URL.
+
+6. PR `master` into `stable`.
    - CI will update the docs at this point.
+
+7. Update the `stable` branch with a link to a blog post announcing the new release.
+
+8. PR `stable` into `master` with the website changes.
 
 ----
 Updating Ambassador's Envoy
