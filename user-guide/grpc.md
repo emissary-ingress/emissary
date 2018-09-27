@@ -14,11 +14,7 @@ Follow the example up through [Run a gRPC application](https://grpc.io/docs/quic
 
 ### Dockerize
 
-After building our gRPC application and testing it locally, we need to package it as a Docker container and deploy it to kubernetes.
-
-```shell
-$ touch Dockerfile
-```
+After building our gRPC application and testing it locally, we need to package it as a Docker container and deploy it to Kubernetes.
 
 To run a gRPC application, we need to include the client/server and the protocol buffer definitions. 
 
@@ -47,23 +43,28 @@ EXPOSE 50051
 Create the container and test it:
 
 ```shell
-$ docker build -t <docker_hub>/grpc_example .
-$ docker run -p 50051:50051 <docker_hub>/example
+$ docker build -t <docker_repo>/grpc_example .
+$ docker run -p 50051:50051 <docker_repo>/example
 ```
-Where `<docker_hub>` is your docker profile.
+Where `<docker_repo>` is your Docker profile.
 
 Switch to another terminal and, from the same directory, run the `greeter_client`.
-The application should run exactly the same.
-
-Once you verify the container works, push it to your docker hub:
+The output should be the same as running it outside of the container.
 
 ```shell
-$ docker push <docker_hub>/grpc_example
+$ docker run -p 50051:50051 <docker_repo>/example
+Greeter client received: Hello, you!
+```
+
+Once you verify the container works, push it to your Docker repository:
+
+```shell
+$ docker push <docker_repo>/grpc_example
 ```
 
 ### Mapping gRPC Services
 
-Ambassador `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full service name, including the package path (`package.service`). These are defined in the `.proto` definition file. In the example [proto definition file](https://github.com/grpc/grpc/blob/master/examples/protos/helloworld.proto) I am using, we see:
+Ambassador `Mapping`s are based on URL prefixes; for gRPC, the URL prefix is the full service name, including the package path (`package.service`). These are defined in the `.proto` definition file. In the example [proto definition file](https://github.com/grpc/grpc/blob/master/examples/protos/helloworld.proto) we see:
 
 ```
 package helloworld;
@@ -85,9 +86,9 @@ so the URL `prefix` is `helloworld.Greeter` and the mapping would be:
       service: grpc-example
 ```
 
-Note the `grpc: true` line —- this is what tells envoy to use HTTP/2 so the request can communicate with the backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
+Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the request can communicate with the backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
-### Deploying to kubernetes
+### Deploying to Kubernetes
 `grpc_example.yaml`
 
 ```yaml
@@ -130,16 +131,16 @@ spec:
     spec:
       containers:
       - name: grpc-example
-        image: <docker_hub>/grpc_example
+        image: <docker_repo>/grpc_example
         ports:
         - name: grpc-api
           containerPort: 50051
       restartPolicy: Always
 ```
 
-Once adding the mapping configuration to the service with an annotation, the rest of the kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the docker container is listening on, and map the service port (80) to the container port (50051).
+After adding the Ambassador to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
 
-Once you have the YAML file configured, deploy it to your cluster with kubectl:
+Once you have the YAML file configured, deploy it to your cluster with kubectl
 
 ```shell
 $ kubectl apply -f grpc_example.yaml
@@ -147,7 +148,7 @@ $ kubectl apply -f grpc_example.yaml
 
 ### Testing the deployment
 
-Make sure to test your kubernetes deployment before making more advanced changes (like adding TLS). To test any service with Ambassador, we will need the hostname of the running Ambassador service which you can get with:
+Make sure to test your Kubernetes deployment before making more advanced changes (like adding TLS). To test any service with Ambassador, we will need the hostname of the running Ambassador service which you can get with:
 
 ```shell
 $ kubectl get service ambassador -o wide
@@ -183,9 +184,9 @@ Handling TLS with a gRPC service requires a little extra configuration than with
 
 ![NoAmbassador](/images/gRPC-TLS.png)
 
-With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request an SSL connection with Ambassador and validate the certs sent by Ambassador, not the gRPC server application. 
+With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request a TLS connection with Ambassador and validate the certs sent by Ambassador, not the gRPC server application. 
 ![Ambassador](/images/gRPC-TLS-Ambassador.png)
-This has the advantage of not needing the server to bother with certs but means that the client will still need to load the root cert. This is can be done rather easily with some gRPC calls. 
+This has the advantage of not needing the server to bother with certs but means that the client will still need to load the root cert. This can be done rather easily with some gRPC calls. 
 
 To open a secure RPC channel, we need to slightly change the python client code:
 
@@ -198,7 +199,7 @@ To open a secure RPC channel, we need to slightly change the python client code:
 ```
 
 `grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador. 
-The default values of `None` tells gRPC runtime to grab the root cert from the default location packaged with gRPC and ignore the private key and certificate chain fields. 
+The default values of `None` tells gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. 
 
 Refer to the Ambassador [TLS termination guide](/user-guide/tls-termination.html) for more information on the TLS module.
 
