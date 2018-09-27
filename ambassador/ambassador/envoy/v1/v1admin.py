@@ -28,5 +28,5 @@ class V1Admin(dict):
         self["access_log_path"] = "/tmp/admin_access_log"
 
     @classmethod
-    def generate(self, config: 'V1Config') -> 'V1Admin':
-        return V1Admin(config)
+    def generate(self, config: 'V1Config') -> None:
+        config.admin = config.save_element('admin', config.ir.ambassador_module, V1Admin(config))

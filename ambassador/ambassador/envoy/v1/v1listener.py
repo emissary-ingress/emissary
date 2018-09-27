@@ -59,12 +59,10 @@ class V1Listener(dict):
             if envoy_ctx:
                 self['ssl_context'] = dict(envoy_ctx)
 
-        routes = self.get_routes(config, listener)
-
         vhost = {
             "name": "backend",
             "domains": [ "*" ],
-            "routes": routes
+            "routes": config.routes
         }
 
         if listener.get("require_tls", False):
@@ -103,109 +101,10 @@ class V1Listener(dict):
             }
         ]
 
-    def get_routes(self, config: 'V1Config', listener: 'IRListener') -> List[dict]:
-        routes = []
-
-        for group in config.ir.ordered_groups():
-            route = {
-                "timeout_ms": group.get("timeout_ms", 3000),
-            }
-
-            envoy_route = EnvoyRoute(group).envoy_route
-            route[envoy_route] = group.get('prefix')
-
-            if "regex" in group:
-                route["regex"] = group.regex
-
-            if "case_sensitive" in group:
-                route["case_sensitive"] = group.case_sensitive
-
-            cors = None
-
-            if "cors" in group:
-                cors = group.cors.as_dict()
-            elif "cors" in config.ir.ambassador_module:
-                cors = config.ir.ambassador_module.cors.as_dict()
-
-            if cors:
-                for key in [ "_active", "_referenced_by", "_rkey", "kind", "location", "name" ]:
-                    cors.pop(key, None)
-
-                route['cors'] = cors
-
-            if "rate_limits" in group:
-                route["rate_limits"] = V1RateLimits(group.rate_limits)
-
-            if "priority" in group:
-                route["priority"] = group.priority
-
-            if "use_websocket" in group:
-                route["use_websocket"] = group.use_websocket
-
-            if len(group.get('headers', [])) > 0:
-                route["headers"] = group.headers
-            # print(len(group.get('headers', [])) > 0)
-
-            if group.get("host_redirect", None):
-                route["host_redirect"] = group.host_redirect.service
-
-                if "path_redirect" in group.host_redirect:
-                    route["path_redirect"] = group.host_redirect.path_redirect
-            else:
-                # Don't include prefix_rewrite unless group.rewrite is present and not
-                # empty. The special handling is so that using rewrite: "" in an
-                # Ambassador mapping doesn't rewrite the path at all, which can be
-                # important in regex mappings.
-                rewrite = group.get("rewrite", None)
-
-                if rewrite:
-                    route["prefix_rewrite"] = rewrite
-
-                if "host_rewrite" in group:
-                    route["host_rewrite"] = group.host_rewrite
-
-                if "auto_host_rewrite" in group:
-                    route["auto_host_rewrite"] = group.auto_host_rewrite
-
-                if "add_request_headers" in group:
-                    route["request_headers_to_add"] = [
-                        {"key": k, "value": v}
-                        for k, v in group.add_request_headers.items()
-                    ]
-
-                if "use_websocket" in group:
-                    route["cluster"] = group.mappings[0].cluster.name
-                else:
-                    route["weighted_clusters"] = {
-                        "clusters": [ {
-                                "name": mapping.cluster.name,
-                                "weight": mapping.weight
-                            } for mapping in sorted(group.mappings, key=lambda x: x.name)
-                        ]
-                    }
-                    # print("WEIGHTED_CLUSTERS %s" % route["weighted_clusters"])
-
-                if group.get("shadows", []):
-                    route["shadow"] = {
-                        "cluster": group.shadows[0].cluster.name
-                    }
-
-            if "envoy_override" in group:
-                for key in group.envoy_override.keys():
-                    route[key] = group.envoy_override[key]
-
-            routes.append(route)
-
-            # print("GROUP %s %s" % (group.name, group.group_id))
-            # print("ROUTE: %s" % json.dumps(route, sort_keys=True, indent=4))
-
-        return routes
-
     @classmethod
-    def generate(cls, config: 'V1Config') -> List['V1Listener']:
-        listeners: List['V1Listener'] = []
+    def generate(cls, config: 'V1Config') -> None:
+        config.listeners = []
 
-        for listener in config.ir.listeners:
-            listeners.append(V1Listener(config, listener))
-
-        return listeners
+        for irlistener in config.ir.listeners:
+            listener = config.save_element('listener', irlistener, V1Listener(config, irlistener))
+            config.listeners.append(listener)

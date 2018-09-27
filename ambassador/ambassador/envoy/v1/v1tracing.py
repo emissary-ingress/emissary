@@ -30,8 +30,8 @@ class V1Tracing(dict):
         }
 
     @classmethod
-    def generate(cls, config: 'V1Config') -> Optional['V1Tracing']:
-        if not config.ir.tracing:
-            return None
+    def generate(cls, config: 'V1Config') -> None:
+        config.tracing = None
 
-        return V1Tracing(config)
+        if config.ir.tracing:
+            config.tracing = config.save_element('tracing', config.ir.tracing, V1Tracing(config))

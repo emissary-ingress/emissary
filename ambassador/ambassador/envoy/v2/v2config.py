@@ -18,29 +18,38 @@ import json
 
 from ...ir import IR
 
-from ..common import sanitize_pre_json
+from ..common import EnvoyConfig, sanitize_pre_json
 from .v2admin import V2Admin
+from .v2route import V2Route
+from .v2listener import V2Listener
+# from .v2cluster import V2Cluster
+# from .v2clustermanager import V2ClusterManager
 from .v2_static_resources import V2StaticResources
 
-# from .v1listener import V1Listener
-# from .v1clustermanager import V1ClusterManager
 # from .v1tracing import V1Tracing
 #
 # #############################################################################
 # ## v2config.py -- the Envoy V2 configuration engine
 #
 #
-class V2Config:
+class V2Config (EnvoyConfig):
+    admin: V2Admin
+    routes: List[V2Route]
+    listeners: List[V2Listener]
+    # clusters: List[V2Cluster]
+    # clustermgr: V2ClusterManager
+    static_resources: V2StaticResources
+
     def __init__(self, ir: IR) -> None:
-        self.ir = ir
+        super().__init__(ir)
 
-#         self.is_tracing = False
+        V2Admin.generate(self)
+        V2Route.generate(self)
+        V2Listener.generate(self)
+        # V2Cluster.generate(self)
+        # V2ClusterManager.generate(self)
+        V2StaticResources.generate(self)
 
-        # Toplevel stuff.
-        self.admin: V2Admin = V2Admin.generate(self)
-
-        self.static_resources = V2StaticResources.generate(self)
-#
 #         # print("v1.admin %s" % self.admin)
 #
 #         self.listeners: List[V1Listener] = V1Listener.generate(self)
@@ -56,7 +65,6 @@ class V2Config:
 #             if self.ir.saved_resources[tracing_key].is_active():
 #                 self.tracing: Optional[V1Tracing] = V1Tracing.generate(self)
 #                 self.is_tracing = True
-#
 
     def as_dict(self):
         d = {

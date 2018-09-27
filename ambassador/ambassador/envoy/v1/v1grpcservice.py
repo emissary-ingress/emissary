@@ -31,10 +31,8 @@ class V1GRPCService(dict):
         self['type'] = 'grpc_service'
 
     @classmethod
-    def generate(self, config: 'V1Config') -> Dict[str, 'V1GRPCService']:
-        services: Dict[str, 'V1GRPCService'] = {}
+    def generate(self, config: 'V1Config') -> None:
+        config.grpc_services = {}
 
         for svc, cluster in config.ir.grpc_services.items():
-            services[svc] = V1GRPCService(config, cluster)
-
-        return services
+            config.grpc_services[svc] = config.save_element('grpc_service', cluster, V1GRPCService(config, cluster))

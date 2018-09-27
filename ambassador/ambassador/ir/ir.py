@@ -58,32 +58,29 @@ class IR:
     saved_resources: Dict[str, IRResource]
     tls_contexts: Dict[str, IREnvoyTLS]
     tls_defaults: Dict[str, Dict[str, str]]
+    aconf: Config
 
     def __init__(self, aconf: Config) -> None:
         self.logger = logging.getLogger("ambassador.ir")
 
-        # First up: let's define initial clusters, routes, and filters.
-        #
-        # Our set of clusters starts out empty; we use add_intermediate_cluster()
-        # to build it up while making sure that all the source-tracking stuff
-        # works out.
+        # First up: save the Config object. Its source map may be necessary later.
+        self.aconf = aconf
+
+        # Next, we'll want a way to keep track of resources we end up working
+        # with. It starts out empty.
+        self.saved_resources = {}
+
+        # Next, define the initial IR state -- which is empty.
         #
         # Note that we use a map for clusters, not a list -- the reason is that
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.clusters = {}
         self.grpc_services = {}
-
-        self.saved_resources = {}
-
-        # Our initial configuration stuff is all empty...
         self.filters = []
         self.tracing = None
         self.listeners = []
         self.groups = {}
-
-        # self.routes = {}
-        # self.grpc_services = []
 
         # Set up default TLS stuff.
         #
