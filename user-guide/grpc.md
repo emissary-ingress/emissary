@@ -182,11 +182,19 @@ Greeter client received: Hello, you!
 
 Handling TLS with a gRPC service requires a little extra configuration than with other services. RPC calls cannot use certificates stored in the host machines so, in a normal setup, both the server and client applications must load and read certificates to handle TLS encryption. 
 
-![NoAmbassador](/images/gRPC-TLS.png)
+![](/docs/images/gRPC-TLS.png)
 
+<<<<<<< HEAD
 With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request a TLS connection with Ambassador and validate the certs sent by Ambassador, not the gRPC server application. 
-![Ambassador](/images/gRPC-TLS-Ambassador.png)
+![](/docs/images/gRPC-TLS-Ambassador.png)
 This has the advantage of not needing the server to bother with certs but means that the client will still need to load the root cert. This can be done rather easily with some gRPC calls. 
+=======
+With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request an SSL connection with Ambassador and validate the certs sent by Ambassador, not the gRPC server application. 
+
+![](/docs/images/gRPC-TLS-Ambassador.png)
+
+This has the advantage of not needing the server to bother with certs but means that the client will still need to load the root cert. This is can be done rather easily with some gRPC calls. 
+>>>>>>> 5858db8901ef07379fe7435233dc5584a1d73990
 
 To open a secure RPC channel, we need to slightly change the python client code:
 
