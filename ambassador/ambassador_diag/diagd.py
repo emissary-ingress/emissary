@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import Any, Dict, List
+
 import sys
 
 import datetime
@@ -36,11 +38,11 @@ from flask import Flask, render_template, send_from_directory, request, jsonify 
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-from ambassador.config import Config
+from ambassador import Config, IR, EnvoyConfig, Diagnostics
 from ambassador.VERSION import Version
 from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
 
-from .envoy import EnvoyStats
+from ambassador.diagnostics import EnvoyStats
 
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
@@ -126,7 +128,7 @@ app = Flask(__name__,
             template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
 # Next, various helpers.
-def aconf(app):
+def get_aconf(app):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
 
     # # Test crap
@@ -145,14 +147,14 @@ def aconf(app):
 
     aconf = Config(latest)
 
-    uptime = datetime.datetime.now() - boot_time
-    hr_uptime = td_format(uptime)
-
-    result = Config.scout_report(mode="diagd", runtime=Config.runtime,
-                                 uptime=int(uptime.total_seconds()),
-                                 hr_uptime=hr_uptime)
-
-    app.logger.info("Scout reports %s" % json.dumps(result))
+    # uptime = datetime.datetime.now() - boot_time
+    # hr_uptime = td_format(uptime)
+    #
+    # result = Config.scout_report(mode="diagd", runtime=Config.runtime,
+    #                              uptime=int(uptime.total_seconds()),
+    #                              hr_uptime=hr_uptime)
+    #
+    # app.logger.info("Scout reports %s" % json.dumps(result))
 
     return aconf
 
@@ -196,158 +198,13 @@ def system_info():
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }
 
-def cluster_stats(clusters):
-    cluster_names = [ x['name'] for x in clusters ]
-    return { name: app.estats.cluster_stats(name) for name in cluster_names }
-
 def source_key(source):
     return "%s.%d" % (source['filename'], source['index'])
 
 def sorted_sources(sources):
     return sorted(sources, key=source_key)
 
-def route_cluster_info(route, route_clusters, cluster, cluster_info, type_label):
-    c_name = cluster['name']
-
-    c_info = cluster_info.get(c_name, None)
-
-    if not c_info:
-        c_info = {
-            '_service': 'unknown cluster!',
-            '_health': 'unknown cluster!',
-            '_hmetric': 'unknown',
-            '_hcolor': 'orange'
-        }
-
-        if route.get('host_redirect', None):
-            c_info['_service'] = route['host_redirect']
-            c_info['_hcolor'] = 'grey'
-
-    c_service = c_info.get('_service', 'unknown service!')
-    c_health = c_info.get('_hmetric', 'unknown')
-    c_color = c_info.get('_hcolor', 'orange')
-    c_weight = cluster['weight']
-
-    route_clusters[c_name] = {
-        'weight': c_weight,
-        '_health': c_health,
-        '_hcolor': c_color,
-        'service': c_service,
-    }
-
-    if type_label:
-        route_clusters[c_name]['type_label'] = type_label
-
-def route_and_cluster_info(request, overview, clusters, cstats):
-    request_host = request.headers.get('Host', '*')
-    request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
-    tls_active = request_scheme == 'https'
-
-    cluster_info = { cluster['name']: cluster for cluster in clusters }
-
-    for cluster_name, cstat in cstats.items():
-        c_info = cluster_info.setdefault(cluster_name, {
-            '_service': 'unknown service!',
-        })
-
-        c_info['_health'] = cstat['health']
-        c_info['_hmetric'] = cstat['hmetric']
-        c_info['_hcolor'] = cstat['hcolor']
-
-    route_info = []
-
-    if 'routes' in overview:
-        for route in overview['routes']:
-            prefix = route['prefix'] if 'prefix' in route else route['regex']
-            rewrite = route.get('prefix_rewrite', "/")
-            method = '*'
-            host = None
-
-            route_clusters = {}
-
-            for cluster in route['clusters']:
-                route_cluster_info(route, route_clusters, cluster, cluster_info, None)
-
-            if 'host_redirect' in route:
-                    # XXX Stupid hackery here. redirect_cluster should be a real 
-                    # Cluster object.
-                    redirect_cluster = {
-                        'name': route['host_redirect'],
-                        'weight': 100
-                    }
-
-                    route_cluster_info(route, route_clusters, redirect_cluster, cluster_info, "redirect")
-                    app.logger.info("host_redirect route: %s" % route)
-                    app.logger.info("host_redirect clusters: %s" % route_clusters)
-
-            if 'shadow' in route:
-                shadow_info = route['shadow']
-                shadow_name = shadow_info.get('name', None)
-
-                if shadow_name:
-                    # XXX Stupid hackery here. shadow_cluster should be a real
-                    # Cluster object.
-                    shadow_cluster = {
-                        'name': shadow_name,
-                        'weight': 100
-                    }
-
-                    route_cluster_info(route, route_clusters, shadow_cluster, cluster_info, "shadow")
-
-            headers = []
-
-            for header in route.get('headers', []):
-                hdr_name = header.get('name', None)
-                hdr_value = header.get('value', None)
-
-                if hdr_name == ':authority':
-                    host = hdr_value
-                elif hdr_name == ':method':
-                    method = hdr_value
-                else:
-                    headers.append(header)
-
-            sep = "" if prefix.startswith("/") else "/"
-
-            route_key = "%s://%s%s%s" % (request_scheme, host if host else request_host, sep, prefix)
-
-            route_info.append({
-                '_route': route,
-                '_source': route['_source'],
-                '_group_id': route['_group_id'],
-                'key': route_key,
-                'prefix': prefix,
-                'rewrite': rewrite,
-                'method': method,
-                'headers': headers,
-                'clusters': route_clusters,
-                'host': host if host else '*'
-            })
-
-        # app.logger.info("route_info")
-        # app.logger.info(json.dumps(route_info, indent=4, sort_keys=True))
-
-        # app.logger.info("cstats")
-        # app.logger.info(json.dumps(cstats, indent=4, sort_keys=True))
-
-    return route_info, cluster_info
-
-def envoy_status(estats):
-    since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
-
-    since_update = "Never updated"
-
-    if estats.time_since_update():
-        since_update = interval_format(estats.time_since_update(), "%s ago", "within the last second")
-
-    return {
-        "alive": estats.is_alive(),
-        "ready": estats.is_ready(),
-        "uptime": since_boot,
-        "since_update": since_update
-    }
-
-def clean_notices(notices):
+def clean_notices(notices) -> List[Dict[str, str]]:
     cleaned = []
 
     for notice in notices:
@@ -365,6 +222,21 @@ def clean_notices(notices):
             cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
 
     return cleaned
+
+def envoy_status(estats):
+    since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
+
+    since_update = "Never updated"
+
+    if estats.time_since_update():
+        since_update = interval_format(estats.time_since_update(), "%s ago", "within the last second")
+
+    return {
+        "alive": estats.is_alive(),
+        "ready": estats.is_ready(),
+        "uptime": since_boot,
+        "since_update": since_update
+    }
 
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
 def favicon():
@@ -406,32 +278,40 @@ def show_overview(reqid=None):
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
-    ov = aconf(app).diagnostic_overview()
-    clusters = ov['clusters']
-    cstats = cluster_stats(clusters)
+    aconf = get_aconf(app)
+    ir = IR(aconf)
+    econf = EnvoyConfig.generate(ir, "V1")
+    diag = Diagnostics(ir, econf)
 
-    route_info, cluster_info = route_and_cluster_info(request, ov, clusters, cstats)
+    app.logger.debug("OV %s: DIAG" % reqid)
+    app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
-    notices.extend(clean_notices(Config.scout_notices))
+    ov = diag.overview(request, app.estats)
+
+    app.logger.debug("OV %s: OV" % reqid)
+    app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
+
+    app.logger.debug("OV %s: collecting errors" % reqid)
+
+    notices.extend(clean_notices([]))  # Config.scout_notices)
 
     errors = []
 
-    for source in ov['sources']:
-        for obj in source['objects'].values():
+    for element in diag.ambassador_elements.values():
+        for obj in element['objects'].values():
             obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
-            if obj['_errors']:
-                errors.extend([ (obj['key'], error['summary'])
-                                 for error in obj['_errors'] ])
+            if obj['errors']:
+                errors.extend([ (obj['key'], error['summary']) for error in obj[ '_errors' ] ])
 
-    tvars = dict(system=system_info(), 
+    tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
-                 cluster_stats=cstats,
+                 cluster_stats=ov['cstats'],
                  notices=notices,
                  errors=errors,
-                 route_info=route_info,
-                 **ov)
+                 route_info=ov['route_info'],
+                 **diag.as_dict())
 
     if request.args.get('json', None):
         result = jsonify(tvars)
@@ -447,7 +327,7 @@ def show_overview(reqid=None):
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    result = aconf(app).get_intermediate_for(source)
+    result = get_aconf(app).get_intermediate_for(source)
 
     # app.logger.debug("result\n%s" % json.dumps(result, indent=4, sort_keys=True))
 
@@ -498,17 +378,12 @@ def pretty_json(obj):
         for key in keys_to_drop:
             del(obj[key])
 
-        # if '_source' in obj:
-        #     del(obj['_source'])
-
-        # if '_referenced_by' in obj:
-        #     del(obj['_referenced_by'])
-
     return json.dumps(obj, indent=4, sort_keys=True)
 
 @app.template_filter('sort_clusters_by_service')
 def sort_clusters_by_service(clusters):
-    return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
+    return sorted(clusters, key=lambda x: x['service'])
+    # return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
 
 @app.template_filter('source_lookup')
 def source_lookup(name, sources):

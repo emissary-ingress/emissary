@@ -15,3 +15,5 @@
 from .config import Config
 from .ir import IR
 from .ambscout import AmbScout as Scout
+from .diagnostics import Diagnostics
+from .envoy import EnvoyConfig

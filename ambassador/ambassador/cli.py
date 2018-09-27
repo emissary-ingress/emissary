@@ -167,7 +167,7 @@ def dump(config_dir_path:Parameter.REQUIRED, *,
             elements = v2config.elements
 
         if dump_diag:
-            diag = Diagnostics(ir)
+            diag = Diagnostics(ir, v1config)
             od['diag'] = diag.as_dict()
             od['elements'] = elements
 
