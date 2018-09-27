@@ -52,9 +52,11 @@ $ kubectl apply -f scripts/ambassador.yaml
 
 6. Copy `env.sh.in to env.sh` and fill in the variables according to the comments.
 
-7.  Run `make deploy`
+7. If OSx, run `$ brew install md5sha1sum` 
 
-8. By running `$ kubectl get services -n datawire`, you should see something like these:
+8.  Run `make deploy`.  
+
+9. By running `$ kubectl get services -n datawire`, you should see something like these:
 ```
 ambassador         LoadBalancer   10.31.248.239   35.230.19.92   80:30664/TCP     16m
 ambassador-admin   NodePort       10.31.240.190   <none>         8877:30532/TCP   16m
@@ -68,4 +70,4 @@ httpbin            NodePort       10.31.245.125   <none>         80:30641/TCP   
 2. Go to `http://{EXTERNAL IP}/httpbin/headers`. This should take you to the 3-leg auth flow. By signing in with your Google account, you should get redirect back to the original URL and headers should be displayed.
 3. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. This should display your `user-agent` without asking for authorization.
 4. Open you browser's admin tool and delete your access_token cookie.
-5. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. You should be prompt with the 3-leg auth flow again.6
+5. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. You should be prompt with the 3-leg auth flow again.

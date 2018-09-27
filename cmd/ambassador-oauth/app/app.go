@@ -3,6 +3,8 @@ package app
 import (
 	"net/http"
 
+	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
+
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
@@ -20,6 +22,7 @@ type App struct {
 	Secret     *secret.Secret
 	Discovery  *discovery.Discovery
 	Controller *controller.Controller
+	Rest       *client.Rest
 }
 
 // Handler returns an app handler that should be consumed by an HTTP server.
@@ -67,12 +70,14 @@ func (a *App) Handler() http.Handler {
 		Logger:    a.Logger,
 		Config:    a.Config,
 		Discovery: a.Discovery,
+		Rest:      a.Rest,
 	}
 
 	callbackMW := &middleware.Callback{
 		Logger: a.Logger,
 		Config: a.Config,
 		Secret: a.Secret,
+		Rest:   a.Rest,
 	}
 
 	// HTTP handler (note that middlewares are executed in order).
