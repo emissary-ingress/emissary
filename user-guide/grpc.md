@@ -43,23 +43,23 @@ EXPOSE 50051
 Create the container and test it:
 
 ```shell
-$ docker build -t <docker_repo>/grpc_example .
-$ docker run -p 50051:50051 <docker_repo>/example
+$ docker build -t <docker_reg>/grpc_example .
+$ docker run -p 50051:50051 <docker_reg>/example
 ```
-Where `<docker_repo>` is your Docker profile.
+Where `<docker_reg>` is your Docker profile.
 
 Switch to another terminal and, from the same directory, run the `greeter_client`.
 The output should be the same as running it outside of the container.
 
 ```shell
-$ docker run -p 50051:50051 <docker_repo>/example
+$ docker run -p 50051:50051 <docker_reg>/example
 Greeter client received: Hello, you!
 ```
 
-Once you verify the container works, push it to your Docker repository:
+Once you verify the container works, push it to your Docker registry:
 
 ```shell
-$ docker push <docker_repo>/grpc_example
+$ docker push <docker_reg>/grpc_example
 ```
 
 ### Mapping gRPC Services
@@ -131,16 +131,16 @@ spec:
     spec:
       containers:
       - name: grpc-example
-        image: <docker_repo>/grpc_example
+        image: <docker_reg>/grpc_example
         ports:
         - name: grpc-api
           containerPort: 50051
       restartPolicy: Always
 ```
 
-After adding the Ambassador to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
+After adding the Ambassador mapping to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
 
-Once you have the YAML file configured, deploy it to your cluster with kubectl
+Once you have the YAML file configured, deploy it to your cluster with kubectl.
 
 ```shell
 $ kubectl apply -f grpc_example.yaml
