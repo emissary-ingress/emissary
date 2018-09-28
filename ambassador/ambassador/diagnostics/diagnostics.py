@@ -47,7 +47,7 @@ class DiagCluster (dict):
     @classmethod
     def unknown_cluster(cls):
         return DiagCluster({
-            '_service': 'unknown service!',
+            'service': 'unknown service!',
             '_health': 'unknown cluster!',
             '_hmetric': 'unknown',
             '_hcolor': 'orange'
@@ -70,6 +70,8 @@ class DiagClusters:
     def __setitem__(self, key: str, value: DiagCluster) -> None:
         self.clusters[key] = value
 
+    def as_json(self):
+        return json.dumps(self.clusters, sort_keys=True, indent=4)
 
 class Diagnostics:
     ir: IR
@@ -79,6 +81,11 @@ class Diagnostics:
     source_map: Dict[str, Dict[str, bool]]
 
     reKeyIndex = re.compile(r'\.(\d+)$')
+
+    filter_map = {
+        'IRAuth': 'AuthService',
+        'IRRateLimit': 'RateLimitService'
+    }
 
     def __init__(self, ir: IR, econf: EnvoyConfig) -> None:
         self.logger = logging.getLogger("ambassador.diagnostics")
@@ -150,14 +157,18 @@ class Diagnostics:
                     'text': error['error']
                 })
 
-            ambassador_element['objects'][fqkey] = {
+            element = {
                 'key': fqkey,
                 'kind': rsrc.kind,
-                'errors': errors
+                'errors': errors,
             }
 
-            ambassador_element['error_plural'] = "error" if (ambassador_element['error_count'] == 1) else "errors"
+            serialization = rsrc.get('serialization', None)
+            if serialization:
+                element['serialization'] = serialization
 
+            ambassador_element['objects'][fqkey] = element
+            ambassador_element['error_plural'] = "error" if (ambassador_element['error_count'] == 1) else "errors"
             ambassador_element['count'] += 1
             ambassador_element['plural'] = "object" if (ambassador_element[ 'count' ] == 1) else "objects"
 
@@ -171,46 +182,43 @@ class Diagnostics:
                 element_list = element_dict.setdefault(kind, [])
                 element_list.append(envoy_element)
 
-        self.groups = [ group.as_dict() for group in self.ir.groups.values()
-                        if group.location != "--diagnostics--" ]
+        self.groups = { 'grp-%s' % group.group_id: group.as_dict() for group in self.ir.groups.values()
+                        if group.location != "--diagnostics--" }
 
-        self.clusters = [ cluster.as_dict() for cluster in self.ir.clusters.values()
-                          if cluster.location != "--diagnostics--" ]
+        self.clusters = { cluster.name: cluster.as_dict() for cluster in self.ir.clusters.values()
+                          if cluster.location != "--diagnostics--" }
 
         # configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
         #                   if key != "groups" }
 
-        # cluster_to_service_mapping = {
-        #     "cluster_ext_auth": "AuthService",
-        #     "cluster_ext_tracing": "TracingService",
-        #     "cluster_ext_ratelimit": "RateLimitService"
-        # }
-        #
-        # ambassador_services = []
-        #
-        # for cluster in configuration.get('clusters', []):
-        #     maps_to_service = cluster_to_service_mapping.get(cluster['name'])
-        #     if maps_to_service:
-        #         service_weigth = 100.0 / len(cluster['urls'])
-        #         for url in cluster['urls']:
-        #             ambassador_services.append(SourcedDict(
-        #                 _from=cluster,
-        #                 type=maps_to_service,
-        #                 name=url,
-        #                 cluster=cluster['name'],
-        #                 _service_weight=service_weigth
-        #             ))
-        #
-        # overview = dict(sources=sorted(source_files.values(), key=lambda x: x['filename']),
-        #                 routes=groups,
-        #                 **configuration)
-        #
-        # if len(ambassador_services) > 0:
-        #     overview['ambassador_services'] = ambassador_services
-        #
-        # # self.logger.debug("overview result %s" % json.dumps(overview, indent=4, sort_keys=True))
-        #
-        # return overview
+        self.ambassador_services = []
+
+        for filter in self.ir.filters:
+            self.logger.debug("FILTER %s" % filter.as_json())
+
+            if filter.kind in Diagnostics.filter_map:
+                type_name = Diagnostics.filter_map[filter.kind]
+                self.add_ambassador_service(filter, type_name)
+
+        if self.ir.tracing:
+            self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
+
+    def add_ambassador_service(self, svc, type_name) -> None:
+        cluster = svc.cluster
+        urls = cluster.urls
+
+        svc_weight = 100.0 / len(urls)
+
+        for url in urls:
+            self.ambassador_services.append({
+                'type': type_name,
+                '_source': svc.location,
+                'name': url,
+                'cluster': cluster.name,
+                '_service_weight': svc_weight
+            })
+
+            type_name = ''
 
     @staticmethod
     def split_key(key) -> Tuple[str, Optional[str]]:
@@ -228,6 +236,7 @@ class Diagnostics:
     def as_dict(self) -> dict:
         return {
             'source_map': self.source_map,
+            'ambassador_services': self.ambassador_services,
             'ambassador_elements': self.ambassador_elements,
             'envoy_elements': self.envoy_elements,
             'groups': self.groups,
@@ -251,14 +260,17 @@ class Diagnostics:
         request_host = request.headers.get('Host', '*')
         request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
 
-        cluster_info = DiagClusters(self.clusters)
+        cluster_info = DiagClusters(self.clusters.values())
 
         for cluster_name, cstat in cstats.items():
             cluster_info[cluster_name].update_health(cstat)
 
+        self.logger.debug("CLUSTER_INFO")
+        self.logger.debug(cluster_info.as_json())
+
         route_info = []
 
-        for group in self.groups:
+        for group in self.groups.values():
             self.logger.debug("GROUP %s" % json.dumps(group, sort_keys=True, indent=4))
 
             prefix = group['prefix'] if 'prefix' in group else group['regex']
@@ -269,17 +281,20 @@ class Diagnostics:
             route_clusters: List[DiagCluster] = []
             route_cluster: Optional[DiagCluster] = None
 
-            for mapping in group['mappings']:
+            for mapping in group.get('mappings', []):
                 c_name = mapping['cluster']['name']
 
-                route_cluster = DiagCluster({ 'weight': mapping['weight'] })
-                route_cluster.update_health(cluster_info[c_name])
+                self.logger.debug("GROUP %s CLUSTER %s %d%% (%s)" %
+                                  (group['group_id'], c_name, mapping['weight'], cluster_info[c_name]))
+
+                route_cluster = DiagCluster(cluster_info[c_name])
+                route_cluster.update({ 'weight': mapping['weight'] })
 
             if 'host_redirect' in group:
                     # XXX Stupid hackery here. redirect_cluster should be a real
                     # Cluster object.
                     redirect_cluster = {
-                        '_service': group['host_redirect'],
+                        'service': group['host_redirect']['service'],
                         'weight': 100,
                         'type_label': 'redirect'
                     }
@@ -297,7 +312,7 @@ class Diagnostics:
                     # XXX Stupid hackery here. shadow_cluster should be a real
                     # Cluster object.
                     shadow_cluster = {
-                        '_service': shadow_name,
+                        'service': shadow_name,
                         'weight': 100,
                         'type_label': 'shadow'
                     }
@@ -308,7 +323,7 @@ class Diagnostics:
                     self.logger.info("shadow cluster: %s" % route_cluster)
 
             route_clusters.append({
-                'service': route_cluster.get('_service', 'unknown service!'),
+                'service': route_cluster.get('service', 'unknown service!'),
                 'weight': route_cluster.get('weight', 100),
                 '_health': route_cluster.get('_hmetric', 'unknown'),
                 '_hcolor': route_cluster.get('_hcolor', 'orange')
@@ -353,7 +368,7 @@ class Diagnostics:
         return route_info
 
     def overview(self, request, estat: EnvoyStats) -> Dict[str, Any]:
-        cluster_names = [ cluster['name'] for cluster in self.clusters ]
+        cluster_names = list(self.clusters.keys())
         cstats = { name: estat.cluster_stats(name) for name in cluster_names }
 
         route_info = self.route_and_cluster_info(request, cstats)

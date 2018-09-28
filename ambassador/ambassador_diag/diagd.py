@@ -39,6 +39,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics
+from ambassador.config import fetch_resources
 from ambassador.VERSION import Version
 from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
 
@@ -145,7 +146,9 @@ def get_aconf(app):
     else:
         latest = app.config_dir_prefix
 
-    aconf = Config(latest)
+    resources = fetch_resources(latest, app.logger, k8s=app.k8s)
+    aconf = Config()
+    aconf.load_all(resources)
 
     # uptime = datetime.datetime.now() - boot_time
     # hr_uptime = td_format(uptime)
@@ -302,7 +305,7 @@ def show_overview(reqid=None):
             obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
             if obj['errors']:
-                errors.extend([ (obj['key'], error['summary']) for error in obj[ '_errors' ] ])
+                errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
@@ -395,10 +398,11 @@ def source_lookup(name, sources):
 
     return source.get('_source', name)
 
-def create_diag_app(config_dir_path, do_checks=False, debug=False, verbose=False):
+def create_diag_app(config_dir_path, do_checks=False, debug=False, k8s=True, verbose=False):
     app.estats = EnvoyStats()
     app.health_checks = False
     app.debugging = debug
+    app.k8s = k8s
 
     # This feels like overkill.
     app._logger = logging.getLogger(app.logger_name)
@@ -438,7 +442,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0'):
+          workers=None, port=8877, host='0.0.0.0', no_k8s=False):
     """
     Run the diagnostic daemon.
 
@@ -452,7 +456,7 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
     """
     
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, verbose)
+    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, not no_k8s, verbose)
 
     if workers == None:
         workers = number_of_workers()
