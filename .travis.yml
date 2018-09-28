@@ -20,11 +20,12 @@ before_install:
 - gcloud version
 - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
 - export GOOGLE_APPLICATION_CREDENTIALS=./key-file.json
-- cat key-file.json
-- gcloud auth activate-service-account 863968914497-compute@developer.gserviceaccount.com --key-file ./key-file.json
-- gcloud config set compute/zone us-west1-a
-- gcloud container clusters get-credentials gsagula
-- gcloud components install kubectl
+- gcloud auth activate-service-account ci-349@datawireio.iam.gserviceaccount.com --key-file ./key-file.json
+- gcloud --quiet config set project datawire
+- gcloud --quiet config set container/cluster gsagula
+- gcloud --quiet config set compute/zone us-west1-a
+- gcloud --quiet container clusters get-credentials gsagula
+- gcloud --quiet components install kubectl
 # - kubectl config current-context
 install:
 - "./scripts/travis-docker.sh"
