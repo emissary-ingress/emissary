@@ -48,7 +48,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `image.repository` | Image | `quay.io/datawire/ambassador`
 | `image.tag` | Image tag | `0.35.0`
 | `image.pullPolicy` | Image pull policy | `IfNotPresent`
-| `image.imagePullSecrets` | Image pull secrets ! None
+| `image.imagePullSecrets` | Image pull secrets | None
 | `daemonSet` | If `true `, Create a daemonSet. By default Deployment controller will be created | `false` 
 | `replicaCount`  | Number of Ambassador replicas  | `1`
 | `resources` | CPU/memory resource requests/limits | None
