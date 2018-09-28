@@ -22,6 +22,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+      {{- with .Values.service.nodePort }}
+      nodePort: {{ toYaml . }}
+      {{- end }}
     {{- end }}
     {{- if .Values.service.enableHttps }}
     - port: 443
