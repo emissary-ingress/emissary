@@ -22,5 +22,8 @@ before_install:
 - export GOOGLE_APPLICATION_CREDENTIALS=./key-file.json
 - cat key-file.json
 - gcloud auth activate-service-account travis-ci@datawireio.iam.gserviceaccount.com --key-file ./key-file.json
+- gcloud config set compute/zone us-west1-a
+- gcloud container clusters get-credentials gsagula
+# - kubectl config current-context
 install:
 - "./scripts/travis-docker.sh"
