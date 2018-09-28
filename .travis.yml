@@ -10,17 +10,15 @@ env:
   - secure: l8nQVSKVwYpLZTBoMVYnFGxaIbpb0mYCk+fhz5uJQi+P1MkvbXiFcVLrnWqwC/A7Xc+d3v/QHV6fib5sZXaABPLl+Z+fpFc/Q7eLFVfZBVoGVxupfNsF4co7oUMhH6+yJSYjOZTZoqIosp5qJdfLRGgJZYIJgv0cG00G1BmF1HaehzSgp8AaOqdzg0Lzh0IYiksUKbgvEo1JXW9i++xY5gOeu5GMjPsg2mSM3jGa38SBxNd9ftTr2Sx6XQSKIXa17oZkT5CTo3VZrz0dKSKdjB3m9Yud3gvNo1NqrkdbOaUPZSwUDvCYJxz9ADb51bBm0ahuw+TrkEXMcOhE37YZyUXieBpDgc8puKGkkpPKWtfBCV/2AxKJSfrU6BRW0zK8ne6IQgg1VZVLpVNTmTA4mvuJreqkXe0ACGsqp9sbVFVl3IkteSevyl2cLLWrVNKJlStrIOnyBNTqq2qBdDmYB+8SKfF57YSG+rRXRgw/voB95BcVfG6UrQZnmPdGSDXW80RzLnwq6vTonT8XrbF44QG65Fz77mPrNrYYr3ptr5BRn4MEb6ET9todY+JFEn2DnLntjfEcDSIkBrSB4VGxPnh37Q9qF7BP+cTAKQKoHHpQwNW9DvUII7oLcsEAeueS9ngKCx1qPa6VxkbtRHGSPlUbuQMrEUkplZePGLT/nHU=
 cache:
   directories:
-    - "$HOME/google-cloud-sdk/"
+  - "$HOME/google-cloud-sdk/"
 before_install:
 - chmod +x ./scripts/travis-docker.sh
-- openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in client-secret.json.enc -out client-secret.json
-# - openssl aes-256-cbc -K $encrypted_4cb330591e04_key -iv $encrypted_4cb330591e04_iv -in credentials.tar.gz.enc -out credentials.tar.gz
 - gcloud version || true
-- if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
-# Add gcloud to $PATH
+- if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export
+  CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
 - source /home/travis/google-cloud-sdk/path.bash.inc
 - gcloud version
-- gcloud auth activate-service-account --key-file client-secret.json
-
+- openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json
+- gcloud auth activate-service-account travis-ci@datawireio.iam.gserviceaccount.com --key-file client-secret.json
 install:
 - "./scripts/travis-docker.sh"
