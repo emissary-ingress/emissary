@@ -38,9 +38,7 @@ before_install:
 - gcloud --quiet components install kubectl
 - kubectl config current-context
 
-deploy:
+install:
 - make deploy
 
-after_deploy:
-- make clean
 #- "./scripts/travis-docker.sh"
