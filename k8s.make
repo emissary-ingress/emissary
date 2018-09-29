@@ -1,5 +1,8 @@
+
+# This is the namespace you want to use for development in quay,
+# probably your quay.io username:
 DEV_REGISTRY ?= $(REGISTRY)
-DEV_REGISTRY_NAMESPACE=$(./$(PWD)/env.sh && echo $${REGISTRY_NAMESPACE})
+DEV_REGISTRY_NAMESPACE=datawire
 DEV_VERSION=$(HASH)
 DEV_REPO=$(DEV_REGISTRY_NAMESPACE)/$(NAME)
 DEV_IMAGE=$(DEV_REGISTRY)/$(DEV_REPO):$(DEV_VERSION)
