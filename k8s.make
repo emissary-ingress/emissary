@@ -1,4 +1,3 @@
-
 # This is the namespace you want to use for development in quay,
 # probably your quay.io username:
 DEV_REGISTRY ?= $(REGISTRY)
@@ -85,3 +84,4 @@ apply: $(HASH_FILE) $(MANIFESTS)
 .PHONY: clean-k8s
 clean-k8s:
 	rm -rf $(K8S_BUILD)
+	

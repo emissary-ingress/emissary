@@ -98,7 +98,7 @@ func (c *Callback) checkState(r *http.Request) (string, error) {
 
 	token, err := jwt.Parse(state, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return "", fmt.Errorf("unexpected signing method %v", token.Header["path"])
+			return "", fmt.Errorf("unexpected signing method %v", token.Header["redirect_url"])
 		}
 		return c.Secret.GetPublicKey(), nil
 	})
@@ -112,5 +112,5 @@ func (c *Callback) checkState(r *http.Request) (string, error) {
 		return "", errors.New("state token validation failed")
 	}
 
-	return claims["path"].(string), nil
+	return claims["redirect_url"].(string), nil
 }

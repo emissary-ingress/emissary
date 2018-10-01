@@ -63,7 +63,7 @@ func TestAppNoToken(t *testing.T) {
 	assert.StrEQ(appUT.Config.CallbackURL, u.Query().Get("redirect_uri"))
 	assert.StrEQ(appUT.Config.ClientID, u.Query().Get("client_id"))
 	assert.IntEQ(303, res.StatusCode)
-	assert.IntEQ(512, len(u.Query().Get("state")))
+	assert.IntEQ(523, len(u.Query().Get("state")))
 }
 
 // TestAppBadToken verifies the authorization server returns 401 when the authorization
@@ -111,7 +111,7 @@ func TestAppCallback(t *testing.T) {
 	res, _ := appCL.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
-	assert.IntEQ(516, len(u.Query().Get("state")))
+	assert.IntEQ(527, len(u.Query().Get("state")))
 
 	// 2. Now we call the authorization server (appTS) again with a signed state and
 	// code query params. Note that by calling it with code=authorize, our
@@ -145,7 +145,7 @@ func TestAppCallbackNoCode(t *testing.T) {
 	res, _ := appCL.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
-	assert.IntEQ(516, len(u.Query().Get("state")))
+	assert.IntEQ(527, len(u.Query().Get("state")))
 
 	callbackURL := fmt.Sprintf("%s/callback?state=%s", appTS.URL, u.Query().Get("state"))
 	callbackREQ, _ := http.NewRequest("GET", callbackURL, nil)
