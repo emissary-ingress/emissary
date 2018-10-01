@@ -37,6 +37,6 @@ roleRef:
   name: {{ template "ambassador.fullname" . }}
 subjects:
   - name: {{ template "ambassador.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace | quote }}
+    namespace: {{ .Release.Namespace }}
     kind: ServiceAccount
 {{- end -}}
