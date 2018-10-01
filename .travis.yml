@@ -30,7 +30,6 @@ before_install:
 - source /home/travis/google-cloud-sdk/path.bash.inc
 - gcloud version
 - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
-- cat ./key-file.json
 - gcloud auth activate-service-account $K8S_ACCOUNT_NAME --key-file=./key-file.json
 - gcloud --quiet config set project $K8S_PROJECT
 - gcloud --quiet config set container/cluster $K8S_CLUSTER
@@ -38,6 +37,7 @@ before_install:
 - gcloud --quiet container clusters get-credentials $K8S_CLUSTER --zone=$K8S_ZONE
 - gcloud --quiet components install kubectl
 - kubectl config current-context
+- kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user=$K8S_ACCOUNT_NAME
 
 install:
 - "./scripts/travis-docker.sh"
