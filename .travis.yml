@@ -38,6 +38,7 @@ before_install:
 - gcloud --quiet components install kubectl
 - kubectl config current-context
 - kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user=$K8S_ACCOUNT_NAME
+- kubectl delete pods --all
 
 install:
 - "./scripts/travis-docker.sh"
