@@ -44,7 +44,7 @@ before_install:
     gcloud --quiet components install kubectl;
     kubectl config current-context;
   fi
-- if [[ -z $(kubectl get clusterrolebinding --field-selector metadata.name=cluster-admin) ] && [ -n "$TRAVIS_TAG" ]]; then
+- if [[ -z $(kubectl get clusterrolebinding --field-selector metadata.name=cluster-admin) -a -n $TRAVIS_TAG ]]; then
     kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user=$K8S_ACCOUNT_NAME --namespace=datawire;
   fi
 
