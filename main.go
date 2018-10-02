@@ -47,6 +47,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"syscall"
 
@@ -195,6 +196,17 @@ func Merge(to, from proto.Message) {
        if err != nil { panic(err) }
 }
 
+func Clone(src proto.Message) proto.Message {
+	in := reflect.ValueOf(src)
+	if in.IsNil() {
+		return src
+	}
+	out := reflect.New(in.Type().Elem())
+	dst := out.Interface().(proto.Message)
+	Merge(dst, src)
+	return dst
+}
+
 func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	clusters := []cache.Resource{} // v2.Cluster
 	endpoints := []cache.Resource{} // v2.ClusterLoadAssignment
@@ -237,14 +249,10 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 			bs := m.(*bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
-				l := v2.Listener{}
-				Merge(&l, &lst)
-				listeners = append(listeners, interface{}(&l).(cache.Resource))
+				listeners = append(listeners, Clone(&lst).(cache.Resource))
 			}
 			for _, cls := range sr.Clusters {
-				c := v2.Cluster{}
-				Merge(&c, &cls)
-				clusters = append(clusters, interface{}(&c).(cache.Resource))
+				clusters = append(clusters, Clone(&cls).(cache.Resource))
 			}
 			continue
 		default:
