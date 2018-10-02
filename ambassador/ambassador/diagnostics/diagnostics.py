@@ -181,7 +181,7 @@ class DiagResult:
         shadows = group.get('shadows', [])
 
         for shadow in shadows:
-            # Shadows have a real cluster.
+            # Shadows have a real cluster object.
             shadow_dict = shadow['cluster'].as_dict()
             shadow_dict['type_label'] = 'shadow'
 
@@ -314,7 +314,8 @@ class Diagnostics:
                     'count': 0,
                     'plural': "objects",
                     'error_count': 0,
-                    'error_plural': "errors"
+                    'error_plural': "errors",
+                    'kind': rsrc.kind
                 }
             )
 
@@ -332,17 +333,12 @@ class Diagnostics:
                     'text': error['error']
                 })
 
-            element = {
-                'key': fqkey,
-                'kind': rsrc.kind,
-                'errors': errors,
-            }
+            ambassador_element['errors'] = errors
 
             serialization = rsrc.get('serialization', None)
             if serialization:
-                element['serialization'] = serialization
+                ambassador_element['serialization'] = serialization
 
-            ambassador_element['objects'][fqkey] = element
             ambassador_element['error_plural'] = "error" if (ambassador_element['error_count'] == 1) else "errors"
             ambassador_element['count'] += 1
             ambassador_element['plural'] = "object" if (ambassador_element[ 'count' ] == 1) else "objects"

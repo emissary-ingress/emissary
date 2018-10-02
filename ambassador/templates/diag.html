@@ -240,45 +240,43 @@ limitations under the License
 
           {% for key in active_elements | sort %}
             {% if key in ambassador_elements %}
-              {% for object in ambassador_elements[key].objects.values() | sort_by_key %}
-                <div class="row">
-                  <div class="col-5">
-                    <a href="/ambassador/v0/diag/{{ object.key }}">
-                      <code>{{ object.key }}</code>
-                    </a>
-                    {% if ambassador_elements[key].parent %}
-                      <br/>
-                      object in <a href="/ambassador/v0/diag/{{ ambassador_elements[key].parent }}">
-                        {{ ambassador_elements[key].parent }}
-                      </a>
-                    {% endif %}
+              <div class="row">
+                <div class="col-5">
+                  <a href="/ambassador/v0/diag/{{ key }}">
+                    <code>{{ key }}</code>
+                  </a>
+                  {% if ambassador_elements[key].parent %}
                     <br/>
-                    Ambassador
-                    {% if object.target %}<a href={{ object.target }}>{% endif %}
-                    {{ object.kind }}
-                    {% if object.target %}</a>{% endif %}
+                    object in <a href="/ambassador/v0/diag/{{ ambassador_elements[key].parent }}">
+                      {{ ambassador_elements[key].parent }}
+                    </a>
+                  {% endif %}
+                  <br/>
+                  Ambassador
+                  {% if ambassador_elements[key].target %}<a href={{ ambassador_elements[key].target }}>{% endif %}
+                  {{ ambassador_elements[key].kind }}
+                  {% if ambassador_elements[key].target %}</a>{% endif %}
 
-                    {% if object.errors %}
-                      <ul>
-                        {% for error in object.errors %}
-                        <li>
-                          <span style="color:red">ERROR:</span> {{ error.text }}
-                        </li>
-                        {% endfor %}
-                      </ul>
+                  {% if ambassador_elements[key].errors %}
+                    <ul>
+                      {% for error in ambassador_elements[key].errors %}
+                      <li>
+                        <span style="color:red">ERROR:</span> {{ error.text }}
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </div>
+                <div class="col-7">
+                  <div class="row">
+                    {% if not ambassador_elements[key].description %}
+                      <code><pre>{{ ambassador_elements[key].serialization }}</pre></code>
+                    {% else %}
+                      {{ ambassador_elements[key].description }}
                     {% endif %}
-                  </div>
-                  <div class="col-7">
-                    <div class="row">
-                      {% if not object.description %}
-                        <code><pre>{{ object.serialization }}</pre></code>
-                      {% else %}
-                        {{ object.description }}
-                      {% endif %}
-                    </div>
                   </div>
                 </div>
-              {% endfor %}
+              </div>
             {% endif %}
           {% endfor %}
         </div>
