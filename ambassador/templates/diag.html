@@ -234,66 +234,6 @@ limitations under the License
         </div>
       </div>
 
-      {% if breakers %}
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/cluster_circuit_breakers">Circuit Breakers</a>
-
-          {% for breaker in breakers | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-5">
-              <a href="/ambassador/v0/diag/{{ breaker['_source'] }}">
-                <code>{{ breaker['name'] }}</code>
-              </a>
-              <br/><br/>
-              sources:
-              <ul>
-                {% for ref in breaker._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
-                {% endfor %}
-              </ul>
-            </div>
-            <div class="col-7">
-              <div class="row">
-                <code><pre>{{ breaker | pretty_json }}</pre></code>
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      {% if outliers %}
-      <div class="row">
-        <div class="col-12">
-          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/outlier">Outlier Detection</a> configuration
-
-          {% for outlier in outliers | sort(attribute = 'name') %}
-          <div class="row">
-            <div class="col-5">
-              <a href="/ambassador/v0/diag/{{ outlier['_source'] }}">
-                <code>{{ outlier['name'] }}</code>
-              </a>
-              <br/><br/>
-              sources:
-              <ul>
-                {% for ref in outlier._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
-                {% endfor %}
-              </ul>
-            </div>
-            <div class="col-7">
-              <div class="row">
-                <code><pre>{{ outlier | pretty_json }}</pre></code>
-              </div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
       <div class="row">
         <div class="col-12">
           YAML input documents &mdash; these are what Ambassador is currently reading for its configuration.
