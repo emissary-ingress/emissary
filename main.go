@@ -282,6 +282,38 @@ func warn(err error) bool {
 	}
 }
 
+// OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
+func (l logger ) OnStreamOpen(sid int64, stype string) {
+	l.Infof("Stream open[%v]: %v", sid, stype)
+}
+
+
+// OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
+func (l logger) OnStreamClosed(sid int64) {
+	l.Infof("Stream closed[%v]", sid)
+}
+
+// OnStreamRequest is called once a request is received on a stream.
+func (l logger) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) {
+	l.Infof("Stream request[%v]: %v", sid, req)
+}
+
+// OnStreamResponse is called immediately prior to sending a response on a stream.
+func (l logger) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	l.Infof("Stream response[%v]: %v -> %v", sid, req, res)
+}
+
+// OnFetchRequest is called for each Fetch request
+func (l logger) OnFetchRequest(r *v2.DiscoveryRequest) {
+	l.Infof("Fetch request: %v", r)
+}
+
+// OnFetchResponse is called immediately prior to sending a response.
+func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	l.Infof("Fetch response: %v -> %v", req, res)
+}
+
+
 func main() {
 	flag.Parse()
 
@@ -312,7 +344,7 @@ func main() {
 	defer cancel()
 
 	config := cache.NewSnapshotCache(true, Hasher{}, logger{})
-	srv := server.NewServer(config, nil)
+	srv := server.NewServer(config, logger{})
 
 	runManagementServer(ctx, srv, adsPort)
 
