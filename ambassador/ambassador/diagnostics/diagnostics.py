@@ -109,6 +109,7 @@ class DiagResult:
             'cluster_stats': self.cstats,
             'cluster_info': self.clusters,
             'route_info': self.routes,
+            'active_elements': sorted(self.element_keys.keys()),
             'ambassador_resources': self.ambassador_resources,
             'envoy_resources': self.envoy_resources
         }
@@ -180,14 +181,11 @@ class DiagResult:
         shadows = group.get('shadows', [])
 
         for shadow in shadows:
-            shadow_cluster = self.include_cluster({
-                'name': shadow['name'],
-                'service': shadow['cluster']['name'],
-                'weight': 100,
-                'type_label': 'shadow',
-                '_referenced_by': [ shadow['cluster'][ 'rkey' ] ]
-            })
+            # Shadows have a real cluster.
+            shadow_dict = shadow['cluster'].as_dict()
+            shadow_dict['type_label'] = 'shadow'
 
+            shadow_cluster = self.include_cluster(shadow_dict)
             route_clusters.append(shadow_cluster)
 
             self.logger.info("shadow route: %s" % group)
@@ -436,24 +434,43 @@ class Diagnostics:
 
         return result.as_dict()
 
-    def lookup(self, request, key: str, estat: EnvoyStats) -> Dict[str, Any]:
+    def lookup(self, request, key: str, estat: EnvoyStats) -> Optional[Dict[str, Any]]:
         result = DiagResult(self, estat, request)
 
         # Typically we'll get handed a group identifier here, but we might get
-        # other stuff too.
+        # other stuff too, and we have to look for all of it.
+
+        found: bool = False
 
         if key in self.groups:
             # Yup, group ID.
-            group = self.groups[key]
-            result.include_group(group)
+            result.include_group(self.groups[key])
+            found = True
+        elif key in self.clusters:
+            result.include_cluster(self.clusters[key].as_dict())
+            found = True
+        elif key in self.source_map:
+            # The source_map is set up like:
+            #
+            # "mapping-qotm.yaml": {
+            #     "mapping-qotm.yaml.1": true,
+            #     "mapping-qotm.yaml.2": true,
+            #     "mapping-qotm.yaml.3": true
+            # }
+            #
+            # so for whatever we found, we need to tell the result to
+            # include every element in the keys of the dict stored for
+            # our key.
+            for subkey in self.source_map[key].keys():
+                result.include_element(subkey)
+                # Not a typo. Set found here, in case somehow we land on
+                # a key with no subkeys (which should be impossible, but,
+                # y'know).
+                found = True
+
+        if found:
             result.finalize()
             return result.as_dict()
-
-        # elif key in self.source_map:
-        #     element_keys = sorted(self.source_map[key].keys())
-        #
-        #
-        #     return result.as_dict()
         else:
             return None
 

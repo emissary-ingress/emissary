@@ -201,12 +201,6 @@ def system_info():
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }
 
-def source_key(source):
-    return "%s.%d" % (source['filename'], source['index'])
-
-def sorted_sources(sources):
-    return sorted(sources, key=source_key)
-
 def clean_notices(notices) -> List[Dict[str, str]]:
     cleaned = []
 
@@ -352,24 +346,6 @@ def show_intermediate(source=None, reqid=None):
 
     app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
 
-    # if result:
-    #     clusters = result['clusters']
-        # cstats = cluster_stats(clusters)
-        #
-        # route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
-        #
-        # # result['cluster_stats'] = cstats
-        # # result['sources'] = sorted_sources(result['sources'])
-        # # result['source_dict'] = { source_key(source): source
-        # #                           for source in result['sources']}
-        #
-        # for source in result['sources']:
-        #     source['target'] = ambassador_targets.get(source['kind'].lower(), None)
-        #
-        #     if source['_errors']:
-        #         errors.extend([ (source['filename'], error['summary'])
-        #                          for error in source['_errors'] ])
-
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
@@ -383,6 +359,10 @@ def show_intermediate(source=None, reqid=None):
         return jsonify(tvars)
     else:
         return render_template("diag.html", **tvars)
+
+@app.template_filter('sort_by_key')
+def sort_by_key(objects):
+    return sorted(objects, key=lambda x: x['key'])
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
