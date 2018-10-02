@@ -59,6 +59,7 @@ import (
 	"github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/envoyproxy/go-control-plane/pkg/server"
 
+	bootstrap "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v2"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
 
 	"github.com/fsnotify/fsnotify"
@@ -187,6 +188,13 @@ func decode(name string) (proto.Message, error) {
 	return v, nil
 }
 
+func Merge(to, from proto.Message) {
+       str, err := (&jsonpb.Marshaler{}).MarshalToString(from)
+       if err != nil { panic(err) }
+       err = jsonpb.UnmarshalString(str, to)
+       if err != nil { panic(err) }
+}
+
 func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	clusters := []cache.Resource{} // v2.Cluster
 	endpoints := []cache.Resource{} // v2.ClusterLoadAssignment
@@ -225,6 +233,20 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 			dst = &routes
 		case *v2.Listener:
 			dst = &listeners
+		case *bootstrap.Bootstrap:
+			bs := m.(*bootstrap.Bootstrap)
+			sr := bs.StaticResources
+			for _, lst := range sr.Listeners {
+				l := v2.Listener{}
+				Merge(&l, &lst)
+				listeners = append(listeners, interface{}(&l).(cache.Resource))
+			}
+			for _, cls := range sr.Clusters {
+				c := v2.Cluster{}
+				Merge(&c, &cls)
+				clusters = append(clusters, interface{}(&c).(cache.Resource))
+			}
+			continue
 		default:
 			log.Warnf("Unrecognized resource %s: %v", name, e)
 			continue
