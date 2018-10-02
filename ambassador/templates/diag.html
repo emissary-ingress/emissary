@@ -246,6 +246,12 @@ limitations under the License
                     <a href="/ambassador/v0/diag/{{ object.key }}">
                       <code>{{ object.key }}</code>
                     </a>
+                    {% if ambassador_elements[key].parent %}
+                      <br/>
+                      object in <a href="/ambassador/v0/diag/{{ ambassador_elements[key].parent }}">
+                        {{ ambassador_elements[key].parent }}
+                      </a>
+                    {% endif %}
                     <br/>
                     Ambassador
                     {% if object.target %}<a href={{ object.target }}>{% endif %}

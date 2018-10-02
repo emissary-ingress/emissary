@@ -318,6 +318,9 @@ class Diagnostics:
                 }
             )
 
+            if uqkey and (uqkey != fqkey):
+                ambassador_element['parent'] = uqkey
+
             raw_errors: List[Dict[str, str]] = self.ir.aconf.errors.get(fqkey, [])
             errors = []
 
