@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import urllib
 from typing import List, TYPE_CHECKING
 
 from ...ir.ircluster import IRCluster
-
-from .v2tls import V2TLSContext
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -25,6 +24,29 @@ if TYPE_CHECKING:
 class V2Cluster(dict):
     def __init__(self, config: 'V2Config', cluster: IRCluster) -> None:
         super().__init__()
+
+        fields = {
+            'name': cluster.name,
+            'type': cluster.type.upper(),
+            'lb_policy': cluster.lb_type.upper(),
+            'connect_timeout': "3s",
+            'load_assignment': {
+                'cluster_name': cluster.name,
+                'endpoints': [
+                    {
+                        'lb_endpoints': self.get_endpoints(cluster)
+                    }
+                ]
+            }
+        }
+
+        if 'tls_context' in cluster:
+            fields['tls_context'] = {
+                'common_tls_context': {}
+            }
+
+        self.update(fields)
+        return
 
         self["name"] = cluster.name
         self["connect_timeout_ms"] = cluster.get("timeout_ms", 3000)
@@ -67,6 +89,19 @@ class V2Cluster(dict):
 
             if envoy_ctx:
                 self['ssl_context'] = dict(envoy_ctx)
+
+    def get_endpoints(self, cluster: IRCluster):
+        result = []
+        for u in cluster.urls:
+            p = urllib.parse.urlparse(u)
+            address = {
+                'address': p.hostname,
+                'port_value': int(p.port)
+            }
+            if p.scheme:
+                address['protocol'] = p.scheme.upper()
+            result.append({'endpoint': {'address': {'socket_address': address}}})
+        return result
 
     @classmethod
     def generate(self, config: 'V2Config') -> None:

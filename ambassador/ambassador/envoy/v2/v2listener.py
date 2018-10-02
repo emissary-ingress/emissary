@@ -68,6 +68,7 @@ class V2Listener(dict):
         #     route["rate_limits"] = group.rate_limits
 
         self.update({
+            'name': listener.name,
             'address': {
                 'socket_address': {
                     'address': '0.0.0.0',
@@ -84,10 +85,16 @@ class V2Listener(dict):
                                 'stat_prefix': 'ingress_http',
                                 'access_log': [
                                     {
+                                        'name': 'envoy.file_access_log',
                                         'config': {
                                             'path': '/dev/fd/1',
                                             'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
                                         }
+                                    }
+                                ],
+                                'http_filters': [
+                                    {
+                                        'name': 'envoy.router'
                                     }
                                 ],
                                 'route_config': {

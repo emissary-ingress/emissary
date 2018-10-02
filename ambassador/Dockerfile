@@ -12,21 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# Our base image was built from https://github.com/datawire/envoy, commit
-# 6557e9ea7, on the flynn/feature/extauth branch. We need this instead of
-# the official Envoy image so that we can support Ambassador's ability to
-# use an external authentication service.
-#
-# To reproduce the base image,
-#
-# git clone https://github.com/datawire/envoy.git datawire-envoy
-# cd datawire-envoy
-# git checkout flynn/feature/extauth
-# 
-# and then read DATAWIRE/README.md.
-
-# FROM datawire/ambassador-envoy-alpine-stripped:v1.6.0-446-g100a92e2
-FROM quay.io/datawire/ambassador-envoy:v1.7.0-64-g09ba72b1-alpine-stripped
+FROM envoyproxy/envoy-alpine:26e2a31650fe14db7e55a3136f9ae75db667bf5c
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -62,6 +48,7 @@ RUN rm -rf ./ambassador
 # configmap over this with no trouble, or you can let
 # annotations do the right thing
 RUN mkdir ambassador-config
+RUN mkdir envoy
 
 # COPY in a default config for use with --demo.
 COPY default-config/ ambassador-demo-config
@@ -74,8 +61,10 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
 # COPY the entrypoint script and make it runnable.
 COPY kubewatch.py .
 COPY hot-restarter.py .
-COPY start-envoy.sh .
 COPY entrypoint.sh .
-RUN chmod 755 start-envoy.sh entrypoint.sh
+# XXX: ambex needs to be replaced with a proper release, or made traceable or something!!!
+COPY ambex .
+COPY bootstrap-ads.yaml .
+RUN chmod 755 entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
