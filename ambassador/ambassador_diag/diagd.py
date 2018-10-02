@@ -435,7 +435,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0', no_k8s=False):
+          workers=None, port=8877, host='0.0.0.0', k8s=False):
     """
     Run the diagnostic daemon.
 
@@ -449,7 +449,7 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
     """
     
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, not no_k8s, verbose)
+    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, k8s, verbose)
 
     if workers == None:
         workers = number_of_workers()
