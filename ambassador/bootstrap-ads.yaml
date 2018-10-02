@@ -1,0 +1,30 @@
+# Base config for an ADS management server on 18000, admin port on 8001
+admin:
+  access_log_path: /dev/fd/1
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 8001
+dynamic_resources:
+  ads_config:
+    api_type: GRPC
+    grpc_services:
+      - envoy_grpc:
+          cluster_name: xds_cluster
+  cds_config:
+    ads: {}
+  lds_config:
+    ads: {}
+node:
+  cluster: ignored
+  # XXX: must be test-id
+  id: test-id
+static_resources:
+  clusters:
+  - name: xds_cluster
+    connect_timeout: 1s
+    hosts:
+    - socket_address:
+        address: 127.0.0.1
+        port_value: 18000
+    http2_protocol_options: {}

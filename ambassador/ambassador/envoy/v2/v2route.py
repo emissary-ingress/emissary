@@ -30,31 +30,45 @@ class V2Route(dict):
 
         envoy_route = EnvoyRoute(group).envoy_route
 
-        self.update({
-            'match': {
-                envoy_route: group.get('prefix'),
-                'case_sensitive': group.get('case_sensitive'),
-                'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
+        match = {
+            envoy_route: group.get('prefix'),
+            'case_sensitive': group.get('case_sensitive', True),
+            'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
+        }
+
+        route = {
+            'priority': group.get('priority'),
+            'use_websocket': group.get('use_websocket'),
+            'weighted_clusters': {
+                'clusters': [
+                    {
+                        'name': mapping.cluster.name,
+                        'weight': mapping.weight,
+                        'request_headers_to_add': group.get('request_headers_to_add')
+                    } for mapping in group.mappings
+                ],
             },
-            'route': {
-                'priority': group.get('priority'),
-                'use_websocket': group.get('use_websocket'),
-                'weighted_clusters': {
-                    'clusters': [
-                        {
-                            'name': mapping.cluster.name,
-                            'weight': mapping.weight,
-                            'request_headers_to_add': group.get('request_headers_to_add')
-                        } for mapping in group.mappings
-                    ],
-                },
-            },
-            'redirect': {
-                'prefix_rewrite': group.get('rewrite'),
-                'host_rewrite': group.get('host_rewrite'),
-                'auto_host_rewrite': group.get('auto_host_rewrite'),
-            }
-        })
+            'prefix_rewrite': group.get('rewrite'),
+        }
+
+        if 'host_rewrite' in group:
+            route['host_rewrite'] = group['host_rewrite']
+
+        if 'auto_host_rewrite' in group:
+            route['auto_host_rewrite'] = group['auto_host_rewrite']
+
+        self['match'] = match
+        self['route'] = route
+
+        request_headers_to_add = []
+        for mapping in group.mappings:
+            for k, v in mapping.get('add_request_headers', {}).items():
+                request_headers_to_add.append({
+                    'header': {'key': k, 'value': v},
+                    'append': True, # ???
+                    })
+        if request_headers_to_add:
+            self['request_headers_to_add'] = request_headers_to_add
 
         host_redirect = group.get('host_redirect', None)
 

@@ -34,13 +34,14 @@ from ambassador.config import Config
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, check_cert_file, TLSPaths
 from ambassador.cli import fetch_resources
 from ambassador.ir import IR
-from ambassador.envoy.v1.v1config import V1Config
+from ambassador.envoy import V2Config
 
 from ambassador.VERSION import Version
 
 __version__ = Version
 ambassador_id = os.getenv("AMBASSADOR_ID", "default")
 
+# XXX: this has no effect because something else is calling basicConfig sooner
 logging.basicConfig(
     level=logging.INFO, # if appDebug else logging.INFO,
     format="%%(asctime)s kubewatch %s %%(levelname)s: %%(message)s" % __version__,
@@ -146,6 +147,8 @@ class Restarter(threading.Thread):
         if not m:
             raise Exception("Impossible? would be writing %s" % target)
 
+        target = os.path.join(self.ambassador_config_dir, "..", "envoy", "envoy.json")
+
         os.rename(config, target)
 
         logger.debug("Moved valid configuration %s to %s" % (config, target))
@@ -172,37 +175,14 @@ class Restarter(threading.Thread):
         aconf = Config()
         aconf.load_all(resources)
         ir = IR(aconf)
-        v1config = V1Config(ir)
+        envoy_config = V2Config(ir)
 
-        envoy_config = "%s-%s" % (output, "envoy.json")
-        with open(envoy_config, "w") as o:
-            o.write(v1config.as_json())
+        envoy_config_path = "%s-%s" % (output, "envoy.json")
+        with open(envoy_config_path, "w") as o:
+            o.write(envoy_config.as_json())
             o.write("\n")
 
-    # rc = aconf.generate_envoy_config(mode="kubewatch",
-        #                                  generation_count=self.restart_count)
-
-        # logger.info("Scout reports %s" % json.dumps(rc.scout_result))
-
-        if v1config:
-            # envoy_config = "%s-%s" % (output, "envoy.json")
-            # aconf.pretty(v1config.envoy_config, out=open(envoy_config, "w"))
-            try:
-                result = subprocess.check_output(["/usr/local/bin/envoy", "--base-id", "1", "--mode", "validate",
-                                                  "-c", envoy_config])
-                if result.strip().endswith(b" OK"):
-                    logger.debug("Configuration %s valid" % envoy_config)
-                    return envoy_config
-            except subprocess.CalledProcessError:
-                logger.info("Invalid envoy config")
-                with open(envoy_config) as fd:
-                    logger.info(fd.read())
-        else:
-            # logger.info("Could not generate new Envoy configuration: %s" % rc.error)
-            logger.info("Raw template output:")
-            # logger.info("%s" % rc.raw)
-
-        raise ValueError("Unable to generate config")
+        return envoy_config_path
 
     def update_from_service(self, svc):
         key = get_filename(svc)
@@ -372,6 +352,8 @@ def watch_loop(restarter):
                 continue
     else:
         logger.info("No K8s, idling")
+
+# XXX: review this file for dead code/docs
 
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))

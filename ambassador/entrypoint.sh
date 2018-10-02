@@ -27,7 +27,7 @@ if [ "$1" == "--demo" ]; then
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
 
-DELAY=${AMBASSADOR_RESTART_TIME:-15}
+DELAY=${AMBASSADOR_RESTART_TIME:-1}
 
 APPDIR=${APPDIR:-"$AMBASSADOR_ROOT"}
 
@@ -59,14 +59,6 @@ diediedie() {
         echo "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
     else
         echo "AMBASSADOR: $NAME exited with status $STATUS"
-    fi
-
-    echo "Here's the envoy.json we were trying to run with:"
-    LATEST="$(ls -v $AMBASSADOR_ROOT/envoy*.json | tail -1)"
-    if [ -e "$LATEST" ]; then
-        cat "$LATEST"
-    else
-        echo "No config generated."
     fi
 
     ambassador_exit 1
@@ -140,12 +132,16 @@ echo "AMBASSADOR: starting diagd"
 diagd --no-debugging "$CONFIG_DIR" &
 pids="${pids:+${pids} }$!:diagd"
 
-echo "AMBASSADOR: starting Envoy"
-/usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
-RESTARTER_PID="$!"
-pids="${pids:+${pids} }${RESTARTER_PID}:envoy"
+echo "AMBASSADOR: starting ads"
+./ambex /ambassador/envoy &
+AMBEX_PID="$!"
+pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${RESTARTER_PID}" --delay "${DELAY}" &
+echo "AMBASSADOR: starting Envoy"
+envoy -c bootstrap-ads.yaml &
+pids="${pids:+${pids} }$!:envoy"
+
+/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
 
 if [ "$(echo ${STATSD_ENABLED} | tr "[:upper:]" "[:lower:]")" = "true" ]; then
