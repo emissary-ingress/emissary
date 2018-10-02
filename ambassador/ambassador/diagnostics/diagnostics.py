@@ -117,6 +117,11 @@ class DiagResult:
     def include_element(self, key: str) -> None:
         self.element_keys[key] = True
 
+        # Make sure that higher-level objects that this element key
+        # owns get included.
+        #
+        # XXX This isn't perfect but it's a good start. Probably the
+
     def include_referenced_elements(self, obj: dict) -> None:
         for element_key in obj['_referenced_by']:
             self.include_element(element_key)
@@ -229,15 +234,12 @@ class DiagResult:
             amb_el_info = self.diag.ambassador_elements.get(key, None)
 
             if amb_el_info:
-                # what about errors?
+                serialization = amb_el_info.get('serialization', None)
 
-                for obj_key, obj in amb_el_info['objects'].items():
-                    serialization = obj.get('serialization', None)
+                if serialization:
+                    self.ambassador_resources[key] = serialization
 
-                    if serialization:
-                        self.ambassador_resources[obj_key] = serialization
-
-                    # What about errors?
+                # What about errors?
 
             # Also make sure we have Envoy outputs for these things.
             envoy_el_info = self.diag.envoy_elements.get(key, None)
