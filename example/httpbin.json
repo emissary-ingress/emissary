@@ -2,7 +2,7 @@
   "@type": "/envoy.api.v2.Cluster",
   "name": "httpbin",
   "connect_timeout": "10s",
-  "type": "LOGICAL_DNS",
+  "type": "STRICT_DNS",
   "load_assignment": {
     "cluster_name": "httpbin",
     "endpoints": [
