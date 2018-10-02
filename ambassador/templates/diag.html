@@ -154,7 +154,7 @@ limitations under the License
               sources:
               <ul>
                 {% for ref in route._route._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
                 {% endfor %}
               </ul>
 
@@ -166,9 +166,18 @@ limitations under the License
               {% endif %}
             </div>
             <div class="col-7">
-              <div class="row">
-                <code><pre>{{ route._route | pretty_json }}</pre></code>
-              </div>
+              {% for ref in route._route._referenced_by | sort %}
+                {% if ref in envoy_elements %}
+                  {% if 'route' in envoy_elements[ref] %}
+                    {% for route_element in envoy_elements[ref]['route'] %}
+                      <div class="row">
+                        <code><pre>{{ route_element | pretty_json }}</pre></code>
+                      </div>
+                      {%- if not loop.last -%}<hr />{%- endif -%}
+                    {% endfor %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
             </div>
           </div>
           {% endfor %}
@@ -179,36 +188,49 @@ limitations under the License
         <div class="col-12">
           Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/cluster.html">Clusters</a>
 
-          {% for cluster in clusters | sort(attribute = 'name') %}
           <div class="row">
-            <div class="col-5">
-              <a href="/ambassador/v0/diag/{{ cluster['_source'] }}">
-                <code>{{ cluster['name'] }}</code>
-              </a>
-              <br/><br/>
-              <span style="color:{{ cluster._hcolor }}">
-                {% if cluster_stats[cluster.name].valid %}
-                  {{ 'Unknown health: ' if cluster._hmetric is not number }}
-                  {{ cluster._health }}
-                {% else %}
-                  Unknown health: {{ cluster_stats[cluster.name].reason }}
-                {% endif %}
-              </span>
-              <br/><br/>
-              sources:
-              <ul>
-                {% for ref in cluster._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
-                {% endfor %}
-              </ul>
-            </div>
-            <div class="col-7">
-              <div class="row">
-                <code><pre>{{ cluster | pretty_json }}</pre></code>
-              </div>
-            </div>
+            {% for cluster in cluster_info.values() | sort(attribute = 'name') %}
+              {% if cluster['name'] in cluster_stats %}
+                <div class="col-5">
+                  <a href="/ambassador/v0/diag/{{ cluster['_source'] }}">
+                    <code>{{ cluster['name'] }}</code>
+                  </a>
+                  <br/><br/>
+                  <span style="color:{{ cluster._hcolor }}">
+                    {% if cluster_stats[cluster.name].valid %}
+                      {{ 'Unknown health: ' if cluster._hmetric is not number }}
+                      {{ cluster._health }}
+                    {% else %}
+                      Unknown health: {{ cluster_stats[cluster.name].reason }}
+                    {% endif %}
+                  </span>
+                  <br/><br/>
+                  sources:
+                  <ul>
+                    {% for ref in cluster._referenced_by | sort %}
+                      <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div class="col-7">
+                  <div class="row">
+                    {% for ref in cluster._referenced_by | sort %}
+                      {% if ref in envoy_elements %}
+                        {% if 'cluster' in envoy_elements[ref] %}
+                          {% for cluster_element in envoy_elements[ref]['cluster'] %}
+                            <div class="row">
+                              <code><pre>{{ cluster_element | pretty_json }}</pre></code>
+                            </div>
+                            {%- if not loop.last -%}<hr />{%- endif -%}
+                          {% endfor %}
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
       </div>
 
@@ -227,7 +249,7 @@ limitations under the License
               sources:
               <ul>
                 {% for ref in breaker._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
                 {% endfor %}
               </ul>
             </div>
@@ -257,7 +279,7 @@ limitations under the License
               sources:
               <ul>
                 {% for ref in outlier._referenced_by | sort %}
-                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref | source_lookup(source_dict) }}</code></a></li>
+                  <li><a href="/ambassador/v0/diag/{{ ref }}"><code>{{ ref }}</code></a></li>
                 {% endfor %}
               </ul>
             </div>
@@ -286,7 +308,7 @@ limitations under the License
                 <br/>
                 (object {{ source.index }} in 
                 <a href="/ambassador/v0/diag/{{ source.filename }}">
-                  <code>{{ source.source_key | source_lookup(source_dict) }}</code>
+                  <code>{{ source.source_key }}</code>
                 </a>
                 )<br/>
                 Ambassador 

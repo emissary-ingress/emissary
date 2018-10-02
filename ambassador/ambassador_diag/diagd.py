@@ -310,10 +310,9 @@ def show_overview(reqid=None):
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
-                 cluster_stats=ov['cstats'],
                  notices=notices,
                  errors=errors,
-                 route_info=ov['route_info'],
+                 **ov,
                  **diag.as_dict())
 
     if request.args.get('json', None):
@@ -330,7 +329,10 @@ def show_overview(reqid=None):
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    result = get_aconf(app).get_intermediate_for(source)
+    aconf = get_aconf(app)
+    ir = IR(aconf)
+    econf = EnvoyConfig.generate(ir, "V1")
+    diag = Diagnostics(ir, econf)
 
     # app.logger.debug("result\n%s" % json.dumps(result, indent=4, sort_keys=True))
 
@@ -339,32 +341,43 @@ def show_intermediate(source=None, reqid=None):
     route_info = None
     errors = []
 
-    if "error" not in result:
-        clusters = result['clusters']
-        cstats = cluster_stats(clusters)
+    for element in diag.ambassador_elements.values():
+        for obj in element['objects'].values():
+            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
-        route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+            if obj['errors']:
+                errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
 
-        result['cluster_stats'] = cstats
-        result['sources'] = sorted_sources(result['sources'])
-        result['source_dict'] = { source_key(source): source 
-                                  for source in result['sources']}
+    result = diag.lookup(request, source, app.estats)
 
-        for source in result['sources']:
-            source['target'] = ambassador_targets.get(source['kind'].lower(), None)
+    app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
 
-            if source['_errors']:
-                errors.extend([ (source['filename'], error['summary'])
-                                 for error in source['_errors'] ])
+    # if result:
+    #     clusters = result['clusters']
+        # cstats = cluster_stats(clusters)
+        #
+        # route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+        #
+        # # result['cluster_stats'] = cstats
+        # # result['sources'] = sorted_sources(result['sources'])
+        # # result['source_dict'] = { source_key(source): source
+        # #                           for source in result['sources']}
+        #
+        # for source in result['sources']:
+        #     source['target'] = ambassador_targets.get(source['kind'].lower(), None)
+        #
+        #     if source['_errors']:
+        #         errors.extend([ (source['filename'], error['summary'])
+        #                          for error in source['_errors'] ])
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
-                 route_info=route_info,
                  errors=errors,
-                 notices=clean_notices(Config.scout_notices),
-                 **result)
+                 notices=clean_notices([]), # Config.scout_notices),
+                 **result,
+                 **diag.as_dict())
 
     if request.args.get('json', None):
         return jsonify(tvars)
