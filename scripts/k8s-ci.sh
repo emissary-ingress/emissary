@@ -16,7 +16,7 @@ gcloud --quiet config set project $K8S_PROJECT
 gcloud --quiet config set container/cluster $K8S_CLUSTER
 gcloud --quiet config set compute/zone $K8S_ZONE
 gcloud --quiet container clusters get-credentials $K8S_CLUSTER --zone=$K8S_ZONE
-gcloud --quiet components install kubectl
+gcloud components install kubectl
 
 # kubectl
 kubectl config current-context
