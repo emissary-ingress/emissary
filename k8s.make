@@ -87,7 +87,6 @@ clean-k8s:
 .PHONY: gcloud
 gcloud:
 	@gcloud version
-	@gcloud components install kubectl
 	@gcloud auth activate-service-account $$K8S_ACCOUNT_NAME --key-file=./key-file.json
 	@gcloud --quiet config set container/use_client_certificate False
 	@gcloud --quiet config set project $$K8S_PROJECT
