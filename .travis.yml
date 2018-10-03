@@ -31,10 +31,11 @@ cache:
   - "$HOME/google-cloud-sdk/"
 
 before_install:
-- openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
+- if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
+- bash -c "source $HOME/google-cloud-sdk/path.bash.inc"
 - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x kubectl
+- openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
 - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
-- chmod +x ./e2e/check.sh
 
 install:
 - make docker-login

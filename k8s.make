@@ -65,7 +65,7 @@ $(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env.sh
 
 manifests: $(HASH_FILE) $(MANIFESTS)
 
-apply_cmd = kubectl apply -f $$FILE
+apply_cmd = ./kubectl apply -f $$FILE
 
 define apply
 for FILE in $(MANIFESTS); do echo "$(apply_cmd)" && $(apply_cmd); done
@@ -84,30 +84,23 @@ clean-k8s:
 	rm -rf $(K8S_BUILD)
 
 .PHONY: e2e-cluster
-	@if [ ! -d "$$HOME/google-cloud-sdk/bin" ]; then rm -rf $$HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
-  @bash -c "source /home/travis/google-cloud-sdk/path.bash.inc"
-  @gcloud version
-  @gcloud auth activate-service-account $$K8S_ACCOUNT_NAME --key-file=./key-file.json
-  @gcloud --quiet config set container/use_client_certificate False
-  @gcloud --quiet config set project $$K8S_PROJECT
-  @gcloud --quiet config set container/cluster $$K8S_CLUSTER
-  @gcloud --quiet config set compute/zone $$K8S_ZONE
-  @gcloud --quiet container clusters get-credentials $$K8S_CLUSTER --zone=$$K8S_ZONE
-	
+e2e-cluster:
+	@gcloud version
+	@gcloud auth activate-service-account $$K8S_ACCOUNT_NAME --key-file=./key-file.json
+	@gcloud --quiet config set container/use_client_certificate False
+	@gcloud --quiet config set project $$K8S_PROJECT
+	@gcloud --quiet config set container/cluster $$K8S_CLUSTER
+	@gcloud --quiet config set compute/zone $$K8S_ZONE
+	@gcloud --quiet container clusters get-credentials $$K8S_CLUSTER --zone=$$K8S_ZONE
+
 .PHONY: e2e-check
 e2e-check:
 	@echo "Waiting for authorization service deployment..."
-	@typeset -i cnt=60
-	@until ./kubectl rollout status deployment/auth0-service -n datawire | grep "successfully rolled out"; do \
-    ((cnt=cnt-1)) || exit 1 \
-    sleep 1 \
-  done
-  @echo "Waiting for ambassador deployment..."
-  @cnt=60
-  @until ./kubectl rollout status deployment/ambassador -n datawire | grep "successfully rolled out"; do \
-    ((cnt=cnt-1)) || exit 1 \
-    sleep 1 \
-  done 
+	@bash -c "typeset -i cnt=60"
+	@until ./kubectl rollout status deployment/auth0-service -n datawire | grep "successfully rolled out"; do ((cnt=cnt-1)) || exit 1; sleep 1; done
+	@echo "Waiting for ambassador deployment..."
+	@cnt=60
+	@until ./kubectl rollout status deployment/ambassador -n datawire | grep "successfully rolled out"; do ((cnt=cnt-1)) || exit 1; sleep 1; done
 
 .PHONY: docker-login
 docker-login:
