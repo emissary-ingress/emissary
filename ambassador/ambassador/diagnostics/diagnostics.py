@@ -29,6 +29,12 @@ class DiagSource (dict):
 
 
 class DiagCluster (dict):
+    """
+    A DiagCluster represents what Envoy thinks about the health of a cluster.
+    DO NOT JUST PASS AN IRCluster into DiagCluster; turn it into a dict with
+    .as_dict() first.
+    """
+
     def __init__(self, cluster) -> None:
         super().__init__(**cluster)
 
@@ -64,6 +70,12 @@ class DiagCluster (dict):
 
 
 class DiagClusters:
+    """
+    DiagClusters is, unsuprisingly, a set of DiagCluster. The thing about DiagClusters
+    is that the [] operator always gives you a valid DiagCluster -- it'll use DiagCluster.unknown()
+    to make a new DiagCluster if you ask for one that doesn't exist.
+    """
+
     def __init__(self, clusters: Optional[List[dict]] = []) -> None:
         self.clusters = {}
 
@@ -87,22 +99,32 @@ class DiagClusters:
 
 
 class DiagResult:
+    """
+    A DiagResult is the result of a diagnostics request, whether for an
+    overview or for a particular key.
+    """
     def __init__(self, diag: 'Diagnostics', estat: EnvoyStats, request) -> None:
         self.diag = diag
         self.logger = self.diag.logger
         self.estat = estat
+
+        # Go ahead and grab Envoy cluster stats for all possible clusters.
+        # XXX This might be a bit silly.
         self.cluster_names = list(self.diag.clusters.keys())
         self.cstats = { name: self.estat.cluster_stats(name) for name in self.cluster_names }
 
+        # Save the request host and scheme. We'll need them later.
         self.request_host = request.headers.get('Host', '*')
         self.request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
 
-        self.clusters: Dict[str, DiagCluster] = {}
-        self.routes: List[dict] = []
-        self.element_keys: Dict[str, bool] = {}
-
-        self.ambassador_resources = {}
-        self.envoy_resources = {}
+        # All of these things reflect _only_ resources that are relevant to the request
+        # we're handling -- e.g. if you ask for a particular group, you'll only get the
+        # clusters that are part of that group.
+        self.clusters: Dict[str, DiagCluster] = {}  # Envoy clusters
+        self.routes: List[dict] = []                # Envoy routes
+        self.element_keys: Dict[str, bool] = {}     # Active element keys
+        self.ambassador_resources = {}              # Ambassador config resources
+        self.envoy_resources = {}                   # Envoy config resources
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -115,18 +137,44 @@ class DiagResult:
         }
 
     def include_element(self, key: str) -> None:
+        """
+        Note that a particular key is something relevant to this result -- e.g.
+        'oh, the key foo-mapping.1 is active here'.
+
+        One problem here is that we don't currently cycle over to make sure that
+        all the requisite higher-level objects are brought in when we mark an
+        element active. This needs fixing.
+
+        :param key: the key we want to remember as being active.
+        """
         self.element_keys[key] = True
 
-        # Make sure that higher-level objects that this element key
-        # owns get included.
-        #
-        # XXX This isn't perfect but it's a good start. Probably the
-
     def include_referenced_elements(self, obj: dict) -> None:
+        """
+        Include all of the elements in the given object's _referenced_by
+        array.
+
+        :param obj: object for which to include referencing keys
+        """
+
         for element_key in obj['_referenced_by']:
             self.include_element(element_key)
 
     def include_cluster(self, cluster: dict) -> DiagCluster:
+        """
+        Note that a particular cluster and everything that references it are
+        relevant to this result. If the cluster has related health information in
+        our cstats, fold that in too.
+
+        Don't pass an IRCluster here -- turn it into a dict with as_dict()
+        first.
+
+        Returns the DiagCluster that we actually use to hold everything.
+
+        :param cluster: dictionary version of a cluster to mark as active.
+        :return: the DiagCluster for this cluster
+        """
+
         c_name = cluster['name']
 
         if c_name not in self.clusters:
@@ -140,6 +188,17 @@ class DiagResult:
         return self.clusters[c_name]
 
     def include_group(self, group: IRMappingGroup) -> None:
+        """
+        Note that a particular IRMappingGroup, all of the clusters it uses for upstream
+        traffic, and everything that references it are relevant to this result.
+
+        This method actually does a fair amount of work around handling clusters, shadow
+        clusters, and host_redirects. It would be a horrible mistake to duplicate this
+        elsewhere.
+
+        :param cluster: dictionary version of a cluster to mark as active.
+        """
+
         self.logger.debug("GROUP %s" % group.as_json())
 
         prefix = group['prefix'] if 'prefix' in group else group['regex']
@@ -169,7 +228,7 @@ class DiagResult:
 
         if host_redir:
             # XXX Stupid hackery here. redirect_cluster should be a real
-            # Cluster object.
+            # IRCluster object.
             redirect_cluster = self.include_cluster({
                 'name': host_redir['name'],
                 'service': host_redir['service'],
@@ -229,7 +288,12 @@ class DiagResult:
         self.include_referenced_elements(group)
 
     def finalize(self) -> None:
-        # Make sure the elements we've been messing with have sources and such.
+        """
+        Make sure that all the elements we've marked as included actually appear
+        in the ambassador_resources and envoy_resources dictionaries, so that the
+        UI can properly connect all the dots.
+        """
+
         for key in self.element_keys.keys():
             amb_el_info = self.diag.ambassador_elements.get(key, None)
 
@@ -248,6 +312,19 @@ class DiagResult:
                 self.envoy_resources[key] = envoy_el_info
 
 class Diagnostics:
+    """
+    Information needed by the Diagnostics UI. This has to be instantiated
+    from an IR and an EnvoyConfig (it doesn't matter which version).
+
+    The flow here is:
+
+    - create the Diagnostics object
+    - call the .overview method to get a DiagResult that has an overview of
+      the whole Ambassador setup, or
+    - call the .lookup method to get a DiagResult that zeroes in on a particular
+      chunk of the world (like a group, or a particular rkey, etc.)
+    """
+
     ir: IR
     econf: EnvoyConfig
     estats: Optional[EnvoyStats]
@@ -291,8 +368,8 @@ class Diagnostics:
 
         # First up, walk the list of Ambassador sources.
         for key, rsrc in self.ir.aconf.sources.items():
-            uqkey = key
-            fqkey = uqkey
+            uqkey = key     # Unqualified key, e.g. ambassador.yaml
+            fqkey = uqkey   # Fully-qualified key, e.g. ambassador.yaml.1
 
             key_index = None
 
@@ -355,15 +432,15 @@ class Diagnostics:
                 element_list = element_dict.setdefault(kind, [])
                 element_list.append(envoy_element)
 
+        # Always generate the full group set so that we can look up groups.
         self.groups = { 'grp-%s' % group.group_id: group for group in self.ir.groups.values()
                         if group.location != "--diagnostics--" }
 
+        # Always generate the full cluster set so that we can look up clusters.
         self.clusters = { cluster.name: cluster for cluster in self.ir.clusters.values()
                           if cluster.location != "--diagnostics--" }
 
-        # configuration = { key: self.envoy_config[key] for key in self.envoy_config.keys()
-        #                   if key != "groups" }
-
+        # Build up our Ambassador services too (auth, ratelimit, tracing).
         self.ambassador_services = []
 
         for filter in self.ir.filters:
@@ -377,6 +454,13 @@ class Diagnostics:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
 
     def add_ambassador_service(self, svc, type_name) -> None:
+        """
+        Remember information about a given Ambassador-wide service (Auth, RateLimit, Tracing).
+
+        :param svc: service record
+        :param type_name: what kind of thing is this?
+        """
+
         cluster = svc.cluster
         urls = cluster.urls
 
@@ -393,6 +477,13 @@ class Diagnostics:
 
     @staticmethod
     def split_key(key) -> Tuple[str, Optional[str]]:
+        """
+        Split a key into its components (the base name and the object index).
+
+        :param key: possibly-qualified key
+        :return: tuple of the base and a possible index
+        """
+
         key_base = key
         key_index = None
 
@@ -414,11 +505,34 @@ class Diagnostics:
             'clusters': { key: value.as_dict() for key, value in self.clusters.items() }
         }
 
-    def _remember_source(self, src_key: str, dest_key: str):
+    def _remember_source(self, src_key: str, dest_key: str) -> None:
+        """
+        Link keys of active sources together. The source map lets us answer questions
+        like 'which objects does ambassador.yaml define?' and this is the primitive
+        that actually populates the map.
+
+        The src_key is where you start the lookup; the dest_key is something defined
+        by the src_key. They can be the same.
+
+        :param src_key: the starting key (ambassador.yaml)
+        :param dest_key: the destination key (ambassador.yaml.1)
+        """
+
         src_map = self.source_map.setdefault(src_key, {})
         src_map[dest_key] = True
 
-    def remember_source(self, uqkey: str, fqkey: Optional[str], location: Optional[str], dest_key: str):
+    def remember_source(self, uqkey: str, fqkey: Optional[str], location: Optional[str],
+                        dest_key: str) -> None:
+        """
+        Populate the source map in various ways. A mapping from uqkey to dest_key is
+        always added; mappings for fqkey and location are added if they are unique
+        keys.
+
+        :param uqkey: unqualified source key
+        :param fqkey: qualified source key
+        :param location: source location
+        :param dest_key: key of object being defined
+        """
         self._remember_source(uqkey, dest_key)
 
         if fqkey and (fqkey != uqkey):
@@ -428,6 +542,15 @@ class Diagnostics:
             self._remember_source(location, dest_key)
 
     def overview(self, request, estat: EnvoyStats) -> Dict[str, Any]:
+        """
+        Generate overview data describing the whole Ambassador setup, most
+        notably the routing table. Returns the dictionary form of a DiagResult.
+
+        :param request: the Flask request being handled
+        :param estat: current EnvoyStats
+        :return: the dictionary form of a DiagResult
+        """
+
         result = DiagResult(self, estat, request)
 
         for group in self.ir.ordered_groups():
@@ -436,6 +559,19 @@ class Diagnostics:
         return result.as_dict()
 
     def lookup(self, request, key: str, estat: EnvoyStats) -> Optional[Dict[str, Any]]:
+        """
+        Generate data describing a specific key in the Ambassador setup, and all
+        the things connected to it. Returns the dictionary form of a DiagResult.
+
+        'key' can be a group key that starts with grp-, a cluster key that starts
+        with cluster_, or a source key.
+
+        :param request: the Flask request being handled
+        :param key: the key of the thing we want
+        :param estat: current EnvoyStats
+        :return: the dictionary form of a DiagResult
+        """
+
         result = DiagResult(self, estat, request)
 
         # Typically we'll get handed a group identifier here, but we might get
@@ -474,4 +610,3 @@ class Diagnostics:
             return result.as_dict()
         else:
             return None
-
