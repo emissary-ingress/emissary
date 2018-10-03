@@ -32,6 +32,7 @@ cache:
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
+- curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x kubectl
 - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
 - chmod +x ./e2e/check.sh
 
