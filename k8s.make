@@ -62,10 +62,11 @@ MANIFESTS=$(TEMPLATES:$(K8S_DIR)/%.yaml=$(MANIFESTS_DIR)/%.yaml)
 $(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env.sh
 	@echo "Generating $< -> $@"
 	@mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source env.sh && set +a && IMAGE=$(IMAGE) envsubst" > $@
+	@export IMAGE
 
 manifests: $(HASH_FILE) $(MANIFESTS)
 
-apply_cmd = ./kubectl apply -f $$FILE
+apply_cmd = kubectl apply -f $$FILE
 
 define apply
 for FILE in $(MANIFESTS); do echo "$(apply_cmd)" && $(apply_cmd); done
@@ -86,6 +87,7 @@ clean-k8s:
 .PHONY: e2e-cluster
 e2e-cluster:
 	@gcloud version
+	@gcloud components install kubectl
 	@gcloud auth activate-service-account $$K8S_ACCOUNT_NAME --key-file=./key-file.json
 	@gcloud --quiet config set container/use_client_certificate False
 	@gcloud --quiet config set project $$K8S_PROJECT
@@ -95,12 +97,7 @@ e2e-cluster:
 
 .PHONY: e2e-check
 e2e-check:
-	@echo "Waiting for authorization service deployment..."
-	@bash -c "typeset -i cnt=60"
-	@until ./kubectl rollout status deployment/auth0-service -n datawire | grep "successfully rolled out"; do ((cnt=cnt-1)) || exit 1; sleep 1; done
-	@echo "Waiting for ambassador deployment..."
-	@cnt=60
-	@until ./kubectl rollout status deployment/ambassador -n datawire | grep "successfully rolled out"; do ((cnt=cnt-1)) || exit 1; sleep 1; done
+	@sh e2e/k8s_check.sh
 
 .PHONY: docker-login
 docker-login:

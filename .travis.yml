@@ -11,8 +11,6 @@ env:
   - K8S_CLUSTER=ambassador-oauth-testing
   - K8S_ZONE=us-central1-a
   - K8S_ACCOUNT_NAME=ambassador-oauth@datawireio.iam.gserviceaccount.com
-  # Kubectl
-  - KUBECTL_VERSION=v1.12.0
   # Docker
   - DOCKER_REGISTRY=quay.io/datawire
   - DOCKER_REPO=ambassador-pro
@@ -33,7 +31,6 @@ cache:
 before_install:
 - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
 - bash -c "source $HOME/google-cloud-sdk/path.bash.inc"
-- curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x kubectl
 - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
 - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
 
@@ -44,3 +41,6 @@ install:
 - make e2e-cluster
 - make apply
 - make e2e-check
+
+
+@if [ $$(IMAGE)  != $$(kubectl get deployment auth0-service -n datawire -o=jsonpath="{$$.spec.template.spec.containers[:1].image}") ]; then echo "INCORRECT IMAGE"; exit 1; fi
