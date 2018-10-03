@@ -36,7 +36,9 @@ before_install:
 - chmod +x ./e2e/check.sh
 
 install:
+- make docker-login
 - make build
+- make push
 - make e2e-cluster
 - make apply
 - make e2e-check
