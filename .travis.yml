@@ -28,6 +28,7 @@ cache:
 before_install:
 - chmod +x ./e2e/travis-docker.sh
 - chmod +x ./e2e/deploy.sh
+- cat ./e2e/env_test.sh > env.sh && chmod +x env.sh
 
 install:
 - ./scripts/travis-docker.sh

@@ -1,8 +1,5 @@
-# This is the namespace you want to use for development in quay,
-# probably your quay.io username:
-
 DEV_REGISTRY ?= $(REGISTRY)
-DEV_REGISTRY_NAMESPACE=$(shell source $(PWD)/env.sh && echo $${REGISTRY_NAMESPACE})
+DEV_REGISTRY_NAMESPACE=$(REGISTRY_NAMESPACE)
 DEV_VERSION=$(HASH)
 DEV_REPO=$(DEV_REGISTRY_NAMESPACE)/$(NAME)
 DEV_IMAGE=$(DEV_REGISTRY)/$(DEV_REPO):$(DEV_VERSION)
@@ -12,6 +9,8 @@ PRD_REGISTRY_NAMESPACE ?= $(REGISTRY_NAMESPACE)
 PRD_VERSION ?= $(VERSION)
 PRD_REPO=$(PRD_REGISTRY_NAMESPACE)/$(NAME)
 PRD_IMAGE=$(PRD_REGISTRY)/$(PRD_REPO):$(PRD_VERSION)
+
+PROFILE=DEV
 
 IMAGE=$($(PROFILE)_IMAGE)
 
@@ -60,11 +59,12 @@ push: push_ok build
 MANIFESTS_DIR=$(K8S_BUILD)/$(PROFILE)
 MANIFESTS=$(TEMPLATES:$(K8S_DIR)/%.yaml=$(MANIFESTS_DIR)/%.yaml)
 
-$(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml 
+$(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env.sh
 	@echo "Generating $< -> $@"
-	@mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source $(ENV_FILE) && set +a && IMAGE=$(IMAGE) envsubst" > $@
+	@mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source env.sh && set +a && IMAGE=$(IMAGE) envsubst" > $@
 
 manifests: $(HASH_FILE) $(MANIFESTS)
+
 apply_cmd = kubectl apply -f $$FILE
 
 define apply
