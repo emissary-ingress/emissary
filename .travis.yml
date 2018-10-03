@@ -38,9 +38,6 @@ install:
 - make docker-login
 - make build
 - make push
-- make e2e-cluster
+- make gcloud
 - make apply
-- make e2e-check
-
-
-@if [ $$(IMAGE)  != $$(kubectl get deployment auth0-service -n datawire -o=jsonpath="{$$.spec.template.spec.containers[:1].image}") ]; then echo "INCORRECT IMAGE"; exit 1; fi
+- make check
