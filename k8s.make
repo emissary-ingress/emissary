@@ -83,5 +83,8 @@ apply: $(HASH_FILE) $(MANIFESTS)
 clean-k8s:
 	rm -rf $(K8S_BUILD)
 
-.PHONY: generate
-generate: $(HASH_FILE) $(MANIFESTS)
+.PHONY: e2e-deploy
+e2e-deploy:
+	$(HASH_FILE) $(MANIFESTS)
+	$(call guard, apply-$(PROFILE), $(apply))
+	@bash e2e/wait.sh
