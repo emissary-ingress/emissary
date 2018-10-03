@@ -102,7 +102,7 @@ class IRAmbassadorTLS (IRResource):
         Initialize an IRAmbassadorTLS from the raw fields of its Resource.
         """
 
-        print("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
+        ir.logger.debug("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
