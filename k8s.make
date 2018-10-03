@@ -62,7 +62,6 @@ MANIFESTS=$(TEMPLATES:$(K8S_DIR)/%.yaml=$(MANIFESTS_DIR)/%.yaml)
 $(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env.sh
 	@echo "Generating $< -> $@"
 	@mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source env.sh && set +a && IMAGE=$(IMAGE) envsubst" > $@
-	@export IMAGE
 
 manifests: $(HASH_FILE) $(MANIFESTS)
 
@@ -78,6 +77,7 @@ deploy: push $(MANIFESTS)
 
 .PHONY: apply
 apply: $(HASH_FILE) $(MANIFESTS)
+	@set IMAGE=test
 	$(call guard, apply-$(PROFILE), $(apply))
 
 .PHONY: clean-k8s
@@ -96,7 +96,7 @@ gcloud:
 
 .PHONY: check
 check:
-	@sh e2e/k8s_check.sh
+	@/bin/bash e2e/k8s_check.sh
 
 .PHONY: docker-login
 docker-login:
