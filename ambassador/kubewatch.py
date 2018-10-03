@@ -151,7 +151,7 @@ class Restarter(threading.Thread):
 
         os.rename(config, target)
 
-        logger.debug("Moved valid configuration %s to %s" % (config, target))
+        logger.debug("Moved configuration %s to %s" % (config, target))
         if self.pid:
             os.kill(self.pid, signal.SIGHUP)
 
@@ -353,13 +353,11 @@ def watch_loop(restarter):
     else:
         logger.info("No K8s, idling")
 
-# XXX: review this file for dead code/docs
-
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
 @click.argument("ambassador_config_dir")
 @click.argument("envoy_config_file")
-@click.option("-d", "--delay", type=click.FLOAT, default=5.0,
+@click.option("-d", "--delay", type=click.FLOAT, default=1.0,
               help="The minimum delay in seconds between restart attempts.")
 @click.option("-p", "--pid", type=click.INT,
               help="The pid to kill with SIGHUP in order to iniate a restart.")
@@ -369,60 +367,16 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
     annotation on any services, and whenever these change, it will
     generate a new set of ambassador configuration inputs. It will
     then diff these inputs with the previous configuration and if
-    necessary regenerate an envoy configuration and initiate an envoy
-    restart.
+    necessary regenerate an envoy configuration and initiate a reload
+    of envoy configuration by signaling the ambex PID.
 
-    Envoy is engineered to restart with zero connection loss, but this
-    process takes time and needs to be properly managed in two ways:
-    both timing of restarts and validation of inputs to the new envoy.
+    This script will rate limit attempts to reconfigure envoy based on
+    the supplied `--delay` parameter:
 
-    Restarting with zero connection loss takes time. The new envoy
-    initiates a drain period in the old envoy (see envoy's
-    --drain-time-s option), and then there is a further delay before
-    the new envoy shuts down the old one (see envoy's
-    --parent-shutdown-time-s option). Any attempt to initiate another
-    restart while the previous restart is already in progress will
-    fail. This means we need to take further care not to initiate
-    restarts too frequently. This leaves us with three delay
-    parameters that needed to be tuned with increasing values that
-    have sufficient margins:
-    
-      --drain-time-s (an envoy parameter)
-    
-         This is time permitted for active connections to drain from
-         the old envoy. This is the smallest value. What you want to
-         tune this to depends on your scenario, e.g. edge scenarios
-         will likely want to permit more drain time, maybe 5 or 10
-         minutes.
-    
-      --parent-shutdown-time-s (an envoy parameter)
-    
-         This is the time the new envoy gives the old envoy to
-         complete it's drain before shutting it down. This is an
-         absolute time measured from the initiation of the restart,
-         and so it doesn't make sense for it to be less than the
-         configured drain time. It should also be a bit larger than
-         the drain time to account for timing discrepencies. Envoy
-         examples seem to set it to 50% more than the drain time.
-    
       --delay (a parameter of this script)
     
-         This is the restart delay. It limits the minimum time this
-         script will allow between subsequent restarts. This should be
-         configured to be larger than the --parent-shutdown-time-s
-         option by a reasonable margin.
-    
-    In addition to the timing involved, envoy's restart machinery will
-    die completely (both killing the old and new envoy) if the new
-    envoy is supplied with an invalid configuration. This script takes
-    care to ensure that all inputs are fully validated using envoy's
-    --mode validate option in order to ensure that we never attempt to
-    restart with an invalid configuration. It also keeps a full
-    history of all configurations along with the _errors from any
-    invalid configurations to aid in debugging if invalid
-    configuration inputs are supplied in any annotations, or if there
-    is an ambassador bug encountered when processing an annotation.
-
+         This is the reconfig delay. It limits the minimum time this
+         script will allow between subsequent reconfigure attempts.
     """
 
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
