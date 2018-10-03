@@ -26,13 +26,13 @@ cache:
   - "$HOME/kubectl/"
 
 before_install:
-- chmod +x ./scripts/travis-docker.sh
-- chmod +x ./deploy.sh
+- chmod +x ./e2e/travis-docker.sh
+- chmod +x ./e2e/deploy.sh
 
 install:
 - ./scripts/travis-docker.sh
 - make build
 - make generate
-- ./deploy.sh
+# - ./deploy.sh
 
-#- "./scripts/travis-docker.sh"
+#- "./scripts/travis-docker.sh
