@@ -83,8 +83,16 @@ apply: $(HASH_FILE) $(MANIFESTS)
 clean-k8s:
 	rm -rf $(K8S_BUILD)
 
-.PHONY: e2e-deploy
-e2e-deploy:
-	$(HASH_FILE) $(MANIFESTS)
-	$(call guard, apply-$(PROFILE), $(apply))
-	@bash e2e/wait.sh
+.PHONY: e2e-cluster
+e2e-cluster:
+	@bash e2e/gcd.sh
+	
+.PHONY: e2e-check
+e2e-check:
+	@bash e2e/check.sh
+
+.PHONY: docker-login
+docker-login:
+	@if [ -z "$DOCKER_USERNAME" ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
+	@if [ -z "$DOCKER_PASSWORD" ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
+	@printf "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"
