@@ -84,4 +84,6 @@ apply: $(HASH_FILE) $(MANIFESTS)
 .PHONY: clean-k8s
 clean-k8s:
 	rm -rf $(K8S_BUILD)
-	
+
+.PHONY: generate
+generate: $(HASH_FILE) $(MANIFESTS)
