@@ -11,6 +11,7 @@ env:
   - K8S_CLUSTER=ambassador-oauth-testing
   - K8S_ZONE=us-central1-a
   - K8S_ACCOUNT_NAME=ambassador-oauth@datawireio.iam.gserviceaccount.com
+  - KUBECTL_VERSION=v1.12.0
   # Docker
   - DOCKER_REGISTRY=quay.io/datawire
   - DOCKER_REPO=ambassador-pro
@@ -26,7 +27,7 @@ env:
 
 cache:
   directories:
-  - "/home/travis/google-cloud-sdk/"
+  - "$TRAVIS_HOME/google-cloud-sdk/"
 
 jobs:
   include:
@@ -36,9 +37,17 @@ jobs:
     - stage: deploying to cluster
       if: tag =~ -rc
       install:
-        - if [ ! -d "/home/travis/google-cloud-sdk/bin" ]; then rm -rf /home/travis/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
-        - bash -c "source /home/travis/google-cloud-sdk/path.bash.inc"
-        - sudo cp /home/travis/google-cloud-sdk/bin/kubectl /usr/local/bin/kubectl
+        # Google Cloud SDK installation
+        - gcloud version || true
+        - if [ ! -d "$TRAVIS_HOME/google-cloud-sdk/bin" ]; then rm -rf $TRAVIS_HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
+        - source $TRAVIS_HOME/google-cloud-sdk/path.bash.inc
+        - gcloud version
+        # Kubectl installation
+        - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl
+        - chmod +x ./kubectl
+        - sudo mv ./kubectl /usr/local/bin/kubectl
+        # ServiceAccount keys
         - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
+        # Deployment vars
         - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
