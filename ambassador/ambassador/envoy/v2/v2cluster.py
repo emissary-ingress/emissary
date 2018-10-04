@@ -42,13 +42,6 @@ class V2Cluster(dict):
             }
         }
 
-        envoy_ctx = V2TLSContext()
-        for name, ctx in config.ir.tls_contexts.items():
-            envoy_ctx.add_context(ctx)
-
-        if envoy_ctx:
-            fields['tls_context'] = dict(envoy_ctx)
-
         self.update(fields)
         return
 
