@@ -71,55 +71,58 @@ class V2Listener(dict):
         for name, ctx in config.ir.tls_contexts.items():
             envoy_ctx.add_context(ctx)
 
-        self.update({
-            'name': listener.name,
-            'address': {
-                'socket_address': {
-                    'address': '0.0.0.0',
-                    'port_value': listener.service_port,
-                    'protocol': 'TCP'
-                }
-            },
-            'filter_chains': [
-                {
-                    'tls_context': dict(envoy_ctx),
-                    'filters': [
-                        {
-                            'name': 'envoy.http_connection_manager',
-                            'config': {
-                                'stat_prefix': 'ingress_http',
-                                'access_log': [
-                                    {
-                                        'name': 'envoy.file_access_log',
-                                        'config': {
-                                            'path': '/dev/fd/1',
-                                            'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
-                                        }
-                                    }
-                                ],
-                                'http_filters': [
-                                    {
-                                        'name': 'envoy.router'
-                                    }
-                                ],
-                                'route_config': {
-                                    'virtual_hosts': [
+        if listener.redirect_listener:
+            self.update(self.get_redirect_listener("redirect_listener", listener.service_port))
+        else:
+            self.update({
+                'name': listener.name,
+                'address': {
+                    'socket_address': {
+                        'address': '0.0.0.0',
+                        'port_value': listener.service_port,
+                        'protocol': 'TCP'
+                    }
+                },
+                'filter_chains': [
+                    {
+                        'tls_context': dict(envoy_ctx),
+                        'filters': [
+                            {
+                                'name': 'envoy.http_connection_manager',
+                                'config': {
+                                    'stat_prefix': 'ingress_http',
+                                    'access_log': [
                                         {
-                                            'name': 'backend',
-                                            'domains': [
-                                                '*'
-                                            ],
-                                            'routes': config.routes
+                                            'name': 'envoy.file_access_log',
+                                            'config': {
+                                                'path': '/dev/fd/1',
+                                                'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
+                                            }
                                         }
-                                    ]
+                                    ],
+                                    'http_filters': [
+                                        {
+                                            'name': 'envoy.router'
+                                        }
+                                    ],
+                                    'route_config': {
+                                        'virtual_hosts': [
+                                            {
+                                                'name': 'backend',
+                                                'domains': [
+                                                    '*'
+                                                ],
+                                                'routes': config.routes
+                                            }
+                                        ]
+                                    }
                                 }
                             }
-                        }
-                    ],
-                    'use_proxy_proto': listener.get('use_proxy_proto')
-                }
-            ]
-        })
+                        ],
+                        'use_proxy_proto': listener.get('use_proxy_proto')
+                    }
+                ]
+            })
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -128,3 +131,55 @@ class V2Listener(dict):
         for irlistener in config.ir.listeners:
             listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
             config.listeners.append(listener)
+
+    @classmethod
+    def get_redirect_listener(cls, name, port):
+        return {
+                'name': name,
+                'address': {
+                    'socket_address': {
+                        'address': '0.0.0.0',
+                        'port_value': port,
+                        'protocol': 'TCP'
+                    }
+                },
+                'filter_chains': [
+                    {
+                        'filters': [
+                            {
+                                'name': 'envoy.http_connection_manager',
+                                'config': {
+                                    'stat_prefix': 'ingress_http',
+                                    'http_filters': [
+                                        {
+                                            'name': 'envoy.router'
+                                        }
+                                    ],
+                                    'route_config': {
+                                        'virtual_hosts': [
+                                            {
+                                                'name': 'backend',
+                                                'domains': [
+                                                    '*'
+                                                ],
+                                                'require_tls': 'ALL',
+                                                'routes': [
+                                                    {
+                                                        'match': {
+                                                            'prefix': '/',
+                                                        },
+                                                        'redirect': {
+                                                            'https_redirect': True,
+                                                            'path_redirect': '/'
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                            },
+                        ],
+                    },
+                ],
+            }
