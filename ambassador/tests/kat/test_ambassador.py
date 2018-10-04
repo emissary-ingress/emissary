@@ -245,51 +245,20 @@ kind:  Module
 name:  ambassador
 config: {}
 """
-        yield self.target, self.format("""
+        for prefix, amb_id in (("findme", "{self.ambassador_id}"),
+                               ("findme-array", "[{self.ambassador_id}, missme]"),
+                               ("findme-array2", "[missme, {self.ambassador_id}]"),
+                               ("missme", "missme"),
+                               ("missme-array", "[missme1, missme2]")):
+            yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  {self.path.k8s}-findme
-prefix: /findme/
+name:  {self.path.k8s}-{prefix}
+prefix: /{prefix}/
 service: {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-findme-array
-prefix: /findme-array/
-service: {self.target.path.k8s}
-ambassador_id: [{self.ambassador_id}, missme]
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-findme-array2
-prefix: /findme-array2/
-service: {self.target.path.k8s}
-ambassador_id: [missme, {self.ambassador_id}]
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-missme
-prefix: /missme/
-service: {self.target.path.k8s}
-ambassador_id: missme
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-missme
-prefix: /missme-array/
-service: {self.target.path.k8s}
-ambassador_id: [missme1, missme2]
-""")
+ambassador_id: {amb_id}
+            """, prefix=self.format(prefix), amb_id=self.format(amb_id))
 
     def queries(self):
         yield Query(self.url("findme/"))
