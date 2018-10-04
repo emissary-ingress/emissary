@@ -44,5 +44,3 @@ jobs:
     - stage: deploying to cluster
       if: tag =~ ^rc
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
-
-
