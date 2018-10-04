@@ -42,16 +42,7 @@ jobs:
       script: 'make check_format && make install && make test'
 
     - stage: deploying to cluster
-      if: env(TRAVIS_TAG) = ""
+      if: tag =~ ^rc
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
-      
 
 
-# script:
-# - if [[ "${TRAVIS_TAG}" == "" ]]; then 
-# - make docker-login
-# - make push
-
-# - make gcloud
-# - make apply
-# - make check
