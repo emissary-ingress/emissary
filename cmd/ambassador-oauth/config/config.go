@@ -53,7 +53,7 @@ func New() *Config {
 		flag.StringVar(&instance.PvtKPath, "private_key", os.Getenv("APP_PRIVATE_KEY_PATH"), "path for private key file")
 		flag.StringVar(&instance.PubKPath, "public_key", os.Getenv("APP_PUBLIC_KEY_PATH"), "path for public key file")
 
-		if os.Getenv("APP_NOT_SECURE") != "" {
+		if os.Getenv("APP_SECURE") == "not_secure" {
 			instance.Secure = false
 		} else {
 			instance.Secure = true
