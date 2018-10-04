@@ -76,6 +76,7 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 			Name:     AccessTokenCookie,
 			Value:    rs.AccessToken,
 			HttpOnly: true,
+			Secure:   c.Config.Secure,
 			Expires:  time.Now().Add(time.Duration(rs.ExpiresIn) * time.Second),
 		})
 
