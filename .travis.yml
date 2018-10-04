@@ -34,6 +34,7 @@ install:
 - sudo cp $HOME/google-cloud-sdk/bin/kubectl /usr/local/bin/kubectl
 - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
 - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
+- echo "GIT_TAG --- $TRAVIS_TAG"
 
 jobs:
   include:
@@ -42,5 +43,5 @@ jobs:
       script: 'make check_format && make install && make test'
 
     - stage: deploying to cluster
-      if: tag =~ -rc
+      if: env(TRAVIS_TAG) =~ -rc
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
