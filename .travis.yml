@@ -28,17 +28,35 @@ cache:
   directories:
   - "$HOME/google-cloud-sdk/"
 
-before_install:
+install:
 - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
 - bash -c "source $HOME/google-cloud-sdk/path.bash.inc"
 - sudo cp $HOME/google-cloud-sdk/bin/kubectl /usr/local/bin/kubectl
 - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
 - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
 
-install:
-- make docker-login
-- make build
-- make push
-- make gcloud
-- make apply
-- make check
+jobs:
+  include:
+    - stage: build
+      script: make format
+      script: make vendor 
+      script: make install
+      script: make test
+
+    - stage: image
+      # if: env(TRAVIS_TAG) = ""
+      script: make build
+      script: make docker-login
+      script: make push
+      script: make gcloud
+      script: make apply
+      script: make check
+      
+# script:
+# - if [[ "${TRAVIS_TAG}" == "" ]]; then 
+# - make docker-login
+# - make push
+
+# - make gcloud
+# - make apply
+# - make check

@@ -37,6 +37,10 @@ format:
 	@echo " >>> running format"
 	go fmt ./...
 
+check_format:
+	@echo " >>> checking format"
+	@if [ $$(go fmt $$(go list ./... | grep -v vendor/)) ]; then exit 1; fi
+
 tools:
 	@command -v dep >/dev/null ; if [ $$? -ne 0 ]; then \
 		echo " >>> installing go dep"; \
