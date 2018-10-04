@@ -39,10 +39,10 @@ jobs:
   include:
     - stage: testing
       install: skip
-      script: 'make format && make test'
+      script: 'make check_format && make install && make test'
 
     - stage: deploying to cluster
-      # if: env(TRAVIS_TAG) = ""
+      if: env(TRAVIS_TAG) = ""
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
       
 
