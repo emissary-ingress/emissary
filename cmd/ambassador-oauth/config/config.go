@@ -28,6 +28,7 @@ type Config struct {
 	PKey          string
 	PvtKPath      string
 	PubKPath      string
+	Secure        bool
 	DenyOnFailure bool
 	BaseURL       *url.URL
 	StateTTL      time.Duration
@@ -51,6 +52,12 @@ func New() *Config {
 		flag.StringVar(&instance.CallbackURL, "callback_url", os.Getenv("AUTH_CALLBACK_URL"), "url that the idp should call the authorization server")
 		flag.StringVar(&instance.PvtKPath, "private_key", os.Getenv("APP_PRIVATE_KEY_PATH"), "path for private key file")
 		flag.StringVar(&instance.PubKPath, "public_key", os.Getenv("APP_PUBLIC_KEY_PATH"), "path for public key file")
+
+		if os.Getenv("APP_NOT_SECURE") != "" {
+			instance.Secure = false
+		} else {
+			instance.Secure = true
+		}
 
 		var stateTTL int64
 		flag.Int64Var(&stateTTL, "state_ttl", 5, "TTL (in minutes) of a signed state token; default 5")
