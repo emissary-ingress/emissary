@@ -58,3 +58,5 @@ spec:
             value: ${AUTH_CLIENT_ID}
           - name: AUTH_CLIENT_SECRET
             value: ${AUTH_CLIENT_SECRET}
+          - name: APP_SECURE
+            value: ${APP_SECURE}
