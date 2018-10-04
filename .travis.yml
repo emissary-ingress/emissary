@@ -37,20 +37,15 @@ install:
 
 jobs:
   include:
-    - stage: build
-      script: make format
-      script: make vendor 
-      script: make install
-      script: make test
+    - stage: testing
+      install: skip
+      script: 'make format && make test'
 
-    - stage: image
+    - stage: deploying to cluster
       # if: env(TRAVIS_TAG) = ""
-      script: make build
-      script: make docker-login
-      script: make push
-      script: make gcloud
-      script: make apply
-      script: make check
+      script: 'make build && make docker-login && make push && make gcloud && make apply && make check
+      
+
       
 # script:
 # - if [[ "${TRAVIS_TAG}" == "" ]]; then 
