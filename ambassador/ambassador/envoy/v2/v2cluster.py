@@ -17,6 +17,8 @@ from typing import List, TYPE_CHECKING
 
 from ...ir.ircluster import IRCluster
 
+from .v2tls import V2TLSContext
+
 if TYPE_CHECKING:
     from . import V2Config
 
@@ -40,10 +42,12 @@ class V2Cluster(dict):
             }
         }
 
-        if 'tls_context' in cluster:
-            fields['tls_context'] = {
-                'common_tls_context': {}
-            }
+        envoy_ctx = V2TLSContext()
+        for name, ctx in config.ir.tls_contexts.items():
+            envoy_ctx.add_context(ctx)
+
+        if envoy_ctx:
+            fields['tls_context'] = dict(envoy_ctx)
 
         self.update(fields)
         return

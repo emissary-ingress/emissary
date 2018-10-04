@@ -22,7 +22,7 @@ from ...ir.irlistener import IRListener
 # from ...ir.irmapping import IRMapping
 from ...ir.irfilter import IRFilter
 
-# from .v2tls import V2TLSContext
+from .v2tls import V2TLSContext
 # from .v2ratelimit import V2RateLimits
 
 if TYPE_CHECKING:
@@ -67,6 +67,10 @@ class V2Listener(dict):
         # if "rate_limits" in group:
         #     route["rate_limits"] = group.rate_limits
 
+        envoy_ctx = V2TLSContext()
+        for name, ctx in config.ir.tls_contexts.items():
+            envoy_ctx.add_context(ctx)
+
         self.update({
             'name': listener.name,
             'address': {
@@ -78,6 +82,7 @@ class V2Listener(dict):
             },
             'filter_chains': [
                 {
+                    'tls_context': dict(envoy_ctx),
                     'filters': [
                         {
                             'name': 'envoy.http_connection_manager',
