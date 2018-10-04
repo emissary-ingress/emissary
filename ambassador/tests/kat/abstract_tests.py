@@ -6,7 +6,7 @@ from abc import abstractmethod
 from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Type
 from typing import cast as typecast
 
-from kat.harness import abstract_test, sanitize, variant, variants, Name, Node, Test
+from kat.harness import abstract_test, sanitize, variants, Name, Node, Test
 from kat import manifests
 
 AMBASSADOR_LOCAL = """
@@ -93,34 +93,20 @@ def run(*args, **kwargs):
 DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
 
 
-class AmbassadorMixin:
+@abstract_test
+class AmbassadorTest(Test):
+
     """
-    AmbassadorMixin is a way for any test to decide that it should run an
-    Ambassador.
+    AmbassadorTest is a top level ambassador test.
     """
 
     OFFSET: ClassVar[int] = 0
-    VARIES_BY: ClassVar[Optional[Type]] = None
     IMAGE_BUILT: ClassVar[bool] = False
 
     _index: Optional[int] = None
     _ambassador_id: Optional[str] = None
     name: Name
     path: Name
-
-    @classmethod
-    def variants(cls) -> Generator[variant, None, None]:
-        if not cls.VARIES_BY:
-            yield
-        else:
-            yield variant(variants(cls.VARIES_BY))
-
-    # def __init__(self, mappings: Tuple['MappingTest'] = (), ambassador_id: Optional[str] = None):
-    #     self.mappings = list(mappings)
-    #     self.index = AmbassadorTest.OFFSET
-    #     self._ambassador_id = ambassador_id
-    #
-    #     AmbassadorTest.OFFSET += 1
 
     def manifests(self) -> str:
         if DEV:
@@ -144,8 +130,8 @@ class AmbassadorMixin:
     def index(self) -> int:
         if self._index is None:
             # lock here?
-            self._index = AmbassadorMixin.OFFSET
-            AmbassadorMixin.OFFSET += 1
+            self._index = AmbassadorTest.OFFSET
+            AmbassadorTest.OFFSET += 1
 
         return typecast(int, self._index)
 
@@ -157,8 +143,8 @@ class AmbassadorMixin:
 
         image = os.environ["AMBASSADOR_DOCKER_IMAGE"]
 
-        if not AmbassadorMixin.IMAGE_BUILT:
-            AmbassadorMixin.IMAGE_BUILT = True
+        if not AmbassadorTest.IMAGE_BUILT:
+            AmbassadorTest.IMAGE_BUILT = True
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             print("Starting docker build...", end="")
             sys.stdout.flush()
@@ -217,9 +203,8 @@ class AmbassadorMixin:
                 pytest.exit("container failed to start")
         return ()
 
-    @abstractmethod
     def scheme(self) -> str:
-        pass
+        return "http"
 
     def url(self, prefix) -> str:
         if DEV:
@@ -231,31 +216,6 @@ class AmbassadorMixin:
         if not DEV:
             yield ("pod", "%s" % self.name.k8s)
 
-
-@abstract_test
-class AmbassadorBaseTest(Test):
-
-    mappings: List['MappingTest']
-
-    # @abstractmethod
-    # @classmethod
-    # def variants(cls) -> Generator[variant, None, None]:
-    #     pass
-
-    def __init__(self, mappings: Tuple['MappingTest'] = (), ambassador_id: Optional[str] = None):
-        self.mappings = list(mappings)
-
-        if ambassador_id:
-            self.ambassador_id = ambassador_id
-
-    @abstractmethod
-    def scheme(self) -> str:
-        pass
-
-
-@abstract_test
-class AmbassadorTest(AmbassadorBaseTest):
-    pass
 
 @abstract_test
 class ServiceType(Node):
@@ -275,19 +235,17 @@ class HTTP(ServiceType):
 class GRPC(ServiceType):
     pass
 
+
 @abstract_test
-class MappingBaseTest(Test):
+class MappingTest(Test):
 
     target: ServiceType
     options: Sequence['OptionTest']
 
-    def __init__(self, target: ServiceType, options = ()) -> None:
+    def init(self, target: ServiceType, options = ()) -> None:
         self.target = target
         self.options = list(options)
 
-@abstract_test
-class MappingTest(MappingBaseTest):
-    pass
 
 @abstract_test
 class OptionTest(Test):
@@ -297,10 +255,10 @@ class OptionTest(Test):
     @classmethod
     def variants(cls):
         if cls.VALUES is None:
-            yield variant()
+            yield cls()
         else:
             for val in cls.VALUES:
-                yield variant(val, name=sanitize(val))
+                yield cls(val, name=sanitize(val))
 
-    def __init__(self, value = None):
+    def init(self, value = None):
         self.value = value
