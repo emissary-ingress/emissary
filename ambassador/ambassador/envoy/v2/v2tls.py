@@ -21,12 +21,6 @@ class V2TLSContext(Dict):
     def __init__(self, ctx: Optional[IREnvoyTLS]=None, host_rewrite: Optional[str]=None) -> None:
         super().__init__()
 
-        self.update(
-            {
-                "common_tls_context": {}
-            }
-        )
-
         if ctx:
             self.add_context(ctx)
 
@@ -34,6 +28,7 @@ class V2TLSContext(Dict):
         #     self['sni'] = host_rewrite
 
     def add_context(self, ctx: IREnvoyTLS) -> None:
+        common_tls_context = {}
 
         tls_certificate = {}
         if "cert_chain_file" in ctx:
@@ -46,21 +41,24 @@ class V2TLSContext(Dict):
             }
 
         if tls_certificate:
-            if "tls_certificates" not in self["common_tls_context"]:
-                self["common_tls_context"].update({"tls_certificates": []})
+            if "tls_certificates" not in common_tls_context:
+                common_tls_context.update({"tls_certificates": []})
 
-            self["common_tls_context"]["tls_certificates"].append(tls_certificate)
+            common_tls_context["tls_certificates"].append(tls_certificate)
 
         if "alpn_protocols" in ctx:
-            self["common_tls_context"]["alpn_protocols"] = ctx["alpn_protocols"]
+            common_tls_context["alpn_protocols"] = ctx["alpn_protocols"]
 
         if "cacert_chain_file" in ctx:
-            if "validation_context" not in self["common_tls_context"]:
-                self["common_tls_context"].update({"validation_context": {}})
+            if "validation_context" not in common_tls_context:
+                common_tls_context.update({"validation_context": {}})
 
-            self["common_tls_context"]["validation_context"]["trusted_ca"] = {
+            common_tls_context["validation_context"]["trusted_ca"] = {
                 "filename": ctx["cacert_chain_file"]
             }
 
         if "cert_required" in ctx:
             self["require_client_certificate"] = ctx["cert_required"]
+
+        if len(common_tls_context) > 0:
+            self.update({"common_tls_context": common_tls_context})

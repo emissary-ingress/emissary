@@ -52,6 +52,7 @@
                 "_source": "l7-redirect.yaml.1",
                 "require_tls": true,
                 "service_port": 80,
+                "redirect_listener": false,
                 "use_proxy_proto": false
             }
         ],

@@ -85,7 +85,7 @@ class V2Listener(dict):
                 },
                 'filter_chains': [
                     {
-                        'tls_context': dict(envoy_ctx),
+                        'tls_context': dict(envoy_ctx) if len(envoy_ctx) > 0 else None,
                         'filters': [
                             {
                                 'name': 'envoy.http_connection_manager',
