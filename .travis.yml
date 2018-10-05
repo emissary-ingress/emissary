@@ -34,8 +34,8 @@ jobs:
     - stage: testing
       script: 'make check_format && make install && make test'
 
-    - stage: deploying to cluster
-      if: tag =~ -rc
+    - stage: deploying
+      if: tag =~ -rc OR branch =~ __e2e__
       install:
         # Google Cloud SDK installation
         - gcloud version || true
@@ -51,3 +51,7 @@ jobs:
         # Deployment vars
         - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
+    
+    - stage: running e2e tests
+      if: tag =~ -rc OR branch =~ __e2e__
+      script: 'make e2e_build && make e2e_test'

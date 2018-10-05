@@ -46,3 +46,11 @@ tools:
 		echo " >>> installing go dep"; \
 		curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh; \
 	fi
+
+e2e_build:
+	@echo " >>> building docker for e2e testing"
+	@/bin/bash -c "cd $(PWD)/e2e && docker build -t e2e/test:latest ." 
+	
+e2e_test:
+	@echo " >>> running e2e tests"
+	docker run --rm e2e/test:latest
