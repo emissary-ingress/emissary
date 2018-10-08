@@ -69,6 +69,6 @@ deploy:
 
   # Perform doc publish on
   - provider: script
-    script: make publish-docs
+    script: make publish-website
     on:
       branch: dev/gh-853
