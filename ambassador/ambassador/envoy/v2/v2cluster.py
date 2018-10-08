@@ -42,6 +42,11 @@ class V2Cluster(dict):
             }
         }
 
+        if 'tls_context' in cluster:
+            fields['tls_context'] = {
+                'common_tls_context': {}
+            }
+
         self.update(fields)
         return
 
