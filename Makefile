@@ -65,6 +65,10 @@ else
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
 endif
 
+# This gives the _previous_ tag, plus a git delta, like 
+# 0.36.0-436-g8b8c5d3
+GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
+
 # TODO: need to remove the dependency on Travis env var which means this likely needs to be arg passed to make rather
 IS_PULL_REQUEST = false
 ifdef TRAVIS_PULL_REQUEST
@@ -154,6 +158,7 @@ print-vars:
 	@echo "GIT_TAG                 = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION             = $(GIT_VERSION)"
+	@echo "GIT_DESCRIPTION         = $(GIT_DESCRIPTION)"
 	@echo "IS_PULL_REQUEST         = $(IS_PULL_REQUEST)"
 	@echo "COMMIT_TYPE             = $(COMMIT_TYPE)"
 	@echo "VERSION                 = $(VERSION)"
@@ -173,6 +178,7 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
+	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
 	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
 	@echo "export VERSION='$(VERSION)'"
@@ -216,8 +222,10 @@ endif
 ambassador/ambassador/VERSION.py:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
+	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+	sed -e "s/{{VERSION}}/$(VERSION)/g" -e "s/{{GITDESCRIPTION}}/$(GIT_DESCRIPTION)/g" \
+		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
 

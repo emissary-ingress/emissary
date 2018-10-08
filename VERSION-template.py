@@ -13,6 +13,12 @@
 # limitations under the License
 
 Version = "{{VERSION}}"
+GitDescription = "{{GITDESCRIPTION}}"
 
 if __name__ == "__main__":
-    print(Version)
+    import sys
+
+    if len(sys.argv) < 2:
+        print(Version)
+    else:
+        print(GitDescription)
