@@ -89,6 +89,8 @@ ifeq ($(shell [[ "$(GIT_BRANCH)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] && echo "GA"), 
 COMMIT_TYPE=GA
 else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -rc[0-9]+$$ ]] && echo "RC"), RC)
 COMMIT_TYPE=RC
+else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -tt[0-9]+$$ ]] && echo "EA"), EA)
+COMMIT_TYPE=EA
 else ifeq ($(IS_PULL_REQUEST), true)
 COMMIT_TYPE=PR
 else
