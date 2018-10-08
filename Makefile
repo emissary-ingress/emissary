@@ -387,9 +387,7 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 # ------------------------------------------------------------------------------
 
 publish-website:
-	RELEASE_TYPE=$(DOC_RELEASE_TYPE) \
-    NETLIFY_SITE=$(NETLIFY_SITE) \
-		bash ./releng/publish-website.sh;
+	bash ./releng/publish-website.sh;
 
 # ------------------------------------------------------------------------------
 # CI Targets
