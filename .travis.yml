@@ -73,4 +73,4 @@ deploy:
     script: make publish-website
     skip_cleanup: true
     on:
-      branch: dev/gh-853  # Set this to "stable" when ready for use
+      branch: stable
