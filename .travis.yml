@@ -63,6 +63,7 @@ deploy:
   - provider: script
     # script: make release GIT_BRANCH=$(make print-MAIN_BRANCH)
     script: make release
+    skip_cleanup: true
     on:
       all_branches: true
       condition: $GIT_BRANCH =~ ^[0-9]+\.[0-9]+\.[0-9]+$
@@ -70,5 +71,6 @@ deploy:
   # Perform doc publish on
   - provider: script
     script: make publish-website
+    skip_cleanup: true
     on:
-      branch: dev/gh-853
+      branch: dev/gh-853  # Set this to "stable" when ready for use

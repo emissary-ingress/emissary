@@ -61,12 +61,12 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         fi
 
         echo "making stable docs for $VERSION"
-        make VERSION="$VERSION" DOC_RELEASE_TYPE=stable website publish-website
+        make VERSION="$VERSION" DOC_RELEASE_TYPE=stable website
     else
         # Anything else, push staging.
 
         echo "making draft docs for $VERSION"
-        make website publish-website 
+        make website
     fi        
 
     #### RUN END-TO-END TESTS ONLY ON RC BUILDS
