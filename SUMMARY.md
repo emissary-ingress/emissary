@@ -43,6 +43,7 @@
     * [Custom Envoy config](reference/override.md)
     * [Header-based routing](reference/headers.md)
     * [Host Header](reference/host.md)
+    * [Method-based routing](reference/method.md)
     * [Rate Limits](reference/rate-limits.md)
     * [Redirects](reference/redirects.md)
     * [Request Headers](reference/add_request_headers.md)
