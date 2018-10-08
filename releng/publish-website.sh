@@ -16,13 +16,15 @@
 
 set -o errexit
 set -o nounset
+set -o verbose
 
 GH_TOKEN="${GH_TOKEN:?not set}"
 DOC_ROOT="docs"
+TARGET_BRANCH="dev/ambassador-853"
 CONTENT_DIR="/tmp/getambassador.io/content"
 
-git clone --single-branch -b dev/ambassador-853 https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
-mkdir -p ${CONTENT_DIR}
+rm -rf /tmp/getambassador.io
+git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
 
 cd docs
 cp -R yaml ${CONTENT_DIR}
@@ -36,5 +38,5 @@ cd -
 cd ${CONTENT_DIR}/..
 git add -A
 git commit -m "docs updated from datawire/ambassador"
-git push origin dev/ambassador-853
+git push origin ${TARGET_BRANCH}
 cd -
