@@ -50,7 +50,9 @@ jobs:
         - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
         # Deployment vars
         - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
-      script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
+      script: 
+        - make build && make docker-login && make push && make gcloud && make apply && make check
+        - docker tag $(make get-image) $DOCKER_REGISTRY/$DOCKER_REPO:$TRAVIS_COMMIT
     
     - stage: running e2e tests
       if: tag =~ -rc
@@ -58,4 +60,8 @@ jobs:
 
     - stage: re-tagging image
       if: tag =~ -rc
-      script: 'make docker-login && docker tag $(DEV_REGISTRY)/$(DEV_REPO):$(TRAVIS_COMMIT) $(DEV_REGISTRY)/$(DEV_REPO):$(TRAVIS_TAG)'
+      script: 
+        - COMMIT_IMAGE="${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}"
+        - TAGGED_IMAGE="${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_TAG}"
+        - make docker-login 
+        - docker tag $COMMIT_IMAGE $TAGGED_IMAGE'
