@@ -4,6 +4,6 @@ You may need an API Gateway to enforce policies specific to your organization. A
 
 Currently, Ambassador supports external services for authentication, rate limiting and tracing.
 
-* [AuthService](auth-service.md)
-* [RateLimitService](rate-limit-service.md)
-* [TracingService](tracing-service.md)
+* [AuthService](auth-service)
+* [RateLimitService](rate-limit-service)
+* [TracingService](tracing-service)

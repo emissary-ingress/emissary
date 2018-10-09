@@ -124,4 +124,4 @@ about each span and associated metadata.
 
 ## More
 
-For more details about configuring the external tracing service, read the documentation on [external tracing](/reference/services/tracing-service.md).
+For more details about configuring the external tracing service, read the documentation on [external tracing](/reference/services/tracing-service).
