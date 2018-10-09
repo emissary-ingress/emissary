@@ -54,3 +54,4 @@ e2e_build:
 e2e_test:
 	@echo " >>> running e2e tests"
 	docker run --rm e2e/test:latest
+	

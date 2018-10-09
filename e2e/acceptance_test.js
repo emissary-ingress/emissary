@@ -30,7 +30,7 @@ afterEach (function () {
   browser.close();
 });
 
-describe('user-agent', function () {
+describe('user-agent', function () {  
   
   it('should be able to consent and see the content headers', async function () {
     const target = `http://${env.EXTERNAL_IP}/httpbin/headers`
