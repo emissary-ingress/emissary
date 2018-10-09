@@ -5,16 +5,16 @@ set -o errexit
 set -o nounset
 
 echo "Waiting for authorization service deployment..."
-bash -c "typeset -i cnt=60"
+COUNTER=60
 until kubectl rollout status deployment/auth0-service -n datawire | grep "successfully rolled out"; do 
-  ((cnt=cnt-1)) || exit 1; 
+  ((COUNTER=COUNTER-1)) || exit 1; 
   sleep 1; 
 done
 	
 echo "Waiting for ambassador deployment..."
-cnt=60
+COUNTER=60
 until kubectl rollout status deployment/ambassador -n datawire | grep "successfully rolled out"; do 
-  ((cnt=cnt-1)) || exit 1; 
+  ((COUNTER=COUNTER-1)) || exit 1; 
   sleep 1; 
 done
 

@@ -35,7 +35,7 @@ jobs:
       script: 'make check_format && make install && make test'
 
     - stage: deploying
-      if: tag =~ -rc OR branch =~ __e2e__
+      if: tag =~ -rc
       install:
         # Google Cloud SDK installation
         - gcloud version || true
@@ -53,5 +53,9 @@ jobs:
       script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
     
     - stage: running e2e tests
-      if: tag =~ -rc OR branch =~ __e2e__
+      if: tag =~ -rc
       script: 'make e2e_build && make e2e_test'
+
+    - stage: re-tagging image
+      if: tag =~ -rc
+      script: 'make docker-login && docker tag $(DEV_REGISTRY)/$(DEV_REPO):$(TRAVIS_COMMIT) $(DEV_REGISTRY)/$(DEV_REPO):$(TRAVIS_TAG)'
