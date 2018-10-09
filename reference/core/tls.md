@@ -131,5 +131,5 @@ Note: If `ambassador-cacert` is present in the cluster and the TLS module is con
 
 ### More reading
 
-The [TLS termination guide](/user-guide/tls-termination.md) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws.md). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
+The [TLS termination guide](/user-guide/tls-termination) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
 
