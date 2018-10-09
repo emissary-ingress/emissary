@@ -1,15 +1,12 @@
-# Ambassador
+# Ambassador documentation
 
-Just cloned? Set up GitBook to get started.
+We've switched to GatsbyJS for generating the documentation, which gives us more control and flexibility over the layout.
 
-    npm install
+## Authoring documentation
 
-Now you can build the site, e.g., to push to a web server.
+If you're authoring the documentation, just edit the Markdown files. You can use GitHub to preview the Markdown.
 
-    npm run build
+## Documentation infrastructure notes
 
-Still writing and editing? Run the server so you can preview as you go.
-
-    npm start
-
-Seeing this page in GitBook? We want this page to be our custom index.html page, not GitBook's generated page. At some point we must figure out how to do that.
+* The rendered YAML and markdown files are copied by Travis CI to a separate Gatsby-based toolchain. Still TODO is to provide a local version of this toolchain.
+* The `doc-links.yml` file is the new TOC.

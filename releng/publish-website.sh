@@ -20,7 +20,7 @@ set -o verbose
 
 GH_TOKEN="${GH_TOKEN:?not set}"
 DOC_ROOT="docs"
-TARGET_BRANCH="dev/ambassador-853"
+TARGET_BRANCH="master"
 CONTENT_DIR="/tmp/getambassador.io/content"
 
 rm -rf /tmp/getambassador.io
