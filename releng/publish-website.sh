@@ -16,19 +16,27 @@
 
 set -o errexit
 set -o nounset
+set -o verbose
 
-RELEASE_TYPE=${RELEASE_TYPE:?RELEASE_TYPE not set or empty}
+GH_TOKEN="${GH_TOKEN:?not set}"
+DOC_ROOT="docs"
+TARGET_BRANCH="master"
+CONTENT_DIR="/tmp/getambassador.io/content"
 
-NETLIFY_TOKEN=${NETLIFY_TOKEN:?NETLIFY_TOKEN not set or empty}
-NETLIFY_SITE=${NETLIFY_SITE:?NETLIFY_SITE not set or empty}
-NETLIFY_OPTS=${NETLIFY_OPTS:-"--draft"}
-if [[ "$RELEASE_TYPE" == "stable" ]]; then
-    NETLIFY_OPTS=
-fi
+rm -rf /tmp/getambassador.io
+git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
 
-docs/node_modules/.bin/netlify \
-	--access-token ${NETLIFY_TOKEN} \
-	deploy \
-	${NETLIFY_OPTS} \
-	--path docs/_book \
-	--site-id ${NETLIFY_SITE}
+cd docs
+cp -R yaml ${CONTENT_DIR}
+find . \
+    -not \( -path ./node_modules -prune \) \
+    -not \( -path ./_book -prune \) \
+    -name \*.md \
+    -exec cp --parent '{}' ${CONTENT_DIR} \;
+cd -
+
+cd ${CONTENT_DIR}/..
+git add -A
+git commit -m "docs updated from datawire/ambassador"
+git push origin ${TARGET_BRANCH}
+cd -

@@ -292,7 +292,7 @@ metadata:
       prefix: /productpage/
       rewrite: /productpage
       tls: upstream
-      service: productpage:9080
+      service: https://productpage:9080
 spec:
   ports:
   - port: 9080
