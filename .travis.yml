@@ -67,5 +67,5 @@ jobs:
         - TAGGED_IMAGE="${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_TAG}"
         - make docker-login 
         - docker pull $COMMIT_IMAGE
-        - docker tag $COMMIT_IMAGE $TAGGED_IMAGE'
+        - docker tag $COMMIT_IMAGE $TAGGED_IMAGE
         - docker push $TAGGED_IMAGE
