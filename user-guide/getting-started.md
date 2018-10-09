@@ -112,7 +112,7 @@ kubectl get svc -o wide ambassador
 
 Eventually, this should give you something like:
 
-```shell
+```
 NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
@@ -200,7 +200,7 @@ spec:
 
 and then applying it with:
 
-```shell
+```
 kubectl apply -f qotm.yaml
 ```
 
@@ -214,7 +214,7 @@ $ curl http://${AMBASSADOR_IP}/qotm/
 
 Ambassador includes an integrated diagnostics service to help with troubleshooting. By default, this is not exposed to the Internet. To view it, we'll need to get the name of one of the Ambassador pods:
 
-```shell
+```
 $ kubectl get pods
 NAME                          READY     STATUS    RESTARTS   AGE
 ambassador-3655608000-43x86   1/1       Running   0          2m
@@ -223,7 +223,7 @@ ambassador-3655608000-w63zf   1/1       Running   0          2m
 
 Forwarding local port 8877 to one of the pods:
 
-```shell
+```
 kubectl port-forward ambassador-3655608000-43x86 8877
 ```
 
@@ -234,8 +234,8 @@ will then let us view the diagnostics at http://localhost:8877/ambassador/v0/dia
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
 - Join us on [Slack](https://join.slack.com/t/datawire-oss/shared_invite/enQtMzcwMDEwMTc5ODQ3LTE1NmIzZTFmZWE0OTQ1NDc2MzE2NTkzMDAzZWM0MDIxZTVjOGIxYmRjZjY3N2M2Mjk4NGI5Y2Q4NGY4Njc1Yjg);
-- Learn how to [add authentication](auth-tutorial) to existing services; or
-- Learn how to [add rate limiting](rate-limiting-tutorial) to existing services; or
-- Learn how to [add tracing](tracing-tutorial); or
-- Learn how to [use gRPC with Ambassador](grpc); or
-- Read about [configuring Ambassador](/reference/configuration).
+- Learn how to [add authentication](auth-tutorial.md) to existing services; or
+- Learn how to [add rate limiting](rate-limiting-tutorial.md) to existing services; or
+- Learn how to [add tracing](tracing-tutorial.md); or
+- Learn how to [use gRPC with Ambassador](grpc.md); or
+- Read about [configuring Ambassador](/reference/configuration.md).

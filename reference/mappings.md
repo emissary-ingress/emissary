@@ -1,8 +1,8 @@
-# Configuring Services
+## Configuring Services
 
 Ambassador is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`.
 
-## Mappings
+### Mappings
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
@@ -14,7 +14,7 @@ Each mapping can also specify, among other things:
 - a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
 - other [_headers_](headers) which must appear in the HTTP request.
 
-## Defining Mappings
+### Defining Mappings
 
 Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
 
@@ -79,11 +79,11 @@ Ambassador supports a number of additional attributes to configure and customize
 | [`host`](host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
 | [`host_regex`](host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`host_rewrite`](host) | forces the HTTP `Host` header to a specific value when talking to the service |
-| `method`                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
+| [`method`](method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`rate_limits`](rate-limits) | specifies a list rate limit rules on a mapping |
-| `regex_headers`           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
+| [`regex_headers`](headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](rewrites)      | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
@@ -144,14 +144,14 @@ In most cases, you won't need the `tls` attribute: just use a `service` with an 
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
 
-## Namespaces and Mappings
+### Namespaces and Mappings
 
 Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
 
 - `service: servicename` will route to a service in the same namespace as the Ambassador, and
 - `service: servicename.namespace` will route to a service in a different namespace.
 
-## Resources
+### Resources
 
 To Ambassador, a `resource` is a group of one or more URLs that all share a common prefix in the URL path. For example:
 
@@ -192,7 +192,7 @@ https://ambassador.example.com/manohmanohman
 
 which is probably not what was intended.
 
-## Services
+### Services
 
 A `service` is simply a URL to Ambassador. For example:
 

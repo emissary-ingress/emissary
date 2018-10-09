@@ -73,7 +73,7 @@ config:
 #### `use_remote_address`
 
 **Ambassador is very likely to change to default `use_remote_address` to `true`
-very soon**. At present, `use_remote_address` still defaults to `false`; consider setting it to `true` if your application wants to have the incoming source address available. See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers) for more information here.
+very soon**. At present, `use_remote_address` still defaults to `false`; consider setting it to `true` if your application wants to have the incoming source address available. See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) for more information here.
 
 #### `use_proxy_proto`
 
@@ -95,4 +95,4 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 ### The `authentication` Module
 
-The `authentication` module is now deprecated. Use the [AuthService](services/auth-service) manifest type instead.
+The `authentication` module is now deprecated. Use the [AuthService](services/auth-service.md) manifest type instead.

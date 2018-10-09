@@ -1,17 +1,19 @@
 # Ambassador and Istio: Edge Proxy and Service Mesh
 
+---
+
 Ambassador is a Kubernetes-native API gateway for microservices. Ambassador is deployed at the edge of your network, and routes incoming traffic to your internal services (aka "north-south" traffic).  [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and Ambassador are built using [Envoy](https://www.envoyproxy.io).
 
 Ambassador and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through Ambassador, which then routes the traffic to Istio-powered services. Ambassador handles authentication, edge routing, TLS termination, and other traditional edge functions.
 
-This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador) combined with a state-of-the-art service mesh (Istio). Istio's basic [ingress controller](https://istio.io/docs/tasks/traffic-management/ingress) is very limited, and has no support for authentication or many of the other features of Ambassador.
+This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador) combined with a state-of-the-art service mesh (Istio). Istio's basic [ingress controller](https://istio.io/docs/tasks/traffic-management/ingress.html) is very limited, and has no support for authentication or many of the other features of Ambassador.
 
 ## Getting Ambassador Working With Istio
 
 Getting Ambassador working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
-1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/quick-start) (without using mutual TLS auth between sidecars)
-2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/guides/bookinfo).
+1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/quick-start.html) (without using mutual TLS auth between sidecars)
+2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/guides/bookinfo.html).
 3. Verify that the sample application is working as expected.
 
 By default, the Bookinfo application uses the Istio ingress. To use Ambassador, we need to:

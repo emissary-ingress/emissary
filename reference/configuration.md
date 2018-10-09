@@ -4,11 +4,11 @@ Ambassador is configured in a declarative fashion, using YAML manifests to descr
 
 - [`Module`](modules) manifests configure things with can apply to Ambassador as a whole. For example, the `ambassador` module can define listener ports, and the `tls` module can configure TLS termination for Ambassador.
 
-- [`AuthService`](services/auth-service) manifests configures the external authentication service[s] that Ambassador will use.
+- [`AuthService`](services/auth-service.md) manifests configures the external authentication service[s] that Ambassador will use.
 
-- [`RateLimitService`](services/rate-limit-service) manifests configures the external rate limiting service that Ambassador will use.
+- [`RateLimitService`](services/rate-limit-service.md) manifests configures the external rate limiting service that Ambassador will use.
 
-- [`TracingService`](services/tracing-service) manifests configures the external tracing service that Ambassador will use.
+- [`TracingService`](services/tracing-service.md) manifests configures the external tracing service that Ambassador will use.
 
 - [`Mapping`](mappings) manifests associate REST _resources_ with Kubernetes _services_. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 

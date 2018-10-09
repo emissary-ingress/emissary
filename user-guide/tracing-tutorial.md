@@ -4,7 +4,7 @@ Ambassador can support distributed tracing, one of the ["3 pillars of observabil
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
 
 After completing the Getting Started guide you will have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding tracing to this setup.
 
@@ -124,4 +124,4 @@ about each span and associated metadata.
 
 ## More
 
-For more details about configuring the external tracing service, read the documentation on [external tracing](/reference/services/tracing-service).
+For more details about configuring the external tracing service, read the documentation on [external tracing](/reference/services/tracing-service.md).

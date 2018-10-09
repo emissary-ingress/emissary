@@ -1,12 +1,14 @@
 # gRPC and Ambassador
 
+---
+
 Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
 ## Example
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
 
-After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding the [Hello World gRPC service](https://github.com/grpc/grpc-go/tree/master/examples/helloworld) for this tutorial.
+After completing [Getting Started](/user-guide/getting-started.html), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding the [Hello World gRPC service](https://github.com/grpc/grpc-go/tree/master/examples/helloworld) for this tutorial. 
 
 ## Mapping gRPC Services
 
@@ -128,7 +130,7 @@ Note: If you're trying this out using `NodePort` on minikube and running the doc
 
 ## Using over TLS
 
-To enable grpc over TLS, ALPN protocol http2 `alpn_protocols: h2` must be added to the TLS module configuration. Refer to [TLS termination guide](/user-guide/tls-termination) for more information.
+To enable grpc over TLS, ALPN protocol http2 `alpn_protocols: h2` must be added to the TLS module configuration. Refer to [TLS termination guide](/user-guide/tls-termination.html) for more information.
 
 ## Note
 

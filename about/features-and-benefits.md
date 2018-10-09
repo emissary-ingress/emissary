@@ -46,19 +46,19 @@ Ambassador uses [Envoy](https://www.envoyproxy.io) for all traffic routing and p
 
 ### gRPC and HTTP/2 Support
 
-Ambassador fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and Ambassador](/user-guide/grpc) for more information.
+Ambassador fully supports gRPC and HTTP/2 routing, thanks to Envoy's extensive capabilities in this area. See [gRPC and Ambassador](/user-guide/grpc.md) for more information.
 
 ### Istio Integration
 
-Ambassador integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, Ambassador routes external traffic to the internal Istio service mesh. See [Istio and Ambassador](/user-guide/with-istio) for details.
+Ambassador integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, Ambassador routes external traffic to the internal Istio service mesh. See [Istio and Ambassador](/user-guide/with-istio.md) for details.
 
 ### Authentication
 
-Ambassador supports authenticating incoming requests. When configured, Ambassador will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication tutorial](/user-guide/auth-tutorial).
+Ambassador supports authenticating incoming requests. When configured, Ambassador will check with a third party authentication service prior to routing an incoming request. For more information, see the [authentication tutorial](/user-guide/auth-tutorial.md).
 
 ### Rate Limiting
 
-Ambassador supports rate limiting incoming requests. When configured, Ambassador will check with a third party rate limit service prior to routing an incoming request. For more information, see the [rate limiting tutorial](/user-guide/rate-limiting-tutorial).
+Ambassador supports rate limiting incoming requests. When configured, Ambassador will check with a third party rate limit service prior to routing an incoming request. For more information, see the [rate limiting tutorial](/user-guide/rate-limiting-tutorial.md).
 
 ### Integrated Diagnostics
 
