@@ -51,7 +51,7 @@ jobs:
         # Deployment vars
         - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
       script: 
-        - COMMIT_IMAGE="${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}
+        - COMMIT_IMAGE=$DOCKER_REGISTRY/$DOCKER_REPO:$TRAVIS_COMMIT
         - make build && make docker-login && make push && make gcloud && make apply && make check
         - docker tag $(make get-image) $COMMIT_IMAGE
         - docker push $COMMIT_IMAGE
@@ -63,8 +63,8 @@ jobs:
     - stage: re-tagging image
       if: tag =~ -rc
       script: 
-        - COMMIT_IMAGE="${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_COMMIT}"
-        - TAGGED_IMAGE="${DOCKER_REGISTRY}/${DOCKER_REPO}:${TRAVIS_TAG}"
+        - COMMIT_IMAGE=$DOCKER_REGISTRY/$DOCKER_REPO:$TRAVIS_COMMIT
+        - TAGGED_IMAGE=$DOCKER_REGISTRY/$DOCKER_REPO:$TRAVIS_TAG
         - make docker-login 
         - docker pull $COMMIT_IMAGE
         - docker tag $COMMIT_IMAGE $TAGGED_IMAGE
