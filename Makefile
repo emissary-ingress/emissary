@@ -398,14 +398,17 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 	venv/bin/pip -v install -q -Ur dev-requirements.txt
 	venv/bin/pip -v install -q -e ambassador/.
 	touch venv/bin/activate
-	# Grumble grumble python 3.7 and kubernetes...
-	find "venv/lib/python3.7/site-packages/kubernetes/client" \
-		-type f -name \*.py \
-		-exec perl -pi -e 's/async=/async_req=/g;' \
-				       -e 's/async bool/async_req bool/g;' \
-				       -e "s/'async'/'async_req'/g;" {} \;
-	perl -pi -e "s/if not async/if not async_req/g;" \
-		"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"
+	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
+		echo "Fixing Kubernetes Client for Python 3.7"; \
+		find "venv/lib/python3.7/site-packages/kubernetes/client" \
+			-type f -name \*.py \
+			-exec perl -pi -e 's/async=/async_req=/g;' \
+						-e 's/async bool/async_req bool/g;' \
+						-e "s/'async'/'async_req'/g;" {} \; \
+						; \
+		perl -pi -e "s/if not async/if not async_req/g;" \
+			"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"; \
+	fi
 
 # ------------------------------------------------------------------------------
 # Website
