@@ -151,10 +151,11 @@ def get_aconf(app, what):
     hr_uptime = td_format(uptime)
 
     app.scout = Scout()
-    app.scout_result, app.scout_notices = \
-        app.scout.report(mode="diagd", action=what,
-                         uptime=int(uptime.total_seconds()),
-                         hr_uptime=hr_uptime)
+    app.scout_result = app.scout.report(mode="diagd", action=what,
+                                        uptime=int(uptime.total_seconds()),
+                                        hr_uptime=hr_uptime)
+
+    app.scout_notices = app.scout_result.pop('notices', [])
 
     app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
 
@@ -202,26 +203,6 @@ def system_info():
         "boot_time": boot_time,
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }
-
-
-def clean_notices(notices: List[ScoutNotice]) -> List[Dict[str, str]]:
-    cleaned = []
-
-    for notice in notices:
-        try:
-            if isinstance(notice, str):
-                cleaned.append({ "level": "WARNING", "message": notice })
-            else:
-                lvl = notice['level'].upper()
-                msg = notice['message']
-
-                cleaned.append({ "level": lvl, "message": msg })
-        except KeyError:
-            cleaned.append({ "level": "WARNING", "message": json.dumps(notice) })
-        except:
-            cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
-
-    return cleaned
 
 
 def envoy_status(estats):
@@ -298,7 +279,7 @@ def show_overview(reqid=None):
 
     app.logger.debug("OV %s: collecting errors" % reqid)
 
-    notices.extend(clean_notices(app.scout_notices))
+    notices.extend(app.scout_notices)
 
     errors = []
 
@@ -357,7 +338,7 @@ def show_intermediate(source=None, reqid=None):
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
                  errors=errors,
-                 notices=clean_notices(app.scout_notices),
+                 notices=app.scout_notices,
                  **result,
                  **diag.as_dict())
 

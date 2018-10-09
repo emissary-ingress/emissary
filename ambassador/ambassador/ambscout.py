@@ -1,4 +1,5 @@
 from typing import ClassVar, Dict, List, Optional, Tuple, Union
+from typing import cast as typecast
 
 import datetime
 import json
@@ -13,7 +14,7 @@ from scout import Scout
 # Import version stuff directly from ambassador.VERSION to avoid a circular import.
 from .VERSION import Version, Build, BuildInfo
 
-ScoutNotice = Union[str, Dict[str, str]]
+ScoutNotice = Dict[str, str]
 
 
 class AmbScout:
@@ -47,7 +48,7 @@ class AmbScout:
         self.semver = self.get_semver(self.version)
 
         self.logger = logging.getLogger("ambassador.scout")
-        self.logger.setLevel(logging.DEBUG)
+        # self.logger.setLevel(logging.DEBUG)
 
         self.logger.debug("Ambassador version %s" % Version)
         self.logger.debug("Scout version      %s%s" % (self.version, " - BAD SEMVER" if not self.semver else ""))
@@ -82,7 +83,7 @@ class AmbScout:
 
         return self._scout
 
-    def report(self, force_result: Optional[dict]=None, **kwargs) -> Tuple[dict, List[ScoutNotice]]:
+    def report(self, force_result: Optional[dict]=None, **kwargs) -> dict:
         _notices: List[ScoutNotice] = []
 
         env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
@@ -112,20 +113,20 @@ class AmbScout:
                     self._last_result = dict(**result)
                 else:
                     result = { "scout": "unavailable: %s" % self._scout_error }
-                    _notices.append({ "level": "debug",
+                    _notices.append({ "level": "DEBUG",
                                       "message": "scout temporarily unavailable: %s" % self._scout_error })
 
                 # Whether we could talk to Scout or not, update the timestamp so we don't
                 # try again too soon.
                 result_timestamp = datetime.datetime.now()
             else:
-                _notices.append({ "level": "debug", "message": "Returning cached result" })
+                _notices.append({ "level": "DEBUG", "message": "Returning cached result" })
                 result = dict(**self._last_result)
                 result_was_cached = True
 
                 result_timestamp = self._last_update
         else:
-            _notices.append({ "level": "debug", "message": "Returning forced result" })
+            _notices.append({ "level": "INFO", "message": "Returning forced Scout result" })
             result_timestamp = datetime.datetime.now()
 
         if not self.semver:
@@ -147,23 +148,40 @@ class AmbScout:
                 self._latest_semver = latest_semver
             else:
                 _notices.append({
-                    "level": "warning",
+                    "level": "WARNING",
                     "message": "Scout returned invalid version '%s'??!" % latest_version
                 })
 
         if (self._latest_semver and ((not self.semver) or
                                      (self._latest_semver > self.semver))):
             _notices.append({
-                "level": "info",
+                "level": "INFO",
                 "message": "Upgrade available! to Ambassador version %s" % self._latest_semver
             })
 
         if 'notices' in result:
-            _notices.extend(result['notices'])
+            rnotices = typecast(List[Union[str, ScoutNotice]], result['notices'])
+
+            for notice in rnotices:
+                if isinstance(notice, str):
+                    _notices.append({ "level": "WARNING", "message": notice })
+                elif isinstance(notice, dict):
+                    lvl = notice.get('level', 'WARNING').upper()
+                    msg = notice.get('message', None)
+
+                    if msg:
+                        _notices.append({ "level": lvl, "message": msg })
+                else:
+                    _notices.append({ "level": "WARNING", "message": json.dumps(notice) })
 
         self._notices = _notices
 
-        return result, self._notices
+        if self._notices:
+            result['notices'] = self._notices
+        else:
+            result.pop('notices', None)
+
+        return result
 
     @staticmethod
     def get_semver(version_string: str) -> Optional[semantic_version.Version]:

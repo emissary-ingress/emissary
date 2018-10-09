@@ -51,32 +51,23 @@ def handle_exception(what, e, **kwargs):
     tb = "\n".join(traceback.format_exception(*sys.exc_info()))
 
     scout = Scout()
-    result, notices = scout.report(action=what, mode="cli", exception=str(e), traceback=tb, **kwargs)
+    result = scout.report(action=what, mode="cli", exception=str(e), traceback=tb, **kwargs)
 
     logger.debug("Scout %s, result: %s" %
                  ("enabled" if scout._scout else "disabled", result))
 
     logger.error("%s: %s\n%s" % (what, e, tb))
 
-    show_notices(notices)
+    show_notices(result)
 
 
-def show_notices(notices: Optional[List[ScoutNotice]], printer=logger.log):
-    if notices:
-        for notice in notices:
-            try:
-                if isinstance(notice, str):
-                    printer(logging.WARNING, notice)
-                else:
-                    lvl = notice['level'].upper()
-                    msg = notice['message']
+def show_notices(result: dict, printer=logger.log):
+    notices = result.get('notices', [])
 
-                    if isinstance(lvl, str):
-                        lvl = getattr(logging, lvl, logging.INFO)
+    for notice in notices:
+        lvl = logging.getLevelName(notice.get('level', 'ERROR'))
 
-                    printer(lvl, msg)
-            except KeyError:
-                printer(logging.WARNING, json.dumps(notice))
+        printer(lvl, notice.get('message', '?????'))
 
 
 def stdout_printer(lvl, msg):
@@ -95,8 +86,8 @@ def version():
     print("Ambassador Scout version %s" % scout.version)
     print("Ambassador Scout semver  %s" % scout.get_semver(scout.version))
 
-    result, notices = scout.report(action="version", mode="cli")
-    show_notices(notices, printer=stdout_printer)
+    result = scout.report(action="version", mode="cli")
+    show_notices(result, printer=stdout_printer)
 
 
 def showid():
@@ -108,8 +99,8 @@ def showid():
 
     print("Ambassador Scout installation ID %s" % scout.install_id)
 
-    result, notices = scout.report(action="showid", mode="cli")
-    show_notices(notices, printer=stdout_printer)
+    result= scout.report(action="showid", mode="cli")
+    show_notices(result, printer=stdout_printer)
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
@@ -177,8 +168,8 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         sys.stdout.write("\n")
 
         scout = Scout()
-        result, notices = scout.report(action="dump", mode="cli")
-        show_notices(notices)
+        result = scout.report(action="dump", mode="cli")
+        show_notices(result)
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
@@ -290,8 +281,8 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
                 logger.error("Could not generate new Envoy configuration: %s" % rc.error)
 
         scout = Scout()
-        result, notices = scout.report(action="config", mode="cli")
-        show_notices(notices)
+        result = scout.report(action="config", mode="cli")
+        show_notices(result)
     except Exception as e:
         handle_exception("EXCEPTION from config", e,
                          config_dir_path=config_dir_path, output_json_path=output_json_path)

@@ -30,7 +30,7 @@ import yaml
 from urllib3.exceptions import ProtocolError
 
 from kubernetes import watch
-from ambassador.config import Config
+from ambassador import Config, Scout
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, check_cert_file, TLSPaths
 from ambassador.cli import fetch_resources
 from ambassador.ir import IR
@@ -176,6 +176,17 @@ class Restarter(threading.Thread):
         aconf.load_all(resources)
         ir = IR(aconf)
         envoy_config = V2Config(ir)
+
+        scout = Scout()
+        result = scout.report(mode="kubewatch", action="reconfigure",
+                              gencount=self.restart_count)
+
+        notices = result.pop("notices", [])
+
+        logger.debug("scout result %s" % json.dumps(result, sort_keys=True, indent=4))
+
+        for notice in notices:
+            logger.log(logging.getLevelName(notice.get('level', 'WARNING')), notice.get('message', '?????'))
 
         envoy_config_path = "%s-%s" % (output, "envoy.json")
         with open(envoy_config_path, "w") as o:
