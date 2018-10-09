@@ -70,7 +70,7 @@ cors:
   exposed_headers: X-Custom-Header
   max_age: "86400"
 ```
-## [AuthService](services/auth-service.md) and Cross-Origin Resource Sharing
+## [AuthService](services/auth-service) and Cross-Origin Resource Sharing
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
 If your `AuthService` implementation wants to deal with CORS itself, by default it will deny these requests, so you have to teach it to accept anything, because you implement CORS on a different level.
