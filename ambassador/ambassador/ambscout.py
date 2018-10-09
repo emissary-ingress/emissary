@@ -1,173 +1,279 @@
+from typing import ClassVar, Dict, List, Optional, Tuple, Union
+
+import datetime
+import json
+import logging
+import re
 import os
+
+import semantic_version
 
 from scout import Scout
 
-class AmbScout:
-    def __init__(self) -> None:
-        scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
+# Import version stuff directly from ambassador.VERSION to avoid a circular import.
+from .VERSION import Version, Build, BuildInfo
 
-        try:
-            self._scout = Scout(app="ambassador", version="0.0.1-crap", install_id=scout_install_id)
-            self._scout_error = None
-        except OSError as e:
-            self._scout_error = e
+ScoutNotice = Union[str, Dict[str, str]]
+
+
+class AmbScout:
+    reTaggedBranch: ClassVar = re.compile(r'^(\d+\.\d+\.\d+)(-[a-zA-Z][a-zA-Z]\d+)?$')
+    reGitDescription: ClassVar = re.compile(r'-(\d+)-g([0-9a-f]+)$')
+
+    install_id: str
+    runtime: str
+    namespace: str
+
+    version: str
+    semver: Optional[semantic_version.Version]
+
+    _scout: Optional[Scout]
+    _scout_error: Optional[str]
+
+    _notices: Optional[List[ScoutNotice]]
+    _last_result: Optional[dict]
+    _last_update: Optional[datetime.datetime]
+    _update_frequency: Optional[datetime.timedelta]
+
+    _latest_version: Optional[str] = None
+    _latest_semver: Optional[semantic_version.Version] = None
+
+    def __init__(self) -> None:
+        self.install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
+        self.runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
+        self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+
+        self.version = self.parse_git_description(Version, Build)
+        self.semver = self.get_semver(self.version)
+
+        self.logger = logging.getLogger("ambassador.scout")
+        self.logger.setLevel(logging.DEBUG)
+
+        self.logger.debug("Ambassador version %s" % Version)
+        self.logger.debug("Scout version      %s%s" % (self.version, " - BAD SEMVER" if not self.semver else ""))
+        self.logger.debug("Runtime            %s" % self.runtime)
+        self.logger.debug("Namespace          %s" % self.namespace)
+
+        self._scout = None
+        self._scout_error = None
+
+        self._notices = None
+        self._last_result = None
+        self._last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
+        self._update_frequency = datetime.timedelta(hours=4)
+        self._latest_version = None
+        self._latest_semver = None
 
     def __str__(self) -> str:
         return ("%s: %s" % ("OK" if self._scout else "??", 
                             self._scout_error if self._scout_error else "OK"))
 
-# def get_semver(what, version_string):
-#     semver = None
+    @property
+    def scout(self) -> Optional[Scout]:
+        if not self._scout:
+            try:
+                self._scout = Scout(app="ambassador", version=self.version, install_id=self.install_id)
+                self._scout_error = None
+                self.logger.debug("Scout connection established")
+            except OSError as e:
+                self._scout = None
+                self._scout_error = e
+                self.logger.debug("Scout connection failed, will retry later: %s" % self._scout_error)
 
-#     try:
-#         semver = semantic_version.Version(version_string)
-#     except ValueError:
-#         pass
+        return self._scout
 
-#     return semver
+    def report(self, force_result: Optional[dict]=None, **kwargs) -> Tuple[dict, List[ScoutNotice]]:
+        _notices: List[ScoutNotice] = []
 
-#     # Weird stuff. The build version looks like
-#     #
-#     # 0.12.0                    for a prod build, or
-#     # 0.12.1-b2.da5d895.DIRTY   for a dev build (in this case made from a dirty true)
-#     #
-#     # Now:
-#     # - Scout needs a build number (semver "+something") to flag a non-prod release;
-#     #   but
-#     # - DockerHub cannot use a build number at all; but
-#     # - 0.12.1-b2 comes _before_ 0.12.1+b2 in SemVer land.
-#     #
-#     # FFS.
-#     #
-#     # We cope with this by transforming e.g.
-#     #
-#     # 0.12.1-b2.da5d895.DIRTY into 0.12.1-b2+da5d895.DIRTY
-#     #
-#     # for Scout.
+        env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
+        if env_result:
+            force_result = json.loads(env_result)
 
-#     scout_version = Version
+        result: Optional[dict] = force_result
+        result_was_cached: bool = False
 
-#     if '-' in scout_version:
-#         # TODO(plombardi): This version code needs to be rewritten. We should only report RC and GA versions.
-#         #
-#         # As of the time when we moved to streamlined branch, merge and release model the way versions in development
-#         # land are rendered has changed. A development version no longer has any <MAJOR>.<MINOR>.<PATCH> information and
-#         # is instead rendered as <BRANCH_NAME>-<GIT_SHORT_HASH>[-dirty] where [-dirty] is only appended for modified
-#         # source trees.
-#         #
-#         # Long term we are planning to remove the version report for development branches anyways so all of this
-#         # formatting for versions
+        if not result:
+            if 'runtime' not in kwargs:
+                kwargs['runtime'] = self.runtime
 
-#         scout_version = "0.0.0-" + Version.split("-")[1]  # middle part is commit hash
-#         # Dev build!
-#         # v, p = scout_version.split('-')
-#         # p, b = p.split('.', 1) if ('.' in p) else (0, p)
-#         #
-#         # scout_version = "%s-%s+%s" % (v, p, b)
+            if 'namespace' not in kwargs:
+                kwargs['namespace'] = self.namespace
 
-#     # Use scout_version here, not __version__, because the version
-#     # coming back from Scout will use build numbers for dev builds, but
-#     # __version__ won't, and we need to be consistent for comparison.
-#     current_semver = get_semver("current", scout_version)
+            # How long since the last Scout update? If it's been more than an hour,
+            # check Scout again.
 
-# Moved to config.py
-##     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
-##     ambassador_id = os.environ.get('AMBASSADOR_ID', 'default')
+            now = datetime.datetime.now()
 
-##     runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
-##     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+            if (now - self._last_update) > self._update_frequency:
+                if self.scout:
+                    result = self.scout.report(**kwargs)
 
-#     # Default to using the Nil UUID unless the environment variable is set explicitly
-#     scout_install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
+                    self._last_update = now
+                    self._last_result = dict(**result)
+                else:
+                    result = { "scout": "unavailable: %s" % self._scout_error }
+                    _notices.append({ "level": "debug",
+                                      "message": "scout temporarily unavailable: %s" % self._scout_error })
 
-#     try:
-#         scout = Scout(app="ambassador", version=scout_version, install_id=scout_install_id)
-#         scout_error = None
-#     except OSError as e:
-#         scout_error = e
+                # Whether we could talk to Scout or not, update the timestamp so we don't
+                # try again too soon.
+                result_timestamp = datetime.datetime.now()
+            else:
+                _notices.append({ "level": "debug", "message": "Returning cached result" })
+                result = dict(**self._last_result)
+                result_was_cached = True
 
-#     scout_latest_version = None
-#     scout_latest_semver = None
-#     scout_notices = []
+                result_timestamp = self._last_update
+        else:
+            _notices.append({ "level": "debug", "message": "Returning forced result" })
+            result_timestamp = datetime.datetime.now()
 
-#     scout_last_response = None
-#     scout_last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
-#     scout_update_frequency = datetime.timedelta(hours=4)
+        if not self.semver:
+            _notices.append({
+                "level": "warning",
+                "message": "Ambassador has invalid version '%s'??!" % self.version
+            })
 
-#     @classmethod
-#     def scout_report(klass, force_result=None, **kwargs):
-#         _notices = []
+        result['cached'] = result_was_cached
+        result['timestamp'] = result_timestamp.timestamp()
 
-#         env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
-#         if env_result:
-#             force_result = json.loads(env_result)
+        # Do version & notices stuff.
+        if 'latest_version' in result:
+            latest_version = result['latest_version']
+            latest_semver = self.get_semver(latest_version)
 
-#         result = force_result
-#         result_timestamp = None
-#         result_was_cached = False
+            if latest_semver:
+                self._latest_version = latest_version
+                self._latest_semver = latest_semver
+            else:
+                _notices.append({
+                    "level": "warning",
+                    "message": "Scout returned invalid version '%s'??!" % latest_version
+                })
 
-#         if not result:
-#             if Config.scout:
-#                 if 'runtime' not in kwargs:
-#                     kwargs['runtime'] = Config.runtime
+        if (self._latest_semver and ((not self.semver) or
+                                     (self._latest_semver > self.semver))):
+            _notices.append({
+                "level": "info",
+                "message": "Upgrade available! to Ambassador version %s" % self._latest_semver
+            })
 
-#                 # How long since the last Scout update? If it's been more than an hour,
-#                 # check Scout again.
+        if 'notices' in result:
+            _notices.extend(result['notices'])
 
-#                 now = datetime.datetime.now()
+        self._notices = _notices
 
-#                 if (now - Config.scout_last_update) > Config.scout_update_frequency:
-#                     result = Config.scout.report(**kwargs)
+        return result, self._notices
 
-#                     Config.scout_last_update = now
-#                     Config.scout_last_result = dict(**result)
-#                 else:
-#                     # _notices.append({ "level": "debug", "message": "Returning cached result" })
-#                     result = dict(**Config.scout_last_result)
-#                     result_was_cached = True
+    @staticmethod
+    def get_semver(version_string: str) -> Optional[semantic_version.Version]:
+        semver = None
 
-#                 result_timestamp = Config.scout_last_update
-#             else:
-#                 result = { "scout": "unavailable" }
-#                 result_timestamp = datetime.datetime.now()
-#         else:
-#             _notices.append({ "level": "debug", "message": "Returning forced result" })
-#             result_timestamp = datetime.datetime.now()
+        try:
+            semver = semantic_version.Version(version_string)
+        except ValueError:
+            pass
 
-#         if not Config.current_semver:
-#             _notices.append({
-#                 "level": "warning",
-#                 "message": "Ambassador has bad version '%s'??!" % Config.scout_version
-#             })
+        return semver
 
-#         result['cached'] = result_was_cached
-#         result['timestamp'] = result_timestamp.timestamp()
+    @staticmethod
+    def parse_git_description(version: str, build: BuildInfo) -> str:
+        # Here's what we get for various kinds of builds:
+        #
+        # Random (clean):
+        # Version:               shared-dev-tgr606-f60229d
+        # build.git.branch:      shared/dev/tgr606
+        # build.git.commit:      f60229d
+        # build.git.dirty:       False
+        # build.git.description: 0.50.0-tt2-1-gf60229d
+        # --> 0.50.0-local+gf60229d
+        #
+        # Random (dirty):
+        # Version:               shared-dev-tgr606-f60229d-dirty
+        # build.git.branch:      shared/dev/tgr606
+        # build.git.commit:      f60229d
+        # build.git.dirty:       True
+        # build.git.description: 0.50.0-tt2-1-gf60229d
+        # --> 0.50.0-local+gf60229d.dirty
+        #
+        # EA:
+        # Version:               0.50.0
+        # build.git.branch:      0.50.0-ea2
+        # build.git.commit:      05aefd5
+        # build.git.dirty:       False
+        # build.git.description: 0.50.0-ea2
+        # --> 0.50.0-ea2
+        #
+        # RC
+        # Version:               0.40.0
+        # build.git.branch:      0.40.0-rc1
+        # build.git.commit:      d450dca
+        # build.git.dirty:       False
+        # build.git.description: 0.40.0-rc1
+        # --> 0.40.0-rc1
+        #
+        # GA
+        # Version:               0.40.0
+        # build.git.branch:      0.40.0
+        # build.git.commit:      e301a90
+        # build.git.dirty:       False
+        # build.git.description: 0.40.0
+        # --> 0.40.0
 
-#         # Do version & notices stuff.
-#         if 'latest_version' in result:
-#             latest_version = result['latest_version']
-#             latest_semver = get_semver("latest", latest_version)
+        # Start by assuming that the version is sane and we needn't
+        # tack any build metadata onto it.
 
-#             if latest_semver:
-#                 Config.scout_latest_version = latest_version
-#                 Config.scout_latest_semver = latest_semver
-#             else:
-#                 _notices.append({
-#                     "level": "warning",
-#                     "message": "Scout returned bad version '%s'??!" % latest_version
-#                 })
+        build_elements = []
 
-#         if (Config.scout_latest_semver and
-#             ((not Config.current_semver) or
-#              (Config.scout_latest_semver > Config.current_semver))):
-#             _notices.append({
-#                 "level": "info",
-#                 "message": "Upgrade available! to Ambassador version %s" % Config.scout_latest_semver
-#             })
+        if not AmbScout.reTaggedBranch.search(version):
+            # This isn't a proper sane version. It must be a local build. Per
+            # Scout's rules, anything with semver build metadata is treated as a
+            # dev version, so we need to make sure our returned version has some.
+            #
+            # Start by assuming that we won't find a useable version in the
+            # description, and must fall back to 0.0.0.
+            build_version = "0.0.0"
+            desc_delta = None
 
-#         if 'notices' in result:
-#             _notices.extend(result['notices'])
+            # OK. Can we find a version from what the git description starts
+            # with? If so, the upgrade logic in the diagnostics will work more
+            # sanely.
 
-#         Config.scout_notices = _notices
+            m = AmbScout.reGitDescription.search(build.git.description)
 
-#         return result
+            if m:
+                # OK, the description ends with -$delta-g$commit at least, so
+                # it may start with a version. Strip off the matching text and
+                # remember the delta and commit.
+
+                desc_delta = m.group(1)
+                desc = build.git.description[0:m.start()]
+
+                # Does the remaining description match a sane version?
+                m = AmbScout.reTaggedBranch.search(desc)
+
+                if m:
+                    # Yes. Use it as the base version.
+                    build_version = m.group(1)
+
+            # We'll use prerelease "local", and include the branch and such
+            # in the build metadata.
+            version = '%s-local' % build_version
+
+            # Does the commit not appear in a build element?
+            build_elements = []
+
+            if desc_delta:
+                build_elements.append(desc_delta)
+
+            build_elements.append("g%s" % build.git.commit)
+
+            # If this branch is dirty, append a build element of "dirty".
+            if build.git.dirty:
+                build_elements.append('dirty')
+
+        # Finally, put it all together.
+        if build_elements:
+            version += "+%s" % ('.'.join(build_elements))
+
+        return version

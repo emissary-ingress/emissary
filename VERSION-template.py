@@ -12,11 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import NamedTuple
+
+
+class GitInfo(NamedTuple):
+    commit: str
+    branch: str
+    dirty: bool
+    description: str
+
+
+class BuildInfo(NamedTuple):
+    version: str
+    git: GitInfo
+
+
 Version = "{{VERSION}}"
-GitDescription = "{{GITDESCRIPTION}}"
-GitBranch = "{{GITBRANCH}}"
-GitCommit = "{{GITCOMMIT}}"
-GitDirty = bool("{{GITDIRTY}}")
+
+Build = BuildInfo(
+    version=Version,
+    git=GitInfo(
+        commit="{{GITCOMMIT}}",
+        branch="{{GITBRANCH}}",
+        dirty=bool("{{GITDIRTY}}"),
+        description="{{GITDESCRIPTION}}",
+    )
+)
 
 if __name__ == "__main__":
     import sys
@@ -29,19 +50,20 @@ if __name__ == "__main__":
     if (cmd == '--version') or (cmd == '-V'):
         print(Version)
     elif cmd == '--desc':
-        print(GitDescription)
+        print(Build.git.description)
     elif cmd == '--branch':
-        print(GitBranch)
+        print(Build.git.branch)
     elif cmd == '--commit':
-        print(GitCommit)
+        print(Build.git.commit)
     elif cmd == '--dirty':
-        print(GitDirty)
+        print(Build.git.dirty)
     elif cmd == '--all':
-        print("Version:        %s" % Version)
-        print("GitBranch:      %s" % GitBranch)
-        print("GitCommit:      %s" % GitCommit)
-        print("GitDirty:       %s" % GitDirty)
-        print("GitDescription: %s" % GitDescription)
-    else: # compact
+        print("version:         %s" % Version)
+        print("git.branch:      %s" % Build.git.branch)
+        print("git.commit:      %s" % Build.git.commit)
+        print("git.dirty:       %s" % Build.git.dirty)
+        print("git.description: %s" % Build.git.description)
+    else:   # compact
         print("%s (%s at %s on %s%s)" %
-              (Version, GitDescription, GitCommit, GitBranch, " - dirty" if GitDirty else ""))
+              (Version, Build.git.description, Build.git.commit, Build.git.branch,
+               " - dirty" if Build.git.dirty else ""))
