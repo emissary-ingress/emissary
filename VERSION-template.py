@@ -14,11 +14,34 @@
 
 Version = "{{VERSION}}"
 GitDescription = "{{GITDESCRIPTION}}"
+GitBranch = "{{GITBRANCH}}"
+GitCommit = "{{GITCOMMIT}}"
+GitDirty = bool("{{GITDIRTY}}")
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) < 2:
+    cmd = "--compact"
+
+    if len(sys.argv) > 1:
+        cmd = sys.argv[1].lower()
+
+    if (cmd == '--version') or (cmd == '-V'):
         print(Version)
-    else:
+    elif cmd == '--desc':
         print(GitDescription)
+    elif cmd == '--branch':
+        print(GitBranch)
+    elif cmd == '--commit':
+        print(GitCommit)
+    elif cmd == '--dirty':
+        print(GitDirty)
+    elif cmd == '--all':
+        print("Version:        %s" % Version)
+        print("GitBranch:      %s" % GitBranch)
+        print("GitCommit:      %s" % GitCommit)
+        print("GitDirty:       %s" % GitDirty)
+        print("GitDescription: %s" % GitDescription)
+    else: # compact
+        print("%s (%s at %s on %s%s)" %
+              (Version, GitDescription, GitCommit, GitBranch, " - dirty" if GitDirty else ""))

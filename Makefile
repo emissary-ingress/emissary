@@ -222,9 +222,16 @@ endif
 ambassador/ambassador/VERSION.py:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
+	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
+	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
 	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" -e "s/{{GITDESCRIPTION}}/$(GIT_DESCRIPTION)/g" \
+	sed \
+		-e 's!{{VERSION}}!$(VERSION)!g' \
+		-e 's!{{GITBRANCH}}!$(GIT_BRANCH)!g' \
+		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
+		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
+		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
 		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
