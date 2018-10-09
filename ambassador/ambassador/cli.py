@@ -37,14 +37,12 @@ from .utils import RichStatus
 __version__ = Version
 
 logging.basicConfig(
-    level=logging.DEBUG,  # if appDebug else logging.INFO,
-    format="%%(asctime)s ambassador %s %%(levelname)s: %%(message)s" % __version__,
+    level=logging.INFO,
+    format="%%(asctime)s ambassador-cli %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
-logging.getLogger("datawire.scout").setLevel(logging.DEBUG)
 logger = logging.getLogger("ambassador")
-logger.setLevel(logging.DEBUG)
 
 
 def handle_exception(what, e, **kwargs):
@@ -104,7 +102,8 @@ def showid():
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
-         k8s=False, aconf=False, ir=False, v1=False, v2=False, diag=False):
+         debug=False, debug_scout=False, k8s=False,
+         aconf=False, ir=False, v1=False, v2=False, diag=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -113,12 +112,20 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param k8s: If set, assume configuration files are annotated K8s manifests
+    :param debug: If set, generate debugging output
+    :param debug_scout: If set, generate debugging output
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
     :param v1: If set, dump the Envoy V1 config
     :param v2: If set, dump the Envoy V2 config
     :param diag: If set, dump the Diagnostics overview
     """
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
+    if debug_scout:
+        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
 
     if not (aconf or ir or v1 or v2 or diag):
         aconf = True
@@ -164,8 +171,8 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['diag'] = diag.as_dict()
             od['elements'] = diagconfig.elements
 
-        json.dump(od, sys.stdout, sort_keys=True, indent=4)
-        sys.stdout.write("\n")
+        # json.dump(od, sys.stdout, sort_keys=True, indent=4)
+        # sys.stdout.write("\n")
 
         scout = Scout()
         result = scout.report(action="dump", mode="cli")
@@ -189,18 +196,27 @@ def validate(config_dir_path: Parameter.REQUIRED, *, k8s=False):
 
 
 def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQUIRED, *,
-           check=False, k8s=False, ir=None, aconf=None, exit_on_error=False):
+           debug=False, debug_scout=False, check=False, k8s=False, ir=None, aconf=None,
+           exit_on_error=False):
     """
     Generate an Envoy configuration
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param output_json_path: Path to output envoy.json
+    :param debug: If set, generate debugging output
+    :param debug_scout: If set, generate debugging output
     :param check: If set, generate configuration only if it doesn't already exist
     :param k8s: If set, assume configuration files are annotated K8s manifests
     :param exit_on_error: If set, will exit with status 1 on any configuration error
     :param ir: Pathname to which to dump the IR (not dumped if not present)
     :param aconf: Pathname to which to dump the aconf (not dumped if not present)
     """
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
+    if debug_scout:
+        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
 
     try:
         logger.debug("CHECK MODE  %s" % check)

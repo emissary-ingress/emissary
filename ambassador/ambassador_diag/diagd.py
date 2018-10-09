@@ -14,10 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List
-
-import sys
-
 import datetime
 import functools
 import glob
@@ -84,6 +80,8 @@ def standard_handler(f):
         reqid = str(uuid.uuid4()).upper()
         prefix = "%s: %s \"%s %s\"" % (reqid, request.remote_addr, request.method, request.path)
 
+        app.logger.info("%s START" % prefix)
+
         start = datetime.datetime.now()
 
         app.logger.debug("%s handler %s" % (prefix, func_name))
@@ -102,7 +100,7 @@ def standard_handler(f):
             status_to_log = result[1]
 
             if (status_to_log // 100) == 2:
-                result_log_level = logging.DEBUG
+                result_log_level = logging.INFO
                 result_to_log = "success"
             else:
                 result_log_level = logging.ERROR
@@ -269,15 +267,16 @@ def show_overview(reqid=None):
     econf = EnvoyConfig.generate(ir, "V1")
     diag = Diagnostics(ir, econf)
 
-    app.logger.debug("OV %s: DIAG" % reqid)
-    app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
+    if app.verbose:
+        app.logger.debug("OV %s: DIAG" % reqid)
+        app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
     ov = diag.overview(request, app.estats)
 
-    app.logger.debug("OV %s: OV" % reqid)
-    app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
-
-    app.logger.debug("OV %s: collecting errors" % reqid)
+    if app.verbose:
+        app.logger.debug("OV %s: OV" % reqid)
+        app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
+        app.logger.debug("OV %s: collecting errors" % reqid)
 
     notices.extend(app.scout_notices)
 
@@ -331,7 +330,8 @@ def show_intermediate(source=None, reqid=None):
 
     result = diag.lookup(request, source, app.estats)
 
-    app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
+    if app.verbose:
+        app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
@@ -383,21 +383,20 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
-def create_diag_app(config_dir_path, do_checks=False, debug=False, k8s=True, verbose=False):
+def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False, k8s=True, verbose=False):
     app.estats = EnvoyStats()
     app.health_checks = False
-    app.debugging = debug
+    app.debugging = reload
+    app.verbose = verbose
     app.k8s = k8s
 
     # This feels like overkill.
     app._logger = logging.getLogger(app.logger_name)
     app.logger.setLevel(logging.INFO)
 
-    if app.debugging or verbose:
+    if debug:
         app.logger.setLevel(logging.DEBUG)
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger("ambassador.config").setLevel(logging.INFO)
+        logging.getLogger('ambassador').setLevel(logging.DEBUG)
 
     if do_checks:
         app.health_checks = True
@@ -427,22 +426,23 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
+def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', k8s=False):
     """
     Run the diagnostic daemon.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param no_checks: If True, don't do Envoy-cluster health checking
-    :param no_debugging: If True, don't run Flask in debug mode
-    :param verbose: If True, be more verbose
+    :param reload: If True, run Flask in debug mode for live reloading
+    :param debug: If True, do debug logging
+    :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
     :param host: Interface on which to listen (default 0.0.0.0)
     :param port: Port on which to listen (default 8877)
     """
     
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, k8s, verbose)
+    flask_app = create_diag_app(config_dir_path, not no_checks, reload, debug, k8s, verbose)
 
     if not workers:
         workers = number_of_workers()
