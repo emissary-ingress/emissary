@@ -73,8 +73,14 @@ class V2Route(dict):
         host_redirect = group.get('host_redirect', None)
 
         if host_redirect:
-            self['redirect']['host_redirect'] = host_redirect.service
-            self['redirect']['path_redirect'] = host_redirect.path_redirect
+            self['redirect'] = {
+                'host_redirect': host_redirect.service
+            }
+
+            path_redirect = host_redirect.get('path_redirect', None)
+
+            if path_redirect:
+                self['redirect']['path_redirect'] = path_redirect
 
         cors = None
 

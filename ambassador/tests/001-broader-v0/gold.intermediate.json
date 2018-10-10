@@ -57,7 +57,7 @@
                 "_source": "mapping-httpbin.yaml.1",
                 "host_rewrite": "httpbin.org",
                 "lb_type": "round_robin",
-                "name": "cluster_http___httpbin_org",
+                "name": "cluster_wtfo___httpbin_org",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://httpbin.org:80"
@@ -198,10 +198,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-redirector.yaml.2"
+                    "mapping-redirector.yaml.3"
                 ],
                 "_service": "httpbin.org",
-                "_source": "mapping-redirector.yaml.2",
+                "_source": "mapping-redirector.yaml.3",
                 "lb_type": "round_robin",
                 "name": "cluster_shadow_httpbin_org",
                 "type": "strict_dns",
@@ -230,7 +230,7 @@
                 },
                 "type": "strict_dns",
                 "urls": [
-                    "tcp://myservice.org/:443"
+                    "tcp://myservice.org:443"
                 ]
             },
             {
@@ -342,7 +342,7 @@
                 "_source": "mapping-httpbin-shadow.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_http___httpbin_org",
+                        "name": "cluster_wtfo___httpbin_org",
                         "weight": 100.0
                     }
                 ],
@@ -456,6 +456,27 @@
                 ],
                 "prefix": "/long/",
                 "prefix_rewrite": "/qotm/quote/"
+            },
+            {
+                "__saved": [
+                    0,
+                    11,
+                    0,
+                    "/redirect2/",
+                    "GET"
+                ],
+                "_group_id": "588cefdd117b8793eb86711bd22616b13b853ffb",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-redirector.yaml.2"
+                ],
+                "_source": "mapping-redirector.yaml.2",
+                "clusters": [],
+                "host_redirect": "httpbin.org",
+                "prefix": "/redirect2/",
+                "prefix_rewrite": "/",
+                "timeout_ms": 50
             },
             {
                 "__saved": [
@@ -641,7 +662,7 @@
                 "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.1",
-                    "mapping-redirector.yaml.2"
+                    "mapping-redirector.yaml.3"
                 ],
                 "_source": "mapping-qotm.yaml.1",
                 "clusters": [
@@ -897,7 +918,7 @@
         ]
     },
     "errors": {
-        "mapping-redirector.yaml.2": [
+        "mapping-redirector.yaml.3": [
             {
                 "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
                 "hostname": "sanitized",
@@ -960,7 +981,8 @@
         },
         "mapping-redirector.yaml": {
             "mapping-redirector.yaml.1": true,
-            "mapping-redirector.yaml.2": true
+            "mapping-redirector.yaml.2": true,
+            "mapping-redirector.yaml.3": true
         },
         "mapping-websocket.yaml": {
             "mapping-websocket.yaml.1": true
@@ -1097,7 +1119,7 @@
             "kind": "Mapping",
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\ntimeout_ms: 50\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: wtfo://httpbin.org\ntimeout_ms: 50\n"
         },
         "test source.1": {
             "_source": "test source",
@@ -1173,6 +1195,15 @@
         },
         "mapping-redirector.yaml.2": {
             "_source": "mapping-redirector.yaml",
+            "filename": "mapping-redirector.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "redirect_host_only_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: redirect_host_only_mapping\nprefix: /redirect2/\nservice: httpbin.org\ntimeout_ms: 50\n"
+        },
+        "mapping-redirector.yaml.3": {
+            "_source": "mapping-redirector.yaml",
             "errors": [
                 {
                     "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
@@ -1183,7 +1214,7 @@
                 }
             ],
             "filename": "mapping-redirector.yaml",
-            "index": 2,
+            "index": 3,
             "kind": "Mapping",
             "name": "bad_redirect_mapping",
             "version": "ambassador/v0",

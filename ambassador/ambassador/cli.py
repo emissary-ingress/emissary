@@ -171,12 +171,12 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['diag'] = diag.as_dict()
             od['elements'] = diagconfig.elements
 
-        json.dump(od, sys.stdout, sort_keys=True, indent=4)
-        sys.stdout.write("\n")
-
         scout = Scout()
         result = scout.report(action="dump", mode="cli")
         show_notices(result)
+
+        json.dump(od, sys.stdout, sort_keys=True, indent=4)
+        sys.stdout.write("\n")
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)

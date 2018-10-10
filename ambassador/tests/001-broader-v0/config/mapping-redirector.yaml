@@ -10,6 +10,14 @@ timeout_ms: 50
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
+name:  redirect_host_only_mapping
+prefix: /redirect2/
+service: httpbin.org
+host_redirect: true
+timeout_ms: 50
+---
+apiVersion: ambassador/v0
+kind:  Mapping
 name:  bad_redirect_mapping
 prefix: /qotm/
 service: httpbin.org
