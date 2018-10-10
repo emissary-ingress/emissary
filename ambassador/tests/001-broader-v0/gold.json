@@ -88,7 +88,14 @@
                       
                     }
                     ,
-                    
+                    {
+                      "timeout_ms": 50,"prefix": "/redirect2/","host_redirect": "httpbin.org"
+
+
+
+
+                    }
+                    ,
                     {
                       "timeout_ms": 50,"prefix": "/redirect/","host_redirect": "httpbin.org",
                          "path_redirect": "/ip/"
