@@ -40,6 +40,8 @@ tags
 no-such-file
 envoy.json
 intermediate.json
+gold.no_yaml.json
+v1.json
 check-*.json
 end-to-end/forge
 stats.json

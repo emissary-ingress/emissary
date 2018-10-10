@@ -17,7 +17,9 @@ class TLS(AmbassadorTest):
         self.target = HTTP()
 
     def config(self):
-        yield self.target, self.format("""
+        # Use self here, not self.target, because we want the TLS module to
+        # be annotated on the Ambassador itself.
+        yield self, self.format("""
 ---
 apiVersion: ambassador/v0
 kind: Module
@@ -28,22 +30,29 @@ config:
     enabled: True
     secret: test-certs-secret
 """)
+
+        # Use self.target _here_, because we want the httpbin mapping to
+        # be annotated on the service, not the Ambassador. Also, you don't
+        # need to include the ambassador_id unless you need some special
+        # ambassador_id that isn't something that kat already knows about.
+        #
+        # If the test were more complex, we'd probably need to do some sort
+        # of mangling for the mapping name and prefix. For this simple test,
+        # it's not necessary.
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  httpbin_mapping
-prefix: /httpbin-tls/
-service: httpbin.org:80
-host_rewrite: httpbin.org
-ambassador_id: {self.ambassador_id}
+name:  tls_target_mapping
+prefix: /tls-target/
+service: {self.target.path.k8s}
 """)
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        yield Query(self.url("httpbin-tls/", https=True), insecure=True)
+        yield Query(self.url("tls-target/", https=True), insecure=True)
 
 class Plain(AmbassadorTest):
 
@@ -260,51 +269,20 @@ kind:  Module
 name:  ambassador
 config: {}
 """
-        yield self.target, self.format("""
+        for prefix, amb_id in (("findme", "{self.ambassador_id}"),
+                               ("findme-array", "[{self.ambassador_id}, missme]"),
+                               ("findme-array2", "[missme, {self.ambassador_id}]"),
+                               ("missme", "missme"),
+                               ("missme-array", "[missme1, missme2]")):
+            yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  {self.path.k8s}-findme
-prefix: /findme/
+name:  {self.path.k8s}-{prefix}
+prefix: /{prefix}/
 service: {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-findme-array
-prefix: /findme-array/
-service: {self.target.path.k8s}
-ambassador_id: [{self.ambassador_id}, missme]
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-findme-array2
-prefix: /findme-array2/
-service: {self.target.path.k8s}
-ambassador_id: [missme, {self.ambassador_id}]
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-missme
-prefix: /missme/
-service: {self.target.path.k8s}
-ambassador_id: missme
-""")
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.path.k8s}-missme
-prefix: /missme-array/
-service: {self.target.path.k8s}
-ambassador_id: [missme1, missme2]
-""")
+ambassador_id: {amb_id}
+            """, prefix=self.format(prefix), amb_id=self.format(amb_id))
 
     def queries(self):
         yield Query(self.url("findme/"))
@@ -312,6 +290,56 @@ ambassador_id: [missme1, missme2]
         yield Query(self.url("findme-array2/"))
         yield Query(self.url("missme/"), expected=404)
         yield Query(self.url("missme-array/"), expected=404)
+
+class AuthenticationTest(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+path_prefix: "/extauth"
+allowed_headers:
+- "x-extauth-required"
+- "x-authenticated-as"
+- "x-qotm-session"
+- "requested-status"
+- "requested-header"
+- "location"
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.k8s}
+""")
+
+    def queries(self):
+        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("target/"), headers={"requested-status": "302",
+                                                  "location": "foo",
+                                                  "requested-header": "location"}, expected=302)
+        yield Query(self.url("target/"))
+
+    def check(self):
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/extauth/target/"
+
+        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.response.headers["location"] == ["foo"]
+        assert self.results[1].backend.request.url.path == "/extauth/target/"
+
+        assert self.results[2].backend.name == self.target.path.k8s
+        assert self.results[2].backend.request.url.path == "/"
+
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.

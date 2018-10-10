@@ -65,6 +65,10 @@ else
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
 endif
 
+# This gives the _previous_ tag, plus a git delta, like 
+# 0.36.0-436-g8b8c5d3
+GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
+
 # TODO: need to remove the dependency on Travis env var which means this likely needs to be arg passed to make rather
 IS_PULL_REQUEST = false
 ifdef TRAVIS_PULL_REQUEST
@@ -89,6 +93,8 @@ ifeq ($(shell [[ "$(GIT_BRANCH)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] && echo "GA"), 
 COMMIT_TYPE=GA
 else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -rc[0-9]+$$ ]] && echo "RC"), RC)
 COMMIT_TYPE=RC
+else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -tt[0-9]+$$ ]] && echo "EA"), EA)
+COMMIT_TYPE=EA
 else ifeq ($(IS_PULL_REQUEST), true)
 COMMIT_TYPE=PR
 else
@@ -152,6 +158,7 @@ print-vars:
 	@echo "GIT_TAG                 = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION             = $(GIT_VERSION)"
+	@echo "GIT_DESCRIPTION         = $(GIT_DESCRIPTION)"
 	@echo "IS_PULL_REQUEST         = $(IS_PULL_REQUEST)"
 	@echo "COMMIT_TYPE             = $(COMMIT_TYPE)"
 	@echo "VERSION                 = $(VERSION)"
@@ -171,6 +178,7 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
+	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
 	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
 	@echo "export VERSION='$(VERSION)'"
@@ -214,8 +222,17 @@ endif
 ambassador/ambassador/VERSION.py:
 	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
+	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
+	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
+	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+	sed \
+		-e 's!{{VERSION}}!$(VERSION)!g' \
+		-e 's!{{GITBRANCH}}!$(GIT_BRANCH)!g' \
+		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
+		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
+		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
+		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
 
@@ -361,7 +378,7 @@ release:
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		DOC_RELEASE_TYPE=stable make website publish-website; \
+		DOC_RELEASE_TYPE=stable make website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		make helm-update; \
 		set +x; \
@@ -381,15 +398,24 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 	venv/bin/pip -v install -q -Ur dev-requirements.txt
 	venv/bin/pip -v install -q -e ambassador/.
 	touch venv/bin/activate
+	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
+		echo "Fixing Kubernetes Client for Python 3.7"; \
+		find "venv/lib/python3.7/site-packages/kubernetes/client" \
+			-type f -name \*.py \
+			-exec perl -pi -e 's/async=/async_req=/g;' \
+						-e 's/async bool/async_req bool/g;' \
+						-e "s/'async'/'async_req'/g;" {} \; \
+						; \
+		perl -pi -e "s/if not async/if not async_req/g;" \
+			"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"; \
+	fi
 
 # ------------------------------------------------------------------------------
 # Website
 # ------------------------------------------------------------------------------
 
 publish-website:
-	RELEASE_TYPE=$(DOC_RELEASE_TYPE) \
-    NETLIFY_SITE=$(NETLIFY_SITE) \
-		bash ./releng/publish-website.sh;
+	bash ./releng/publish-website.sh;
 
 # ------------------------------------------------------------------------------
 # CI Targets

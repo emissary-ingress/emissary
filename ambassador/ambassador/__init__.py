@@ -14,6 +14,7 @@
 
 from .config import Config
 from .ir import IR
-from .ambscout import AmbScout as Scout
+from .ambscout import AmbScout as Scout, ScoutNotice
 from .diagnostics import Diagnostics
 from .envoy import EnvoyConfig
+from .VERSION import Version, Build, BuildInfo

@@ -47,8 +47,6 @@ class Config:
     # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
-    runtime: ClassVar[str] = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
-    namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     # INSTANCE VARIABLES
     current_resource: Optional[ACResource] = None
@@ -76,9 +74,6 @@ class Config:
         self.schema_dir_path = schema_dir_path
 
         self.logger = logging.getLogger("ambassador.config")
-
-        # self.logger.debug("Scout version %s" % Config.scout_version)
-        self.logger.debug("Runtime       %s" % Config.runtime)
         self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
 
         self._reset()

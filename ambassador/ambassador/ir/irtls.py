@@ -45,7 +45,7 @@ class IREnvoyTLS (IRResource):
         Initialize an IREnvoyTLS from the raw fields of its Resource.
         """
 
-        # print("IREnvoyTLS __init__ (%s %s %s)" % (kind, name, kwargs))
+        ir.logger.debug("IREnvoyTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
         super().__init__(
@@ -64,6 +64,7 @@ class IREnvoyTLS (IRResource):
         cert_specified = False
         if self.get('cert_chain_file') is not None or self.get('private_key_file') is not None:
             cert_specified = True
+
         if secret is not None and cert_specified:
             self.pop('secret', None)
             self.pop('cert_chain_file', None)
@@ -74,6 +75,7 @@ class IREnvoyTLS (IRResource):
         if secret is not None:
             self.logger.debug("config.server.secret is {}".format(secret))
             (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret, self.namespace)
+
             if server_cert and server_key:
                 self.logger.debug("saving contents of secret {} to {}".format(secret, TLSPaths.cert_dir.value))
                 save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
@@ -86,6 +88,8 @@ class IREnvoyTLS (IRResource):
         for key in defaults:
             if key not in self:
                 self[key] = defaults[key]
+
+        self.logger.debug("IREnvoyTLS setup %s" % self.as_json())
 
         return True
 
@@ -121,9 +125,8 @@ class TLSModuleFactory:
 
         tls_module = aconf.get_module('tls')
 
-        # OK, done. Merge the result back in.
         if tls_module:
-            # ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
+            ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
 
             # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
             # this painless.
@@ -140,7 +143,7 @@ class TLSModuleFactory:
                                             location=new_location,
                                             **new_args)
 
-            # ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+            ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:

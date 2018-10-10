@@ -14,19 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List
-
-import sys
-
 import datetime
 import functools
 import glob
 import json
 import logging
 import multiprocessing
-import os
 import re
-import signal
 import time
 import uuid
 
@@ -38,15 +32,11 @@ from flask import Flask, render_template, send_from_directory, request, jsonify 
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-from ambassador import Config, IR, EnvoyConfig, Diagnostics
+from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, ScoutNotice, Version
 from ambassador.config import fetch_resources
-from ambassador.VERSION import Version
-from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
+from ambassador.utils import SystemInfo, PeriodicTrigger
 
 from ambassador.diagnostics import EnvoyStats
-
-def number_of_workers():
-    return (multiprocessing.cpu_count() * 2) + 1
 
 __version__ = Version
 
@@ -75,6 +65,11 @@ envoy_targets = {
     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
 }
 
+
+def number_of_workers():
+    return (multiprocessing.cpu_count() * 2) + 1
+
+
 ######## DECORATORS
 
 def standard_handler(f):
@@ -85,14 +80,17 @@ def standard_handler(f):
         reqid = str(uuid.uuid4()).upper()
         prefix = "%s: %s \"%s %s\"" % (reqid, request.remote_addr, request.method, request.path)
 
+        app.logger.info("%s START" % prefix)
+
         start = datetime.datetime.now()
 
         app.logger.debug("%s handler %s" % (prefix, func_name))
 
-        result = ("impossible error", 500)
+        # Default to the exception case
+        result_to_log = "server error"
         status_to_log = 500
-        result_to_log = "impossible error"
         result_log_level = logging.ERROR
+        result = (result_to_log, status_to_log)
 
         try:
             result = f(*args, reqid=reqid, **kwds)
@@ -102,17 +100,12 @@ def standard_handler(f):
             status_to_log = result[1]
 
             if (status_to_log // 100) == 2:
-                result_log_level = logging.DEBUG
+                result_log_level = logging.INFO
                 result_to_log = "success"
             else:
                 result_log_level = logging.ERROR
                 result_to_log = "failure"
         except Exception as e:
-            result_to_log = "server error"
-            status_to_log = 500
-            result_log_level = logging.ERROR
-            result = (result_to_log, status_to_log)
-
             app.logger.exception(e)
 
         end = datetime.datetime.now()
@@ -124,12 +117,14 @@ def standard_handler(f):
 
     return wrapper
 
+
 # Get the Flask app defined early.
 app = Flask(__name__,
             template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
+
 # Next, various helpers.
-def get_aconf(app):
+def get_aconf(app, what):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
 
     # # Test crap
@@ -150,16 +145,20 @@ def get_aconf(app):
     aconf = Config()
     aconf.load_all(resources)
 
-    # uptime = datetime.datetime.now() - boot_time
-    # hr_uptime = td_format(uptime)
-    #
-    # result = Config.scout_report(mode="diagd", runtime=Config.runtime,
-    #                              uptime=int(uptime.total_seconds()),
-    #                              hr_uptime=hr_uptime)
-    #
-    # app.logger.info("Scout reports %s" % json.dumps(result))
+    uptime = datetime.datetime.now() - boot_time
+    hr_uptime = td_format(uptime)
+
+    app.scout = Scout()
+    app.scout_result = app.scout.report(mode="diagd", action=what,
+                                        uptime=int(uptime.total_seconds()),
+                                        hr_uptime=hr_uptime)
+
+    app.scout_notices = app.scout_result.pop('notices', [])
+
+    app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
 
     return aconf
+
 
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
@@ -172,10 +171,10 @@ def td_format(td_object):
         ('second', 1)
     ]
 
-    strings=[]
-    for period_name,period_seconds in periods:
+    strings = []
+    for period_name, period_seconds in periods:
         if seconds > period_seconds:
-            period_value, seconds = divmod(seconds,period_seconds)
+            period_value, seconds = divmod(seconds, period_seconds)
 
             strings.append("%d %s%s" % 
                            (period_value, period_name, "" if (period_value == 1) else "s"))
@@ -187,11 +186,13 @@ def td_format(td_object):
 
     return formatted
 
+
 def interval_format(seconds, normal_format, now_message):
     if seconds >= 1:
         return normal_format % td_format(datetime.timedelta(seconds=seconds))
     else:
         return now_message
+
 
 def system_info():
     return {
@@ -201,24 +202,6 @@ def system_info():
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }
 
-def clean_notices(notices) -> List[Dict[str, str]]:
-    cleaned = []
-
-    for notice in notices:
-        try:
-            if isinstance(notice, str):
-                cleaned.append({ "level": "WARNING", "message": notice })
-            else:
-                lvl = notice['level'].upper()
-                msg = notice['message']
-
-                cleaned.append({ "level": lvl, "message": msg })
-        except KeyError:
-            cleaned.append({ "level": "WARNING", "message": json.dumps(notice) })
-        except:
-            cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
-
-    return cleaned
 
 def envoy_status(estats):
     since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
@@ -235,11 +218,13 @@ def envoy_status(estats):
         "since_update": since_update
     }
 
+
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
 def favicon():
     template_path = resource_filename(Requirement.parse("ambassador"), "templates")
 
     return send_from_directory(template_path, "favicon.ico")
+
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
@@ -250,6 +235,7 @@ def check_alive():
     else:
         return "ambassador seems to have died (%s)" % status['uptime'], 503
 
+
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
     status = envoy_status(app.estats)
@@ -258,6 +244,7 @@ def check_ready():
         return "ambassador readiness check OK (%s)" % status['since_update'], 200
     else:
         return "ambassador not ready (%s)" % status['since_update'], 503
+
 
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
@@ -275,22 +262,23 @@ def show_overview(reqid=None):
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
-    aconf = get_aconf(app)
+    aconf = get_aconf(app, "overview")
     ir = IR(aconf)
     econf = EnvoyConfig.generate(ir, "V1")
     diag = Diagnostics(ir, econf)
 
-    app.logger.debug("OV %s: DIAG" % reqid)
-    app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
+    if app.verbose:
+        app.logger.debug("OV %s: DIAG" % reqid)
+        app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
     ov = diag.overview(request, app.estats)
 
-    app.logger.debug("OV %s: OV" % reqid)
-    app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
+    if app.verbose:
+        app.logger.debug("OV %s: OV" % reqid)
+        app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
+        app.logger.debug("OV %s: collecting errors" % reqid)
 
-    app.logger.debug("OV %s: collecting errors" % reqid)
-
-    notices.extend(clean_notices([]))  # Config.scout_notices)
+    notices.extend(app.scout_notices)
 
     errors = []
 
@@ -318,21 +306,19 @@ def show_overview(reqid=None):
 
     return result
 
+
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    aconf = get_aconf(app)
+    aconf = get_aconf(app, "detail: %s" % source)
     ir = IR(aconf)
     econf = EnvoyConfig.generate(ir, "V1")
     diag = Diagnostics(ir, econf)
 
-    # app.logger.debug("result\n%s" % json.dumps(result, indent=4, sort_keys=True))
-
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
-    route_info = None
     errors = []
 
     for element in diag.ambassador_elements.values():
@@ -344,14 +330,15 @@ def show_intermediate(source=None, reqid=None):
 
     result = diag.lookup(request, source, app.estats)
 
-    app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
+    if app.verbose:
+        app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
                  errors=errors,
-                 notices=clean_notices([]), # Config.scout_notices),
+                 notices=app.scout_notices,
                  **result,
                  **diag.as_dict())
 
@@ -360,9 +347,11 @@ def show_intermediate(source=None, reqid=None):
     else:
         return render_template("diag.html", **tvars)
 
+
 @app.template_filter('sort_by_key')
 def sort_by_key(objects):
     return sorted(objects, key=lambda x: x['key'])
+
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
@@ -376,10 +365,12 @@ def pretty_json(obj):
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
+
 @app.template_filter('sort_clusters_by_service')
 def sort_clusters_by_service(clusters):
     return sorted(clusters, key=lambda x: x['service'])
     # return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
+
 
 @app.template_filter('source_lookup')
 def source_lookup(name, sources):
@@ -391,21 +382,21 @@ def source_lookup(name, sources):
 
     return source.get('_source', name)
 
-def create_diag_app(config_dir_path, do_checks=False, debug=False, k8s=True, verbose=False):
+
+def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False, k8s=True, verbose=False):
     app.estats = EnvoyStats()
     app.health_checks = False
-    app.debugging = debug
+    app.debugging = reload
+    app.verbose = verbose
     app.k8s = k8s
 
     # This feels like overkill.
     app._logger = logging.getLogger(app.logger_name)
     app.logger.setLevel(logging.INFO)
 
-    if app.debugging or verbose:
+    if debug:
         app.logger.setLevel(logging.DEBUG)
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger("ambassador.config").setLevel(logging.INFO)
+        logging.getLogger('ambassador').setLevel(logging.DEBUG)
 
     if do_checks:
         app.health_checks = True
@@ -413,6 +404,7 @@ def create_diag_app(config_dir_path, do_checks=False, debug=False, k8s=True, ver
     app.config_dir_prefix = config_dir_path
 
     return app
+
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, options=None):
@@ -434,24 +426,25 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
+def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', k8s=False):
     """
     Run the diagnostic daemon.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param no_checks: If True, don't do Envoy-cluster health checking
-    :param no_debugging: If True, don't run Flask in debug mode
-    :param verbose: If True, be more verbose
+    :param reload: If True, run Flask in debug mode for live reloading
+    :param debug: If True, do debug logging
+    :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
     :param host: Interface on which to listen (default 0.0.0.0)
     :param port: Port on which to listen (default 8877)
     """
     
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, k8s, verbose)
+    flask_app = create_diag_app(config_dir_path, not no_checks, reload, debug, k8s, verbose)
 
-    if workers == None:
+    if not workers:
         workers = number_of_workers()
 
     gunicorn_config = {
@@ -464,8 +457,10 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
 
     StandaloneApplication(flask_app, gunicorn_config).run()
 
+
 def main():
     clize.run(_main)
+
 
 if __name__ == "__main__":
     main()

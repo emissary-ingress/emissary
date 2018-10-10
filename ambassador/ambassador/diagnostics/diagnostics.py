@@ -199,7 +199,7 @@ class DiagResult:
         :param cluster: dictionary version of a cluster to mark as active.
         """
 
-        self.logger.debug("GROUP %s" % group.as_json())
+        # self.logger.debug("GROUP %s" % group.as_json())
 
         prefix = group['prefix'] if 'prefix' in group else group['regex']
         rewrite = group.get('rewrite', "/")
@@ -216,8 +216,8 @@ class DiagResult:
             route_cluster = self.include_cluster(cluster.as_dict())
             route_cluster.update({'weight': mapping['weight']})
 
-            self.logger.debug("GROUP %s CLUSTER %s %d%% (%s)" %
-                              (group['group_id'], c_name, mapping['weight'], route_cluster))
+            # self.logger.debug("GROUP %s CLUSTER %s %d%% (%s)" %
+            #                   (group['group_id'], c_name, mapping['weight'], route_cluster))
 
             route_clusters.append(route_cluster)
 
@@ -444,7 +444,7 @@ class Diagnostics:
         self.ambassador_services = []
 
         for filter in self.ir.filters:
-            self.logger.debug("FILTER %s" % filter.as_json())
+            # self.logger.debug("FILTER %s" % filter.as_json())
 
             if filter.kind in Diagnostics.filter_map:
                 type_name = Diagnostics.filter_map[filter.kind]

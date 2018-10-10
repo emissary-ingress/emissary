@@ -129,7 +129,7 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-diagd --no-debugging "$CONFIG_DIR" &
+diagd "$CONFIG_DIR" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"

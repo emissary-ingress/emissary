@@ -1,6 +1,6 @@
 ## Distributed Tracing
 
-Applications that consist of multiple services can be difficult to debug, as a single request can span multiple services. Distributed tracing tells the story of your request as it is processed through your system. Distributed tracing is a powerful tool to debug and analyze your system in addition to request logging and [metrics](/reference/statistics.md).
+Applications that consist of multiple services can be difficult to debug, as a single request can span multiple services. Distributed tracing tells the story of your request as it is processed through your system. Distributed tracing is a powerful tool to debug and analyze your system in addition to request logging and [metrics](/reference/statistics).
 
 ### The TracingService
 
@@ -40,4 +40,4 @@ You may only use a single `TracingService` manifest.
 
 ### Example
 
-The [Ambassador Tracing Tutorial](../../user-guide/tracing-tutorial.md) has a simple Zipkin tracing example.
+The [Ambassador Tracing Tutorial](../../user-guide/tracing-tutorial) has a simple Zipkin tracing example.
