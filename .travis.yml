@@ -38,10 +38,10 @@ jobs:
     - stage: testing
       script: 'make check_format && make install && make test'
     
-    # On every release canditate OR release from master branch.  
+    # On every release canditate OR release that matches the tag.  
     # Push image to quay and deploy test cluster. 
     - stage: deploying
-      if: (branch != master AND tag =~ /^(\d+\.\d+\.\d+\-rc)$/) OR (branch = master AND tag =~ /^(\d+\.\d+\.\d+)$/)
+      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
       install:
         # Google Cloud SDK installation
         - gcloud version || true
@@ -63,12 +63,12 @@ jobs:
     
     # Run headless browser tests on the deployed code.
     - stage: running e2e tests
-      if: (branch != master AND tag =~ /^(\d+\.\d+\.\d+\-rc)$/) OR (branch = master AND tag =~ /^(\d+\.\d+\.\d+)$/)
+      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
       script: 'make e2e_build && make e2e_test'
 
     # Tag tested image and push to quay.
     - stage: re-tagging image
-      if: (branch != master AND tag =~ /^(\d+\.\d+\.\d+\-rc)$/) OR (branch = master AND tag =~ /^(\d+\.\d+\.\d+)$/)
+      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
       script:
         - make docker-login 
         - docker pull $COMMIT_IMAGE
