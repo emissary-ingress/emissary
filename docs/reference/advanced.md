@@ -1,4 +1,4 @@
-## Ambassador configuration sequence
+# Ambassador configuration sequence
 
 When you run Ambassador within Kubernetes:
 

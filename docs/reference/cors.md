@@ -1,4 +1,4 @@
-## Cross-Origin Resource Sharing
+# Cross-Origin Resource Sharing
 
 Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain.
 

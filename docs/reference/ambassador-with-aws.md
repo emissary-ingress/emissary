@@ -1,4 +1,4 @@
-## Ambassador on AWS
+# Ambassador on AWS
 
 The following is a sample configuration for deploying Ambassador in AWS (this configuration is templated using [Forge](https://forge.sh)):
 
@@ -35,7 +35,7 @@ spec:
 
 In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route TCP to support both WebSockets and HTTP. Ambassador is configured with `use_remote_address` and `use_proxy_proto` to ensure that remote IP addresses are passed through properly. TLS termination then occurs at the ELB.
 
-### Ambassador and AWS load balancer notes
+## Ambassador and AWS load balancer notes
 
 AWS provides three types of load balancers:
 
@@ -55,7 +55,7 @@ AWS provides three types of load balancers:
 
 In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 and later). When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
 
-#### L4 Load Balancer
+### L4 Load Balancer
 
 When running an ELB in L4 mode, you will need to listen on two ports to redirect all incoming HTTP requests to HTTPS. The first port will listen for HTTP traffic to redirect to HTTPS, while the second port will listen for HTTPS traffic.
 
@@ -83,7 +83,7 @@ This configuration makes Ambassador start a new listener on 8080 which redirects
 
 Note: Ambassador only supports standard ports (80 and 443) on the load balancer for L4 redirection, [yet](https://github.com/datawire/ambassador/issues/702)! For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888`. This will fail because HTTPS listener is on port 9999.
 
-#### L7 Load Balancer
+### L7 Load Balancer
 
 If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests without the `X-FORWARDED-PROTO: https` header to HTTPS. Here is an example Ambassador configuration for this scenario:
 
