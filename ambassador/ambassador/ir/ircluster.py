@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
 from typing import cast as typecast
 
+import json
 import re
+import urllib.parse
 
 from ..config import Config
 from ..utils import RichStatus
@@ -118,12 +120,13 @@ class IRCluster (IRResource):
             name_fields.append('otls')
 
         elif service.lower().startswith("http://"):
+            service = service[ len("http://"): ]
+
             if ctx:
                 errors.append("Originate-TLS context %s being used even though service %s lists HTTP" % (ctx_name, service))
                 originate_tls = True
                 name_fields.append('otls')
             else:
-                service = service[len("http://"):]
                 originate_tls = False
 
         elif ctx:
@@ -132,6 +135,16 @@ class IRCluster (IRResource):
             name_fields.append('otls')
             name_fields.append(ctx.name)
 
+        if '://' in service:
+            # WTF is this?
+            idx = service.index('://')
+            scheme = service[0:idx]
+
+            errors.append("service %s has unknown scheme %s, assuming %s" %
+                          (service, scheme, "HTTPS" if originate_tls else "HTTP"))
+
+            service = service[idx + 3:]
+
         # XXX Should this be checking originate_tls? Why does it do that? 
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
@@ -139,19 +152,37 @@ class IRCluster (IRResource):
         name = "_".join(name_fields)
         name = re.sub(r'[^0-9A-Za-z_]', '_', name)
 
-        port = 443 if originate_tls else 80
+        # Parse the service as a URL. Note that we have to supply a scheme to urllib's
+        # parser, because it's kind of stupid.
 
-        svc_and_port = service
+        ir.logger.debug("cluster %s service %s" % (name, service))
+        p = urllib.parse.urlparse('random://' + service)
 
-        if ':' not in svc_and_port:
-            svc_and_port = '%s:%d' % (service, port)
+        # Is there any junk after the host?
+
+        if p.path or p.params or p.query or p.fragment:
+            errors.append("service %s has extra URL components; ignoring everything but the host and port" % service)
+
+        # p is read-only, so break stuff out.
+
+        hostname = p.hostname
+        port = p.port
+
+        # If the port is unset, fix it up.
+        if not port:
+            port = 443 if originate_tls else 80
 
         if rkey == '-override-':
             rkey = name
 
-        url = 'tcp://%s' % svc_and_port
+        # Rebuild the URL with the 'tcp' scheme and our changed info.
+        # (Yes, really, TCP. Envoy uses the TLS context to determine whether to originate
+        # TLS. Kind of odd, but there we go.)
+        url = "tcp://%s:%d" % (hostname, port)
 
         # OK. Build our default args.
+        #
+        # XXX We should really save the hostname and the port, not the URL.
 
         new_args: Dict[str, Any] = {
             "type": dns_type,
@@ -172,6 +203,8 @@ class IRCluster (IRResource):
 
         if grpc:
             new_args['features'] = 'http2'
+
+        # ir.logger.debug("%s cluster URLs %s" % (name, new_args['urls']))
 
         # if cb_name and (cb_name in self.breakers):
         #     cluster['circuit_breakers'] = self.breakers[cb_name]
