@@ -139,7 +139,9 @@ class ResourceFetcher:
                     continue
                 inputs.append((filepath, filename))
         else:
-            inputs.append((config_dir_path, config_dir_path))
+            # this allows a file to be passed into the ambassador cli
+            # rather than just a directory
+            inputs.append((config_dir_path, os.path.basename(config_dir_path)))
 
         for filepath, filename in inputs:
             self.filename: Optional[str] = filename
