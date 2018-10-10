@@ -59,6 +59,18 @@ class IREnvoyTLS (IRResource):
             return False
 
         secret = self.get('secret')
+
+        # Check if secret and certs, both are specified
+        cert_specified = False
+        if self.get('cert_chain_file') is not None or self.get('private_key_file') is not None:
+            cert_specified = True
+        if secret is not None and cert_specified:
+            self.pop('secret', None)
+            self.pop('cert_chain_file', None)
+            self.pop('private_key_file', None)
+            self.logger.error("Both, secret and certs are specified, stopping ...")
+            return False
+
         if secret is not None:
             self.logger.debug("config.server.secret is {}".format(secret))
             (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret, self.namespace)
