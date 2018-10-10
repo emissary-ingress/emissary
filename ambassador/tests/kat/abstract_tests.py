@@ -187,7 +187,7 @@ class AmbassadorTest(Test):
                      "-e", "AMBASSADOR_ID=%s" % self.ambassador_id,
                      image)
         result.check_returncode()
-        self.deadline = time.time() + 3
+        self.deadline = time.time() + 5
 
     def queries(self):
         if DEV:
