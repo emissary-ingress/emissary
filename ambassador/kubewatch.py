@@ -261,46 +261,6 @@ def sync(restarter):
                     logger.info("ambassador-config: found %s" % key)
                     restarter.update(key, restarter.read_yaml(config_yaml, "ambassador-config %s" % key))
 
-        # If we don't already see a TLS server key in its usual spot...
-        if not check_cert_file(TLSPaths.mount_tls_crt.value):
-            # ...then try pulling keys directly from the configmaps.
-            (server_cert, server_key, server_data) = read_cert_secret(v1, "ambassador-certs", 
-                                                                      restarter.namespace)
-            (client_cert, _, client_data) = read_cert_secret(v1, "ambassador-cacert", 
-                                                             restarter.namespace)
-
-            if server_cert and server_key:
-                tls_mod = {
-                    "apiVersion": "ambassador/v0",
-                    "kind": "Module",
-                    "name": "tls-from-ambassador-certs",
-                    "ambassador_id": ambassador_id,
-                    "config": {
-                        "server": {
-                            "enabled": True,
-                            "cert_chain_file": TLSPaths.tls_crt.value,
-                            "private_key_file": TLSPaths.tls_key.value
-                        }
-                    }
-                }
-
-                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
-
-                if client_cert:
-                    tls_mod['config']['client'] = {
-                        "enabled": True,
-                        "cacert_chain_file": TLSPaths.client_tls_crt.value
-                    }
-
-                    if client_data.get('cert_required', None):
-                        tls_mod['config']['client']["cert_required"] = True
-
-                    save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
-
-                tls_yaml = yaml.safe_dump(tls_mod)
-                logger.debug("generated TLS config %s" % tls_yaml)
-                restarter.update("tls.yaml", tls_yaml)
-
         # Next, check for annotations and such.
         svc_list = None
 

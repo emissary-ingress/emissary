@@ -45,7 +45,8 @@
                     ],
                     "_source": "tls.yaml.1",
                     "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
-                    "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                    "private_key_file": "/etc/ambassador-config/certs/outbound.key",
+                    "namespace": "default"
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -77,7 +78,8 @@
                     ],
                     "_source": "tls.yaml.1",
                     "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
-                    "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                    "private_key_file": "/etc/ambassador-config/certs/outbound.key",
+                    "namespace": "default"
                 },
                 "type": "strict_dns",
                 "urls": [
