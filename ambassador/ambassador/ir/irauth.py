@@ -124,7 +124,7 @@ class IRAuth (IRFilter):
         if self.location == '--internal--':
             self.sourced_by(module)
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster' ]:
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service' ]:
             value = module.get(key, None)
 
             if value:
