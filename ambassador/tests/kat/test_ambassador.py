@@ -13,22 +13,37 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
 class TLS(AmbassadorTest):
 
+    def init(self):
+        self.target = HTTP()
+
     def config(self):
-        yield self, """
+        yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
 kind: Module
 name: tls
+ambassador_id: {self.ambassador_id}
 config:
   server:
-    enabled: False
-  client:
-    enabled: False
-        """
+    enabled: True
+    secret: test-certs-secret
+""")
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  httpbin_mapping
+prefix: /httpbin-tls/
+service: httpbin.org:80
+host_rewrite: httpbin.org
+ambassador_id: {self.ambassador_id}
+""")
 
     def scheme(self) -> str:
-        return "http"
+        return "https"
 
+    def queries(self):
+        yield Query(self.url("httpbin-tls/", https=True), insecure=True)
 
 class Plain(AmbassadorTest):
 
