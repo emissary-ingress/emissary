@@ -22,17 +22,18 @@ GH_TOKEN="${GH_TOKEN:?not set}"
 DOC_ROOT="docs"
 TARGET_BRANCH="master"
 CONTENT_DIR="/tmp/getambassador.io/content"
+STATIC_DIR="/tmp/getambassador.io/static"
 
 rm -rf /tmp/getambassador.io
 git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
 
 cd docs
-cp -R yaml ${CONTENT_DIR}
+cp -R yaml ${STATIC_DIR}
 find . \
     -not \( -path ./node_modules -prune \) \
     -not \( -path ./_book -prune \) \
     -name \*.md \
-    -exec cp --parent '{}' ${CONTENT_DIR} \;
+    -exec cp --parent '{}' ${STATIC_DIR} \;
 cd -
 
 cd ${CONTENT_DIR}/..
