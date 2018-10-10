@@ -17,6 +17,7 @@ from typing import cast as typecast
 
 import json
 
+from multi import multi
 from ..common import EnvoyRoute
 from ...ir.irlistener import IRListener
 # from ...ir.irmapping import IRMapping
@@ -29,16 +30,37 @@ if TYPE_CHECKING:
     from . import V2Config
 
 
-# XXX This is probably going to go away!
-class V2Filter(dict):
-    def __init__(self, filter: IRFilter) -> None:
-        super().__init__()
+@multi
+def v2filter(irfilter):
+    return irfilter.kind
 
-        self['name'] = filter.name
-        self['config'] = filter.config_dict()
+@v2filter.when("IRAuth")
+def v2filter(auth):
+    return {
+        'name': 'envoy.ext_authz',
+        'config': {
+            'http_service': {
+                'server_uri': {
+                    'uri': 'http://%s' % auth.auth_service,
+                    'cluster': auth.cluster.name,
+                    'timeout': '3s',
+                },
+                'path_prefix': auth.path_prefix,
+                'allowed_authorization_headers': auth.allowed_headers,
+                'allowed_request_headers': auth.allowed_headers,
+                # 'authorization_headers_to_add': []
+            }
+        }
+    }
 
-        if filter.get('type', None):
-           self['type'] = filter.type
+@v2filter.when("ir.cors")
+def v2filter(cors):
+    # apparently v2 has no cors filter
+    return None
+
+@v2filter.when("ir.router")
+def v2filter(router):
+    return { 'name': 'envoy.router' }
 
 
 class V2Listener(dict):
@@ -67,6 +89,12 @@ class V2Listener(dict):
         # if "rate_limits" in group:
         #     route["rate_limits"] = group.rate_limits
 
+        filters = []
+        for f in config.ir.filters:
+            v2f = v2filter(f)
+            if v2f:
+                filters.append(v2f)
+
         self.update({
             'name': listener.name,
             'address': {
@@ -92,11 +120,7 @@ class V2Listener(dict):
                                         }
                                     }
                                 ],
-                                'http_filters': [
-                                    {
-                                        'name': 'envoy.router'
-                                    }
-                                ],
+                                'http_filters': filters,
                                 'route_config': {
                                     'virtual_hosts': [
                                         {

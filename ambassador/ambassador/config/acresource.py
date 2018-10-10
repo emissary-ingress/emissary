@@ -129,12 +129,21 @@ class ResourceFetcher:
         self.logger = logger
         self.resources: List[ACResource] = []
 
-        for filename in os.listdir(config_dir_path):
-            filepath = os.path.join(config_dir_path, filename)
+        inputs = []
 
-            if not os.path.isfile(filepath):
-                continue
+        if os.path.isdir(config_dir_path):
+            for filename in os.listdir(config_dir_path):
+                filepath = os.path.join(config_dir_path, filename)
 
+                if not os.path.isfile(filepath):
+                    continue
+                inputs.append((filepath, filename))
+        else:
+            # this allows a file to be passed into the ambassador cli
+            # rather than just a directory
+            inputs.append((config_dir_path, os.path.basename(config_dir_path)))
+
+        for filepath, filename in inputs:
             self.filename: Optional[str] = filename
             self.filepath: Optional[str] = filepath
             self.ocount: int = 1

@@ -267,6 +267,56 @@ ambassador_id: {amb_id}
         yield Query(self.url("missme/"), expected=404)
         yield Query(self.url("missme-array/"), expected=404)
 
+class AuthenticationTest(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+path_prefix: "/extauth"
+allowed_headers:
+- "x-extauth-required"
+- "x-authenticated-as"
+- "x-qotm-session"
+- "requested-status"
+- "requested-header"
+- "location"
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.k8s}
+""")
+
+    def queries(self):
+        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
+        yield Query(self.url("target/"), headers={"requested-status": "302",
+                                                  "location": "foo",
+                                                  "requested-header": "location"}, expected=302)
+        yield Query(self.url("target/"))
+
+    def check(self):
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/extauth/target/"
+
+        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.response.headers["location"] == ["foo"]
+        assert self.results[1].backend.request.url.path == "/extauth/target/"
+
+        assert self.results[2].backend.name == self.target.path.k8s
+        assert self.results[2].backend.request.url.path == "/"
+
+
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
 #
