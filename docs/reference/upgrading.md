@@ -1,4 +1,4 @@
-## Upgrading Ambassador
+# Upgrading Ambassador
 
 Since Ambassador's configuration is entirely stored in annotations or a `ConfigMap`, no special process is necessary to upgrade Ambassador. If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating the following `kubectl apply` commands.
 

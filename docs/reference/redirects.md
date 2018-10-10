@@ -1,4 +1,4 @@
-## Redirects
+# Redirects
 
 ### Host Redirect
 
@@ -29,7 +29,7 @@ path_redirect: /ip
 
 Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador, attention paid to the trailing `/` on a URL is helpful!
 
-### X-FORWARDED-PROTO Redirect
+## X-FORWARDED-PROTO Redirect
 
 In cases when TLS is being terminated at an external layer 7 load balancer, then you would want to redirect only the originating HTTP requests to HTTPS, and let the originating HTTPS requests pass through.
 
