@@ -95,4 +95,4 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 ### The `authentication` Module
 
-The `authentication` module is now deprecated. Use the [AuthService](services/auth-service.md) manifest type instead.
+The `authentication` module is now deprecated. Use the [AuthService](services/auth-service) manifest type instead.
