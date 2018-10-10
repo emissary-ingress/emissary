@@ -1,8 +1,8 @@
-## Configuring Services
+# Configuring Services
 
 Ambassador is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`.
 
-### Mappings
+## Mappings
 
 Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
@@ -14,7 +14,7 @@ Each mapping can also specify, among other things:
 - a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
 - other [_headers_](headers) which must appear in the HTTP request.
 
-### Defining Mappings
+## Defining Mappings
 
 Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
 
@@ -66,7 +66,7 @@ Required attributes for mappings:
 - `prefix` is the URL prefix identifying your [resource](#resources)
 - `service` is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador
 
-### Configuring Mappings
+## Configuring Mappings
 
 Ambassador supports a number of additional attributes to configure and customize mappings.
 
@@ -109,13 +109,13 @@ These attributes are less commonly used, but can be used to override Ambassador'
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
-### Mapping Evaluation Order
+## Mapping Evaluation Order
 
 Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account.
 
 If absolutely necessary, you can manually set a `precedence` on the mapping (see below). In general, you should not need to use this feature unless you're using the `regex_headers` or `host_regex` matching features. If there's any question about how Ambassador is ordering rules, the diagnostic service is a good first place to look: the order in which mappings appear in the diagnostic service is the order in which they are evaluated.
 
-### Optional Fallback Mapping
+## Optional Fallback Mapping
 
 Ambassador will respond with a `404 Not Found` to any request for which no mapping exists. If desired, you can define a fallback "catch-all" mapping so all unmatched requests will be sent to an upstream service.
 
@@ -130,7 +130,7 @@ prefix: /
 service: https://www.getambassador.io
 ```
 
-####  <a name="precedence"></a> Using `precedence`
+###  <a name="precedence"></a> Using `precedence`
 
 Ambassador sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
 
@@ -138,20 +138,20 @@ For those situations, a `Mapping` can explicitly specify the `precedence`. A `Ma
 
 If multiple `Mapping`s have the same `precedence`, Ambassador's normal sorting determines the ordering within the `precedence`; however, there is no way that Ambassador can ever sort a `Mapping` with a lower `precedence` ahead of one at a higher `precedence`.
 
-####  <a name="using-tls"></a> Using `tls`
+###  <a name="using-tls"></a> Using `tls`
 
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service. TLS context handling is a beta feature of Ambassador at present; please [contact us on Slack](https://d6e.co/slack) if you need to specify TLS origination certificates.
 
-### Namespaces and Mappings
+## Namespaces and Mappings
 
 Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to services in other namespaces by taking advantage of Kubernetes DNS:
 
 - `service: servicename` will route to a service in the same namespace as the Ambassador, and
 - `service: servicename.namespace` will route to a service in a different namespace.
 
-### Resources
+## Resources
 
 To Ambassador, a `resource` is a group of one or more URLs that all share a common prefix in the URL path. For example:
 
@@ -192,7 +192,7 @@ https://ambassador.example.com/manohmanohman
 
 which is probably not what was intended.
 
-### Services
+## Services
 
 A `service` is simply a URL to Ambassador. For example:
 

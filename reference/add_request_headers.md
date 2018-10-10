@@ -1,4 +1,4 @@
-## Add Request Headers
+# Add Request Headers
 
 Ambassador can add a dictionary of HTTP headers that can be added to each request that is passed to a service.
 
