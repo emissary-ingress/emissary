@@ -89,6 +89,12 @@ class V2Listener(dict):
         # if "rate_limits" in group:
         #     route["rate_limits"] = group.rate_limits
 
+        filters = []
+        for f in config.ir.filters:
+            v2f = v2filter(f)
+            if v2f:
+                filters.append(v2f)
+
         self.update({
             'name': listener.name,
             'address': {
@@ -114,7 +120,7 @@ class V2Listener(dict):
                                         }
                                     }
                                 ],
-                                'http_filters': [v2f for v2f in [v2filter(f) for f in config.ir.filters] if v2f],
+                                'http_filters': filters,
                                 'route_config': {
                                     'virtual_hosts': [
                                         {
