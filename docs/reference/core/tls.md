@@ -1,8 +1,8 @@
-## Transport Layer Security (TLS)
+# Transport Layer Security (TLS)
 
 Ambassador supports both terminating TLS and originating TLS. By default, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret. 
 
-### The `tls` module
+## The `tls` module
 
 The `tls` module defines system-wide configuration for TLS when additional configuration is needed.
 
@@ -55,7 +55,7 @@ config:
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
-### Redirecting from cleartext to TLS
+## Redirecting from cleartext to TLS
 
 The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following configuration:
 
@@ -70,7 +70,7 @@ config:
     redirect_cleartext_from: 80
 ```
 
-### X-FORWARDED-PROTO Redirect
+## X-FORWARDED-PROTO Redirect
 
 In cases when TLS is being terminated at an external layer 7 load balancer, then you would want to redirect only the originating HTTP requests to HTTPS, and let the originating HTTPS requests pass through.
 
@@ -88,7 +88,7 @@ config:
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Requests that contain have `X-FORWARDED-PROTO` set to `https` will be passed through. Otherwise, for all other values of `X-FORWARDED-PROTO`, they will be redirected to TLS.
 
-### Authentication with TLS Client Certificates
+## Authentication with TLS Client Certificates
 
 Ambassador also supports TLS client-certificate authentcation. After enabling TLS termination, collect the full CA certificate chain (including all necessary intermediate certificates) into a single file. Store the CA certificate chain used to validate the client certificate into a Kubernetes `secret` named `ambassador-cacert`:
 
@@ -106,7 +106,7 @@ kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
 
 When Ambassador starts, it will notice the `ambassador-cacert` secret and turn TLS client-certificate auth on (assuming that TLS termination is enabled).
 
-##### Using a user defined secret
+### Using a user defined secret
 
 If you do not wish to use a secret named `ambassador-cacert`, then you can specify your own secret. This can be particularly useful if you want to use different secrets for different Ambassador deployments in your cluster.
 
@@ -129,7 +129,7 @@ config:
 
 Note: If `ambassador-cacert` is present in the cluster and the TLS module is configured to load a custom secret, then `ambassador-cacert` will take precedence, and the custom secret will be ignored.
 
-### More reading
+## More reading
 
 The [TLS termination guide](/user-guide/tls-termination) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
 

@@ -1,4 +1,4 @@
-## Diagnostics
+# Diagnostics
 
 If Ambassador is not routing your services as you'd expect, your first step should be the Ambassador Diagnostics service. This is exposed on port 8877 by default. You'll need to use `kubectl port-forward` for access, e.g.,
 

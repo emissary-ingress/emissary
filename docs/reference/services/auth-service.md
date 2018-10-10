@@ -1,4 +1,4 @@
-## Authentication
+# Authentication
 
 Ambassador supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
@@ -19,7 +19,7 @@ allowed_headers:
 
 You may use multiple `AuthService` manifests to round-robin authentication requests among multiple services. **Note well that all services must use the same `path_prefix` and `allowed_headers`;** if you try to have different values, you'll see an error in the diagnostics service, telling you which value is being used.
 
-### Using the AuthService API
+## Using the AuthService API
 
 By design, the AuthService interface is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
 
@@ -28,7 +28,7 @@ By design, the AuthService interface is highly flexible. The authentication serv
 * Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit
 * Authenticating specific services (URLs), and not others
 
-### AuthService and TLS
+## AuthService and TLS
 
 You can tell Ambassador to use TLS to talk to your service by using an `auth_service` with an `https://` prefix. However, you may also provide a `tls` attribute: if `tls` is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
 
