@@ -27,7 +27,7 @@ clean: clean-k8s
 .PHONY: test
 test:
 	@echo " >>> testing code.."
-	@go test ../...
+	@go test ./...
 
 vendor:
 	@echo " >>> installing dependencies"
