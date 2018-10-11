@@ -16,6 +16,8 @@
         link: /about/quickstart
       - title: Docker Compose
         link: /user-guide/docker-compose
+      - title: Early Access Releases
+        link: /user-guide/early-access
 
 - title: Concepts
   items:
