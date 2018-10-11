@@ -44,6 +44,14 @@ spec:
 
 * If you are using `redirect_cleartext_from`, change the value of this field to point to your cleartext port (e.g., 8080) and set `service_port` to be your TLS port (e.g., 8443).
 
+## Running as daemonset
+
+Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup up is especially helpful when you have Kubernetes cluster running on bare metal or private cloud. 
+
+* Ideal scenario could be when you are running containers on Kubernetes along side with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain set of application pools consisting of application or web servers. In this setup, along side of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is atleast one Ambassdor pod available to BIG-IP and can take care of routing traffic to kubernetes cluster.
+
+* In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec`section.
+
 ## Namespaces
 
 Ambassador supports multiple namespaces within Kubernetes. To make this work correctly, you need to set the `AMBASSADOR_NAMESPACE` environment variable in Ambassador's container. By far the easiest way to do this is using Kubernetes' downward API (this is included in the YAML files from `getambassador.io`):
