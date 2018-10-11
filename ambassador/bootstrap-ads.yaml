@@ -1,6 +1,6 @@
 # Base config for an ADS management server on 18000, admin port on 8001
 admin:
-  access_log_path: /dev/fd/1
+  access_log_path: /dev/null
   address:
     socket_address:
       address: 127.0.0.1
