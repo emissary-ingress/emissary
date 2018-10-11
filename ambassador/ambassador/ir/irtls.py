@@ -68,8 +68,9 @@ class IREnvoyTLS (IRResource):
             self.logger.error("Both, secret and certs are specified, stopping ...")
             return False
 
-        if secret is not None:
+        if (secret is not None) and (ir.tls_secret_resolver is not None):
             resolved = ir.tls_secret_resolver(secret, self.get('name'))
+
             if resolved is not None:
                 self.update(resolved)
 
