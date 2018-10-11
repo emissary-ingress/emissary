@@ -10,10 +10,15 @@ namespace:
   # name: default
 
 replicaCount: 1
+# If ambassador is needed as daemonSet then set create to true
+daemonSet: false
+
 
 image:
   repository: quay.io/datawire/ambassador
   pullPolicy: IfNotPresent
+  #imagePullSecrets: sample
+
 
 service:
   enableHttp: true
@@ -23,8 +28,11 @@ service:
     http: 80
     https: 443
 
+
   type: LoadBalancer
   port: 80
+  #Nodeport to use  if type is selected as Nodeport otherwise it will be ignored
+  #nodePort : 30039
   # annotations:
   #   getambassador.io/config: |
   #     ---
@@ -50,7 +58,7 @@ serviceAccount:
   create: true
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name:
+  name: 
 
 resources: {}
   # If you do want to specify resources, uncomment the following

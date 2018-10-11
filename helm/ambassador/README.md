@@ -48,6 +48,8 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `image.repository` | Image | `quay.io/datawire/ambassador`
 | `image.tag` | Image tag | `0.35.0`
 | `image.pullPolicy` | Image pull policy | `IfNotPresent`
+| `image.imagePullSecrets` | Image pull secrets | None
+| `daemonSet` | If `true `, Create a daemonSet. By default Deployment controller will be created | `false` 
 | `replicaCount`  | Number of Ambassador replicas  | `1`
 | `resources` | CPU/memory resource requests/limits | None
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
@@ -61,6 +63,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `service.targetPorts.http` | Sets the targetPort that maps to the service's cleartext port | `80`
 | `service.targetPorts.https` | Sets the targetPort that maps to the service's TLS port | `443`
 | `service.type` | Service type to be used | `LoadBalancer`
+| `service.nodePort` | If explicit Nodeport is required | None
 | `service.loadBalancerIP` | IP address to assign (if cloud provider supports it) | `""`
 | `service.annotations` | Annotations to apply to Ambassador service | none
 | `service.loadBalancerSourceRanges` | Passed to cloud provider load balancer if created (e.g: AWS ELB) | none

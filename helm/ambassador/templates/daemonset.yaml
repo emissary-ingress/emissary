@@ -1,6 +1,6 @@
-{{- if not  .Values.daemonSet -}}
+{{- if .Values.daemonSet -}}
 apiVersion: apps/v1beta2
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ template "ambassador.fullname" . }}
   labels:
@@ -9,7 +9,6 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: {{ template "ambassador.name" . }}
