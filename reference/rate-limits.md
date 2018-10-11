@@ -1,4 +1,4 @@
-## Rate Limits
+# Rate Limits
 
 A mapping that specifies the `rate_limits` list attribute and at least one `rate_limits` rule, will call the external [RateLimitService](services/rate-limit-service) before proceeding with the request. An example:
 
