@@ -18,7 +18,14 @@ metadata:
 spec:
   type: NodePort
   ports:
-   - port: 80
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 443
   selector:
     service: {self.path.k8s}
 ---
@@ -181,6 +188,7 @@ class AmbassadorTest(Test):
         result = run("docker", "run", "-d", "--name", self.path.k8s,
                      "-p", "%s:8877" % (8877 + self.index),
                      "-p", "%s:80" % (8080 + self.index),
+                     "-p", "%s:443" % (8443 + self.index),
                      "-v", "%s:/var/run/secrets/kubernetes.io/serviceaccount" % dir,
                      "-e", "KUBERNETES_SERVICE_HOST=kubernetes",
                      "-e", "KUBERNETES_SERVICE_PORT=443",
@@ -208,7 +216,8 @@ class AmbassadorTest(Test):
 
     def url(self, prefix) -> str:
         if DEV:
-            return "%s://%s/%s" % (self.scheme(), "localhost:%s" % (8080 + self.index), prefix)
+            port = 8443 if self.scheme() == 'https' else 8080
+            return "%s://%s/%s" % (self.scheme(), "localhost:%s" % (port + self.index), prefix)
         else:
             return "%s://%s/%s" % (self.scheme(), self.path.k8s, prefix)
 

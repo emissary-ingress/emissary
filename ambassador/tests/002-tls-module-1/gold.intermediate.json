@@ -51,6 +51,7 @@
             {
                 "_source": "ambassador.yaml.1",
                 "require_tls": false,
+                "redirect_listener": false,
                 "service_port": 443,
                 "tls": {
                     "_source": "tls.yaml.1",

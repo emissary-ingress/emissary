@@ -17,6 +17,8 @@ from typing import List, TYPE_CHECKING
 
 from ...ir.ircluster import IRCluster
 
+from .v2tls import V2TLSContext
+
 if TYPE_CHECKING:
     from . import V2Config
 

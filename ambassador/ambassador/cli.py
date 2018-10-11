@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import sys
 
@@ -101,6 +101,23 @@ def showid():
     show_notices(result, printer=stdout_printer)
 
 
+def tls_secret_resolver(secret_name: str, context: str) -> Optional[Dict[str, str]]:
+    # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
+    # Here we're just gonna fake it.
+
+    if context == 'server':
+        return {
+            'cert_chain_file': "/path/to/%s.crt" % secret_name,
+            'private_key_file': "/path/to/%s.key" % secret_name
+        }
+    elif context == 'client':
+        return {
+            'cacert_chain_file': "/path/to/%s.crt" % secret_name,
+        }
+    else:
+        return None
+
+
 def dump(config_dir_path: Parameter.REQUIRED, *,
          debug=False, debug_scout=False, k8s=False,
          aconf=False, ir=False, v1=False, v2=False, diag=False):
@@ -151,7 +168,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf)
+        ir = IR(aconf, tls_secret_resolver=tls_secret_resolver)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -269,7 +286,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf)
+            ir = IR(aconf, tls_secret_resolver=tls_secret_resolver)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:

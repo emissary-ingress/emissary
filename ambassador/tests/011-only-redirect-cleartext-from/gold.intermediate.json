@@ -39,6 +39,7 @@
                 "_source": "module.yaml.1",
                 "require_tls": false,
                 "service_port": 443,
+                "redirect_listener": false,
                 "tls": {
                     "_source": "module.yaml.1",
                     "redirect_cleartext_from": 8888
@@ -49,6 +50,7 @@
                 "_source": "module.yaml.1",
                 "require_tls": true,
                 "service_port": 8888,
+                "redirect_listener": true,
                 "use_proxy_proto": false
             }
         ],

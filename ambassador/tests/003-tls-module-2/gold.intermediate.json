@@ -60,7 +60,8 @@
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "redirect_listener": false
             }
         ],
         "routes": [

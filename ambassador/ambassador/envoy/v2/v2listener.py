@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
+from typing import cast as typecast
 
 from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irfilter import IRFilter
 
-# from .v2tls import V2TLSContext
-# from .v2ratelimit import V2RateLimits
+from .v2tls import V2TLSContext
+from .v2route import V2Route
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -84,36 +85,99 @@ class V2Listener(dict):
     def __init__(self, config: 'V2Config', listener: IRListener) -> None:
         super().__init__()
 
-        # TODO: tls contexts
-        # if 'tls_contexts' in listener:
-        #     ssl_context = {}
-        #     found_some = False
-        #     for ctx_name, ctx in listener.tls_contexts.items():
-        #         for key in ["cert_chain_file", "private_key_file",
-        #                     "alpn_protocols", "cacert_chain_file"]:
-        #             if key in ctx:
-        #                 ssl_context[key] = ctx[key]
-        #                 found_some = True
-        #
-        #         if "cert_required" in ctx:
-        #             ssl_context["require_client_certificate"] = ctx["cert_required"]
-        #             found_some = True
-        #
-        #     if found_some:
-        #         self['ssl_context'] = ssl_context
-
         # TODO: rate limit
         # if "rate_limits" in group:
         #     route["rate_limits"] = group.rate_limits
 
-        filters = []
-        for f in config.ir.filters:
-            v2f = v2filter(f)
-            if v2f:
-                filters.append(v2f)
+        # Default some things to the way they should be for the redirect listener
+        name = "redirect_listener"
+        envoy_ctx: Optional[dict] = None
+        access_log: Optional[List[dict]] = None
+        require_tls: Optional[str] = 'ALL'
+        use_proxy_proto: Optional[bool] = None
+        filters: List[dict] = [ { 'name': 'envoy.router' } ]
+        routes: List[V2Route] = typecast(List[V2Route], [ {
+            'match': {
+                'prefix': '/',
+            },
+            'redirect': {
+                'https_redirect': True,
+                'path_redirect': '/'
+            }
+        } ])
+
+        # OK. If this is _not_ the redirect listener, override everything.
+        if not listener.redirect_listener:
+            # Use the actual listener name
+            name = listener.name
+
+            # Use a sane access log spec
+            access_log = [ {
+                'name': 'envoy.file_access_log',
+                'config': {
+                    'path': '/dev/fd/1',
+                    'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
+                }
+            } ]
+
+            # Assemble TLS contexts
+            #
+            # XXX Wait what? A V2TLSContext can hold only a single context, as far as I can tell...
+            envoy_ctx = V2TLSContext()
+            for name, ctx in config.ir.tls_contexts.items():
+                config.ir.logger.info("envoy_ctx adding %s" % ctx.as_json())
+                envoy_ctx.add_context(ctx)
+
+            config.ir.logger.info("envoy_ctx final %s" % envoy_ctx)
+
+            # Assemble filters
+            filters = []
+            for f in config.ir.filters:
+                v2f = v2filter(f)
+                if v2f:
+                    filters.append(v2f)
+
+            # Grab routes from the config.
+            routes = config.routes
+
+            # Don't require TLS.
+            require_tls = None
+
+            # Use the actual get_proxy_proto setting
+            use_proxy_proto = listener.get('use_proxy_proto')
+
+        # Finally, update the world.
+        vhost = {
+            'name': 'backend',
+            'domains': [ '*' ],
+            'routes': routes
+        }
+
+        if require_tls:
+            vhost['require_tls'] = require_tls
+
+        chain = {
+            'filters': [ {
+                'name': 'envoy.http_connection_manager',
+                'config': {
+                    'stat_prefix': 'ingress_http',
+                    'access_log': access_log,
+                    'http_filters': filters,
+                    'route_config': {
+                        'virtual_hosts': [ vhost ]
+                    }
+                }
+            } ]
+        }
+
+        if envoy_ctx:   # envoy_ctx has to exist _and_ not be empty to be truthy
+            chain['tls_context'] = dict(envoy_ctx)
+
+        if use_proxy_proto is not None:
+            chain['use_proxy_proto'] = use_proxy_proto
 
         self.update({
-            'name': listener.name,
+            'name': name,
             'address': {
                 'socket_address': {
                     'address': '0.0.0.0',
@@ -121,40 +185,7 @@ class V2Listener(dict):
                     'protocol': 'TCP'
                 }
             },
-            'filter_chains': [
-                {
-                    'filters': [
-                        {
-                            'name': 'envoy.http_connection_manager',
-                            'config': {
-                                'stat_prefix': 'ingress_http',
-                                'access_log': [
-                                    {
-                                        'name': 'envoy.file_access_log',
-                                        'config': {
-                                            'path': '/dev/fd/1',
-                                            'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
-                                        }
-                                    }
-                                ],
-                                'http_filters': filters,
-                                'route_config': {
-                                    'virtual_hosts': [
-                                        {
-                                            'name': 'backend',
-                                            'domains': [
-                                                '*'
-                                            ],
-                                            'routes': config.routes
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    ],
-                    'use_proxy_proto': listener.get('use_proxy_proto')
-                }
-            ]
+            'filter_chains': [ chain ]
         })
 
     @classmethod

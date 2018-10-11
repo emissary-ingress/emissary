@@ -309,6 +309,8 @@ cluster.yaml:
 	rm -f /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+	@echo "Sleeping for Teleproxy cluster"
+	sleep 10
 
 setup-test: cluster.yaml
 

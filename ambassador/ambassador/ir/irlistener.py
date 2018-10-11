@@ -31,6 +31,7 @@ class IRListener (IRResource):
             use_proxy_proto=use_proxy_proto,
             **kwargs)
 
+        self.redirect_listener: bool = False
         self.add_dict_helper('tls_contexts', IRListener.helper_contexts)
 
 class ListenerFactory:
@@ -105,6 +106,8 @@ class ListenerFactory:
                 # tell us about that.
                 require_tls=True
             )
+
+            new_listener.redirect_listener = True
 
             if 'use_remote_address' in amod:
                 new_listener.use_remote_address = amod.use_remote_address

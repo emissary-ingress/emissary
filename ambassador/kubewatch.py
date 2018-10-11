@@ -28,6 +28,7 @@ import time
 import yaml
 
 from urllib3.exceptions import ProtocolError
+from typing import Optional, Dict
 
 from kubernetes import watch
 from ambassador import Config, Scout
@@ -99,6 +100,22 @@ class Restarter(threading.Thread):
 
         path = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
         self.read_fs(path)
+
+    def tls_secret_resolver(self, secret_name: str, context: str) -> Optional[Dict[str, str]]:
+        if context == 'server':
+            (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
+            if server_cert and server_key:
+                logger.debug("saving contents of secret %s to %s for context %s" % (
+                    secret_name, TLSPaths.cert_dir.value, context))
+                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
+                return {
+                    'cert_chain_file': TLSPaths.tls_crt.value,
+                    'private_key_file': TLSPaths.tls_key.value
+                }
+        elif context == 'client':
+            # TODO
+            pass
+        return None
 
     def read_fs(self, path):
         if os.path.exists(path):
@@ -174,7 +191,7 @@ class Restarter(threading.Thread):
         resources = fetch_resources(output, logger)
         aconf = Config()
         aconf.load_all(resources)
-        ir = IR(aconf)
+        ir = IR(aconf, tls_secret_resolver=self.tls_secret_resolver)
         envoy_config = V2Config(ir)
 
         scout = Scout()
@@ -271,46 +288,6 @@ def sync(restarter):
                 for key, config_yaml in config_data.data.items():
                     logger.info("ambassador-config: found %s" % key)
                     restarter.update(key, restarter.read_yaml(config_yaml, "ambassador-config %s" % key))
-
-        # If we don't already see a TLS server key in its usual spot...
-        if not check_cert_file(TLSPaths.mount_tls_crt.value):
-            # ...then try pulling keys directly from the configmaps.
-            (server_cert, server_key, server_data) = read_cert_secret(v1, "ambassador-certs", 
-                                                                      restarter.namespace)
-            (client_cert, _, client_data) = read_cert_secret(v1, "ambassador-cacert", 
-                                                             restarter.namespace)
-
-            if server_cert and server_key:
-                tls_mod = {
-                    "apiVersion": "ambassador/v0",
-                    "kind": "Module",
-                    "name": "tls-from-ambassador-certs",
-                    "ambassador_id": ambassador_id,
-                    "config": {
-                        "server": {
-                            "enabled": True,
-                            "cert_chain_file": TLSPaths.tls_crt.value,
-                            "private_key_file": TLSPaths.tls_key.value
-                        }
-                    }
-                }
-
-                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
-
-                if client_cert:
-                    tls_mod['config']['client'] = {
-                        "enabled": True,
-                        "cacert_chain_file": TLSPaths.client_tls_crt.value
-                    }
-
-                    if client_data.get('cert_required', None):
-                        tls_mod['config']['client']["cert_required"] = True
-
-                    save_cert(client_cert, None, TLSPaths.client_cert_dir.value)
-
-                tls_yaml = yaml.safe_dump(tls_mod)
-                logger.debug("generated TLS config %s" % tls_yaml)
-                restarter.update("tls.yaml", tls_yaml)
 
         # Next, check for annotations and such.
         svc_list = None

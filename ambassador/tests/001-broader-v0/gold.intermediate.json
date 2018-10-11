@@ -92,7 +92,8 @@
                     }
                 ],
                 "tls_context": {
-                    "_ambassador_enabled": true
+                    "_ambassador_enabled": true,
+                    "namespace": "default"
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -224,7 +225,8 @@
                     }
                 ],
                 "tls_context": {
-                    "_ambassador_enabled": true
+                    "_ambassador_enabled": true,
+                    "namespace": "default"
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -293,7 +295,8 @@
                     "ssl_context": true
                 },
                 "use_proxy_proto": true,
-                "use_remote_address": true
+                "use_remote_address": true,
+                "redirect_listener": false
             }
         ],
         "routes": [
