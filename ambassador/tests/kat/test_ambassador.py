@@ -54,6 +54,39 @@ service: {self.target.path.k8s}
     def queries(self):
         yield Query(self.url("tls-target/"), insecure=True)
 
+class RedirectTests(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        # Use self here, not self.target, because we want the TLS module to
+        # be annotated on the Ambassador itself.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: Module
+name: tls
+ambassador_id: {self.ambassador_id}
+config:
+  server:
+    enabled: True
+    redirect_cleartext_from: 80
+""")
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tls_target_mapping
+prefix: /tls-target/
+service: {self.target.path.k8s}
+""")
+
+    def queries(self):
+        yield Query(self.url("tls-target/"), expected=301)
+
+
 class Plain(AmbassadorTest):
 
     @classmethod
