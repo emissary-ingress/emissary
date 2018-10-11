@@ -52,7 +52,7 @@ service: {self.target.path.k8s}
         return "https"
 
     def queries(self):
-        yield Query(self.url("tls-target/", https=True), insecure=True)
+        yield Query(self.url("tls-target/"), insecure=True)
 
 class Plain(AmbassadorTest):
 
