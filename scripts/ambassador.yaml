@@ -60,6 +60,14 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
+      kind:  Module
+      name:  tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
+      ---
+      apiVersion: ambassador/v0
       kind:  AuthService
       name:  authentication
       auth_service: auth0-service
@@ -70,7 +78,12 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-   - port: 80
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
   selector:
     service: ambassador
 ---

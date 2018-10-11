@@ -33,7 +33,7 @@ afterEach (function () {
 describe('user-agent', function () {  
   
   it('should be able to consent and see the content headers', async function () {
-    const target = `http://${env.EXTERNAL_IP}/httpbin/headers`
+    const target = `https://${env.EXTERNAL_IP}/httpbin/headers`
     const page = await global.browser.newPage()
     const waitForNavagation = page.waitForNavigation({ waitUntil: "networkidle0" })
   
@@ -70,7 +70,7 @@ describe('user-agent', function () {
   });
 
   it('should access ip without cookie', async function () {
-    const target = `http://${env.EXTERNAL_IP}/httpbin/ip`
+    const target = `https://${env.EXTERNAL_IP}/httpbin/ip`
     const page = await global.browser.newPage()
     const waitForNavagation = page.waitForNavigation({ waitUntil: 'networkidle0' })
   
