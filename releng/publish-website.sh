@@ -33,7 +33,7 @@ find . \
     -not \( -path ./node_modules -prune \) \
     -not \( -path ./_book -prune \) \
     -name \*.md \
-    -exec cp --parent '{}' ${STATIC_DIR} \;
+    -exec cp --parent '{}' ${CONTENT_DIR} \;
 cd -
 
 cd ${CONTENT_DIR}/..
