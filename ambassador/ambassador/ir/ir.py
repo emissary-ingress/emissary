@@ -60,8 +60,9 @@ class IR:
     tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
 
-    def __init__(self, aconf: Config) -> None:
+    def __init__(self, aconf: Config, tls_secret_resolver=None) -> None:
         self.logger = logging.getLogger("ambassador.ir")
+        self.tls_secret_resolver = tls_secret_resolver
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf

@@ -12,15 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import json
 import os
 
 from typing import Optional, TYPE_CHECKING
-from typing import cast as typecast
 
 from ..config import Config
-from ..utils import RichStatus, TLSPaths, read_cert_secret, save_cert, kube_v1
-from ..config import ACResource
 from .irresource import IRResource as IRResource
 
 if TYPE_CHECKING:
@@ -73,14 +69,9 @@ class IREnvoyTLS (IRResource):
             return False
 
         if secret is not None:
-            self.logger.debug("config.server.secret is {}".format(secret))
-            (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret, self.namespace)
-
-            if server_cert and server_key:
-                self.logger.debug("saving contents of secret {} to {}".format(secret, TLSPaths.cert_dir.value))
-                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
-                self['cert_chain_file'] = TLSPaths.tls_crt.value
-                self['private_key_file'] = TLSPaths.tls_key.value
+            resolved = ir.tls_secret_resolver(secret, self.get('name'))
+            if resolved is not None:
+                self.update(resolved)
 
         # Backfill with the correct defaults.
         defaults = ir.get_tls_defaults(self.name) or {}
