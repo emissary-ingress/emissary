@@ -13,14 +13,9 @@
 # limitations under the License
 
 from typing import List, TYPE_CHECKING
-from typing import cast as typecast
-
-import json
 
 from multi import multi
-from ..common import EnvoyRoute
 from ...ir.irlistener import IRListener
-# from ...ir.irmapping import IRMapping
 from ...ir.irfilter import IRFilter
 
 # from .v2tls import V2TLSContext
@@ -30,12 +25,34 @@ if TYPE_CHECKING:
     from . import V2Config
 
 
+ExtAuthRequestHeaders = {
+    'Authorization': True,
+    'Cookie': True,
+    'Forwarded': True,
+    'From': True,
+    'Host': True,
+    'Proxy-Authenticate': True,
+    'Proxy-Authorization': True,
+    'Set-Cookie': True,
+    'User-Agent': True,
+    'X-Forwarded-For': True,
+    'X-Forwarded-Host': True,
+    'X-Forwarded-Proto'
+    'X-Gateway-Proto': True,
+    'WWW-Authenticate': True,
+}
+
 @multi
 def v2filter(irfilter):
     return irfilter.kind
 
 @v2filter.when("IRAuth")
 def v2filter(auth):
+    request_headers = dict(ExtAuthRequestHeaders)
+
+    for hdr in auth.allowed_headers:
+        request_headers[hdr] = True
+
     return {
         'name': 'envoy.ext_authz',
         'config': {
@@ -47,7 +64,7 @@ def v2filter(auth):
                 },
                 'path_prefix': auth.path_prefix,
                 'allowed_authorization_headers': auth.allowed_headers,
-                'allowed_request_headers': auth.allowed_headers,
+                'allowed_request_headers': sorted(request_headers.keys())
                 # 'authorization_headers_to_add': []
             }
         }
