@@ -1,8 +1,8 @@
-## Core Configuration: Modules
+# Core Configuration: Modules
 
 Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module.
 
-### The `ambassador` Module
+## The `ambassador` Module
 
 If present, the `ambassador` module defines system-wide configuration. **You may very well not need this module.** The defaults in the `ambassador` module are, roughly:
 
@@ -70,16 +70,16 @@ config:
 
 ```
 
-#### `use_remote_address`
+### `use_remote_address`
 
 **Ambassador is very likely to change to default `use_remote_address` to `true`
 very soon**. At present, `use_remote_address` still defaults to `false`; consider setting it to `true` if your application wants to have the incoming source address available. See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) for more information here.
 
-#### `use_proxy_proto`
+### `use_proxy_proto`
 
 Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
 
-#### Probes
+### Probes
 
 The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route requests to some other service. For example, to have the readiness probe map to the Quote of the Moment's health check, you could do
 
@@ -93,6 +93,6 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 **Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
-### The `authentication` Module
+## The `authentication` Module
 
 The `authentication` module is now deprecated. Use the [AuthService](services/auth-service) manifest type instead.
