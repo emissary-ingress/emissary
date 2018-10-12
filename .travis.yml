@@ -45,7 +45,6 @@ jobs:
       if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
       install:
         # Google Cloud SDK installation
-        - gcloud version || true
         - if [ ! -d "$TRAVIS_HOME/google-cloud-sdk/bin" ]; then rm -rf $TRAVIS_HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
         - source $TRAVIS_HOME/google-cloud-sdk/path.bash.inc
         - gcloud version

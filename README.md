@@ -2,7 +2,10 @@
 If you just want to try to run this as an end user, the end user documentation is here:
 https://github.com/datawire/ambassador-pro
 
-## Developer Documentation
+
+## Developer Documentation 
+##### `! ! ! REALEASES CANNOT RUN CURRENTLY ! ! !`
+
 ### Cloning
 Project must be cloned in `$GOPATH/src/github.com/datawire/ambassador-oauth/`.
 

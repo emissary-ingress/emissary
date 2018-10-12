@@ -114,7 +114,6 @@ push-commit-image: $(HASH_FILE)
 
 .PHONY: push-tagged-image
 push-tagged-image:
-	@docker pull $CI_IMAGE_SHA
-	@docker tag $CI_IMAGE_SHA $CI_IMAGE_TAG
-	@docker push $CI_IMAGE_TAG
-
+	@docker pull $(CI_IMAGE_SHA)
+	@docker tag $(CI_IMAGE_SHA) $(CI_IMAGE_TAG)
+	@docker push $(CI_IMAGE_TAG)
