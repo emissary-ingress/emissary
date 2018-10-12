@@ -35,7 +35,7 @@ vendor:
 
 format:
 	@echo " >>> running format"
-	go fmt ./...
+	@go fmt ./...
 
 check_format:
 	@echo " >>> checking format"
@@ -53,5 +53,4 @@ e2e_build:
 	
 e2e_test:
 	@echo " >>> running e2e tests"
-	docker run --rm e2e/test:latest
-	
+	@docker run --rm e2e/test:latest
