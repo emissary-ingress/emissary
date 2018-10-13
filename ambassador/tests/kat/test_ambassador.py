@@ -131,9 +131,12 @@ class SimpleMapping(MappingTest):
     def variants(cls):
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
+
             for mot in variants(OptionTest):
                 yield cls(st, (mot,), name="{self.target.name}-{self.options[0].name}")
-            yield cls(st, unique(variants(OptionTest)), name="{self.target.name}-all")
+
+            yield cls(st, unique(v for v in variants(OptionTest)
+                                 if not getattr(v, "isolated", False)), name="{self.target.name}-all")
 
     def config(self):
         yield self, self.format("""
