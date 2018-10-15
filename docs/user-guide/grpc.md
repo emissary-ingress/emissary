@@ -200,7 +200,7 @@ To open a secure RPC channel, we need to slightly change the python client code:
 ```
 
 `grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador. 
-The default values of `None` tells gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. 
+The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. 
 
 Refer to the Ambassador [TLS termination guide](/user-guide/tls-termination.html) for more information on the TLS module.
 
