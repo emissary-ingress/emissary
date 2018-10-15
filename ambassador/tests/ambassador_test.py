@@ -513,7 +513,7 @@ def test_config(testname, dirpath, configdir):
     aconf = Config()
     aconf.load_all(resources)
 
-    ir = IR(aconf)
+    ir = IR(aconf, file_checker=file_always_exists)
     v1config = V1Config(ir)
 
     print("==== checking IR")
@@ -633,3 +633,7 @@ def test_diag(testname, dirpath, configdir):
         print("%s" % results['reconstituted'])
     
     assert errorcount == 0, ("failing, _errors: %d" % errorcount)
+
+
+def file_always_exists(filename):
+    return True
