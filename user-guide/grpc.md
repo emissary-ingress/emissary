@@ -4,7 +4,7 @@
 
 Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
-## Writing creating a gRPC service for Ambassador
+## Writing a gRPC service for Ambassador
 
 There are many examples and walkthroughs on how to write gRPC applications so that is not what this article will aim to accomplish. If you do not yet have a service written you can find examples of gRPC services in all supported languages here: [gRPC Quickstart](https://grpc.io/docs/quickstart/)
 
@@ -184,10 +184,10 @@ Handling TLS with a gRPC service requires a little extra configuration than with
 
 ![](/docs/images/gRPC-TLS.png)
 
-With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request a TLS connection with Ambassador and validate the certs sent by Ambassador, not the gRPC server application. 
+With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request a TLS connection with Ambassador and validate the certificates sent by Ambassador, not the gRPC server application. 
 ![](/docs/images/gRPC-TLS-Ambassador.png)
 
-This has the advantage of not needing the server to bother with certs but means that the client will still need to load the root cert. This is can be done rather easily with some gRPC calls. 
+This has the advantage of not needing the server to bother with certificates but means that the client will still need to load the root cert. This is can be done rather easily with some gRPC calls. 
 
 To open a secure RPC channel, we need to slightly change the python client code:
 
