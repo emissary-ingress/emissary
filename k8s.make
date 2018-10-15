@@ -1,3 +1,6 @@
+CI_IMAGE_SHA=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(TRAVIS_COMMIT)
+CI_IMAGE_TAG=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(TRAVIS_TAG)
+
 DEV_REGISTRY ?= $(REGISTRY)
 DEV_REGISTRY_NAMESPACE=$(REGISTRY_NAMESPACE)
 DEV_VERSION=$(HASH)
@@ -103,3 +106,14 @@ docker-login:
 	@if [ -z "$$DOCKER_USERNAME" ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z "$$DOCKER_PASSWORD" ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 	@printf "$$DOCKER_PASSWORD" | docker login -u="$$DOCKER_USERNAME" --password-stdin "$$DOCKER_REGISTRY"
+
+.PHONY: push-commit-image
+push-commit-image: $(HASH_FILE)
+	@docker tag $(IMAGE) $(CI_IMAGE_SHA)
+	@docker push $(CI_IMAGE_SHA)
+
+.PHONY: push-tagged-image
+push-tagged-image:
+	@docker pull $(CI_IMAGE_SHA)
+	@docker tag $(CI_IMAGE_SHA) $(CI_IMAGE_TAG)
+	@docker push $(CI_IMAGE_TAG)

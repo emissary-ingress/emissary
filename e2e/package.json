@@ -1,0 +1,18 @@
+{
+  "name": "puppeteer-mocha",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./*test.js* --recursive test --timeout 15000 --retries 2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.1.2",
+    "dotenv": "^6.0.0",
+    "mocha": "^4.0.1",
+    "puppeteer": "^0.13.0"
+  }
+}

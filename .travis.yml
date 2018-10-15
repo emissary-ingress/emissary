@@ -31,14 +31,20 @@ cache:
 
 jobs:
   include:
+    # On every commit.
+    # Buuild and run unit tests.
     - stage: testing
-      script: 'make check_format && make install && make test'
-
-    - stage: deploying to cluster
-      if: tag =~ -rc
+      script:
+        - make check_format
+        - make install
+        - make test
+    
+    # On every release canditate OR release that matches the tag.  
+    # Push image to quay and deploy test cluster. 
+    - stage: deploying
+      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
       install:
         # Google Cloud SDK installation
-        - gcloud version || true
         - if [ ! -d "$TRAVIS_HOME/google-cloud-sdk/bin" ]; then rm -rf $TRAVIS_HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
         - source $TRAVIS_HOME/google-cloud-sdk/path.bash.inc
         - gcloud version
@@ -50,4 +56,20 @@ jobs:
         - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
         # Deployment vars
         - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
-      script: 'make build && make docker-login && make push && make gcloud && make apply && make check'
+      script:
+        - make build
+        - make docker-login
+        - make push 
+        - make gcloud 
+        - make apply 
+        - make check
+        - make push-commit-image
+    
+    # Run headless browser tests on the deployed code.
+    - stage: testing e2e and releasing
+      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
+      script:
+        - make e2e_build
+        - make e2e_test
+        - make docker-login 
+        - make push-tagged-image    
