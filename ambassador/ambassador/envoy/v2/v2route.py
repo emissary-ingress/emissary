@@ -57,6 +57,19 @@ class V2Route(dict):
         if 'auto_host_rewrite' in group:
             route['auto_host_rewrite'] = group['auto_host_rewrite']
 
+        cors = None
+
+        if "cors" in group:
+            cors = group.cors.as_dict()
+        elif "cors" in config.ir.ambassador_module:
+            cors = config.ir.ambassador_module.cors.as_dict()
+
+        if cors:
+            for key in [ "_active", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+                cors.pop(key, None)
+
+            route['cors'] = cors
+
         self['match'] = match
         self['route'] = route
 
@@ -81,19 +94,6 @@ class V2Route(dict):
 
             if path_redirect:
                 self['redirect']['path_redirect'] = path_redirect
-
-        cors = None
-
-        if "cors" in group:
-            cors = group.cors.as_dict()
-        elif "cors" in config.ir.ambassador_module:
-            cors = config.ir.ambassador_module.cors.as_dict()
-
-        if cors:
-            for key in [ "_active", "_referenced_by", "_rkey", "kind", "location", "name" ]:
-                cors.pop(key, None)
-
-            self['cors'] = cors
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:

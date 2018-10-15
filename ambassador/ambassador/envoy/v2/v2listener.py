@@ -73,8 +73,7 @@ def v2filter(auth):
 
 @v2filter.when("ir.cors")
 def v2filter(cors):
-    # apparently v2 has no cors filter
-    return None
+    return { 'name': 'envoy.cors' }
 
 @v2filter.when("ir.router")
 def v2filter(router):

@@ -297,9 +297,6 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-venv/bin/ambassador:
-	venv/bin/pip -v install -q -e ambassador/.
-
 setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
@@ -395,12 +392,12 @@ release:
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: version venv/bin/activate
+venv: version venv/bin/activate venv/bin/ambassador
 
-venv/bin/activate: dev-requirements.txt ambassador/.
+venv/bin/activate: dev-requirements.txt ambassador/requirements.txt
 	test -d venv || virtualenv venv --python python3
 	venv/bin/pip -v install -q -Ur dev-requirements.txt
-	venv/bin/pip -v install -q -e ambassador/.
+	venv/bin/pip -v install -q -Ur ambassador/requirements.txt
 	touch venv/bin/activate
 	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
 		echo "Fixing Kubernetes Client for Python 3.7"; \
@@ -413,6 +410,9 @@ venv/bin/activate: dev-requirements.txt ambassador/.
 		perl -pi -e "s/if not async/if not async_req/g;" \
 			"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"; \
 	fi
+
+venv/bin/ambassador: dev-requirements.txt ambassador/.
+	venv/bin/pip -v install -q -e ambassador/.
 
 # ------------------------------------------------------------------------------
 # Website

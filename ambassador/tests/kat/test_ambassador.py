@@ -131,9 +131,12 @@ class SimpleMapping(MappingTest):
     def variants(cls):
         for st in variants(ServiceType):
             yield cls(st, name="{self.target.name}")
+
             for mot in variants(OptionTest):
                 yield cls(st, (mot,), name="{self.target.name}-{self.options[0].name}")
-            yield cls(st, unique(variants(OptionTest)), name="{self.target.name}-all")
+
+            yield cls(st, unique(v for v in variants(OptionTest)
+                                 if not getattr(v, "isolated", False)), name="{self.target.name}-all")
 
     def config(self):
         yield self, self.format("""
@@ -169,6 +172,29 @@ class AddRequestHeaders(OptionTest):
             for k, v in self.value.items():
                 actual = r.backend.request.headers.get(k.lower())
                 assert actual == [v], (actual, [v])
+
+
+class CORS(OptionTest):
+    # isolated = True
+    # debug = True
+
+    def config(self):
+        yield 'cors: { origins: "*" }'
+
+    def queries(self):
+        for q in self.parent.queries():
+            yield Query(q.url)  # redundant with parent
+            yield Query(q.url, headers={ "Origin": "https://www.test-cors.org" })
+
+    def check(self):
+        # can assert about self.parent.results too
+        assert self.results[0].backend.name == self.parent.target.path.k8s
+        # Uh. Is it OK that this is case-sensitive?
+        assert "Access-Control-Allow-Origin" not in self.results[0].headers
+
+        assert self.results[1].backend.name == self.parent.target.path.k8s
+        # Uh. Is it OK that this is case-sensitive?
+        assert self.results[1].headers["Access-Control-Allow-Origin"] == [ "https://www.test-cors.org" ]
 
 
 class CaseSensitive(OptionTest):

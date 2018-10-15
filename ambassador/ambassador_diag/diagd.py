@@ -264,7 +264,7 @@ def show_overview(reqid=None):
 
     aconf = get_aconf(app, "overview")
     ir = IR(aconf)
-    econf = EnvoyConfig.generate(ir, "V1")
+    econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
 
     if app.verbose:
@@ -314,7 +314,7 @@ def show_intermediate(source=None, reqid=None):
 
     aconf = get_aconf(app, "detail: %s" % source)
     ir = IR(aconf)
-    econf = EnvoyConfig.generate(ir, "V1")
+    econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
 
     method = request.args.get('method', None)
