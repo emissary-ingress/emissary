@@ -18,6 +18,7 @@ from typing import Optional, TYPE_CHECKING
 
 from ..config import Config
 from .irresource import IRResource as IRResource
+from ambassador.utils import RichStatus
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -54,25 +55,52 @@ class IREnvoyTLS (IRResource):
         if not self.enabled:
             return False
 
+        self['valid_tls'] = False
         secret = self.get('secret')
 
         # Check if secret and certs, both are specified
         cert_specified = False
-        if self.get('cert_chain_file') is not None or self.get('private_key_file') is not None:
+
+        cert_chain_file = self.get('cert_chain_file')
+        if cert_chain_file is not None:
+            if not ir.file_checker(cert_chain_file):
+                self.post_error(RichStatus.fromError('cert_chain_file path {} does not exist'.format(cert_chain_file)))
+                self.post_error(
+                    RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
+                return False
+            cert_specified = True
+
+        private_key_file = self.get('private_key_file')
+        if private_key_file is not None:
+            if not ir.file_checker(private_key_file):
+                self.post_error(RichStatus.fromError('private_key_file path {} does not exist'.format(private_key_file)))
+                self.post_error(
+                    RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
+                return False
             cert_specified = True
 
         if secret is not None and cert_specified:
             self.pop('secret', None)
             self.pop('cert_chain_file', None)
             self.pop('private_key_file', None)
-            self.logger.error("Both, secret and certs are specified, stopping ...")
+            self.post_error(RichStatus.fromError("Both, secret and certs are specified, stopping ..."))
+            self.post_error(RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
             return False
 
         if (secret is not None) and (ir.tls_secret_resolver is not None):
             resolved = ir.tls_secret_resolver(secret, self.get('name'))
 
-            if resolved is not None:
-                self.update(resolved)
+            if resolved is None:
+                self.post_error(RichStatus.fromError("Secret {} could not be resolved".format(secret)))
+                self.post_error(
+                    RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
+                return False
+
+            self.update(resolved)
+
+        # Turn TLS on only if secret is specified or certs or redirect_cleartext_from are specified
+        if secret is not None or cert_specified or (self.get('redirect_cleartext_from') is not None):
+            self['valid_tls'] = True
 
         # Backfill with the correct defaults.
         defaults = ir.get_tls_defaults(self.name) or {}

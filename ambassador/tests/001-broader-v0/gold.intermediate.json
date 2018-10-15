@@ -93,7 +93,8 @@
                 ],
                 "tls_context": {
                     "_ambassador_enabled": true,
-                    "namespace": "default"
+                    "namespace": "default",
+                    "valid_tls": false
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -226,7 +227,8 @@
                 ],
                 "tls_context": {
                     "_ambassador_enabled": true,
-                    "namespace": "default"
+                    "namespace": "default",
+                    "valid_tls": false
                 },
                 "type": "strict_dns",
                 "urls": [

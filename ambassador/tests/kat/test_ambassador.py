@@ -67,6 +67,34 @@ service: {self.target.path.k8s}
     def queries(self):
         yield Query(self.url("tls-target/"), insecure=True)
 
+
+class TLSInvalidSecret(TLS):
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: Module
+name: tls
+ambassador_id: {self.ambassador_id}
+config:
+  server:
+    enabled: True
+    secret: test-certs-secret-invalid
+""")
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tls_target_mapping
+prefix: /tls-target/
+service: {self.target.path.k8s}
+""")
+
+    def scheme(self) -> str:
+        return "http"
+
 class RedirectTests(AmbassadorTest):
 
     def init(self):
