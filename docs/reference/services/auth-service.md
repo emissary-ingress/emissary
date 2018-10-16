@@ -93,4 +93,4 @@ Finally, if Ambassador cannot reach the auth service at all, it will return a HT
 
 ## Example
 
-See [the Ambassador Authentication Tutorial](../../user-guide/auth-tutorial) for an example.
+See [the Ambassador Authentication Tutorial](../../../user-guide/auth-tutorial) for an example.
