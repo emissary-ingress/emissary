@@ -185,7 +185,7 @@ def read_cert_secret(k8s_api, secret_name, namespace):
         cert_data = k8s_api.read_namespaced_secret(secret_name, namespace)
     except client.rest.ApiException as e:
         if e.reason == "Not Found":
-            pass
+            logger.info("secret {} not found".format(secret_name))
         else:
             logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
 
@@ -201,7 +201,7 @@ def read_cert_secret(k8s_api, secret_name, namespace):
         if key:
             key = binascii.a2b_base64(key)
 
-    return (cert, key, cert_data)
+    return cert, key, cert_data
 
 
 def save_cert(cert, key, dir):

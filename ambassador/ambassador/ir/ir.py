@@ -60,9 +60,11 @@ class IR:
     tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
 
-    def __init__(self, aconf: Config, tls_secret_resolver=None) -> None:
+    def __init__(self, aconf: Config, tls_secret_resolver=None, file_checker=None) -> None:
         self.logger = logging.getLogger("ambassador.ir")
         self.tls_secret_resolver = tls_secret_resolver
+        self.file_checker = file_checker if file_checker is not None else os.path.isfile
+        self.logger.debug("File checker: {}".format(self.file_checker.__name__))
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
