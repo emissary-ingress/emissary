@@ -1,0 +1,129 @@
+- title: Getting Started
+  items:
+    - title: Welcome
+      link: /docs/
+    - title: Why Ambassador?
+      link: /about/why-ambassador
+    - title: Features and Benefits
+      link: /about/features-and-benefits
+    - title: Installing Ambassador
+      items:
+      - title: Installing Ambassador
+        link: /user-guide/install
+      - title: Kubernetes (YAML)
+        link: /user-guide/getting-started
+      - title: Kubernetes (Helm)
+        link: /user-guide/helm
+      - title: Docker Quickstart
+        link: /about/quickstart
+      - title: Docker Compose
+        link: /user-guide/docker-compose
+      - title: Early Access Releases
+        link: /user-guide/early-access
+
+- title: Concepts
+  items:
+    - title: Decentralized configuration
+      link: /concepts/developers
+    - title: Ambassador Architecture
+      link: /concepts/architecture
+    - title: Microservices API Gateways
+      link: /about/microservices-api-gateways
+    - title: Using Ambassador in your organization
+      link: /concepts/using-ambassador-in-org
+    - title: Why Ambassador uses Envoy Proxy
+      link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+
+- title: Guides
+  items:
+    - title: Adding Authentication
+      link: /user-guide/auth-tutorial
+    - title: Adding Rate Limiting
+      link: /user-guide/rate-limiting-tutorial
+    - title: Adding Tracing
+      link: /user-guide/tracing-tutorial
+    - title: Use gRPC with Ambassador
+      link: /user-guide/grpc
+    - title: TLS Termination
+      link: /user-guide/tls-termination
+    - title: Istio and Ambassador
+      link: /user-guide/with-istio
+    - title: More guides
+      link: https://blog.getambassador.io/howto/home
+
+- title: Reference
+  items:
+    - title: Configuring Ambassador
+      items:
+        - title: Configuring Ambassador
+          link: /reference/configuration
+        - title: Core Configuration
+          items:
+            - title: Core Configuration
+              link: /reference/modules
+            - title: TLS and X-Forwarded-Proto
+              link: /reference/core/tls
+        - title: Configuring Services
+          items:
+            - title: Configuring Services
+              link: /reference/mappings
+            - title: Canary Releases
+              link: /reference/canary
+            - title: Cross Origin Resource Sharing
+              link: /reference/cors
+            - title: Custom Envoy config
+              link: /reference/override
+            - title: Header-based routing
+              link: /reference/headers
+            - title: Host Header
+              link: /reference/host
+            - title: Rate Limits
+              link: /reference/rate-limits
+            - title: Redirects
+              link: /reference/redirects
+            - title: Request Headers
+              link: /reference/add_request_headers
+            - title: Rewrites
+              link: /reference/rewrites
+            - title: Traffic Shadowing
+              link: /reference/shadowing
+        - title: External Services
+          items:
+            - title: External Services
+              link: /reference/services/services
+            - title: Authentication
+              link: /reference/services/auth-service
+            - title: Rate Limiting
+              link: /reference/services/rate-limit-service
+            - title: Tracing
+              link: /reference/services/tracing-service
+        - title: Advanced configuration topics
+          link: /reference/advanced
+    - title: Running Ambassador
+      items:
+        - title: Running Ambassador
+          link: /reference/running
+        - title: Diagnostics
+          link: /reference/diagnostics
+        - title: Ambassador with AWS
+          link: /reference/ambassador-with-aws
+    - title: Upgrading Ambassador
+      link: /reference/upgrading
+    - title: Statistics and Monitoring
+      link: /reference/statistics
+
+- title: Developers
+  items:
+    - title: Building Ambassador (GitHub)
+      link: https://github.com/datawire/ambassador/blob/master/BUILDING.md
+    - title: Changelog (GitHub)
+      link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
+
+- title: Need Help?
+  items:
+    - title: Ask on Slack
+      link: https://d6e.co/slack
+    - title: File a GitHub Issue
+      link: https://github.com/datawire/ambassador/issues/new
+    - title: Visit Datawire.io
+      link: https://www.datawire.io
