@@ -32,8 +32,8 @@ from typing import Optional, Dict
 
 from kubernetes import watch
 from ambassador import Config, Scout
-from ambassador.utils import kube_v1, read_cert_secret, save_cert, check_cert_file, TLSPaths
-from ambassador.cli import fetch_resources
+from ambassador.config import fetch_resources
+from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
 from ambassador.ir import IR
 from ambassador.envoy import V2Config
 
@@ -42,7 +42,6 @@ from ambassador.VERSION import Version
 __version__ = Version
 ambassador_id = os.getenv("AMBASSADOR_ID", "default")
 
-# XXX: this has no effect because something else is calling basicConfig sooner
 logging.basicConfig(
     level=logging.INFO, # if appDebug else logging.INFO,
     format="%%(asctime)s kubewatch %s %%(levelname)s: %%(message)s" % __version__,
