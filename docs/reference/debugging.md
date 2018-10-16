@@ -1,13 +1,29 @@
-# Debugging
+# Debugging (Advanced)
 
-If Ambassador is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](diagnostics) service. This document assumes that you have either done this, or can't access this page.
+If Ambassador is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an Ambassador initialisation issue.
 
-## Example Config for Debug Demonstrations
+## tl;dr Problem? Start here
+
+* [Example configuration for debug examples](example-config)
+* Ambassador not starting
+  * [Check Ambassador is running](check-running)
+* Ambassador not behaving as expected
+  * [Check the logs](checklogs)
+* Ambassdor/Envoy configuration not as unexpected
+  * Enable Debug (via Diagnostic Console) and [Check the logs](checklogs)
+  * Exec into an Ambassador Pod and [manually verify](examining-pod) the generated Envoy configuration
+* Mounted TLS certificates not being detected by Ambassador
+  * Exec into an Ambassador Pod and [manually verify](examining-pod) that the mount is as expected (and in the correct file system location)
+* You want to manually change and experiment with the generated Envoy configuration
+  * [Exec into an Ambassador Pod](examining-pod) and [manually experiment] with changing the Envoy configuration and sending a SIGHUP to the parent process
+
+
+## <a name="example-config"></a>Example Config for Debug Demonstrations
 
 The following debugging instructions assume that Ambassador and the following services from the
 [getting started guide](../user-guide/getting-started) have been deployed to a Kubernetes cluster.
 
-e.g. Create a cluster in GKE:
+e.g. Create a cluster in GKE with RBAC support enabled and your user account configured correctly:
 
 ```shell
 $ gcloud container clusters create ambassador-demo --preemptible
@@ -20,7 +36,7 @@ Deploy the latest version of Ambassador:
 ```shell
 $ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
 ```
-Next, create an Ambassador Service and deploy a basic httpbin Ambassador Mapping
+Next, create an Ambassador Service and deploy a basic `httpbin` Ambassador Mapping
 e.g. save this YAML to a file named ```ambassador-services.yaml```
 
 ```yaml
@@ -61,9 +77,9 @@ And apply this into your cluster, e.g.:
 $ kubectl apply -f ambassador-services.yaml
 ```
 
-## Checking Ambassador is running
+## <a name="check-running"></a>Checking Ambassador is running
 
-If you cannot access the [diagnostics console](diagnostics) via ```kubectl port-forward```
+If you cannot access the [diagnostics console](diagnostics) via ```kubectl port-forward <ambassador_pod_name> 8877```
 the first thing to check is that Ambassador is running. This can be achieved via
 the standard Kubernetes commands.
 
@@ -75,7 +91,7 @@ NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 ambassador   3         3         3            3           1m
 ```
 
-If after a short startup time after applying the Ambassador config the "desired" number of replicas does not equal the "current" or "available" number, then you will also want to check the associated Pods:
+If after a brief period of time to allow for Ambassador to initialize the "desired" number of replicas does not equal the "current" or "available" number, then you will also want to check the associated Pods:
 
 ```shell
 $ kubectl get pods
@@ -87,7 +103,7 @@ ambassador-85c4cf67b-vg6p5   1/1       Running   0          1m
 
 If any of the Pods have not started you can "Describe" both the Deployment and individual Pods.
 
-When describing the Deployment, pay particular attention to the "Replicas" (close to the topi of the output) and the "Events" log (close to the bottom of the output). The "Events" log will often show information like a failed image pull, RBAC issues, or a lack of resources.
+When describing the Deployment, pay particular attention to the "Replicas" (close to the topi of the output) and the "Events" log (close to the bottom of the output). *The "Events" log will often show information like a failed image pull, RBAC issues, or a lack of cluster resources.*
 
 ```shell
 $ kubectl describe deployment ambassador
@@ -139,7 +155,7 @@ Events:
   Normal  ScalingReplicaSet  2m    deployment-controller  Scaled up replica set ambassador-85c4cf67b to 3
 ```
 
-You can also describe individual Pods, paying particular attention to the "Status" field (at the top of the output) and the "Events" log (at the bottom of the output). The "Events" log will often show issues such as image pull failures, volume mount issues, and container crash loops e.g.:
+You can also describe individual Pods, paying particular attention to the "Status" field (at the top of the output) and the "Events" log (at the bottom of the output). *The "Events" log will often show issues such as image pull failures, volume mount issues, and container crash loops,* e.g.:
 
 ```shell
 $ kubectl get pods
@@ -176,7 +192,7 @@ Events:
   Normal  Started                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Started container
 ```
 
-## Getting Access to Logs
+## <a name="logs"></a>Getting Access to the Ambassador Logs
 
 The Ambassador logs can provide a lot of information if something isn't behaving as expected. There can be a lot of text to parse (especially when running in debug mode), but key information to look out for is the Ambassador process restarting unexpectedly, or malformed Envoy configuration.
 
@@ -204,11 +220,11 @@ $ kubectl logs ambassador-85c4cf67b-4pfj2
 
 By using the [Ambassador diagnostics console](diagnostics) you can click a button to "Set Debug On", and this causes Ambassador to generate a lot more logging. This can be useful when tracking down a particularly subtle bug.
 
-## Examining an Envoy Container
+## <a name="examining-pod"></a>Examining an Ambassador/Envoy Pod and Container
 
 It can sometimes be useful to examine the contents of the Ambassador Pod, for example, to check volume mounts are correct (e.g. TLS certificates are present in the required directory), to determine the latest Ambassador configuration has been sent to the Pod, or that the generated Envoy configuration is correct (or as expected).
 
-You can look into an Ambassador Pod by using ```kube-exec`` and the ```/bin/sh``` shell contained within the Ambassador container. e.g.:
+You can look into an Ambassador Pod by using ```kube-exec``` and the ```/bin/sh``` shell contained within the Ambassador container. e.g.:
 
 ```shell
 $ kubectl get pods
@@ -216,7 +232,8 @@ NAME                         READY     STATUS    RESTARTS   AGE
 ambassador-85c4cf67b-4pfj2   1/1       Running   0          14m
 ambassador-85c4cf67b-fqp9g   1/1       Running   0          14m
 ambassador-85c4cf67b-vg6p5   1/1       Running   0          14m
- $ kubectl exec -it ambassador-85c4cf67b-4pfj2 -- /bin/sh
+$
+$ kubectl exec -it ambassador-85c4cf67b-4pfj2 -- /bin/sh
 /ambassador # pwd
 /ambassador
 /ambassador # ls -lsa
@@ -236,7 +253,7 @@ total 84
      4 -rwxrwxr--    1 root     root           175 Sep 25 20:28 requirements.txt
      4 -rwxr-xr-x    1 root     root           997 Sep 25 20:28 start-envoy.sh
 ```
-The above output shows a typical file list from a pre-0.50 Ambassador instance. The "ambassador -config-*" directories contain the Ambassador configuration that was specified during each update of Ambassador via Kubernetes config files, with the higher number indicating the more recent configuration (as verified by the directory timestamps). The easy method to determine the latest configuration is to look for the "ambassador-config-*" directory with the highest number.
+The above output shows a typical file list from a pre-0.50 Ambassador instance. The `ambassador -config-X` directories contain the Ambassador configuration that was specified during each update of Ambassador via Kubernetes config files, with the higher number indicating the more recent configuration (as verified by the directory timestamps). The easy method to determine the latest configuration is to look for the `ambassador-config-X` directory with the highest number.
 
 ```shell
 /ambassador # ls ambassador-config-2
@@ -260,7 +277,7 @@ host_rewrite: httpbin.org
 ```
 
 
-The Envoy Proxy configuration that was generated from the Ambassador configuration is found in corresponding "envoy-*.json" files (where the number matches the ambassador-config-* directory number). The contents of the Envoy configuration files can be very useful when looking for subtle mapping issues or bugs.
+The Envoy Proxy configuration that was generated from the Ambassador configuration is found in corresponding `envoy-X.json` file (where the number matches the `ambassador-config-X` directory number). The contents of the Envoy configuration files can be very useful when looking for subtle mapping issues or bugs.
 
 ```shell
 /ambassador # cat envoy-2.json
@@ -281,7 +298,7 @@ The Envoy Proxy configuration that was generated from the Ambassador configurati
               {
 ```
 
-## Manually Experimenting with Ambassador / Envoy configuration
+## <a name="manually-experimenting"></a> Manually Experimenting with Ambassador / Envoy configuration
 
 If the generated Envoy configuration is not looking as expected, you can manually tweak this and restart the Envoy process. The general approach to this is to scale down the Ambassador Deployment to a single Pod in order to send all Ambassador traffic through this single instance (which is not recommended in production!), exec into the Pod and make the modification, and then restart the Envoy process by sending a ```SIGHUP``` to the ```hot-starter.py``` process. e.g.
 
@@ -317,7 +334,9 @@ total 84
      4 -rwxr-xr-x    1 root     root           997 Sep 25 20:28 start-envoy.sh
 /ambassador # vi envoy-2.json
 ```
-Make your changes using `vi` and save the data. Now you can restart the Envoy process. Be aware that even though you have modified the configuration files, the Ambassador Diagnostic Console may not accurately reflect your updates. In order to determine that the restart was successful with the correct configuration, you can ensure that the "Set Debug On" has been enabled via the Diagnostic Console and you can follow the Ambassador/Envoy logs to see the new configuration has been loaded.
+Make your changes to the Envoy configuration using `vi` and save the data. Now you can restart the Envoy process by sending a SIGHUP to the `hot-restarter.py` process.
+
+Be aware that even though you have modified the configuration files, the Ambassador Diagnostic Console may not accurately reflect your updates. In order to determine that the restart was successful with the correct configuration, you can ensure that the "Set Debug On" has been enabled via the Diagnostic Console and you can follow the Ambassador/Envoy logs to see the new configuration has been loaded.
 
 ```shell
 /ambassador # ps aux
