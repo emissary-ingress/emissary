@@ -4,9 +4,9 @@ Ambassador can validate incoming requests before routing them to a backing servi
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
-After completing [Getting Started](/user-guide/getting-started.html), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
+After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
 ## 1. Deploy the rate limit service
 
@@ -158,4 +158,4 @@ TCP_NODELAY set
 
 ## More
 
-For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/services/rate-limit-service.md) and [rate_limits mapping](/reference/mappings.md#using-ratelimits).
+For more details about configuring the external rate limit service, read the documentation on [external rate limit](/reference/services/rate-limit-service) and [rate_limits mapping](/reference/mappings#using-ratelimits).

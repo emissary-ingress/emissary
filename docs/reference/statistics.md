@@ -8,7 +8,7 @@ As an example, for a given service `usersvc`, here are some interesting statisti
 - `envoy.cluster.usersvc_cluster.upstream_rq_2xx` is the total number of requests to which `usersvc` responded with an HTTP response indicating success. This value divided by the prior one, taken on an rolling window basis, represents the recent success rate of the service. There are corresponding `4xx` and `5xx` counters that can help clarify the nature of unsuccessful requests.
 - `envoy.cluster.usersvc_cluster.upstream_rq_time` is a StatsD timer that tracks the latency in milliseconds of `usersvc` from Ambassador's perspective. StatsD timers include information about means, standard deviations, and decile values.
 
-#### Exposing statistics via StatsD
+## Exposing statistics via StatsD
 
 Statistics are exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol.
 
@@ -113,7 +113,7 @@ If you don't already have a Prometheus setup, the [Prometheus operator](https://
 
 Make sure that the `ServiceMonitor` is in the same namespace as Ambassador. A walk-through of the basics of configuring the Prometheus operator with Ambassador and Envoy is available [here](http://www.datawire.io/faster/ambassador-prometheus/).
 
-### StatsD as an Independent Deployment
+## StatsD as an Independent Deployment
 
 If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
 

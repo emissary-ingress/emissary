@@ -1,4 +1,4 @@
-## Rewrites
+# Rewrites
 
 Once Ambassador uses a prefix to identify the service to which a given request should be passed, it can rewrite the URL before handing it off to the service. By default, the `prefix` is rewritten to `/`, so e.g., if we map `/prefix1/` to the service `service1`, then
 

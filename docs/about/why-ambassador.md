@@ -7,6 +7,7 @@ Ambassador is:
 * Self-service. Ambassador is designed so that developers can manage services directly. This requires a system that is not only easy for developers to use, but provides safety and protection against inadvertent operational issues.
 * Operations friendly. Ambassador has virtually no moving parts, and delegates all routing and resilience to [Envoy Proxy](https://www.envoyproxy.io) and Kubernetes, respectively. Ambassador stores all state in Kubernetes (no database!). Multiple Ambassadors can be run in the same cluster, making upgrades easy and seamless.
 * Designed for microservices. Ambassador integrates the features teams need for microservices, including authentication, rate limiting, observability, routing, TLS termination, and more.
+* Open Source. Ambassador is an open source API Gateway. Install it now for free and join the community [Slack Channel](http://d6e.co/slack). 
 
 For more background on the motivations of Ambassador, read [this blog post](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844).
 
@@ -28,7 +29,7 @@ A Layer 7 proxy can be used as an API gateway, but typically requires additional
 
 ### Istio
 
-[Istio](https://istio.io) is an open source service mesh, built on Envoy. A service mesh is designed to manage east/west traffic, while an API gateway manages north/south traffic. Documentation on how to deploy Ambassador with Istio is [here](../user-guide/with-istio.md). In general, we've found that north/south traffic is quite different from east/west traffic (i.e., you don't control the client in the North/South use case).
+[Istio](https://istio.io) is an open source service mesh, built on Envoy. A service mesh is designed to manage east/west traffic, while an API gateway manages north/south traffic. Documentation on how to deploy Ambassador with Istio is [here](../user-guide/with-istio). In general, we've found that north/south traffic is quite different from east/west traffic (i.e., you don't control the client in the North/South use case).
 
 <script type="application/ld+json">
   {
