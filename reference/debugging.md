@@ -6,16 +6,18 @@ If Ambassador is not starting or is not behaving as you would expect, your first
 
 * [Example configuration for debug examples](example-config)
 * Ambassador not starting
-  * [Check Ambassador is running](check-running)
-* Ambassador not behaving as expected
+  * [Check Ambassador is running](check-running) via `kubectl`
   * [Check the logs](checklogs)
+* Ambassador not behaving as expected
+  * [Check Ambassador is running correctly](check-running) via `kubectl`
+  * [Check the logs](checklogs) (potentially with "Set Debug On" via the Diagnostic Console)
 * Ambassdor/Envoy configuration not as unexpected
-  * Enable Debug (via Diagnostic Console) and [Check the logs](checklogs)
+  * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](checklogs)
   * Exec into an Ambassador Pod and [manually verify](examining-pod) the generated Envoy configuration
 * Mounted TLS certificates not being detected by Ambassador
   * Exec into an Ambassador Pod and [manually verify](examining-pod) that the mount is as expected (and in the correct file system location)
 * You want to manually change and experiment with the generated Envoy configuration
-  * [Exec into an Ambassador Pod](examining-pod) and [manually experiment] with changing the Envoy configuration and sending a SIGHUP to the parent process
+  * [Exec into an Ambassador Pod](examining-pod) and [manually experiment](manually-experimenting) with changing the Envoy configuration and sending a SIGHUP to the parent process
 
 
 ## <a name="example-config"></a>Example Config for Debug Demonstrations
