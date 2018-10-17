@@ -292,9 +292,12 @@ $(TELEPROXY):
 	sudo chmod a+sx $(TELEPROXY)
 
 KUBERNAUT=venv/bin/kubernaut
+KUBERNAUT_VERSION=2018.08.13-5b1643b
+KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name kat --cluster-group main
+KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete kat
 
 $(KUBERNAUT):
-	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
 setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
@@ -302,9 +305,9 @@ setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml:
-	$(KUBERNAUT) discard
-	$(KUBERNAUT) claim
-	cp ~/.kube/kubernaut cluster.yaml
+	$(KUBERNAUT_DISCARD)
+	$(KUBERNAUT_CLAIM)
+	cp ~/.kube/kat.yaml cluster.yaml
 	rm -f /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
@@ -339,7 +342,7 @@ shell: setup-develop cluster.yaml
 
 clean-test:
 	rm -f cluster.yaml
-	test -x $(KUBERNAUT) && $(KUBERNAUT) discard || true
+	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	$(call kill_teleproxy)
 
 test: version setup-develop cluster.yaml
