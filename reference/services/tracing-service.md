@@ -40,4 +40,4 @@ You may only use a single `TracingService` manifest.
 
 ## Example
 
-The [Ambassador Tracing Tutorial](../../user-guide/tracing-tutorial) has a simple Zipkin tracing example.
+The [Ambassador Tracing Tutorial](/user-guide/tracing-tutorial) has a simple Zipkin tracing example.
