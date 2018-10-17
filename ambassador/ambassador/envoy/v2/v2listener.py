@@ -155,8 +155,7 @@ class V2Listener(dict):
         if require_tls:
             vhost['require_tls'] = require_tls
 
-        chain = {
-            'filters': [ {
+        hcm_config = {
                 'name': 'envoy.http_connection_manager',
                 'config': {
                     'stat_prefix': 'ingress_http',
@@ -166,7 +165,25 @@ class V2Listener(dict):
                         'virtual_hosts': [ vhost ]
                     }
                 }
-            } ]
+            }
+
+        for group in config.ir.ordered_groups():
+            if group.get('use_websocket'):
+                hcm_config['config'].update(
+                    {
+                        'upgrade_configs': [
+                            {
+                                'upgrade_type': 'websocket',
+                            },
+                        ]
+                    },
+                )
+                break
+
+        print("hcm_config is ", hcm_config)
+
+        chain = {
+            'filters': [hcm_config]
         }
 
         if envoy_ctx:   # envoy_ctx has to exist _and_ not be empty to be truthy
