@@ -392,12 +392,13 @@ release:
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: version venv/bin/activate venv/bin/ambassador
+venv: version venv/bin/activate venv/bin/ambassador venv/lib/python3.6/site-packages/kat/__init__.py
 
-venv/bin/activate: dev-requirements.txt ambassador/requirements.txt
+venv/bin/activate: dev-requirements.txt kat/requirements.txt ambassador/requirements.txt
 	test -d venv || virtualenv venv --python python3
-	venv/bin/pip -v install -q -Ur dev-requirements.txt
-	venv/bin/pip -v install -q -Ur ambassador/requirements.txt
+	@for REQ_FILE in $^; do \
+		venv/bin/pip -v install -q -Ur $$REQ_FILE; \
+	done
 	touch venv/bin/activate
 	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
 		echo "Fixing Kubernetes Client for Python 3.7"; \
@@ -413,6 +414,9 @@ venv/bin/activate: dev-requirements.txt ambassador/requirements.txt
 
 venv/bin/ambassador: dev-requirements.txt ambassador/.
 	venv/bin/pip -v install -q -e ambassador/.
+
+venv/lib/python3.6/site-packages/kat/__init__.py:
+	venv/bin/pip -v install -q -e kat/.
 
 # ------------------------------------------------------------------------------
 # Website
