@@ -266,7 +266,7 @@ def sync(restarter):
             if config_data:
                 for key, config_yaml in config_data.data.items():
                     logger.info("ambassador-config: found %s" % key)
-                    restarter.update(key, restarter.read_yaml(config_yaml, "ambassador-config %s" % key))
+                    restarter.update(key, config_yaml)
 
         # If we don't already see a TLS server key in its usual spot...
         if not check_cert_file(TLSPaths.mount_tls_crt.value):
@@ -336,6 +336,18 @@ def watch_loop(restarter):
         while True:
             try:
                 w = watch.Watch()
+
+                # Watch for ambassador-config ConfigMap
+                cm_names = [ x.metadata.name
+                             for x in v1.list_namespaced_config_map(restarter.namespace).items ]
+
+                if 'ambassador-config' in cm_names:
+                    config_data = v1.read_namespaced_config_map("ambassador-config", restarter.namespace)
+
+                if config_data:
+                    for key, config_yaml in config_data.data.items():
+                        logger.info("ambassador-config: found %s" % key)
+                        restarter.update(key, config_yaml)
 
                 if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
                     watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
