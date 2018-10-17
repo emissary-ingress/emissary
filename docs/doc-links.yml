@@ -107,6 +107,8 @@
           link: /reference/diagnostics
         - title: Ambassador with AWS
           link: /reference/ambassador-with-aws
+        - title: Debugging Ambassador
+          link: /reference/debugging
     - title: Upgrading Ambassador
       link: /reference/upgrading
     - title: Statistics and Monitoring
