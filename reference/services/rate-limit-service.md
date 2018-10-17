@@ -38,11 +38,11 @@ It is the external rate limit service's responsibility to determine whether rate
 * If Envoy receives an `OK` response from the rate limit service, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow.
 * If Ambassador receives an `OVER_LIMIT` response, then Ambassador will return an HTTP 429 response to the client and will end the transaction flow, preventing the request from reaching the backing service.
 
-The headers injected by the [AuthService](auth-service) can also be passed to the rate limit service since the `AuthService` is invoked before the `RateLimitService`.
+The headers injected by the [AuthService](/reference/services/auth-service) can also be passed to the rate limit service since the `AuthService` is invoked before the `RateLimitService`.
 
 ## Example
 
-The [Ambassador Rate Limiting Tutorial](../../user-guide/rate-limiting-tutorial) has a simple rate limiting example. A more comprehensive example of a Java-based rate limiting service for Ambassador is discussed [in this tutorial](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da).
+The [Ambassador Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. A more comprehensive example of a Java-based rate limiting service for Ambassador is discussed [in this tutorial](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da).
 
 ## Further reading
 

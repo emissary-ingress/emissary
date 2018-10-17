@@ -8,11 +8,11 @@ Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#
 
 Each mapping can also specify, among other things:
 
-- a [_rewrite rule_](rewrite) which modifies the URL as it's handed to the Kubernetes service;
-- a [_weight_](canary) specifying how much of the traffic for the resource will be routed using the mapping;
-- a [_host_](host) specifying a required value for the HTTP `Host` header;
-- a [_shadow_](shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
-- other [_headers_](headers) which must appear in the HTTP request.
+- a [_rewrite rule_](/reference/rewrites) which modifies the URL as it's handed to the Kubernetes service;
+- a [_weight_](/reference/canary) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_host_](/reference/host) specifying a required value for the HTTP `Host` header;
+- a [_shadow_](/reference/shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
+- other [_headers_](/reference/headers) which must appear in the HTTP request.
 
 ## Defining Mappings
 
@@ -72,19 +72,19 @@ Ambassador supports a number of additional attributes to configure and customize
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| [`add_request_headers`](add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
-| [`cors`](cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
-| [`grpc`](../user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
-| [`headers`](headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
-| [`host`](host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
-| [`host_regex`](host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| [`host_rewrite`](host) | forces the HTTP `Host` header to a specific value when talking to the service |
-| [`method`](method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
+| [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
+| [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
+| [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
+| [`headers`](/reference/headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
+| [`host`](/reference/host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
+| [`host_regex`](/reference/host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
+| [`host_rewrite`](/reference/host) | forces the HTTP `Host` header to a specific value when talking to the service |
+| [`method`](/reference/method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| [`rate_limits`](rate-limits) | specifies a list rate limit rules on a mapping |
-| [`regex_headers`](headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
-| [`rewrite`](rewrites)      | replaces the URL prefix with when talking to the service |
+| [`rate_limits`](/reference/rate-limits) | specifies a list rate limit rules on a mapping |
+| [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
+| [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador that this service will use websockets |
@@ -93,8 +93,8 @@ Ambassador supports multiple deployment patterns for your services. These patter
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| [`shadow`](shadowing)     | if true, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored. |
-| [`weight`](canary)        | specifies the (integer) percentage of traffic for this resource that will be routed using this mapping |
+| [`shadow`](/reference/shadowing)     | if true, a copy of the resource's traffic will go the `service` for this `Mapping`, and the reply will be ignored. |
+| [`weight`](/reference/canary)        | specifies the (integer) percentage of traffic for this resource that will be routed using this mapping |
 
 These attributes are less commonly used, but can be used to override Ambassador's default behavior in specific cases.
 
@@ -102,10 +102,10 @@ These attributes are less commonly used, but can be used to override Ambassador'
 | :------------------------ | :------------------------ |
 | `auto_host_rewrite`       | if true, forces the HTTP `Host` header to the `service` to which Ambassador routes |
 | `case_sensitive`          | determines whether `prefix` matching is case-sensitive; defaults to True |
-| [`envoy_override`](override) | supplies raw configuration data to be included with the generated Envoy route entry. |
-| [`host_redirect`](redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
-| [`path_redirect`](redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
-| [`precedence`](precedence)           | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
+| [`envoy_override`](/reference/override) | supplies raw configuration data to be included with the generated Envoy route entry. |
+| [`host_redirect`](/reference/redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
+| [`path_redirect`](/reference/redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
+| [`precedence`](#a-nameprecedencea-using-precedence)           | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 

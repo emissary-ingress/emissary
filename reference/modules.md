@@ -89,10 +89,10 @@ readiness_probe:
   rewrite: /health
 ```
 
-The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](#mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
+The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
 **Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
 ## The `authentication` Module
 
-The `authentication` module is now deprecated. Use the [AuthService](services/auth-service) manifest type instead.
+The `authentication` module is now deprecated. Use the [AuthService](/reference/services/auth-service) manifest type instead.
