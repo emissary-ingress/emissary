@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import Dict, List
+
 import datetime
 import functools
 import glob
@@ -124,11 +126,38 @@ app = Flask(__name__,
 
 
 # Next, various helpers.
+class Notices:
+    def __init__(self, local_config_path: str) -> None:
+        self.local_path = local_config_path
+        self.notices: List[Dict[str, str]] = []
+
+    def reset(self):
+        local_notices: List[Dict[str, str]] = []
+        local_data = ''
+
+        try:
+            local_stream = open(self.local_path, "r")
+            local_data = local_stream.read()
+            local_notices = json.loads(local_data)
+        except OSError:
+            pass
+        except:
+            local_notices.append({ 'lvl': 'error', 'msg': 'bad local notices: %s' % local_data })
+
+        self.notices = local_notices
+
+    def post(self, notice):
+        self.notices.append(notice)
+
+    def prepend(self, notice):
+        self.notices.insert(0, notice)
+
+    def extend(self, notices):
+        for notice in notices:
+            self.post(notice)
+
 def get_aconf(app, what):
     configs = glob.glob("%s-*" % app.config_dir_prefix)
-
-    # # Test crap
-    # configs.append("%s-87-envoy.json" % app.config_dir_prefix)
 
     if configs:
         keyfunc = lambda x: x.split("-")[-1]
@@ -148,12 +177,15 @@ def get_aconf(app, what):
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)
 
+    app.notices = Notices()
+    app.notices.reset()
+
     app.scout = Scout()
     app.scout_result = app.scout.report(mode="diagd", action=what,
                                         uptime=int(uptime.total_seconds()),
                                         hr_uptime=hr_uptime)
 
-    app.scout_notices = app.scout_result.pop('notices', [])
+    app.notices.extend(app.scout_result.pop('notices', []))
 
     app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
 
@@ -251,14 +283,15 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    notices = []
     loglevel = request.args.get('loglevel', None)
+
+    notice = None
 
     if loglevel:
         app.logger.debug("OV %s -- requesting loglevel %s" % (reqid, loglevel))
 
         if not app.estats.update_log_levels(time.time(), level=loglevel):
-            notices = [ "Could not update log level!" ]
+            notice = { 'lvl': 'warning', 'msg': "Could not update log level!" }
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
@@ -266,6 +299,8 @@ def show_overview(reqid=None):
     ir = IR(aconf)
     econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
+
+    app.notices.prepend(notice)
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -277,8 +312,6 @@ def show_overview(reqid=None):
         app.logger.debug("OV %s: OV" % reqid)
         app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
         app.logger.debug("OV %s: collecting errors" % reqid)
-
-    notices.extend(app.scout_notices)
 
     errors = []
 
@@ -292,7 +325,7 @@ def show_overview(reqid=None):
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
-                 notices=notices,
+                 notices=app.notices.notices,
                  errors=errors,
                  **ov,
                  **diag.as_dict())
@@ -338,7 +371,7 @@ def show_intermediate(source=None, reqid=None):
                  loginfo=app.estats.loginfo,
                  method=method, resource=resource,
                  errors=errors,
-                 notices=app.scout_notices,
+                 notices=app.notices.notices,
                  **result,
                  **diag.as_dict())
 
@@ -383,12 +416,13 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
-def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False, k8s=True, verbose=False):
+def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
     app.estats = EnvoyStats()
     app.health_checks = False
     app.debugging = reload
     app.verbose = verbose
     app.k8s = k8s
+    app.notice_path = notices
 
     # This feels like overkill.
     app._logger = logging.getLogger(app.logger_name)
@@ -427,7 +461,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, reload=False, debug=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0', k8s=False):
+          workers=None, port=8877, host='0.0.0.0', k8s=False, notices=None):
     """
     Run the diagnostic daemon.
 
@@ -439,10 +473,11 @@ def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, reload=False,
     :param workers: Number of workers; default is based on the number of CPUs present
     :param host: Interface on which to listen (default 0.0.0.0)
     :param port: Port on which to listen (default 8877)
+    :param notices: Optional file to read for local notices
     """
     
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, reload, debug, k8s, verbose)
+    flask_app = create_diag_app(config_dir_path, not no_checks, reload, debug, k8s, verbose, notices)
 
     if not workers:
         workers = number_of_workers()
