@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from itertools import chain, product
-from typing import Any, Iterable, Mapping, Optional, Sequence, Tuple, Type
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
 
 import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys, time, threading, traceback
 
@@ -213,7 +213,7 @@ class Test(Node):
 
 class Query:
 
-    def __init__(self, url, expected=200, method="GET", headers=None, insecure=False, skip = None, xfail = None):
+    def __init__(self, url, expected=200, method="GET", headers=None, insecure=False, skip=None, xfail=None, debug=False):
         self.method = method
         self.url = url
         self.headers = headers
@@ -223,6 +223,7 @@ class Query:
         self.xfail = xfail
         self.parent = None
         self.result = None
+        self.debug = debug
 
     def as_json(self):
         result = {
@@ -260,79 +261,56 @@ class Result:
             pytest.xfail(self.query.xfail)
         assert self.query.expected == self.status, "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error)
 
-    def as_dict(self):
-        return {
-            'RENDERED': {
-                'client': {
-                    'request': self.query.as_json(),
-                    'response': {
-                        'status': self.status,
-                        'error': self.error,
-                        'headers': self.headers
-                    }
-                },
-                'upstream': {
-                    'name': self.backend.name,
-                    'request': {
-                        'headers': self.backend.request.headers,
-                        'url': {
-                            'fragment': self.backend.request.url.fragment,
-                            'host': self.backend.request.url.host,
-                            'opaque': self.backend.request.url.opaque,
-                            'path': self.backend.request.url.path,
-                            'query': self.backend.request.url.query,
-                            'rawQuery': self.backend.request.url.rawQuery,
-                            'scheme': self.backend.request.url.scheme,
-                            'username': self.backend.request.url.username,
-                            'password': self.backend.request.url.password,
-                        },
-                        'host': self.backend.request.host,
-                        'tls': {
-                            'enabled': self.backend.request.tls.enabled,
-                            'server_name': self.backend.request.tls.server_name,
-                            'version': self.backend.request.tls.version,
-                            'negotiated_protocol': self.backend.request.tls.negotiated_protocol,
-                        },
-                    },
-                    'response': {
-                        'headers': self.backend.response.headers
-                    }
-                }
-            },
-            'ACTUAL': {
-                'query': self.query.as_json(),
-                'status': self.status,
-                'error': self.error,
-                'headers': self.headers,
-                'backend': {
-                    'name': self.backend.name,
-                    'request': {
-                        'headers': self.backend.request.headers,
-                        'url': {
-                            'fragment': self.backend.request.url.fragment,
-                            'host': self.backend.request.url.host,
-                            'opaque': self.backend.request.url.opaque,
-                            'path': self.backend.request.url.path,
-                            'query': self.backend.request.url.query,
-                            'rawQuery': self.backend.request.url.rawQuery,
-                            'scheme': self.backend.request.url.scheme,
-                            'username': self.backend.request.url.username,
-                            'password': self.backend.request.url.password,
-                        },
-                        'host': self.backend.request.host,
-                        'tls': {
-                            'enabled': self.backend.request.tls.enabled,
-                            'server_name': self.backend.request.tls.server_name,
-                            'version': self.backend.request.tls.version,
-                            'negotiated_protocol': self.backend.request.tls.negotiated_protocol,
-                        }
-                    },
-                    'response': {
-                        'headers': self.backend.response.headers
-                    }
-                },
-            }
+    def as_dict(self) -> Dict[str, Any]:
+        od = {
+            'query': self.query.as_json(),
+            'status': self.status,
+            'error': self.error,
+            'headers': self.headers,
         }
+
+        if self.backend:
+            od['backend'] = self.backend.as_dict()
+
+        return od
+
+            # 'RENDERED': {
+            #     'client': {
+            #         'request': self.query.as_json(),
+            #         'response': {
+            #             'status': self.status,
+            #             'error': self.error,
+            #             'headers': self.headers
+            #         }
+            #     },
+            #     'upstream': {
+            #         'name': self.backend.name,
+            #         'request': {
+            #             'headers': self.backend.request.headers,
+            #             'url': {
+            #                 'fragment': self.backend.request.url.fragment,
+            #                 'host': self.backend.request.url.host,
+            #                 'opaque': self.backend.request.url.opaque,
+            #                 'path': self.backend.request.url.path,
+            #                 'query': self.backend.request.url.query,
+            #                 'rawQuery': self.backend.request.url.rawQuery,
+            #                 'scheme': self.backend.request.url.scheme,
+            #                 'username': self.backend.request.url.username,
+            #                 'password': self.backend.request.url.password,
+            #             },
+            #             'host': self.backend.request.host,
+            #             'tls': {
+            #                 'enabled': self.backend.request.tls.enabled,
+            #                 'server_name': self.backend.request.tls.server_name,
+            #                 'version': self.backend.request.tls.version,
+            #                 'negotiated_protocol': self.backend.request.tls.negotiated_protocol,
+            #             },
+            #         },
+            #         'response': {
+            #             'headers': self.backend.response.headers
+            #         }
+            #     }
+            # }
 
 class BackendURL:
 
@@ -348,6 +326,19 @@ class BackendURL:
         self.username = username
         self.password = password
 
+    def as_dict(self) -> Dict['str', Any]:
+        return {
+            'fragment': self.fragment,
+            'host': self.host,
+            'opaque': self.opaque,
+            'path': self.path,
+            'query': self.query,
+            'rawQuery': self.rawQuery,
+            'scheme': self.scheme,
+            'username': self.username,
+            'password': self.password,
+        }
+
 class BackendRequest:
 
     def __init__(self, req):
@@ -355,6 +346,20 @@ class BackendRequest:
         self.headers = req.get("headers", {})
         self.host = req.get("host", None)
         self.tls = BackendTLS(req.get("tls", {}))
+
+    def as_dict(self) -> Dict[str, Any]:
+        od = {
+            'headers': self.headers,
+            'host': self.host,
+        }
+
+        if self.url:
+            od['url'] = self.url.as_dict()
+
+        if self.tls:
+            od['tls'] = self.tls.as_dict()
+
+        return od
 
 class BackendTLS:
 
@@ -364,17 +369,52 @@ class BackendTLS:
         self.version = tls.get("version")
         self.negotiated_protocol = tls.get("negotiated-protocol")
 
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            'enabled': self.enabled,
+            'server_name': self.server_name,
+            'version': self.version,
+            'negotiated_protocol': self.negotiated_protocol,
+        }
+
 class BackendResponse:
 
     def __init__(self, resp):
         self.headers = resp.get("headers", {})
 
+    def as_dict(self) -> Dict[str, Any]:
+        return { 'headers': self.headers }
+
+def dictify(obj):
+    if getattr(obj, "as_dict", None):
+        return obj.as_dict()
+    else:
+        return obj
+
 class BackendResult:
 
     def __init__(self, bres):
-        self.name = bres.get("backend")
-        self.request = BackendRequest(bres["request"]) if "request" in bres else None
-        self.response = BackendResponse(bres["response"]) if "response" in bres else None
+        self.name = "raw"
+        self.request = None
+        self.response = bres
+
+        if isinstance(bres, dict):
+            self.name = bres.get("backend")
+            self.request = BackendRequest(bres["request"]) if "request" in bres else None
+            self.response = BackendResponse(bres["response"]) if "response" in bres else None
+
+    def as_dict(self) -> Dict[str, Any]:
+        od = {
+            'name': self.name
+        }
+
+        if self.request:
+            od['request'] = dictify(self.request)
+
+        if self.response:
+            od['response'] = dictify(self.response)
+
+        return od
 
 def label(yaml, scope):
     for obj in yaml:
@@ -599,7 +639,7 @@ class Runner:
                 t = r.parent
                 t.queried.append(r.query)
 
-                if getattr(t, "debug", False):
+                if getattr(t, "debug", False) or getattr(r.query, "debug", False):
                     print("%s result: %s" % (t.name, json.dumps(r.as_dict(), sort_keys=True, indent=4)))
 
                 t.results.append(r)
