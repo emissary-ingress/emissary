@@ -77,7 +77,12 @@ def v2filter(cors):
 
 @v2filter.when("ir.router")
 def v2filter(router):
-    return { 'name': 'envoy.router' }
+    od = { 'name': 'envoy.router' }
+
+    if router.ir.tracing:
+        od['config'] = { 'start_child_span': True }
+
+    return od
 
 
 class V2Listener(dict):
@@ -155,17 +160,30 @@ class V2Listener(dict):
         if require_tls:
             vhost['require_tls'] = require_tls
 
+        hcm_config = {
+            'stat_prefix': 'ingress_http',
+            'access_log': access_log,
+            'http_filters': filters,
+            'route_config': {
+                'virtual_hosts': [ vhost ]
+            }
+        }
+
+        if config.ir.tracing:
+            hcm_config["generate_request_id"] = True
+            hcm_config["tracing"] = {
+                "operation_name": "egress",
+            }
+
+            req_hdrs = config.ir.tracing.get('tag_headers', [])
+
+            if req_hdrs:
+                hcm_config["tracing"]["request_headers_for_tags"] = req_hdrs
+
         chain = {
             'filters': [ {
                 'name': 'envoy.http_connection_manager',
-                'config': {
-                    'stat_prefix': 'ingress_http',
-                    'access_log': access_log,
-                    'http_filters': filters,
-                    'route_config': {
-                        'virtual_hosts': [ vhost ]
-                    }
-                }
+                'config': hcm_config
             } ]
         }
 

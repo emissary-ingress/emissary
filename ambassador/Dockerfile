@@ -63,7 +63,6 @@ COPY kubewatch.py .
 COPY entrypoint.sh .
 # XXX: ambex needs to be replaced with a proper release, or made traceable or something!!!
 COPY ambex .
-COPY bootstrap-ads.yaml .
 RUN chmod 755 entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]

@@ -129,7 +129,7 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-diagd "$CONFIG_DIR" &
+diagd "$CONFIG_DIR" --notices "${AMBASSADOR_ROOT}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
@@ -138,7 +138,7 @@ AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
 echo "AMBASSADOR: starting Envoy"
-envoy -c bootstrap-ads.yaml &
+envoy -c bootstrap-ads.json &
 pids="${pids:+${pids} }$!:envoy"
 
 /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
