@@ -522,13 +522,13 @@ driver: zipkin
         # yield Query(self.with_tracing.url("target/"))
         # yield Query(self.no_tracing.url("target/"))
         for i in range(99):
-            yield Query(self.url("target/"))
+            yield Query(self.url("target/"), phase=1)
 
-        yield Query(self.url("target/"), debug=True)
+        yield Query(self.url("target/"), phase=1, debug=True)
 
         # ...then ask the Zipkin for services and spans.
-        yield Query("http://zipkin:9411/api/v2/services", debug=True)
-        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", debug=True)
+        yield Query("http://zipkin:9411/api/v2/services", phase=2, debug=True)
+        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2, debug=True)
 
     def check(self):
         for i in range(100):
