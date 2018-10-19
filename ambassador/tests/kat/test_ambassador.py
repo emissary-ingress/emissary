@@ -521,14 +521,13 @@ driver: zipkin
         # Speak through each Ambassador to the traced service...
         # yield Query(self.with_tracing.url("target/"))
         # yield Query(self.no_tracing.url("target/"))
-        for i in range(99):
+        for i in range(100):
             yield Query(self.url("target/"), phase=1)
 
-        yield Query(self.url("target/"), phase=1, debug=True)
-
-        # ...then ask the Zipkin for services and spans.
-        yield Query("http://zipkin:9411/api/v2/services", phase=2, debug=True)
-        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2, debug=True)
+        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
+        # is particularly helpful.
+        yield Query("http://zipkin:9411/api/v2/services", phase=2)
+        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2)
 
     def check(self):
         for i in range(100):
@@ -540,10 +539,10 @@ driver: zipkin
 
         assert self.results[101].backend.name == "raw"
 
-        tracelist = { x: True for x in self.results[101].backend }
+        tracelist = { x: True for x in self.results[101].backend.response }
 
         assert 'router cluster_tracingtest_http egress' in tracelist
-        assert 'tracingtest-default' in tracelist
+        assert 'tracingtest' in tracelist
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
