@@ -214,7 +214,8 @@ class Test(Node):
 
 class Query:
 
-    def __init__(self, url, expected=200, method="GET", headers=None, insecure=False, skip = None, xfail = None):
+    def __init__(self, url, expected=200, method="GET", headers=None, insecure=False, skip = None, xfail = None,
+                 phase=1):
         self.method = method
         self.url = url
         self.headers = headers
@@ -222,6 +223,7 @@ class Query:
         self.expected = expected
         self.skip = skip
         self.xfail = xfail
+        self.phase = phase
         self.parent = None
         self.result = None
 
@@ -643,10 +645,13 @@ class Runner:
                     t.pending.append(q)
                     queries.append(q)
 
-        if queries:
-            print("Querying %s urls..." % len(queries), end="")
+        phases = sorted(set([q.phase for q in queries]))
+
+        for phase in phases:
+            phase_queries = [q for q in queries if q.phase == phase]
+            print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
-            results = query(queries)
+            results = query(phase_queries)
             print(" done.")
 
             for r in results:
