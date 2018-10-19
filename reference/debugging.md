@@ -1,29 +1,29 @@
 # Debugging (Advanced)
 
-If Ambassador is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an Ambassador initialisation issue.
+If Ambassador is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](/reference/diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an Ambassador initialisation issue.
 
 ## tl;dr Problem? Start here
 
-* [Example configuration for debug examples](example-config)
+* [Example configuration for debug examples](#a-nameexample-configaexample-config-for-debug-demonstrations)
 * Ambassador not starting
-  * [Check Ambassador is running](check-running) via `kubectl`
-  * [Check the logs](checklogs)
+  * [Check Ambassador is running](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
+  * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs)
 * Ambassador not behaving as expected
-  * [Check Ambassador is running correctly](check-running) via `kubectl`
-  * [Check the logs](checklogs) (potentially with "Set Debug On" via the Diagnostic Console)
+  * [Check Ambassador is running correctly](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
+  * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs) (potentially with "Set Debug On" via the Diagnostic Console)
 * Ambassdor/Envoy configuration not as unexpected
-  * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](checklogs)
-  * Exec into an Ambassador Pod and [manually verify](examining-pod) the generated Envoy configuration
+  * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](#a-namelogsagetting-access-to-the-ambassador-logs)
+  * Exec into an Ambassador Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) the generated Envoy configuration
 * Mounted TLS certificates not being detected by Ambassador
-  * Exec into an Ambassador Pod and [manually verify](examining-pod) that the mount is as expected (and in the correct file system location)
+  * Exec into an Ambassador Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
 * You want to manually change and experiment with the generated Envoy configuration
-  * [Exec into an Ambassador Pod](examining-pod) and [manually experiment](manually-experimenting) with changing the Envoy configuration and sending a SIGHUP to the parent process
+  * [Exec into an Ambassador Pod](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) and [manually experiment](#a-namemanually-experimentinga-manually-experimenting-with-ambassador--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
 
 
 ## <a name="example-config"></a>Example Config for Debug Demonstrations
 
 The following debugging instructions assume that Ambassador and the following services from the
-[getting started guide](../user-guide/getting-started) have been deployed to a Kubernetes cluster.
+[getting started guide](/user-guide/getting-started) have been deployed to a Kubernetes cluster.
 
 e.g. Create a cluster in GKE with RBAC support enabled and your user account configured correctly:
 
@@ -81,7 +81,7 @@ $ kubectl apply -f ambassador-services.yaml
 
 ## <a name="check-running"></a>Checking Ambassador is running
 
-If you cannot access the [diagnostics console](diagnostics) via ```kubectl port-forward <ambassador_pod_name> 8877```
+If you cannot access the [diagnostics console](/reference/diagnostics) via ```kubectl port-forward <ambassador_pod_name> 8877```
 the first thing to check is that Ambassador is running. This can be achieved via
 the standard Kubernetes commands.
 
