@@ -5,6 +5,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence, Tuple, Type
 
 import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys, time, threading, traceback
 
+from multi import multi
 from .parser import dump, load, Tag
 
 def run(cmd):
@@ -535,47 +536,100 @@ class Runner:
                 f.write(yaml)
             # XXX: better prune selector label
             run("kubectl apply --prune -l scope=%s -f %s" % (self.scope, fname))
-            self._wait()
+            self.applied_manifests = True
         elif yaml.strip():
+            self.applied_manifests = False
             print("Manifests unchanged, skipping apply.")
 
+        for n in self.nodes:
+            action = getattr(n, "post_manifest", None)
+            if action:
+                action()
+
+        self._wait()
+
     def _wait(self):
-        requirements = [r for n in self.nodes for r in n.requirements()]
-        if not requirements: return
+        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()]
 
-        for i in range(30):
-            fname = "/tmp/pods-%s.json" % self.scope
-            run("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
+        homogenous = {}
+        for node, kind, name in requirements:
+            if kind not in homogenous:
+                homogenous[kind] = []
+            homogenous[kind].append((node, name))
 
-            with open(fname) as f:
-                raw_pods = json.load(f)
-
-            pods = {}
-            for p in raw_pods["items"]:
-                name = p["metadata"]["name"]
-                statuses = tuple(cs["ready"] for cs in p["status"].get("containerStatuses", ()))
-                if not statuses:
-                    ready = False
-                else:
-                    ready = True
-                    for status in statuses:
-                        ready = ready and status
-                pods[name] = ready
-
-            print("Checking requirements... ", end="")
-            sys.stdout.flush()
-            for kind, name in requirements:
-                assert kind == "pod"
-                if not pods.get(name, False):
-                    print("%s %s not ready, sleeping..." % (kind, name))
+        kinds = ["pod", "url"]
+        delay = 0.5
+        start = time.time()
+        limit = 5*60
+        while time.time() - start < limit:
+            for kind in kinds:
+                if kind not in homogenous: continue
+                reqs = homogenous[kind]
+                print("Checking %s %s requirements... " % (len(reqs), kind), end="")
+                sys.stdout.flush()
+                if not self._ready(kind, reqs):
+                    delay = int(min(delay*2, 10))
+                    print("sleeping %ss..." % delay)
                     sys.stdout.flush()
-                    time.sleep(10)
-                    break
+                    time.sleep(delay)
+                else:
+                    print("satisfied.")
+                    sys.stdout.flush()
+                    kinds.remove(kind)
+                break
             else:
-                print("satisfied.")
                 return
 
-        assert False, "requirements not satisfied within 5 minutes"
+        assert False, "requirements not satisfied in %s seconds" % limit
+
+    @multi
+    def _ready(self, kind, requirements):
+        return kind
+
+    @_ready.when("pod")
+    def _ready(self, kind, requirements):
+        pods = self._pods()
+        for node, name in requirements:
+            if not pods.get(name, False):
+                print("%s not ready, " % name, end="")
+                return False
+        return True
+
+    @_ready.when("url")
+    def _ready(self, kind, requirements):
+        queries = []
+        for node, name in requirements:
+            q = Query(name, insecure=True)
+            q.parent = node
+            queries.append(q)
+        result = query(queries)
+        not_ready = [r for r in result if r.status != r.query.expected]
+        if not_ready:
+            first = not_ready[0]
+            print("%s not ready (%s) " % (first.query.url, first.status or first.error), end="")
+            return False
+        else:
+            return True
+
+    def _pods(self):
+        fname = "/tmp/pods-%s.json" % self.scope
+        run("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
+
+        with open(fname) as f:
+            raw_pods = json.load(f)
+
+        pods = {}
+        for p in raw_pods["items"]:
+            name = p["metadata"]["name"]
+            statuses = tuple(cs["ready"] for cs in p["status"].get("containerStatuses", ()))
+            if not statuses:
+                ready = False
+            else:
+                ready = True
+                for status in statuses:
+                    ready = ready and status
+            pods[name] = ready
+        return pods
 
     def _query(self, selected):
         queries = []
