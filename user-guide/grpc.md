@@ -182,10 +182,11 @@ Greeter client received: Hello, you!
 
 Handling TLS with a gRPC service requires a little extra configuration than with other services. RPC calls cannot use certificates stored in the host machines so, in a normal setup, both the server and client applications must load and read certificates to handle TLS encryption. 
 
-![](/docs/images/gRPC-TLS.png)
+![](/images/gRPC-TLS.png)
 
 With Ambassador, we are able to forgo needing the server to load and read certificates since TLS is terminated at Ambassador. This means the client will now request a TLS connection with Ambassador and validate the certificates sent by Ambassador, not the gRPC server application. 
-![](/docs/images/gRPC-TLS-Ambassador.png)
+
+![](/images/gRPC-TLS-Ambassador.png)
 
 This has the advantage of not needing the server to bother with certificates but means that the client will still need to load the root cert. This is can be done rather easily with some gRPC calls. 
 
@@ -202,7 +203,7 @@ To open a secure RPC channel, we need to slightly change the python client code:
 `grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador. 
 The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. 
 
-Refer to the Ambassador [TLS termination guide](/user-guide/tls-termination.html) for more information on the TLS module.
+Refer to the Ambassador [TLS termination guide](/user-guide/tls-termination) for more information on the TLS module.
 
 [gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages. Generally, passing no arguments to the method that requests credentials gives the same behavior as above. 
 
