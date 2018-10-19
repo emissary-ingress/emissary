@@ -66,7 +66,6 @@ COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
 # XXX: ambex needs to be replaced with a proper release, or made traceable or something!!!
 COPY ambassador/ambex .
-COPY ambassador/bootstrap-ads.yaml .
 RUN chmod 755 entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
