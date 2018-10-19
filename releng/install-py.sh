@@ -21,11 +21,16 @@ die() {
     exit 1
 }
 
+echo ARGs=$*
+
 # legal values: dev or prd
 MODE=$1
 shift
 OP=$1
 shift
+
+echo MODE=$MODE
+echo OP=$OP
 
 [ $MODE == "dev" ] || [ $MODE == "prd" ] || die "mode must be dev or prd, got $MODE"
 [ $OP == "requirements" ] || [ $OP == "install" ] || die "op must be install or requirements, got $OP"
