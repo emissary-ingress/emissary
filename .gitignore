@@ -11,7 +11,7 @@ VERSION.py
 .mypy_cache
 cluster.yaml
 
-ambassador.egg-info
+*.egg-info
 build
 dist
 

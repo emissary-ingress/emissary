@@ -190,7 +190,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
 ambassador-docker-image: version
-	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
+	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
@@ -394,14 +394,10 @@ release:
 
 venv: version venv/bin/activate
 
-venv/bin/activate: dev-requirements.txt kat/requirements.txt ambassador/requirements.txt
+venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.txt ambassador/requirements.txt
 	test -d venv || virtualenv venv --python python3
-	@for REQ_FILE in $^; do \
-		venv/bin/pip -v install -q -Ur $$REQ_FILE; \
-		if [[ "$$REQ_FILE" == */requirements.txt ]]; then \
-			venv/bin/pip -v install -q -e "$$(dirname $$REQ_FILE)/."; \
-		fi; \
-	done
+	@releng/install-py.sh dev requirements $^
+	@releng/install-py.sh dev install $^
 	touch venv/bin/activate
 	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
 		echo "Fixing Kubernetes Client for Python 3.7"; \

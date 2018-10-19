@@ -100,6 +100,10 @@ class RedirectTests(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
+    def requirements(self):
+        # only check https urls since test rediness will only end up barfing on redirect
+        yield from (r for r in super().requirements() if r[0] == "url" and r[1].startswith("https"))
+
     def config(self):
         # Use self here, not self.target, because we want the TLS module to
         # be annotated on the Ambassador itself.
