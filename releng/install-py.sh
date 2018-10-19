@@ -27,8 +27,8 @@ shift
 OP=$1
 shift
 
-[[ $MODE == "dev" || $MODE == "prd" ]] || die "mode must be dev or prd, got $MODE"
-[[ $OP == "requirements" || $OP == "install" ]] || die "op must be install or requirements, got $OP"
+[ $MODE == "dev" ] || [ $MODE == "prd" ] || die "mode must be dev or prd, got $MODE"
+[ $OP == "requirements" ] || [ $OP == "install" ] || die "op must be install or requirements, got $OP"
 
 FILES=$*
 
