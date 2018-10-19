@@ -539,9 +539,11 @@ driver: zipkin
         assert self.results[100].backend.response[0] == 'tracingtest-default'
 
         assert self.results[101].backend.name == "raw"
-        assert len(self.results[101].backend.response) == 2
-        assert self.results[101].backend.response[0] == 'router cluster_tracingtest_http egress'
-        assert self.results[101].backend.response[1] == 'tracingtest-default'
+
+        tracelist = { x: True for x in self.results[101].backend }
+
+        assert 'router cluster_tracingtest_http egress' in tracelist
+        assert 'tracingtest-default' in tracelist
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
