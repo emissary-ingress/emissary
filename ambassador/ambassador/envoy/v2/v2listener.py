@@ -161,30 +161,45 @@ class V2Listener(dict):
             vhost['require_tls'] = require_tls
 
         hcm_config = {
-            'stat_prefix': 'ingress_http',
-            'access_log': access_log,
-            'http_filters': filters,
-            'route_config': {
-                'virtual_hosts': [ vhost ]
+                'name': 'envoy.http_connection_manager',
+                'config': {
+                    'stat_prefix': 'ingress_http',
+                    'access_log': access_log,
+                    'http_filters': filters,
+                    'route_config': {
+                        'virtual_hosts': [ vhost ]
+                    }
+                }
             }
-        }
+
+        for group in config.ir.ordered_groups():
+            if group.get('use_websocket'):
+                hcm_config['config'].update(
+                    {
+                        'upgrade_configs': [
+                            {
+                                'upgrade_type': 'websocket',
+                            },
+                        ]
+                    },
+                )
+                break
+
+        hcm_config_conf = hcm_config["config"]
 
         if config.ir.tracing:
-            hcm_config["generate_request_id"] = True
-            hcm_config["tracing"] = {
+            hcm_config_conf["generate_request_id"] = True
+            hcm_config_conf["tracing"] = {
                 "operation_name": "egress",
             }
 
             req_hdrs = config.ir.tracing.get('tag_headers', [])
 
             if req_hdrs:
-                hcm_config["tracing"]["request_headers_for_tags"] = req_hdrs
+                hcm_config_conf["tracing"]["request_headers_for_tags"] = req_hdrs
 
         chain = {
-            'filters': [ {
-                'name': 'envoy.http_connection_manager',
-                'config': hcm_config
-            } ]
+            'filters': [hcm_config]
         }
 
         if envoy_ctx:   # envoy_ctx has to exist _and_ not be empty to be truthy
