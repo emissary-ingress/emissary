@@ -47,8 +47,11 @@ class Config:
     # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
+    ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     # INSTANCE VARIABLES
+    ambassador_nodename: str = None
+
     current_resource: Optional[ACResource] = None
 
     # XXX flat wrong
@@ -102,6 +105,12 @@ class Config:
         self.errors = {}
         self.fatal_errors = 0
         self.object_errors = 0
+
+        # Build up the Ambassador node name.
+        #
+        # XXX This should be overrideable by the Ambassador module.
+        self.ambassador_nodename = "%s-%s" % (os.environ.get('AMBASSADOR_ID', 'ambassador'),
+                                              Config.ambassador_namespace)
 
     def __str__(self) -> str:
         s = [ "<Config:" ]

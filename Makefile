@@ -190,7 +190,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
 ambassador-docker-image: version
-	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
+	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
@@ -297,7 +297,8 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(TELEPROXY) venv/bin/ambassador $(KUBERNAUT)
+setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
+	go get github.com/gorilla/websocket
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
@@ -392,12 +393,12 @@ release:
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: version venv/bin/activate venv/bin/ambassador
+venv: version venv/bin/activate
 
-venv/bin/activate: dev-requirements.txt ambassador/requirements.txt
+venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.txt ambassador/requirements.txt
 	test -d venv || virtualenv venv --python python3
-	venv/bin/pip -v install -q -Ur dev-requirements.txt
-	venv/bin/pip -v install -q -Ur ambassador/requirements.txt
+	@releng/install-py.sh dev requirements $^
+	@releng/install-py.sh dev install $^
 	touch venv/bin/activate
 	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
 		echo "Fixing Kubernetes Client for Python 3.7"; \
@@ -410,9 +411,6 @@ venv/bin/activate: dev-requirements.txt ambassador/requirements.txt
 		perl -pi -e "s/if not async/if not async_req/g;" \
 			"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"; \
 	fi
-
-venv/bin/ambassador: dev-requirements.txt ambassador/.
-	venv/bin/pip -v install -q -e ambassador/.
 
 # ------------------------------------------------------------------------------
 # Website

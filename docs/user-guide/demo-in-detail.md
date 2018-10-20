@@ -41,7 +41,7 @@ Once that's done, we can create the `ambassador-config` map from our `config` di
 kubectl create configmap ambassador-config --from-file config
 ```
 
-Now we can start Ambassador running in the Kubernetes cluster. We recommend using [TLS](running.md#TLS), but for right now we'll just set up an HTTP-only Ambassador to show you how things work:
+Now we can start Ambassador running in the Kubernetes cluster. We recommend using [TLS](/user-guide/tls-termination), but for right now we'll just set up an HTTP-only Ambassador to show you how things work:
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador.yaml

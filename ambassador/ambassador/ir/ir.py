@@ -47,6 +47,9 @@ from .irtracing import IRTracing
 
 class IR:
     ambassador_module: IRAmbassador
+    ambassador_id: str
+    ambassador_namespace: str
+    ambassador_nodename: str
     tls_module: Optional[IRAmbassadorTLS]
     tracing: IRTracing
     router_config: Dict[str, Any]
@@ -61,6 +64,10 @@ class IR:
     aconf: Config
 
     def __init__(self, aconf: Config, tls_secret_resolver=None, file_checker=None) -> None:
+        self.ambassador_id = Config.ambassador_id
+        self.ambassador_namespace = Config.ambassador_namespace
+        self.ambassador_nodename = aconf.ambassador_nodename
+
         self.logger = logging.getLogger("ambassador.ir")
         self.tls_secret_resolver = tls_secret_resolver
         self.file_checker = file_checker if file_checker is not None else os.path.isfile
@@ -277,6 +284,11 @@ class IR:
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
+            'identity': {
+                'ambassador_id': self.ambassador_id,
+                'ambassador_namespace': self.ambassador_namespace,
+                'ambassador_nodename': self.ambassador_nodename,
+            },
             'ambassador': self.ambassador_module.as_dict(),
             'clusters': { cluster_name: cluster.as_dict()
                           for cluster_name, cluster in self.clusters.items() },

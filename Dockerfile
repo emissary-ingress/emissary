@@ -34,15 +34,18 @@ RUN apk --no-cache add curl python3 socat
 # full reinstall of all dependencies when dependencies are not changed.
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
-COPY requirements.txt .
+COPY releng releng
+COPY multi/requirements.txt multi/
+COPY ambassador/requirements.txt ambassador/
 
 # Install application dependencies
-RUN pip3 install -r requirements.txt
+RUN releng/install-py.sh prd requirements */requirements.txt
 
 # Install the application itself
-COPY ./ ambassador
-RUN cd ambassador && python3 setup.py --quiet install
-RUN rm -rf ./ambassador
+COPY multi/ multi
+COPY ambassador/ ambassador
+RUN releng/install-py.sh prd install */requirements.txt
+RUN rm -rf ./multi ./ambassador
 
 # MKDIR an empty /ambassador/ambassador-config. You can dump a
 # configmap over this with no trouble, or you can let
@@ -51,7 +54,7 @@ RUN mkdir ambassador-config
 RUN mkdir envoy
 
 # COPY in a default config for use with --demo.
-COPY default-config/ ambassador-demo-config
+COPY ambassador/default-config/ ambassador-demo-config
 
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
@@ -59,11 +62,10 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R g=u ${AMBASSADOR_ROOT} /etc/passwd
 
 # COPY the entrypoint script and make it runnable.
-COPY kubewatch.py .
-COPY entrypoint.sh .
+COPY ambassador/kubewatch.py .
+COPY ambassador/entrypoint.sh .
 # XXX: ambex needs to be replaced with a proper release, or made traceable or something!!!
-COPY ambex .
-COPY bootstrap-ads.yaml .
+COPY ambassador/ambex .
 RUN chmod 755 entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]

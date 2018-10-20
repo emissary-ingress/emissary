@@ -40,6 +40,82 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.50.0-ea2] October 11, 2018
+[0.50.0-ea2]: https://github.com/datawire/ambassador/compare/0.50.0-ea1...0.50.0-ea2
+
+**Ambassador 0.50.0-ea2 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Fixes since 0.50.0-ea1:
+
+- Attempting to enable TLS termination without supplying a valid cert secret will result in HTTP on port 80, rather than HTTP on port 443. **No error will be displayed in the diagnostic service yet.** This is a bug and will be fixed in `-ea3`. 
+- CORS is now supported.
+- Logs are no longer full of accesses from the diagnostic service.
+- KAT supports isolating OptionTests.
+- The diagnostics service now shows the V2 config actually in use, not V1.
+- `make` will no longer rebuild the Python venv so aggressively.
+
+### Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information. 
+
+## [0.50.0-ea1] October 11, 2018
+[0.50.0-ea1]: https://github.com/datawire/ambassador/compare/0.40.0...0.50.0-ea1
+
+**Ambassador 0.50.0-ea1 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Ambassador 0.50.0 is not yet feature-complete. Limitations:
+
+- `RateLimitService` and `TracingService` resources are not currently supported.
+- WebSockets are not currently supported.
+- CORS is not currently supported.
+- GRPC is not currently supported.
+- TLS termination is not  
+- `statsd` integration has not been tested.
+- The logs are very cluttered.
+- Configuration directly from the filesystem isn’t supported.
+- The diagnostics service cannot correctly drill down by source file, though it can drill down by route or other resources.
+- Helm installation has not been tested.
+- `AuthService` does not currently have full support for configuring headers to be sent to the extauth service. At present it sends all the headers listed in `allowed_headers` plus:  
+   - `Authorization`
+   - `Cookie`
+   - `Forwarded`
+   - `From`
+   - `Host`
+   - `Proxy-Authenticate`
+   - `Proxy-Authorization`
+   - `Set-Cookie`
+   - `User-Agent`
+   - `X-Forwarded-For`
+   - `X-Forwarded-Host`
+   - `X-Forwarded`
+   - `X-Gateway-Proto`
+   - `WWW-Authenticate`
+
+### **BREAKING CHANGES** from 0.40.0
+
+- Configuration from a `ConfigMap` is no longer supported.
+- The authentication `Module` is no longer supported; use `AuthService` instead (which you probably already were).
+- External authentication now uses the core Envoy `envoy.ext_authz` filter, rather than the custom Datawire auth filter.
+   - `ext_authz` speaks the same protocol, and your existing external auth services should work, however:
+   - `ext_authz` does _not_ send all the request headers to the external auth service (see above in `Limitations`).
+- Circuit breakers and outlier detection are not supported. They will be reintroduced in a later Ambassador release.
+- Ambassador now _requires_ a TLS `Module` to enable TLS termination, where previous versions would automatically enable termation if the `ambassador-certs` secret was present. A minimal `Module` for the same behavior is:
+
+        ---
+        kind: Module
+        name: tls
+        config:
+          server:
+            secret: ambassador-certs
+
 ## [0.40.0] September 25, 2018
 [0.40.0]: https://github.com/datawire/ambassador/compare/0.39.0...0.40.0
 

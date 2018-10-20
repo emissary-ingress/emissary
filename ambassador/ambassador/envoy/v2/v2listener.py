@@ -77,7 +77,12 @@ def v2filter(cors):
 
 @v2filter.when("ir.router")
 def v2filter(router):
-    return { 'name': 'envoy.router' }
+    od = { 'name': 'envoy.router' }
+
+    if router.ir.tracing:
+        od['config'] = { 'start_child_span': True }
+
+    return od
 
 
 class V2Listener(dict):
@@ -180,7 +185,18 @@ class V2Listener(dict):
                 )
                 break
 
-        print("hcm_config is ", hcm_config)
+        hcm_config_conf = hcm_config["config"]
+
+        if config.ir.tracing:
+            hcm_config_conf["generate_request_id"] = True
+            hcm_config_conf["tracing"] = {
+                "operation_name": "egress",
+            }
+
+            req_hdrs = config.ir.tracing.get('tag_headers', [])
+
+            if req_hdrs:
+                hcm_config_conf["tracing"]["request_headers_for_tags"] = req_hdrs
 
         chain = {
             'filters': [hcm_config]
