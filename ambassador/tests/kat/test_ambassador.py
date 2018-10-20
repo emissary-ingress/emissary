@@ -207,7 +207,7 @@ class AddRequestHeaders(OptionTest):
 
 
 class UseWebsocket(OptionTest):
-    # TODO: add a check with a websocket client as soon as we have support for it
+    # TODO: add a check with a websocket client as soon as we have backend support for it
 
     def config(self):
         yield 'use_websocket: true'
@@ -241,6 +241,11 @@ use_websocket: true
             "sec-websocket-key": "DcndnpZl13bMQDh7HOcz0g==",
             "sec-websocket-version": "13"
         })
+
+        yield Query(self.parent.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
+
+    def check(self):
+        assert self.results[-1].messages == ["one", "two", "three"]
 
 
 class CORS(OptionTest):
