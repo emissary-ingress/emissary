@@ -210,12 +210,14 @@ class AmbassadorTest(Test):
     def scheme(self) -> str:
         return "http"
 
-    def url(self, prefix) -> str:
+    def url(self, prefix, scheme=None) -> str:
+        if scheme is None:
+            scheme = self.scheme()
         if DEV:
-            port = 8443 if self.scheme() == 'https' else 8080
-            return "%s://%s/%s" % (self.scheme(), "localhost:%s" % (port + self.index), prefix)
+            port = 8443 if scheme == 'https' else 8080
+            return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
-            return "%s://%s/%s" % (self.scheme(), self.path.k8s, prefix)
+            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
         yield ("url", self.url("ambassador/v0/check_ready"))
