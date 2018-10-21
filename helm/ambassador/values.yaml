@@ -4,6 +4,7 @@
 
 ambassador:
   id: default
+  verifySslFalse: false
 
 namespace:
   single: false
