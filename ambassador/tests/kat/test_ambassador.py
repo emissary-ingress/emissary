@@ -206,6 +206,48 @@ class AddRequestHeaders(OptionTest):
                 assert actual == [v], (actual, [v])
 
 
+class UseWebsocket(OptionTest):
+    # TODO: add a check with a websocket client as soon as we have backend support for it
+
+    def config(self):
+        yield 'use_websocket: true'
+
+
+class WebSocketMapping(MappingTest):
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: echo.websocket.org:80
+host_rewrite: echo.websocket.org
+use_websocket: true
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"), expected=404)
+
+        yield Query(self.parent.url(self.name + "/"), expected=101, headers={
+            "Connection": "Upgrade",
+            "Upgrade": "websocket",
+            "sec-websocket-key": "DcndnpZl13bMQDh7HOcz0g==",
+            "sec-websocket-version": "13"
+        })
+
+        yield Query(self.parent.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
+
+    def check(self):
+        assert self.results[-1].messages == ["one", "two", "three"]
+
+
 class CORS(OptionTest):
     # isolated = True
     # debug = True

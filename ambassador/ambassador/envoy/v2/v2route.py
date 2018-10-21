@@ -38,7 +38,6 @@ class V2Route(dict):
 
         route = {
             'priority': group.get('priority'),
-            'use_websocket': group.get('use_websocket'),
             'weighted_clusters': {
                 'clusters': [
                     {

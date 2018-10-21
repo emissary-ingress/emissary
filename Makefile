@@ -298,6 +298,7 @@ $(KUBERNAUT):
 	chmod +x $(KUBERNAUT)
 
 setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
+	go get github.com/gorilla/websocket
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 

@@ -539,13 +539,6 @@ class IRMappingGroup (IRResource):
         #
         #         route[ 'rate_limits' ].append({'actions': rate_limits_actions})
 
-        # If this is a websocket group, it will support only one cluster right now.
-        if self.get('use_websocket', False):
-            if len(self.mappings) > 1:
-                errmsg = "Only one mapping in a group is supported for websockets; using %s" % \
-                         self.mappings[0].name
-                self.post_error(RichStatus.fromError(errmsg))
-
         if not self.get('host_redirect', None):
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)

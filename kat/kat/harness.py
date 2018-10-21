@@ -214,13 +214,20 @@ class Test(Node):
 
 class Query:
 
-    def __init__(self, url, expected=200, method="GET", headers=None, insecure=False, skip=None, xfail=None,
-                 phase=1, debug=False):
+    def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip = None,
+                 xfail = None, phase=1, debug=False):
         self.method = method
         self.url = url
         self.headers = headers
+        self.messages = messages
         self.insecure = insecure
-        self.expected = expected
+        if expected is None:
+            if url.lower().startswith("ws:"):
+                self.expected = 101
+            else:
+                self.expected = 200
+        else:
+            self.expected = expected
         self.skip = skip
         self.xfail = xfail
         self.phase = phase
@@ -238,6 +245,8 @@ class Query:
             result["method"] = self.method
         if self.headers:
             result["headers"] = self.headers
+        if self.messages is not None:
+            result["messages"] = self.messages
         return result
 
 class Result:
@@ -248,6 +257,7 @@ class Result:
         self.parent = query.parent
         self.status = res.get("status")
         self.headers = res.get("headers")
+        self.messages = res.get("messages")
         if "body" in res:
             self.body = base64.decodebytes(bytes(res["body"], "ASCII"))
         else:
