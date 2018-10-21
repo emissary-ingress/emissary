@@ -62,6 +62,8 @@ spec:
           {{- end }}
           - name: AMBASSADOR_ID
             value: {{ .Values.ambassador.id | quote }}
+          - name: AMBASSADOR_VERIFY_SSL_FALSE
+            value: {{ .Values.ambassador.verifySslFalse | quote }}            
           - name: AMBASSADOR_NAMESPACE
             {{- if .Values.namespace.name }}
             value: {{ .Values.namespace.name | quote }}
