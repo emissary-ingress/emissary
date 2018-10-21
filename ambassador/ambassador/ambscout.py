@@ -131,7 +131,7 @@ class AmbScout:
 
         if not self.semver:
             _notices.append({
-                "level": "warning",
+                "level": "WARNING",
                 "message": "Ambassador has invalid version '%s'??!" % self.version
             })
 

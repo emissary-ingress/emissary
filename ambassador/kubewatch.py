@@ -199,7 +199,8 @@ class Restarter(threading.Thread):
             logger.warning("RESTART REQUIRED: bootstrap changed")
 
             with open(os.path.join(self.config_root, "notices.json"), "w") as notices:
-                notices.write(json.dumps([{ 'lvl': 'warning', 'msg': 'RESTART REQUIRED! after bootstrap change' }],
+                notices.write(json.dumps([{ 'level': 'WARNING',
+                                            'message': 'RESTART REQUIRED! after bootstrap change' }],
                                          sort_keys=True, indent=4))
                 notices.write("\n")
 

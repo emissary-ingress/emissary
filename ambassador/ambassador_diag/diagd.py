@@ -142,7 +142,7 @@ class Notices:
         except OSError:
             pass
         except:
-            local_notices.append({ 'lvl': 'error', 'msg': 'bad local notices: %s' % local_data })
+            local_notices.append({ 'level': 'ERROR', 'message': 'bad local notices: %s' % local_data })
 
         self.notices = local_notices
 
@@ -177,7 +177,7 @@ def get_aconf(app, what):
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)
 
-    app.notices = Notices()
+    app.notices = Notices(app.notice_path)
     app.notices.reset()
 
     app.scout = Scout()
@@ -188,6 +188,7 @@ def get_aconf(app, what):
     app.notices.extend(app.scout_result.pop('notices', []))
 
     app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
+    app.logger.info("Scout notices: %s" % json.dumps(app.notices.notices))
 
     return aconf
 
@@ -291,7 +292,7 @@ def show_overview(reqid=None):
         app.logger.debug("OV %s -- requesting loglevel %s" % (reqid, loglevel))
 
         if not app.estats.update_log_levels(time.time(), level=loglevel):
-            notice = { 'lvl': 'warning', 'msg': "Could not update log level!" }
+            notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
@@ -300,7 +301,8 @@ def show_overview(reqid=None):
     econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
 
-    app.notices.prepend(notice)
+    if notice:
+        app.notices.prepend(notice)
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
