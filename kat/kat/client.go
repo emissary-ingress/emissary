@@ -10,8 +10,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 type semaphore chan bool
@@ -56,6 +59,80 @@ func rlimit() {
 	}
 }
 
+type Query map[string]interface{}
+
+func (q Query) Insecure() bool {
+	val, ok := q["insecure"]
+	return ok && val.(bool)
+}
+
+func (q Query) IsWebsocket() bool {
+	return strings.HasPrefix(q.Url(), "ws:")
+}
+
+func (q Query) Url() string {
+	return q["url"].(string)
+}
+
+func (q Query) Method() string {
+	val, ok := q["method"]
+	if ok {
+		return val.(string)
+	} else {
+		return "GET"
+	}
+}
+
+func (q Query) Headers() (result http.Header) {
+	headers, ok := q["headers"]
+	if ok {
+		result = make(http.Header)
+		for key, val := range headers.(map[string]interface{}) {
+			result.Add(key, val.(string))
+		}
+	}
+	return
+}
+
+type Result map[string]interface{}
+
+func (q Query) Result() Result {
+	val, ok := q["result"]
+	if !ok {
+		val = make(Result)
+		q["result"] = val
+	}
+	return val.(Result)
+}
+
+func (q Query) CheckErr(err error) bool {
+	if err != nil {
+		log.Printf("%v: %v", q.Url(), err)
+		q.Result()["error"] = err.Error()
+		return true
+	} else {
+		return false
+	}
+}
+
+func (q Query) AddResponse(resp *http.Response) {
+	result := q.Result()
+	result["status"] = resp.StatusCode
+	result["headers"] = resp.Header
+	body, err := ioutil.ReadAll(resp.Body)
+	if !q.CheckErr(err) {
+		log.Printf("%v: %v", q.Url(), resp.Status)
+		result["body"] = body
+		var jsonBody interface{}
+		err = json.Unmarshal(body, &jsonBody)
+		if err == nil {
+			result["json"] = jsonBody
+		} else {
+			result["text"] = string(body)
+		}
+	}
+}
+
 func main() {
 	rlimit()
 
@@ -74,7 +151,7 @@ func main() {
 	}
 	if err != nil { panic(err) }
 
-	var specs []map[string]interface{}
+	var specs []Query
 
 	err = json.Unmarshal(data, &specs)
 	if err != nil { panic(err) }
@@ -124,61 +201,58 @@ func main() {
 			}()
 
 			query := specs[idx]
-			result := make(map[string]interface{})
-			query["result"] = result
-			imethod, ok := query["method"]
-			var method string
-			if ok {
-				method = imethod.(string)
-			} else {
-				method = "GET"
-			}
-			url := query["url"].(string)
-			req, err := http.NewRequest(method, url, nil)
-			if err != nil {
-				log.Printf("%v: %v", url, err)
-				result["error"] = err.Error()
-				return
-			}
+			result := query.Result()
+			url := query.Url()
 
-			headers, ok := query["headers"]
-			if ok {
-				for key, val := range headers.(map[string]interface{}) {
-					req.Header.Add(key, val.(string))
+			if query.IsWebsocket() {
+				c, resp, err := websocket.DefaultDialer.Dial(url, query.Headers())
+				if query.CheckErr(err) { return }
+				defer c.Close()
+				query.AddResponse(resp)
+				messages := query["messages"].([]interface{})
+				for _, msg := range messages {
+					err = c.WriteMessage(websocket.TextMessage, []byte(msg.(string)))
+					if query.CheckErr(err) { return }
 				}
-			}
 
-			insecure, ok := query["insecure"]
-			var cli *http.Client
-			if ok && insecure.(bool) {
-				cli = insecure_client
+				err = c.WriteMessage(websocket.CloseMessage,
+					websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				if query.CheckErr(err) { return }
+
+				answers := []string{}
+
+				defer func() {
+					result["messages"] = answers
+				}()
+
+				for {
+					_, message, err := c.ReadMessage()
+					if err != nil {
+						if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
+							query.CheckErr(err)
+						}
+						return
+					} else {
+						answers = append(answers, string(message))
+					}
+				}
 			} else {
-				cli = client
-			}
+				req, err := http.NewRequest(query.Method(), url, nil)
+				if query.CheckErr(err) { return }
 
-			resp, err := cli.Do(req)
-			if err != nil {
-				log.Printf("%v: %v", url, err)
-				result["error"] = err.Error()
-				return
-			}
+				req.Header = query.Headers()
 
-			result["status"] = resp.StatusCode
-			result["headers"] = resp.Header
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				log.Printf("%v: %v", url, err)
-				result["error"] = err.Error()
-			} else {
-				log.Printf("%v: %v", url, resp.Status)
-				result["body"] = body
-				var jsonBody interface{}
-				err = json.Unmarshal(body, &jsonBody)
-				if err == nil {
-					result["json"] = jsonBody
+				var cli *http.Client
+				if query.Insecure() {
+					cli = insecure_client
 				} else {
-					result["text"] = string(body)
+					cli = client
 				}
+
+				resp, err := cli.Do(req)
+				if query.CheckErr(err) { return }
+
+				query.AddResponse(resp)
 			}
 		}(i)
 	}
