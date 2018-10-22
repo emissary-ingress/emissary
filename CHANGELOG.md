@@ -40,7 +40,25 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [0.50.0-ea2] October 11, 2018
+## [0.50.0-ea3] October 12, 2018
+[0.50.0-ea3]: https://github.com/datawire/ambassador/compare/0.50.0-ea2...0.50.0-ea3
+
+**Ambassador 0.50.0-ea3 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Fixes since 0.50.0-ea2:
+
+- `TracingService` is now supported. **You will need to restart Ambassador if you change the `TracingService` configuration.** We expect to lift this restriction in a later release; for now, the diag service will warn you when a restart is required.
+- Websockets are now supported, **including** mapping the same websocket prefix to multiple upstream services for canary releases or load balancing.
+- KAT supports full debug logs by individual `Test` or `Query`.
+
+**Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information.** 
+
+## [0.50.0-ea2] October 16, 2018
 [0.50.0-ea2]: https://github.com/datawire/ambassador/compare/0.50.0-ea1...0.50.0-ea2
 
 **Ambassador 0.50.0-ea2 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
@@ -59,7 +77,7 @@ Format:
 - The diagnostics service now shows the V2 config actually in use, not V1.
 - `make` will no longer rebuild the Python venv so aggressively.
 
-### Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information. 
+**Ambassador 0.50.0 is not yet feature-complete. Read the Limitations and Breaking Changes sections in the 0.50.0-ea1 section below for more information.** 
 
 ## [0.50.0-ea1] October 11, 2018
 [0.50.0-ea1]: https://github.com/datawire/ambassador/compare/0.40.0...0.50.0-ea1
