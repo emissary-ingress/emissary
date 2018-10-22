@@ -50,7 +50,7 @@ class AmbScout:
         self.logger = logging.getLogger("ambassador.scout")
         # self.logger.setLevel(logging.DEBUG)
 
-        self.logger.debug("Ambassador version %s" % Version)
+        self.logger.debug("Ambassador version %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
         self.logger.debug("Scout version      %s%s" % (self.version, " - BAD SEMVER" if not self.semver else ""))
         self.logger.debug("Runtime            %s" % self.runtime)
         self.logger.debug("Namespace          %s" % self.namespace)
@@ -99,6 +99,9 @@ class AmbScout:
 
             if 'namespace' not in kwargs:
                 kwargs['namespace'] = self.namespace
+
+            if 'commit' not in kwargs:
+                kwargs['commit'] = Build.git.commit
 
             # How long since the last Scout update? If it's been more than an hour,
             # check Scout again.
@@ -243,7 +246,9 @@ class AmbScout:
 
         build_elements = []
 
-        if not AmbScout.reTaggedBranch.search(version):
+        m = AmbScout.reTaggedBranch.search(build.git.branch)
+
+        if not m:
             # This isn't a proper sane version. It must be a local build. Per
             # Scout's rules, anything with semver build metadata is treated as a
             # dev version, so we need to make sure our returned version has some.
@@ -289,6 +294,14 @@ class AmbScout:
             # If this branch is dirty, append a build element of "dirty".
             if build.git.dirty:
                 build_elements.append('dirty')
+        else:
+            # The build branch is a sane version. Does it match our base version?
+            (base_version, prerelease) = m.groups()
+
+            if base_version != version:
+                build_elements.append("q%s" % version.replace('.', '-'))
+
+            version = build.git.branch
 
         # Finally, put it all together.
         if build_elements:
