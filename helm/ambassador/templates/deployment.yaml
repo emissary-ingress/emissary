@@ -25,6 +25,7 @@ spec:
         prometheus.io/port: "9102"
     spec:
       serviceAccountName: {{ template "ambassador.serviceAccountName" . }}
+{{- if .Values.exporter.enabled }}              
       volumes:
       - name: stats-exporter-mapping-config
         configMap:
@@ -32,7 +33,11 @@ spec:
           items:
           - key: exporterConfiguration
             path: mapping-config.yaml
+{{- end }}            
+      securityContext:
+        runAsUser: {{ .Values.securityContext.user }}
       containers:
+{{- if .Values.exporter.enabled }}        
         - name: statsd-sink
           image: "{{ .Values.exporter.image }}"
           ports:
@@ -45,6 +50,7 @@ spec:
           - name: stats-exporter-mapping-config
             mountPath: /statsd-exporter/
             readOnly: true
+{{- end }}            
         - name: ambassador
           image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -58,7 +64,7 @@ spec:
           env:
           {{- if .Values.namespace.single }}
           - name: AMBASSADOR_SINGLE_NAMESPACE
-            value: {{ .Values.namespace.single }}
+            value: '{{ .Values.namespace.single }}'
           {{- end }}
           - name: AMBASSADOR_ID
             value: {{ .Values.ambassador.id | quote }}

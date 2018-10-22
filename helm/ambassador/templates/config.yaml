@@ -1,3 +1,4 @@
+{{- if .Values.exporter.enabled }}              
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,4 +8,5 @@ data:
 {{- if .Values.exporter.configuration }} |
 {{ .Values.exporter.configuration | indent 4 }}
 {{- else }} ''
+{{- end }}
 {{- end }}

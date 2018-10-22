@@ -19,27 +19,30 @@ image:
   pullPolicy: IfNotPresent
   #imagePullSecrets: sample
 
+securityContext:
+  user: 8888
 
 service:
   enableHttp: true
   enableHttps: true
 
   targetPorts:
-    http: 80
-    https: 443
+    http: 8080
+    https: 8443
 
 
   type: LoadBalancer
   port: 80
   #Nodeport to use  if type is selected as Nodeport otherwise it will be ignored
   #nodePort : 30039
-  # annotations:
-  #   getambassador.io/config: |
-  #     ---
-  #     apiVersion: ambassador/v0
-  #     kind: Module
-  #     name:  ambassador
-  #     config:
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name:  ambassador
+      config:
+        service_port: 8080
   #       diagnostics:
   #         enabled: false
   # loadBalancerSourceRanges:
@@ -77,6 +80,7 @@ tolerations: []
 affinity: {}
 
 exporter:
+  enabled: false
   image: prom/statsd-exporter:v0.6.0
   # You can configure the statsd exporter to modify the behavior of mappings and other features.
   # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration
