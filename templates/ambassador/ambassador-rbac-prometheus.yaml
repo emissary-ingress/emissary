@@ -53,7 +53,7 @@ subjects:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ambassador-config
+  name: ambassador-statsd-config
 data:
   exporterConfiguration: ''
 ---
@@ -113,13 +113,13 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: statsd-sink
-        image: prom/statsd-exporter:v0.6.0
+        image: prom/statsd-exporter:v0.7.0
         ports:
         - name: metrics
           containerPort: 9102
         - name: listener
           containerPort: 8125
-        args: ["-statsd.listen-address=:8125", "-statsd.mapping-config=/statsd-exporter/mapping-config.yaml"]
+        args: ["--statsd.listen-udp=:8125", "--statsd.mapping-config=/statsd-exporter/mapping-config.yaml"]
         volumeMounts:
         - name: stats-exporter-mapping-config
           mountPath: /statsd-exporter/
