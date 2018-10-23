@@ -220,7 +220,7 @@ $ kubectl logs ambassador-85c4cf67b-4pfj2
 [2018-10-10 12:27:01.977][21][info][main] source/server/drain_manager_impl.cc:63] shutting down parent after drain
 ```
 
-By using the [Ambassador diagnostics console](diagnostics) you can click a button to "Set Debug On", and this causes Ambassador to generate a lot more logging. This can be useful when tracking down a particularly subtle bug.
+By using the [Ambassador diagnostics console](/reference/diagnostics) you can click a button to "Set Debug On", and this causes Ambassador to generate a lot more logging. This can be useful when tracking down a particularly subtle bug.
 
 ## <a name="examining-pod"></a>Examining an Ambassador/Envoy Pod and Container
 
