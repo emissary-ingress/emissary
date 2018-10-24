@@ -205,7 +205,6 @@ def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
     redirects output to devnull and always exits on error.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     """
     config(config_dir_path, os.devnull, exit_on_error=True, **kwargs)
 
