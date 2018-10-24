@@ -176,4 +176,4 @@ spec:
       - cloud.foo.com
 ```
 
-Note the `secretName` line above. When the certificate has been stored in the secret, restart Ambasador to pick up the new certificate.
+Note the `secretName` line above. When the certificate has been stored in the secret, restart Ambassador to pick up the new certificate.
