@@ -563,6 +563,7 @@ driver: zipkin
         # Speak through each Ambassador to the traced service...
         # yield Query(self.with_tracing.url("target/"))
         # yield Query(self.no_tracing.url("target/"))
+
         for i in range(100):
             yield Query(self.url("target/"), phase=1)
 
@@ -584,7 +585,9 @@ driver: zipkin
         tracelist = { x: True for x in self.results[101].backend.response }
 
         assert 'router cluster_tracingtest_http egress' in tracelist
-        assert 'tracingtest' in tracelist
+
+        # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend.request.host in tracelist
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
