@@ -31,8 +31,8 @@ $ make format
 ```
 
 ### Releasing
-1. Create a git tag, e.g. git tag 0.0.x-rc
-2. Push your tag, e.g. git push origin 0.0.x-rc
+1. Create a git tag, e.g. `git tag 0.0.x-rc`
+2. Push your tag, e.g. `git push origin 0.0.x-rc`
 
 When a branch is tagged, the [CI](https://travis-ci.com/datawire/ambassador-oauth) will build, deploy and test end-to-end you branch tag before pushing the new image to the [docker registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags). Not that the CI does not check tag hierarchy, so make sure that the new tag makes sense. Only tags with format `x.x.x` or `x.x.x-rc` will be accepted.    
 
