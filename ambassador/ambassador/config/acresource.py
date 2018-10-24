@@ -209,9 +209,9 @@ class ResourceFetcher:
             return
 
         self.filename += ":annotation"
-        self.load_yaml(annotations, rkey=resource_identifier)
+        self.load_yaml(annotations, rkey=resource_identifier, k8s=True)
 
-    def process_object(self, obj: dict, rkey: Optional[str]=None) -> int:
+    def process_object(self, obj: dict, rkey: Optional[str]=None, k8s: bool=False) -> int:
         # self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))
 
         # Is this a pragma object?
@@ -233,6 +233,9 @@ class ResourceFetcher:
 
         if not rkey:
             rkey = "%s.%d" % (self.filename, self.ocount)
+        elif rkey and k8s:
+            # rkey should be unique for k8s objects
+            rkey = (''.join([rkey, ".%d" % self.ocount]))
 
         # Fine. Fine fine fine.
         serialization = yaml.safe_dump(obj, default_flow_style=False)
