@@ -142,7 +142,7 @@ class AmbassadorTest(Test):
 
         return typecast(int, self._index)
 
-    def pre_query(self):
+    def post_manifest(self):
         if not DEV: return
 
         run("docker", "kill", self.path.k8s)
@@ -152,7 +152,7 @@ class AmbassadorTest(Test):
 
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
-            context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            context = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
             print("Starting docker build...", end="")
             sys.stdout.flush()
             result = run("docker", "build", context, "-t", image)
@@ -195,13 +195,9 @@ class AmbassadorTest(Test):
                      "-e", "AMBASSADOR_ID=%s" % self.ambassador_id,
                      image)
         result.check_returncode()
-        self.deadline = time.time() + 10
 
     def queries(self):
         if DEV:
-            now = time.time()
-            if now < self.deadline:
-                time.sleep(self.deadline - now)
             result = run("docker", "ps", "-qf", "name=%s" % self.path.k8s)
             result.check_returncode()
             if not result.stdout.strip():
@@ -214,16 +210,18 @@ class AmbassadorTest(Test):
     def scheme(self) -> str:
         return "http"
 
-    def url(self, prefix) -> str:
+    def url(self, prefix, scheme=None) -> str:
+        if scheme is None:
+            scheme = self.scheme()
         if DEV:
-            port = 8443 if self.scheme() == 'https' else 8080
-            return "%s://%s/%s" % (self.scheme(), "localhost:%s" % (port + self.index), prefix)
+            port = 8443 if scheme == 'https' else 8080
+            return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
-            return "%s://%s/%s" % (self.scheme(), self.path.k8s, prefix)
+            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
-        if not DEV:
-            yield ("pod", "%s" % self.name.k8s)
+        yield ("url", self.url("ambassador/v0/check_ready"))
+        yield ("url", self.url("ambassador/v0/check_alive"))
 
 
 @abstract_test
@@ -236,7 +234,8 @@ class ServiceType(Node):
         return self.format(manifests.BACKEND)
 
     def requirements(self):
-        yield ("pod", self.path.k8s)
+        yield ("url", "http://%s" % self.path.k8s)
+        yield ("url", "https://%s" % self.path.k8s)
 
 class HTTP(ServiceType):
     pass

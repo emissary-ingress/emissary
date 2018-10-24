@@ -73,6 +73,8 @@ class Restarter(threading.Thread):
         threading.Thread.__init__(self, daemon=True)
 
         self.ambassador_config_dir = ambassador_config_dir
+        self.config_root = os.path.abspath(os.path.dirname(self.ambassador_config_dir))
+        self.envoy_config_dir = os.path.join(self.config_root, "envoy")
         self.namespace = namespace
         self.envoy_config_file = envoy_config_file
         self.delay = delay
@@ -86,6 +88,8 @@ class Restarter(threading.Thread):
         self.restart_count = 0
 
         self.configs = {}
+
+        self.last_bootstrap = None
 
         # Read the base configuration...
         self.read_fs(self.ambassador_config_dir)
@@ -149,25 +153,57 @@ class Restarter(threading.Thread):
 
                     self.processed += changes
 
+
+    def safe_write(self, temp_dir, target_dir, target_name, serialized):
+        temp_path = "%s-%s" % (temp_dir, target_name)
+
+        with open(temp_path, "w") as o:
+            o.write(serialized)
+            o.write("\n")
+
+        target_path = os.path.abspath(os.path.join(target_dir, target_name))
+
+        os.rename(temp_path, target_path)
+
+        return target_path
+
     def restart(self):
         self.restart_count += 1
         output = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
-        config = self.generate_config(output)
+        bootstrap_config, ads_config = self.generate_config(output)
 
-        base, ext = os.path.splitext(self.envoy_config_file)
-        target = "%s-%s%s" % (base, self.restart_count, ext)
+        bootstrap_serialized = json.dumps(bootstrap_config, sort_keys=True, indent=4)
+        need_restart = False
+        rewrite_bootstrap = False
 
-        # This has happened sometimes. Hmmmm.
-        m = re.match(r'^envoy-\d+\.json$', os.path.basename(target))
+        if not self.last_bootstrap:
+            rewrite_bootstrap = True
+        elif bootstrap_serialized != self.last_bootstrap:
+            need_restart = True
+            rewrite_bootstrap = True
 
-        if not m:
-            raise Exception("Impossible? would be writing %s" % target)
+        self.last_bootstrap = bootstrap_serialized
 
-        target = os.path.join(self.ambassador_config_dir, "..", "envoy", "envoy.json")
+        if rewrite_bootstrap:
+            bootstrap_path = self.safe_write(output, self.config_root, "bootstrap-ads.json",
+                                             bootstrap_serialized)
 
-        os.rename(config, target)
+            logger.debug("Rewrote bootstrap to %s" % bootstrap_path)
 
-        logger.debug("Moved configuration %s to %s" % (config, target))
+        envoy_path = self.safe_write(output, self.envoy_config_dir, "envoy.json",
+                                     json.dumps(ads_config, sort_keys=True, indent=4))
+
+        logger.debug("Wrote configuration %d to %s" % (self.restart_count, envoy_path))
+
+        if need_restart:
+            logger.warning("RESTART REQUIRED: bootstrap changed")
+
+            with open(os.path.join(self.config_root, "notices.json"), "w") as notices:
+                notices.write(json.dumps([{ 'level': 'WARNING',
+                                            'message': 'RESTART REQUIRED! after bootstrap change' }],
+                                         sort_keys=True, indent=4))
+                notices.write("\n")
+
         if self.pid:
             os.kill(self.pid, signal.SIGHUP)
 
@@ -193,6 +229,13 @@ class Restarter(threading.Thread):
         ir = IR(aconf, tls_secret_resolver=self.tls_secret_resolver)
         envoy_config = V2Config(ir)
 
+        ads_config = {
+            '@type': '/envoy.config.bootstrap.v2.Bootstrap',
+            'static_resources': envoy_config.static_resources
+        }
+
+        bootstrap_config = dict(envoy_config.bootstrap)
+
         scout = Scout()
         result = scout.report(mode="kubewatch", action="reconfigure",
                               gencount=self.restart_count)
@@ -204,12 +247,7 @@ class Restarter(threading.Thread):
         for notice in notices:
             logger.log(logging.getLevelName(notice.get('level', 'WARNING')), notice.get('message', '?????'))
 
-        envoy_config_path = "%s-%s" % (output, "envoy.json")
-        with open(envoy_config_path, "w") as o:
-            o.write(envoy_config.as_json())
-            o.write("\n")
-
-        return envoy_config_path
+        return bootstrap_config, ads_config
 
     def update_from_service(self, svc):
         key = get_filename(svc)

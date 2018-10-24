@@ -46,7 +46,6 @@ class IRCluster (IRResource):
         "path_redirect": True,
         "priority": True,
         "timeout_ms": True,
-        "use_websocket": True
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
