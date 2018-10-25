@@ -1,5 +1,4 @@
 - title: Getting Started
-  collapsable: false
   items:
     - title: Welcome
       link: /docs/
@@ -53,7 +52,6 @@
       link: https://blog.getambassador.io/howto/home
 
 - title: Reference
-  collapsable: false
   items:
     - title: Configuring Ambassador
       items:

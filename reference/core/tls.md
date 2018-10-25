@@ -129,6 +129,36 @@ config:
 
 Note: If `ambassador-cacert` is present in the cluster and the TLS module is configured to load a custom secret, then `ambassador-cacert` will take precedence, and the custom secret will be ignored.
 
+## TLS Origination
+Ambassador is also able to originate a TLS connection with backend services. This can be easily configured by telling Ambassador to route traffic to a service over HTTPS or setting the [tls](/reference/mappings#using-tls) attribute to `true`.
+
+```
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotm
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      service: https://qotm
+spec:
+  selector:
+    app: qotm
+  ports:
+  - port: 443
+    name: http-qotm
+    targetPort: http-api
+```
+Ambassador will assume it can trust the services in your cluster so will default to not validating the backend's certificates. This allows for your backend services to use self-signed certificates with ease.
+
+### Mutual TLS
+Ambassador can be configured to do mutual TLS with backend services as well. To accomplish this, you will need to provide certificates for Ambassador to use with the backend. An example of this is given in the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation.
+
 ## More reading
 
 The [TLS termination guide](/user-guide/tls-termination) provides a tutorial on getting started with TLS in Ambassador. For more informatiom on configuring Ambassador with external L4/L7 load balancers, see the [documentation on AWS](/reference/ambassador-with-aws). Note that this document, while intended for AWS users, has information also applicable to other cloud providers.
