@@ -184,7 +184,7 @@ There is some extra configuration required to connect to a gRPC service through 
 
 ![](/images/gRPC-TLS.png)
 
-If you want to add TLS encyrption to our gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS. Next, we need to change the client code slightly and tell it to open a secure RPC channel with Ambassador. 
+If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS. Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador. 
 
 ```diff
 - with grpc.insecure_channel(‘$AMBASSADORHOST:$PORT’) as channel:
@@ -208,9 +208,9 @@ Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the
 
 #### Originating TLS with gRPC Service
 
-Ambassador can originate TLS with your gRPC service so the entire RPC channel is encyrpted. To configure this, first get some TLS certificates and configure the server to open a secure channel with them. Using self-signed certs this can be done with openssl and adding a couple of lines to the server code.
-
 ![](/images/gRPC-TLS-Originate.png)
+
+Ambassador can originate TLS with your gRPC service so the entire RPC channel is encyrpted. To configure this, first get some TLS certificates and configure the server to open a secure channel with them. Using self-signed certs this can be done with openssl and adding a couple of lines to the server code.
 
 ```diff
 def serve():
@@ -225,7 +225,7 @@ def serve():
 +   server.add_secure_port('[::]:50052', server_creds)
     server.start()
 ```
-Rebuild your docker container *making sure the certificates are included* and follow the same steps of testing and deploying to kubernetes. You will need to make a small change the the client code to test locally.
+Rebuild your docker container **making sure the certificates are included** and follow the same steps of testing and deploying to kubernetes. You will need to make a small change the the client code to test locally.
 
 ```diff
 - with grpc.insecure_channel(‘localhost:$PORT’) as channel:
@@ -280,7 +280,9 @@ spec:
         upstream:
           alpn_protocols: ["h2"]
 ```
-We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` under a tls-context name (like `upstream`) and telling the service to use that tls-context in the mapping by setting `tls: upstream`. Refer to the [TLS document](/reference/core/tls) for more information on TLS origination. 
+We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` under a tls-context name (like `upstream`) in the TLS module and telling the service to use that tls-context in the mapping by setting `tls: upstream`. 
+
+Refer to the [TLS document](/reference/core/tls) for more information on TLS origination. 
 
 
 ### gRPC Headers
