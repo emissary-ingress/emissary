@@ -18,10 +18,8 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 AMBASSADOR_ROOT="/ambassador"
-CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-config"
-ENVOY_CONFIG_FILE="$AMBASSADOR_ROOT/envoy.json"
-
-export PYTHON_EGG_CACHE=${AMBASSADOR_ROOT}
+CONFIG_DIR="${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/ambassador-config"
+ENVOY_CONFIG_FILE="${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy.json"
 
 if [ "$1" == "--demo" ]; then
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
@@ -33,7 +31,7 @@ APPDIR=${APPDIR:-"$AMBASSADOR_ROOT"}
 
 # If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by default, which fails when running as a non-privileged
 # user
-export PYTHON_EGG_CACHE=${APPDIR/.cache}
+export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$APPDIR}/.cache"
 
 export PYTHONUNBUFFERED=true
 
@@ -62,7 +60,7 @@ diediedie() {
     fi
 
     echo "Here's the envoy.json we were trying to run with:"
-    LATEST="$(ls -v $AMBASSADOR_ROOT/envoy*.json | tail -1)"
+    LATEST="$(ls -v ${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy*.json | tail -1)"
     if [ -e "$LATEST" ]; then
         cat "$LATEST"
     else
