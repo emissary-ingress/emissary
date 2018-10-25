@@ -87,9 +87,9 @@
               link: /reference/rewrites
             - title: Traffic Shadowing
               link: /reference/shadowing
-        - title: External Services
+        - title: Plugins
           items:
-            - title: External Services
+            - title: Plugins
               link: /reference/services/services
             - title: Authentication
               link: /reference/services/auth-service
