@@ -30,9 +30,11 @@ service:
 
 
   type: LoadBalancer
-  port: 80
+  httpPort: 80
+  httpsPort: 443
   #Nodeport to use  if type is selected as Nodeport otherwise it will be ignored
-  #nodePort : 30039
+  #httpNodePort : 30080
+  #httpsNodePort : 30443
   # annotations:
   #   getambassador.io/config: |
   #     ---
