@@ -71,6 +71,14 @@ def v2filter(auth):
         }
     }
 
+
+@v2filter.when("IRRateLimit")
+def v2filter(ratelimit):
+    return {
+        'name': 'envoy.rate_limit',
+        'config': ratelimit.config
+    }
+
 @v2filter.when("ir.cors")
 def v2filter(cors):
     return { 'name': 'envoy.cors' }

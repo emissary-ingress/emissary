@@ -23,7 +23,7 @@ from ...ir.irlistener import IRListener
 from ...ir.irfilter import IRFilter
 
 from .v1tls import V1TLSContext
-from .v1ratelimit import V1RateLimits
+from .v1ratelimitaction import V1RateLimitAction
 
 if TYPE_CHECKING:
     from . import V1Config

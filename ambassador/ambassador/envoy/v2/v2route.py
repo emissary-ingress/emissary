@@ -18,7 +18,7 @@ from ..common import EnvoyRoute
 from ...ir import IRResource
 from ...ir.irmapping import IRMappingGroup
 
-# from .v2ratelimit import V2RateLimits
+from .v2ratelimitaction import V2RateLimitAction
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -69,16 +69,21 @@ class V2Route(dict):
 
             route['cors'] = cors
 
+        if "rate_limits" in group:
+            route["rate_limits"] = [ V2RateLimitAction(rl) for rl in group.rate_limits ]
+
         self['match'] = match
         self['route'] = route
 
         request_headers_to_add = []
+
         for mapping in group.mappings:
             for k, v in mapping.get('add_request_headers', {}).items():
                 request_headers_to_add.append({
                     'header': {'key': k, 'value': v},
                     'append': True, # ???
                     })
+
         if request_headers_to_add:
             self['request_headers_to_add'] = request_headers_to_add
 
