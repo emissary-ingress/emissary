@@ -199,19 +199,19 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         sys.exit(1)
 
 
-def validate(config_dir_path: Parameter.REQUIRED, *, k8s=False):
+def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
     """
-    Validate an Ambassador configuration
+    Validate an Ambassador configuration. This is an extension of "config" that
+    redirects output to devnull and always exits on error.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     """
-    config(config_dir_path, os.devnull, k8s=k8s, exit_on_error=True)
+    config(config_dir_path, os.devnull, exit_on_error=True, **kwargs)
 
 
 def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQUIRED, *,
            debug=False, debug_scout=False, check=False, k8s=False, ir=None, aconf=None,
-           exit_on_error=False):
+           exit_on_error=False, v1=False, v2=False):
     """
     Generate an Envoy configuration
 
@@ -224,8 +224,9 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
     :param exit_on_error: If set, will exit with status 1 on any configuration error
     :param ir: Pathname to which to dump the IR (not dumped if not present)
     :param aconf: Pathname to which to dump the aconf (not dumped if not present)
+    :param v1: If set, output config to v1 envoy config
+    :param v2: If set, output config to v2 envoy config (default)
     """
-
     if debug:
         logger.setLevel(logging.DEBUG)
 
@@ -290,25 +291,35 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
                     output.write(ir.as_json())
                     output.write("\n")
 
-            v1config = V1Config(ir)
-            rc = RichStatus.OK(msg="huh")
+            # clize considers kwargs with False for default value as flags,
+            # resulting in the logic below.
+            # https://clize.readthedocs.io/en/stable/basics.html#accepting-flags
 
-            if rc:
-                with open(output_json_path, "w") as output:
-                    output.write(v1config.as_json())
-                    output.write("\n")
+            # Flag --v1 is specified, it takes precedence over default --v2.
+            # Make sure they are mutually exclusive, defaulting to v2 if both are True.
+            if v1 and not v2:
+                logger.info("Writing envoy V1 configuration")
+                v1config = V1Config(ir)
+                rc = RichStatus.OK(msg="huh")
+
+                if rc:
+                    with open(output_json_path, "w") as output:
+                        output.write(v1config.as_json())
+                        output.write("\n")
+                else:
+                    logger.error("Could not generate new Envoy configuration: %s" % rc.error)
+            # Flag --v1 is not specified generate v2 config.
             else:
-                logger.error("Could not generate new Envoy configuration: %s" % rc.error)
+                logger.info("Writing envoy V2 configuration")
+                v2config = V2Config(ir)
+                rc = RichStatus.OK(msg="huh_v2")
 
-            v2config = V2Config(ir)
-            rc = RichStatus.OK(msg="huh_v2")
-
-            if rc:
-                with open(output_json_path + '.v2', "w") as output:
-                    output.write(v2config.as_json())
-                    output.write("\n")
-            else:
-                logger.error("Could not generate new Envoy configuration: %s" % rc.error)
+                if rc:
+                    with open(output_json_path, "w") as output:
+                        output.write(v2config.as_json())
+                        output.write("\n")
+                else:
+                    logger.error("Could not generate new Envoy configuration: %s" % rc.error)
 
         scout = Scout()
         result = scout.report(action="config", mode="cli")
