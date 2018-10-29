@@ -60,6 +60,10 @@ install:
 script:
   - ./releng/travis-script.sh
 
+after_script:
+  # release the kubernaut claim
+  - make clean-test
+
 deploy:
   # Set "GIT_BRANCH" to the value of "MAIN_BRANCH" because the branch a tag originates from is not preserved by Git.
   # Because releases occur from $MAIN_BRANCH all this does is ensure the correct Docker image lookups are performed

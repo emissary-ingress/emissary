@@ -291,10 +291,20 @@ $(TELEPROXY):
 	sudo chmod go-w $(TELEPROXY)
 	sudo chmod a+sx $(TELEPROXY)
 
+CLAIM_FILE=kubernaut-claim.txt
+CLAIM_NAME=$(shell cat $(CLAIM_FILE))
+
 KUBERNAUT=venv/bin/kubernaut
 KUBERNAUT_VERSION=2018.10.24-d46c1f1
-KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name kat --cluster-group main
-KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete kat
+KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
+KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
+
+$(CLAIM_FILE):
+	@if [ -z $${CI+x} ]; then \
+		echo kat-$${USER} > $@; \
+	else \
+		echo kat-$${USER}-$(shell uuidgen) > $@; \
+	fi
 
 $(KUBERNAUT):
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
@@ -305,10 +315,10 @@ setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
-cluster.yaml:
+cluster.yaml: $(CLAIM_FILE)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
-	cp ~/.kube/kat.yaml cluster.yaml
+	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 	rm -f /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
@@ -344,6 +354,7 @@ shell: setup-develop cluster.yaml
 clean-test:
 	rm -f cluster.yaml
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
+	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
 test: version setup-develop cluster.yaml
