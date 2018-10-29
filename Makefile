@@ -292,7 +292,7 @@ $(TELEPROXY):
 	sudo chmod a+sx $(TELEPROXY)
 
 KUBERNAUT=venv/bin/kubernaut
-KUBERNAUT_VERSION=2018.08.13-5b1643b
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
 KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name kat --cluster-group main
 KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete kat
 
