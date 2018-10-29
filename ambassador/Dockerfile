@@ -27,7 +27,7 @@
 
 # FROM datawire/ambassador-envoy-alpine-stripped:v1.6.0-446-g100a92e2
 # FROM quay.io/datawire/ambassador-envoy:v1.7.0-64-g09ba72b1-alpine-stripped
-FROM quay.io/datawire/ambassador-envoy:v1.7.0-65-ga22b2f14-alpine-stripped
+FROM quay.io/datawire/ambassador-envoy:v1.7.0-66-g5f795fe2-alpine-stripped
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
