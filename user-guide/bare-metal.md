@@ -21,7 +21,7 @@ spec:
   selector:
     service: ambassador
 ```
-Using a `NodePort` leaves Ambassador isolated from the host network allowing the Kubernetes service to handle routing to Ambassador pods. You can drop-in this yaml to replace the `LoadBalancer` service in the [YAML installation guide](/user-guide/getting-started) and use `http://<External-Node-IP>:<NodePort>/` as the host for requests. 
+Using a `NodePort` leaves Ambassador isolated from the host network, allowing the Kubernetes service to handle routing to Ambassador pods. You can drop-in this yaml to replace the `LoadBalancer` service in the [YAML installation guide](/user-guide/getting-started) and use `http://<External-Node-IP>:<NodePort>/` as the host for requests. 
 
 ## Exposing Ambassador via Host Network
 When running Ambassador on a bare-metal install of Kubernetes, you have the option to configure Ambassador pods to use the network of the host they are running on. This method allows you to bind Ambassador directly to port 80 or 443 so you won't need to identify the port in requests. 
