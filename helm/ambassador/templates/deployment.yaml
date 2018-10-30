@@ -32,6 +32,9 @@ spec:
           items:
           - key: exporterConfiguration
             path: mapping-config.yaml
+      {{- with .Values.volumes }}
+{{ toYaml . | indent 6 }}
+      {{- end -}}
       containers:
         - name: statsd-sink
           image: "{{ .Values.exporter.image }}"
@@ -96,6 +99,10 @@ spec:
               port: admin
             initialDelaySeconds: 30
             periodSeconds: 3
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+{{ toYaml . | indent 10 }}
+          {{- end -}}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}
