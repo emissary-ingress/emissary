@@ -74,7 +74,7 @@ spec:
       volumes:
       - name: stats-exporter-mapping-config
         configMap:
-          name: ambassador-config
+          name: ambassador-statsd-config
           items:
           - key: exporterConfiguration
             path: mapping-config.yaml
