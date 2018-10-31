@@ -82,6 +82,7 @@ apiVersion: ambassador/v0
 kind: RateLimitService
 name: ratelimit
 service: rate-limit:5000
+timeout_ms: 500
 """)
 
     def queries(self):

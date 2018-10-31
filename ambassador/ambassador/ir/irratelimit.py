@@ -65,7 +65,7 @@ class IRRateLimit (IRFilter):
         self.config = {
             "domain": "ambassador",     # XXX configurability!
             "request_type": "both",     # XXX configurability!
-            # "timeout_ms": 20            # XXX configurability!
+            "timeout_ms": config.get('timeout_ms', 20)
         }
 
         self.sourced_by(config)

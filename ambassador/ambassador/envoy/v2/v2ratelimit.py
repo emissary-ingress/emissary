@@ -26,8 +26,7 @@ class V2RateLimit(dict):
         self['grpc_service'] = {
             'envoy_grpc': {
                 'cluster_name': config.ir.ratelimit.cluster.name
-            },
-            'timeout': "5s"
+            }
         }
 
     @classmethod
