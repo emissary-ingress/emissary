@@ -33,31 +33,8 @@ class V1Cluster(dict):
 
         self["hosts"] = [ { "url": url } for url in cluster.urls ]
 
-        if cluster.get('features', []):
-            self["features"] = cluster.features
-
-        if cluster.get('breakers', {}):
-            pass
-            # brk = cluster.breakers
-            #
-            # self["circuit_breakers"] = {
-            #     "default": {
-            #         "max_connections": {{ brk.max_connections or 1024 }},
-            #         "max_pending_requests": {{ brk.max_pending or 1024 }},
-            #         "max_requests": {{ brk.max_requests or 1024 }},
-            #         "max_retries": {{ brk.max_retries or 3 }}
-            #     }
-            # }
-
-        if cluster.get('outlier', {}):
-            pass
-            # outlier = cluster.outlier
-            #
-            # self["outlier_detection"] = {
-            #     "consecutive_5xx": outlier.consecutive_5xx or 5
-            #     "max_ejection_percent": outlier.max_ejection or 100
-            #     "interval_ms": outlier.interval_ms or 3000
-            # }
+        if cluster.get('grpc', False):
+            self["features"] = "http2"
 
         if 'tls_context' in cluster:
             ctx = cluster.tls_context
