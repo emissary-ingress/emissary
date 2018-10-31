@@ -46,13 +46,7 @@ class V2Bootstrap(dict):
             clusters.append(V2Cluster(config, config.ir.tracing.cluster))
 
         if config.ratelimit:
-            self['rate_limit_service'] = {
-                "cluster_name": config.ratelimit['cluster_name'],
-                "use_data_plane_proto": config.ratelimit['use_data_plane_proto']
-            }
-
-            # We can either use a cluster, or a grpc_service. We'll use the
-            # cluster since we already have logic to include bootstrap clusters.
+            self['rate_limit_service'] = dict(config.ratelimit)
             clusters.append(V2Cluster(config, config.ir.ratelimit.cluster))
 
         self['static_resources']['clusters'] = clusters

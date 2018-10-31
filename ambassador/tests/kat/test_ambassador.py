@@ -9,6 +9,8 @@ from kat import manifests
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
+from t_ratelimit import RateLimitTest
+
 # XXX: should test empty ambassador config
 
 class TLS(AmbassadorTest):

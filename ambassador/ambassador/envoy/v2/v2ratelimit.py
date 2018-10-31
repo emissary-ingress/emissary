@@ -22,12 +22,13 @@ class V2RateLimit(dict):
     def __init__(self, config: 'V2Config') -> None:
         super().__init__()
 
-        self['name'] = config.ir.ratelimit.name
-        self['service_name'] = config.ir.ratelimit.service
         self['use_data_plane_proto'] = config.ir.ratelimit.data_plane_proto
-        self['cluster_name'] = config.ir.ratelimit.cluster.name
-
-        self['config'] = config.ir.ratelimit.config
+        self['grpc_service'] = {
+            'envoy_grpc': {
+                'cluster_name': config.ir.ratelimit.cluster.name
+            },
+            'timeout': "5s"
+        }
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:

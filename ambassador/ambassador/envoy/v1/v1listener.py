@@ -38,8 +38,10 @@ class V1Filter(dict):
         self['config'] = filter.config_dict()
 
         if filter.get('type', None):
-           self['type'] = filter.type
+            self['type'] = filter.type
 
+            if filter.kind == 'IRRateLimit':
+                self['config']['timeout_ms'] = 20
 
 class V1Listener(dict):
     def __init__(self, config: 'V1Config', listener: IRListener) -> None:

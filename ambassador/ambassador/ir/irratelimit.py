@@ -65,7 +65,7 @@ class IRRateLimit (IRFilter):
         self.config = {
             "domain": "ambassador",     # XXX configurability!
             "request_type": "both",     # XXX configurability!
-            "timeout_ms": 20            # XXX configurability!
+            # "timeout_ms": 20            # XXX configurability!
         }
 
         self.sourced_by(config)
@@ -89,6 +89,6 @@ class IRRateLimit (IRFilter):
 
         # Go ahead and define a GRPC service -- just recognize that we may not
         # use it.
-        grpc_service = ir.add_grpc_service("rate_limit_service", cluster)
+        self.grpc_service = ir.add_grpc_service("rate_limit_service", cluster)
 
         self.cluster = cluster
