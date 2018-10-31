@@ -128,7 +128,7 @@ class V2Listener(dict):
             #
             # XXX Wait what? A V2TLSContext can hold only a single context, as far as I can tell...
             envoy_ctx = V2TLSContext()
-            for name, ctx in config.ir.tls_contexts.items():
+            for name, ctx in config.ir.envoy_tls.items():
                 config.ir.logger.info("envoy_ctx adding %s" % ctx.as_json())
                 envoy_ctx.add_context(ctx)
 
@@ -220,6 +220,8 @@ class V2Listener(dict):
             'filter_chains': [ chain ]
         })
 
+        self.handle_sni(config)
+
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
         config.listeners = []
@@ -227,3 +229,51 @@ class V2Listener(dict):
         for irlistener in config.ir.listeners:
             listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
             config.listeners.append(listener)
+
+    def handle_sni(self, config: 'V2Config'):
+        if len(config.sni_routes) > 0:
+            self['listener_filters'] = [
+                {
+                    'name': 'envoy.listener.tls_inspector',
+                    'config': {}
+                }
+            ]
+
+        for sni_route in config.sni_routes:
+            sni_chain = {
+                'filter_chain_match': {
+                    'server_names': sni_route['info']['hosts']
+                },
+                'tls_context': {
+                    'common_tls_context': {
+                        'tls_certificates': [
+                            {
+                                'certificate_chain': {
+                                    'filename': sni_route['info']['secret_info']['certificate_chain_file']
+                                },
+                                'private_key': {
+                                    'filename': sni_route['info']['secret_info']['private_key_file']
+                                }
+                            }
+                        ]
+                    }
+                },
+                'filters': [
+                    {
+                        'name': 'envoy.http_connection_manager',
+                        'config': {
+                            'stat_prefix': 'ingress_http',
+                            'route_config': {
+                                'virtual_hosts': [
+                                    {
+                                        'name': 'default',
+                                        'domains': '*',
+                                        'routes': [sni_route['route']]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+            self['filter_chains'].append(sni_chain)

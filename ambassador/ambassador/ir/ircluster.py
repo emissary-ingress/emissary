@@ -105,7 +105,7 @@ class IRCluster (IRResource):
                                  name="ir.nulltlscontext",
                                  _ambassador_enabled=True)
             else:
-                ctx = ir.get_tls_context(typecast(str, ctx_name))
+                ctx = ir.get_envoy_tls_context(typecast(str, ctx_name))
 
             if not ctx:
                 errors.append("Originate-TLS context %s is not defined" % ctx_name)

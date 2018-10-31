@@ -102,7 +102,14 @@ class V2Route(dict):
 
         for irgroup in config.ir.ordered_groups():
             route = config.save_element('route', irgroup, V2Route(config, irgroup))
-            config.routes.append(route)
+            if irgroup.get('sni'):
+                info = {
+                    'hosts': irgroup['tls_context']['hosts'],
+                    'secret_info': irgroup['tls_context']['secret_info']
+                }
+                config.sni_routes.append({'route': route, 'info': info})
+            else:
+                config.routes.append(route)
 
     @staticmethod
     def generate_headers(mapping_group: IRMappingGroup) -> List:

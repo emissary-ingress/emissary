@@ -206,17 +206,6 @@ class AddRequestHeaders(OptionTest):
                 assert actual == [v], (actual, [v])
 
 
-# TODO: This should work
-# class HostHeader(OptionTest):
-#     def config(self):
-#         yield 'host: inspector.external'
-#
-#     def queries(self):
-#         for q in self.parent.queries():
-#             yield Query(q.url, expected=404)
-#             yield Query(q.url, headers={"Host": "inspector.external"})
-
-
 class HostHeaderMapping(MappingTest):
     @classmethod
     def variants(cls):
@@ -237,8 +226,8 @@ host: inspector.external
     def queries(self):
         yield Query(self.parent.url(self.name + "/"), expected=404)
         yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404)
-        # TODO: This should work
-        # yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
+        # TODO: The following query does not work
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
 
 
 class UseWebsocket(OptionTest):
