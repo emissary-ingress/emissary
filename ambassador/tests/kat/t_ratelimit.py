@@ -11,7 +11,7 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
 
 class RateLimitTest(AmbassadorTest):
-    debug = True
+    # debug = True
 
     def init(self):
         self.target = HTTP()
