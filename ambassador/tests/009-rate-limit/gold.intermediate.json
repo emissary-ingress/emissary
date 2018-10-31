@@ -26,7 +26,7 @@
                 ],
                 "_service": "example-rate-limit:5000",
                 "_source": "rate-limit-service.yaml.1",
-                "features": "http2",
+                "grpc": true,
                 "lb_type": "round_robin",
                 "name": "cluster_example_rate_limit_5000",
                 "type": "strict_dns",

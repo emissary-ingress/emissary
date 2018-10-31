@@ -26,7 +26,7 @@
                 ],
                 "_service": "192.168.0.1:45",
                 "_source": "mapping-grpc.yaml.1",
-                "features": "http2",
+                "grpc": true,
                 "lb_type": "round_robin",
                 "name": "cluster_192_168_0_1_45",
                 "type": "strict_dns",

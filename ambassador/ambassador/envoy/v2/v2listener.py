@@ -71,6 +71,21 @@ def v2filter(auth):
         }
     }
 
+
+@v2filter.when("IRRateLimit")
+def v2filter(ratelimit):
+    config = dict(ratelimit.config)
+
+    if 'timeout_ms' in config:
+        tm_ms = config.pop('timeout_ms')
+
+        config['timeout'] = "%0.3fs" % (float(tm_ms) / 1000.0)
+
+    return {
+        'name': 'envoy.rate_limit',
+        'config': config
+    }
+
 @v2filter.when("ir.cors")
 def v2filter(cors):
     return { 'name': 'envoy.cors' }

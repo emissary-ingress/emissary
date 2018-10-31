@@ -42,6 +42,9 @@ class V2Cluster(dict):
             }
         }
 
+        if cluster.get('grpc', False):
+            self["http2_protocol_options"] = {}
+
         if 'tls_context' in cluster:
             fields['tls_context'] = {
                 'common_tls_context': {}
