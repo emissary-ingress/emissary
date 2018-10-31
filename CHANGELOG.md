@@ -40,7 +40,25 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [0.50.0-ea3] October 12, 2018
+## [0.50.0-ea4] October 31, 2018
+[0.50.0-ea4]: https://github.com/datawire/ambassador/compare/0.50.0-ea3...0.50.0-ea4
+
+**Ambassador 0.50.0-ea4 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Fixes since 0.50.0-ea3:
+
+- Ambassador 0.50.0-ea4 uses Envoy 1.8.0.
+- `RateLimitService` is now supported. **You will need to restart Ambassador if you change the `RateLimitService` configuration.** We expect to lift this restriction in a later release; for now, the diag service will warn you when a restart is required.
+   - The `RateLimitService` also has a new `timeout_ms` attribute, which allows overriding the default request timeout of 20ms.
+- GRPC is provisionally supported, but still needs improvements in test coverage.  
+- Ambassador will correctly include its EA number when checking for updates.
+
+## [0.50.0-ea3] October 21, 2018
 [0.50.0-ea3]: https://github.com/datawire/ambassador/compare/0.50.0-ea2...0.50.0-ea3
 
 **Ambassador 0.50.0-ea3 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
