@@ -26,6 +26,7 @@ from .v2listener import V2Listener
 from .v2cluster import V2Cluster
 from .v2_static_resources import V2StaticResources
 from .v2tracing import V2Tracing
+from .v2ratelimit import V2RateLimit
 
 
 # #############################################################################
@@ -35,6 +36,7 @@ from .v2tracing import V2Tracing
 class V2Config (EnvoyConfig):
     admin: V2Admin
     tracing: Optional[V2Tracing]
+    ratelimit: Optional[V2RateLimit]
     bootstrap: V2Bootstrap
     routes: List[V2Route]
     listeners: List[V2Listener]
@@ -47,6 +49,7 @@ class V2Config (EnvoyConfig):
         V2Tracing.generate(self)
 
         self.sni_routes = []
+        V2RateLimit.generate(self)
         V2Route.generate(self)
         V2Listener.generate(self)
         V2Cluster.generate(self)

@@ -45,6 +45,10 @@ class V2Bootstrap(dict):
             self['tracing'] = dict(config.tracing)
             clusters.append(V2Cluster(config, config.ir.tracing.cluster))
 
+        if config.ratelimit:
+            self['rate_limit_service'] = dict(config.ratelimit)
+            clusters.append(V2Cluster(config, config.ir.ratelimit.cluster))
+
         self['static_resources']['clusters'] = clusters
 
     @classmethod

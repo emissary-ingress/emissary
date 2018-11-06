@@ -27,7 +27,7 @@ class IRRateLimit (IRFilter):
 
         if not config_info:
             ir.logger.debug("IRRateLimit: no ratelimit config, bailing")
-            # No tracing info. Be done.
+            # No ratelimit info. Be done.
             return False
 
         configs = config_info.values()
@@ -46,45 +46,29 @@ class IRRateLimit (IRFilter):
                                                  module=config))
             return False
 
+        ir.logger.debug("IRRateLimit: ratelimit using service %s" % service)
+
         # OK, we have a valid config.
-        self.sourced_by(config)
 
         self.service = service
-        self.name = "rate_limit"    # This is a key for Envoy, so we force it, just in case.
+        self.name = "rate_limit"    # Force this, just in case.
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
 
-        # host_rewrite = config.get("host_rewrite", None)
-        #
-        # cluster_name = "cluster_ext_ratelimit"
-        # filter_config = {
-        #     "domain": "ambassador",
-        #     "request_type": "both",
-        #     "timeout_ms": 20
-        # }
-        # grpc_service = SourcedDict(
-        #     name="rate_limit_service",
-        #     cluster_name=cluster_name
-        # )
-        #
-        # first_source = sources.pop(0)
-        #
-        # filter = SourcedDict(
-        #     _source=first_source,
-        #     type="decoder",
-        #     name="rate_limit",
-        #     config=filter_config
-        # )
-        #
-        # if cluster_name not in self.clusters:
-        #     # (svc, url, originate_tls, otls_name) = self.service_tls_check(cluster_hosts, None, host_rewrite)
-        #     (_, url, _, _) = self.service_tls_check(cluster_hosts, None, host_rewrite)
-        #     self.add_intermediate_cluster(first_source, cluster_name,
-        #                                   'extratelimit', [url],
-        #                                   type="strict_dns", lb_type="round_robin",
-        #                                   grpc=True, host_rewrite=host_rewrite)
+        # Should we use the shiny new data_plane_proto? Default false right now.
+        # XXX Needs to be configurable.
 
+        self.data_plane_proto = False
+
+        # Filter config.
+        self.config = {
+            "domain": "ambassador",     # XXX configurability!
+            "request_type": "both",     # XXX configurability!
+            "timeout_ms": config.get('timeout_ms', 20)
+        }
+
+        self.sourced_by(config)
         self.referenced_by(config)
 
         return True
@@ -103,11 +87,8 @@ class IRRateLimit (IRFilter):
 
         cluster.referenced_by(self)
 
-        grpc_service = ir.add_grpc_service("rate_limit_service", cluster)
+        # Go ahead and define a GRPC service -- just recognize that we may not
+        # use it.
+        self.grpc_service = ir.add_grpc_service("rate_limit_service", cluster)
 
         self.cluster = cluster
-        self.config = {
-            "domain": "ambassador",
-            "request_type": "both",
-            "timeout_ms": 20
-        }

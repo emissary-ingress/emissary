@@ -40,6 +40,13 @@ before_install:
   - mkdir -p ~/.config/kubernaut
   - |-
     openssl aes-256-cbc \
+      -K $encrypted_21b00a486c76_key \
+      -iv $encrypted_21b00a486c76_iv \
+      -in releng/kubernaut_v2_config.enc \
+      -out ~/.config/kubernaut/config \
+      -d
+  - |-
+    openssl aes-256-cbc \
       -K $encrypted_95ce0d75e6f7_key \
       -iv $encrypted_95ce0d75e6f7_iv \
       -in kubernaut-config.json.enc \
@@ -52,6 +59,10 @@ install:
 
 script:
   - ./releng/travis-script.sh
+
+after_script:
+  # release the kubernaut claim
+  - make clean-test
 
 deploy:
   # Set "GIT_BRANCH" to the value of "MAIN_BRANCH" because the branch a tag originates from is not preserved by Git.

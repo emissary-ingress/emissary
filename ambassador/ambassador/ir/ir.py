@@ -52,7 +52,8 @@ class IR:
     ambassador_namespace: str
     ambassador_nodename: str
     tls_module: Optional[IRAmbassadorTLS]
-    tracing: IRTracing
+    tracing: Optional[IRTracing]
+    ratelimit: Optional[IRRateLimit]
     router_config: Dict[str, Any]
     filters: List[IRResource]
     listeners: List[IRListener]
@@ -92,6 +93,7 @@ class IR:
         self.filters = []
         self.tracing = None
         self.tls_contexts = []
+        self.ratelimit = None
         self.listeners = []
         self.groups = {}
 
@@ -127,8 +129,9 @@ class IR:
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
 
-        # Save tracing settings.
+        # Save tracing and ratelimit settings.
         self.tracing = self.save_resource(IRTracing(self, aconf))
+        self.ratelimit = self.save_resource(IRRateLimit(self, aconf))
 
         # Save TLSContext resource settings.
         self.save_tls_contexts(aconf)
@@ -138,11 +141,14 @@ class IR:
         # ratelimit configuration stuff.
         #
         # ORDER MATTERS HERE.
+        # After the Ambassador and TLS modules are done, check in on auth...
+        self.save_filter(IRAuth(self, aconf))
 
-        for cls in [IRAuth, IRRateLimit]:
-            self.save_filter(cls(self, aconf))
+        # ...note that ratelimit is a filter too...
+        if self.ratelimit:
+            self.save_filter(self.ratelimit, already_saved=True)
 
-        # Then append non-configurable cors filter...
+        # ...then deal with the non-configurable cors filter...
         self.save_filter(IRFilter(ir=self, aconf=aconf,
                                   rkey="ir.cors", kind="ir.cors", name="cors",
                                   config={}))
@@ -210,9 +216,12 @@ class IR:
     def get_tls_contexts(self):
         return self.tls_contexts
 
-    def save_filter(self, resource: IRResource) -> None:
+    def save_filter(self, resource: IRResource, already_saved=False) -> None:
         if resource.is_active():
-            self.filters.append(self.save_resource(resource))
+            if not already_saved:
+                resource = self.save_resource(resource)
+
+            self.filters.append(resource)
 
     def walk_saved_resources(self, aconf, method_name):
         for res in self.saved_resources.values():
@@ -321,6 +330,9 @@ class IR:
 
         if self.tracing:
             od['tracing'] = self.tracing.as_dict()
+
+        if self.ratelimit:
+            od['ratelimit'] = self.ratelimit.as_dict()
 
         return od
 
