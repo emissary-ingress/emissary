@@ -25,35 +25,12 @@ from .v2route import V2Route
 if TYPE_CHECKING:
     from . import V2Config
 
-
-ExtAuthRequestHeaders = {
-    'Authorization': True,
-    'Cookie': True,
-    'Forwarded': True,
-    'From': True,
-    'Host': True,
-    'Proxy-Authenticate': True,
-    'Proxy-Authorization': True,
-    'Set-Cookie': True,
-    'User-Agent': True,
-    'X-Forwarded-For': True,
-    'X-Forwarded-Host': True,
-    'X-Forwarded-Proto': True,
-    'X-Gateway-Proto': True,
-    'WWW-Authenticate': True,
-}
-
 @multi
 def v2filter(irfilter):
     return irfilter.kind
 
 @v2filter.when("IRAuth")
 def v2filter(auth):
-    request_headers = dict(ExtAuthRequestHeaders)
-
-    for hdr in auth.allowed_request_headers:
-        request_headers[hdr] = True
-
     return {
         'name': 'envoy.ext_authz',
         'config': {
@@ -61,7 +38,7 @@ def v2filter(auth):
                 'server_uri': {
                     'uri': 'http://%s' % auth.auth_service,
                     'cluster': auth.cluster.name,
-                    'timeout': '3s',
+                    'timeout': auth.timeout_ms,
                 },
                 'path_prefix': auth.path_prefix,
                 'allowed_request_headers': auth.allowed_request_headers,

@@ -11,22 +11,44 @@ if TYPE_CHECKING:
     from .ir import IR
 
 
+# Static allowed request headers normally used in the context of 
+# authorization and authentication. 
+AllowedRequestHeader = set([
+    'Authorization',
+    'Cookie',
+    'From',
+    'Host',
+    'Proxy-Authorization',
+    'User-Agent',
+    'X-Forwarded-For',
+    'X-Forwarded-Host',
+    'X-Forwarded-Proto'
+])
+
+# Static allowed authorization headers normally used in the context 
+# of authorization and authentication.
+AllowedAuthorizationHeaders = set([
+    'Location'
+    'Proxy-Authenticate',
+    'Set-Cookie',
+    'WWW-Authenticate'
+])
+
 class IRAuth (IRFilter):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
                  name: str="envoy.ext_authz",
                  **kwargs) -> None:
-        # print("IRAuth __init__ (%s %s %s)" % (kind, name, kwargs))
-
+        
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            cluster="cluster_ext_auth",
-            timeout_ms=5000,
-            path_prefix=None,
-            allowed_request_headers=[],
-            hosts={},
-            **kwargs)
+            ir = ir, aconf = aconf, rkey = rkey, kind = kind, name = name,
+            cluster = "cluster_ext_auth",
+            timeout_ms = None,
+            path_prefix = None,
+            allowed_request_headers = AllowedRequestHeader,
+            allowed_authorization_headers = AllowedAuthorizationHeaders,
+            hosts = {}, **kwargs)
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         module_info = aconf.get_module("authentication")
@@ -79,10 +101,8 @@ class IRAuth (IRFilter):
                     cluster_good = False
             else:
                 self.cluster = cluster
-                # self.ir.logger.debug("SET CLUSTER %s" % cluster.as_json())
 
         if cluster_good:
-            # self.ir.logger.debug("GOOD CLUSTER %s" % self.cluster.as_json())
             ir.add_cluster(self.cluster)
             self.referenced_by(self.cluster)
 
@@ -107,34 +127,14 @@ class IRAuth (IRFilter):
                     self[key] = value
 
             self.referenced_by(module)
-
-        # DRY ..
-        headers = module.get('allowed_resquest_headers', None)
-        if headers:
-            allowed_resquest_headers = self.get('allowed_resquest_headers', [])
-
-            for hdr in headers:
-                if hdr not in allowed_resquest_headers:
-                    allowed_resquest_headers.append(hdr)
-
-            self['allowed_resquest_headers'] = allowed_resquest_headers
-
-
-        # DRY ..
-        auth_headers = module.get('allowed_authorization_headers', None)
-        if auth_headers:
-            allowed_authorization_headers = self.get('allowed_authorization_headers', [])
-
-            for hdr in auth_headers:
-                if hdr not in allowed_authorization_headers:
-                    allowed_authorization_headers.append(hdr)
-
-            self['allowed_authorization_headers'] = allowed_authorization_headers
         
+        self.to_header_list("allowed_request_headers", module)
+        self.to_header_list("allowed_authorization_headers", module)
+
+        self["timeout_ms"] = module.get("timeout_ms", "3s")
 
         auth_service = module.get("auth_service", None)
         weight = 100    # Can't support arbitrary weights right now.
-
         if auth_service:
             self.hosts[auth_service] = ( weight, module.get('tls', None), module.location )
 
@@ -143,35 +143,20 @@ class IRAuth (IRFilter):
             "cluster": self.cluster.name
         }
 
-        for key in [ 'allowed_resquest_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+        for key in [ 'allowed_resquest_headers', 'allowed_authorization_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
             if self.get(key, None):
                 config[key] = self[key]
         
         # Sets request headers whitelist.
         if self.get('allowed_resquest_headers', []):
             config['allowed_resquest_headers'] = self.allowed_resquest_headers
-        else:
-            config['allowed_resquest_headers'] = []
-
 
         # Sets authorization headers whitelist.
         if self.get('allowed_authorization_headers', []):
             config['allowed_authorization_headers'] = self.allowed_authorization_headers
-        else:
-            config['allowed_authorization_headers'] = []
-            
-        # Sets allowed headers normally used in the context of authorization and authentication. Since Envoy uses 
-        # set data structure for these lists, we don't care if keys get duplicated by the user's input.
-        config['allowed_resquest_headers'].append("authorization")
-        config['allowed_resquest_headers'].append("proxy-authorization")
-        config['allowed_resquest_headers'].append("user-agent")
-        config['allowed_resquest_headers'].append("x-forwarded-for")
-        config['allowed_resquest_headers'].append("x-forwarded-host")
-        config['allowed_resquest_headers'].append("x-forwarded-proto")
-        config['allowed_resquest_headers'].append("cookie")
-
-        config['allowed_authorization_headers'].append("www-authenticate")
-        config['allowed_authorization_headers'].append("proxy-Authenticate")
-        config['allowed_authorization_headers'].append("location")
 
         return config
+
+    def to_header_list(self, list_name, module):
+        joined_list = set(self.get(list_name, [])).union(module.get(list_name, []))
+        self[list_name] = list(joined_list)
