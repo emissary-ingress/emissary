@@ -34,7 +34,7 @@ from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS, IREnvoyTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
-from .irtlscontexts import IRTLSContext
+from .irtlscontext import IRTLSContext
 
 #from .VERSION import Version
 
