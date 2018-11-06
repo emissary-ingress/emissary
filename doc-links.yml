@@ -46,6 +46,8 @@
       link: /user-guide/grpc
     - title: TLS Termination
       link: /user-guide/tls-termination
+    - title: Server Name Indication (SNI)
+      link: /user-guide/sni  
     - title: Istio and Ambassador
       link: /user-guide/with-istio
     - title: More guides
