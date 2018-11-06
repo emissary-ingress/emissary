@@ -105,7 +105,7 @@ class IRCluster (IRResource):
                                  name="ir.nulltlscontext",
                                  _ambassador_enabled=True)
             else:
-                ctx = ir.get_tls_context(typecast(str, ctx_name))
+                ctx = ir.get_envoy_tls_context(typecast(str, ctx_name))
 
             if not ctx:
                 errors.append("Originate-TLS context %s is not defined" % ctx_name)
@@ -190,6 +190,9 @@ class IRCluster (IRResource):
             "service": service
         }
 
+        if grpc:
+            new_args['grpc'] = True
+
         if host_rewrite:
             new_args['host_rewrite'] = host_rewrite
 
@@ -199,19 +202,6 @@ class IRCluster (IRResource):
             else:
                 new_args['tls_context'] = IREnvoyTLS(ir=ir, aconf=aconf, location=location,
                                                      enabled=True)
-
-        if grpc:
-            new_args['features'] = 'http2'
-
-        # ir.logger.debug("%s cluster URLs %s" % (name, new_args['urls']))
-
-        # if cb_name and (cb_name in self.breakers):
-        #     cluster['circuit_breakers'] = self.breakers[cb_name]
-        #     self.breakers[cb_name].referenced_by(_source)
-
-        # if od_name and (od_name in self.outliers):
-        #     cluster['outlier_detection'] = self.outliers[od_name]
-        #     self.outliers[od_name].referenced_by(_source)
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
@@ -233,7 +223,7 @@ class IRCluster (IRResource):
         mismatches = []
 
         for key in [ 'type', 'lb_type', 'host_rewrite',
-                     'tls_context', 'originate_tls', 'features' ]:
+                     'tls_context', 'originate_tls', 'grpc' ]:
             if self.get(key, None) != other.get(key, None):
                 mismatches.append(key)
 

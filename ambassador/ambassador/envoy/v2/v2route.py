@@ -18,7 +18,7 @@ from ..common import EnvoyRoute
 from ...ir import IRResource
 from ...ir.irmapping import IRMappingGroup
 
-# from .v2ratelimit import V2RateLimits
+from .v2ratelimitaction import V2RateLimitAction
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -33,8 +33,28 @@ class V2Route(dict):
         match = {
             envoy_route: group.get('prefix'),
             'case_sensitive': group.get('case_sensitive', True),
-            'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
         }
+        headers = self.generate_headers(group)
+        if len(headers) > 0:
+            match['headers'] = headers
+
+        group_headers = group.get('headers', None)
+
+        if group_headers:
+            match['headers'] = []
+
+            for hdr in group_headers:
+                matcher = { 'name': hdr.name }
+
+                if hdr.value:
+                    if hdr.regex:
+                        matcher['regex_match'] = hdr.value
+                    else:
+                        matcher['exact_match'] = hdr.value
+                else:
+                    matcher['present_match'] = True
+
+                match['headers'].append(matcher)
 
         route = {
             'priority': group.get('priority'),
@@ -69,16 +89,21 @@ class V2Route(dict):
 
             route['cors'] = cors
 
+        if "rate_limits" in group:
+            route["rate_limits"] = [ V2RateLimitAction(rl) for rl in group.rate_limits ]
+
         self['match'] = match
         self['route'] = route
 
         request_headers_to_add = []
+
         for mapping in group.mappings:
             for k, v in mapping.get('add_request_headers', {}).items():
                 request_headers_to_add.append({
                     'header': {'key': k, 'value': v},
                     'append': True, # ???
                     })
+
         if request_headers_to_add:
             self['request_headers_to_add'] = request_headers_to_add
 
@@ -100,4 +125,24 @@ class V2Route(dict):
 
         for irgroup in config.ir.ordered_groups():
             route = config.save_element('route', irgroup, V2Route(config, irgroup))
-            config.routes.append(route)
+            if irgroup.get('sni'):
+                info = {
+                    'hosts': irgroup['tls_context']['hosts'],
+                    'secret_info': irgroup['tls_context']['secret_info']
+                }
+                config.sni_routes.append({'route': route, 'info': info})
+            else:
+                config.routes.append(route)
+
+    @staticmethod
+    def generate_headers(mapping_group: IRMappingGroup) -> List:
+        headers = []
+        group_headers = mapping_group.get('headers')
+        for group_header in group_headers:
+            header = {'name': group_header.get('name')}
+            if group_header.get('regex'):
+                header['regex_match'] = group_header.get('value')
+            else:
+                header['exact_match'] = group_header.get('value')
+            headers.append(header)
+        return headers

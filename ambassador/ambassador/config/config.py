@@ -401,6 +401,13 @@ class Config:
 
         self.safe_store("auth_configs", resource)
 
+    def handle_tlscontext(self, resource: ACResource) -> None:
+        """
+        Handles a TLSContext resource.
+        """
+
+        self.safe_store("tls_contexts", resource)
+
     def handle_mapping(self, resource: ACMapping) -> None:
         """
         Handles a ACMapping resource.

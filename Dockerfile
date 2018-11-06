@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM envoyproxy/envoy-alpine:26e2a31650fe14db7e55a3136f9ae75db667bf5c
+FROM envoyproxy/envoy-alpine:latest
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \

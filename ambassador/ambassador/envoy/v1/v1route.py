@@ -18,7 +18,7 @@ from ..common import EnvoyRoute
 from ...ir import IRResource
 from ...ir.irmapping import IRMappingGroup
 
-from .v1ratelimit import V1RateLimits
+from .v1ratelimitaction import V1RateLimitAction
 
 if TYPE_CHECKING:
     from . import V1Config
@@ -53,7 +53,7 @@ class V1Route(dict):
             self['cors'] = cors
 
         if "rate_limits" in group:
-            self["rate_limits"] = V1RateLimits(group.rate_limits)
+            self["rate_limits"] = [ V1RateLimitAction(rl) for rl in group.rate_limits ]
 
         if "priority" in group:
             self["priority"] = group.priority

@@ -28,6 +28,10 @@ allowed_authorization_headers:
 - X-foo
 allowed_request_headers:
 - X-bar
+- location
+- requested-status
+- requested-header
+
 """)
         yield self, self.format("""
 ---
@@ -43,14 +47,25 @@ service: {self.target.path.k8s}
         
         yield Query(self.url("target/"), headers={"requested-status": "302",
                                                   "location": "foo",
-                                                  "requested-header": "location"}, expected=302, debug=True)
+                                                  "requested-header": "location"}, expected=302)
         
         yield Query(self.url("target/"), headers={"requested-status": "200", 
-                                                  "requested-header": "x-forwarded-proto"}, expected=200, debug=True)
+                                                  "requested-header": "x-forwarded-proto"}, expected=200)
 
     def check(self):
-        assert self.results[0].backend.name + "-auth" == self.auth.path.k8s
-        assert self.results[0].backend.request.url.path == "/"
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/extauth/target/"
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
 
         assert self.results[1].backend.response.headers["location"] == ["foo"]
+
+
+# assert self.results[0].backend.name == self.auth.path.k8s
+#         assert self.results[0].backend.request.url.path == "/extauth/target/"
+
+#         assert self.results[1].backend.name == self.auth.path.k8s
+#         assert self.results[1].backend.response.headers["location"] == ["foo"]
+#         assert self.results[1].backend.request.url.path == "/extauth/target/"
+
+#         assert self.results[2].backend.name == self.target.path.k8s
+#         assert self.results[2].backend.request.url.path == "/"
