@@ -290,7 +290,19 @@ class V2Listener(dict):
             )
 
             for sni_route in config.sni_routes:
-                if (sorted(sni_route['info']['hosts']) == sorted(tls_context['hosts'])) and (sni_route['info']['secret_info']['certificate_chain_file'] == tls_context['secret_info']['certificate_chain_file']) and (sni_route['info']['secret_info']['private_key_file'] == tls_context['secret_info']['private_key_file']):
+
+                # Check if filter chain and SNI route have matching hosts
+                hosts_match = sorted(sni_route['info']['hosts']) == sorted(tls_context['hosts'])
+
+                # Check if certificate_chain_file matches for filter chain and SNI route
+                certificate_chain_file_match = sni_route['info']['secret_info']['certificate_chain_file'] == tls_context['secret_info'][
+                    'certificate_chain_file']
+
+                # Check if private_key_file matches for filter chain and SNI route
+                private_key_file_match = sni_route['info']['secret_info']['private_key_file'] == tls_context['secret_info'][
+                    'private_key_file']
+
+                if hosts_match and certificate_chain_file_match and private_key_file_match:
 
                     chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
 
