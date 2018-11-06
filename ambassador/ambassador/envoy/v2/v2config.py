@@ -45,9 +45,10 @@ class V2Config (EnvoyConfig):
 
     def __init__(self, ir: IR) -> None:
         super().__init__(ir)
-
         V2Admin.generate(self)
         V2Tracing.generate(self)
+
+        self.sni_routes = []
         V2RateLimit.generate(self)
         V2Route.generate(self)
         V2Listener.generate(self)

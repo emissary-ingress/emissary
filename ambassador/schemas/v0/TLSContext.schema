@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "https://getambassador.io/schemas/tlscontext.json",
+
+    "type": "object",
+    "properties": {
+        "apiVersion": { "enum": ["ambassador/v0"] },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+
+        "hosts": { "type": "array", "items": { "type": "string" } },
+        "secret": { "type": "string" }
+    },
+    "required": [ "apiVersion", "kind", "name", "hosts" ],
+    "additionalProperties": false
+}

@@ -15,6 +15,8 @@
 from typing import List, Optional, TYPE_CHECKING
 from typing import cast as typecast
 
+from copy import deepcopy
+
 from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irfilter import IRFilter
@@ -143,7 +145,7 @@ class V2Listener(dict):
             #
             # XXX Wait what? A V2TLSContext can hold only a single context, as far as I can tell...
             envoy_ctx = V2TLSContext()
-            for name, ctx in config.ir.tls_contexts.items():
+            for name, ctx in config.ir.envoy_tls.items():
                 config.ir.logger.info("envoy_ctx adding %s" % ctx.as_json())
                 envoy_ctx.add_context(ctx)
 
@@ -235,6 +237,8 @@ class V2Listener(dict):
             'filter_chains': [ chain ]
         })
 
+        self.handle_sni(config)
+
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
         config.listeners = []
@@ -242,3 +246,64 @@ class V2Listener(dict):
         for irlistener in config.ir.listeners:
             listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
             config.listeners.append(listener)
+
+    def handle_sni(self, config: 'V2Config'):
+        global_sni = False
+        # Pretty sure we will have just one chain
+        filter_chain = self.get('filter_chains')[0]
+
+        for tls_context in config.ir.tls_contexts:
+            if not global_sni:
+                # Let's do one off things here, like setting global SNI flag, clearing off filter chains and fixing up
+                # listener_filters
+                global_sni = True
+                self['filter_chains'].clear()
+                if self.get('listener_filters') is None:
+                    self['listener_filters'] = [
+                        {
+                            'name': 'envoy.listener.tls_inspector',
+                            'config': {}
+                        }
+                    ]
+
+            chain = deepcopy(filter_chain)
+            chain.update(
+                {
+                    'filter_chain_match': {
+                        'server_names': tls_context['hosts']
+                    },
+                    'tls_context': {
+                        'common_tls_context': {
+                            'tls_certificates': [
+                                {
+                                    'certificate_chain': {
+                                        'filename': tls_context['secret_info']['certificate_chain_file']
+                                    },
+                                    'private_key': {
+                                        'filename': tls_context['secret_info']['private_key_file']
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            )
+
+            for sni_route in config.sni_routes:
+
+                # Check if filter chain and SNI route have matching hosts
+                hosts_match = sorted(sni_route['info']['hosts']) == sorted(tls_context['hosts'])
+
+                # Check if certificate_chain_file matches for filter chain and SNI route
+                certificate_chain_file_match = sni_route['info']['secret_info']['certificate_chain_file'] == tls_context['secret_info'][
+                    'certificate_chain_file']
+
+                # Check if private_key_file matches for filter chain and SNI route
+                private_key_file_match = sni_route['info']['secret_info']['private_key_file'] == tls_context['secret_info'][
+                    'private_key_file']
+
+                if hosts_match and certificate_chain_file_match and private_key_file_match:
+
+                    chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
+
+            self['filter_chains'].append(chain)

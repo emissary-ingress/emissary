@@ -127,7 +127,7 @@ class IRResource (Resource):
             is_tls = True
 
         if context is not None:
-            if context in self.ir.tls_contexts:
+            if context in self.ir.envoy_tls:
                 is_tls = True
 
         return is_tls
@@ -152,7 +152,7 @@ class IRResource (Resource):
             name_fields = ['otls']
 
         if context is not None:
-            if context in self.ir.tls_contexts:
+            if context in self.ir.envoy_tls:
                 name_fields.append(context)
 
         if is_tls and host_rewrite:

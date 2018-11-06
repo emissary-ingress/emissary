@@ -33,8 +33,10 @@ class V2Route(dict):
         match = {
             envoy_route: group.get('prefix'),
             'case_sensitive': group.get('case_sensitive', True),
-            'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
         }
+        headers = self.generate_headers(group)
+        if len(headers) > 0:
+            match['headers'] = headers
 
         route = {
             'priority': group.get('priority'),
@@ -105,4 +107,24 @@ class V2Route(dict):
 
         for irgroup in config.ir.ordered_groups():
             route = config.save_element('route', irgroup, V2Route(config, irgroup))
-            config.routes.append(route)
+            if irgroup.get('sni'):
+                info = {
+                    'hosts': irgroup['tls_context']['hosts'],
+                    'secret_info': irgroup['tls_context']['secret_info']
+                }
+                config.sni_routes.append({'route': route, 'info': info})
+            else:
+                config.routes.append(route)
+
+    @staticmethod
+    def generate_headers(mapping_group: IRMappingGroup) -> List:
+        headers = []
+        group_headers = mapping_group.get('headers')
+        for group_header in group_headers:
+            header = {'name': group_header.get('name')}
+            if group_header.get('regex'):
+                header['regex_match'] = group_header.get('value')
+            else:
+                header['exact_match'] = group_header.get('value')
+            headers.append(header)
+        return headers

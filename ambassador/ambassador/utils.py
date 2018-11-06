@@ -45,6 +45,12 @@ class TLSPaths(Enum):
     client_cert_dir = "/ambassador/cacert"
     client_tls_crt = os.path.join(client_cert_dir, "tls.crt")
 
+    @staticmethod
+    def generate(directory):
+        return {
+            'crt': os.path.join(directory, 'tls.crt'),
+            'key': os.path.join(directory, 'tls.key')
+        }
 
 class SystemInfo:
     MyHostName = 'localhost'

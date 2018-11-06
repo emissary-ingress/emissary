@@ -99,7 +99,7 @@ class IRAmbassador (IRResource):
                     etls = IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
                                       location=ctxloc, **ctx)
 
-                    if ir.save_tls_context(ctx_name, etls):
+                    if ir.save_envoy_tls_context(ctx_name, etls):
                         self.logger.debug("created context %s from %s" % (ctx_name, ctxloc))
                         # self.logger.debug(etls.as_json())
                     else:
@@ -110,7 +110,7 @@ class IRAmbassador (IRResource):
                         self.logger.debug("TLS termination enabled!")
                         self.service_port = 443
 
-        ctx = ir.get_tls_context('client')
+        ctx = ir.get_envoy_tls_context('client')
 
         if ctx:
             # Client-side TLS is enabled.

@@ -64,7 +64,7 @@ class ListenerFactory:
         override_source = bool(amod.location == '--internal--')
 
         for ctxname in [ 'server', 'client' ]:
-            ctx = ir.get_tls_context(ctxname)
+            ctx = ir.get_envoy_tls_context(ctxname)
 
             if not ctx:
                 continue

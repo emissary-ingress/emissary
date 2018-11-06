@@ -208,6 +208,30 @@ class AddRequestHeaders(OptionTest):
                 assert actual == [v], (actual, [v])
 
 
+class HostHeaderMapping(MappingTest):
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.k8s}
+host: inspector.external
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"), expected=404)
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404)
+        # TODO: The following query does not work
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
+
+
 class UseWebsocket(OptionTest):
     # TODO: add a check with a websocket client as soon as we have backend support for it
 
