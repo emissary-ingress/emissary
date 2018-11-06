@@ -33,8 +33,25 @@ class V2Route(dict):
         match = {
             envoy_route: group.get('prefix'),
             'case_sensitive': group.get('case_sensitive', True),
-            'headers': group.get('headers') if len(group.get('headers', [])) > 0 else None
         }
+
+        group_headers = group.get('headers', None)
+
+        if group_headers:
+            match['headers'] = []
+
+            for hdr in group_headers:
+                matcher = { 'name': hdr.name }
+
+                if hdr.value:
+                    if hdr.regex:
+                        matcher['regex_match'] = hdr.value
+                    else:
+                        matcher['exact_match'] = hdr.value
+                else:
+                    matcher['present_match'] = True
+
+                match['headers'].append(matcher)
 
         route = {
             'priority': group.get('priority'),
