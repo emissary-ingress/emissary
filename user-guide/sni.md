@@ -43,7 +43,7 @@ Ambassador will check if any of the `TLSContext` resources have a matching host,
 
 Note that if the mapping does not have the `host` field, all valid SNI configurations will be applied to the given mapping.
 
-### Examples
+## Examples
 
 #### Multiple certificates
 
