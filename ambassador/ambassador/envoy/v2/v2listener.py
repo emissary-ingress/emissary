@@ -15,6 +15,8 @@
 from typing import List, Optional, TYPE_CHECKING
 from typing import cast as typecast
 
+from copy import deepcopy
+
 from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irfilter import IRFilter
@@ -231,49 +233,50 @@ class V2Listener(dict):
             config.listeners.append(listener)
 
     def handle_sni(self, config: 'V2Config'):
-        if len(config.sni_routes) > 0:
-            self['listener_filters'] = [
-                {
-                    'name': 'envoy.listener.tls_inspector',
-                    'config': {}
-                }
-            ]
+        global_sni = False
+        # Pretty sure we will have just one chain
+        filter_chain = self.get('filter_chains')[0]
 
-        for sni_route in config.sni_routes:
-            sni_chain = {
-                'filter_chain_match': {
-                    'server_names': sni_route['info']['hosts']
-                },
-                'tls_context': {
-                    'common_tls_context': {
-                        'tls_certificates': [
-                            {
-                                'certificate_chain': {
-                                    'filename': sni_route['info']['secret_info']['certificate_chain_file']
-                                },
-                                'private_key': {
-                                    'filename': sni_route['info']['secret_info']['private_key_file']
-                                }
-                            }
-                        ]
-                    }
-                },
-                'filters': [
-                    {
-                        'name': 'envoy.http_connection_manager',
-                        'config': {
-                            'stat_prefix': 'ingress_http',
-                            'route_config': {
-                                'virtual_hosts': [
-                                    {
-                                        'name': 'default',
-                                        'domains': '*',
-                                        'routes': [sni_route['route']]
+        for tls_context in config.ir.tls_contexts:
+            if not global_sni:
+                # Let's do one off things here, like setting global SNI flag, clearing off filter chains and fixing up
+                # listener_filters
+                global_sni = True
+                self['filter_chains'].clear()
+                if self.get('listener_filters') is None:
+                    self['listener_filters'] = [
+                        {
+                            'name': 'envoy.listener.tls_inspector',
+                            'config': {}
+                        }
+                    ]
+
+            chain = deepcopy(filter_chain)
+            chain.update(
+                {
+                    'filter_chain_match': {
+                        'server_names': tls_context['hosts']
+                    },
+                    'tls_context': {
+                        'common_tls_context': {
+                            'tls_certificates': [
+                                {
+                                    'certificate_chain': {
+                                        'filename': tls_context['secret_info']['certificate_chain_file']
+                                    },
+                                    'private_key': {
+                                        'filename': tls_context['secret_info']['private_key_file']
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
-                ]
-            }
-            self['filter_chains'].append(sni_chain)
+                }
+            )
+
+            for sni_route in config.sni_routes:
+                if (sorted(sni_route['info']['hosts']) == sorted(tls_context['hosts'])) and (sni_route['info']['secret_info']['certificate_chain_file'] == tls_context['secret_info']['certificate_chain_file']) and (sni_route['info']['secret_info']['private_key_file'] == tls_context['secret_info']['private_key_file']):
+
+                    chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
+
+            self['filter_chains'].append(chain)
