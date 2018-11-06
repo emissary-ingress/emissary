@@ -12,6 +12,10 @@ metadata:
       service: zipkin:9411
       driver: zipkin
       ambassador_id: 015-tracing
+      config: {
+        trace_id_128bit: true,
+        shared_span_context: false
+      }
 spec:
   selector:
     service: ambassador
