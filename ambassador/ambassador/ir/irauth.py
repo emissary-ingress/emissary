@@ -28,7 +28,7 @@ AllowedRequestHeader = set([
 # Static allowed authorization headers normally used in the context 
 # of authorization and authentication.
 AllowedAuthorizationHeaders = set([
-    'Location'
+    'Location',
     'Proxy-Authenticate',
     'Set-Cookie',
     'WWW-Authenticate'
@@ -157,6 +157,7 @@ class IRAuth (IRFilter):
 
         return config
 
+    # Join user's input headers with a statically defined list of header keys.
     def to_header_list(self, list_name, module):
         joined_list = set(self.get(list_name, [])).union(module.get(list_name, []))
         self[list_name] = list(joined_list)
