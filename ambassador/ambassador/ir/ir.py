@@ -34,6 +34,7 @@ from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS, IREnvoyTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
+from .irtlscontext import IRTLSContext
 
 #from .VERSION import Version
 
@@ -60,7 +61,8 @@ class IR:
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
-    tls_contexts: Dict[str, IREnvoyTLS]
+    envoy_tls: Dict[str, IREnvoyTLS]
+    tls_contexts: List[IRTLSContext]
     tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
 
@@ -90,6 +92,7 @@ class IR:
         self.grpc_services = {}
         self.filters = []
         self.tracing = None
+        self.tls_contexts = []
         self.ratelimit = None
         self.listeners = []
         self.groups = {}
@@ -101,7 +104,7 @@ class IR:
         # this though.
 
         self.tls_module = None
-        self.tls_contexts = {}
+        self.envoy_tls = {}
         self.tls_defaults = {
             "server": {},
             "client": {},
@@ -130,6 +133,14 @@ class IR:
         self.tracing = self.save_resource(IRTracing(self, aconf))
         self.ratelimit = self.save_resource(IRRateLimit(self, aconf))
 
+        # Save TLSContext resource settings.
+        self.save_tls_contexts(aconf)
+
+        # After the Ambassador and TLS modules are done, we need to set up the
+        # filter chains, which requires checking in on the auth, and
+        # ratelimit configuration stuff.
+        #
+        # ORDER MATTERS HERE.
         # After the Ambassador and TLS modules are done, check in on auth...
         self.save_filter(IRAuth(self, aconf))
 
@@ -194,6 +205,17 @@ class IR:
 
         return resource
 
+    def save_tls_contexts(self, aconf):
+        tls_contexts = aconf.get_config('tls_contexts')
+        if tls_contexts is not None:
+            for config in tls_contexts.values():
+                resource = IRTLSContext(self, config)
+                if resource.is_active():
+                    self.tls_contexts.append(resource)
+
+    def get_tls_contexts(self):
+        return self.tls_contexts
+
     def save_filter(self, resource: IRResource, already_saved=False) -> None:
         if resource.is_active():
             if not already_saved:
@@ -205,15 +227,15 @@ class IR:
         for res in self.saved_resources.values():
             getattr(res, method_name)(self, aconf)
 
-    def save_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
-        if ctx_name in self.tls_contexts:
+    def save_envoy_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
+        if ctx_name in self.envoy_tls:
             return False
 
-        self.tls_contexts[ctx_name] = ctx
+        self.envoy_tls[ctx_name] = ctx
         return True
 
-    def get_tls_context(self, ctx_name: str) -> Optional[IREnvoyTLS ]:
-        return self.tls_contexts.get(ctx_name, None)
+    def get_envoy_tls_context(self, ctx_name: str) -> Optional[IREnvoyTLS]:
+        return self.envoy_tls.get(ctx_name, None)
 
     def get_tls_defaults(self, ctx_name: str) -> Optional[Dict]:
         return self.tls_defaults.get(ctx_name, None)
@@ -298,11 +320,12 @@ class IR:
                           for cluster_name, cluster in self.clusters.items() },
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
-            'tls_contexts': { ctx_name: ctx.as_dict()
-                              for ctx_name, ctx in self.tls_contexts.items() },
+            'envoy_tls_contexts': {ctx_name: ctx.as_dict()
+                             for ctx_name, ctx in self.envoy_tls.items()},
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filter.as_dict() for filter in self.filters ],
-            'groups': [ group.as_dict() for group in self.ordered_groups() ]
+            'groups': [ group.as_dict() for group in self.ordered_groups() ],
+            'tls_contexts': [context.as_dict() for context in self.tls_contexts]
         }
 
         if self.tracing:

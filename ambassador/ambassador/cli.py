@@ -98,7 +98,7 @@ def showid():
     show_notices(result, printer=stdout_printer)
 
 
-def tls_secret_resolver(secret_name: str, context: str) -> Optional[Dict[str, str]]:
+def tls_secret_resolver(secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
     # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
     # Here we're just gonna fake it.
 
@@ -112,6 +112,11 @@ def tls_secret_resolver(secret_name: str, context: str) -> Optional[Dict[str, st
             'cacert_chain_file': "/path/to/%s.crt" % secret_name,
         }
     else:
+        if cert_dir is not None:
+            return {
+                'certificate_chain_file': os.path.join(cert_dir, 'cert.crt'),
+                'private_key_file': os.path.join(cert_dir, 'cert.key')
+            }
         return None
 
 

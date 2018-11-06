@@ -104,13 +104,13 @@ class Restarter(threading.Thread):
         path = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
         self.read_fs(path)
 
-    def tls_secret_resolver(self, secret_name: str, context: str) -> Optional[Dict[str, str]]:
+    def tls_secret_resolver(self, secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
+        (cert, key, data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
         if context == 'server':
-            (server_cert, server_key, server_data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
-            if server_cert and server_key:
+            if cert and key:
                 logger.debug("saving contents of secret %s to %s for context %s" % (
                     secret_name, TLSPaths.cert_dir.value, context))
-                save_cert(server_cert, server_key, TLSPaths.cert_dir.value)
+                save_cert(cert, key, TLSPaths.cert_dir.value)
                 return {
                     'cert_chain_file': TLSPaths.tls_crt.value,
                     'private_key_file': TLSPaths.tls_key.value
@@ -118,6 +118,18 @@ class Restarter(threading.Thread):
         elif context == 'client':
             # TODO
             pass
+        else:
+            if cert and key:
+                if cert_dir is None:
+                    return
+                cert_paths = TLSPaths.generate(cert_dir)
+                logger.debug("saving contents of secret %s to %s for context %s" % (
+                    secret_name, cert_dir, context))
+                save_cert(cert, key, cert_dir)
+                return {
+                    'certificate_chain_file': cert_paths['crt'],
+                    'private_key_file': cert_paths['key']
+                }
         return None
 
     def read_fs(self, path):
