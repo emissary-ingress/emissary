@@ -113,6 +113,7 @@ class IRMapping (IRResource):
 
         if 'host' in kwargs:
             hdrs.append(Header(":authority", kwargs['host'], kwargs.get('host_regex', False)))
+            self.tls_context = self.match_tls_context(kwargs['host'], ir)
 
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
@@ -180,6 +181,15 @@ class IRMapping (IRResource):
         weight += [ hdr.key() for hdr in self.headers ]
 
         return tuple(weight)
+
+    def match_tls_context(self, host: str, ir: 'IR'):
+        for context in ir.get_tls_contexts():
+            for context_host in context.get('hosts'):
+                if context_host == host:
+                    ir.logger.info("Matched host {} with TLSContext {}".format(host, context.get('name')))
+                    self.sni = True
+                    return context
+        return None
 
     # def new_route(self, svc, cluster_name) -> SourcedDict:
     #     route = SourcedDict(

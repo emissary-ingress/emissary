@@ -241,6 +241,10 @@ func main() {
 				if query.CheckErr(err) { return }
 
 				req.Header = query.Headers()
+                host := req.Header.Get("Host")
+                if host != "" {
+                    req.Host = host
+                }
 
 				var cli *http.Client
 				if query.Insecure() {
