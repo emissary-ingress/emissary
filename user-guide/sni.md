@@ -11,7 +11,8 @@ Note: SNI is only available in the [0.50 early access release](early-access.md).
     kubectl create secret tls <secret name> --cert <path to the certificate chain> --key <path to the private key>
     ```
 
-2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate.
+2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate. Typically, these would be the Subject Alternative Names you will be using. If you're using a wildcard certificate, you can put in any host values that you wish to use.
+
     ```yaml
     apiVersion: ambassador/v0
     kind: TLSContext
@@ -24,7 +25,7 @@ Note: SNI is only available in the [0.50 early access release](early-access.md).
 
    The `TLSContext` resource is typically added to the main Ambassador `service` where global Ambassador configuration is typically stored.
 
-3. If using multiple certificates, create multiple `TLSContext` resources pointing to each individual certificate.
+3. Create additional `TLSContext` resources pointing to additional certificates as necessary.
 
 ## Using SNI
 
@@ -40,7 +41,7 @@ SNI is designed to be configured on a per-mapping basis. This enables applicatio
     ```
 Ambassador will check if any of the `TLSContext` resources have a matching host, and if it finds one, SNI configuration will be applied to that mapping.
 
-Note: If `TLSContext` resources are configured, then all the mappings that do not have the `host` field set, will get all SNI configurations applied to them.
+Note that if the mapping does not have the `host` field, all valid SNI configurations will be applied to the given mapping.
 
 ### Examples
 
@@ -104,7 +105,7 @@ In this configuration:
 
 * Requests with `Host: host.httpbin.org` header set hitting `/httpbin/` prefix get httpbin TLS certificates.
 * Requests with `Host: host.mockbin.org` header set hitting `/mockbin/` prefix get mockbin TLS certificates
-* All other mappings with any or no `Host` header set get all available SNI configurations applied to them (httpbin and mockin in this case)
+* The `frontend` mapping will be accessible via both via `host.httpbin.org` and `host.mockbin.org`
        
 ```yaml
 apiVersion: v1
@@ -149,45 +150,6 @@ metadata:
       name:  frontend
       prefix: /
       service: frontend
-  name: httpbin
-spec:
-  ports:
-  - port: 80
-    targetPort: 80
-```
-
-#### No host-specific configuration
-
-All mappings get a given SNI configuration.
-    
-  ```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  httpbin
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  mockbin
-      prefix: /mockbin/
-      service: mockbin.org:80
-      host_rewrite: mockbin.org
-      ---
-      apiVersion: ambassador/v0
-      kind: TLSContext
-      name: example-context
-      hosts:
-      - example.com
-      - www.example.com
-      secret: example-secret
   name: httpbin
 spec:
   ports:
