@@ -38,7 +38,7 @@ ExtAuthRequestHeaders = {
     'User-Agent': True,
     'X-Forwarded-For': True,
     'X-Forwarded-Host': True,
-    'X-Forwarded-Proto'
+    'X-Forwarded-Proto': True,
     'X-Gateway-Proto': True,
     'WWW-Authenticate': True,
 }
@@ -51,7 +51,7 @@ def v2filter(irfilter):
 def v2filter(auth):
     request_headers = dict(ExtAuthRequestHeaders)
 
-    for hdr in auth.allowed_headers:
+    for hdr in auth.allowed_request_headers:
         request_headers[hdr] = True
 
     return {
@@ -64,9 +64,8 @@ def v2filter(auth):
                     'timeout': '3s',
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': auth.allowed_headers,
-                'allowed_request_headers': sorted(request_headers.keys())
-                # 'authorization_headers_to_add': []
+                'allowed_request_headers': auth.allowed_request_headers,
+                'allowed_authorization_headers': auth.allowed_authorization_headers
             }
         }
     }

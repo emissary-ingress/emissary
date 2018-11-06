@@ -15,8 +15,7 @@ class IRAuth (IRFilter):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
-                 name: str="extauth",
-                 type: Optional[str] = "decoder",
+                 name: str="envoy.ext_authz",
                  **kwargs) -> None:
         # print("IRAuth __init__ (%s %s %s)" % (kind, name, kwargs))
 
@@ -25,9 +24,8 @@ class IRAuth (IRFilter):
             cluster="cluster_ext_auth",
             timeout_ms=5000,
             path_prefix=None,
-            allowed_headers=[],
+            allowed_request_headers=[],
             hosts={},
-            type=type,
             **kwargs)
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
@@ -39,7 +37,7 @@ class IRAuth (IRFilter):
         config_info = aconf.get_config("auth_configs")
 
         if config_info:
-            # self.logger.debug("auth_configs: %s" % auth_configs)
+            self.logger.debug("auth_configs: %s" % config_info)
             for config in config_info.values():
                 self._load_auth(config)
 
@@ -56,19 +54,19 @@ class IRAuth (IRFilter):
 
         self.cluster = None
 
-        # self.ir.logger.debug("AUTH ADD_MAPPINGS: %s" % self.as_json())
+        self.ir.logger.debug("AUTH ADD_MAPPINGS: %s" % self.as_json())
 
         for service, params in cluster_hosts.items():
             weight, ctx_name, location = params
 
             cluster = IRCluster(
-                ir=ir, aconf=aconf, location=location,
+                ir=ir, 
+                aconf=aconf, 
+                location=location,
                 service=service,
                 host_rewrite=self.get('host_rewrite', False),
                 ctx_name=ctx_name,
                 marker='extauth'
-                # grpc=self.get('grpc', False)
-
             )
 
             cluster.referenced_by(self)
@@ -79,9 +77,6 @@ class IRAuth (IRFilter):
                 if not self.cluster.merge(cluster):
                     self.post_error(RichStatus.fromError("auth canary %s can only change service!" % cluster.name))
                     cluster_good = False
-                    # self.ir.logger.debug("BAD MERGE %s" % cluster.as_json())
-                # else:
-                #     self.ir.logger.debug("GOOD MERGE %s" % cluster.as_json())
             else:
                 self.cluster = cluster
                 # self.ir.logger.debug("SET CLUSTER %s" % cluster.as_json())
@@ -90,35 +85,6 @@ class IRAuth (IRFilter):
             # self.ir.logger.debug("GOOD CLUSTER %s" % self.cluster.as_json())
             ir.add_cluster(self.cluster)
             self.referenced_by(self.cluster)
-
-        #     urls = []
-        #     protocols = {}
-        #
-        #     for svc in sorted(cluster_hosts.keys()):
-        #         _, tls_context = cluster_hosts[svc]
-        #
-        #         (svc, url, originate_tls, otls_name) = self.service_tls_check(svc, tls_context, host_rewrite)
-        #
-        #         if originate_tls:
-        #             protocols['https'] = True
-        #         else:
-        #             protocols['http'] = True
-        #
-        #         if otls_name:
-        #             filter_config['cluster'] = cluster_name + "_" + otls_name
-        #             cluster_name = filter_config['cluster']
-        #
-        #         urls.append(url)
-        #
-        #     if len(protocols.keys()) != 1:
-        #         raise Exception("auth config cannot try to use both HTTP and HTTPS")
-        #
-        #     self.add_intermediate_cluster(first_source, cluster_name,
-        #                                   'extauth', urls,
-        #                                   type="strict_dns", lb_type="round_robin",
-        #                                   originate_tls=originate_tls, host_rewrite=host_rewrite)
-        #
-        # name = "internal_%s_probe_mapping" % name
 
     def _load_auth(self, module: Resource):
         if self.location == '--internal--':
@@ -142,19 +108,31 @@ class IRAuth (IRFilter):
 
             self.referenced_by(module)
 
-        headers = module.get('allowed_headers', None)
-
+        # DRY ..
+        headers = module.get('allowed_resquest_headers', None)
         if headers:
-            allowed_headers = self.get('allowed_headers', [])
+            allowed_resquest_headers = self.get('allowed_resquest_headers', [])
 
             for hdr in headers:
-                if hdr not in allowed_headers:
-                    allowed_headers.append(hdr)
+                if hdr not in allowed_resquest_headers:
+                    allowed_resquest_headers.append(hdr)
 
-            self['allowed_headers'] = allowed_headers
+            self['allowed_resquest_headers'] = allowed_resquest_headers
+
+
+        # DRY ..
+        auth_headers = module.get('allowed_authorization_headers', None)
+        if auth_headers:
+            allowed_authorization_headers = self.get('allowed_authorization_headers', [])
+
+            for hdr in auth_headers:
+                if hdr not in allowed_authorization_headers:
+                    allowed_authorization_headers.append(hdr)
+
+            self['allowed_authorization_headers'] = allowed_authorization_headers
+        
 
         auth_service = module.get("auth_service", None)
-        # weight = module.get("weight", 100)
         weight = 100    # Can't support arbitrary weights right now.
 
         if auth_service:
@@ -165,11 +143,35 @@ class IRAuth (IRFilter):
             "cluster": self.cluster.name
         }
 
-        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+        for key in [ 'allowed_resquest_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
             if self.get(key, None):
                 config[key] = self[key]
+        
+        # Sets request headers whitelist.
+        if self.get('allowed_resquest_headers', []):
+            config['allowed_resquest_headers'] = self.allowed_resquest_headers
+        else:
+            config['allowed_resquest_headers'] = []
 
-        if self.get('allowed_headers', []):
-            config['allowed_headers'] = self.allowed_headers
+
+        # Sets authorization headers whitelist.
+        if self.get('allowed_authorization_headers', []):
+            config['allowed_authorization_headers'] = self.allowed_authorization_headers
+        else:
+            config['allowed_authorization_headers'] = []
+            
+        # Sets allowed headers normally used in the context of authorization and authentication. Since Envoy uses 
+        # set data structure for these lists, we don't care if keys get duplicated by the user's input.
+        config['allowed_resquest_headers'].append("authorization")
+        config['allowed_resquest_headers'].append("proxy-authorization")
+        config['allowed_resquest_headers'].append("user-agent")
+        config['allowed_resquest_headers'].append("x-forwarded-for")
+        config['allowed_resquest_headers'].append("x-forwarded-host")
+        config['allowed_resquest_headers'].append("x-forwarded-proto")
+        config['allowed_resquest_headers'].append("cookie")
+
+        config['allowed_authorization_headers'].append("www-authenticate")
+        config['allowed_authorization_headers'].append("proxy-Authenticate")
+        config['allowed_authorization_headers'].append("location")
 
         return config

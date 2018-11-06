@@ -239,7 +239,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests: venv website-yaml
-	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
+	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
 website-yaml:
 	mkdir -p docs/yaml
@@ -347,11 +347,11 @@ test: version setup-develop cluster.yaml
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
 	KUBECONFIG=$(KUBECONFIG) \
-	PATH=$(shell pwd)/venv/bin:$(PATH) \
+	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
 
 test-list: version setup-develop
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
+	cd ambassador && PATH="$(shell pwd)/venv/bin:$(PATH)" pytest --collect-only -q
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
