@@ -18,6 +18,8 @@
         link: /about/quickstart
       - title: Docker Compose
         link: /user-guide/docker-compose
+      - title: Bare Metal
+        link: /user-guide/bare-metal
       - title: Early Access Releases
         link: /user-guide/early-access
 
