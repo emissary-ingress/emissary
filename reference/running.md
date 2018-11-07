@@ -68,6 +68,16 @@ Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](/reference/mappi
 
 If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
+```
+env:
+- name: AMBASSADOR_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace 
+- name: AMBASSADOR_SINGLE_NAMESPACE
+  value: "true"
+```
+
 ## Multiple Ambassadors in One Cluster
 
 Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,
@@ -131,7 +141,7 @@ service: demo4
 
 The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassadors. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
 
-**Note well that _any_ object can have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects.
+**Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for Ambassador.
 
 If no `AMBASSADOR_ID` is assigned to an Ambassador, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
 
