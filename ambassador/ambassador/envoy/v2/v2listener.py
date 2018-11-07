@@ -189,9 +189,11 @@ class V2Listener(dict):
                 }
             }
 
+        hcm_config_conf = hcm_config["config"]
+
         for group in config.ir.ordered_groups():
             if group.get('use_websocket'):
-                hcm_config['config'].update(
+                hcm_config_conf.update(
                     {
                         'upgrade_configs': [
                             {
@@ -202,7 +204,8 @@ class V2Listener(dict):
                 )
                 break
 
-        hcm_config_conf = hcm_config["config"]
+        if 'use_remote_address' in config.ir.ambassador_module:
+            hcm_config_conf["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
         if config.ir.tracing:
             hcm_config_conf["generate_request_id"] = True

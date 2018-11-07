@@ -37,6 +37,7 @@ class IRAmbassador (IRResource):
                  rkey: str="ir.ambassador",
                  kind: str="IRAmbassador",
                  name: str="ir.ambassador",
+                 use_remote_address: bool=True,
                  **kwargs) -> None:
         # print("IRAmbassador __init__ (%s %s %s)" % (kind, name, kwargs))
 
@@ -50,6 +51,7 @@ class IRAmbassador (IRResource):
             readiness_probe={"enabled": True},
             diagnostics={"enabled": True},
             use_proxy_proto=False,
+            use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             **kwargs
         )

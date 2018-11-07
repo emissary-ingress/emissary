@@ -63,6 +63,7 @@
                     "ssl_context": true
                 },
                 "use_proxy_proto": false,
+                "use_remote_address": true,
                 "use_remote_address": false
             }
         ],
