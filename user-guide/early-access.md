@@ -10,9 +10,9 @@ Ambassador 0.50 is a major revamp of Ambassador's architecture, with support for
 
 ### Installing Ambassador Early Access releases
 
-We do not recommend Helm for early access releases. Instead, use a Kubernetes deployment as usual, but use image `quay.io/datawire/ambassador:0-50-0-tt5`.
+We do not recommend Helm for early access releases. Instead, use a Kubernetes deployment as usual, but use image `quay.io/datawire/ambassador:0.50.0-ea5`.
 
-We recommend testing with shadowing, as documented below, before switching to any new Ambassador release. We *strongly* recommend testing with shadowing for all early access releases.
+We recommend testing with shadowing, as documented below, before switching to any new Ambassador release. We also recommend testing with shadowing for all early access releases before deploying in production.
  
 ## Testing with shadowing
 
