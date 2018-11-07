@@ -27,6 +27,8 @@ Note: SNI is only available in the [0.50 early access release](early-access.md).
 
 3. Create additional `TLSContext` resources pointing to additional certificates as necessary.
 
+4. Configure the global TLS configuration (e.g., `redirect_cleartext_from`) in the `tls` module. The `tls` configuration applies to all `TLSContext` resources. For more information on global TLS configuration, see the [reference section on TLS](/reference/core/tls).
+
 ## Using SNI
 
 SNI is designed to be configured on a per-mapping basis. This enables application developers or service owners to individually manage how their service gets exposed over TLS. To use SNI, specify your SNI host in the `mapping` resource, e.g.,
