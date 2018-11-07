@@ -1,0 +1,6 @@
+# Pro pages should be represented in a yaml array with the pathnames as the value
+# Ex:
+# - /docs
+# - /reference
+#
+- /placeholder
