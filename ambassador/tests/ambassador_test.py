@@ -394,7 +394,7 @@ class old_ir (dict):
                     'cluster': filter['cluster']['name']
                 }
 
-                for key in [ 'allowed_request_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+                for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
                     if filter.get(key, None):
                         config[key] = filter[key]
 
@@ -496,8 +496,8 @@ def normalize_gold(gold: dict) -> dict:
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
 def test_config(testname, dirpath, configdir):
-    pytest.xfail("old V1 tests are disabled")
-    return
+    # pytest.xfail("old V1 tests are disabled")
+    # return
     
     global logger 
     errors = []

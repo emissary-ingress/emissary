@@ -38,17 +38,21 @@ class IRAuth (IRFilter):
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
-                 name: str="envoy.ext_authz",
+                 name: str="extauth",
+                 type: Optional[str] = "decoder",
                  **kwargs) -> None:
-        
+
         super().__init__(
-            ir = ir, aconf = aconf, rkey = rkey, kind = kind, name = name,
-            cluster = "cluster_ext_auth",
-            timeout_ms = None,
-            path_prefix = None,
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            cluster="cluster_ext_auth",
+            timeout_ms=5000,
+            path_prefix=None,
             allowed_request_headers = AllowedRequestHeader,
             allowed_authorization_headers = AllowedAuthorizationHeaders,
-            hosts = {}, **kwargs)
+            allowed_headers=[],
+            hosts={},
+            type=type,
+            **kwargs)
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         module_info = aconf.get_module("authentication")
@@ -128,32 +132,34 @@ class IRAuth (IRFilter):
 
             self.referenced_by(module)
         
-        self.to_header_list("allowed_request_headers", module)
-        self.to_header_list("allowed_authorization_headers", module)
-
-        self["timeout_ms"] = module.get("timeout_ms", "3s")
-
+        self["timeout_ms"] = module.get("timeout_ms", 5000)
+        
         auth_service = module.get("auth_service", None)
         weight = 100    # Can't support arbitrary weights right now.
         if auth_service:
             self.hosts[auth_service] = ( weight, module.get('tls', None), module.location )
+        
+        self.to_header_list('allowed_headers', self)
+        self.to_header_list('allowed_request_headers', self)
+        self.to_header_list('allowed_authorization_headers', self)
+
+        # V0 header whitelist. This is just a work-around in order to support V0 api and
+        # may cause request problems. See documentation for more details.
+        self["allowed_request_headers"].union(self["allowed_headers"])
+        self["allowed_authorization_headers"].union(self["allowed_headers"])
 
     def config_dict(self):
         config = {
             "cluster": self.cluster.name
         }
 
-        for key in [ 'allowed_resquest_headers', 'allowed_authorization_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
+        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight' ]:
             if self.get(key, None):
                 config[key] = self[key]
         
-        # Sets request headers whitelist.
-        if self.get('allowed_resquest_headers', []):
-            config['allowed_resquest_headers'] = self.allowed_resquest_headers
-
-        # Sets authorization headers whitelist.
-        if self.get('allowed_authorization_headers', []):
-            config['allowed_authorization_headers'] = self.allowed_authorization_headers
+        # Sets V0 allowed headers whitelist.
+        if self.get('allowed_headers', []):
+            config['allowed_headers'] = self.allowed_headers
 
         return config
 

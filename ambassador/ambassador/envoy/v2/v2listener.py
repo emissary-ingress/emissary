@@ -40,7 +40,7 @@ def v2filter(auth):
                 'server_uri': {
                     'uri': 'http://%s' % auth.auth_service,
                     'cluster': auth.cluster.name,
-                    'timeout': auth.timeout_ms,
+                    'timeout': '%ss' % (auth.timeout_ms/1000),
                 },
                 'path_prefix': auth.path_prefix,
                 'allowed_request_headers': auth.allowed_request_headers,
@@ -48,7 +48,6 @@ def v2filter(auth):
             }
         }
     }
-
 
 @v2filter.when("IRRateLimit")
 def v2filter(ratelimit):
@@ -76,7 +75,6 @@ def v2filter(router):
         od['config'] = { 'start_child_span': True }
 
     return od
-
 
 class V2Listener(dict):
     def __init__(self, config: 'V2Config', listener: IRListener) -> None:

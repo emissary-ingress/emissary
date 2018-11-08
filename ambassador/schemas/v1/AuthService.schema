@@ -13,7 +13,7 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        "timeout_ms": { "type": "string" },
+        "timeout_ms": { "type": "integer" },
         "auth_service": { "type": "string" },
         "path_prefix": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
