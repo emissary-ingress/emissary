@@ -124,12 +124,13 @@ SCOUT_APP_KEY=
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
-all: version setup-develop docker-push test
+all: setup-develop docker-push test
 
 clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
+	rm -rf venv/bin/ambassador
 	rm -rf ambassador/ambassador/VERSION.py*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
@@ -288,8 +289,7 @@ GOARCH=$(shell go env GOARCH)
 $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
-	sudo chmod go-w $(TELEPROXY)
-	sudo chmod a+sx $(TELEPROXY)
+	sudo chmod go-w,a+sx $(TELEPROXY)
 
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
@@ -310,7 +310,7 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
+setup-develop: venv $(TELEPROXY) $(KUBERNAUT) version
 	go get github.com/gorilla/websocket
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
@@ -357,14 +357,14 @@ clean-test:
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: version setup-develop cluster.yaml
+test: setup-develop cluster.yaml
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
 	KUBECONFIG=$(KUBECONFIG) \
 	PATH=$(shell pwd)/venv/bin:$(PATH) \
 	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
 
-test-list: version setup-develop
+test-list: setup-develop
 	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
 
 update-aws:
@@ -407,24 +407,19 @@ release:
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: version venv/bin/activate
+venv: version venv/bin/ambassador
 
-venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.txt ambassador/requirements.txt
+venv/bin/ambassador: venv/bin/activate ambassador/requirements.txt
+	@releng/install-py.sh dev requirements ambassador/requirements.txt
+	@releng/install-py.sh dev install ambassador/requirements.txt
+	@releng/fix_kube_client
+
+venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.txt
 	test -d venv || virtualenv venv --python python3
 	@releng/install-py.sh dev requirements $^
 	@releng/install-py.sh dev install $^
 	touch venv/bin/activate
-	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
-		echo "Fixing Kubernetes Client for Python 3.7"; \
-		find "venv/lib/python3.7/site-packages/kubernetes/client" \
-			-type f -name \*.py \
-			-exec perl -pi -e 's/async=/async_req=/g;' \
-						-e 's/async bool/async_req bool/g;' \
-						-e "s/'async'/'async_req'/g;" {} \; \
-						; \
-		perl -pi -e "s/if not async/if not async_req/g;" \
-			"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"; \
-	fi
+	@releng/fix_kube_client
 
 # ------------------------------------------------------------------------------
 # Website
