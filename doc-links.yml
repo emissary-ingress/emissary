@@ -35,6 +35,8 @@
       link: /concepts/using-ambassador-in-org
     - title: Why Ambassador uses Envoy Proxy
       link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+    - title: Safely Testing in Production
+      link: /docs/dev-guide/test-in-prod
 
 - title: Guides
   items:
