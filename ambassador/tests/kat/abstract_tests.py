@@ -258,6 +258,7 @@ class MappingTest(Test):
 
     target: ServiceType
     options: Sequence['OptionTest']
+    parent: AmbassadorTest
 
     def init(self, target: ServiceType, options=()) -> None:
         self.target = target
@@ -269,6 +270,7 @@ class OptionTest(Test):
 
     VALUES: ClassVar[Any] = None
     value: Any
+    parent: Test
 
     @classmethod
     def variants(cls):

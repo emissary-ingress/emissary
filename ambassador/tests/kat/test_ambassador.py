@@ -1,20 +1,21 @@
 import json
 import pytest
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from typing import ClassVar, Dict, Sequence, Tuple, Union
 
-from kat.harness import sanitize, variants, Query, Runner
-from kat import manifests
+from kat.harness import variants, Name, Query, Runner, Test
 
 from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
 from t_ratelimit import RateLimitTest
 from t_tracing import TracingTest
 
-# XXX: should test empty ambassador config
 
+# XXX: should test empty ambassador config
 class TLS(AmbassadorTest):
+
+    target: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -98,7 +99,10 @@ service: {self.target.path.k8s}
     def scheme(self) -> str:
         return "http"
 
+
 class RedirectTests(AmbassadorTest):
+
+    target: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -160,7 +164,11 @@ def unique(options):
             result.append(o)
     return tuple(result)
 
+
 class SimpleMapping(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
 
     @classmethod
     def variants(cls):
@@ -194,6 +202,8 @@ service: http://{self.target.path.k8s}
 
 class AddRequestHeaders(OptionTest):
 
+    parent: Test
+
     VALUES: ClassVar[Sequence[Dict[str, str]]] = (
         { "foo": "bar" },
         { "moo": "arf" }
@@ -210,6 +220,9 @@ class AddRequestHeaders(OptionTest):
 
 
 class HostHeaderMapping(MappingTest):
+
+    parent: AmbassadorTest
+
     @classmethod
     def variants(cls):
         for st in variants(ServiceType):
@@ -241,6 +254,8 @@ class UseWebsocket(OptionTest):
 
 
 class WebSocketMapping(MappingTest):
+
+    parent: AmbassadorTest
 
     @classmethod
     def variants(cls):
@@ -279,6 +294,8 @@ class CORS(OptionTest):
     # isolated = True
     # debug = True
 
+    parent: MappingTest
+
     def config(self):
         yield 'cors: { origins: "*" }'
 
@@ -300,6 +317,8 @@ class CORS(OptionTest):
 
 class CaseSensitive(OptionTest):
 
+    parent: MappingTest
+
     def config(self):
         yield "case_sensitive: false"
 
@@ -313,6 +332,8 @@ class CaseSensitive(OptionTest):
 
 class AutoHostRewrite(OptionTest):
 
+    parent: MappingTest
+
     def config(self):
         yield "auto_host_rewrite: true"
 
@@ -324,6 +345,8 @@ class AutoHostRewrite(OptionTest):
 
 class Rewrite(OptionTest):
 
+    parent: MappingTest
+
     VALUES = ("/foo", "foo")
 
     def config(self):
@@ -333,16 +356,21 @@ class Rewrite(OptionTest):
         if self.value[0] != "/":
             for q in self.parent.pending:
                 q.xfail = "rewrite option is broken for values not beginning in slash"
+
         return super(OptionTest, self).queries()
 
     def check(self):
         if self.value[0] != "/":
             pytest.xfail("this is broken")
+
         for r in self.parent.results:
             assert r.backend.request.url.path == self.value
 
 
 class TLSOrigination(MappingTest):
+
+    parent: AmbassadorTest
+    definition: str
 
     IMPLICIT = """
 ---
@@ -386,13 +414,18 @@ tls: true
 
 class CanaryMapping(MappingTest):
 
+    parent: AmbassadorTest
+    target: ServiceType
+    canary: ServiceType
+    weight: int
+
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
             for w in (10, 50):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    def init(self, target, canary, weight):
+    def init(self, target: ServiceType, canary: ServiceType, weight):
         MappingTest.init(self, target)
         self.canary = canary
         self.weight = weight
@@ -422,14 +455,19 @@ weight: {self.weight}
 
     def check(self):
         hist = {}
+
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
+
         canary = 100*hist.get(self.canary.path.k8s, 0)/len(self.results)
-        main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
+        # main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
+
         assert abs(self.weight - canary) < 25, (self.weight, canary)
 
 
 class AmbassadorIDTest(AmbassadorTest):
+
+    target: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -464,7 +502,11 @@ ambassador_id: {amb_id}
         yield Query(self.url("missme/"), expected=404)
         yield Query(self.url("missme-array/"), expected=404)
 
+
 class AuthenticationTest(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -522,6 +564,5 @@ service: {self.target.path.k8s}
 # - Runner(cls) will look for variants of _every subclass_ of cls.
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
-main = Runner(AmbassadorTest
-              # , TracingTest
-             )
+main = Runner(AmbassadorTest)
+
