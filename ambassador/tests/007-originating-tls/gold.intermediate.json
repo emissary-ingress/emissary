@@ -133,7 +133,8 @@
                     "ssl_context": true
                 },
                 "redirect_listener": false,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [

@@ -55,7 +55,8 @@
                 "require_tls": false,
                 "service_port": 80,
                 "redirect_listener": false,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [

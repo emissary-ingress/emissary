@@ -157,6 +157,7 @@
                 "require_tls": false,
                 "service_port": 80,
                 "use_proxy_proto": false,
+                "use_remote_address": true,
                 "redirect_listener": false
             }
         ],
