@@ -70,3 +70,13 @@ httpbin            NodePort       10.31.245.125   <none>         80:30641/TCP   
 3. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. This should display your `user-agent` without asking for authorization.
 4. Open you browser's admin tool and delete your access_token cookie.
 5. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. You should be prompt with the 3-leg auth flow again.
+
+
+### Deployment Workflow Notes:
+There is a private repository in quay.io called `ambassador_pro` that is has a clone of the `ambassador-pro:0.0.5` image. 
+This exists because we would like to have a way to manage someone's ability to install Ambassador Pro but didn't want to hinder current users of it like DFS but turning the `ambassador-pro` registry private. 
+The installation instructions have users create a secret with credentials for a bot named `datawire+ambassador_pro` that has read permissions in the `ambassador_pro` registry. This secret is then used to authorize the image pull in the deployment. These deployments can currently be found in the `/templates/ambassador` directory on the `Ambassador` repo in the `nkrause/AmPro/auth-docs` branch. 
+
+**TODO:** 
+- rename the `ambassador_pro` registry to `ambassador_auth` or somthing like that since it contains the auth image. 
+- Automate this deployment pattern so an image push from this repo pushes the image to both `ambassador-pro` and the priavte repo (for now)
