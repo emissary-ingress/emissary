@@ -27,23 +27,27 @@ from .v2route import V2Route
 if TYPE_CHECKING:
     from . import V2Config
 
+# Static header keys normally used in the context of and authorization request.
+AllowedRequestHeaders = frozenset([
+    'authorization',
+    'cookie',
+    'from',
+    'host',
+    'proxy-authorization',
+    'user-agent',
+    'x-forwarded-for',
+    'x-forwarded-host',
+    'x-forwarded-proto'
+])
 
-ExtAuthRequestHeaders = {
-    'Authorization': True,
-    'Cookie': True,
-    'Forwarded': True,
-    'From': True,
-    'Host': True,
-    'Proxy-Authenticate': True,
-    'Proxy-Authorization': True,
-    'Set-Cookie': True,
-    'User-Agent': True,
-    'X-Forwarded-For': True,
-    'X-Forwarded-Host': True,
-    'X-Forwarded-Proto'
-    'X-Gateway-Proto': True,
-    'WWW-Authenticate': True,
-}
+# Static header keys normally used in the context of and authorization response.
+AllowedAuthorizationHeaders = frozenset([
+    'location',
+    'authorization',
+    'proxy-authenticate',
+    'set-cookie',
+    'www-authenticate'
+])
 
 @multi
 def v2filter(irfilter):
@@ -51,10 +55,13 @@ def v2filter(irfilter):
 
 @v2filter.when("IRAuth")
 def v2filter(auth):
-    request_headers = dict(ExtAuthRequestHeaders)
-
-    for hdr in auth.allowed_headers:
-        request_headers[hdr] = True
+    if auth.api_version == "ambassador/v1":
+        authorizarion_headers = set(auth.allowed_authorization_headers)
+        request_headers = set(auth.allowed_request_headers)
+                
+    if auth.api_version == "ambassador/v0":
+        authorizarion_headers = set(auth.allowed_headers)
+        request_headers = authorizarion_headers
 
     return {
         'name': 'envoy.ext_authz',
@@ -63,16 +70,14 @@ def v2filter(auth):
                 'server_uri': {
                     'uri': 'http://%s' % auth.auth_service,
                     'cluster': auth.cluster.name,
-                    'timeout': '3s',
+                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': auth.allowed_headers,
-                'allowed_request_headers': sorted(request_headers.keys())
-                # 'authorization_headers_to_add': []
+                'allowed_authorization_headers': list(authorizarion_headers.union(AllowedAuthorizationHeaders)),
+                'allowed_request_headers': list(request_headers.union(AllowedRequestHeaders))
             }
-        }
-    }
-
+        }        
+    }    
 
 @v2filter.when("IRRateLimit")
 def v2filter(ratelimit):
@@ -310,3 +315,4 @@ class V2Listener(dict):
                     chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
 
             self['filter_chains'].append(chain)
+
