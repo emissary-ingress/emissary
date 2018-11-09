@@ -1,8 +1,8 @@
-# Authentication Policy
+# Access Control
 ---
 Ambassador Pro authentication is managed with the `Policy` custom resource definition (CRD). This resource allows you to specify which routes should and should not be authenticated by the authentication service. By default, all routes require authentication from the IDP with either a JWT or via a login service. 
 
-### Authenitcation Policy Rules
+## Authentication Policy 
 A `rule` for the `Policy` CRD is a set of hosts, paths, and permission settings that indicate which routes require authentication from Ambassador Pro as well as the access rights that particular API needs. The default rule is to require authentication from all paths on all hosts. 
 
 ### Rule Configuration Values
