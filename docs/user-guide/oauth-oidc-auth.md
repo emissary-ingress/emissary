@@ -94,7 +94,7 @@ data:
 	* Creates the Ambassador Pro deployment
 	* Configuration ConfigMap
 	* Cluster resources
-	* [Policy](/reference/services/auth-policy) Custom Resource
+	* [Policy](/reference/services/access-control) Custom Resource
 
 
 ### Auth0 Validation Mode Configuration
@@ -123,7 +123,7 @@ The `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE` and `AUTH_CLIENT_ID` env
 	* Creates the Ambassador Pro deployment
 	* Configuration ConfigMap
 	* Cluster resources
-	* [Policy](/reference/services/auth-policy) Custom Resource
+	* [Policy](/reference/services/access-control) Custom Resource
 
 
 ## Test the Auth0 Application
@@ -145,7 +145,7 @@ Authentication policies are managed by the `policy` CRD we deployed in the confi
    ```
 4. Follow the configuration steps above to deploy Ambassador Pro authentication.
 5. Resend the curl requests, you will notice it now requires authentication.
-6. Deploy an `httpbin` authentication `policy`. Refer to the [Authentication Policy CRD](/reference/services/auth-policy) plugin documentation for more information.
+6. Deploy an `httpbin` authentication `policy`. Refer to the [Access Control](/reference/services/auth-policy) documentation for more information.
    
    ```
    apiVersion: stable.datawire.io/vibeta1

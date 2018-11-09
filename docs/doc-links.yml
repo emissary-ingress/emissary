@@ -105,8 +105,8 @@
               link: /reference/services/rate-limit-service
             - title: Tracing
               link: /reference/services/tracing-service
-            - title: Authentication Policy 
-              link: /reference/services/auth-policy
+            - title: Access Control
+              link: /reference/services/access-control
         - title: Advanced configuration topics
           link: /reference/advanced
     - title: Running Ambassador

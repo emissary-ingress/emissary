@@ -9,11 +9,39 @@ data:
   AUTH_AUDIENCE: https://datawire-ambassador.auth0.com/api/v2/
   AUTH_CLIENT_ID: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador-pro
+
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: ambassador-pro
 rules:
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
 - apiGroups: ["stable.datawire.io"]
   resources:
   - policies
@@ -43,25 +71,60 @@ metadata:
   name: ambassador-pro
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      name: ambassador-pro
   template:
     metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
       labels:
-        name: ambassador-pro
+        service: ambassador-pro
     spec:
       serviceAccountName: ambassador-pro
       containers:
-      - name: ambassador-pro
+      - name: ambassador-oauth
         image: quay.io/datawire/ambassador_pro:auth-0.0.5
         ports:
         - containerPort: 8080
         envFrom:
         - configMapRef:
             name: oauth-oidc-config
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.40.0
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_ID
+          value: ambassador-tls
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
       imagePullSecrets:
       - name: ambassador-pro-registry-credentials
+      restartPolicy: Always
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
