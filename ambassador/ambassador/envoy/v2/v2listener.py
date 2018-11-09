@@ -27,12 +27,41 @@ from .v2route import V2Route
 if TYPE_CHECKING:
     from . import V2Config
 
+# Static header keys normally used in the context of and authorization request.
+AllowedRequestHeaders = set([
+    'Authorization',
+    'Cookie',
+    'From',
+    'Host',
+    'Proxy-Authorization',
+    'User-Agent',
+    'X-Forwarded-For',
+    'X-Forwarded-Host',
+    'X-Forwarded-Proto'
+])
+
+# Static header keys normally used in the context of and authorization response.
+AllowedAuthorizationHeaders = set([
+    'Location',
+    'Proxy-Authenticate',
+    'Set-Cookie',
+    'WWW-Authenticate'
+])
+
 @multi
 def v2filter(irfilter):
     return irfilter.kind
 
 @v2filter.when("IRAuth")
 def v2filter(auth):
+    if auth.api_version == "ambassador/v1":
+        allowed_authorizarion_headers = list(AllowedRequestHeaders.union(auth.allowed_authorization_headers)),
+        allowed_request_headers = list(AllowedAuthorizationHeaders.union(auth.allowed_request_headers))
+                
+    if auth.api_version == "ambassador/v0":
+        allowed_authorizarion_headers = list(AllowedRequestHeaders.union(auth.allowed_headers)),
+        allowed_request_headers = list(AllowedAuthorizationHeaders.union(auth.allowed_headers))
+
     return {
         'name': 'envoy.ext_authz',
         'config': {
@@ -40,14 +69,14 @@ def v2filter(auth):
                 'server_uri': {
                     'uri': 'http://%s' % auth.auth_service,
                     'cluster': auth.cluster.name,
-                    'timeout': '%ss' % (auth.timeout_ms/1000),
+                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_request_headers': auth.allowed_request_headers,
-                'allowed_authorization_headers': auth.allowed_authorization_headers
+                'allowed_authorization_headers': allowed_authorizarion_headers,
+                'allowed_request_headers': allowed_request_headers
             }
-        }
-    }
+        }        
+    }    
 
 @v2filter.when("IRRateLimit")
 def v2filter(ratelimit):
@@ -75,6 +104,7 @@ def v2filter(router):
         od['config'] = { 'start_child_span': True }
 
     return od
+
 
 class V2Listener(dict):
     def __init__(self, config: 'V2Config', listener: IRListener) -> None:
@@ -163,9 +193,11 @@ class V2Listener(dict):
                 }
             }
 
+        hcm_config_conf = hcm_config["config"]
+
         for group in config.ir.ordered_groups():
             if group.get('use_websocket'):
-                hcm_config['config'].update(
+                hcm_config_conf.update(
                     {
                         'upgrade_configs': [
                             {
@@ -176,7 +208,8 @@ class V2Listener(dict):
                 )
                 break
 
-        hcm_config_conf = hcm_config["config"]
+        if 'use_remote_address' in config.ir.ambassador_module:
+            hcm_config_conf["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
         if config.ir.tracing:
             hcm_config_conf["generate_request_id"] = True
@@ -281,3 +314,4 @@ class V2Listener(dict):
                     chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
 
             self['filter_chains'].append(chain)
+            

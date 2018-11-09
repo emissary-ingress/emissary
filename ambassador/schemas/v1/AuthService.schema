@@ -1,8 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
-
-    "type": "object",
+     "type": "object",
     "properties": {
         "apiVersion": { "enum": ["ambassador/v1"] },
         "kind": { "type": "string" },
@@ -16,7 +15,6 @@
         "timeout_ms": { "type": "integer" },
         "auth_service": { "type": "string" },
         "path_prefix": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] },
         "allowed_request_headers": {
             "type": "array",
             "items": { "type": "string" }
