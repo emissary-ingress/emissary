@@ -28,24 +28,25 @@ if TYPE_CHECKING:
     from . import V2Config
 
 # Static header keys normally used in the context of and authorization request.
-AllowedRequestHeaders = set([
-    'Authorization',
-    'Cookie',
-    'From',
-    'Host',
-    'Proxy-Authorization',
-    'User-Agent',
-    'X-Forwarded-For',
-    'X-Forwarded-Host',
-    'X-Forwarded-Proto'
+AllowedRequestHeaders = frozenset([
+    'authorization',
+    'cookie',
+    'from',
+    'host',
+    'proxy-authorization',
+    'user-agent',
+    'x-forwarded-for',
+    'x-forwarded-host',
+    'x-forwarded-proto'
 ])
 
 # Static header keys normally used in the context of and authorization response.
-AllowedAuthorizationHeaders = set([
-    'Location',
-    'Proxy-Authenticate',
-    'Set-Cookie',
-    'WWW-Authenticate'
+AllowedAuthorizationHeaders = frozenset([
+    'location',
+    'authorization',
+    'proxy-authenticate',
+    'set-cookie',
+    'www-authenticate'
 ])
 
 @multi
@@ -55,12 +56,12 @@ def v2filter(irfilter):
 @v2filter.when("IRAuth")
 def v2filter(auth):
     if auth.api_version == "ambassador/v1":
-        allowed_authorizarion_headers = list(AllowedRequestHeaders.union(auth.allowed_authorization_headers)),
-        allowed_request_headers = list(AllowedAuthorizationHeaders.union(auth.allowed_request_headers))
+        authorizarion_headers = set(auth.allowed_authorization_headers)
+        request_headers = set(auth.allowed_request_headers)
                 
     if auth.api_version == "ambassador/v0":
-        allowed_authorizarion_headers = list(AllowedRequestHeaders.union(auth.allowed_headers)),
-        allowed_request_headers = list(AllowedAuthorizationHeaders.union(auth.allowed_headers))
+        authorizarion_headers = set(auth.allowed_headers)
+        request_headers = authorizarion_headers
 
     return {
         'name': 'envoy.ext_authz',
@@ -72,8 +73,8 @@ def v2filter(auth):
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': allowed_authorizarion_headers,
-                'allowed_request_headers': allowed_request_headers
+                'allowed_authorization_headers': list(authorizarion_headers.union(AllowedAuthorizationHeaders)),
+                'allowed_request_headers': list(request_headers.union(AllowedRequestHeaders))
             }
         }        
     }    
@@ -314,4 +315,4 @@ class V2Listener(dict):
                     chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
 
             self['filter_chains'].append(chain)
-            
+

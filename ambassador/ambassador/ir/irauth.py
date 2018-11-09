@@ -25,6 +25,7 @@ class IRAuth (IRFilter):
             cluster="cluster_ext_auth",
             timeout_ms=5000,
             path_prefix=None,
+            api_version=None,
             allowed_headers=[],
             allowed_request_headers=[],
             allowed_authorization_headers=[],
@@ -88,7 +89,7 @@ class IRAuth (IRFilter):
         if self.location == '--internal--':
             self.sourced_by(module)
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service' ]:
+        for key in [ 'apiVersion', 'path_prefix', 'timeout_ms', 'cluster', 'auth_service' ]:
             value = module.get(key, None)
 
             if value:
@@ -142,6 +143,6 @@ class IRAuth (IRFilter):
         
             for hdr in headers:
                 if hdr not in allowed_headers:
-                    allowed_headers.append(hdr)
+                    allowed_headers.append(hdr.lower())
 
-            self[list_name] = allowed_headers 
+            self[list_name] = allowed_headers
