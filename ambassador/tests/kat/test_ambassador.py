@@ -57,7 +57,7 @@ service: {self.target.path.k8s}
         # [1]
         yield Query(self.url("target/"), headers={"requested-status": "302",
                                                   "location": "foo",
-                                                  "requested-header": "location"}, expected=302, debug=True)
+                                                  "requested-header": "location"}, expected=302)
         # [2]
         yield Query(self.url("target/"), headers={"Requested-Status": "401",
                                                   "X-Foo": "foo",
@@ -162,7 +162,7 @@ service: {self.target.path.k8s}
         # [1]
         yield Query(self.url("target/"), headers={"requested-status": "302",
                                                   "location": "foo",
-                                                  "requested-header": "location"}, expected=302, debug=True)
+                                                  "requested-header": "location"}, expected=302)
         # [2]
         yield Query(self.url("target/"), headers={"Requested-Status": "401",
                                                   "X-Foo": "foo",
