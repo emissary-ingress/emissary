@@ -1,0 +1,184 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratelimit
+spec:
+  type: ClusterIP
+  ports:
+  - name: ratelimit-grpc
+    port: 81
+    targetPort: 8081
+  - name: ratelimit-debug
+    port: 80
+    targetPort: 6070
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: http
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        service: ambassador
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.50.0-ea5
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+      - name: ratelimit
+        image: rschloming/rl:3
+        env:
+        - name: REDIS_SOCKET_TYPE
+          value: tcp
+        - name: REDIS_URL
+          value: ratelimit-redis:6379
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+      restartPolicy: Always
+      volumes:
+        - name: config-volume
+          configMap:
+            name: ratelimit-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ratelimit-config
+data:
+  config.yaml: |
+    ---
+    domain: mongo_cps
+    descriptors:
+      - key: database
+        value: users
+        rate_limit:
+          unit: day
+          requests_per_unit: 5
+        descriptors:
+          - key: user_id
+            rate_limit:
+              unit: day
+              requests_per_unit: 100
+          - key: user_id
+            value: 3
+            rate_limit:
+              unit: day
+              requests_per_unit: 2
+
+      - key: database
+        value: default
+        rate_limit:
+          unit: day
+          requests_per_unit: 5
+
+      - key: database
+        rate_limit:
+          unit: day
+          requests_per_unit: 10
+
+      - key: foo
+        value: bar
+        rate_limit:
+          unit: day
+          requests_per_unit: 10
