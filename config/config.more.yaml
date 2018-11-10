@@ -1,0 +1,14 @@
+---
+domain: ambassador
+descriptors:
+  - key: source_cluster
+    descriptors:
+      - key: destination_cluster
+        descriptors:
+          - key: remote_address
+            descriptors:
+              - key: generic_key
+                value: rldesc
+                rate_limit:
+                  unit: day
+                  requests_per_unit: 3

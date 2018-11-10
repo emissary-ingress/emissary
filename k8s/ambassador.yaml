@@ -2,6 +2,21 @@
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: RateLimitService
+      name: ratelimit
+      service: "127.0.0.1:8081"
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: rl-test
+      prefix: /rl/
+      service: httpbin.org
+      rate_limits:
+        - descriptor: rldesc
   name: ratelimit
 spec:
   type: ClusterIP
@@ -126,7 +141,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: ratelimit
-        image: rschloming/rl:3
+        image: rschloming/rl:4
         env:
         - name: REDIS_SOCKET_TYPE
           value: tcp
@@ -182,3 +197,21 @@ data:
         rate_limit:
           unit: day
           requests_per_unit: 10
+  config.more.yaml: |
+    ---
+    domain: ambassador
+    descriptors:
+      - key: source_cluster
+        rate_limit:
+          unit: day
+        descriptors:
+          - key: destination_cluster
+            descriptors:
+              - key: remote_address
+                descriptors:
+                  - key: generic_key
+                    value: rldesc
+                    rate_limit:
+                      unit: day
+                      requests_per_unit: 3
+
