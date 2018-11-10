@@ -40,9 +40,12 @@
 		echo $(@:%.knaut.claim=%)-$${USER}-$(shell uuidgen) > $@; \
 	fi
 
-KUBERNAUT=./gubernaut
+KUBERNAUT=$(GOPATH)/bin/gubernaut
 KUBERNAUT_CLAIM_FILE=$(@:%.knaut=%.knaut.claim)
 KUBERNAUT_CLAIM_NAME=$(shell cat $(KUBERNAUT_CLAIM_FILE))
+
+$(KUBERNAUT):
+	go get github.com/datawire/teleproxy/cmd/gubernaut
 
 %.knaut : %.knaut.claim $(KUBERNAUT)
 	$(KUBERNAUT) -release $(KUBERNAUT_CLAIM_NAME)
@@ -55,11 +58,7 @@ KUBERNAUT_CLAIM_NAME=$(shell cat $(KUBERNAUT_CLAIM_FILE))
 	rm -f $(@:%.knaut.clean=%.knaut)
 	rm -f $(@:%.clean=%.claim)
 
-gubernaut: cmd/gubernaut/gubernaut.go
-	go build cmd/gubernaut/gubernaut.go
-
 .PHONY: kubernaut.clobber
 
 kubernaut.clobber:
-	rm -f gubernaut
-
+	rm -f $(KUBERNAUT)
