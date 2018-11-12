@@ -34,7 +34,7 @@ class AmbScout:
     _notices: Optional[List[ScoutNotice]]
     _last_result: Optional[dict]
     _last_update: Optional[datetime.datetime]
-    _update_frequency: Optional[datetime.timedelta]
+    _update_frequency: datetime.timedelta
 
     _latest_version: Optional[str] = None
     _latest_semver: Optional[semantic_version.Version] = None
@@ -78,7 +78,7 @@ class AmbScout:
                 self.logger.debug("Scout connection established")
             except OSError as e:
                 self._scout = None
-                self._scout_error = e
+                self._scout_error = str(e)
                 self.logger.debug("Scout connection failed, will retry later: %s" % self._scout_error)
 
         return self._scout
@@ -108,12 +108,18 @@ class AmbScout:
 
             now = datetime.datetime.now()
 
-            if (now - self._last_update) > self._update_frequency:
+            needs_update = True
+
+            if self._last_update:
+                since_last_update = now - typecast(datetime.datetime, self._last_update)
+                needs_update = (since_last_update > self._update_frequency)
+
+            if needs_update:
                 if self.scout:
                     result = self.scout.report(**kwargs)
 
                     self._last_update = now
-                    self._last_result = dict(**result)
+                    self._last_result = dict(**typecast(dict, result)) if result else None
                 else:
                     result = { "scout": "unavailable: %s" % self._scout_error }
                     _notices.append({ "level": "DEBUG",
@@ -124,10 +130,11 @@ class AmbScout:
                 result_timestamp = datetime.datetime.now()
             else:
                 _notices.append({ "level": "DEBUG", "message": "Returning cached result" })
-                result = dict(**self._last_result)
+                result = dict(**typecast(dict, self._last_result)) if self._last_result else None
                 result_was_cached = True
 
-                result_timestamp = self._last_update
+                # We can't get here unless self._last_update is set.
+                result_timestamp = typecast(datetime.datetime, self._last_update)
         else:
             _notices.append({ "level": "INFO", "message": "Returning forced Scout result" })
             result_timestamp = datetime.datetime.now()
@@ -138,7 +145,11 @@ class AmbScout:
                 "message": "Ambassador has invalid version '%s'??!" % self.version
             })
 
-        result['cached'] = result_was_cached
+        if result:
+            result['cached'] = result_was_cached
+        else:
+            result = { 'cached': False }
+
         result['timestamp'] = result_timestamp.timestamp()
 
         # Do version & notices stuff.
@@ -244,7 +255,7 @@ class AmbScout:
         # Start by assuming that the version is sane and we needn't
         # tack any build metadata onto it.
 
-        build_elements = []
+        build_elements: List[str] = []
 
         m = AmbScout.reTaggedBranch.search(build.git.branch)
 

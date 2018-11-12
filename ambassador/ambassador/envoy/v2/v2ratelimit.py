@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import cast as typecast
+
+from ...ir.irratelimit import IRRateLimit
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -20,12 +23,17 @@ if TYPE_CHECKING:
 
 class V2RateLimit(dict):
     def __init__(self, config: 'V2Config') -> None:
+        # We should never be instantiated unless there is, in fact, defined ratelimit stuff.
+        assert config.ir.ratelimit
+
         super().__init__()
 
-        self['use_data_plane_proto'] = config.ir.ratelimit.data_plane_proto
+        ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
+
+        self['use_data_plane_proto'] = ratelimit.data_plane_proto
         self['grpc_service'] = {
             'envoy_grpc': {
-                'cluster_name': config.ir.ratelimit.cluster.name
+                'cluster_name': ratelimit.cluster.name
             }
         }
 

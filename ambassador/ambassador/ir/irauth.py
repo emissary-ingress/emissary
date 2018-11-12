@@ -1,4 +1,5 @@
 from typing import Optional, TYPE_CHECKING
+from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus
@@ -12,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class IRAuth (IRFilter):
+    cluster: Optional[IRCluster]
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
@@ -22,7 +25,7 @@ class IRAuth (IRFilter):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            cluster="cluster_ext_auth",
+            cluster=None,
             timeout_ms=5000,
             path_prefix=None,
             allowed_headers=[],
@@ -52,9 +55,10 @@ class IRAuth (IRFilter):
         return True
 
     def add_mappings(self, ir: 'IR', aconf: Config):
-        cluster_hosts = self.get('hosts', { '127.0.0.1:5000': ( 100, None ) })
+        cluster_hosts = self.get('hosts', { '127.0.0.1:5000': ( 100, None, '-internal-' ) })
 
         self.cluster = None
+        cluster_good = False
 
         # self.ir.logger.debug("AUTH ADD_MAPPINGS: %s" % self.as_json())
 
@@ -68,7 +72,6 @@ class IRAuth (IRFilter):
                 ctx_name=ctx_name,
                 marker='extauth'
                 # grpc=self.get('grpc', False)
-
             )
 
             cluster.referenced_by(self)
@@ -88,8 +91,8 @@ class IRAuth (IRFilter):
 
         if cluster_good:
             # self.ir.logger.debug("GOOD CLUSTER %s" % self.cluster.as_json())
-            ir.add_cluster(self.cluster)
-            self.referenced_by(self.cluster)
+            ir.add_cluster(typecast(IRCluster, self.cluster))
+            self.referenced_by(typecast(IRCluster, self.cluster))
 
         #     urls = []
         #     protocols = {}

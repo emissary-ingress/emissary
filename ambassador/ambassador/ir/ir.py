@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Iterable
 from typing import cast as typecast
-
-import sys
 
 import json
 import logging
@@ -36,7 +34,6 @@ from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
 
-#from .VERSION import Version
 
 #############################################################################
 ## ir.py -- the Ambassador Intermediate Representation (IR)
@@ -130,8 +127,8 @@ class IR:
         self.outliers = aconf.get_config("OutlierDetection") or {}
 
         # Save tracing and ratelimit settings.
-        self.tracing = self.save_resource(IRTracing(self, aconf))
-        self.ratelimit = self.save_resource(IRRateLimit(self, aconf))
+        self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
+        self.ratelimit = typecast(IRRateLimit, self.save_resource(IRRateLimit(self, aconf)))
 
         # Save TLSContext resource settings.
         self.save_tls_contexts(aconf)
@@ -272,7 +269,7 @@ class IR:
 
         return group
 
-    def ordered_groups(self) -> List[IRMappingGroup]:
+    def ordered_groups(self) -> Iterable[IRMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
 
     def has_cluster(self, name: str) -> bool:
@@ -320,10 +317,10 @@ class IR:
                           for cluster_name, cluster in self.clusters.items() },
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
-            'envoy_tls_contexts': {ctx_name: ctx.as_dict()
-                             for ctx_name, ctx in self.envoy_tls.items()},
+            'envoy_tls_contexts': { ctx_name: ctx.as_dict()
+                                    for ctx_name, ctx in self.envoy_tls.items() },
             'listeners': [ listener.as_dict() for listener in self.listeners ],
-            'filters': [ filter.as_dict() for filter in self.filters ],
+            'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [context.as_dict() for context in self.tls_contexts]
         }

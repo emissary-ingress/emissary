@@ -50,7 +50,7 @@ class Config:
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     # INSTANCE VARIABLES
-    ambassador_nodename: str = None
+    ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
     current_resource: Optional[ACResource] = None
 
