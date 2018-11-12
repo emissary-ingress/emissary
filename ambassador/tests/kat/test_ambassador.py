@@ -180,7 +180,6 @@ service: {self.target.path.k8s}
         # [0] Verifies all request headers sent to the authorization server.
         assert self.results[0].backend.name == self.auth.path.k8s
         assert self.results[0].backend.request.url.path == "/extauth/target/"
-        assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert self.results[0].backend.request.headers["content-length"]== ["0"]
         assert "x-forwarded-for" in self.results[0].backend.request.headers
         assert "user-agent" in self.results[0].backend.request.headers
