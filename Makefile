@@ -30,8 +30,8 @@ $(BIN):
 .PHONY: compile
 compile: $(RATELIMIT_REPO)/vendor $(BIN)
 	cd ${RATELIMIT_REPO}/src/service_cmd && go build -o $(RATELIMIT) ./
-	cd ${RATELIMIT_REPO}/src/client_cmd && go build -o $(BIN)/ratelimit_client ./
-	cd ${RATELIMIT_REPO}/src/config_check_cmd && go build -o $(BIN)/ratelimit_config_check ./
+	cd ${RATELIMIT_REPO}/src/client_cmd && go build -o $(RATELIMIT_CLIENT) ./
+	cd ${RATELIMIT_REPO}/src/config_check_cmd && go build -o $(RATELIMIT_CONFIG_CHECK) ./
 
 # This is for managing minor diffs to upstream code. If we need
 # anything more than minor diffs this probably won't work so well. We
