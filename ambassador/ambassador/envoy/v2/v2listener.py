@@ -32,7 +32,6 @@ AllowedRequestHeaders = frozenset([
     'authorization',
     'cookie',
     'from',
-    'host',
     'proxy-authorization',
     'user-agent',
     'x-forwarded-for',
@@ -49,6 +48,24 @@ AllowedAuthorizationHeaders = frozenset([
     'www-authenticate'
 ])
 
+# This mapping is only used for ambassador/v0.
+ExtAuthRequestHeaders = {
+    'Authorization': True,
+    'Cookie': True,
+    'Forwarded': True,
+    'From': True,
+    'Host': True,
+    'Proxy-Authenticate': True,
+    'Proxy-Authorization': True,
+    'Set-Cookie': True,
+    'User-Agent': True,
+    'X-Forwarded-For': True,
+    'X-Forwarded-Host': True,
+    'X-Forwarded-Proto'
+    'X-Gateway-Proto': True,
+    'WWW-Authenticate': True,
+}
+
 @multi
 def v2filter(irfilter):
     return irfilter.kind
@@ -56,12 +73,18 @@ def v2filter(irfilter):
 @v2filter.when("IRAuth")
 def v2filter(auth):
     if auth.api_version == "ambassador/v1":
-        authorizarion_headers = set(auth.allowed_authorization_headers)
-        request_headers = set(auth.allowed_request_headers)
-                
+        allowed_authorizarion_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
+        allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
+          
     if auth.api_version == "ambassador/v0":
-        authorizarion_headers = set(auth.allowed_headers)
-        request_headers = authorizarion_headers
+        # This preserves exactly the same logic prior to ambassador/v1 implementation.
+        request_headers = dict(ExtAuthRequestHeaders)
+
+        for hdr in auth.allowed_headers:
+            request_headers[hdr] = True
+
+        allowed_authorizarion_headers = auth.allowed_headers
+        allowed_request_headers = sorted(request_headers.keys())
 
     return {
         'name': 'envoy.ext_authz',
@@ -73,8 +96,8 @@ def v2filter(auth):
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': list(authorizarion_headers.union(AllowedAuthorizationHeaders)),
-                'allowed_request_headers': list(request_headers.union(AllowedRequestHeaders))
+                'allowed_authorization_headers': allowed_authorizarion_headers,
+                'allowed_request_headers': allowed_request_headers
             }
         }        
     }    
