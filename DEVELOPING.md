@@ -64,3 +64,8 @@ To run/query the ratelimit service locally:
 3. Edit the config files in the config/ directory and restart your
    `make run`. Note that the files in the `config/` directory need to
    start with `config.` in order to be seen by the ratelimit service.
+
+Building a docker image (XXX this needs to be parameterized):
+
+1. docker build . -t rschloming/rl:<n>
+2. docker push rschloming/rl:<n>
