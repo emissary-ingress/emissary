@@ -101,8 +101,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: AMBASSADOR_ID
-          value: ambassador-tls
         ports:
         - name: http
           containerPort: 80
