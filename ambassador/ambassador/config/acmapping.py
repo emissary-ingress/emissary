@@ -71,7 +71,8 @@ class ACMapping (ACResource):
         # First init our superclass...
 
         super().__init__(rkey, location,
-                         kind=kind, name=name,
+                         kind=kind,
+                         name=name,
                          apiVersion=apiVersion,
                          serialization=serialization,
                          service=service,
