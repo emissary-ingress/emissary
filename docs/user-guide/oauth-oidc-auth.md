@@ -10,11 +10,16 @@ You need to have Ambassador Pro installed in your cluster to add OAuth/OIDC Auth
 2. Deploy Ambassador Pro
 
 ```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro.yaml
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-pro.yaml
 ```
-**Note:** OAuth/OIDC authentication is configured via `ConfigMap`. This default installation creates a `ConfigMap` with default values that will need to be changed following the configuration instructions below.
 
-**Note:** Ensure the `namespace` field in the `ClusterRoleBinding` is configured properly to the namespace you are deploying in. 
+**Note:** This deploys Ambassador Pro with the authentication service as a sidecar to Ambassador. This is the recommended deployment pattern. If you wish to deploy Ambassador Pro Authentication as an independent service use:
+
+```
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/auth.yaml
+```
+
+**Note:** The `namespace` field in the `ClusterRoleBinding` is configured to `default`. Make sure to download the yaml and change this if you wish to deploy in a non-`default` namespace.
 
 3. Define the Ambassador Pro Authentication service
 
@@ -48,7 +53,7 @@ spec:
 ## Configuring the `oauth-oidc-config` ConfigMap
 ### Auth0 Default Configuration
 
-OAuth and OIDC authentication is configured via a `ConfigMap` named `oauth-oidc-config`. Create a file named `oauth-oidc-config.yaml` (or `kubectl edit` the existing `ConfigMap`) and set the `AUTH_DOMAIN`, `AUTH_CLIENT_ID`, `AUTH_AUDIENCE`, and `AUTH_CALLBACK_URL` environment variables. (You'll need to create an Auth0 custom API if you haven't already.)
+OAuth and OIDC authentication is configured via a `ConfigMap` named `oauth-oidc-config`. The default installation creates this ConfigMap with default values that need to be changed.  Create a file named `oauth-oidc-config.yaml` (or `kubectl edit` the existing `ConfigMap`) and set the `AUTH_DOMAIN`, `AUTH_CLIENT_ID`, `AUTH_AUDIENCE`, and `AUTH_CALLBACK_URL` environment variables. (You'll need to create an Auth0 custom API if you haven't already.)
 
 * `AUTH_DOMAIN` is your Auth0 domain, e.g., foo.auth0.com.
 * `AUTH_CLIENT_ID` is the client ID of your application.

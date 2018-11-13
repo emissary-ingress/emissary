@@ -1,7 +1,7 @@
 - title: Getting Started
+  link: /docs
+  collapsable: false
   items:
-    - title: Welcome
-      link: /docs/
     - title: Why Ambassador?
       link: /about/why-ambassador
     - title: Features and Benefits
@@ -18,8 +18,6 @@
         link: /about/quickstart
       - title: Docker Compose
         link: /user-guide/docker-compose
-      - title: Bare Metal
-        link: /user-guide/bare-metal
       - title: Early Access Releases
         link: /user-guide/early-access
 
@@ -40,9 +38,11 @@
 
 - title: Guides
   items:
-    - title: Adding Authentication
+    - title: Basic Authentication
       link: /user-guide/auth-tutorial
-    - title: Adding Rate Limiting
+    - title: Single Sign-On with OAuth & OIDC
+      link: /user-guide/oauth-oidc-auth 
+    - title: Basic Rate Limiting
       link: /user-guide/rate-limiting-tutorial
     - title: Adding Tracing
       link: /user-guide/tracing-tutorial
@@ -50,31 +50,23 @@
       link: /user-guide/grpc
     - title: TLS Termination
       link: /user-guide/tls-termination
-    - title: Server Name Indication (SNI)
-      link: /user-guide/sni  
     - title: Istio and Ambassador
       link: /user-guide/with-istio
-    - title: OAuth/OIDC Authentication
-      link: /user-guide/oauth-oidc-auth
-    - title: More guides
-      link: https://blog.getambassador.io/howto/home
 
 - title: Reference
+  collapsable: false
   items:
     - title: Configuring Ambassador
+      link: /reference/configuration
       items:
-        - title: Configuring Ambassador
-          link: /reference/configuration
         - title: Core Configuration
+          link: /reference/modules
           items:
-            - title: Core Configuration
-              link: /reference/modules
             - title: TLS and X-Forwarded-Proto
               link: /reference/core/tls
         - title: Configuring Services
+          link: /reference/mappings
           items:
-            - title: Configuring Services
-              link: /reference/mappings
             - title: Canary Releases
               link: /reference/canary
             - title: Cross Origin Resource Sharing
@@ -96,23 +88,21 @@
             - title: Traffic Shadowing
               link: /reference/shadowing
         - title: Plugins
+          link: /reference/services/services
           items:
-            - title: Plugins
-              link: /reference/services/services
             - title: Authentication
               link: /reference/services/auth-service
+            - title: Access Control
+              link: /reference/services/access-control
             - title: Rate Limiting
               link: /reference/services/rate-limit-service
             - title: Tracing
               link: /reference/services/tracing-service
-            - title: Access Control
-              link: /reference/services/access-control
         - title: Advanced configuration topics
           link: /reference/advanced
     - title: Running Ambassador
+      link: /reference/running
       items:
-        - title: Running Ambassador
-          link: /reference/running
         - title: Diagnostics
           link: /reference/diagnostics
         - title: Ambassador with AWS
