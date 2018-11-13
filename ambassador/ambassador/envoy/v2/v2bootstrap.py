@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
+from typing import cast as typecast
 
 from .v2cluster import V2Cluster
+from ...ir.ircluster import IRCluster
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -11,9 +13,9 @@ class V2Bootstrap(dict):
         super().__init__(**{
             "node": {
                 "cluster": config.ir.ambassador_nodename,
-                "id": "test-id"     # MUST BE test-id, see below
+                "id": "test-id"         # MUST BE test-id, see below
             },
-            "static_resources": {}, # Filled in later
+            "static_resources": {},     # Filled in later
             "dynamic_resources": {
                 "ads_config": {
                     "api_type": "GRPC",
@@ -43,11 +45,11 @@ class V2Bootstrap(dict):
 
         if config.tracing:
             self['tracing'] = dict(config.tracing)
-            clusters.append(V2Cluster(config, self['tracing']['cluster']))
+            clusters.append(V2Cluster(config, typecast(IRCluster, config.ir.tracing.cluster)))
 
         if config.ratelimit:
             self['rate_limit_service'] = dict(config.ratelimit)
-            clusters.append(V2Cluster(config, self['rate_limit_service']['cluster']))
+            clusters.append(V2Cluster(config, typecast(IRCluster, config.ir.ratelimit.cluster)))
 
         self['static_resources']['clusters'] = clusters
 
