@@ -13,6 +13,7 @@
 # limitations under the License
 
 from typing import Any, Dict, List, Optional, Tuple
+from typing import cast as typecast
 
 import json
 import logging
@@ -76,11 +77,14 @@ class DiagClusters:
     to make a new DiagCluster if you ask for one that doesn't exist.
     """
 
-    def __init__(self, clusters: Optional[List[dict]] = []) -> None:
+    clusters: Dict[str, DiagCluster]
+
+    def __init__(self, clusters: Optional[List[dict]] = None) -> None:
         self.clusters = {}
 
-        for cluster in clusters:
-            self[cluster['name']] = DiagCluster(cluster)
+        if clusters:
+            for cluster in typecast(List[dict], clusters):
+                self[cluster['name']] = DiagCluster(cluster)
 
     def __getitem__(self, key: str) -> DiagCluster:
         if key not in self.clusters:
@@ -120,11 +124,11 @@ class DiagResult:
         # All of these things reflect _only_ resources that are relevant to the request
         # we're handling -- e.g. if you ask for a particular group, you'll only get the
         # clusters that are part of that group.
-        self.clusters: Dict[str, DiagCluster] = {}  # Envoy clusters
-        self.routes: List[dict] = []                # Envoy routes
-        self.element_keys: Dict[str, bool] = {}     # Active element keys
-        self.ambassador_resources = {}              # Ambassador config resources
-        self.envoy_resources = {}                   # Envoy config resources
+        self.clusters: Dict[str, DiagCluster] = {}          # Envoy clusters
+        self.routes: List[dict] = []                        # Envoy routes
+        self.element_keys: Dict[str, bool] = {}             # Active element keys
+        self.ambassador_resources: Dict[str, str] = {}      # Actually serializations of Ambassador config resources
+        self.envoy_resources: Dict[str, dict] = {}          # Envoy config resources
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -196,7 +200,7 @@ class DiagResult:
         clusters, and host_redirects. It would be a horrible mistake to duplicate this
         elsewhere.
 
-        :param cluster: dictionary version of a cluster to mark as active.
+        :param group: IRMappingGroup to include
         """
 
         # self.logger.debug("GROUP %s" % group.as_json())
@@ -206,23 +210,18 @@ class DiagResult:
         method = '*'
         host = None
 
-        route_cluster: Optional[DiagCluster] = None
         route_clusters: List[DiagCluster] = []
 
         for mapping in group.get('mappings', []):
             cluster = mapping['cluster']
-            c_name = cluster['name']
 
-            route_cluster = self.include_cluster(cluster.as_dict())
-            route_cluster.update({'weight': mapping['weight']})
+            mapping_cluster = self.include_cluster(cluster.as_dict())
+            mapping_cluster.update({'weight': mapping['weight']})
 
             # self.logger.debug("GROUP %s CLUSTER %s %d%% (%s)" %
-            #                   (group['group_id'], c_name, mapping['weight'], route_cluster))
+            #                   (group['group_id'], c_name, mapping['weight'], mapping_cluster))
 
-            route_clusters.append(route_cluster)
-
-        # Reset to pick up host_redirect or shadow.
-        route_cluster = None
+            route_clusters.append(mapping_cluster)
 
         host_redir = group.get('host_redirect', None)
 
@@ -240,7 +239,7 @@ class DiagResult:
             route_clusters.append(redirect_cluster)
 
             self.logger.info("host_redirect route: %s" % group)
-            self.logger.info("host_redirect cluster: %s" % route_cluster)
+            self.logger.info("host_redirect cluster: %s" % redirect_cluster)
 
         shadows = group.get('shadows', [])
 
@@ -253,7 +252,7 @@ class DiagResult:
             route_clusters.append(shadow_cluster)
 
             self.logger.info("shadow route: %s" % group)
-            self.logger.info("shadow cluster: %s" % route_cluster)
+            self.logger.info("shadow cluster: %s" % shadow_cluster)
 
         headers = []
 
@@ -311,6 +310,7 @@ class DiagResult:
             if envoy_el_info:
                 self.envoy_resources[key] = envoy_el_info
 
+
 class Diagnostics:
     """
     Information needed by the Diagnostics UI. This has to be instantiated
@@ -360,11 +360,10 @@ class Diagnostics:
         # self.envoy_elements has the created Envoy configuration resources, indexed
         # by fully-qualified key.
 
-        self.source_map = {}
-        self.ambassador_elements = {}
-        self.envoy_elements = {}
-
-        self.errors = {}
+        self.source_map: Dict[str, Dict[str, bool]] = {}
+        self.ambassador_elements: Dict[str, dict] = {}
+        self.envoy_elements: Dict[str, dict] = {}
+        self.ambassador_services: List[dict] = []
 
         # First up, walk the list of Ambassador sources.
         for key, rsrc in self.ir.aconf.sources.items():
@@ -385,7 +384,7 @@ class Diagnostics:
 
             self.remember_source(uqkey, fqkey, location, rsrc.rkey)
 
-            ambassador_element = self.ambassador_elements.setdefault(
+            ambassador_element: dict = self.ambassador_elements.setdefault(
                 fqkey,
                 {
                     'location': location,
@@ -401,7 +400,7 @@ class Diagnostics:
             if uqkey and (uqkey != fqkey):
                 ambassador_element['parent'] = uqkey
 
-            raw_errors: List[Dict[str, str]] = self.ir.aconf.errors.get(fqkey, [])
+            raw_errors: List[dict] = self.ir.aconf.errors.get(fqkey, [])
             errors = []
 
             for error in raw_errors:
@@ -443,12 +442,12 @@ class Diagnostics:
         # Build up our Ambassador services too (auth, ratelimit, tracing).
         self.ambassador_services = []
 
-        for filter in self.ir.filters:
+        for filt in self.ir.filters:
             # self.logger.debug("FILTER %s" % filter.as_json())
 
-            if filter.kind in Diagnostics.filter_map:
-                type_name = Diagnostics.filter_map[filter.kind]
-                self.add_ambassador_service(filter, type_name)
+            if filt.kind in Diagnostics.filter_map:
+                type_name = Diagnostics.filter_map[filt.kind]
+                self.add_ambassador_service(filt, type_name)
 
         if self.ir.tracing:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
