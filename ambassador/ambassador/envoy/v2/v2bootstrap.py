@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING
 from typing import cast as typecast
 
-from .v2cluster import V2Cluster
 from ...ir.ircluster import IRCluster
+from ...ir.irtracing import IRTracing
+from ...ir.irratelimit import IRRateLimit
+
+from .v2cluster import V2Cluster
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -45,11 +48,19 @@ class V2Bootstrap(dict):
 
         if config.tracing:
             self['tracing'] = dict(config.tracing)
-            clusters.append(V2Cluster(config, typecast(IRCluster, config.ir.tracing.cluster)))
+
+            tracing = typecast(IRTracing, config.ir.tracing)
+
+            assert tracing.cluster
+            clusters.append(V2Cluster(config, typecast(IRCluster, tracing.cluster)))
 
         if config.ratelimit:
             self['rate_limit_service'] = dict(config.ratelimit)
-            clusters.append(V2Cluster(config, typecast(IRCluster, config.ir.ratelimit.cluster)))
+
+            ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
+
+            assert ratelimit.cluster
+            clusters.append(V2Cluster(config, ratelimit.cluster))
 
         self['static_resources']['clusters'] = clusters
 
