@@ -421,6 +421,18 @@ venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.
 	touch venv/bin/activate
 	@releng/fix_kube_client
 
+mypy-server-stop:
+	dmypy stop
+
+mypy-server:
+	@if ! dmypy status >/dev/null; then \
+		dmypy start -- --use-fine-grained-cache --follow-imports=skip ;\
+		echo "Started mypy server" ;\
+	fi
+
+mypy: mypy-server
+	time dmypy check ambassador
+
 # ------------------------------------------------------------------------------
 # Website
 # ------------------------------------------------------------------------------
