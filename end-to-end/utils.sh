@@ -295,6 +295,31 @@ wait_for_ready () {
     fi
 }
 
+wait_for_zipkin_running () {
+    baseurl=${1}
+    attempts=100
+    ready=
+
+    while [ $attempts -gt 0 ]; do
+        OK=$(curl -k -s $baseurl/health | egrep -c '"UP"')
+
+        if [ $OK -gt 0 ]; then
+            printf "zipkin ready              \n"
+            ready=YES
+            break
+        fi
+
+        printf "try %02d: zipkin not ready${LINE_END}" $attempts
+        attempts=$(( $attempts - 1 ))
+        sleep 5
+    done
+
+    if [ -z "$ready" ]; then
+        echo 'zipkin not yet ready?' >&2
+        exit 1
+    fi
+}
+
 wait_for_extauth_running () {
     baseurl=${1}
     attempts=100
@@ -537,7 +562,8 @@ check_ambassador_diff() {
     container_file=$2
     local_file=$3
 
-    diff <(kubectl exec ${pod} -c ambassador cat ${container_file}) ${local_file}
+    container_content=$(kubectl exec ${pod} -c ambassador cat ${container_file})
+    diff <${container_content} ${local_file}
     exit_code=$?
     if [ ${exit_code} -ne 0 ]; then
         echo "ambassador:${container_file} and ${local_file} do not match"

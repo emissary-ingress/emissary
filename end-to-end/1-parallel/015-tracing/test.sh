@@ -51,6 +51,7 @@ echo "Diag URL $BASEURL/ambassador/v0/diag/"
 echo "Zipkin URL $ZIPKINURL"
 
 wait_for_ready "$BASEURL" ${NAMESPACE}
+wait_for_zipkin_running "$ZIPKINURL"
 
 if ! python tracing-test.py ${BASEURL} ${ZIPKINURL}; then
     exit 1

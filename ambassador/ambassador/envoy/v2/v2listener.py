@@ -63,10 +63,16 @@ ExtAuthRequestHeaders = {
     'Proxy-Authorization': True,
     'Set-Cookie': True,
     'User-Agent': True,
+    'x-b3-flags': True,
+    'x-b3-parentspanid': True,
+    'x-b3-traceid': True,
+    'x-b3-sampled': True,
+    'x-b3-spanid': True,
     'X-Forwarded-For': True,
     'X-Forwarded-Host': True,
     'X-Forwarded-Proto'
     'X-Gateway-Proto': True,
+    'x-ot-span-context': True,
     'WWW-Authenticate': True,
 }
 
