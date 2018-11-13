@@ -426,7 +426,7 @@ mypy-server-stop:
 
 mypy-server:
 	@if ! dmypy status >/dev/null; then \
-		dmypy start -- --use-fine-grained-cache --follow-imports=skip ;\
+		dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
 		echo "Started mypy server" ;\
 	fi
 
