@@ -28,7 +28,7 @@ class V2TLSContext(Dict):
         #     self['sni'] = host_rewrite
 
     def add_context(self, ctx: IREnvoyTLS) -> None:
-        common_tls_context = {}
+        common_tls_context: dict = {}
 
         tls_certificate = {}
         if "cert_chain_file" in ctx:

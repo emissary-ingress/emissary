@@ -1,19 +1,31 @@
-from abc import ABC, abstractmethod
-from collections import OrderedDict
-from itertools import chain, product
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, Type
+import sys
 
-import base64, copy, fnmatch, functools, inspect, json, os, pprint, pytest, sys, time, threading, traceback
+from abc import ABC
+from collections import OrderedDict
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Type
+
+import base64
+import fnmatch
+import functools
+import inspect
+import json
+import os
+import pytest
+import time
+import threading
+import traceback
 
 from multi import multi
 from .parser import dump, load, Tag
+
 
 def run(cmd):
     status = os.system(cmd)
     if status != 0:
         raise RuntimeError("command failed[%s]: %s" % (status, cmd))
 
-COUNTERS: Mapping[Type,int] = {}
+
+COUNTERS: Dict[Type, int] = {}
 
 SANITIZATIONS = OrderedDict((
     ("://", "SCHEME"),
@@ -24,6 +36,7 @@ SANITIZATIONS = OrderedDict((
     ("?", "QMARK"),
     ("/", "SLASH"),
 ))
+
 
 def sanitize(obj):
     if isinstance(obj, str):
@@ -44,21 +57,25 @@ def sanitize(obj):
         if count == 0:
             return cls.__name__
         else:
-            return cls.__name__ + "-%s" %  count
+            return "%s-%s" % (cls.__name__, count)
 
-def abstract_test(cls):
+
+def abstract_test(cls: type):
     cls.abstract_test = True
     return cls
 
-def get_nodes(type):
-    if not inspect.isabstract(type) and not type.__dict__.get("abstract_test", False):
-        yield type
-    for sc in type.__subclasses__():
+
+def get_nodes(node_type: type):
+    if not inspect.isabstract(node_type) and not node_type.__dict__.get("abstract_test", False):
+        yield node_type
+    for sc in node_type.__subclasses__():
         for ssc in get_nodes(sc):
             yield ssc
 
+
 def variants(cls, *args, **kwargs) -> Tuple[Any]:
     return tuple(a for n in get_nodes(cls) for a in n.variants(*args, **kwargs))
+
 
 class Name(str):
 
@@ -66,12 +83,15 @@ class Name(str):
     def k8s(self):
         return self.replace(".", "-").lower()
 
+
 class NodeLocal(threading.local):
 
     def __init__(self):
         self.current = None
 
+
 _local = NodeLocal()
+
 
 def _argprocess(o):
     if isinstance(o, Node):
@@ -85,20 +105,23 @@ def _argprocess(o):
     else:
         return o
 
+
 class Node(ABC):
 
-    parent: 'Test'
-    children: Sequence['Test']
-    name: str
+    parent: 'Node'
+    children: List['Node']
+    name: Name
+    ambassador_id: str
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         name = kwargs.pop("name", None)
-        _clone = kwargs.pop("_clone", None)
+        _clone: Node = kwargs.pop("_clone", None)
+
         if _clone:
             args = _clone._args
             kwargs = _clone._kwargs
             if name:
-                name = "-".join((_clone.name, name))
+                name = Name("-".join((_clone.name, name)))
             else:
                 name = _clone.name
             self._args = _clone._args
@@ -107,9 +130,9 @@ class Node(ABC):
             self._args = args
             self._kwargs = kwargs
             if name:
-                name = "-".join((self.__class__.__name__, name))
+                name = Name("-".join((self.__class__.__name__, name)))
             else:
-                name = self.__class__.__name__
+                name = Name(self.__class__.__name__)
 
         saved = _local.current
         self.parent = _local.current
@@ -187,20 +210,23 @@ class Node(ABC):
         return False
 
     def requirements(self):
-        if False: yield
+        yield from ()
+
 
 class Test(Node):
+
+    results: Sequence['Result']
 
     __test__ = False
 
     def config(self):
-        if False: yield
+        yield from ()
 
     def manifests(self):
         return None
 
     def queries(self):
-        if False: yield
+        yield from ()
 
     def check(self):
         pass
@@ -212,10 +238,11 @@ class Test(Node):
         else:
             return self.parent.ambassador_id
 
+
 class Query:
 
-    def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip = None,
-                 xfail = None, phase=1, debug=False):
+    def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
+                 xfail=None, phase=1, debug=False):
         self.method = method
         self.url = url
         self.headers = headers
@@ -249,6 +276,7 @@ class Query:
             result["messages"] = self.messages
         return result
 
+
 class Result:
 
     def __init__(self, query, res):
@@ -270,9 +298,12 @@ class Result:
     def check(self):
         if self.query.skip:
             pytest.skip(self.query.skip)
+
         if self.query.xfail:
             pytest.xfail(self.query.xfail)
-        assert self.query.expected == self.status, "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error)
+
+        assert (self.query.expected == self.status,
+                "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error))
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
@@ -287,43 +318,44 @@ class Result:
 
         return od
 
-            # 'RENDERED': {
-            #     'client': {
-            #         'request': self.query.as_json(),
-            #         'response': {
-            #             'status': self.status,
-            #             'error': self.error,
-            #             'headers': self.headers
-            #         }
-            #     },
-            #     'upstream': {
-            #         'name': self.backend.name,
-            #         'request': {
-            #             'headers': self.backend.request.headers,
-            #             'url': {
-            #                 'fragment': self.backend.request.url.fragment,
-            #                 'host': self.backend.request.url.host,
-            #                 'opaque': self.backend.request.url.opaque,
-            #                 'path': self.backend.request.url.path,
-            #                 'query': self.backend.request.url.query,
-            #                 'rawQuery': self.backend.request.url.rawQuery,
-            #                 'scheme': self.backend.request.url.scheme,
-            #                 'username': self.backend.request.url.username,
-            #                 'password': self.backend.request.url.password,
-            #             },
-            #             'host': self.backend.request.host,
-            #             'tls': {
-            #                 'enabled': self.backend.request.tls.enabled,
-            #                 'server_name': self.backend.request.tls.server_name,
-            #                 'version': self.backend.request.tls.version,
-            #                 'negotiated_protocol': self.backend.request.tls.negotiated_protocol,
-            #             },
-            #         },
-            #         'response': {
-            #             'headers': self.backend.response.headers
-            #         }
-            #     }
-            # }
+        # 'RENDERED': {
+        #     'client': {
+        #         'request': self.query.as_json(),
+        #         'response': {
+        #             'status': self.status,
+        #             'error': self.error,
+        #             'headers': self.headers
+        #         }
+        #     },
+        #     'upstream': {
+        #         'name': self.backend.name,
+        #         'request': {
+        #             'headers': self.backend.request.headers,
+        #             'url': {
+        #                 'fragment': self.backend.request.url.fragment,
+        #                 'host': self.backend.request.url.host,
+        #                 'opaque': self.backend.request.url.opaque,
+        #                 'path': self.backend.request.url.path,
+        #                 'query': self.backend.request.url.query,
+        #                 'rawQuery': self.backend.request.url.rawQuery,
+        #                 'scheme': self.backend.request.url.scheme,
+        #                 'username': self.backend.request.url.username,
+        #                 'password': self.backend.request.url.password,
+        #             },
+        #             'host': self.backend.request.host,
+        #             'tls': {
+        #                 'enabled': self.backend.request.tls.enabled,
+        #                 'server_name': self.backend.request.tls.server_name,
+        #                 'version': self.backend.request.tls.version,
+        #                 'negotiated_protocol': self.backend.request.tls.negotiated_protocol,
+        #             },
+        #         },
+        #         'response': {
+        #             'headers': self.backend.response.headers
+        #         }
+        #     }
+        # }
+
 
 class BackendURL:
 
@@ -352,6 +384,7 @@ class BackendURL:
             'password': self.password,
         }
 
+
 class BackendRequest:
 
     def __init__(self, req):
@@ -374,6 +407,7 @@ class BackendRequest:
 
         return od
 
+
 class BackendTLS:
 
     def __init__(self, tls):
@@ -390,6 +424,7 @@ class BackendTLS:
             'negotiated_protocol': self.negotiated_protocol,
         }
 
+
 class BackendResponse:
 
     def __init__(self, resp):
@@ -398,11 +433,13 @@ class BackendResponse:
     def as_dict(self) -> Dict[str, Any]:
         return { 'headers': self.headers }
 
+
 def dictify(obj):
     if getattr(obj, "as_dict", None):
         return obj.as_dict()
     else:
         return obj
+
 
 class BackendResult:
 
@@ -429,17 +466,22 @@ class BackendResult:
 
         return od
 
+
 def label(yaml, scope):
     for obj in yaml:
         md = obj["metadata"]
-        if "labels" not in md: md["labels"] = {}
+
+        if "labels" not in md:
+            md["labels"] = {}
+
         obj["metadata"]["labels"]["scope"] = scope
     return yaml
 
 
 CLIENT_GO = os.path.join(os.path.dirname(__file__), "client.go")
 
-def query(queries: Sequence[Query]) -> Sequence[Result]:
+
+def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
     byid = {}
 
@@ -449,11 +491,14 @@ def query(queries: Sequence[Query]) -> Sequence[Result]:
 
     with open("/tmp/urls.json", "w") as f:
         json.dump(jsonified, f)
+
     run("go run %s -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
+
     with open("/tmp/results.json") as f:
         json_results = json.load(f)
 
     results = []
+
     for r in json_results:
         res = r["result"]
         q = byid[r["id"]]
@@ -461,8 +506,10 @@ def query(queries: Sequence[Query]) -> Sequence[Result]:
 
     return results
 
+
 # yuck
 DOCTEST = False
+
 
 class Runner:
 
@@ -477,11 +524,14 @@ class Runner:
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, capsys, t):
             selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
+
             with capsys.disabled():
                 self.setup(selected)
+
             # XXX: should aggregate the result of url checks
             for r in t.results:
                 r.check()
+
             t.check()
 
         self.__func__ = test
@@ -494,9 +544,12 @@ class Runner:
         for t in self.tests:
             try:
                 self.setup(set(self.tests))
+
                 for r in t.results:
                     r.check()
+
                 t.check()
+
                 print("%s: PASSED" % t.name)
             except:
                 print("%s: FAILED\n  %s" % (t.name, traceback.format_exc().replace("\n", "\n  ")))
@@ -505,15 +558,23 @@ class Runner:
         if not self.done:
             if not DOCTEST:
                 print()
+
             expanded = set(selected)
+
             for e in list(expanded):
                 for a in e.ancestors:
                     expanded.add(a)
+
             try:
                 self._setup_k8s()
+
                 for t in self.tests:
-                    if t in expanded and getattr(t, "pre_query", None):
-                        t.pre_query()
+                    if t in expanded:
+                        pre_query: Callable = getattr(t, "pre_query", None)
+
+                        if pre_query:
+                            pre_query()
+
                 self._query(expanded)
             except:
                 traceback.print_exc()
@@ -539,10 +600,12 @@ class Runner:
                 else:
                     target = cfg[0]
                     yaml = load(n.path, cfg[1], Tag.MAPPING)
-                    if n.ambassador_id != None:
+
+                    if n.ambassador_id:
                         for obj in yaml:
                             if "ambassador_id" not in obj:
                                 obj["ambassador_id"] = n.ambassador_id
+
                     configs[n].append((target, yaml))
 
         for tgt_cfgs in configs.values():
@@ -613,12 +676,18 @@ class Runner:
         delay = 0.5
         start = time.time()
         limit = 5*60
+
         while time.time() - start < limit:
             for kind in kinds:
-                if kind not in homogenous: continue
+                if kind not in homogenous:
+                    continue
+
                 reqs = homogenous[kind]
+
                 print("Checking %s %s requirements... " % (len(reqs), kind), end="")
+
                 sys.stdout.flush()
+
                 if not self._ready(kind, reqs):
                     delay = int(min(delay*2, 10))
                     print("sleeping %ss..." % delay)
@@ -628,6 +697,7 @@ class Runner:
                     print("satisfied.")
                     sys.stdout.flush()
                     kinds.remove(kind)
+
                 break
             else:
                 return
@@ -635,11 +705,11 @@ class Runner:
         assert False, "requirements not satisfied in %s seconds" % limit
 
     @multi
-    def _ready(self, kind, requirements):
+    def _ready(self, kind, _):
         return kind
 
     @_ready.when("pod")
-    def _ready(self, kind, requirements):
+    def _ready(self, _, requirements):
         pods = self._pods()
         for node, name in requirements:
             if not pods.get(name, False):
@@ -648,14 +718,18 @@ class Runner:
         return True
 
     @_ready.when("url")
-    def _ready(self, kind, requirements):
+    def _ready(self, _, requirements):
         queries = []
+
         for node, name in requirements:
             q = Query(name, insecure=True)
             q.parent = node
             queries.append(q)
-        result = query(queries)
+
+        result = run_queries(queries)
+
         not_ready = [r for r in result if r.status != r.query.expected]
+
         if not_ready:
             first = not_ready[0]
             print("%s not ready (%s) " % (first.query.url, first.status or first.error), end="")
@@ -671,25 +745,32 @@ class Runner:
             raw_pods = json.load(f)
 
         pods = {}
+
         for p in raw_pods["items"]:
             name = p["metadata"]["name"]
             statuses = tuple(cs["ready"] for cs in p["status"].get("containerStatuses", ()))
+
             if not statuses:
                 ready = False
             else:
                 ready = True
+
                 for status in statuses:
                     ready = ready and status
+
             pods[name] = ready
+
         return pods
 
-    def _query(self, selected):
+    def _query(self, selected) -> None:
         queries = []
+
         for t in self.tests:
             if t in selected:
                 t.pending = []
                 t.queried = []
                 t.results = []
+
                 for q in t.queries():
                     q.parent = t
                     t.pending.append(q)
@@ -699,9 +780,12 @@ class Runner:
 
         for phase in phases:
             phase_queries = [q for q in queries if q.phase == phase]
+
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
-            results = query(phase_queries)
+
+            results = run_queries(phase_queries)
+
             print(" done.")
 
             for r in results:

@@ -12,12 +12,18 @@ if TYPE_CHECKING:
 
 class IRTracing (IRResource):
     cluster: Optional[IRCluster]
+    service: str
+    driver: str
+    driver_config: dict
+    tag_headers: list
+    host_rewrite: Optional[str]
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.tracing",
                  kind: str="ir.tracing",
                  name: str="tracing",
                  **kwargs) -> None:
+        del kwargs  # silence unused-variable warning
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name
@@ -39,7 +45,7 @@ class IRTracing (IRResource):
         if number_configs is not 1:
             self.post_error(
                 RichStatus.fromError("exactly one TracingService is supported, got {}".format(number_configs),
-                                     module=config))
+                                     module=aconf))
             return False
 
         config = list(configs)[0]

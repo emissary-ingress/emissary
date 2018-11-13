@@ -1,5 +1,6 @@
 from ambassador.utils import RichStatus
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import cast as typecast
 
 from ..config import Config
 
@@ -44,6 +45,8 @@ class IRMapping (IRResource):
     service: str
     group_id: str
     route_weight: List[Union[str, int]]
+    cors: IRCORS
+    sni: bool
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "add_request_headers": True,
@@ -266,6 +269,7 @@ class IRMappingGroup (IRResource):
     shadow: List[IRMapping]
     group_id: str
     group_weight: List[Union[str, int]]
+    rewrite: str
 
     # TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
     #     "auto_host_rewrite": True,
@@ -305,7 +309,7 @@ class IRMappingGroup (IRResource):
     @staticmethod
     def helper_mappings(res: IRResource, k: str) -> Tuple[str, List[dict]]:
         return k, list(reversed(sorted([ x.as_dict() for x in res.mappings ],
-                                         key=lambda x: x['route_weight'])))
+                                       key=lambda x: x['route_weight'])))
 
     @staticmethod
     def helper_shadows(res: IRResource, k: str) -> Tuple[str, List[dict]]:
@@ -319,6 +323,7 @@ class IRMappingGroup (IRResource):
                  name: str="ir.mappinggroup",
                  **kwargs) -> None:
         # print("IRMappingGroup __init__ (%s %s %s)" % (kind, name, kwargs))
+        del rkey    # silence unused-variable warning
 
         if 'host_redirect' in kwargs:
             raise Exception("IRMappingGroup cannot accept a host_redirect as a keyword argument")
@@ -359,7 +364,8 @@ class IRMappingGroup (IRResource):
 
         if mismatches:
             raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
-                            (self.name, mapping.name, ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])))
+                            (self.name, mapping.name,
+                             ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])))
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
@@ -394,7 +400,7 @@ class IRMappingGroup (IRResource):
 
             if self.host_redirect:
                 errstr = "cannot accept %s as second host_redirect after %s" % \
-                         (mapping.name, self.host_redirect.name)
+                         (mapping.name, typecast(IRMapping, self.host_redirect).name)
                 aconf.post_error(RichStatus.fromError(errstr), resource=self)
             else:
                 # All good. Save it.
@@ -410,7 +416,8 @@ class IRMappingGroup (IRResource):
 
         # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
-    def add_cluster_for_mapping(self, ir: 'IR', aconf: Config, mapping: IRMapping,
+    @staticmethod
+    def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRMapping,
                                 marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
         cluster = IRCluster(ir=ir, aconf=aconf,
@@ -586,11 +593,11 @@ class MappingFactory:
             # mappings = reversed(sorted(group.mappings, key=lambda x: x['route_weight']))
             #
             # for mapping in mappings:
-                # print("      %d%% => %s rewrite %s" % (mapping.weight, mapping.service, mapping.rewrite))
-                #
-                # ctx = mapping.cluster.get('tls_context', None)
-                # ctx_name = ctx.name if ctx else "(none)"
-                #
-                # print("        cluster %s: TLS %s" % (mapping.cluster.name, ctx_name))
-                # print("          refs %s" % ", ".join(mapping.cluster._referenced_by))
-                # print("          urls %s" % ", ".join(mapping.cluster.urls))
+            #     print("      %d%% => %s rewrite %s" % (mapping.weight, mapping.service, mapping.rewrite))
+            #
+            #     ctx = mapping.cluster.get('tls_context', None)
+            #     ctx_name = ctx.name if ctx else "(none)"
+            #
+            #     print("        cluster %s: TLS %s" % (mapping.cluster.name, ctx_name))
+            #     print("          refs %s" % ", ".join(mapping.cluster._referenced_by))
+            #     print("          urls %s" % ", ".join(mapping.cluster.urls))

@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, Dict, List, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from ..config import Config
 from ..resource import Resource
@@ -25,7 +25,7 @@ class IRResource (Resource):
     def helper_list(res: 'IRResource', k: str) -> Tuple[str, list]:
         return k, list([ x.as_dict() for x in res[k] ])
 
-    __as_dict_helpers: ClassVar[Dict[str, Any]] = {
+    __as_dict_helpers: Dict[str, Any] = {
         "apiVersion": "drop",
         "logger": "drop",
         "ir": "drop"
@@ -144,21 +144,21 @@ class IRResource (Resource):
 
         return service_url
 
-    def get_name_fields(self, service: str, context: dict, host_rewrite) -> str:
-        name_fields = None
-        is_tls = self.is_service_tls(service, context)
-
-        if is_tls:
-            name_fields = ['otls']
-
-        if context is not None:
-            if context in self.ir.envoy_tls:
-                name_fields.append(context)
-
-        if is_tls and host_rewrite:
-            name_fields.append("hr-%s" % host_rewrite)
-
-        return "_".join(name_fields) if name_fields else None
+    # def get_name_fields(self, service: str, context: dict, host_rewrite) -> Optional[str]:
+    #     name_fields: List[str] = []
+    #     is_tls = self.is_service_tls(service, context)
+    #
+    #     if is_tls:
+    #         name_fields.append('otls')
+    #
+    #     if context is not None:
+    #         if context in self.ir.envoy_tls:
+    #             name_fields.append(context)
+    #
+    #     if is_tls and host_rewrite:
+    #         name_fields.append("hr-%s" % host_rewrite)
+    #
+    #     return "_".join(name_fields) if name_fields else None
 
     # def service_tls_check(self, svc, context, host_rewrite):
     #     originate_tls = False

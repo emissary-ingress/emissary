@@ -1,4 +1,5 @@
 from typing import Optional, TYPE_CHECKING
+from typing import cast as typecast
 
 from ..config import Config
 from ..utils import RichStatus
@@ -12,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class IRAuth (IRFilter):
+    cluster: Optional[IRCluster]
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
@@ -22,7 +25,7 @@ class IRAuth (IRFilter):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            cluster="cluster_ext_auth",
+            cluster=None,
             timeout_ms=5000,
             path_prefix=None,
             api_version=None,
@@ -54,9 +57,10 @@ class IRAuth (IRFilter):
         return True
 
     def add_mappings(self, ir: 'IR', aconf: Config):
-        cluster_hosts = self.get('hosts', { '127.0.0.1:5000': ( 100, None ) })
+        cluster_hosts = self.get('hosts', { '127.0.0.1:5000': ( 100, None, '-internal-' ) })
 
         self.cluster = None
+        cluster_good = False
 
         for service, params in cluster_hosts.items():
             weight, ctx_name, location = params
@@ -81,8 +85,8 @@ class IRAuth (IRFilter):
                 self.cluster = cluster
 
         if cluster_good:
-            ir.add_cluster(self.cluster)
-            self.referenced_by(self.cluster)
+            ir.add_cluster(typecast(IRCluster, self.cluster))
+            self.referenced_by(typecast(IRCluster, self.cluster))
 
 
     def _load_auth(self, module: Resource):
