@@ -89,7 +89,7 @@ class IRAuth (IRFilter):
         if self.location == '--internal--':
             self.sourced_by(module)
 
-        for key in [ 'apiVersion', 'path_prefix', 'timeout_ms', 'cluster', 'auth_service' ]:
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service' ]:
             value = module.get(key, None)
 
             if value:
@@ -107,7 +107,7 @@ class IRAuth (IRFilter):
 
             self.referenced_by(module)
 
-        self["api_version"] = module.get("apiVersion", "ambassador/v0")
+        self["api_version"] = module.get("apiVersion", None)
         self["timeout_ms"] = module.get("timeout_ms", 5000)
         
         self.__to_header_list('allowed_headers', module)
@@ -119,6 +119,10 @@ class IRAuth (IRFilter):
 
         if auth_service:
             self.hosts[auth_service] = ( weight, module.get('tls', None), module.location )
+
+        # IRAuth requires this in order to support ambassador/v0 and ambassador/v1 version. 
+        if self["api_version"] == None:
+            self.post_error(RichStatus.fromError("Missing apiVersion in Auth configuration"))
 
     # This method is only used by v1listener.
     def config_dict(self):
