@@ -3,4 +3,6 @@
 # - /docs
 # - /reference
 #
-- /placeholder
+- /user-guide/oauth-oidc-auth
+- /reference/services/access-control
+- /reference/services/
