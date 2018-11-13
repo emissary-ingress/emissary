@@ -35,6 +35,5 @@ class V2Admin(dict):
         })
 
     @classmethod
-    def generate(cls, config: 'V2Config') -> 'V2Admin':
+    def generate(cls, config: 'V2Config') -> None:
         config.admin = config.save_element('admin', config.ir.ambassador_module, V2Admin(config))
-

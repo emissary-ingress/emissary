@@ -52,7 +52,7 @@ class IR:
     tracing: Optional[IRTracing]
     ratelimit: Optional[IRRateLimit]
     router_config: Dict[str, Any]
-    filters: List[IRResource]
+    filters: List[IRFilter]
     listeners: List[IRListener]
     groups: Dict[str, IRMappingGroup]
     clusters: Dict[str, IRCluster]
@@ -213,10 +213,10 @@ class IR:
     def get_tls_contexts(self):
         return self.tls_contexts
 
-    def save_filter(self, resource: IRResource, already_saved=False) -> None:
+    def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():
             if not already_saved:
-                resource = self.save_resource(resource)
+                resource = typecast(IRFilter, self.save_resource(resource))
 
             self.filters.append(resource)
 

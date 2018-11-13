@@ -43,15 +43,14 @@ class V2Bootstrap(dict):
 
         if config.tracing:
             self['tracing'] = dict(config.tracing)
-            clusters.append(V2Cluster(config, config.ir.tracing.cluster))
+            clusters.append(V2Cluster(config, self['tracing']['cluster']))
 
         if config.ratelimit:
             self['rate_limit_service'] = dict(config.ratelimit)
-            clusters.append(V2Cluster(config, config.ir.ratelimit.cluster))
+            clusters.append(V2Cluster(config, self['rate_limit_service']['cluster']))
 
         self['static_resources']['clusters'] = clusters
 
     @classmethod
-    def generate(cls, config: 'V2Config') -> 'V2Bootstrap':
-        # Should we save this?
+    def generate(cls, config: 'V2Config') -> None:
         config.bootstrap = V2Bootstrap(config)

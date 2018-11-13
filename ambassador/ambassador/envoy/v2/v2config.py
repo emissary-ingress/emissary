@@ -42,6 +42,7 @@ class V2Config (EnvoyConfig):
     listeners: List[V2Listener]
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
+    sni_routes: List[Dict[str, Any]]
 
     def __init__(self, ir: IR) -> None:
         super().__init__(ir)

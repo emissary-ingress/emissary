@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Tuple, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 from ..common import EnvoyRoute
 from ...ir import IRResource
@@ -34,41 +34,53 @@ class V2Route(dict):
             envoy_route: group.get('prefix'),
             'case_sensitive': group.get('case_sensitive', True),
         }
+
         headers = self.generate_headers(group)
+
         if len(headers) > 0:
             match['headers'] = headers
 
-        group_headers = group.get('headers', None)
+        # group_headers = group.get('headers', None)
+        #
+        # if group_headers:
+        #     match['headers'] = []
+        #
+        #     for hdr in group_headers:
+        #         matcher = { 'name': hdr.name }
+        #
+        #         if hdr.value:
+        #             if hdr.regex:
+        #                 matcher['regex_match'] = hdr.value
+        #             else:
+        #                 matcher['exact_match'] = hdr.value
+        #         else:
+        #             matcher['present_match'] = True
+        #
+        #         match['headers'].append(matcher)
 
-        if group_headers:
-            match['headers'] = []
+        clusters = []
+        req_hdrs_to_add = group.get('request_headers_to_add', None)
 
-            for hdr in group_headers:
-                matcher = { 'name': hdr.name }
+        for mapping in group.mappings:
+            cluster = {
+                'name': mapping.cluster.name,
+                'weight': mapping.weight
+            }
 
-                if hdr.value:
-                    if hdr.regex:
-                        matcher['regex_match'] = hdr.value
-                    else:
-                        matcher['exact_match'] = hdr.value
-                else:
-                    matcher['present_match'] = True
+            if req_hdrs_to_add:
+                cluster['request_headers_to_add'] = req_hdrs_to_add
 
-                match['headers'].append(matcher)
+            clusters.append(cluster)
 
         route = {
             'priority': group.get('priority'),
             'weighted_clusters': {
-                'clusters': [
-                    {
-                        'name': mapping.cluster.name,
-                        'weight': mapping.weight,
-                        'request_headers_to_add': group.get('request_headers_to_add')
-                    } for mapping in group.mappings
-                ],
-            },
-            'prefix_rewrite': group.get('rewrite'),
+                'clusters': clusters
+            }
         }
+
+        if group.get('rewrite', None):
+            route['prefix_rewrite'] = group['rewrite']
 
         if 'host_rewrite' in group:
             route['host_rewrite'] = group['host_rewrite']
@@ -135,14 +147,19 @@ class V2Route(dict):
                 config.routes.append(route)
 
     @staticmethod
-    def generate_headers(mapping_group: IRMappingGroup) -> List:
+    def generate_headers(mapping_group: IRMappingGroup) -> List[dict]:
         headers = []
-        group_headers = mapping_group.get('headers')
+
+        group_headers = mapping_group.get('headers', [])
+
         for group_header in group_headers:
-            header = {'name': group_header.get('name')}
+            header = { 'name': group_header.get('name') }
+
             if group_header.get('regex'):
                 header['regex_match'] = group_header.get('value')
             else:
                 header['exact_match'] = group_header.get('value')
+
             headers.append(header)
+
         return headers
