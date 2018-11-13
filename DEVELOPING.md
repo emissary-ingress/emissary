@@ -13,19 +13,17 @@ details.)
 
 To get started:
 
-1. Type `make shell` in order to start a dev shell. This will acquire
-   a kubernaut cluster and launch a shell with KUBECONFIG setup to point
-   to the acquired cluster.
+1. Type `make deploy`. This will build a container, acquire a
+   kubernaut cluster, and spin up ambassador, redis, and the ratelimit
+   service. It will take a while the first time. It will be quicker
+   subsequent times.
 
-2. Type `make manifests`. This will spin up ambassador, redis, and the
-   ratelimit service. It will take a while the first time. It will be
-   quicker subsequent times. You need to do this whenever you modify
-   the k8s yaml.
+2. Type `make proxy` to start teleproxy. The remaining steps all
+   assume teleproxy is running and you are in another unoccupied dev
+   shell.
 
-3. Start teleproxy from a dev shell (teleproxy will be automatically
-   installed into your dev shell environment) and then start another
-   dev shell. The remaining steps all assume teleproxy is running and
-   you are in another unoccupied dev shell.
+3. Type `make shell` in order to start a dev shell. This launch a
+   shell with KUBECONFIG setup to point to the acquired cluster.
 
 To query the ratelimit service in the cluster:
 
@@ -45,7 +43,7 @@ To modify the ratelimit service config in the cluster:
    see them (it filters out any config files that do not start with
    "config.").
 
-2. Run `make manifests`.
+2. Run `make apply`.
 
 3. Delete the ambassador pod (in order to get the config to reload).
 
@@ -64,8 +62,3 @@ To run/query the ratelimit service locally:
 3. Edit the config files in the config/ directory and restart your
    `make run`. Note that the files in the `config/` directory need to
    start with `config.` in order to be seen by the ratelimit service.
-
-Building a docker image (XXX this needs to be parameterized):
-
-1. docker build . -t rschloming/rl:<n>
-2. docker push rschloming/rl:<n>

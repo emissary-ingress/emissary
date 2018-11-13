@@ -1,3 +1,5 @@
 go
 *.knaut
 *.knaut.claim
+env.*.mk
+k8s.*

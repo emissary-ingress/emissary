@@ -1,31 +1,7 @@
+NAME=ambassador-ratelimit
+PROFILE ?= dev
 
-ifeq ("$(GOPATH)","")
-export GOPATH=$(PWD)/go
-endif
-
-include kubernaut.mk
-
-RATELIMIT_REPO=$(GOPATH)/src/github.com/lyft/ratelimit
-RATELIMIT_VERSION=v1.3.0
-
-BIN=$(GOPATH)/bin
-
-RATELIMIT=$(BIN)/ratelimit
-RATELIMIT_CLIENT=$(BIN)/ratelimit_client
-RATELIMIT_CONFIG_CHECK=$(BIN)/ratelimit_config_check
-
-PATCH=$(PWD)/ratelimit.patch
-
-$(RATELIMIT_REPO):
-	mkdir -p $(RATELIMIT_REPO) && git clone https://github.com/lyft/ratelimit $(RATELIMIT_REPO)
-	cd $(RATELIMIT_REPO) && git checkout -q $(RATELIMIT_VERSION)
-	cd $(RATELIMIT_REPO) && git apply $(PATCH)
-
-$(RATELIMIT_REPO)/vendor: $(RATELIMIT_REPO)
-	cd $(RATELIMIT_REPO) && glide install
-
-$(BIN):
-	mkdir -p $(BIN)
+include bootstrap.mk
 
 .PHONY: compile
 compile: $(RATELIMIT_REPO)/vendor $(BIN)
@@ -42,35 +18,49 @@ diff:
 	cd ${RATELIMIT_REPO} && git diff > $(PATCH)
 
 CLUSTER=rl-cluster.knaut
-
-export KUBECONFIG=${PWD}/$(CLUSTER)
-
-
-.PHONY: shell
-shell: $(CLUSTER)
-	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " PATH=$(PATH):$(BIN) bash
-
 KUBEWAIT=$(BIN)/kubewait
+TELEPROXY=$(BIN)/teleproxy
 
 $(KUBEWAIT):
 	go get github.com/datawire/teleproxy/cmd/kubewait
-
-TELEPROXY=$(BIN)/teleproxy
 
 $(TELEPROXY):
 	go get github.com/datawire/teleproxy/cmd/teleproxy
 	sudo chown root $(TELEPROXY)
 	sudo chmod u+s $(TELEPROXY)
 
-.PHONY: tools
-tools: $(TELEPROXY)
+export KUBECONFIG=${PWD}/$(CLUSTER)
 
-manifests: $(CLUSTER) $(KUBEWAIT)
-	kubectl apply -f k8s
-	$(KUBEWAIT) -f k8s
+include kubernaut.mk
+include k8s.mk
+
+.PHONY: claim
+claim: $(CLUSTER).clean $(CLUSTER)
+
+.PHONY: shell
+shell: $(CLUSTER) $(TELEPROXY)
+	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " PATH=$(PATH):$(BIN) bash
+
+KUBE_URL=https://kubernetes/api/
+
+.PHONY: proxy
+proxy:
+	curl -s teleproxy/api/shutdown || true
+	@sleep 1
+	$(TELEPROXY) > /tmp/teleproxy.log 2>&1 &
+	@for i in 1 2 4 8 x; do \
+		if [ "$$i" == "x" ]; then echo "ERROR: proxy did not come up"; exit 1; fi; \
+		echo "Checking proxy: $(KUBE_URL)"; \
+		if curl -sk $(KUBE_URL); then \
+			echo -e "\n\nProxy UP!"; \
+			break; \
+		fi; \
+		echo "Waiting $$i seconds..."; \
+		sleep $$i; \
+	done
 
 .PHONY: clean
-clean: $(CLUSTER).clean
+clean: $(CLUSTER).clean k8s.clean
 	rm -rf $(BIN)
 
 .PHONY: clobber

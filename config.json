@@ -1,0 +1,16 @@
+{
+  "unversioned": ["Makefile", "k8s.mk", "k8s/*"],
+  "profiles": {
+    "dev": {},
+    "prod": {
+      "REPO": "$(NAMESPACE)/$(NAME)"
+    },
+    "default": {
+      "REGISTRY": "quay.io",
+      "NAMESPACE": "datawire",
+      "REPO": "$(NAMESPACE)/$(NAME)-$(PROFILE)",
+      "VERSION": "$(HASH)",
+      "IMAGE": "$(REGISTRY)/$(REPO):$(VERSION)"
+    }
+  }
+}

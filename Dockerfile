@@ -1,5 +1,8 @@
 FROM golang:1.10 as builder
 RUN curl https://glide.sh/get | sh
+COPY bootstrap.mk .
+COPY ratelimit.patch .
+RUN CGO_ENABLED=0 make -f bootstrap.mk bootstrap
 COPY . .
 RUN CGO_ENABLED=0 make compile
 
