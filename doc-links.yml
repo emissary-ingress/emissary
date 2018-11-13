@@ -18,6 +18,10 @@
         link: /about/quickstart
       - title: Docker Compose
         link: /user-guide/docker-compose
+      - title: Bare Metal
+        link: /user-guide/bare-metal
+      - title: Ambassador Pro
+        link: /user-guide/ambassador-pro-install
       - title: Early Access Releases
         link: /user-guide/early-access
 

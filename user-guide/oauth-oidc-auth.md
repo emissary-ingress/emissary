@@ -3,57 +3,10 @@
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes which are used by various identify providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
 
-## Install Ambassador Pro
-You need to have Ambassador Pro installed in your cluster to add OAuth/OIDC Authentication.
-
-1. Install your Ambassador Pro registry credentials secret. If you have lost this, email us at support@datawire.io.
-2. Deploy Ambassador Pro
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-pro.yaml
-```
-
-**Note:** This deploys Ambassador Pro with the authentication service as a sidecar to Ambassador. This is the recommended deployment pattern. If you wish to deploy Ambassador Pro Authentication as an independent service use:
-
-```
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/auth.yaml
-```
-
-**Note:** The `namespace` field in the `ClusterRoleBinding` is configured to `default`. Make sure to download the yaml and change this if you wish to deploy in a non-`default` namespace.
-
-3. Define the Ambassador Pro Authentication service
-
-```
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ambassador-pro
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
-      auth_service: ambassador-pro
-      allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-spec:
-  selector:
-    name: ambassador-pro
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-  type: ClusterIP
-```
-
-## Configuring the `oauth-oidc-config` ConfigMap
+## Configuring Environment Variables
 ### Auth0 Default Configuration
 
-OAuth and OIDC authentication is configured via a `ConfigMap` named `oauth-oidc-config`. The default installation creates this ConfigMap with default values that need to be changed.  Create a file named `oauth-oidc-config.yaml` (or `kubectl edit` the existing `ConfigMap`) and set the `AUTH_DOMAIN`, `AUTH_CLIENT_ID`, `AUTH_AUDIENCE`, and `AUTH_CALLBACK_URL` environment variables. (You'll need to create an Auth0 custom API if you haven't already.)
+Integrating Auth0 with the Ambassador Pro Authentication service is done by setting evironment variables in the deployment manifest. In your deployment file, configure the `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE`, and `AUTH_CLIENT_ID` environment variables based on your Auth0 configuration. (You'll need to create an Auth0 custom API if you haven't already.)
 
 * `AUTH_DOMAIN` is your Auth0 domain, e.g., foo.auth0.com.
 * `AUTH_CLIENT_ID` is the client ID of your application.
@@ -73,19 +26,16 @@ OAuth and OIDC authentication is configured via a `ConfigMap` named `oauth-oidc-
 
 - `AUTH_CALLBACK_URL` = https://datawire-ambassador.com/callback/
 
-**`oauth-oidc-config.yaml`**
-
 ```
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: oauth-oidc-config
-data:
-  AUTH_CALLBACK_URL: https://datawire-ambassador.com/callback
-  AUTH_DOMAIN: datawire-ambassador.auth0.com
-  AUTH_AUDIENCE: https://datawire-ambassador.auth0.com/api/v2/
-  AUTH_CLIENT_ID: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
+env:
+- name: AUTH_CALLBACK_URL
+  value: https://datawire-ambassador.com/callback
+- name: AUTH_DOMAIN
+  value: datawire-ambassador.auth0.com
+- name: AUTH_AUDIENCE
+  value: https://datawire-ambassador.auth0.com/api/v2/
+- name: AUTH_CLIENT_ID
+  value: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
 ```
 
 #### Verify the Application
@@ -103,7 +53,6 @@ data:
 
 
 ### Auth0 Validation Mode Configuration
-
 When deployed in validation mode, Ambassador Pro will validate configuration via the Auth0 management API. In the future, we may add more automatic configuration via the management API. 
 
 #### Configuration
@@ -150,7 +99,7 @@ Authentication policies are managed by the `policy` CRD we deployed in the confi
    ```
 4. Follow the configuration steps above to deploy Ambassador Pro authentication.
 5. Resend the curl requests, you will notice it now requires authentication.
-6. Deploy an `httpbin` authentication `policy`. Refer to the [Access Control](/reference/services/auth-policy) documentation for more information.
+6. Deploy an `httpbin` authentication `policy`. Refer to the [Access Control](/reference/services/access-control) documentation for more information.
    
    ```
    apiVersion: stable.datawire.io/vibeta1
