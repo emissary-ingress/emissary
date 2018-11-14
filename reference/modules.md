@@ -51,17 +51,15 @@ config:
   # use_remote_address controls whether Envoy will trust the remote
   # address of incoming connections or rely exclusively on the 
   # X-Forwarded_For header. 
-  #
-  # The current default is not to include any use_remote_address setting,
-  # but THAT IS LIKELY TO CHANGE SOON.
-  # use_remote_address: false
+  # use_remote_address: true
 
   # Ambassador lets through only the HTTP requests with
   # `X-FORWARDED-PROTO: https` header set, and redirects all the other
   # requests to HTTPS if this field is set to true.
   # x_forwarded_proto_redirect: false
 
-  # Set default CORS configuration for all mappings in the cluster. See CORS syntax at https://www.getambassador.io/reference/cors.html
+  # Set default CORS configuration for all mappings in the cluster. See 
+  # CORS syntax at https://www.getambassador.io/reference/cors.html
   # cors:
   #   origins: http://foo.example,http://bar.example
   #   methods: POST, GET, OPTIONS
@@ -72,8 +70,10 @@ config:
 
 ### `use_remote_address`
 
-**Ambassador is very likely to change to default `use_remote_address` to `true`
-very soon**. At present, `use_remote_address` still defaults to `false`; consider setting it to `true` if your application wants to have the incoming source address available. See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) for more information here.
+**As of Ambassador 0.50.0, the default for `use_remote_address` is `true`**. Prior to that, the default
+was not to include it. If you were relying on the previous behavior, you will need to explicitly set
+`use_remote_address` to `false`.
+
 
 ### `use_proxy_proto`
 
