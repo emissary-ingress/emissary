@@ -4,6 +4,8 @@
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with various identity providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
 
 ## Configuring Environment Variables
+Auth0 integration supports two different configuration patterns. The [default configuration](/user-guide/oauth-oidc-auth#auth0-default-configuration) integrates Auth0 with Ambassador Pro without verification from the Auth0 management API. If you want the Auth0 management API to verify your application configuration, follow the [validation mode configuration](/user-guide/oauth-oidc-auth#auth0-validation-mode-configuration).
+
 ### Auth0 Default Configuration
 
 Integrating Auth0 with the Ambassador Pro Authentication service is done by setting evironment variables in the deployment manifest. In your deployment file, configure the `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE`, and `AUTH_CLIENT_ID` environment variables based on your Auth0 configuration. (You'll need to create an Auth0 custom API if you haven't already.)
@@ -14,7 +16,7 @@ Integrating Auth0 with the Ambassador Pro Authentication service is done by sett
 * `AUTH_CALLBACK_URL` is the URL where you want to send users once they've authenticated.
 * `APP_SECURE` indicates if the domain is secured with TLS. Set to `not_secure` if the callback URL is unsecure and omit otherwise.
 
-#### Example
+#### Configuration
 - `AUTH_DOMAIN` = datawire-ambassador.auth0.com
 - `AUTH_CLIENT_ID` = vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
 
@@ -26,6 +28,10 @@ Integrating Auth0 with the Ambassador Pro Authentication service is done by sett
 
 - `AUTH_CALLBACK_URL` = https://datawire-ambassador.com/callback/
 
+1. Configure the environment variables with the correct values
+
+Ex.
+
 ```
 env:
 - name: AUTH_CALLBACK_URL
@@ -36,20 +42,21 @@ env:
   value: https://datawire-ambassador.auth0.com/api/v2/
 - name: AUTH_CLIENT_ID
   value: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
+# Uncomment if endpoint is not secured.
+# - name: APP_SECURE
+#   value: not_secure
 ```
 
-#### Verify the Application
-* Set `Token Endpoint Authentication Method` to `None`
-* Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`
-* Add your domain to `Allowed Web Origins`
-
-![](/images/Auth0_none.png)
-
-* Deploy Ambassador Pro
+2. Set `Token Endpoint Authentication Method` to `None`
+3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`
+4. Add your domain to `Allowed Web Origins`
+5. Deploy Ambassador Pro
 	* Creates the Ambassador Pro deployment
-	* Configuration ConfigMap
 	* Cluster resources
 	* [Policy](/reference/services/access-control) Custom Resource
+6. [Test the application.](/user-guide/oauth-oidc-auth/#test-the-auth0-application)
+
+![](/images/Auth0_none.png)
 
 
 ### Auth0 Validation Mode Configuration
@@ -60,24 +67,43 @@ The `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE` and `AUTH_CLIENT_ID` env
 
 ![](/images/Auth0_secret.png)
 
-#### Verify the Application
-* Set `Token Endpoint Authentication Method` to `POST`
-* Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`
-* Add your domain to `Allowed Web Origins`
+1. Configure the environment variables with the correct values
+
+Ex.
+
+```
+env:
+- name: AUTH_CALLBACK_URL
+  value: https://datawire-ambassador.com/callback
+- name: AUTH_DOMAIN
+  value: datawire-ambassador.auth0.com
+- name: AUTH_AUDIENCE
+  value: https://datawire-ambassador.auth0.com/api/v2/
+- name: AUTH_CLIENT_ID
+  value: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
+- name: AUTH_CLIENT_SECRET
+  value: <CLIENT SECRET>
+# Uncomment if endpoint is not secured.
+# - name: APP_SECURE
+#   value: not_secure
+```
+2. Set `Token Endpoint Authentication Method` to `POST`
+3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`
+4. Add your domain to `Allowed Web Origins`
 
 ![](/images/Auth0_method_callback_origins.png)
 
-* App is authorized to access Auth0 management api (APIs/Machine to Machine Applications/click the dropdown) and following scopes have been granted:
+5. Authorize the application to access Auth0 management api (APIs/Machine to Machine Applications/click the dropdown) and following scopes have been granted:
 	* read:clients
 	* read:grants
-* App is set with the following grant types (Applications/Advanced Settings/Grant Types): 
+6. Set the following grant types (Applications/Advanced Settings/Grant Types): 
 	* Authorization Code
 	* Client Credentials
-* Deploy Ambassador Pro
+7. Deploy Ambassador Pro
 	* Creates the Ambassador Pro deployment
-	* Configuration ConfigMap
 	* Cluster resources
 	* [Policy](/reference/services/access-control) Custom Resource
+8. [Test the application.](/user-guide/oauth-oidc-auth/#test-the-auth0-application)
 
 
 ## Test the Auth0 Application
@@ -97,12 +123,17 @@ Authentication policies are managed by the `policy` CRD we deployed in the confi
     "user-agent": "curl/7.54.0"
    }
    ```
-4. Follow the configuration steps above to deploy Ambassador Pro authentication.
+4. Deploy Ambasador Pro Authentication 
+
+```
+$ kubectl apply -f ambassador-pro-auth.yaml
+$ kubectl apply -f ambassador-pro-auth-service.yaml
+```
 5. Resend the curl requests, you will notice it now requires authentication.
 6. Deploy an `httpbin` authentication `policy`. Refer to the [Access Control](/reference/services/access-control) documentation for more information.
    
    ```
-   apiVersion: stable.datawire.io/vibeta1
+   apiVersion: stable.datawire.io/v1beta1
    kind: Policy
    metadata:
      name: httpbin-policy
@@ -131,7 +162,7 @@ Authentication policies are managed by the `policy` CRD we deployed in the confi
    $ curl http://$AMBASSADOR_IP/httpbin/user-agent
    <a href="https://xxx.auth0.com/authorize?audience=https://xxx.auth0.com/api/v2/&amp;response_type=code&amp;redirect_uri=http://35.226.13.0/callback&amp;client_id=Z6m3lwCot6GaThT4L142nkOKNPeDe87n&amp;state=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MzY2OTQ2MjglhdCI6MUzNjY5NDMyOCwianRpIjoiN2FjOThjZTQtYjdjZi00NTU3LTlkYTEtZGJjNzZjYzNjZjg4IiwibmJmIjowLCJwYXRoIjoiL2h0dHBiaW4vdXNi1hZ2VudCJ9.NtBA5deqPn5XI7vonca4tpgYNrM-212TiQhTZ_KzWos&amp;scope=offline_access openid profile">See Other</a>
    ```
-8. Visit `https://$AMBASSADOR_IP/httpbin/user-agent` and you should be redirected to an Auth0 log in page. 
+8. Visit `http://$AMBASSADOR_IP/httpbin/user-agent` and you should be redirected to an Auth0 log in page. 
 9. If you want to test with a JWT, you can get a JWT from Auth0. To do this, click on APIs, then the custom API you're using for the Ambassador Authentication service, and then the Test tab. Pass the JWT in the authorization: Bearer HTTP header:
 
 ```
