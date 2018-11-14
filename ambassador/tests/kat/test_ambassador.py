@@ -7,7 +7,7 @@ from kat.harness import sanitize, variants, Query, Runner
 from kat import manifests
 
 from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test, DEV
 
 from t_ratelimit import RateLimitTest
 
@@ -104,7 +104,7 @@ class RedirectTests(AmbassadorTest):
 
     def requirements(self):
         # only check https urls since test rediness will only end up barfing on redirect
-        yield from (r for r in super().requirements() if r[0] == "url" and r[1].startswith("https"))
+        yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
     def config(self):
         # Use self here, not self.target, because we want the TLS module to
@@ -295,11 +295,62 @@ hosts:
 secret: same-secret-2
 """)
 
-    # def scheme(self) -> str:
-    #     return "https"
+    def scheme(self) -> str:
+        return "https"
 
     def queries(self):
-        yield Query(self.parent.url("tls-context-same/"), headers={"Host": "tls-context-host-1"},  expected=404, insecure=True)
+        # Correct host
+        yield Query(self.url("tls-context-same/"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=200,
+                    insecure=True,
+                    sni=True)
+
+        # Correct host
+        yield Query(self.url("tls-context-same/"),
+                    headers={"Host": "tls-context-host-2"},
+                    expected=200,
+                    insecure=True,
+                    sni=True)
+
+        # Incorrect host
+        yield Query(self.url("tls-context-same/"),
+                    headers={"Host": "tls-context-host-3"},
+                    expected=404,
+                    insecure=True,
+                    sni=True)
+
+        # Incorrect path, correct host
+        yield Query(self.url("tls-context-different/"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=404,
+                    insecure=True,
+                    sni=True)
+
+    def check(self):
+        for result in self.results:
+            if result.status == 200:
+                host_header = result.query.headers['Host']
+                tls_common_name = result.tls[0]['Issuer']['CommonName']
+                assert host_header == tls_common_name
+
+
+    def url(self, prefix, scheme=None) -> str:
+        if scheme is None:
+            scheme = self.scheme()
+        if DEV:
+            port = 8080
+            return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
+        else:
+            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
+
+    def requirements(self):
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("tls-context-same/"), headers={"Host": "tls-context-host-1"}, expected=200, insecure=True, sni=True))
+        yield ("url", Query(self.url("tls-context-same/"), headers={"Host": "tls-context-host-2"}, expected=200, insecure=True, sni=True))
 
 
 class UseWebsocket(OptionTest):

@@ -215,7 +215,7 @@ class Test(Node):
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip = None,
-                 xfail = None, phase=1, debug=False):
+                 xfail = None, phase=1, debug=False, sni=False):
         self.method = method
         self.url = url
         self.headers = headers
@@ -234,6 +234,7 @@ class Query:
         self.parent = None
         self.result = None
         self.debug = debug
+        self.sni = sni
 
     def as_json(self):
         result = {
@@ -241,6 +242,8 @@ class Query:
             "url": self.url,
             "insecure": self.insecure
         }
+        if self.sni:
+            result["sni"] = self.sni
         if self.method:
             result["method"] = self.method
         if self.headers:
@@ -258,6 +261,7 @@ class Result:
         self.status = res.get("status")
         self.headers = res.get("headers")
         self.messages = res.get("messages")
+        self.tls = res.get("tls")
         if "body" in res:
             self.body = base64.decodebytes(bytes(res["body"], "ASCII"))
         else:
@@ -650,8 +654,8 @@ class Runner:
     @_ready.when("url")
     def _ready(self, kind, requirements):
         queries = []
-        for node, name in requirements:
-            q = Query(name, insecure=True)
+        for node, q in requirements:
+            q.insecure = True
             q.parent = node
             queries.append(q)
         result = query(queries)

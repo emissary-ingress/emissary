@@ -66,6 +66,11 @@ func (q Query) Insecure() bool {
 	return ok && val.(bool)
 }
 
+func (q Query) SNI() bool {
+	val, ok := q["sni"]
+	return ok && val.(bool)
+}
+
 func (q Query) IsWebsocket() bool {
 	return strings.HasPrefix(q.Url(), "ws:")
 }
@@ -119,6 +124,9 @@ func (q Query) AddResponse(resp *http.Response) {
 	result := q.Result()
 	result["status"] = resp.StatusCode
 	result["headers"] = resp.Header
+	if resp.TLS != nil {
+		result["tls"] = resp.TLS.PeerCertificates
+	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if !q.CheckErr(err) {
 		log.Printf("%v: %v", q.Url(), resp.Status)
@@ -243,8 +251,20 @@ func main() {
 				req.Header = query.Headers()
                 host := req.Header.Get("Host")
                 if host != "" {
+				    if query.SNI() {
+						if tr.TLSClientConfig == nil {
+							tr.TLSClientConfig = &tls.Config{}
+						}
+
+						if insecure_tr.TLSClientConfig == nil {
+							insecure_tr.TLSClientConfig = &tls.Config{}
+						}
+
+						insecure_tr.TLSClientConfig.ServerName = host
+                        tr.TLSClientConfig.ServerName = host
+                    }
                     req.Host = host
-                }
+			    }
 
 				var cli *http.Client
 				if query.Insecure() {
