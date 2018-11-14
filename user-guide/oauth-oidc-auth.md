@@ -1,7 +1,7 @@
 # Configuring OAuth/OIDC Authentication
 ---
 
-Ambassador Pro adds native support for the OAuth and OIDC authentication schemes which are used by various identify providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
+Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with various identity providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
 
 ## Configuring Environment Variables
 ### Auth0 Default Configuration
