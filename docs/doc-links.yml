@@ -37,6 +37,8 @@
       link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
     - title: Safely Testing in Production
       link: /docs/dev-guide/test-in-prod
+        - title: Testing in Production with Canary Releases
+          link: /docs/dev-guide/canary-release-concepts
 
 - title: Guides
   items:
@@ -51,7 +53,7 @@
     - title: TLS Termination
       link: /user-guide/tls-termination
     - title: Server Name Indication (SNI)
-      link: /user-guide/sni  
+      link: /user-guide/sni
     - title: Istio and Ambassador
       link: /user-guide/with-istio
     - title: More guides
