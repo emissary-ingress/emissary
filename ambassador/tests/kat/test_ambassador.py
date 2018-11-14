@@ -1,19 +1,243 @@
 import json
 import pytest
 
-from typing import ClassVar, Dict, List, Sequence, Tuple, Union
+from typing import ClassVar, Dict, Sequence, Tuple, Union
 
-from kat.harness import sanitize, variants, Query, Runner
-from kat import manifests
+from kat.harness import variants, Name, Query, Runner, Test
 
 from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test, DEV
+
+from abstract_tests import MappingTest, OptionTest, ServiceType, Node, DEV
 
 from t_ratelimit import RateLimitTest
+from t_tracing import TracingTest
+
 
 # XXX: should test empty ambassador config
 
+
+class AuthenticationTestV1(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+path_prefix: "/extauth"
+timeout_ms: 5000
+
+allowed_request_headers:
+- X-Foo
+- X-Bar
+- Requested-Status
+- Requested-Header
+- Location
+
+allowed_authorization_headers:
+- X-Foo
+
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.k8s}
+""")
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401", 
+                                                  "Baz": "baz",
+                                                  "Request-Header": "Baz"}, expected=401)
+        # [1]
+        yield Query(self.url("target/"), headers={"requested-status": "302",
+                                                  "location": "foo",
+                                                  "requested-header": "location"}, expected=302)
+        # [2]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+                                                  "X-Foo": "foo",
+                                                  "Requested-Header": "X-Foo"}, expected=401)
+        # [3]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+                                                  "X-Bar": "bar",
+                                                  "Requested-Header": "X-Bar"}, expected=401)
+        # [4]
+        yield Query(self.url("target/"), headers={"Requested-Status": "200",
+                                                  "Authorization": "foo-11111",
+                                                  "Requested-Header": "Authorization"}, expected=200)
+
+    def check(self):
+        # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/extauth/target/"
+        assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
+        assert self.results[0].backend.request.headers["content-length"]== ["0"]
+        assert "x-forwarded-for" in self.results[0].backend.request.headers
+        assert "user-agent" in self.results[0].backend.request.headers
+        assert "baz" not in self.results[0].backend.request.headers
+        assert self.results[0].status == 401
+        assert self.results[0].headers["Server"] == ["envoy"]
+
+        # [1] Verifies that Location header is returned from Envoy. 
+        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request.headers["requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["requested-header"] == ["location"]
+        assert self.results[1].backend.request.headers["location"] == ["foo"]
+        assert self.results[1].status == 302
+        assert self.results[1].headers["Server"] == ["envoy"]
+        assert self.results[1].headers["Location"] == ["foo"]
+
+        # [2] Verifies Envoy returns whitelisted headers input by the user.  
+        assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["requested-header"] == ["X-Foo"]
+        assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
+        assert self.results[2].status == 401
+        assert self.results[2].headers["Server"] == ["envoy"]
+        assert self.results[2].headers["X-Foo"] == ["foo"]
+
+        # [3] Verifies that envoy does not return not whitelisted headers.
+        assert self.results[3].backend.name == self.auth.path.k8s
+        assert self.results[3].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[3].backend.request.headers["requested-header"] == ["X-Bar"]
+        assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
+        assert self.results[3].status == 401
+        assert self.results[3].headers["Server"] == ["envoy"]
+        assert "X-Bar" not in self.results[3].headers
+
+        # [4] Verifies default whitelisted Authorization request header.
+        assert self.results[4].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
+        assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[4].status == 200
+        assert self.results[4].headers["Server"] == ["envoy"]
+        assert self.results[4].headers["Authorization"] == ["foo-11111"]
+
+        # TODO(gsagula): Write tests for all UCs which request header headers 
+        # are overridden, e.g. Authorization.
+
+
+class AuthenticationTest(AmbassadorTest):
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+path_prefix: "/extauth"
+
+allowed_headers:
+- X-Foo
+- X-Bar
+- Requested-Status
+- Requested-Header
+- Location
+- X-Foo
+
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.k8s}
+""")
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401", 
+                                                  "Baz": "baz",
+                                                  "Request-Header": "Baz"}, expected=401)
+        # [1]
+        yield Query(self.url("target/"), headers={"requested-status": "302",
+                                                  "location": "foo",
+                                                  "requested-header": "location"}, expected=302)
+        # [2]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+                                                  "X-Foo": "foo",
+                                                  "Requested-Header": "X-Foo"}, expected=401)
+        # [3]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+                                                  "X-Bar": "bar",
+                                                  "Requested-Header": "X-Bar"}, expected=401)
+        # [4]
+        yield Query(self.url("target/"), headers={"Requested-Status": "200",
+                                                  "Authorization": "foo-11111",
+                                                  "Requested-Header": "Authorization"}, expected=200)
+
+    def check(self):
+        # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/extauth/target/"
+        assert self.results[0].backend.request.headers["content-length"]== ["0"]
+        assert "x-forwarded-for" in self.results[0].backend.request.headers
+        assert "user-agent" in self.results[0].backend.request.headers
+        assert "baz" not in self.results[0].backend.request.headers
+        assert self.results[0].status == 401
+        assert self.results[0].headers["Server"] == ["envoy"]
+
+        # [1] Verifies that Location header is returned from Envoy. 
+        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request.headers["requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["requested-header"] == ["location"]
+        assert self.results[1].backend.request.headers["location"] == ["foo"]
+        assert self.results[1].status == 302
+        assert self.results[1].headers["Server"] == ["envoy"]
+        assert self.results[1].headers["Location"] == ["foo"]
+
+        # [2] Verifies Envoy returns whitelisted headers input by the user.  
+        assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["requested-header"] == ["X-Foo"]
+        assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
+        assert self.results[2].status == 401
+        assert self.results[2].headers["Server"] == ["envoy"]
+        assert self.results[2].headers["X-Foo"] == ["foo"]
+
+        # [3] Verifies that envoy does not return not whitelisted headers.
+        assert self.results[3].backend.name == self.auth.path.k8s
+        assert self.results[3].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[3].backend.request.headers["requested-header"] == ["X-Bar"]
+        assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
+        assert self.results[3].status == 401
+        assert self.results[3].headers["Server"] == ["envoy"]
+        assert "X-Bar" in self.results[3].headers
+
+        # [4] Verifies default whitelisted Authorization request header.
+        assert self.results[4].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
+        assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[4].status == 200
+        assert self.results[4].headers["Server"] == ["envoy"]
+        assert self.results[4].headers["Authorization"] == ["foo-11111"]
+
+        # TODO(gsagula): Write tests for all UCs which request header headers 
+        # are overridden, e.g. Authorization.
+
+
 class TLS(AmbassadorTest):
+
+    target: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -97,7 +321,10 @@ service: {self.target.path.k8s}
     def scheme(self) -> str:
         return "http"
 
+
 class RedirectTests(AmbassadorTest):
+
+    target: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -159,7 +386,11 @@ def unique(options):
             result.append(o)
     return tuple(result)
 
+
 class SimpleMapping(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
 
     @classmethod
     def variants(cls):
@@ -193,6 +424,8 @@ service: http://{self.target.path.k8s}
 
 class AddRequestHeaders(OptionTest):
 
+    parent: Test
+
     VALUES: ClassVar[Sequence[Dict[str, str]]] = (
         { "foo": "bar" },
         { "moo": "arf" }
@@ -209,6 +442,9 @@ class AddRequestHeaders(OptionTest):
 
 
 class HostHeaderMapping(MappingTest):
+
+    parent: AmbassadorTest
+
     @classmethod
     def variants(cls):
         for st in variants(ServiceType):
@@ -362,6 +598,8 @@ class UseWebsocket(OptionTest):
 
 class WebSocketMapping(MappingTest):
 
+    parent: AmbassadorTest
+
     @classmethod
     def variants(cls):
         for st in variants(ServiceType):
@@ -399,6 +637,8 @@ class CORS(OptionTest):
     # isolated = True
     # debug = True
 
+    parent: MappingTest
+
     def config(self):
         yield 'cors: { origins: "*" }'
 
@@ -420,6 +660,8 @@ class CORS(OptionTest):
 
 class CaseSensitive(OptionTest):
 
+    parent: MappingTest
+
     def config(self):
         yield "case_sensitive: false"
 
@@ -433,6 +675,8 @@ class CaseSensitive(OptionTest):
 
 class AutoHostRewrite(OptionTest):
 
+    parent: MappingTest
+
     def config(self):
         yield "auto_host_rewrite: true"
 
@@ -444,6 +688,8 @@ class AutoHostRewrite(OptionTest):
 
 class Rewrite(OptionTest):
 
+    parent: MappingTest
+
     VALUES = ("/foo", "foo")
 
     def config(self):
@@ -453,16 +699,21 @@ class Rewrite(OptionTest):
         if self.value[0] != "/":
             for q in self.parent.pending:
                 q.xfail = "rewrite option is broken for values not beginning in slash"
+
         return super(OptionTest, self).queries()
 
     def check(self):
         if self.value[0] != "/":
             pytest.xfail("this is broken")
+
         for r in self.parent.results:
             assert r.backend.request.url.path == self.value
 
 
 class TLSOrigination(MappingTest):
+
+    parent: AmbassadorTest
+    definition: str
 
     IMPLICIT = """
 ---
@@ -506,13 +757,18 @@ tls: true
 
 class CanaryMapping(MappingTest):
 
+    parent: AmbassadorTest
+    target: ServiceType
+    canary: ServiceType
+    weight: int
+
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
             for w in (10, 50):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
-    def init(self, target, canary, weight):
+    def init(self, target: ServiceType, canary: ServiceType, weight):
         MappingTest.init(self, target)
         self.canary = canary
         self.weight = weight
@@ -542,14 +798,19 @@ weight: {self.weight}
 
     def check(self):
         hist = {}
+
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
+
         canary = 100*hist.get(self.canary.path.k8s, 0)/len(self.results)
-        main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
+        # main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
+
         assert abs(self.weight - canary) < 25, (self.weight, canary)
 
 
 class AmbassadorIDTest(AmbassadorTest):
+
+    target: ServiceType
 
     def init(self):
         self.target = HTTP()
@@ -584,157 +845,7 @@ ambassador_id: {amb_id}
         yield Query(self.url("missme/"), expected=404)
         yield Query(self.url("missme-array/"), expected=404)
 
-class AuthenticationTest(AmbassadorTest):
 
-    def init(self):
-        self.target = HTTP()
-        self.auth = HTTP(name="auth")
-
-    def config(self):
-        yield self, self.format("""
----
-apiVersion: ambassador/v0
-kind: AuthService
-name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
-path_prefix: "/extauth"
-allowed_headers:
-- "x-extauth-required"
-- "x-authenticated-as"
-- "x-qotm-session"
-- "requested-status"
-- "requested-header"
-- "location"
-""")
-        yield self, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.target.path.k8s}
-prefix: /target/
-service: {self.target.path.k8s}
-""")
-
-    def queries(self):
-        yield Query(self.url("target/"), headers={"requested-status": "401"}, expected=401)
-        yield Query(self.url("target/"), headers={"requested-status": "302",
-                                                  "location": "foo",
-                                                  "requested-header": "location"}, expected=302)
-        yield Query(self.url("target/"))
-
-    def check(self):
-        assert self.results[0].backend.name == self.auth.path.k8s
-        assert self.results[0].backend.request.url.path == "/extauth/target/"
-
-        assert self.results[1].backend.name == self.auth.path.k8s
-        assert self.results[1].backend.response.headers["location"] == ["foo"]
-        assert self.results[1].backend.request.url.path == "/extauth/target/"
-
-        assert self.results[2].backend.name == self.target.path.k8s
-        assert self.results[2].backend.request.url.path == "/"
-
-
-class TracingTest(AmbassadorTest):
-    # debug = True
-
-    def init(self):
-        self.target = HTTP()
-        # self.with_tracing = AmbassadorTest(name="ambassador-with-tracing")
-        # self.no_tracing = AmbassadorTest(name="ambassador-no-tracing")
-
-    def manifests(self) -> str:
-        return super().manifests() + """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: zipkin
-spec:
-  selector:
-    app: zipkin
-  ports:
-  - port: 9411
-    name: http
-    targetPort: http
-  type: NodePort
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: zipkin
-spec:
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: zipkin
-    spec:
-      containers:
-      - name: zipkin
-        image: openzipkin/zipkin
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 9411
-"""
-
-    def config(self):
-        # Use self.target here, because we want this mapping to be annotated
-        # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  tracing_target_mapping
-prefix: /target/
-service: {self.target.path.k8s}
-""")
-
-        # For self.with_tracing, we want to configure the TracingService.
-        yield self, self.format("""
----
-apiVersion: ambassador/v0
-kind: TracingService
-name: tracing
-service: zipkin:9411
-driver: zipkin
-""")
-
-    # config:
-    #   collector_endpoint: "/api/v1/spans"
-
-    def queries(self):
-        # Speak through each Ambassador to the traced service...
-        # yield Query(self.with_tracing.url("target/"))
-        # yield Query(self.no_tracing.url("target/"))
-
-        for i in range(100):
-            yield Query(self.url("target/"), phase=1)
-
-        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
-        # is particularly helpful.
-        yield Query("http://zipkin:9411/api/v2/services", phase=2)
-        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2)
-
-    def check(self):
-        for i in range(100):
-            assert self.results[i].backend.name == self.target.path.k8s
-
-        assert self.results[100].backend.name == "raw"
-        assert len(self.results[100].backend.response) == 1
-        assert self.results[100].backend.response[0] == 'tracingtest-default'
-
-        assert self.results[101].backend.name == "raw"
-
-        tracelist = { x: True for x in self.results[101].backend.response }
-
-        assert 'router cluster_tracingtest_http egress' in tracelist
-
-        # Look for the host that we actually queried, since that's what appears in the spans.
-        assert self.results[0].backend.request.host in tracelist
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
@@ -743,6 +854,5 @@ driver: zipkin
 # - Runner(cls) will look for variants of _every subclass_ of cls.
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
-main = Runner(AmbassadorTest
-              # , TracingTest
-             )
+main = Runner(AmbassadorTest)
+

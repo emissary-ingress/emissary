@@ -208,8 +208,10 @@ class ResourceFetcher:
                               (self.filepath, self.ocount, kind))
             return
 
-        self.filename += ":annotation"
-        self.load_yaml(annotations, rkey=resource_identifier, k8s=True)
+        if self.filename:
+            self.filename += ":annotation"
+
+        self.load_yaml(annotations, rkey=resource_identifier)
 
     def process_object(self, obj: dict, rkey: Optional[str]=None, k8s: bool=False) -> int:
         # self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import cast as typecast
+
+from ...ir.irtracing import IRTracing
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -20,16 +23,21 @@ if TYPE_CHECKING:
 
 class V2Tracing(dict):
     def __init__(self, config: 'V2Config') -> None:
+        # We should never be instantiated unless there is, in fact, defined tracing stuff.
+        assert config.ir.tracing
+
         super().__init__()
 
-        name = config.ir.tracing['driver']
+        tracing = typecast(IRTracing, config.ir.tracing)
+
+        name = tracing['driver']
 
         if not name.startswith('envoy.'):
             name = 'envoy.%s' % (name.lower())
 
         self['http'] = {
             "name": name,
-            "config": config.ir.tracing['driver_config'],
+            "config": tracing['driver_config'],
         }
 
     @classmethod

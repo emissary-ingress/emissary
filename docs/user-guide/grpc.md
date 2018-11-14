@@ -278,7 +278,7 @@ spec:
         client:
           enabled: false
         upstream:
-          alpn_protocols: ["h2"]
+          alpn_protocols: h2
 ```
 We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` under a tls-context name (like `upstream`) in the TLS module and telling the service to use that tls-context in the mapping by setting `tls: upstream`. 
 

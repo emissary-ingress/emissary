@@ -496,7 +496,10 @@ def normalize_gold(gold: dict) -> dict:
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
 def test_config(testname, dirpath, configdir):
-    global logger
+    # pytest.xfail("old V1 tests are disabled")
+    # return
+    
+    global logger 
     errors = []
 
     if not os.path.isdir(configdir):

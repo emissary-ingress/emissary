@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from . import V2Config
+
+
 class V2StaticResources(dict):
     def __init__(self, config: 'V2Config') -> None:
         super().__init__()

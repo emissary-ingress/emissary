@@ -44,14 +44,16 @@
                     "_source": "module.yaml.1",
                     "redirect_cleartext_from": 8888
                 },
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true
             },
             {
                 "_source": "module.yaml.1",
                 "require_tls": true,
                 "service_port": 8888,
                 "redirect_listener": true,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [

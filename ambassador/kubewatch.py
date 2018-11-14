@@ -18,10 +18,8 @@ import click
 import json
 import logging
 import os
-import re
 import shutil
 import signal
-import subprocess
 import threading
 import time
 
@@ -43,7 +41,7 @@ __version__ = Version
 ambassador_id = os.getenv("AMBASSADOR_ID", "default")
 
 logging.basicConfig(
-    level=logging.INFO, # if appDebug else logging.INFO,
+    level=logging.INFO,  # if appDebug else logging.INFO,
     format="%%(asctime)s kubewatch %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
@@ -54,18 +52,23 @@ logger.setLevel(logging.INFO)
 
 KEY = "getambassador.io/config"
 
+
 def is_annotated(svc):
     annotations = svc.metadata.annotations
     return annotations and KEY in annotations
 
+
 def get_annotation(svc):
     return svc.metadata.annotations[KEY] if is_annotated(svc) else None
+
 
 def get_source(svc):
     return "service %s, namespace %s" % (svc.metadata.name, svc.metadata.namespace)
 
+
 def get_filename(svc):
     return "%s-%s.yaml" % (svc.metadata.name, svc.metadata.namespace)
+
 
 class Restarter(threading.Thread):
 
@@ -121,7 +124,7 @@ class Restarter(threading.Thread):
         else:
             if cert and key:
                 if cert_dir is None:
-                    return
+                    return None
                 cert_paths = TLSPaths.generate(cert_dir)
                 logger.debug("saving contents of secret %s to %s for context %s" % (
                     secret_name, cert_dir, context))
@@ -157,16 +160,16 @@ class Restarter(threading.Thread):
             with self.mutex:
                 changes = self.changes()
                 if changes > 0:
-                    logger.debug("Processing %s changes" % (changes))
+                    logger.debug("Processing %s changes" % changes)
                     try:
                         self.restart()
-                    except:
-                        logging.exception("could not restart Envoy")
+                    except Exception as e:
+                        logging.exception("could not restart Envoy: %s" % e)
 
                     self.processed += changes
 
-
-    def safe_write(self, temp_dir, target_dir, target_name, serialized):
+    @staticmethod
+    def safe_write(temp_dir, target_dir, target_name, serialized):
         temp_path = "%s-%s" % (temp_dir, target_name)
 
         with open(temp_path, "w") as o:
@@ -273,10 +276,8 @@ class Restarter(threading.Thread):
         else:
             self.update(key, self.read_yaml(config, source))
 
-    def read_yaml(self, raw_yaml, source):
-        all_objects = []
-        yaml_to_return = raw_yaml
-
+    @staticmethod
+    def read_yaml(raw_yaml, source):
         metadata = "\n".join([
             '---',
             'apiVersion: v0.1',
@@ -359,6 +360,7 @@ def sync(restarter):
     logger.debug("Generating initial Envoy config")
     restarter.restart()
 
+
 def watch_loop(restarter):
     v1 = kube_v1()
 
@@ -389,6 +391,7 @@ def watch_loop(restarter):
                 continue
     else:
         logger.info("No K8s, idling")
+
 
 @click.command()
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
@@ -433,12 +436,13 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
                 watch_loop(restarter)
             except KeyboardInterrupt:
                 raise
-            except:
-                logger.exception("could not watch for Kubernetes service changes")
+            except Exception as e:
+                logger.exception("could not watch for Kubernetes service changes: %s" % e)
             finally:
                 time.sleep(60)
     else:
-         raise ValueError(mode)
+        raise ValueError(mode)
+
 
 if __name__ == "__main__":
     main()

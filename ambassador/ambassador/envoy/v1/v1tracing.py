@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import cast as typecast
+
+from ...ir.irtracing import IRTracing
 
 if TYPE_CHECKING:
     from . import V1Config
@@ -20,12 +23,17 @@ if TYPE_CHECKING:
 
 class V1Tracing(dict):
     def __init__(self, config: 'V1Config') -> None:
+        # We should never be instantiated unless there is, in fact, defined tracing stuff.
+        assert config.ir.tracing
+
         super().__init__()
+
+        tracing = typecast(IRTracing, config.ir.tracing)
 
         self['http'] = {
             "driver": {
-                "type": config.ir.tracing['driver'],
-                "config": config.ir.tracing['driver_config']
+                "type": tracing['driver'],
+                "config": tracing['driver_config']
             }
         }
 

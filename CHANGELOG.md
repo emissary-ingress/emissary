@@ -40,6 +40,22 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.50.0-ea5] November 6, 2018
+[0.50.0-ea5]: https://github.com/datawire/ambassador/compare/0.50.0-ea4...0.50.0-ea5
+
+**Ambassador 0.50.0-ea5 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Fixes since 0.50.0-ea4:
+
+- **`use_remote_address` is now set to `true` by default.** If you need the old behavior, you will need to manually set `use_remote_address` to `false` in the `ambassador` `Module`.
+- Ambassador 0.50.0-ea5 **supports SNI!**  See the docs for more here.
+- Header matching is now supported again, including `host` and `method` headers.
+
 ## [0.50.0-ea4] October 31, 2018
 [0.50.0-ea4]: https://github.com/datawire/ambassador/compare/0.50.0-ea3...0.50.0-ea4
 

@@ -50,7 +50,7 @@ class Config:
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     # INSTANCE VARIABLES
-    ambassador_nodename: str = None
+    ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
     current_resource: Optional[ACResource] = None
 
@@ -64,7 +64,7 @@ class Config:
     # rkey => ACResource
     sources: Dict[str, ACResource]
 
-    errors: Dict[str, List[str]]
+    errors: Dict[str, List[dict]]
     fatal_errors: int
     object_errors: int
 
@@ -126,7 +126,7 @@ class Config:
         return "\n".join(s)
 
     def as_dict(self) -> Dict[str, Any]:
-        od = {
+        od: Dict[str, Any] = {
             '_errors': self.errors,
             '_sources': self.sources,
         }

@@ -1,4 +1,9 @@
 from typing import TYPE_CHECKING
+from typing import cast as typecast
+
+from ...ir.ircluster import IRCluster
+from ...ir.irtracing import IRTracing
+from ...ir.irratelimit import IRRateLimit
 
 from .v2cluster import V2Cluster
 
@@ -11,9 +16,9 @@ class V2Bootstrap(dict):
         super().__init__(**{
             "node": {
                 "cluster": config.ir.ambassador_nodename,
-                "id": "test-id"     # MUST BE test-id, see below
+                "id": "test-id"         # MUST BE test-id, see below
             },
-            "static_resources": {}, # Filled in later
+            "static_resources": {},     # Filled in later
             "dynamic_resources": {
                 "ads_config": {
                     "api_type": "GRPC",
@@ -43,15 +48,22 @@ class V2Bootstrap(dict):
 
         if config.tracing:
             self['tracing'] = dict(config.tracing)
-            clusters.append(V2Cluster(config, config.ir.tracing.cluster))
+
+            tracing = typecast(IRTracing, config.ir.tracing)
+
+            assert tracing.cluster
+            clusters.append(V2Cluster(config, typecast(IRCluster, tracing.cluster)))
 
         if config.ratelimit:
             self['rate_limit_service'] = dict(config.ratelimit)
-            clusters.append(V2Cluster(config, config.ir.ratelimit.cluster))
+
+            ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
+
+            assert ratelimit.cluster
+            clusters.append(V2Cluster(config, ratelimit.cluster))
 
         self['static_resources']['clusters'] = clusters
 
     @classmethod
-    def generate(cls, config: 'V2Config') -> 'V2Bootstrap':
-        # Should we save this?
+    def generate(cls, config: 'V2Config') -> None:
         config.bootstrap = V2Bootstrap(config)

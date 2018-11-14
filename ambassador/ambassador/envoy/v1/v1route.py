@@ -13,10 +13,11 @@
 # limitations under the License
 
 from typing import List, Tuple, TYPE_CHECKING
+from typing import cast as typecast
 
 from ..common import EnvoyRoute
 from ...ir import IRResource
-from ...ir.irmapping import IRMappingGroup
+from ...ir.irmapping import IRMapping, IRMappingGroup
 
 from .v1ratelimitaction import V1RateLimitAction
 
@@ -66,10 +67,12 @@ class V1Route(dict):
         # print(len(group.get('headers', [])) > 0)
 
         if group.get("host_redirect", None):
-            self["host_redirect"] = group.host_redirect.service
+            hr: IRMapping = typecast(IRMapping, group.host_redirect)
 
-            if "path_redirect" in group.host_redirect:
-                self["path_redirect"] = group.host_redirect.path_redirect
+            self["host_redirect"] = hr.service
+
+            if "path_redirect" in hr:
+                self["path_redirect"] = hr.path_redirect
         else:
             # Don't include prefix_rewrite unless group.rewrite is present and not
             # empty. The special handling is so that using rewrite: "" in an

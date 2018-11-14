@@ -1,12 +1,16 @@
+import sys
+
+import base64
 import os
-
+import pytest
 import shutil
+import subprocess
+import yaml
 
-from abc import abstractmethod
-from typing import Any, ClassVar, Generator, List, Optional, Sequence, Tuple, Type
+from typing import Any, ClassVar, Optional, Sequence
 from typing import cast as typecast
 
-from kat.harness import abstract_test, sanitize, variants, Name, Node, Test, Query
+from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat import manifests
 
 AMBASSADOR_LOCAL = """
@@ -89,13 +93,13 @@ metadata:
 type: kubernetes.io/service-account-token
 """
 
-import base64, pytest, subprocess, sys, tempfile, time, yaml
 
 def run(*args, **kwargs):
     for arg in "stdout", "stderr":
         if arg not in kwargs:
             kwargs[arg] = subprocess.PIPE
     return subprocess.run(args, **kwargs)
+
 
 DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
 
@@ -143,7 +147,8 @@ class AmbassadorTest(Test):
         return typecast(int, self._index)
 
     def post_manifest(self):
-        if not DEV: return
+        if not DEV:
+            return
 
         run("docker", "kill", self.path.k8s)
         run("docker", "rm", self.path.k8s)
@@ -175,21 +180,21 @@ class AmbassadorTest(Test):
             content = result.stdout
         secret = yaml.load(content)
         data = secret['data']
-        # dir = tempfile.mkdtemp(prefix=self.path.k8s, suffix="secret")
-        dir = "/tmp/%s-ambassadormixin-%s" % (self.path.k8s, 'secret')
+        # secret_dir = tempfile.mkdtemp(prefix=self.path.k8s, suffix="secret")
+        secret_dir = "/tmp/%s-ambassadormixin-%s" % (self.path.k8s, 'secret')
 
-        shutil.rmtree(dir, ignore_errors=True)
-        os.mkdir(dir, 0o777)
+        shutil.rmtree(secret_dir, ignore_errors=True)
+        os.mkdir(secret_dir, 0o777)
 
         for k, v in data.items():
-            with open(os.path.join(dir, k), "wb") as f:
+            with open(os.path.join(secret_dir, k), "wb") as f:
                 f.write(base64.decodebytes(bytes(v, "utf8")))
         print("Launching %s container." % self.path.k8s)
         result = run("docker", "run", "-d", "--name", self.path.k8s,
                      "-p", "%s:8877" % (8877 + self.index),
                      "-p", "%s:80" % (8080 + self.index),
                      "-p", "%s:443" % (8443 + self.index),
-                     "-v", "%s:/var/run/secrets/kubernetes.io/serviceaccount" % dir,
+                     "-v", "%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir,
                      "-e", "KUBERNETES_SERVICE_HOST=kubernetes",
                      "-e", "KUBERNETES_SERVICE_PORT=443",
                      "-e", "AMBASSADOR_ID=%s" % self.ambassador_id,
@@ -227,8 +232,10 @@ class AmbassadorTest(Test):
 @abstract_test
 class ServiceType(Node):
 
+    path: Name
+
     def config(self):
-        if False: yield
+        yield from ()
 
     def manifests(self):
         return self.format(manifests.BACKEND)
@@ -237,8 +244,10 @@ class ServiceType(Node):
         yield ("url", Query("http://%s" % self.path.k8s))
         yield ("url", Query("https://%s" % self.path.k8s))
 
+
 class HTTP(ServiceType):
     pass
+
 
 class GRPC(ServiceType):
     pass
@@ -249,8 +258,9 @@ class MappingTest(Test):
 
     target: ServiceType
     options: Sequence['OptionTest']
+    parent: AmbassadorTest
 
-    def init(self, target: ServiceType, options = ()) -> None:
+    def init(self, target: ServiceType, options=()) -> None:
         self.target = target
         self.options = list(options)
 
@@ -259,6 +269,8 @@ class MappingTest(Test):
 class OptionTest(Test):
 
     VALUES: ClassVar[Any] = None
+    value: Any
+    parent: Test
 
     @classmethod
     def variants(cls):
@@ -268,5 +280,5 @@ class OptionTest(Test):
             for val in cls.VALUES:
                 yield cls(val, name=sanitize(val))
 
-    def init(self, value = None):
+    def init(self, value=None):
         self.value = value

@@ -18,6 +18,8 @@
         link: /about/quickstart
       - title: Docker Compose
         link: /user-guide/docker-compose
+      - title: Bare Metal
+        link: /user-guide/bare-metal
       - title: Early Access Releases
         link: /user-guide/early-access
 
@@ -33,6 +35,10 @@
       link: /concepts/using-ambassador-in-org
     - title: Why Ambassador uses Envoy Proxy
       link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+    - title: Safely Testing in Production
+      link: /docs/dev-guide/test-in-prod
+        - title: Testing in Production with Canary Releases
+          link: /docs/dev-guide/canary-release-concepts
 
 - title: Guides
   items:
@@ -46,6 +52,8 @@
       link: /user-guide/grpc
     - title: TLS Termination
       link: /user-guide/tls-termination
+    - title: Server Name Indication (SNI)
+      link: /user-guide/sni
     - title: Istio and Ambassador
       link: /user-guide/with-istio
     - title: More guides
