@@ -30,32 +30,38 @@ subjects:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador-pro
+  name: ambassador-pro-auth
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: ambassador-pro
+      service: ambassador-pro-auth
   template:
     metadata:
       labels:
-        name: ambassador-pro
+        service: ambassador-pro-auth
     spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: ambassador-pro
-        image: quay.io/datawire/ambassador_pro:auth-0.0.5
+        image: quay.io/datawire/ambassador-pro:0.0.6-rc
         ports:
         - containerPort: 8080
         env:
           - name: AUTH_CALLBACK_URL
-            value: https://example.com/callback
+            value: ""
           - name: AUTH_DOMAIN
-            value: example.auth0.com
+            value: ""
           - name: AUTH_AUDIENCE
-            value: audience
+            value: ""
           - name: AUTH_CLIENT_ID
-            value: id  
+            value: ""
+#          Uncomment if you want the Auth0 management API to validate your configurations
+#          - name: AUTH_CLIENT_SECRET
+#            value: <CLIENT SECRET>
+#          Uncomment if your app is not secured with TLS
+#          - name: APP_SECURE
+#            value: not_secure
       imagePullSecrets:
       - name: ambassador-pro-registry-credentials
 ---
