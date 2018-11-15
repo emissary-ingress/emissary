@@ -357,13 +357,7 @@ service: {self.target.path.k8s}
 """)
 
     def queries(self):
-        q = Query(self.url("tls-target/"), expected=301)
-
-        # if DEV:
-        q.xfail="skip until port madness is wrangled"
-
-        yield q
-
+        yield Query(self.url("tls-target/"), expected=301)
 
 class Plain(AmbassadorTest):
 
