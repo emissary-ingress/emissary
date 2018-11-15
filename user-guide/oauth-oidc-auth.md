@@ -14,7 +14,6 @@ Integrating Auth0 with the Ambassador Pro Authentication service is done by sett
 * `AUTH_CLIENT_ID` is the client ID of your application.
 * `AUTH_AUDIENCE` is listed on the API page https://manage.auth0.com/#/apis
 * `AUTH_CALLBACK_URL` is the URL where you want to send users once they've authenticated.
-* `APP_SECURE` indicates if the domain is secured with TLS. Set to `not_secure` if the callback URL is unsecure and omit otherwise.
 
 #### Configuration
 - `AUTH_DOMAIN` = datawire-ambassador.auth0.com
@@ -42,9 +41,6 @@ env:
   value: https://datawire-ambassador.auth0.com/api/v2/
 - name: AUTH_CLIENT_ID
   value: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
-# Uncomment if endpoint is not secured.
-# - name: APP_SECURE
-#   value: not_secure
 ```
 
 2. Set `Token Endpoint Authentication Method` to `None`
@@ -83,9 +79,6 @@ env:
   value: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
 - name: AUTH_CLIENT_SECRET
   value: <CLIENT SECRET>
-# Uncomment if endpoint is not secured.
-# - name: APP_SECURE
-#   value: not_secure
 ```
 2. Set `Token Endpoint Authentication Method` to `POST`
 3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`

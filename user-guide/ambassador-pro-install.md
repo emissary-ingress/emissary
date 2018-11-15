@@ -48,11 +48,6 @@ spec:
     targetPort: 8080
   type: ClusterIP
 ```
-Deploy this service with `kubectl`:
-
-```
-kubectl apply -f ambassador-pro-service.yaml
-```
 
 ### 5. Configure and Deploy Ambassador Pro Authentication
 You will need to connect Ambassador Pro Authentication with you OAuth/OIDC Identify Provider. This is done by configuring environment variables in the deployment manifest. Configure the `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE`, and `AUTH_CLIENT_ID` variables by following the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) guide.
