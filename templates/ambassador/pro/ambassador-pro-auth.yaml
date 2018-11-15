@@ -44,7 +44,7 @@ spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: ambassador-pro
-        image: quay.io/datawire/ambassador-pro:0.0.6-rc
+        image: quay.io/datawire/ambassador-pro:0.0.6
         ports:
         - containerPort: 8080
         env:
@@ -59,9 +59,6 @@ spec:
 #          Uncomment if you want the Auth0 management API to validate your configurations
 #          - name: AUTH_CLIENT_SECRET
 #            value: <CLIENT SECRET>
-#          Uncomment if your app is not secured with TLS
-#          - name: APP_SECURE
-#            value: not_secure
       imagePullSecrets:
       - name: ambassador-pro-registry-credentials
 ---
