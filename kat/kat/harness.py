@@ -306,8 +306,8 @@ class Result:
         if self.query.xfail:
             pytest.xfail(self.query.xfail)
 
-        assert (self.query.expected == self.status,
-                "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error))
+        assert self.query.expected == self.status, \
+               "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error)
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
@@ -544,19 +544,26 @@ class Runner:
     def __call__(self):
         assert False, "this is here for py.test discovery purposes only"
 
-    def run(self):
-        for t in self.tests:
-            try:
-                self.setup(set(self.tests))
-
-                for r in t.results:
-                    r.check()
-
-                t.check()
-
-                print("%s: PASSED" % t.name)
-            except:
-                print("%s: FAILED\n  %s" % (t.name, traceback.format_exc().replace("\n", "\n  ")))
+    # def run(self):
+    #     for t in self.tests:
+    #         try:
+    #             self.setup(set(self.tests))
+    #
+    #             for r in t.results:
+    #                 print("%s - %s: checking (2)" % (r.parent.name, r.query.url))
+    #
+    #                 r.check()
+    #
+    #                 if r.query.expected != r.status:
+    #                     print("%s - %s: failed (2)" % (r.parent.name, r.query.url))
+    #                     assert (False,
+    #                             "%s: expected %s, got %s" % (r.query.url, r.query.expected, r.status or r.error))
+    #
+    #             t.check()
+    #
+    #             print("%s: PASSED" % t.name)
+    #         except:
+    #             print("%s: FAILED\n  %s" % (t.name, traceback.format_exc().replace("\n", "\n  ")))
 
     def setup(self, selected):
         if not self.done:
