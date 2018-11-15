@@ -19,43 +19,45 @@ from ...ir.irtlscontext import IRTLSContext
 
 
 class V2TLSContext(Dict):
-    def __init__(self, ctx: Union[IREnvoyTLS, IRTLSContext], host_rewrite: Optional[str]=None) -> None:
+    def __init__(self, ctx: Optional[Union[IREnvoyTLS, IRTLSContext]]=None, host_rewrite: Optional[str]=None) -> None:
         super().__init__()
 
-        common_tls_context: dict = {}
-        tls_certificate = {}
+        if ctx:
+            self.add_context(ctx)
 
+    def get_common(self) -> Dict[str, str]:
+        return self.setdefault('common_tls_context', {})
 
+    def get_certs(self) -> Dict[str, str]:
+        common = self.get_common()
+        return common.setdefault('tls_certificates', [])
 
-        if "cert_chain_file" in ctx:
-            tls_certificate["certificate_chain"] = {
-                "filename": ctx["cert_chain_file"]
-            }
+    def update_cert_zero(self, key, value) -> None:
+        certs = self.get_certs()
 
-        if "private_key_file" in ctx:
-            tls_certificate["private_key"] = {
-                "filename": ctx["private_key_file"]
-            }
+        if not certs:
+            certs.append({})
 
-        if tls_certificate:
-            if "tls_certificates" not in common_tls_context:
-                common_tls_context.update({ "tls_certificates": [] })
+        certs[0][key] = { 'filename': value }
 
-            common_tls_context["tls_certificates"].append(tls_certificate)
+    def update_common(self, key, value) -> None:
+        common = self.get_common()
+        common[key] = value
 
-        if "alpn_protocols" in ctx:
-            common_tls_context["alpn_protocols"] = ctx["alpn_protocols"]
+    def update_validation(self, key, value) -> None:
+        validation: Dict[str, str] = self.get_common().setdefault('validation_context', {})
+        validation[key] = { 'filename': value }
 
-        if "cacert_chain_file" in ctx:
-            if "validation_context" not in common_tls_context:
-                common_tls_context.update({"validation_context": {}})
+    def add_context(self, ctx: Union[IREnvoyTLS, IRTLSContext]) -> None:
+        # This is a weird method, because the definition of a V2 TLS context in
+        # Envoy is weird.
 
-            common_tls_context["validation_context"]["trusted_ca"] = {
-                "filename": ctx["cacert_chain_file"]
-            }
-
-        if "cert_required" in ctx:
-            self["require_client_certificate"] = ctx["cert_required"]
-
-        if len(common_tls_context) > 0:
-            self.update({"common_tls_context": common_tls_context})
+        for ctxkey, handler, hkey in [
+            ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
+            ( 'private_key_file', self.update_cert_zero, 'private_key' ),
+            ( 'alpn_protocols', self.update_common, 'alpn_protocols' ),
+            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
+        ]:
+            if ctxkey in ctx:
+                handler(hkey, ctx[ctxkey])

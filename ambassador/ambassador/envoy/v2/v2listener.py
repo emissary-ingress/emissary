@@ -272,6 +272,8 @@ class V2Listener(dict):
         if use_proxy_proto is not None:
             chain['use_proxy_proto'] = use_proxy_proto
 
+        filter_chains = self.handle_sni(config, chain)
+
         self.update({
             'name': name,
             'address': {
@@ -281,10 +283,8 @@ class V2Listener(dict):
                     'protocol': 'TCP'
                 }
             },
-            'filter_chains': [ chain ]
+            'filter_chains': filter_chains
         })
-
-        self.handle_sni(config)
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -294,17 +294,9 @@ class V2Listener(dict):
             listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
             config.listeners.append(listener)
 
-    def handle_sni(self, config: 'V2Config'):
+    def handle_sni(self, config: 'V2Config', filter_chain: Dict[str, Any]) -> List[Dict[str, Any]]:
         global_sni = False
-        filter_chains = self.get('filter_chains', [])
-
-        # We really must have a filter chain.
-        assert filter_chains
-
-        # We really should have just one chain.
-        assert len(filter_chains) == 1
-
-        filter_chain = filter_chains[0]
+        filter_chains: List[Dict[str, Any]] = []
 
         envoy_contexts: List[V2TLSContext] = []
 
@@ -319,44 +311,40 @@ class V2Listener(dict):
         # Hack for backward compatibility with the old TLS module. Should go away
         # soon.
 
-        ctx = config.ir.get_envoy_tls_context('server')
+        v2ctx = V2TLSContext()
 
-        if ctx:
-            config.ir.logger.debug("V2Listener: SNI operating on legacy 'server'")
-            config.ir.logger.debug(ctx.as_json())
-            v2ctx = V2TLSContext(ctx)
+        for ctxname in ['client', 'server']:
+            ctx = config.ir.get_envoy_tls_context(ctxname)
+
+            if ctx:
+                config.ir.logger.debug("V2Listener: SNI operating on legacy '%s'" % ctxname)
+                config.ir.logger.debug(ctx.as_json())
+                v2ctx.add_context(ctx)
+
+        if v2ctx:   # must exist and be non-empty for this
             config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-
             envoy_contexts.append((ctx.name, '*', v2ctx))
 
+        # OK. If we have multiple contexts here, SNI is likely a thing.
+        if len(envoy_contexts) > 1:
+            config.ir.logger.debug("V2Listener: enabling SNI, %d contexts" % len(envoy_contexts))
+
+            global_sni = True
+
+            filter_chains.append({
+                'name': 'envoy.listener.tls_inspector',
+                'config': {}
+            })
+
         for name, hosts, ctx in envoy_contexts:
-            if not global_sni:
-                # Let's do one off things here, like setting global SNI flag, clearing off filter chains and fixing up
-                # listener_filters
-                global_sni = True
-                self['filter_chains'].clear()
-
-                if self.get('listener_filters') is None:
-                    self['listener_filters'] = [
-                        {
-                            'name': 'envoy.listener.tls_inspector',
-                            'config': {}
-                        }
-                    ]
-
             chain = deepcopy(filter_chain)
-            chain.update(
-                {
-                    'filter_chain_match': {
-                        'server_names': hosts
-                    },
-                    'tls_context': {
-                        'common_tls_context': {
-                            'tls_certificates': [ ctx ]
-                        }
-                    }
+
+            chain['tls_context'] = ctx
+
+            if global_sni and (hosts != '*'):
+                chain['filter_chain_match'] = {
+                    'server_names': hosts
                 }
-            )
 
             for sni_route in config.sni_routes:
                 # Check if filter chain and SNI route have matching hosts
@@ -373,4 +361,6 @@ class V2Listener(dict):
                 if hosts_match and certificate_chain_file_match and private_key_file_match:
                     chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
 
-            self['filter_chains'].append(chain)
+            filter_chains.append(chain)
+
+        return filter_chains
