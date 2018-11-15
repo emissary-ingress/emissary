@@ -173,8 +173,9 @@ class V2Listener(dict):
             }
         } ])
 
-        # OK. If this is _not_ the redirect listener, override everything.
-        if not listener.redirect_listener:
+        if listener.redirect_listener:
+            filters: List[dict] = [{'name': 'envoy.router'}]
+        else:
             # Use the actual listener name
             name = listener.name
 
