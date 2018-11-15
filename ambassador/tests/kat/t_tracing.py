@@ -81,7 +81,7 @@ driver: zipkin
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", "http://zipkin:9411/api/v2/services")
+        yield ("url", Query("http://zipkin:9411/api/v2/services"))
 
     def queries(self):
         # Speak through each Ambassador to the traced service...

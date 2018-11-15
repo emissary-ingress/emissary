@@ -10,7 +10,7 @@ import yaml
 from typing import Any, ClassVar, Optional, Sequence
 from typing import cast as typecast
 
-from kat.harness import abstract_test, sanitize, Name, Node, Test
+from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat import manifests
 
 AMBASSADOR_LOCAL = """
@@ -225,8 +225,8 @@ class AmbassadorTest(Test):
             return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
-        yield ("url", self.url("ambassador/v0/check_ready"))
-        yield ("url", self.url("ambassador/v0/check_alive"))
+        yield ("url", Query(self.url("ambassador/v0/check_ready")))
+        yield ("url", Query(self.url("ambassador/v0/check_alive")))
 
 
 @abstract_test
@@ -241,8 +241,8 @@ class ServiceType(Node):
         return self.format(manifests.BACKEND)
 
     def requirements(self):
-        yield ("url", "http://%s" % self.path.k8s)
-        yield ("url", "https://%s" % self.path.k8s)
+        yield ("url", Query("http://%s" % self.path.k8s))
+        yield ("url", Query("https://%s" % self.path.k8s))
 
 
 class HTTP(ServiceType):

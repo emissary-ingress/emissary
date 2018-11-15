@@ -242,7 +242,7 @@ class Test(Node):
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
-                 xfail=None, phase=1, debug=False):
+                 xfail=None, phase=1, debug=False, sni=False, error=None):
         self.method = method
         self.url = url
         self.headers = headers
@@ -261,6 +261,8 @@ class Query:
         self.parent = None
         self.result = None
         self.debug = debug
+        self.sni = sni
+        self.error = error
 
     def as_json(self):
         result = {
@@ -268,6 +270,8 @@ class Query:
             "url": self.url,
             "insecure": self.insecure
         }
+        if self.sni:
+            result["sni"] = self.sni
         if self.method:
             result["method"] = self.method
         if self.headers:
@@ -286,6 +290,7 @@ class Result:
         self.status = res.get("status")
         self.headers = res.get("headers")
         self.messages = res.get("messages")
+        self.tls = res.get("tls")
         if "body" in res:
             self.body = base64.decodebytes(bytes(res["body"], "ASCII"))
         else:
@@ -302,8 +307,14 @@ class Result:
         if self.query.xfail:
             pytest.xfail(self.query.xfail)
 
-        assert self.query.expected == self.status, \
-               "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error)
+        if self.query.error is not None:
+            assert self.query.error == self.error, "{}: expected error to be {}, got {} instead".format(
+                self.query.url, self.query.error, self.error
+            )
+        else:
+            assert self.query.expected == self.status, \
+                   "%s: expected status code %s, got %s instead with error %s" % (
+                       self.query.url, self.query.expected, self.status, self.error)
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
@@ -682,7 +693,7 @@ class Runner:
         kinds = ["pod", "url"]
         delay = 0.5
         start = time.time()
-        limit = 5*60
+        limit = 10*60
 
         while time.time() - start < limit:
             for kind in kinds:
@@ -727,9 +738,8 @@ class Runner:
     @_ready.when("url")
     def _ready(self, _, requirements):
         queries = []
-
-        for node, name in requirements:
-            q = Query(name, insecure=True)
+        for node, q in requirements:
+            q.insecure = True
             q.parent = node
             queries.append(q)
 
