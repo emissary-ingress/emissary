@@ -2,7 +2,6 @@
 ---
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with various identity providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
-
 ## Configuring Environment Variables
 Auth0 integration supports two different configuration patterns. The [default configuration](/user-guide/oauth-oidc-auth#auth0-default-configuration) integrates Auth0 with Ambassador Pro without verification from the Auth0 management API. If you want the Auth0 management API to verify your application configuration, follow the [validation mode configuration](/user-guide/oauth-oidc-auth#auth0-validation-mode-configuration).
 
@@ -25,7 +24,8 @@ Integrating Auth0 with the Ambassador Pro Authentication service is done by sett
 
 ![](/images/Auth0_audience.png)
 
-- `AUTH_CALLBACK_URL` = https://datawire-ambassador.com/callback/
+- `AUTH_CALLBACK_URL` = https://datawire-ambassador.com/callback
+
 
 1. Configure the environment variables with the correct values
 
