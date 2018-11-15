@@ -535,8 +535,25 @@ hosts:
 secret: same-secret-2
 """)
 
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}-other-mapping
+prefix: /{self.name}/
+service: https://{self.target.path.k8s}
+""")
+
     def scheme(self) -> str:
         return "https"
+
+    @staticmethod
+    def _go_close_connection_error(url):
+        """
+        :param url: url passed to the query
+        :return: error message string that Go's net/http package throws when server closes connection
+        """
+        return "Get {}: EOF".format(url)
 
     def queries(self):
         # Correct host
@@ -545,8 +562,6 @@ secret: same-secret-2
                     expected=200,
                     insecure=True,
                     sni=True)
-
-        # Correct host
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-2"},
                     expected=200,
@@ -556,7 +571,7 @@ secret: same-secret-2
         # Incorrect host
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-3"},
-                    expected=404,
+                    error=self._go_close_connection_error(self.url("tls-context-same/")),
                     insecure=True,
                     sni=True)
 
@@ -564,6 +579,30 @@ secret: same-secret-2
         yield Query(self.url("tls-context-different/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=404,
+                    insecure=True,
+                    sni=True)
+
+        # Other mappings with no host will fail
+        yield Query(self.url(self.name + "/"),
+                    error=self._go_close_connection_error(self.url(self.name + "/")),
+                    insecure=True)
+
+        # Other mappings with non-existent host will fail
+        yield Query(self.url(self.name + "/"),
+                    error=self._go_close_connection_error(self.url(self.name + "/")),
+                    sni=True,
+                    headers={"Host": "tls-context-host-3"},
+                    insecure=True)
+
+        # Other mappings should get all TLS if existing host specified
+        yield Query(self.url(self.name + "/"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=200,
+                    insecure=True,
+                    sni=True)
+        yield Query(self.url(self.name + "/"),
+                    headers={"Host": "tls-context-host-2"},
+                    expected=200,
                     insecure=True,
                     sni=True)
 
@@ -589,8 +628,6 @@ secret: same-secret-2
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("tls-context-same/"), headers={"Host": "tls-context-host-1"}, expected=200, insecure=True, sni=True))
-        yield ("url", Query(self.url("tls-context-same/"), headers={"Host": "tls-context-host-2"}, expected=200, insecure=True, sni=True))
 
 
 class UseWebsocket(OptionTest):

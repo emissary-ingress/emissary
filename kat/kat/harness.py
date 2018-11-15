@@ -242,7 +242,7 @@ class Test(Node):
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
-                 xfail=None, phase=1, debug=False, sni=False):
+                 xfail=None, phase=1, debug=False, sni=False, error=None):
         self.method = method
         self.url = url
         self.headers = headers
@@ -262,6 +262,7 @@ class Query:
         self.result = None
         self.debug = debug
         self.sni = sni
+        self.error = error
 
     def as_json(self):
         result = {
@@ -306,8 +307,14 @@ class Result:
         if self.query.xfail:
             pytest.xfail(self.query.xfail)
 
-        assert self.query.expected == self.status, \
-               "%s: expected %s, got %s" % (self.query.url, self.query.expected, self.status or self.error)
+        if self.query.error is not None:
+            assert self.query.error == self.error, "{}: expected error to be {}, got {} instead".format(
+                self.query.url, self.query.error, self.error
+            )
+        else:
+            assert self.query.expected == self.status, \
+                   "%s: expected status code %s, got %s instead with error %s" % (
+                       self.query.url, self.query.expected, self.status, self.error)
 
     def as_dict(self) -> Dict[str, Any]:
         od = {

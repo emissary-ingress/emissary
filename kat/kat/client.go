@@ -176,19 +176,6 @@ func main() {
 		},
 	}
 
-	insecure_tr := &http.Transport{
-		MaxIdleConns:       10,
-		IdleConnTimeout:    30 * time.Second,
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	insecure_client := &http.Client{
-		Transport: insecure_tr,
-		Timeout: time.Duration(10 * time.Second),
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
 	count := len(specs)
 	queries := make(chan bool)
 
@@ -211,6 +198,19 @@ func main() {
 			query := specs[idx]
 			result := query.Result()
 			url := query.Url()
+
+			insecure_tr := &http.Transport{
+				MaxIdleConns:       10,
+				IdleConnTimeout:    30 * time.Second,
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			insecure_client := &http.Client{
+				Transport: insecure_tr,
+				Timeout: time.Duration(10 * time.Second),
+				CheckRedirect: func(req *http.Request, via []*http.Request) error {
+					return http.ErrUseLastResponse
+				},
+			}
 
 			if query.IsWebsocket() {
 				c, resp, err := websocket.DefaultDialer.Dial(url, query.Headers())
