@@ -12,29 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from ...ir.irtls import IREnvoyTLS
+from ...ir.irtlscontext import IRTLSContext
 
 
 class V2TLSContext(Dict):
-    def __init__(self, ctx: Optional[IREnvoyTLS]=None, host_rewrite: Optional[str]=None) -> None:
+    def __init__(self, ctx: Union[IREnvoyTLS, IRTLSContext], host_rewrite: Optional[str]=None) -> None:
         super().__init__()
 
-        if ctx:
-            self.add_context(ctx)
-
-        # if host_rewrite:
-        #     self['sni'] = host_rewrite
-
-    def add_context(self, ctx: IREnvoyTLS) -> None:
         common_tls_context: dict = {}
-
         tls_certificate = {}
+
+
+
         if "cert_chain_file" in ctx:
             tls_certificate["certificate_chain"] = {
                 "filename": ctx["cert_chain_file"]
             }
+
         if "private_key_file" in ctx:
             tls_certificate["private_key"] = {
                 "filename": ctx["private_key_file"]
@@ -42,7 +39,7 @@ class V2TLSContext(Dict):
 
         if tls_certificate:
             if "tls_certificates" not in common_tls_context:
-                common_tls_context.update({"tls_certificates": []})
+                common_tls_context.update({ "tls_certificates": [] })
 
             common_tls_context["tls_certificates"].append(tls_certificate)
 

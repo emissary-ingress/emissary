@@ -14,7 +14,7 @@
 
 import os
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from ..config import Config
 from .irresource import IRResource as IRResource
@@ -138,10 +138,11 @@ class IRAmbassadorTLS (IRResource):
             **kwargs
         )
 
+
 class TLSModuleFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
-        assert(ir)
+        assert ir
 
         tls_module = aconf.get_module('tls')
 
@@ -168,21 +169,3 @@ class TLSModuleFactory:
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
         pass
-
-#     @staticmethod
-#     def tmod_certs_exist(tmod):
-#         """
-#         Returns the number of certs that are defined in the supplied tmod
-#
-#         :param tmod: The TLS module configuration
-#         :return: number of certs in tmod
-#         :rtype: int
-#         """
-#         cert_count = 0
-#         if tmod.get('cert_chain_file') is not None:
-#             cert_count += 1
-#         if tmod.get('private_key_file') is not None:
-#             cert_count += 1
-#         if tmod.get('cacert_chain_file') is not None:
-#             cert_count += 1
-#         return cert_count

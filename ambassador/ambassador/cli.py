@@ -98,26 +98,35 @@ def showid():
     show_notices(result, printer=stdout_printer)
 
 
+
+def file_checker(path: str) -> bool:
+    logger.debug("CLI file checker: pretending %s exists" % path)
+    return True
+
 def tls_secret_resolver(secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
     # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
     # Here we're just gonna fake it.
 
+    od: Optional[Dict[str, str]] = None
+
     if context == 'server':
-        return {
+        od = {
             'cert_chain_file': "/path/to/%s.crt" % secret_name,
             'private_key_file': "/path/to/%s.key" % secret_name
         }
     elif context == 'client':
-        return {
+        od = {
             'cacert_chain_file': "/path/to/%s.crt" % secret_name,
         }
-    else:
-        if cert_dir is not None:
-            return {
-                'certificate_chain_file': os.path.join(cert_dir, 'cert.crt'),
-                'private_key_file': os.path.join(cert_dir, 'cert.key')
-            }
-        return None
+    elif cert_dir is not None:
+        od = {
+            'certificate_chain_file': os.path.join(cert_dir, 'cert.crt'),
+            'private_key_file': os.path.join(cert_dir, 'cert.key')
+        }
+
+    logger.debug("CLI secret resolver: returning %s" % od)
+
+    return od
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
@@ -170,7 +179,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf, tls_secret_resolver=tls_secret_resolver)
+        ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=tls_secret_resolver)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -289,7 +298,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf, tls_secret_resolver=tls_secret_resolver)
+            ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=tls_secret_resolver)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:

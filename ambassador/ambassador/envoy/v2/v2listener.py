@@ -15,6 +15,8 @@
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from typing import cast as typecast
 
+import json
+
 from copy import deepcopy
 
 from multi import multi
@@ -158,7 +160,7 @@ class V2Listener(dict):
 
         # Default some things to the way they should be for the redirect listener
         name = "redirect_listener"
-        envoy_ctx: Optional[dict] = None
+        # envoy_ctx: Optional[dict] = None
         access_log: Optional[List[dict]] = None
         require_tls: Optional[str] = 'ALL'
         use_proxy_proto: Optional[bool] = None
@@ -188,15 +190,13 @@ class V2Listener(dict):
                 }
             } ]
 
-            # Assemble TLS contexts
+            # # If we have a server context here, use it.
+            # envoy_ctx = V2TLSContext()
+            # for name, ctx in config.ir.envoy_tls.items():
+            #     config.ir.logger.info("envoy_ctx adding %s" % ctx.as_json())
+            #     envoy_ctx.add_context(ctx)
             #
-            # XXX Wait what? A V2TLSContext can hold only a single context, as far as I can tell...
-            envoy_ctx = V2TLSContext()
-            for name, ctx in config.ir.envoy_tls.items():
-                config.ir.logger.info("envoy_ctx adding %s" % ctx.as_json())
-                envoy_ctx.add_context(ctx)
-
-            config.ir.logger.info("envoy_ctx final %s" % envoy_ctx)
+            # config.ir.logger.info("envoy_ctx final %s" % envoy_ctx)
 
             # Assemble filters
             for f in config.ir.filters:
@@ -262,8 +262,12 @@ class V2Listener(dict):
             'filters': [ http_connmgr_config ]
         }
 
-        if envoy_ctx:   # envoy_ctx has to exist _and_ not be empty to be truthy
-            chain['tls_context'] = dict(envoy_ctx)
+        # # if envoy_ctx:   # envoy_ctx has to exist _and_ not be empty to be truthy
+        # #     chain['tls_context'] = dict(envoy_ctx)
+        #
+        # if config.ir.envoy_tls.get('server', None):
+        #     config.ir.logger.debug("V2Listener: TLS context 'server' exists")
+        #     chain['tls_context'] = dict(config.ir.envoy_tls['server'].as_dict())
 
         if use_proxy_proto is not None:
             chain['use_proxy_proto'] = use_proxy_proto
@@ -302,12 +306,36 @@ class V2Listener(dict):
 
         filter_chain = filter_chains[0]
 
+        envoy_contexts: List[V2TLSContext] = []
+
         for tls_context in config.ir.tls_contexts:
+            config.ir.logger.debug("V2Listener: SNI operating on context '%s'" % tls_context.name)
+            config.ir.logger.debug(tls_context.as_json())
+            v2ctx = V2TLSContext(tls_context)
+            config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+
+            envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
+
+        # Hack for backward compatibility with the old TLS module. Should go away
+        # soon.
+
+        ctx = config.ir.get_envoy_tls_context('server')
+
+        if ctx:
+            config.ir.logger.debug("V2Listener: SNI operating on legacy 'server'")
+            config.ir.logger.debug(ctx.as_json())
+            v2ctx = V2TLSContext(ctx)
+            config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+
+            envoy_contexts.append((ctx.name, '*', v2ctx))
+
+        for name, hosts, ctx in envoy_contexts:
             if not global_sni:
                 # Let's do one off things here, like setting global SNI flag, clearing off filter chains and fixing up
                 # listener_filters
                 global_sni = True
                 self['filter_chains'].clear()
+
                 if self.get('listener_filters') is None:
                     self['listener_filters'] = [
                         {
@@ -320,36 +348,26 @@ class V2Listener(dict):
             chain.update(
                 {
                     'filter_chain_match': {
-                        'server_names': tls_context['hosts']
+                        'server_names': hosts
                     },
                     'tls_context': {
                         'common_tls_context': {
-                            'tls_certificates': [
-                                {
-                                    'certificate_chain': {
-                                        'filename': tls_context['secret_info']['certificate_chain_file']
-                                    },
-                                    'private_key': {
-                                        'filename': tls_context['secret_info']['private_key_file']
-                                    }
-                                }
-                            ]
+                            'tls_certificates': [ ctx ]
                         }
                     }
                 }
             )
 
             for sni_route in config.sni_routes:
-
                 # Check if filter chain and SNI route have matching hosts
-                hosts_match = sorted(sni_route['info']['hosts']) == sorted(tls_context['hosts'])
+                hosts_match = sorted(sni_route['info']['hosts']) == sorted(ctx['hosts'])
 
                 # Check if certificate_chain_file matches for filter chain and SNI route
-                certificate_chain_file_match = sni_route['info']['secret_info']['certificate_chain_file'] == tls_context['secret_info'][
+                certificate_chain_file_match = sni_route['info']['secret_info']['certificate_chain_file'] == ctx['secret_info'][
                     'certificate_chain_file']
 
                 # Check if private_key_file matches for filter chain and SNI route
-                private_key_file_match = sni_route['info']['secret_info']['private_key_file'] == tls_context['secret_info'][
+                private_key_file_match = sni_route['info']['secret_info']['private_key_file'] == ctx['secret_info'][
                     'private_key_file']
 
                 if hosts_match and certificate_chain_file_match and private_key_file_match:

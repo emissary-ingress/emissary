@@ -98,6 +98,7 @@ class IRAmbassador (IRResource):
 
                 if isinstance(ctx, dict):
                     ctxloc = ir.tls_module.get('location', self.location)
+
                     etls = IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
                                       location=ctxloc, **ctx)
 
