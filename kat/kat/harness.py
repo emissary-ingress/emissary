@@ -693,7 +693,7 @@ class Runner:
         kinds = ["pod", "url"]
         delay = 0.5
         start = time.time()
-        limit = 5*60
+        limit = 10*60
 
         while time.time() - start < limit:
             for kind in kinds:
