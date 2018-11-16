@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class IRTLSContext(IRResource):
     def __init__(self, ir: 'IR', config,
                  rkey: str="ir.tlscontext",
-                 kind: str="ir.tlscontext",
+                 kind: str="IRTLSContext",
                  name: str="tlscontext",
                  **kwargs) -> None:
 

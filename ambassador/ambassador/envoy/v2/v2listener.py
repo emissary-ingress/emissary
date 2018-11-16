@@ -159,13 +159,18 @@ class V2Listener(dict):
         super().__init__()
 
         # Default some things to the way they should be for the redirect listener
-        name = "redirect_listener"
-        # envoy_ctx: Optional[dict] = None
-        access_log: Optional[List[dict]] = None
-        require_tls: Optional[str] = 'ALL'
-        use_proxy_proto: Optional[bool] = None
-        filters: List[dict] = []
-        routes: List[V2Route] = typecast(List[V2Route], [ {
+        self.name = "redirect_listener"
+        self.access_log: Optional[List[dict]] = None
+        self.require_tls: Optional[str] = 'ALL'
+        self.use_proxy_proto: Optional[bool] = None
+
+        self.http_filters: List[dict] = []
+        self.listener_filters: List[dict] = []
+        self.filter_chains = []
+
+        self.upgrade_configs: Optional[str] = None
+
+        self.routes: List[V2Route] = typecast(List[V2Route], [ {
             'match': {
                 'prefix': '/',
             },
@@ -176,13 +181,13 @@ class V2Listener(dict):
         } ])
 
         if listener.redirect_listener:
-            filters: List[dict] = [{'name': 'envoy.router'}]
+            self.http_filters = [{'name': 'envoy.router'}]
         else:
             # Use the actual listener name
-            name = listener.name
+            self.name = listener.name
 
             # Use a sane access log spec
-            access_log = [ {
+            self.access_log = [ {
                 'name': 'envoy.file_access_log',
                 'config': {
                     'path': '/dev/fd/1',
@@ -203,79 +208,86 @@ class V2Listener(dict):
                 v2f: dict = v2filter(f)
 
                 if v2f:
-                    filters.append(v2f)
+                    self.http_filters.append(v2f)
 
-            # Grab routes from the config.
-            routes = config.routes
+            # Grab routes from the config (we do this as a shallow copy).
+            self.routes = [ dict(r) for r in config.routes ]
 
             # Don't require TLS.
-            require_tls = None
+            self.require_tls = None
 
             # Use the actual get_proxy_proto setting
-            use_proxy_proto = listener.get('use_proxy_proto')
+            self.use_proxy_proto = listener.get('use_proxy_proto')
 
-        # Finally, update the world.
-        vhost = {
-            'name': 'backend',
-            'domains': [ '*' ],
-            'routes': routes
-        }
+            # Save upgrade configs.
+            for group in config.ir.ordered_groups():
+                if group.get('use_websocket'):
+                    self.upgrade_configs = [{ 'upgrade_type': 'websocket' }]
+                    break
 
-        if require_tls:
-            vhost['require_tls'] = require_tls
+            # Let self.handle_sni do the heavy lifting for SNI.
+            self.handle_sni(config)
 
-        http_config: Dict[str, Any] = {
+        # If the filter chain is empty here, we had no contexts. Add a single empty element to
+        # to filter chain to make the logic below a bit simpler.
+        if not self.filter_chains:
+            self.filter_chains.append({
+                'routes': self.routes
+            })
+
+        # OK. Build our base HTTP config...
+        base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
-            'access_log': access_log,
-            'http_filters': filters,
-            'route_config': {
-                'virtual_hosts': [ vhost ]
-            }
+            'access_log': self.access_log,
+            'http_filters': self.http_filters,
         }
 
-        for group in config.ir.ordered_groups():
-            if group.get('use_websocket'):
-                http_config['upgrade_configs'] = [ { 'upgrade_type': 'websocket' } ]
-                break
+        if self.upgrade_configs:
+            base_http_config['upgrade_configs'] = self.upgrade_configs
 
         if 'use_remote_address' in config.ir.ambassador_module:
-            http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
+            base_http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
         if config.ir.tracing:
-            http_config["generate_request_id"] = True
+            base_http_config["generate_request_id"] = True
 
-            http_config["tracing"] = {
-                "operation_name": "egress",
+            base_http_config["tracing"] = {
+                "operation_name": "egress"
             }
 
             req_hdrs = config.ir.tracing.get('tag_headers', [])
 
             if req_hdrs:
-                http_config["tracing"]["request_headers_for_tags"] = req_hdrs
+                base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
-        http_connmgr_config = {
-                'name': 'envoy.http_connection_manager',
-                'config': http_config
+        # OK. For each entry in our filter chain, we need to set up the rest of the
+        # config.
+
+        for chain in self.filter_chains:
+            vhost = {
+                'name': 'backend',
+                'domains': [ '*' ],
+                'routes': chain.pop('routes')
             }
 
-        chain: Dict[str, Any] = {
-            'filters': [ http_connmgr_config ]
-        }
+            if self.require_tls:
+                vhost['require_tls'] = self.require_tls
 
-        # # if envoy_ctx:   # envoy_ctx has to exist _and_ not be empty to be truthy
-        # #     chain['tls_context'] = dict(envoy_ctx)
-        #
-        # if config.ir.envoy_tls.get('server', None):
-        #     config.ir.logger.debug("V2Listener: TLS context 'server' exists")
-        #     chain['tls_context'] = dict(config.ir.envoy_tls['server'].as_dict())
+            http_config = dict(base_http_config)    # Shallow copy is enough.
 
-        if use_proxy_proto is not None:
-            chain['use_proxy_proto'] = use_proxy_proto
+            http_config['route_config'] = {
+                'virtual_hosts': [ vhost ]
+            }
 
-        filter_chains = self.handle_sni(config, chain)
+            chain['filters'] = [
+                {
+                    'name': 'envoy.http_connection_manager',
+                    'config': http_config
+                }
+            ]
 
         self.update({
-            'name': name,
+            'name': self.name,
             'address': {
                 'socket_address': {
                     'address': '0.0.0.0',
@@ -283,8 +295,11 @@ class V2Listener(dict):
                     'protocol': 'TCP'
                 }
             },
-            'filter_chains': filter_chains
+            'filter_chains': self.filter_chains
         })
+
+        if self.listener_filters:
+            self['listener_filters'] = self.listener_filters
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -294,10 +309,21 @@ class V2Listener(dict):
             listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
             config.listeners.append(listener)
 
-    def handle_sni(self, config: 'V2Config', filter_chain: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def handle_sni(self, config: 'V2Config') -> None:
+        """
+        Manage filter chains, etc., for SNI.
+
+        :param config: the V2Config within which we're working
+        """
+
+        # Is SNI active?
         global_sni = False
+
+        # We'll build our chain to return in filter_chain.
         filter_chains: List[Dict[str, Any]] = []
 
+        # We'll assemble a list of active TLS contexts here. It may end up empty,
+        # of course.
         envoy_contexts: List[V2TLSContext] = []
 
         for tls_context in config.ir.tls_contexts:
@@ -308,8 +334,8 @@ class V2Listener(dict):
 
             envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
 
-        # Hack for backward compatibility with the old TLS module. Should go away
-        # soon.
+        # Hack for backward compatibility with the old TLS module. Hopefully we can get rid of
+        # this soon?
 
         v2ctx = V2TLSContext()
 
@@ -321,46 +347,54 @@ class V2Listener(dict):
                 config.ir.logger.debug(ctx.as_json())
                 v2ctx.add_context(ctx)
 
-        if v2ctx:   # must exist and be non-empty for this
+        if v2ctx:   # must exist and be non-empty for this to eval True
             config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
             envoy_contexts.append((ctx.name, '*', v2ctx))
 
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:
             config.ir.logger.debug("V2Listener: enabling SNI, %d contexts" % len(envoy_contexts))
+            config.ir.logger.debug(json.dumps(envoy_contexts, indent=4, sort_keys=True))
 
             global_sni = True
 
-            filter_chains.append({
+            self.listener_filters.append({
                 'name': 'envoy.listener.tls_inspector',
                 'config': {}
             })
 
         for name, hosts, ctx in envoy_contexts:
-            chain = deepcopy(filter_chain)
+            config.ir.logger.info("V2Listener: SNI route check %s, %s, %s" % (name, hosts, json.dumps(ctx, indent=4, sort_keys=True)))
 
-            chain['tls_context'] = ctx
+            chain = {
+                'tls_context': ctx,
+                'routes': list(self.routes)
+            }
 
-            if global_sni and (hosts != '*'):
+            if global_sni:
                 chain['filter_chain_match'] = {
                     'server_names': hosts
                 }
 
             for sni_route in config.sni_routes:
                 # Check if filter chain and SNI route have matching hosts
-                hosts_match = sorted(sni_route['info']['hosts']) == sorted(ctx['hosts'])
+                config.ir.logger.info("V2Listener: SNI route check %s, route %s" % (name, json.dumps(sni_route, indent=4, sort_keys=True)))
+                matched = sorted(sni_route['info']['hosts']) == sorted(hosts)
 
-                # Check if certificate_chain_file matches for filter chain and SNI route
-                certificate_chain_file_match = sni_route['info']['secret_info']['certificate_chain_file'] == ctx['secret_info'][
-                    'certificate_chain_file']
+                # Check for certificate match too.
+                for sni_key, ctx_key in [ ('certificate_chain_file', 'certificate_chain'),
+                                          ('private_key_file', 'private_key') ]:
+                    sni_value = sni_route['info']['secret_info'][sni_key]
+                    ctx_value = ctx['common_tls_context']['tls_certificates'][0][ctx_key]['filename']   # XXX ugh. Multiple certs?
 
-                # Check if private_key_file matches for filter chain and SNI route
-                private_key_file_match = sni_route['info']['secret_info']['private_key_file'] == ctx['secret_info'][
-                    'private_key_file']
+                    if sni_value != ctx_value:
+                        matched = False
+                        break
 
-                if hosts_match and certificate_chain_file_match and private_key_file_match:
-                    chain['filters'][0]['config']['route_config']['virtual_hosts'][0]['routes'].append(sni_route['route'])
+                if matched:
+                    chain['routes'].append(sni_route['route'])
 
-            filter_chains.append(chain)
+            if self.use_proxy_proto is not None:
+                chain['use_proxy_proto'] = self.use_proxy_proto
 
-        return filter_chains
+            self.filter_chains.append(chain)

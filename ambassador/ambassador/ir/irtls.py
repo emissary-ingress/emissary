@@ -32,9 +32,9 @@ if TYPE_CHECKING:
 
 class IREnvoyTLS (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
-                 rkey: str="ir.tlscontext",
-                 kind: str="IRTLSContext",
-                 name: str="ir.tlscontext",
+                 rkey: str="ir.envoytls",
+                 kind: str="IREnvoyTLS",
+                 name: str="ir.envoytls",
                  enabled: bool=True,
 
                  **kwargs) -> None:

@@ -50,14 +50,32 @@ class V2TLSContext(Dict):
 
     def add_context(self, ctx: Union[IREnvoyTLS, IRTLSContext]) -> None:
         # This is a weird method, because the definition of a V2 TLS context in
-        # Envoy is weird.
+        # Envoy is weird, and because we need to manage two different inputs (which
+        # is silly).
+
+        if ctx.kind == 'IREnvoyTLS':
+            for ctxkey, handler, hkey in [
+                ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'private_key_file', self.update_cert_zero, 'private_key' ),
+                ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ]:
+                if ctxkey in ctx:
+                    handler(hkey, ctx[ctxkey])
+        elif ctx.kind == 'IRTLSContext':
+            for secretinfokey, handler, hkey in [
+                ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'private_key_file', self.update_cert_zero, 'private_key' ),
+                ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ]:
+                if secretinfokey in ctx['secret_info']:
+                    handler(hkey, ctx['secret_info'][secretinfokey])
+        else:
+            raise TypeError("impossible? error: V2TLS handed a %s" % ctx.kind)
 
         for ctxkey, handler, hkey in [
-            ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
-            ( 'private_key_file', self.update_cert_zero, 'private_key' ),
             ( 'alpn_protocols', self.update_common, 'alpn_protocols' ),
-            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
-            ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
+            ( 'certificate_required', self.__setitem__, 'require_client_certificate' ),
         ]:
             if ctxkey in ctx:
                 handler(hkey, ctx[ctxkey])
+
