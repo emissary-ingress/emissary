@@ -401,6 +401,13 @@ class Config:
 
         self.safe_store("auth_configs", resource)
 
+    def handle_bufferservice(self, resource: ACResource) -> None:
+        """
+        Handles an BufferService resource.
+        """
+
+        self.safe_store("buffer_configs", resource)
+
     def handle_tlscontext(self, resource: ACResource) -> None:
         """
         Handles a TLSContext resource.

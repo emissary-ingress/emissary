@@ -334,6 +334,7 @@ class Diagnostics:
     reKeyIndex = re.compile(r'\.(\d+)$')
 
     filter_map = {
+        'IRBuffer': 'BufferService',
         'IRAuth': 'AuthService',
         'IRRateLimit': 'RateLimitService'
     }

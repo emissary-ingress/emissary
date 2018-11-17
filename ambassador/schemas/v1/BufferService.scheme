@@ -12,19 +12,9 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        "timeout_ms": { "type": "integer" },
-        "auth_service": { "type": "string" },
-        "path_prefix": { "type": "string" },
-        "allowed_request_headers": {
-            "type": "array",
-            "items": { "type": "string" }
-        },
-        "allowed_authorization_headers": {
-            "type": "array",
-            "items": { "type": "string" }
-        },
-        allow_request_body: { "type": "boolean" }
+        "max_request_bytes": { "type": "integer" },
+        "max_request_time": { "type": "integer" }
     },
-    "required": [ "apiVersion", "kind", "name", "auth_service" ],
+    "required": [ "apiVersion", "kind", "name", "max_request_bytes", "max_request_time" ],
     "additionalProperties": false
 }

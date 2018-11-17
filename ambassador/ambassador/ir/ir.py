@@ -25,6 +25,7 @@ from ..config import Config
 from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
+from .irbuffer import IRBuffer
 from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
@@ -135,10 +136,10 @@ class IR:
 
         # After the Ambassador and TLS modules are done, we need to set up the
         # filter chains, which requires checking in on the auth, and
-        # ratelimit configuration stuff.
-        #
-        # ORDER MATTERS HERE.
-        # After the Ambassador and TLS modules are done, check in on auth...
+        # ratelimit configuration. Note that order of the filters matter.
+        
+        self.save_filter(IRBuffer(self, aconf))
+        
         self.save_filter(IRAuth(self, aconf))
 
         # ...note that ratelimit is a filter too...
