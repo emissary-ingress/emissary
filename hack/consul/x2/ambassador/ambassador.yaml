@@ -1,0 +1,148 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: ambassador
+      config:
+        use_proxy_proto: false
+        use_remote_address: true
+
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: tls
+      config:
+        server:
+          enabled: true
+          secret: ambassador-certs
+          redirect_cleartext_from: 80
+        client:
+          enabled: false
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: https
+      port: 443
+      targetPort: https
+  selector:
+    service: ambassador
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "true"
+        "consul.hashicorp.com/connect-service-upstreams": "static-server:1234"
+      labels:
+        service: ambassador
+    spec:
+      serviceAccountName: ambassador
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: ambassador
+        #command: [ "/bin/sh", "-c", "--" ]
+        #args: [ "while true; do sleep 30; done;" ]
+        image: quay.io/datawire/ambassador:0.50.0-ea5
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_EXIT_DELAY
+          value: "3600"
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+#        livenessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_alive
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+#        readinessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_ready
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+      restartPolicy: Always
+

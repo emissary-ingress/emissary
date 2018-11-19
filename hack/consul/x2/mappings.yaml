@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-mappings
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      prefix: /static-server
+      rewrite: /
+      name: static-server
+      service: 127.0.0.1:1234
+spec:
+  type: ClusterIP
+  clusterIP: None
+

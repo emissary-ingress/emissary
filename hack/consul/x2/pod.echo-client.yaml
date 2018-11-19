@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: static-client
+  annotations:
+    "consul.hashicorp.com/connect-inject": "true"
+    "consul.hashicorp.com/connect-service-upstreams": "static-server:1234"
+spec:
+  containers:
+  - name: static-client
+    image: tutum/curl:latest
+    # Just spin & wait forever, we'll use `kubectl exec` to demo
+    command: [ "/bin/sh", "-c", "--" ]
+    args: [ "while true; do sleep 30; done;" ]
