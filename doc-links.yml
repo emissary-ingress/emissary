@@ -1,7 +1,7 @@
 - title: Getting Started
+  link: /docs
+  collapsable: false
   items:
-    - title: Welcome
-      link: /docs/
     - title: Why Ambassador?
       link: /about/why-ambassador
     - title: Features and Benefits
@@ -20,6 +20,8 @@
         link: /user-guide/docker-compose
       - title: Bare Metal
         link: /user-guide/bare-metal
+      - title: Ambassador Pro
+        link: /user-guide/ambassador-pro-install
       - title: Early Access Releases
         link: /user-guide/early-access
 
@@ -44,9 +46,11 @@
 
 - title: Guides
   items:
-    - title: Adding Authentication
+    - title: Basic Authentication
       link: /user-guide/auth-tutorial
-    - title: Adding Rate Limiting
+    - title: Single Sign-On with OAuth & OIDC
+      link: /user-guide/oauth-oidc-auth 
+    - title: Basic Rate Limiting
       link: /user-guide/rate-limiting-tutorial
     - title: Adding Tracing
       link: /user-guide/tracing-tutorial
@@ -103,6 +107,8 @@
               link: /reference/services/services
             - title: Authentication
               link: /reference/services/auth-service
+            - title: Access Control
+              link: /reference/services/access-control
             - title: Rate Limiting
               link: /reference/services/rate-limit-service
             - title: Tracing
