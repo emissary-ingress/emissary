@@ -44,6 +44,10 @@ class V2TLSContext(Dict):
         common = self.get_common()
         common[key] = value
 
+    def update_alpn(self, key, value) -> None:
+        common = self.get_common()
+        common[key] = [ value ]
+
     def update_validation(self, key, value) -> None:
         validation: Dict[str, str] = self.get_common().setdefault('validation_context', {})
         validation[key] = { 'filename': value }
@@ -75,7 +79,7 @@ class V2TLSContext(Dict):
             raise TypeError("impossible? error: V2TLS handed a %s" % ctx.kind)
 
         for ctxkey, handler, hkey in [
-            ( 'alpn_protocols', self.update_common, 'alpn_protocols' ),
+            ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
             ( 'certificate_required', self.__setitem__, 'require_client_certificate' ),
         ]:
             value = ctx.get(ctxkey, None)
