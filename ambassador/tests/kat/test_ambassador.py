@@ -616,7 +616,7 @@ service: https://{self.target.path.k8s}
             port = 8443
             return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
-            return "%s://%s:80/%s" % (scheme, self.path.k8s, prefix)
+            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
