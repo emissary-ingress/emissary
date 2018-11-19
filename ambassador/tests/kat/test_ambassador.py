@@ -613,7 +613,7 @@ service: https://{self.target.path.k8s}
         if scheme is None:
             scheme = self.scheme()
         if DEV:
-            port = 8080
+            port = 8443
             return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
             return "%s://%s:80/%s" % (scheme, self.path.k8s, prefix)
