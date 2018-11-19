@@ -27,15 +27,20 @@ class IRTLSContext(IRResource):
         self.sourced_by(config)
         self.referenced_by(config)
 
-        self.name = config.get('name')
-        self.hosts = config.get('hosts')
+        self.name: str = config.get('name')
+        self.hosts: List[str] = config.get('hosts')
+        self.alpn_protocols: Optional[str] = config.get('alpn_protocols')
+        self.certificate_required: Optional[bool] = config.get('certificate_required')
 
         self.secret_info = {
             'secret': config.get('secret'),
         }
+
         resolved = self.handle_secret(ir, config.get('secret'))
+
         if resolved is None:
             return False
+
         self.secret_info.update(resolved)
 
         return True

@@ -59,8 +59,10 @@ class V2TLSContext(Dict):
                 ( 'private_key_file', self.update_cert_zero, 'private_key' ),
                 ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
             ]:
-                if ctxkey in ctx:
-                    handler(hkey, ctx[ctxkey])
+                value = ctx.get(ctxkey, None)
+
+                if value is not None:
+                    handler(hkey, value)
         elif ctx.kind == 'IRTLSContext':
             for secretinfokey, handler, hkey in [
                 ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
@@ -76,6 +78,7 @@ class V2TLSContext(Dict):
             ( 'alpn_protocols', self.update_common, 'alpn_protocols' ),
             ( 'certificate_required', self.__setitem__, 'require_client_certificate' ),
         ]:
-            if ctxkey in ctx:
-                handler(hkey, ctx[ctxkey])
+            value = ctx.get(ctxkey, None)
 
+            if value is not None:
+                handler(hkey, value)

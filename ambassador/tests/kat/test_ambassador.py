@@ -527,6 +527,7 @@ name: {self.name}-same-context-2
 hosts:
 - tls-context-host-2
 secret: same-secret-2
+alpn_protocols: h2,http/1.1
 """)
 
         yield self, self.format("""
