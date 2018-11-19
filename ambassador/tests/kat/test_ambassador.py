@@ -527,6 +527,7 @@ name: {self.name}-same-context-2
 hosts:
 - tls-context-host-2
 secret: same-secret-2
+alpn_protocols: h2,http/1.1
 """)
 
         yield self, self.format("""
@@ -612,10 +613,10 @@ service: https://{self.target.path.k8s}
         if scheme is None:
             scheme = self.scheme()
         if DEV:
-            port = 8080
+            port = 8443
             return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
-            return "%s://%s:80/%s" % (scheme, self.path.k8s, prefix)
+            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))

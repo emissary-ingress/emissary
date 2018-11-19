@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from ..utils import RichStatus
 from ..config import Config
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class IRTLSContext(IRResource):
     def __init__(self, ir: 'IR', config,
                  rkey: str="ir.tlscontext",
-                 kind: str="ir.tlscontext",
+                 kind: str="IRTLSContext",
                  name: str="tlscontext",
                  **kwargs) -> None:
 
@@ -27,15 +27,20 @@ class IRTLSContext(IRResource):
         self.sourced_by(config)
         self.referenced_by(config)
 
-        self.name = config.get('name')
-        self.hosts = config.get('hosts')
+        self.name: str = config.get('name')
+        self.hosts: List[str] = config.get('hosts')
+        self.alpn_protocols: Optional[str] = config.get('alpn_protocols')
+        self.certificate_required: Optional[bool] = config.get('certificate_required')
 
         self.secret_info = {
             'secret': config.get('secret'),
         }
+
         resolved = self.handle_secret(ir, config.get('secret'))
+
         if resolved is None:
             return False
+
         self.secret_info.update(resolved)
 
         return True

@@ -12,53 +12,77 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from ...ir.irtls import IREnvoyTLS
+from ...ir.irtlscontext import IRTLSContext
 
 
 class V2TLSContext(Dict):
-    def __init__(self, ctx: Optional[IREnvoyTLS]=None, host_rewrite: Optional[str]=None) -> None:
+    def __init__(self, ctx: Optional[Union[IREnvoyTLS, IRTLSContext]]=None, host_rewrite: Optional[str]=None) -> None:
         super().__init__()
 
         if ctx:
             self.add_context(ctx)
 
-        # if host_rewrite:
-        #     self['sni'] = host_rewrite
+    def get_common(self) -> Dict[str, str]:
+        return self.setdefault('common_tls_context', {})
 
-    def add_context(self, ctx: IREnvoyTLS) -> None:
-        common_tls_context: dict = {}
+    def get_certs(self) -> Dict[str, str]:
+        common = self.get_common()
+        return common.setdefault('tls_certificates', [])
 
-        tls_certificate = {}
-        if "cert_chain_file" in ctx:
-            tls_certificate["certificate_chain"] = {
-                "filename": ctx["cert_chain_file"]
-            }
-        if "private_key_file" in ctx:
-            tls_certificate["private_key"] = {
-                "filename": ctx["private_key_file"]
-            }
+    def update_cert_zero(self, key, value) -> None:
+        certs = self.get_certs()
 
-        if tls_certificate:
-            if "tls_certificates" not in common_tls_context:
-                common_tls_context.update({"tls_certificates": []})
+        if not certs:
+            certs.append({})
 
-            common_tls_context["tls_certificates"].append(tls_certificate)
+        certs[0][key] = { 'filename': value }
 
-        if "alpn_protocols" in ctx:
-            common_tls_context["alpn_protocols"] = ctx["alpn_protocols"]
+    def update_common(self, key, value) -> None:
+        common = self.get_common()
+        common[key] = value
 
-        if "cacert_chain_file" in ctx:
-            if "validation_context" not in common_tls_context:
-                common_tls_context.update({"validation_context": {}})
+    def update_alpn(self, key, value) -> None:
+        common = self.get_common()
+        common[key] = [ value ]
 
-            common_tls_context["validation_context"]["trusted_ca"] = {
-                "filename": ctx["cacert_chain_file"]
-            }
+    def update_validation(self, key, value) -> None:
+        validation: Dict[str, str] = self.get_common().setdefault('validation_context', {})
+        validation[key] = { 'filename': value }
 
-        if "cert_required" in ctx:
-            self["require_client_certificate"] = ctx["cert_required"]
+    def add_context(self, ctx: Union[IREnvoyTLS, IRTLSContext]) -> None:
+        # This is a weird method, because the definition of a V2 TLS context in
+        # Envoy is weird, and because we need to manage two different inputs (which
+        # is silly).
 
-        if len(common_tls_context) > 0:
-            self.update({"common_tls_context": common_tls_context})
+        if ctx.kind == 'IREnvoyTLS':
+            for ctxkey, handler, hkey in [
+                ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'private_key_file', self.update_cert_zero, 'private_key' ),
+                ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ]:
+                value = ctx.get(ctxkey, None)
+
+                if value is not None:
+                    handler(hkey, value)
+        elif ctx.kind == 'IRTLSContext':
+            for secretinfokey, handler, hkey in [
+                ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'private_key_file', self.update_cert_zero, 'private_key' ),
+                ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+            ]:
+                if secretinfokey in ctx['secret_info']:
+                    handler(hkey, ctx['secret_info'][secretinfokey])
+        else:
+            raise TypeError("impossible? error: V2TLS handed a %s" % ctx.kind)
+
+        for ctxkey, handler, hkey in [
+            ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
+            ( 'certificate_required', self.__setitem__, 'require_client_certificate' ),
+        ]:
+            value = ctx.get(ctxkey, None)
+
+            if value is not None:
+                handler(hkey, value)
