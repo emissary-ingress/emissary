@@ -119,6 +119,7 @@ spec:
   - name: ambassador
     image: {image}
     env:
+    {envs}
     - name: AMBASSADOR_NAMESPACE
       valueFrom:
         fieldRef:

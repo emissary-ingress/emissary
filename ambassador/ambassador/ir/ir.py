@@ -67,6 +67,7 @@ class IR:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
+        self.statsd = aconf.statsd
 
         self.logger = logging.getLogger("ambassador.ir")
         self.tls_secret_resolver = tls_secret_resolver

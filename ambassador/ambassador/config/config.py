@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
+import socket
 import sys
 
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
@@ -73,6 +73,11 @@ class Config:
             # Note that this "resource_filename" has to do with setuptool packages, not
             # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
+
+        self.statsd = {'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')}
+        if self.statsd['enabled']:
+            self.statsd['interval'] = os.environ.get('STATSD_FLUSH_INTERVAL', '1')
+            self.statsd['ip'] = socket.gethostbyname(os.environ.get('STATSD_HOST', 'statsd-sink'))
 
         self.schema_dir_path = schema_dir_path
 

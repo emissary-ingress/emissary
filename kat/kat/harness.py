@@ -114,6 +114,9 @@ class Node(ABC):
     ambassador_id: str
 
     def __init__(self, *args, **kwargs) -> None:
+        # If self.skip is set to true, this node is skipped
+        self.skip_node = False
+
         name = kwargs.pop("name", None)
         _clone: Node = kwargs.pop("_clone", None)
 
@@ -527,7 +530,7 @@ class Runner:
     def __init__(self, *classes, scope=None):
         self.scope = scope or "-".join(c.__name__ for c in classes)
         self.roots = tuple(v for c in classes for v in variants(c))
-        self.nodes = [n for r in self.roots for n in r.traversal]
+        self.nodes = [n for r in self.roots for n in r.traversal if not n.skip_node]
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
         self.ids = [t.path for t in self.tests]
         self.done = False
@@ -796,6 +799,11 @@ class Runner:
         phases = sorted(set([q.phase for q in queries]))
 
         for phase in phases:
+            if phase != 1:
+                phase_delay = 30
+                print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
+                time.sleep(phase_delay)
+
             phase_queries = [q for q in queries if q.phase == phase]
 
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
