@@ -57,7 +57,7 @@ spec:
           env:
           {{- if .Values.namespace.single }}
           - name: AMBASSADOR_SINGLE_NAMESPACE
-            value: {{ .Values.namespace.single }}
+            value: {{ .Values.namespace.single | quote }}
           {{- end }}
           - name: AMBASSADOR_ID
             value: {{ .Values.ambassador.id | quote }}
