@@ -55,8 +55,8 @@ Format:
 - `alpn_protocols` is now supported in the `TLS` module and `TLSContext`s
 - Using `TLSContext`s to provide TLS termination contexts will correctly switch Ambassador to listening on port 443.
 - `redirect_cleartext_from` is now supported with SNI
-- Zipkin `TracingService` configuration now supports 128-bit trace IDs and shared span contexts
-- Zipkin should correctly trace calls to external auth services
+- Zipkin `TracingService` configuration now supports 128-bit trace IDs and shared span contexts (thanks, @alexgervais!)
+- Zipkin should correctly trace calls to external auth services (thanks, @alexgervais!)
 - `AuthService` configurations now allow separately configuring headers allowed from the client to the auth service, and from the auth service upstream
 - Ambassador won't endlessly append `:annotation` to K8s resources
 - The Ambassador CLI no longer requires certificate files to be present when dumping configurations
