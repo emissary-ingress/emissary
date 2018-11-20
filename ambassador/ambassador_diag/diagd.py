@@ -427,7 +427,7 @@ def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False,
     app.notice_path = notices
 
     # This feels like overkill.
-    app._logger = logging.getLogger(app.logger_name)
+    app.logger = logging.getLogger("ambassador.diagd")
     app.logger.setLevel(logging.INFO)
 
     if debug:
