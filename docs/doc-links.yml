@@ -66,21 +66,19 @@
       link: https://blog.getambassador.io/howto/home
 
 - title: Reference
+  collapsable: false
   items:
     - title: Configuring Ambassador
+      link: /reference/configuration
       items:
-        - title: Configuring Ambassador
-          link: /reference/configuration
         - title: Core Configuration
+          link: /reference/modules
           items:
-            - title: Core Configuration
-              link: /reference/modules
             - title: TLS and X-Forwarded-Proto
               link: /reference/core/tls
         - title: Configuring Services
+          link: /reference/mappings
           items:
-            - title: Configuring Services
-              link: /reference/mappings
             - title: Canary Releases
               link: /reference/canary
             - title: Cross Origin Resource Sharing
@@ -102,9 +100,8 @@
             - title: Traffic Shadowing
               link: /reference/shadowing
         - title: Plugins
+          link: /reference/services/services
           items:
-            - title: Plugins
-              link: /reference/services/services
             - title: Authentication
               link: /reference/services/auth-service
             - title: Access Control
@@ -116,9 +113,8 @@
         - title: Advanced configuration topics
           link: /reference/advanced
     - title: Running Ambassador
+      link: /reference/running
       items:
-        - title: Running Ambassador
-          link: /reference/running
         - title: Diagnostics
           link: /reference/diagnostics
         - title: Ambassador with AWS
