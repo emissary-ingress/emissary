@@ -42,7 +42,7 @@ ambassador_id = os.getenv("AMBASSADOR_ID", "default")
 
 logging.basicConfig(
     level=logging.INFO,  # if appDebug else logging.INFO,
-    format="%%(asctime)s kubewatch %s %%(levelname)s: %%(message)s" % __version__,
+    format="%%(asctime)s kubewatch [%%(process)d T%%(threadName)s] %s %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
@@ -73,7 +73,7 @@ def get_filename(svc):
 class Restarter(threading.Thread):
 
     def __init__(self, ambassador_config_dir, namespace, envoy_config_file, delay, pid):
-        threading.Thread.__init__(self, daemon=True)
+        threading.Thread.__init__(self, daemon=True, name="Restarter")
 
         self.ambassador_config_dir = ambassador_config_dir
         self.config_root = os.path.abspath(os.path.dirname(self.ambassador_config_dir))
@@ -155,10 +155,15 @@ class Restarter(threading.Thread):
 
     def run(self):
         while True:
+            logger.debug("Restarter sleeping...")
             # This sleep rate limits the number of restart attempts.
             time.sleep(self.delay)
+
             with self.mutex:
                 changes = self.changes()
+
+                logger.debug("Restarter found %s changes" % changes)
+
                 if changes > 0:
                     logger.debug("Processing %s changes" % changes)
                     try:
@@ -365,30 +370,27 @@ def watch_loop(restarter):
     v1 = kube_v1()
 
     if v1:
-        while True:
-            try:
-                w = watch.Watch()
+        w = watch.Watch()
 
-                if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
-                    watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
-                else:
-                    watched = w.stream(v1.list_service_for_all_namespaces)
+        if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
+            watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
+        else:
+            watched = w.stream(v1.list_service_for_all_namespaces)
 
-                for evt in watched:
-                    logger.debug("Event: %s %s/%s" % 
-                                 (evt["type"], 
-                                  evt["object"].metadata.namespace, evt["object"].metadata.name))
-                    sys.stdout.flush()
+        for evt in watched:
+            logger.debug("Event: %s %s/%s" %
+                         (evt["type"],
+                          evt["object"].metadata.namespace, evt["object"].metadata.name))
+            sys.stdout.flush()
 
-                    if evt["type"] == "DELETED":
-                        restarter.delete(evt["object"])
-                    else:
-                        restarter.update_from_service(evt["object"])
+            if evt["type"] == "DELETED":
+                restarter.delete(evt["object"])
+            else:
+                restarter.update_from_service(evt["object"])
 
-                logger.info("watch loop exited?")
-            except ProtocolError:
-                logger.debug("watch connection has been broken. retry automatically.")
-                continue
+        # If here, something strange happened and the watch loop exited on its own.
+        # Let our caller handle that.
+        logger.info("watch loop exited?")
     else:
         logger.info("No K8s, idling")
 
@@ -423,26 +425,37 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
 
     restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
 
-    if mode == "sync":
-        sync(restarter)
-    elif mode == "watch":
-        restarter.start()
+    try:
+        if mode == "sync":
+            sync(restarter)
+        elif mode == "watch":
+            restarter.start()
 
-        while True:
-            try:
-                # this is in a loop because sometimes the auth expires
-                # or the connection dies
-                logger.debug("starting watch loop")
-                watch_loop(restarter)
-            except KeyboardInterrupt:
-                raise
-            except Exception as e:
-                logger.exception("could not watch for Kubernetes service changes: %s" % e)
-            finally:
-                time.sleep(60)
-    else:
-        raise ValueError(mode)
+            while True:
+                try:
+                    # this is in a loop because sometimes the auth expires
+                    # or the connection dies
+                    logger.debug("starting watch loop")
+                    watch_loop(restarter)
+                except KeyboardInterrupt:
+                    raise
+                except Exception as e:
+                    logger.warning("could not watch for Kubernetes service changes: %s" % e)
 
+                    if 'AMBASSADOR_NO_KUBEWATCH_RETRY' in os.environ:
+                        logger.info("not restarting! AMBASSADOR_NO_KUBEWATCH_RETRY is set")
+                        raise
+                finally:
+                    logger.debug("10-second watch loop delay")
+                    time.sleep(10)
+        else:
+            raise ValueError(mode)
+    except KeyboardInterrupt:
+        logger.warning("exiting due to keyboard interrupt")
+        sys.exit(1)
+    except Exception as e:
+        logger.exception("fatal exception: %s" % e)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
