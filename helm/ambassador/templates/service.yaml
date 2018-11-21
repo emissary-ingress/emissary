@@ -18,19 +18,22 @@ spec:
 {{- end }}
   ports:
     {{- if .Values.service.enableHttp }}
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.service.httpPort }}
       targetPort: http
       protocol: TCP
       name: http
-      {{- with .Values.service.nodePort }}
+      {{- with .Values.service.httpNodePort }}
       nodePort: {{ toYaml . }}
       {{- end }}
     {{- end }}
     {{- if .Values.service.enableHttps }}
-    - port: 443
+    - port: {{ .Values.service.httpsPort }}
       targetPort: https
       protocol: TCP
       name: https
+      {{- with .Values.service.httpsNodePort }}
+      nodePort: {{ toYaml . }}
+      {{- end }}
     {{- end }}
   selector:
     app: {{ template "ambassador.name" . }}
