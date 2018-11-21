@@ -50,7 +50,7 @@ allowed_request_headers:
 allowed_authorization_headers:
 - X-Foo
 
-allow_request_body: true
+allow_request_body: True
 """)
         yield self, self.format("""
 ---

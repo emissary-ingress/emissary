@@ -155,9 +155,9 @@ def v2filter_auth(auth: IRAuth):
                 'config': {
                     'grpc_service': {
                         'envoy_grpc': {
-                            'cluster_name': cluster.name,
-                            'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                        }
+                            'cluster_name': cluster.name
+                        },
+                        'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                     },
                     'send_request_data': auth.allow_request_body
                 }        

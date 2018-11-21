@@ -15,7 +15,7 @@
         "proto": { 
             "oneOf" : [
                 { "enum": [ "http" ] },
-                { "enum": [ "grpc" ] },
+                { "enum": [ "grpc" ] }
             ]
         },
         "allow_request_body": { "type": "boolean" },
