@@ -103,7 +103,7 @@ wait_for_ready() {
     sleep_for_seconds=4
     while true; do
         sleep ${sleep_for_seconds}
-        if getent hosts statsd-sink; then
+        if getent hosts ${host}; then
             echo "$host exists"
             is_ready=0
             break
