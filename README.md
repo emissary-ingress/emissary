@@ -7,7 +7,7 @@ Ambassador v1 works by writing out Envoy v1 JSON configuration files, then trigg
 - Restarts can drop connections (cf Envoy #2776; more on this later).
 - Envoy itself is deprecating the v1 configuration, and will only support v2 in a bit.
 
-To get around these limitations, and generally go for a better experience all 'round, we want to switch to the so-called `xDS` model,  in which Envoy's configuration is supplied by its various "*D*iscovery *S*ervices": e.g. the `CDS` is the Cluster Discovery Service; the `EDS` is the Endpoint Discovery Service. For Ambassador, the Aggregated Discovery Service or `ADS` is the one we want to use -- basically, it brings the other services together under one aegis and lets you just tell Envoy "get everything dynamically." 
+To get around these limitations, and generally go for a better experience all 'round, we want to switch to the so-called `xDS` model,  in which Envoy's configuration is supplied by its various "*D*iscovery *S*ervices": e.g. the `CDS` is the Cluster Discovery Service; the `EDS` is the Endpoint Discovery Service. For Ambassador, the Aggregated Discovery Service or `ADS` is the one we want to use -- basically, it brings the other services together under one aegis and lets you just tell Envoy "get everything dynamically."
 
 However, the whole `ADS` thing is a bit of a pain:
 
@@ -17,7 +17,7 @@ However, the whole `ADS` thing is a bit of a pain:
 
 Rather than do all that logic by hand, we'll use the Envoy `go-control-plane` for the heavy lifting. This is also something of a pain, given that it's not well documented, but here's the deal:
 
-- The root of the world is a `SnapshotCache`: 
+- The root of the world is a `SnapshotCache`:
   - `import github.com/envoyproxy/go-control-plane/pkg/cache`, then refer to `cache.SnapshotCache`.
   - A collection of internally consistent configuration objects is a `Snapshot` (`cache.Snapshot`).
   - `Snapshot`s are collected in the `SnapshotCache`.
@@ -31,82 +31,127 @@ Rather than do all that logic by hand, we'll use the Envoy `go-control-plane` fo
 - Once the `Server` is running, Envoy can open a gRPC stream to it.
   - On connection, Envoy will get handed the most recent `Snapshot` that the `Server`'s `SnapshotCache` knows about.
   - Whenever a newer `Snapshot` is added to the `SnapshotCache`, that `Snapshot` will get sent to the Envoy.
-- We manage the `SnapshotCache` using our `configurator` object, which knows how to listen to `stdin` and HTTP requests to change objects and post new Snapshots.
-  - Obviously this piece has to be rewritten for the real world.
+- We manage the `SnapshotCache` by loading envoy configuration files from json or protobuf files on disk.
+  - By default when we get a SIGHUP we reload the configuration.
+  - When passed the -watch argument we reload whenever any file in the directory changes.
 
 Running Ambex
 =============
 
-Run `make` to build everything. Then in one window
+You'll need the Go toolchain and [Glide](https://glide.sh/).
+
+Linux
+-----
+
+Run `make` to build the ambex binary. Then in one window run
 
 ```shell
-docker run -it --rm --name ambex-shell \
-       -p8000:8000 -p9000:9000 -v $(pwd)/mountpoint:/application \
-       datawire/ambassador-envoy-alpine-stripped:v1.5.0-232-g6557e9ea7 \
-       /bin/sh
+./ambex example
 ```
 
-to start a shell running in a Docker container.
-
-In that shell:
+or
 
 ```shell
-cd /application
-./ambex -debug
+./ambex -watch example
 ```
 
-and you'll have the Ambex server running.
+to start the ADS server.
 
-In another window, 
+And in another window run
 
 ```shell
-docker exec -it ambex-shell /bin/sh
+make run
 ```
 
-to get another shell running in the Docker container. In that shell, start Envoy:
+to launch envoy with a bootstrap configuration that points to the locally running ambex.
+This uses Docker `--net=host` networking, which does not work on MacOS or Windows.
+
+Everything in Docker
+--------------------
+
+You can run everything in Docker. This works on MacOS too. In the first shell run Envoy:
 
 ```shell
-cd /application
-./envoy-stripped-binary -l debug -c bootstrap-ads.yaml
+make run_envoy
 ```
 
-and you should see Ambex and Envoy working out Envoy configuration.
-
-Back at the host, you can test this by starting two QoTM services, in two other windows, from the main Ambex directory (you'll need Python 3 and Flask for this). One should be
+In a second shell run Ambex:
 
 ```shell
-python qotm.py 5000 v-one
+make run_ambex
 ```
 
-and the other
+Note that the `run_ambex` recipe assumes that `make run_envoy` has already been executed.
+It uses `docker exec` to launch Ambex in the same container.
+
+Try it out
+----------
+
+You should now be able to run some curls in (yet) another shell:
 
 ```shell
-python qotm.py 6000 v-two
+$ curl localhost:8080/hello
+Hello ADS!!!
+
+$ curl localhost:8080/get
+{
+  "args": {}, 
+  "headers": {
+    "Accept": "*/*", 
+    "Connection": "close", 
+    "Host": "httpbin.org", 
+    "User-Agent": "curl/7.54.0", 
+    "X-Envoy-Expected-Rq-Timeout-Ms": "15000"
+  }, 
+  "origin": "72.74.69.156", 
+  "url": "http://httpbin.org/get"
+}
 ```
 
-Then you can test from yet another host window:
+Edit and/or add more files to the example directory in order to play
+with more configurations and see them reload _instantaneously_.
+
+Note that instantaneous reloads require the `-watch` flag; otherwise
+you can force a reload by signaling the process
+(`killall -HUP ambex`).
+
+If you're running everything in Docker, you will need to edit/add files
+in `/application/example` in the container. You can do this directly in the container:
 
 ```shell
-curl http://localhost:8000/qotm/
+$ curl localhost:8080/hello
+Hello ADS!!!
+
+$ docker exec -it ambex-envoy sed -i "s/ADS/ADS World/" /application/example/listener.json
+
+$ curl localhost:8080/hello
+Hello ADS World!!!
 ```
 
-which should always return `v-one` as the hostname for now.
-
-After that, fire up the full-on test script:
+For more serious in-container editing, you may want to start with something like this:
 
 ```shell
-python loop.py http://127.0.0.1:8000/qotm/
+$ docker exec -it ambex-envoy bash
+root@04d063adb905:/application# apt-get -qq update
+root@04d063adb905:/application# apt-get -qq install vim > /dev/null
+root@04d063adb905:/application# vim example/listener.json
+...
 ```
 
-and then start up the evil swapping loop:
+You can also edit on the host machine and then copy:
 
 ```shell
-while true; do
-    curl -v 'http://localhost:9000/mapping?name=qotm-mapping&prefix=%2Fqotm%2F&cluster=qotm-2&update=true'
-    sleep 1
-    curl -v 'http://localhost:9000/mapping?name=qotm-mapping&prefix=%2Fqotm%2F&cluster=qotm-1&update=true'
-    sleep 1
-done
+$ curl localhost:8080/hello
+Hello ADS World!!!
+
+$ docker cp example ambex-envoy:/application/
+
+$ curl localhost:8080/hello
+Hello ADS!!!
 ```
 
-You should see the test script swapping between "1"s and "2"s in its output, but it should happily keep running. (You may see it hang without crashing -- this seems to be a flakiness in the Docker setup we're using, rather than something horrible. It's much less likely if you run Envoy without any `-l` argument.)
+Clean up
+--------
+
+Kill Ambex and Envoy with `Ctrl-C`.
+Use `make clean` to clean up the filesystem and Docker images.

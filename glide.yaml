@@ -1,22 +1,22 @@
 package: .
-flatten: true
 import:
+- package: github.com/envoyproxy/go-control-plane
+  version: ~0.5.0
+  subpackages:
+  - envoy/api/v2
+  - envoy/api/v2/core
+  - envoy/service/discovery/v2
+  - pkg/cache
+  - pkg/server
+- package: github.com/fsnotify/fsnotify
+  version: ~1.4.7
 - package: github.com/gogo/protobuf
+  version: ~1.1.1
   subpackages:
-  - protoc-gen-gogofast
-- package: golang.org/x/net
-  subpackages:
-  - context
-- package: google.golang.org/genproto
-  subpackages:
-  - googleapis
-  - opencensus
-- package: google.golang.org/grpc
-  version: ^1.7.2
-- package: github.com/lyft/protoc-gen-validate
-- package: istio.io/gogo-genproto
-- package: github.com/gogo/googleapis
-- package: github.com/envoyproxy/data-plane-api
-  version: 47e11810c1af88fdd3cb5fe1aeee139cc67497e0
+  - jsonpb
+  - proto
+  - types
 - package: github.com/sirupsen/logrus
-  version: ^1.0.4
+  version: ~1.0.6
+- package: google.golang.org/grpc
+  version: ~1.14.0
