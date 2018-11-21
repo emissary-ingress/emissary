@@ -60,6 +60,10 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: 
 
+volumes: {}
+
+volumeMounts: {}
+
 resources: {}
   # If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
