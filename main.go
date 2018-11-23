@@ -78,6 +78,9 @@ var (
 	debug   bool
 	adsPort uint
 	watch   bool
+
+	// Version is inserted at build using --ldflags -X
+	Version = "-no-version-"
 )
 
 func init() {
@@ -338,6 +341,8 @@ func main() {
 	if debug {
 		log.SetLevel(log.DebugLevel)
 	}
+
+	log.Infof("Ambex %s starting...", Version)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {

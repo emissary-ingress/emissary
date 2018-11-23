@@ -6,6 +6,8 @@
 GOPATH=$(PWD)/build
 GO=GOPATH=$(GOPATH) go
 
+VERSION=$(shell git describe --tags --always)
+
 all: ambex
 
 format:
@@ -20,8 +22,13 @@ build: vendor
 	ln -s ../vendor build/src
 	ln -s ../main.go vendor/main.go
 
+# ldflags "-s -w" strips binary
+# ldflags -X injects version into binary
+# See `go tool link --help` for more info
 ambex: main.go build vendor
-	$(GO) build -o ambex build/src/main.go
+	$(GO) build \
+		--ldflags "-X main.Version=${VERSION}" \
+		-o ambex build/src/main.go
 
 clean:
 	rm -rf ambex ambex_for_image build vendor/main.go
@@ -33,7 +40,10 @@ clobber: clean
 ENVOY_IMAGE=envoyproxy/envoy:28d5f4118d60f828b1453cd8ad25033f2c8e38ab
 
 ambex_for_image: main.go build vendor
-	GOOS=linux $(GO) build -o ambex_for_image build/src/main.go
+	CGO_ENABLED=0 GOOS=linux $(GO) build \
+		--ldflags "-s -w \
+		-X main.Version=${VERSION}" \
+		-o ambex_for_image build/src/main.go
 
 image: ambex_for_image bootstrap-ads.yaml example
 	docker build --build-arg ENVOY_IMAGE=$(ENVOY_IMAGE) . -t bootstrap_image
