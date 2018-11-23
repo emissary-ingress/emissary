@@ -42,8 +42,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"net"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -71,13 +71,13 @@ import (
 )
 
 const (
-	localhost  = "127.0.0.1"
+	localhost = "127.0.0.1"
 )
 
 var (
-	debug    bool
-	adsPort  uint
-	watch    bool
+	debug   bool
+	adsPort uint
+	watch   bool
 )
 
 func init() {
@@ -145,9 +145,9 @@ func runManagementServer(ctx context.Context, server server.Server, port uint) {
 }
 
 // Decoders for unmarshalling our config
-var decoders = map[string](func(string, proto.Message) error) {
+var decoders = map[string](func(string, proto.Message) error){
 	".json": jsonpb.UnmarshalString,
-	".pb": proto.UnmarshalText,
+	".pb":   proto.UnmarshalText,
 }
 
 func isDecodable(name string) bool {
@@ -170,30 +170,42 @@ type Validatable interface {
 func decode(name string) (proto.Message, error) {
 	any := &types.Any{}
 	contents, err := ioutil.ReadFile(name)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	ext := filepath.Ext(name)
 	decoder := decoders[ext]
 	err = decoder(string(contents), any)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	var m types.DynamicAny
 	err = types.UnmarshalAny(any, &m)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
 	var v = m.Message.(Validatable)
 
 	err = v.Validate()
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	log.Infof("Loaded file %s", name)
 	return v, nil
 }
 
 func Merge(to, from proto.Message) {
-       str, err := (&jsonpb.Marshaler{}).MarshalToString(from)
-       if err != nil { panic(err) }
-       err = jsonpb.UnmarshalString(str, to)
-       if err != nil { panic(err) }
+	str, err := (&jsonpb.Marshaler{}).MarshalToString(from)
+	if err != nil {
+		panic(err)
+	}
+	err = jsonpb.UnmarshalString(str, to)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Clone(src proto.Message) proto.Message {
@@ -208,9 +220,9 @@ func Clone(src proto.Message) proto.Message {
 }
 
 func update(config cache.SnapshotCache, generation *int, dirs []string) {
-	clusters := []cache.Resource{} // v2.Cluster
+	clusters := []cache.Resource{}  // v2.Cluster
 	endpoints := []cache.Resource{} // v2.ClusterLoadAssignment
-	routes := []cache.Resource{} // v2.RouteConfiguration
+	routes := []cache.Resource{}    // v2.RouteConfiguration
 	listeners := []cache.Resource{} // v2.Listener
 
 	var filenames []string
@@ -291,10 +303,9 @@ func warn(err error) bool {
 }
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
-func (l logger ) OnStreamOpen(sid int64, stype string) {
+func (l logger) OnStreamOpen(sid int64, stype string) {
 	l.Infof("Stream open[%v]: %v", sid, stype)
 }
-
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
 func (l logger) OnStreamClosed(sid int64) {
@@ -321,7 +332,6 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 	l.Infof("Fetch response: %v -> %v", req, res)
 }
 
-
 func main() {
 	flag.Parse()
 
@@ -330,7 +340,9 @@ func main() {
 	}
 
 	watcher, err := fsnotify.NewWatcher()
-	if err != nil { log.WithError(err).Fatal() }
+	if err != nil {
+		log.WithError(err).Fatal()
+	}
 	defer watcher.Close()
 
 	dirs := flag.Args()
@@ -365,19 +377,20 @@ func main() {
 	generation := 0
 	update(config, &generation, dirs)
 
-	OUTER: for {
+OUTER:
+	for {
 
 		select {
-		case sig := <- ch:
+		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
 				update(config, &generation, dirs)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
-		case <- watcher.Events:
+		case <-watcher.Events:
 			update(config, &generation, dirs)
-		case err := <- watcher.Errors:
+		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
 		}
 

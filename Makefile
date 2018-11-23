@@ -8,6 +8,10 @@ GO=GOPATH=$(GOPATH) go
 
 all: ambex
 
+format:
+	gofmt -w -s main.go
+.PHONY: format
+
 vendor:
 	glide install
 
