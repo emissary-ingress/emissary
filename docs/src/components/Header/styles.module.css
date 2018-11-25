@@ -1,0 +1,418 @@
+.Header {
+    background: white;
+    width: 100%;
+    z-index: 98;
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+}
+@media (min-width: 920px) {
+    .Header {
+        height: 62px;
+        border-bottom: 1px solid rgb(237, 231, 243);
+    }
+}
+
+.Container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    -webkit-box-align: center;
+    align-items: center;
+    margin: 0 auto;
+    flex-direction: column;
+}
+
+@media (min-width: 1050px) {
+    .Container {
+        flex-direction: row;
+        padding-left: 1.05rem;
+        padding-right: 1.05rem;
+        justify-content: flex-start;
+    }
+}
+
+.MobileTop {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    height: 62px;
+    padding: 20px;
+    align-items: center;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid rgb(237, 231, 243);
+}
+@media (min-width: 1050px) {
+    .MobileTop {
+        padding: 0;
+        width: auto;
+        flex-direction: column;
+        justify-content: center;
+        border: none;
+        background: transparent;
+    }
+}
+
+.LogoLink {
+    display: flex;
+    margin-right: 0.7rem;
+    -webkit-box-align: center;
+    align-items: center;
+    text-decoration: none;
+    width: 32px;
+    overflow: hidden;
+}
+
+@media (min-width: 1049px) {
+    .LogoLink {
+        width: auto;
+    }
+}
+
+.LogoImage {
+    height: 32px;
+    max-width: unset;
+}
+
+@media (min-width: 1049px) {
+    .LogoImage {
+        max-width: 100%;
+    }
+
+}
+
+.Burger {
+    border: none;
+    background: transparent;
+    color: #222;
+    width: 20px;
+    height: 16px;
+    position: relative;
+    -webkit-transform: rotate(0);
+    transform: rotate(0);
+    transition: .5s ease-in-out;
+    cursor: pointer;
+    display: block;
+    outline: none;
+}
+
+@media (min-width: 1049px) {
+    .Burger {
+        display: none;
+    }
+}
+
+.Burger span {
+    display: block;
+    position: absolute;
+    height: 2px;
+    width: 100%;
+    background: #000;
+    border-radius: 9px;
+    opacity: 1;
+    left: 0;
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+    transition: .25s ease-in-out;
+}
+
+.Burger span:nth-child(1) {
+    top: 0;
+}
+
+.Burger span:nth-child(2), .Burger span:nth-child(3) {
+    top: 6px;
+}
+
+.Burger span:nth-child(4) {
+    top: 12px;
+}
+
+.Burger.open span:nth-child(1), .Burger.open span:nth-child(4) {
+    top: 16px;
+    width: 0;
+    left: 50%;
+}
+
+.Burger.open span:nth-child(2) {
+    -webkit-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.Burger.open span:nth-child(3) {
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}
+
+.MobileNav {
+    transition: all .5s ease;
+}
+
+@media (max-width: 1049px) {
+    .MobileNav {
+        z-index: 10;
+        transform: translateY(-100%);
+        width: 100%;
+        position: fixed;
+        top: 0;
+        background: white;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.04);
+        border-bottom: 1px solid rgb(237, 231, 243);
+    }
+
+    .MobileNav.open {
+        transform: translateY(62px);
+    }
+}
+
+@media (min-width: 1050px) {
+    .MobileNav {
+        display: flex;
+        justify-content: space-between;
+        flex: 1;
+    }
+}
+
+.NavContainer {
+    display: flex;
+    overflow-x: auto;
+    align-self: flex-end;
+    flex-grow: 1;
+    margin: 0 0 0 5px;
+    list-style: none;
+    flex-direction: column;
+}
+@media (min-width: 1050px) {
+    .NavContainer {
+        height: 62px;
+        flex-direction: row;
+    }
+}
+
+.NavLink {
+    padding: 0 10px;
+    margin: 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    height: 50px;
+    line-height: 50px;
+    color: inherit;
+    display: block;
+    position: relative;
+    text-transform: uppercase;
+    top: 0;
+    z-index: 1;
+    border-bottom: 0.125rem solid transparent;
+    text-decoration: none;
+    transition: color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
+    border-bottom: 1px solid rgb(237, 231, 243);
+}
+
+@media (min-width: 1050px) {
+    .NavLink {
+        border: none;
+        height: 62px;
+        line-height: 62px;
+    }
+}
+
+.NavLink:hover {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+@media (min-width: 1050px) {
+    .NavLink:hover {
+        border-bottom: 2px solid #F9634E;
+    }
+}
+
+@media (min-width: 1050px) and (max-width: 1298px) {
+    .NavLink {
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0 3px;
+        padding: 0 6px;
+    }
+}
+
+@media (min-width: 1050px) {
+    .NavLink {
+        font-size: 16px;
+        font-weight: bold;
+    }
+}
+
+.NavLinkActive {
+    color: #F9634E;
+}
+
+@media (min-width: 1050px) {
+    .NavLinkActive {
+        border-bottom: 2px solid #F9634E;
+    }
+}
+
+.RightNav {
+    display: flex;
+    flex-direction: column;
+    margin-left: 5px;
+}
+@media (min-width: 1050px) {
+    .RightNav {
+        flex-direction: row;
+        margin: 0;
+    }
+}
+
+.DatawireLink {
+    height: 62px;
+    display: flex;
+    align-items: center;
+}
+
+.DatawireLink > img {
+    height: 25px;
+}
+
+@media (max-width: 1049px) {
+    .DatawireLink {
+        width: 100%;
+        padding: 20px 25px 18px;
+        display: block;
+    }
+}
+
+.Dropdown {
+    position: relative;
+    font-size: 15px;
+    display: flex;
+}
+
+@media (min-width: 1050px) {
+    .Dropdown {
+        margin-right: 40px;
+    }
+}
+
+.DropdownButton {
+    color: #222222;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    padding: 0;
+    font-size: 16px;
+    font-weight: bold;
+    display: none;
+    height: 60px;
+    background: transparent;
+    outline: none;
+}
+
+@media screen and (min-width: 1050px) {
+    .DropdownButton {
+        display: block;
+    }
+}
+
+@media (min-width: 1050px) and (max-width: 1235px) {
+    .Dropdown {
+        margin-right: 20px;
+    }
+    .DropdownButton {
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0 3px;
+        padding: 0 6px;
+    }
+}
+
+.DropdownContent {
+    width: 100%;
+}
+
+@media screen and (min-width: 1050px) {
+    .DropdownContent {
+        display: none;
+        width: auto;
+        position: absolute;
+        right: -10px;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        z-index: 1;
+        border: 1px solid rgb(237, 231, 243);;
+        top: 56px;
+        border-radius: 3px;
+    }
+}
+
+.DropdownContent a {
+    color: black;
+    padding: 12px 16px;
+    line-height: 25px;
+    text-decoration: none;
+    display: block;
+    font-weight: normal;
+    font-size: 1em;
+}
+.DropdownContent a:hover {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+@media screen and (max-width: 1050px) {
+    .DropdownContent a {
+        display: block;
+        padding: 0 10px;
+        margin: 0 10px;
+        font-size: 14px;
+        font-weight: 600;
+        height: 50px;
+        line-height: 50px;
+        position: relative;
+        text-transform: uppercase;
+        transition: color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
+        border-bottom: 1px solid rgb(237, 231, 243);
+    }
+}
+
+.Dropdown:hover .DropdownContent {
+    display: block;
+}
+
+.Docsearch {
+    display: none;
+    height: 62px;
+    padding: 10px 20px;
+}
+
+.Docsearch input, .DocsearchMobile input {
+    width: 100%;
+    background: #fafafa;
+    border: 1px solid rgb(237, 231, 243);
+    border-radius: 3px;
+    outline: none;
+    padding: 10px;
+}
+.Docsearch input {
+    min-width: 250px;
+}
+.DocsearchMobile {
+    display: flex;
+    flex: 1;
+    margin: 0 20px 0 10px;
+}
+.DocsearchMobile > span {
+    width: 100%;
+}
+@media screen and (min-width: 1050px) {
+    .DocsearchMobile {
+        display: none;
+    }
+    .Docsearch {
+        display: flex;
+    }
+}
