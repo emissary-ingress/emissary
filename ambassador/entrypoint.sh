@@ -18,8 +18,8 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 AMBASSADOR_ROOT="/ambassador"
-CONFIG_DIR="${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/ambassador-config"
-ENVOY_CONFIG_FILE="${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy.json"
+CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/ambassador-config"
+ENVOY_CONFIG_FILE="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy.json"
 
 if [ "$1" == "--demo" ]; then
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
@@ -60,7 +60,7 @@ diediedie() {
     fi
 
     echo "Here's the envoy.json we were trying to run with:"
-    LATEST="$(ls -v ${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy*.json | tail -1)"
+    LATEST="$(ls -v ${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy*.json | tail -1)"
     if [ -e "$LATEST" ]; then
         cat "$LATEST"
     else
