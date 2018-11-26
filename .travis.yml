@@ -11,7 +11,7 @@ addons:
     - glide
 
 install:
-- glide install
+- make vendor
 
 script:
 - make ambex image
