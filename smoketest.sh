@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-make image
 docker run --init -p8080:8080 --rm -d --name ambex-envoy bootstrap_image
 docker exec -d -w /application ambex-envoy ./ambex -watch example
 

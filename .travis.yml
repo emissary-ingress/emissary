@@ -14,7 +14,7 @@ install:
 - glide install
 
 script:
-- make image
+- make ambex image
 - "./smoketest.sh"
 
 before_deploy:
