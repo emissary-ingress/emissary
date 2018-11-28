@@ -1,5 +1,10 @@
-go
+.go-workspace
 *.knaut
 *.knaut.claim
 env.*.mk
 k8s.*
+!k8s.mk
+/kubeapply
+/teleproxy
+/rlcheck
+/image

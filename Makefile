@@ -1,75 +1,73 @@
 NAME=ambassador-ratelimit
 PROFILE ?= dev
 
-include bootstrap.mk
+pkg = github.com/datawire/ambassador-ratelimit
+bins = rlcheck
 
-.PHONY: compile
-compile: $(RATELIMIT_REPO)/vendor $(BIN)
-	cd ${RATELIMIT_REPO}/src/service_cmd && go build -o $(RATELIMIT) ./
-	cd ${RATELIMIT_REPO}/src/client_cmd && go build -o $(RATELIMIT_CLIENT) ./
-	cd ${RATELIMIT_REPO}/src/config_check_cmd && go build -o $(RATELIMIT_CONFIG_CHECK) ./
+include build-aux/go.mk
+include build-aux/kubernaut.mk
+include build-aux/proxy.mk
+
+CLUSTER=rl-cluster.knaut
+export KUBECONFIG=${PWD}/$(CLUSTER)
+include build-aux/k8s.mk
+
+export GOPATH
+export GOBIN
+export PATH:=$(GOBIN):$(PATH)
+
+RATELIMIT_REPO=$(GOPATH)/src/github.com/lyft/ratelimit
+RATELIMIT_VERSION=v1.3.0
+
+PATCH=$(CURDIR)/ratelimit.patch
+
+$(RATELIMIT_REPO):
+	mkdir -p $(RATELIMIT_REPO) && git clone https://github.com/lyft/ratelimit $(RATELIMIT_REPO)
+	cd $(RATELIMIT_REPO) && git checkout -q $(RATELIMIT_VERSION)
+	cd $(RATELIMIT_REPO) && git apply $(PATCH)
+
+$(RATELIMIT_REPO)/vendor: $(RATELIMIT_REPO)
+	cd $(RATELIMIT_REPO) && glide install
+
+lyft-build: $(RATELIMIT_REPO)/vendor $(BIN)
+	$(GO) install github.com/lyft/ratelimit/src/service_cmd && mv service_cmd ratelimit
+	$(GO) install github.com/lyft/ratelimit/src/client_cmd && mv client_cmd ratelimit_client
+.PHONY: lyft-build
+
+lyft-build-image: $(RATELIMIT_REPO)/vendor $(BIN)
+	$(IMAGE_GO) install github.com/lyft/ratelimit/src/service_cmd && mv image/service_cmd image/ratelimit
+	$(IMAGE_GO) install github.com/lyft/ratelimit/src/client_cmd && mv image/client_cmd image/ratelimit_client
+.PHONY: lyft-build-image
+
+docker: env build-image lyft-build-image
+	docker build . -t $(IMAGE)
 
 # This is for managing minor diffs to upstream code. If we need
 # anything more than minor diffs this probably won't work so well. We
 # really don't want to have more than minor diffs though without a
 # good reason.
-.PHONY: diff
 diff:
 	cd ${RATELIMIT_REPO} && git diff > $(PATCH)
+.PHONY: diff
 
-CLUSTER=rl-cluster.knaut
-KUBEWAIT=$(BIN)/kubewait
-TELEPROXY=$(BIN)/teleproxy
-
-$(KUBEWAIT):
-	go get github.com/datawire/teleproxy/cmd/kubewait
-
-$(TELEPROXY):
-	go get github.com/datawire/teleproxy/cmd/teleproxy
-	sudo chown root $(TELEPROXY)
-	sudo chmod u+s $(TELEPROXY)
-
-export KUBECONFIG=${PWD}/$(CLUSTER)
-
-include kubernaut.mk
-include k8s.mk
-
-.PHONY: claim
-claim: $(CLUSTER).clean $(CLUSTER)
-
-.PHONY: shell
-shell: $(CLUSTER) $(TELEPROXY)
+shell:
 	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " PATH=$(PATH):$(BIN) bash
+.PHONY: shell
 
-KUBE_URL=https://kubernetes/api/
+claim: $(CLUSTER).clean $(CLUSTER)
+.PHONY: claim
 
-.PHONY: proxy
-proxy:
-	curl -s teleproxy/api/shutdown || true
-	@sleep 1
-	$(TELEPROXY) > /tmp/teleproxy.log 2>&1 &
-	@for i in 1 2 4 8 x; do \
-		if [ "$$i" == "x" ]; then echo "ERROR: proxy did not come up"; exit 1; fi; \
-		echo "Checking proxy: $(KUBE_URL)"; \
-		if curl -sk $(KUBE_URL); then \
-			echo -e "\n\nProxy UP!"; \
-			break; \
-		fi; \
-		echo "Waiting $$i seconds..."; \
-		sleep $$i; \
-	done
-
-.PHONY: clean
 clean: $(CLUSTER).clean k8s.clean
-	rm -rf $(BIN)
+	rm -rf ratelimit ratelimit_client image
+.PHONY: clean
 
+clobber: clean proxy.clobber k8s.clobber
+	rm -rf $(RATELIMIT_REPO)
 .PHONY: clobber
-clobber: clean
-	rm -rf go
 
-.PHONY: run
 run:
 	USE_STATSD=false \
 	REDIS_SOCKET_TYPE=tcp \
 	REDIS_URL=ratelimit-redis:6379 \
 	RUNTIME_ROOT=${PWD}/config RUNTIME_SUBDIRECTORY=. $(RATELIMIT)
+.PHONY: run

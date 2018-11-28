@@ -1,0 +1,12 @@
+apiVersion: getambassador.io/v1beta1
+kind: RateLimit
+metadata:
+  name: rlfoo
+spec:
+  domain: blah
+  limits:
+   - pattern:
+      - foo: bar
+      - baz: "*"
+   - rate: 5
+   - unit: day
