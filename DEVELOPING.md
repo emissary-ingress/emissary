@@ -27,12 +27,11 @@ To get started:
 
 To query the ratelimit service in the cluster:
 
-1. Type `make compile` in order to build the ratelimit binaries. If
+1. Type `make lyft-build` in order to build the ratelimit binaries. If
    you are in a dev shell, these binaries will be in your path:
 
    - ratelimit: the ratelimit service itself
    - ratelimit_client: a client for querying the ratelimit service
-   - ratelimit_config_check
 
 2. Run: `ratelimit_client -dial_string ratelimit:81 -domain mongo_cps -descriptors database=default`
 
