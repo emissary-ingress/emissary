@@ -8,3 +8,4 @@ k8s.*
 /teleproxy
 /rlcheck
 /image
+build-aux/pushed.txt

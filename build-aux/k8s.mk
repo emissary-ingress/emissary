@@ -1,7 +1,7 @@
 
 build-aux/env.$(PROFILE).mk: build-aux/env.go config.json
 	PROFILE=$(PROFILE) go run build-aux/env.go -input config.json -output $@
-.PHONY: env.$(PROFILE).mk
+.PHONY: build-aux/env.$(PROFILE).mk
 
 env: build-aux/env.$(PROFILE).mk
 	$(eval $(file <build-aux/env.$(PROFILE).mk))
@@ -21,7 +21,7 @@ export IMAGE
 
 $(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env
 	@echo "Generating $< -> $@"
-	@mkdir -p $(MANIFESTS_DIR) && cat $< | envsubst > $@
+	mkdir -p $(MANIFESTS_DIR) && cat $< | IMAGE=$(file <build-aux/pushed.txt) envsubst> $@
 
 push_ok: env
 	@if [ "$(PROFILE)" == "prod" ]; then echo "CANNOT PUSH TO PROD"; exit 1; fi
@@ -29,6 +29,7 @@ push_ok: env
 
 push: push_ok docker
 	docker push $(IMAGE)
+	echo $(IMAGE) > build-aux/pushed.txt
 .PHONY: push
 
 manifests: $(MANIFESTS)
