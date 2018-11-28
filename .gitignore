@@ -2,3 +2,6 @@
 .vscode/
 k8s_build/
 env.sh
+
+# --- IntelliJ IDEA ---
+.idea
