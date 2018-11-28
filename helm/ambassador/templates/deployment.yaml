@@ -34,7 +34,7 @@ spec:
             path: mapping-config.yaml
       {{- with .Values.volumes }}
 {{ toYaml . | indent 6 }}
-      {{- end -}}
+      {{- end }}
       containers:
         - name: statsd-sink
           image: "{{ .Values.exporter.image }}"
@@ -102,7 +102,7 @@ spec:
           {{- with .Values.volumeMounts }}
           volumeMounts:
 {{ toYaml . | indent 10 }}
-          {{- end -}}
+          {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- with .Values.nodeSelector }}
