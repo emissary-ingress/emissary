@@ -25,13 +25,7 @@ Note: In Envoy, labels are referred to as descriptors.
 
 ## Domains
 
-As your organization grows, different groups within your organization may have different rate limit requirements. For example:
-
-* A service owner may want to manage load shedding characteristics, and insuring specific types of requests take precedence over other types of requests
-* An operations engineer may want to insure service availability overall when request volume is high, and limit the total number of requests being passed to upstream services
-* A security engineer may want to protect against denial-of-service attacks from a bad actor
-
-In this scenario, each engineer will need to _independently_ monitor and manage the rate limits. In Ambassador, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
+In Ambassador, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
 
 ## External Rate Limit Service
 
