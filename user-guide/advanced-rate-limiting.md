@@ -6,6 +6,16 @@ Ambassador Pro integrates a flexible, high performance Rate Limit Service (RLS).
 * Insuring fairness between different clients, insuring that a single client doesn't consume a disproportionate amount of resources (user requests limiter)
 * Insuring that high priority traffic is serviced before lower priority requests (load shedder)
 
+## Domains
+
+As your organization grows, different groups within your organization may have different rate limit requirements. For example:
+
+* A service owner may want to manage load shedding characteristics, and insuring specific types of requests take precedence over other types of requests
+* An operations engineer may want to insure service availability overall when request volume is high, and limit the total number of requests being passed to upstream services
+* A security engineer may want to protect against denial-of-service attacks from a bad actor
+
+In this scenario, each engineer will need to _independently_ monitor and manage the rate limits. In Ambassador, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
+
 ## Request labels
 
 In Ambassador Pro, each request can have multiple *labels*. Labels are arbitrary key/value pairs that contain any metadata about a given request, e.g., its IP, a hard-coded value, the path of the request, and so forth. The Rate Limit Service processes these labels and enforces any limits that are set on a label.
