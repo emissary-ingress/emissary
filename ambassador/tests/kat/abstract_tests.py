@@ -116,6 +116,7 @@ class AmbassadorTest(Test):
 
     _index: Optional[int] = None
     _ambassador_id: Optional[str] = None
+    env = []
     name: Name
     path: Name
 
@@ -123,7 +124,7 @@ class AmbassadorTest(Test):
         if DEV:
             return self.format(AMBASSADOR_LOCAL)
         else:
-            return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"])
+            return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs="")
 
     # Will tear this out of the harness shortly
     @property
@@ -190,15 +191,22 @@ class AmbassadorTest(Test):
             with open(os.path.join(secret_dir, k), "wb") as f:
                 f.write(base64.decodebytes(bytes(v, "utf8")))
         print("Launching %s container." % self.path.k8s)
-        result = run("docker", "run", "-d", "--name", self.path.k8s,
-                     "-p", "%s:8877" % (8877 + self.index),
-                     "-p", "%s:80" % (8080 + self.index),
-                     "-p", "%s:443" % (8443 + self.index),
-                     "-v", "%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir,
-                     "-e", "KUBERNETES_SERVICE_HOST=kubernetes",
-                     "-e", "KUBERNETES_SERVICE_PORT=443",
-                     "-e", "AMBASSADOR_ID=%s" % self.ambassador_id,
-                     image)
+        command = ["docker", "run", "-d", "--name", self.path.k8s]
+
+        envs = ["KUBERNETES_SERVICE_HOST=kubernetes", "KUBERNETES_SERVICE_PORT=443",
+                "AMBASSADOR_ID=%s" % self.ambassador_id]
+        envs.extend(self.env)
+        [command.extend(["-e", env]) for env in envs]
+
+        ports = ["%s:8877" % (8877 + self.index), "%s:80" % (8080 + self.index), "%s:443" % (8443 + self.index)]
+        [command.extend(["-p", port]) for port in ports]
+
+        volumes = ["%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir]
+        [command.extend(["-v", volume]) for volume in volumes]
+
+        command.append(image)
+
+        result = run(*command)
         result.check_returncode()
 
     def queries(self):

@@ -208,7 +208,7 @@ class ResourceFetcher:
                               (self.filepath, self.ocount, kind))
             return
 
-        if self.filename:
+        if self.filename and (not self.filename.endswith(":annotation")):
             self.filename += ":annotation"
 
         self.load_yaml(annotations, rkey=resource_identifier)

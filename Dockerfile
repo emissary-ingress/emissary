@@ -27,7 +27,8 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # NOTE: If you don't know what you're doing, it's probably a mistake to
 # blindly hack up this file.
 
-RUN apk --no-cache add curl python3 socat
+RUN apk --no-cache add curl python3 build-base libffi-dev openssl-dev python3-dev
+RUN pip3 install -U pip
 
 # Set WORKDIR to /ambassador which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a
@@ -46,6 +47,9 @@ COPY multi/ multi
 COPY ambassador/ ambassador
 RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
+
+# Clean up no-longer-needed dev stuff.
+RUN apk del build-base libffi-dev openssl-dev python3-dev
 
 # MKDIR an empty /ambassador/ambassador-config. You can dump a
 # configmap over this with no trouble, or you can let

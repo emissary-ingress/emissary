@@ -99,6 +99,7 @@ class IRAmbassador (IRResource):
 
                 if isinstance(ctx, dict):
                     ctxloc = ir.tls_module.get('location', self.location)
+
                     etls = IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
                                       location=ctxloc, **ctx)
 
@@ -112,6 +113,14 @@ class IRAmbassador (IRResource):
                     if etls.get('valid_tls'):
                         self.logger.debug("TLS termination enabled!")
                         self.service_port = 443
+
+        # We also have to check TLSContext resources.
+
+        for ctx in ir.tls_contexts:
+            if ctx.get('hosts', None):
+                # This is a termination context
+                self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
+                self.service_port = 443
 
         ctx = ir.get_envoy_tls_context('client')
 

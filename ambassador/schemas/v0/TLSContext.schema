@@ -15,7 +15,9 @@
         },
 
         "hosts": { "type": "array", "items": { "type": "string" } },
-        "secret": { "type": "string" }
+        "secret": { "type": "string" },
+        "alpn_protocols": { "type": "string" },
+        "certificate_required": { "type": "boolean" }
     },
     "required": [ "apiVersion", "kind", "name", "hosts" ],
     "additionalProperties": false

@@ -68,6 +68,7 @@ class IR:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
+        self.statsd = aconf.statsd
 
         self.logger = logging.getLogger("ambassador.ir")
         self.tls_secret_resolver = tls_secret_resolver
@@ -117,8 +118,11 @@ class IR:
         if os.path.isfile(TLSPaths.client_mount_crt.value):
             self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
-        # OK! Start by wrangling TLS-context stuff.
+        # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)
+
+        # ...and from any TLSContext resources.
+        self.save_tls_contexts(aconf)
 
         # Next, handle the "Ambassador" module.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
@@ -130,9 +134,6 @@ class IR:
         # Save tracing and ratelimit settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
         self.ratelimit = typecast(IRRateLimit, self.save_resource(IRRateLimit(self, aconf)))
-
-        # Save TLSContext resource settings.
-        self.save_tls_contexts(aconf)
 
         # After the Ambassador and TLS modules are done, we need to set up the
         # filter chains, which requires checking in on the auth, and

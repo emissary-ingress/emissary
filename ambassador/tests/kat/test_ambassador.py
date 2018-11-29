@@ -1,18 +1,53 @@
 import json
 import pytest
+import os
 
 from typing import ClassVar, Dict, Sequence, Tuple, Union
 
 from kat.harness import variants, Name, Query, Runner, Test
+from kat.manifests import AMBASSADOR
 
 from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
-from t_ratelimit import RateLimitTest
-from t_tracing import TracingTest
-
-
 # XXX: should test empty ambassador config
+
+GRAPHITE_CONFIG = """
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {0}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: {0}
+    spec:
+      containers:
+      - name: {0}
+        image: hopsoft/graphite-statsd:latest
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {0}
+  name: {0}
+spec:
+  ports:
+  - protocol: UDP
+    port: 8125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 80
+    name: graphite-www
+  selector:
+    service: {0}
+"""
+
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
 
@@ -647,6 +682,7 @@ name: {self.name}-same-context-2
 hosts:
 - tls-context-host-2
 secret: same-secret-2
+alpn_protocols: h2,http/1.1
 """)
 
         yield self, self.format("""
@@ -732,10 +768,10 @@ service: https://{self.target.path.k8s}
         if scheme is None:
             scheme = self.scheme()
         if DEV:
-            port = 8080
+            port = 8443
             return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
-            return "%s://%s:80/%s" % (scheme, self.path.k8s, prefix)
+            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
@@ -1000,6 +1036,39 @@ ambassador_id: {amb_id}
         yield Query(self.url("missme/"), expected=404)
         yield Query(self.url("missme-array/"), expected=404)
 
+
+class StatsdTest(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+        if DEV:
+            self.skip_node = True
+
+    def manifests(self) -> str:
+        envs = """
+    - name: STATSD_ENABLED
+      value: 'true'
+"""
+
+        return self.format(AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs) + GRAPHITE_CONFIG.format('statsd-sink')
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.k8s}
+""")
+
+    def queries(self):
+        for i in range(1000):
+            yield Query(self.url(self.name + "/"), phase=1)
+
+        yield Query("http://statsd-sink/render?format=json&target=summarize(stats_counts.envoy.cluster.cluster_http___statsdtest_http.upstream_rq_200,'1hour','sum',true)&from=-1hour", phase=2)
+
+    def check(self):
+        assert 0 < self.results[-1].json[0]['datapoints'][0][0] <= 1000
 
 
 # pytest will find this because Runner is a toplevel callable object in a file

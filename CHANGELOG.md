@@ -40,6 +40,28 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.50.0-ea6] November 19, 2018
+[0.50.0-ea6]: https://github.com/datawire/ambassador/compare/0.50.0-ea5...0.50.0-ea6
+
+**Ambassador 0.50.0-ea6 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Fixes since 0.50.0-ea5:
+
+- `alpn_protocols` is now supported in the `TLS` module and `TLSContext`s
+- Using `TLSContext`s to provide TLS termination contexts will correctly switch Ambassador to listening on port 443.
+- `redirect_cleartext_from` is now supported with SNI
+- Zipkin `TracingService` configuration now supports 128-bit trace IDs and shared span contexts (thanks, @alexgervais!)
+- Zipkin should correctly trace calls to external auth services (thanks, @alexgervais!)
+- `AuthService` configurations now allow separately configuring headers allowed from the client to the auth service, and from the auth service upstream
+- Ambassador won't endlessly append `:annotation` to K8s resources
+- The Ambassador CLI no longer requires certificate files to be present when dumping configurations
+- `make mypy` will run full type checks on Ambassador to help developers
+
 ## [0.50.0-ea5] November 6, 2018
 [0.50.0-ea5]: https://github.com/datawire/ambassador/compare/0.50.0-ea4...0.50.0-ea5
 
