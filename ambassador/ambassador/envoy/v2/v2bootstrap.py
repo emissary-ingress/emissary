@@ -43,7 +43,7 @@ class V2Bootstrap(dict):
                     "port_value": 18000
                 }
             } ],
-            "http2_protocol_options": {}
+            "http2_protocol_options": {},
         }]
 
         if config.tracing:
@@ -61,6 +61,26 @@ class V2Bootstrap(dict):
 
             assert ratelimit.cluster
             clusters.append(V2Cluster(config, ratelimit.cluster))
+
+        if config.ir.statsd['enabled']:
+            self['stats_sinks'] = [
+                {
+                    'name': 'envoy.statsd',
+                    'config': {
+                        'address': {
+                            'socket_address': {
+                                'protocol': 'UDP',
+                                'address': config.ir.statsd['ip'],
+                                'port_value': 8125
+                            }
+                        }
+                    }
+                }
+            ]
+
+            self['stats_flush_interval'] = {
+                'seconds': config.ir.statsd['interval']
+            }
 
         self['static_resources']['clusters'] = clusters
 

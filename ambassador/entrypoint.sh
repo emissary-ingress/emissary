@@ -108,16 +108,6 @@ wait_for_ready() {
     return ${is_ready}
 }
 
-handle_statsd() {
-    STATSD_HOST=$1
-    echo "Waiting till $STATSD_HOST is reachable"
-
-    if wait_for_ready ${STATSD_HOST}; then
-        echo "$STATSD_HOST is reachable, starting socat ..."
-        socat -d UDP-RECVFROM:8125,fork UDP-SENDTO:${STATSD_HOST}:8125
-    fi
-}
-
 # set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
@@ -145,15 +135,6 @@ pids="${pids:+${pids} }$!:envoy"
 
 /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
-
-if [ "$(echo ${STATSD_ENABLED} | tr "[:upper:]" "[:lower:]")" = "true" ]; then
-    echo "STATSD_ENABLED is set to true"
-    # Fallback to statsd-sink if a host isn't provided
-    STATSD_HOST="${STATSD_HOST:-statsd-sink}"
-    handle_statsd ${STATSD_HOST} &
-else
-    echo "STATSD_ENABLED is not set to true, no stats will be exposed"
-fi
 
 echo "AMBASSADOR: waiting"
 echo "PIDS: $pids"
