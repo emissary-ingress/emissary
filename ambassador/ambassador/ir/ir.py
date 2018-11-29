@@ -136,10 +136,7 @@ class IR:
 
         # After the Ambassador and TLS modules are done, we need to set up the
         # filter chains, which requires checking in on the auth, and
-        # ratelimit configuration. Note that order of the filters matter.
-        
-        self.save_filter(IRBuffer(self, aconf))
-        
+        # ratelimit configuration. Note that order of the filters matter.        
         self.save_filter(IRAuth(self, aconf))
 
         # ...note that ratelimit is a filter too...

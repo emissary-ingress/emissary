@@ -3,7 +3,7 @@
     "id": "https://getambassador.io/schemas/mapping.json",
      "type": "object",
      "properties": {
-        "apiVersion": { "enum": ["ambassador/v1"] },
+        "apiVersion": { "enum": ["ambassador/v0"] },
         "kind": { "type": "string" },
         "name": { "type": "string" },
         "ambassador_id": {

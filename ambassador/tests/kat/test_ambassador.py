@@ -26,11 +26,13 @@ class AuthenticationHTTPBufferedTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind: BufferService
-name:  {self.auth.path.k8s}
-max_request_bytes: 16384
-max_request_time: 5000
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  buffer:  
+    max_request_bytes: 16384
+    max_request_time: 5000
 ---
 apiVersion: ambassador/v1
 kind: AuthService

@@ -8,6 +8,7 @@ from .irresource import IRResource
 from .irmapping import IRMapping
 from .irtls import IREnvoyTLS, IRAmbassadorTLS
 from .ircors import IRCORS
+from .irbuffer import IRBuffer
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -59,7 +60,7 @@ class IRAmbassador (IRResource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # We're interested in the 'ambassador' module from the Config, if any...
         amod = aconf.get_module("ambassador")
-
+        
         # Is there a TLS module in the Ambassador module?
         if amod:
             self.sourced_by(amod)
@@ -150,6 +151,15 @@ class IRAmbassador (IRResource):
 
                 if not cur.get('service', None):
                     cur['service'] = diag_service
+
+         # Buffer.
+        if amod and ('buffer' in amod):            
+            self.buffer = IRBuffer(ir=ir, aconf=aconf, location=self.location, **amod.buffer)
+
+            if self.buffer:
+                ir.save_filter(self.buffer)
+            else:
+                return False
 
         # Finally, default CORS stuff.
         if amod and ('cors' in amod):
