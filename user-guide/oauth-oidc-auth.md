@@ -2,6 +2,9 @@
 ---
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with various identity providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
+
+Note: If you need to use an IDP other than Auth0, please contact us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
+
 ## Configuring Environment Variables
 Auth0 integration supports two different configuration patterns. The [default configuration](/user-guide/oauth-oidc-auth#auth0-default-configuration) integrates Auth0 with Ambassador Pro without verification from the Auth0 management API. If you want the Auth0 management API to verify your application configuration, follow the [validation mode configuration](/user-guide/oauth-oidc-auth#auth0-validation-mode-configuration).
 
@@ -27,9 +30,7 @@ Integrating Auth0 with the Ambassador Pro Authentication service is done by sett
 - `AUTH_CALLBACK_URL` = https://datawire-ambassador.com/callback
 
 
-1. Configure the environment variables with the correct values
-
-Ex.
+1. Configure the environment variables with the correct values, e.g., 
 
 ```
 env:
@@ -43,13 +44,12 @@ env:
   value: vdrLZ8Y6AASktot75tCaAif4u9xrrE_g
 ```
 
-2. Set `Token Endpoint Authentication Method` to `None`
-3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`
-4. Add your domain to `Allowed Web Origins`
-5. Deploy Ambassador Pro
-	* Creates the Ambassador Pro deployment
-	* Cluster resources
-	* [Policy](/reference/services/access-control) Custom Resource
+2. Set `Token Endpoint Authentication Method` to `None`.
+3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`.
+4. Add your domain to `Allowed Web Origins`.
+5. Deploy your Ambassador Pro configuration to the cluster: `kubectl apply -f ambassador-pro-auth.yaml`. This will:
+	* Create the Ambassador Pro deployment and appropriate cluster resources
+	* Create a [Policy](/reference/services/access-control) custom resource definition that will be used to manage access control
 6. [Test the application.](/user-guide/oauth-oidc-auth/#test-the-auth0-application)
 
 ![](/images/Auth0_none.png)
@@ -63,9 +63,7 @@ The `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE` and `AUTH_CLIENT_ID` env
 
 ![](/images/Auth0_secret.png)
 
-1. Configure the environment variables with the correct values
-
-Ex.
+1. Configure the environment variables with the correct values, e.g.,
 
 ```
 env:
@@ -80,9 +78,9 @@ env:
 - name: AUTH_CLIENT_SECRET
   value: <CLIENT SECRET>
 ```
-2. Set `Token Endpoint Authentication Method` to `POST`
-3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`
-4. Add your domain to `Allowed Web Origins`
+2. Set `Token Endpoint Authentication Method` to `POST`.
+3. Add the value of `AUTH_CALLBACK_URL` to `Allowed Callback URLs`.
+4. Add your domain to `Allowed Web Origins`.
 
 ![](/images/Auth0_method_callback_origins.png)
 
@@ -92,10 +90,9 @@ env:
 6. Set the following grant types (Applications/Advanced Settings/Grant Types): 
 	* Authorization Code
 	* Client Credentials
-7. Deploy Ambassador Pro
-	* Creates the Ambassador Pro deployment
-	* Cluster resources
-	* [Policy](/reference/services/access-control) Custom Resource
+7. Deploy your Ambassador Pro configuration to the cluster: `kubectl apply -f ambassador-pro-auth.yaml`. This will:
+	* Create the Ambassador Pro deployment and appropriate cluster resources
+	* Create a [Policy](/reference/services/access-control) custom resource definition that will be used to manage access control
 8. [Test the application.](/user-guide/oauth-oidc-auth/#test-the-auth0-application)
 
 
