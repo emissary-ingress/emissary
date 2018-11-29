@@ -47,8 +47,14 @@ class TLSPaths(Enum):
 
 
 class SystemInfo (object):
-    MyHostName = socket.gethostname()
-    MyResolvedName = socket.gethostbyname(socket.gethostname())
+    MyHostName = 'localhost'
+    MyResolvedName = '127.0.0.1'
+
+    try:
+        MyHostName = socket.gethostname()
+        MyResolvedName = socket.gethostbyname(socket.gethostname())
+    except:
+        pass
 
 class RichStatus (object):
     def __init__(self, ok, **kwargs):
