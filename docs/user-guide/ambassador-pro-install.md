@@ -20,7 +20,7 @@ kubectl create secret docker-registry ambassador-pro-registry-credentials --dock
 Ambassador Pro plugins run externally to Ambassador. You will need to download the Ambassador Pro Authentication service deployment in order to change the default values and integrate it with your Auth0 application. Download Ambassador Pro Authentication from https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml or with:
 
 ```
-curl https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml -o ambassador-pro-auth.yaml
+curl -O https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml
 ```
 **Note:** This file is configured to deploy in the default namespace. Ensure the `namespace` field in the `ClusterRoleBinding` is configured correctly.
 
