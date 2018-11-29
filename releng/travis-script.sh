@@ -30,6 +30,15 @@ git status
 eval $(make export-vars)
 git status
 
+# Do we have any non-doc changes?
+DIFF_RANGE=${TRAVIS_COMMIT_RANGE:-HEAD^}
+
+echo "======== Diff summary ($DIFF_RANGE)"
+git diff --stat "$DIFF_RANGE"
+
+nondoc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -v '^docs/' | wc -l | tr -d ' ')
+doc_changes=$(git diff --name-only "$DIFF_RANGE" | grep -e '^docs/' | wc -l | tr -d ' ')
+
 printf "== Begin: travis-script.sh ==\n"
 
 # Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
@@ -42,7 +51,10 @@ printf "== Begin: travis-script.sh ==\n"
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
     make docker-push
-    make test
+
+    # are we making a non-doc change?
+    if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
+        make test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
