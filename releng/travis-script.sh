@@ -55,6 +55,9 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # are we making a non-doc change?
     if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         echo "Running tests"
+        echo $DIFF_RANGE
+        echo $nondoc_changes
+        echo $doc_changes
         make test
     else
         echo "Doc only build, skipping tests"
