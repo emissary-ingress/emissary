@@ -2,6 +2,9 @@
 ---
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with various identity providers (IDPs). This guide will demonstrate configuration using the Auth0 IDP. 
+
+Note: If you need to use an IDP other than Auth0, please contact us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
+
 ## Configuring Environment Variables
 Auth0 integration supports two different configuration patterns. The [default configuration](/user-guide/oauth-oidc-auth#auth0-default-configuration) integrates Auth0 with Ambassador Pro without verification from the Auth0 management API. If you want the Auth0 management API to verify your application configuration, follow the [validation mode configuration](/user-guide/oauth-oidc-auth#auth0-validation-mode-configuration).
 
