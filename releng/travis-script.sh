@@ -55,6 +55,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # are we making a non-doc change?
     if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
         make test
+    fi
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
