@@ -54,7 +54,10 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
 
     # are we making a non-doc change?
     if [ \( -z "$TRAVIS_COMMIT_RANGE" \) -o \( $nondoc_changes -gt 0 \) ]; then
+        echo "Running tests"
         make test
+    else
+        echo "Doc only build, skipping tests"
     fi
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
