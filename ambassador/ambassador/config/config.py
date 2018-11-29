@@ -69,6 +69,9 @@ class Config:
     object_errors: int
 
     def __init__(self, schema_dir_path: Optional[str]=None) -> None:
+
+        self.logger = logging.getLogger("ambassador.config")
+
         if not schema_dir_path:
             # Note that this "resource_filename" has to do with setuptool packages, not
             # with our ACResource class.
@@ -77,11 +80,18 @@ class Config:
         self.statsd = {'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')}
         if self.statsd['enabled']:
             self.statsd['interval'] = os.environ.get('STATSD_FLUSH_INTERVAL', '1')
-            self.statsd['ip'] = socket.gethostbyname(os.environ.get('STATSD_HOST', 'statsd-sink'))
+
+            statsd_host = os.environ.get('STATSD_HOST', 'statsd-sink')
+            try:
+                resolved_ip = socket.gethostbyname(statsd_host)
+                self.statsd['ip'] = resolved_ip
+            except socket.gaierror as e:
+                self.logger.error("Unable to resolve {} to IP : {}".format(statsd_host, e))
+                self.logger.error("Stats will not be exported to {}".format(statsd_host))
+                self.statsd['enabled'] = False
 
         self.schema_dir_path = schema_dir_path
 
-        self.logger = logging.getLogger("ambassador.config")
         self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
 
         self._reset()
