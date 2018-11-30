@@ -22,6 +22,7 @@ from copy import deepcopy
 from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irauth import IRAuth
+from ...ir.irbuffer import IRBuffer
 from ...ir.irfilter import IRFilter
 from ...ir.irratelimit import IRRateLimit
 from ...ir.ircors import IRCORS
@@ -83,8 +84,23 @@ def v2filter(irfilter: IRFilter):
     return irfilter.kind
 
 
+@v2filter.when("IRBuffer")
+def v2filter_buffer(buffer: IRBuffer):
+    return {
+        'name': 'envoy.buffer',
+        'config': {
+            "max_request_time": "%0.3fs" % (float(buffer.max_request_time) / 1000.0),
+            "max_request_bytes": buffer.max_request_bytes
+        }        
+    }
+
+
 @v2filter.when("IRAuth")
 def v2filter_auth(auth: IRAuth):
+    assert auth.cluster
+    cluster = typecast(IRCluster, auth.cluster)
+    
+    assert auth.api_version
     if auth.api_version == "ambassador/v0":
         # This preserves exactly the same logic prior to ambassador/v1 implementation.
         request_headers = dict(ExtAuthRequestHeaders)
@@ -94,32 +110,61 @@ def v2filter_auth(auth: IRAuth):
 
         allowed_authorizarion_headers = auth.allowed_headers
         allowed_request_headers = sorted(request_headers.keys())
-    else:
-        # We only really know how to handle v1 or v0. Hmm.
-        assert auth.api_version == "ambassador/v1"
 
-        allowed_authorizarion_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
-        allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
-    
-    assert auth.cluster
-
-    cluster = typecast(IRCluster, auth.cluster)
-
-    return {
-        'name': 'envoy.ext_authz',
-        'config': {
-            'http_service': {
-                'server_uri': {
-                    'uri': 'http://%s' % auth.auth_service,
-                    'cluster': cluster.name,
-                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+        return {
+            'name': 'envoy.ext_authz',
+            'config': {
+                'http_service': {
+                    'server_uri': {
+                        'uri': 'http://%s' % auth.auth_service,
+                        'cluster': cluster.name,
+                        'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+                    },
+                    'path_prefix': auth.path_prefix,
+                    'allowed_authorization_headers': allowed_authorizarion_headers,
+                    'allowed_request_headers': allowed_request_headers,
                 },
-                'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': allowed_authorizarion_headers,
-                'allowed_request_headers': allowed_request_headers
+                'send_request_data': auth.allow_request_body
+            }        
+        }
+    
+    if auth.api_version == "ambassador/v1":
+        assert auth.proto
+        if auth.proto == "http":
+            allowed_authorizarion_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
+            allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
+
+            return {
+                'name': 'envoy.ext_authz',
+                'config': {
+                    'http_service': {
+                        'server_uri': {
+                            'uri': 'http://%s' % auth.auth_service,
+                            'cluster': cluster.name,
+                            'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+                        },
+                        'path_prefix': auth.path_prefix,
+                        'allowed_authorization_headers': allowed_authorizarion_headers,
+                        'allowed_request_headers': allowed_request_headers,
+                    },
+                    'send_request_data': auth.allow_request_body
+                }        
             }
-        }        
-    }    
+
+        if auth.proto == "grpc":
+            return {
+                'name': 'envoy.ext_authz',
+                'config': {
+                    'grpc_service': {
+                        'envoy_grpc': {
+                            'cluster_name': cluster.name
+                        },
+                        'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+                    },
+                    'send_request_data': auth.allow_request_body
+                }        
+            }
+
 
 
 @v2filter.when("IRRateLimit")

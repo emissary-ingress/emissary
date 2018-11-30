@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
-     "type": "object",
+    "type": "object",
     "properties": {
         "apiVersion": { "enum": ["ambassador/v1"] },
         "kind": { "type": "string" },
@@ -12,9 +12,16 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        "timeout_ms": { "type": "integer" },
+        "proto": { 
+            "oneOf" : [
+                { "enum": [ "http" ] },
+                { "enum": [ "grpc" ] }
+            ]
+        },
+        "allow_request_body": { "type": "boolean" },
         "auth_service": { "type": "string" },
-        "path_prefix": { "type": "string" },
+        "timeout_ms": { "type": "integer" },
+        "path_prefix": { "type": "string" },  
         "allowed_request_headers": {
             "type": "array",
             "items": { "type": "string" }
@@ -24,6 +31,6 @@
             "items": { "type": "string" }
         }
     },
-    "required": [ "apiVersion", "kind", "name", "auth_service" ],
+    "required": [ "apiVersion", "kind", "name", "auth_service", "proto" ],
     "additionalProperties": false
 }
