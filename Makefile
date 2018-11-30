@@ -32,6 +32,7 @@ $(RATELIMIT_REPO)/vendor: $(RATELIMIT_REPO)
 lyft-build: $(RATELIMIT_REPO)/vendor $(BIN)
 	$(GO) install github.com/lyft/ratelimit/src/service_cmd && mv service_cmd ratelimit
 	$(GO) install github.com/lyft/ratelimit/src/client_cmd && mv client_cmd ratelimit_client
+	$(GO) install github.com/lyft/ratelimit/src/config_check_cmd && mv config_check_cmd ratelimit_check
 .PHONY: lyft-build
 
 lyft-build-image: $(RATELIMIT_REPO)/vendor $(BIN)

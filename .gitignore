@@ -8,4 +8,7 @@ k8s.*
 /teleproxy
 /rlcheck
 /image
+/ratelimit
+/ratelimit_check
+/ratelimit_client
 build-aux/pushed.txt
