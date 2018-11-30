@@ -62,14 +62,15 @@ class IRAuth (IRFilter):
         self.cluster = None
         cluster_good = False
 
-        for service, params in cluster_hosts.items():
-            weight, ctx_name, location = params
+        for service, params in cluster_hosts.items(): 
+            weight, grpc, ctx_name, location = params
 
             cluster = IRCluster(
                 ir=ir, aconf=aconf, location=location,
                 service=service,
                 host_rewrite=self.get('host_rewrite', False),
                 ctx_name=ctx_name,
+                grpc=grpc,
                 marker='extauth'
             )
 
@@ -93,7 +94,7 @@ class IRAuth (IRFilter):
         if self.location == '--internal--':
             self.sourced_by(module)
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service' ]:
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service', 'allow_request_body' ]:
             value = module.get(key, None)
 
             if value:
@@ -111,22 +112,31 @@ class IRAuth (IRFilter):
 
             self.referenced_by(module)
 
+        self["allow_request_body"] = module.get("allow_request_body", False)
         self["api_version"] = module.get("apiVersion", None)
+        self["proto"] = module.get("proto", None)
         self["timeout_ms"] = module.get("timeout_ms", 5000)
-        
+
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
+
+        
+
+        # Required fields check. 
+        if self["api_version"] == None:
+            self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
+
+        if self["api_version"] == "ambassador/v1" and self["proto"] == None:
+            self.post_error(RichStatus.fromError("AuthService v1 config requires proto field."))      
+
 
         auth_service = module.get("auth_service", None)
         weight = 100    # Can't support arbitrary weights right now.
 
         if auth_service:
-            self.hosts[auth_service] = ( weight, module.get('tls', None), module.location )
-
-        # IRAuth requires this in order to support ambassador/v0 and ambassador/v1 version. 
-        if self["api_version"] == None:
-            self.post_error(RichStatus.fromError("Missing apiVersion in Auth configuration"))
+            is_grpc = True if self["proto"] == "grpc" else False
+            self.hosts[auth_service] = ( weight, is_grpc, module.get('tls', None), module.location)
 
     # This method is only used by v1listener.
     def config_dict(self):
