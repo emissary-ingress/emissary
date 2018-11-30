@@ -143,8 +143,16 @@ class Config:
     def as_dict(self) -> Dict[str, Any]:
         od: Dict[str, Any] = {
             '_errors': self.errors,
-            '_sources': self.sources,
+            '_sources': {}
         }
+
+        for k, v in self.sources.items():
+            sd = dict(v)    # Shallow copy
+
+            if '_errors' in v:
+                sd['_errors'] = [ x.as_dict() for x in v._errors ]
+
+            od['_sources'][k] = sd
 
         for kind, configs in self.config.items():
             od[kind] = {}
