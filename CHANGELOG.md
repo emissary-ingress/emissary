@@ -190,6 +190,22 @@ Format:
           server:
             secret: ambassador-certs
 
+## [0.40.2] November 26, 2018
+[0.40.2]: https://github.com/datawire/ambassador/compare/0.40.1...0.40.2
+
+### Minor changes:
+- Feature: Support using environment variables to modify the configuration directory (thanks @n1koo!)
+- Feature: In Helmfile, support `volumeMounts` (thanks @kyschouv!)
+- Bugfix: In Helmfile, correctly quote `.Values.namespace.single` (thanks @bobby!)
+- Bugfix: In Helmfile, correctly support `Nodeport` in HTTP and HTTPS (thanks @n1koo!)
+
+## [0.40.1] October 29, 2018
+[0.40.1]: https://github.com/datawire/ambassador/compare/0.40.0...0.40.1
+
+### Minor changes:
+- Feature: Support running Ambassador as a `Daemonset` via Helm (thanks @DipeshMitthalal!) 
+- Feature: Switch to Envoy commit 5f795fe2 to fix a crash if attempting to add headers after using an AuthService (#647, #680)
+
 ## [0.40.0] September 25, 2018
 [0.40.0]: https://github.com/datawire/ambassador/compare/0.39.0...0.40.0
 

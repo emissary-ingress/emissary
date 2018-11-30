@@ -87,7 +87,7 @@ else
     SKIP_CHECK_CONTEXT=yes initialize_cluster
 
     export -f run_and_log
-    echo 1-parallel/[0-9]* | xargs -n1 | xargs --max-procs ${PARALLEL_TESTS} -I {} bash -c 'run_and_log {}'
+    echo 1-parallel/[0-9]* | xargs -n1 | xargs -P ${PARALLEL_TESTS} -I {} bash -c 'run_and_log {}'
 fi
 
 wait

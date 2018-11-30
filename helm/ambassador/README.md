@@ -50,7 +50,9 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `image.pullPolicy` | Image pull policy | `IfNotPresent`
 | `image.imagePullSecrets` | Image pull secrets | None
 | `daemonSet` | If `true `, Create a daemonSet. By default Deployment controller will be created | `false` 
-| `replicaCount`  | Number of Ambassador replicas  | `1`
+| `replicaCount` | Number of Ambassador replicas  | `1`
+| `volumes` | Volumes for the ambassador service | None
+| `volumeMounts` | Volume mounts for the ambassador service | None
 | `resources` | CPU/memory resource requests/limits | None
 | `rbac.create` | If `true`, create and use RBAC resources | `true`
 | `serviceAccount.create` | If `true`, create a new service account | `true`
