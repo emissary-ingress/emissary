@@ -489,48 +489,6 @@ class IRMappingGroup (IRResource):
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 
-        # if not host_redirect and not shadow:
-        #     route['clusters'] = [ { "name": cluster_name,
-        #                             "weight": self.get("weight", None) } ]
-        # else:
-        #     route.setdefault('clusters', [])
-
-        # add_request_headers = self.get('add_request_headers')
-        # if add_request_headers:
-        #     route[ 'request_headers_to_add' ] = [ ]
-        #     for key, value in add_request_headers.items():
-        #         route[ 'request_headers_to_add' ].append({"key": key, "value": value})
-        #
-        # envoy_cors = self.generate_route_cors()
-        # if envoy_cors:
-        #     route[ 'cors' ] = envoy_cors
-        #
-        # rate_limits = self.get('rate_limits')
-        #
-        # if rate_limits:
-        #     route[ 'rate_limits' ] = [ ]
-        #     for rate_limit in rate_limits:
-        #         rate_limits_actions = [
-        #             {'type': 'source_cluster'},
-        #             {'type': 'destination_cluster'},
-        #             {'type': 'remote_address'}
-        #         ]
-        #
-        #         rate_limit_descriptor = rate_limit.get('descriptor', None)
-        #
-        #         if rate_limit_descriptor:
-        #             rate_limits_actions.append({'type': 'generic_key',
-        #                                         'descriptor_value': rate_limit_descriptor})
-        #
-        #         rate_limit_headers = rate_limit.get('headers', [ ])
-        #
-        #         for rate_limit_header in rate_limit_headers:
-        #             rate_limits_actions.append({'type': 'request_headers',
-        #                                         'header_name': rate_limit_header,
-        #                                         'descriptor_key': rate_limit_header})
-        #
-        #         route[ 'rate_limits' ].append({'actions': rate_limits_actions})
-
         if not self.get('host_redirect', None):
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
