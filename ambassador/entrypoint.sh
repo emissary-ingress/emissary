@@ -18,16 +18,16 @@ export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
 AMBASSADOR_ROOT="/ambassador"
-CUSTOM_CONFIG_BASE_DIR="${CUSTOM_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
-CONFIG_DIR="${CUSTOM_CONFIG_BASE_DIR}/ambassador-config"
-ENVOY_CONFIG_FILE="${CUSTOM_CONFIG_BASE_DIR}/envoy.json"
+AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
+CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
+ENVOY_CONFIG_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/envoy.json"
 
 if [ "$1" == "--demo" ]; then
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
 
-mkdir -p ${CUSTOM_CONFIG_BASE_DIR}/ambassador-config
-mkdir -p ${CUSTOM_CONFIG_BASE_DIR}/envoy
+mkdir -p ${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config
+mkdir -p ${AMBASSADOR_CONFIG_BASE_DIR}/envoy
 
 DELAY=${AMBASSADOR_RESTART_TIME:-1}
 
@@ -121,16 +121,16 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-diagd "${CUSTOM_CONFIG_BASE_DIR}" --notices "${CUSTOM_CONFIG_BASE_DIR}/notices.json" &
+diagd "${AMBASSADOR_CONFIG_BASE_DIR}" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
-./ambex "${CUSTOM_CONFIG_BASE_DIR}/envoy" &
+./ambex "${AMBASSADOR_CONFIG_BASE_DIR}/envoy" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
 echo "AMBASSADOR: starting Envoy"
-envoy -c "${CUSTOM_CONFIG_BASE_DIR}/bootstrap-ads.json" &
+envoy -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
 pids="${pids:+${pids} }$!:envoy"
 
 /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
