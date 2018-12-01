@@ -101,7 +101,8 @@ var watch = &cobra.Command{
 
 func init() {
 	rls.AddCommand(watch)
-	watch.Flags().StringVarP(&output, "output", "o", ".", "output directory")
+	watch.Flags().StringVarP(&output, "output", "o", "", "output directory")
+	watch.MarkFlagRequired("output")
 }
 
 var output string
