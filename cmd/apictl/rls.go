@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	ms "github.com/mitchellh/mapstructure"
@@ -34,11 +35,9 @@ var validate = &cobra.Command{
 func init() {
 	rls.AddCommand(validate)
 	validate.Flags().BoolVar(&offline, "offline", false, "perform offline validation only")
-	validate.Flags().StringVarP(&output, "output", "o", "", "output directory")
 }
 
 var offline bool
-var output string
 
 func doValidate(cmd *cobra.Command, args []string) {
 	var err error
@@ -78,7 +77,7 @@ func doValidate(cmd *cobra.Command, args []string) {
 	for _, r := range resources {
 		spec, err := decode(r.QName(), r.Spec())
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("%s: %v", r.QName(), err)
 		} else {
 			spec.validate(errs)
 			config.add(spec)
@@ -91,19 +90,83 @@ func doValidate(cmd *cobra.Command, args []string) {
 		code = 1
 	}
 
-	if code > 0 {
-		os.Exit(code)
+	os.Exit(code)
+}
+
+var watch = &cobra.Command{
+	Use:   "watch",
+	Short: "Watch ratelimit crd files.",
+	Run:   doWatch,
+}
+
+func init() {
+	rls.AddCommand(watch)
+	watch.Flags().StringVarP(&output, "output", "o", ".", "output directory")
+}
+
+var output string
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func doWatch(cmd *cobra.Command, args []string) {
+	w := k8s.NewClient(nil).Watcher()
+	count := 0
+
+	matches, err := filepath.Glob(fmt.Sprintf("%s-*", output))
+	if err != nil {
+		log.Printf("warning: %v", err)
+	} else {
+		for _, m := range matches {
+			parts := strings.Split(m, "-")
+			end := parts[len(parts)-1]
+			n, err := strconv.Atoi(end)
+			if err == nil {
+				count = max(count, n)
+			}
+		}
 	}
 
-	if output != "" {
+	log.Printf("initial count %d", count)
+
+	w.Watch("ratelimits", func(w *k8s.Watcher) {
+		config := &Config{Domains: make(map[string]*Domain)}
+
+		for _, r := range w.List("ratelimits") {
+			spec, err := decode(r.QName(), r.Spec())
+			if err != nil {
+				log.Printf("%s: %v", r.QName(), err)
+			} else {
+				config.add(spec)
+			}
+		}
+
+		count += 1
+		realout := fmt.Sprintf("%s-%d", output, count)
+		err = os.Mkdir(realout, 0775)
+		die(err)
+
 		for _, domain := range config.Domains {
 			bytes, err := yaml.Marshal(domain)
 			die(err)
-			fname := filepath.Join(output, fmt.Sprintf("config.%s.yaml", domain.Name))
+			fname := filepath.Join(realout, fmt.Sprintf("config.%s.yaml", domain.Name))
 			err = ioutil.WriteFile(fname, bytes, 0644)
 			die(err)
 		}
-	}
+
+		err = os.Remove(output)
+		if err != nil {
+			log.Println(err)
+		}
+		err = os.Symlink(realout, output)
+		die(err)
+	})
+	w.Wait()
 }
 
 type Errors struct {
