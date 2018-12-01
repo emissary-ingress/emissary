@@ -120,19 +120,23 @@ func hash(unversioned []string) []byte {
 		}
 		h.Write([]byte(file))
 		info, err := os.Lstat(file)
-		die(err)
-		if info.Mode()&os.ModeSymlink != 0 {
-			target, err := os.Readlink(file)
-			die(err)
-			h.Write([]byte("link"))
-			h.Write([]byte(target))
+		if err != nil {
+			h.Write([]byte("error"))
+			h.Write([]byte(err.Error()))
 		} else {
-			h.Write([]byte("file"))
-			f, err := os.Open(file)
-			die(err, file)
-			defer f.Close()
-			_, err = io.Copy(h, f)
-			die(err)
+			if info.Mode()&os.ModeSymlink != 0 {
+				target, err := os.Readlink(file)
+				die(err)
+				h.Write([]byte("link"))
+				h.Write([]byte(target))
+			} else if !info.IsDir() {
+				h.Write([]byte("file"))
+				f, err := os.Open(file)
+				die(err, file)
+				defer f.Close()
+				_, err = io.Copy(h, f)
+				die(err)
+			}
 		}
 	}
 
