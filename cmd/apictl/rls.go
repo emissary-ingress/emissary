@@ -84,13 +84,19 @@ func doValidate(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	code := 0
+	count := 0
 	for k, v := range errs.errors {
 		fmt.Printf("%s: %s\n", k, strings.Join(v, "\n  "+strings.Repeat(" ", len(k))))
-		code = 1
+		count += 1
 	}
 
-	os.Exit(code)
+	fmt.Printf("Found %d errors.\n", count)
+
+	if count > 0 {
+		os.Exit(1)
+	} else {
+		os.Exit(0)
+	}
 }
 
 var watch = &cobra.Command{
@@ -148,8 +154,8 @@ func doWatch(cmd *cobra.Command, args []string) {
 		}
 
 		count += 1
-		realout := fmt.Sprintf("%s-%d", output, count)
-		err = os.Mkdir(realout, 0775)
+		realout := fmt.Sprintf("%s-%d/config", output, count)
+		err = os.MkdirAll(realout, 0775)
 		die(err)
 
 		for _, domain := range config.Domains {
@@ -164,7 +170,7 @@ func doWatch(cmd *cobra.Command, args []string) {
 		if err != nil {
 			log.Println(err)
 		}
-		err = os.Symlink(realout, output)
+		err = os.Symlink(filepath.Dir(realout), output)
 		die(err)
 	})
 	w.Wait()

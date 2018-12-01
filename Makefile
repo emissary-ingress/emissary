@@ -43,6 +43,10 @@ lyft-build-image: $(RATELIMIT_REPO)/vendor $(BIN)
 docker: env build-image lyft-build-image
 	docker build . -t $(IMAGE)
 
+docker-run: docker
+	docker run -it $(IMAGE)
+.PHONY: docker-run
+
 # This is for managing minor diffs to upstream code. If we need
 # anything more than minor diffs this probably won't work so well. We
 # really don't want to have more than minor diffs though without a
@@ -65,10 +69,3 @@ clean: $(CLUSTER).clean k8s.clean
 clobber: clean proxy.clobber k8s.clobber
 	rm -rf $(RATELIMIT_REPO)
 .PHONY: clobber
-
-run:
-	USE_STATSD=false \
-	REDIS_SOCKET_TYPE=tcp \
-	REDIS_URL=ratelimit-redis:6379 \
-	RUNTIME_ROOT=${PWD}/config RUNTIME_SUBDIRECTORY=. $(RATELIMIT)
-.PHONY: run

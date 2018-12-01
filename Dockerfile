@@ -1,7 +1,7 @@
 FROM golang:1.10-alpine
 COPY image .
-RUN mkdir /config
+COPY entrypoint.sh .
 ENV USE_STATSD false
-ENV RUNTIME_ROOT /
+ENV RUNTIME_ROOT /go/config
 ENV RUNTIME_SUBDIRECTORY config
-ENTRYPOINT [ "./ratelimit" ]
+ENTRYPOINT [ "./entrypoint.sh" ]

@@ -65,6 +65,10 @@ rules:
   resources:
   - services
   verbs: ["get", "list", "watch"]
+- apiGroups: ["getambassador.io"]
+  resources:
+  - ratelimits
+  verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
   - configmaps
@@ -147,71 +151,4 @@ spec:
           value: tcp
         - name: REDIS_URL
           value: ratelimit-redis:6379
-        volumeMounts:
-        - name: config-volume
-          mountPath: /config
       restartPolicy: Always
-      volumes:
-        - name: config-volume
-          configMap:
-            name: ratelimit-config
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ratelimit-config
-data:
-  config.yaml: |
-    ---
-    domain: mongo_cps
-    descriptors:
-      - key: database
-        value: users
-        rate_limit:
-          unit: day
-          requests_per_unit: 5
-        descriptors:
-          - key: user_id
-            rate_limit:
-              unit: day
-              requests_per_unit: 100
-          - key: user_id
-            value: 3
-            rate_limit:
-              unit: day
-              requests_per_unit: 2
-
-      - key: database
-        value: default
-        rate_limit:
-          unit: day
-          requests_per_unit: 5
-
-      - key: database
-        rate_limit:
-          unit: day
-          requests_per_unit: 10
-
-      - key: foo
-        value: bar
-        rate_limit:
-          unit: day
-          requests_per_unit: 10
-  config.more.yaml: |
-    ---
-    domain: ambassador
-    descriptors:
-      - key: source_cluster
-        rate_limit:
-          unit: day
-        descriptors:
-          - key: destination_cluster
-            descriptors:
-              - key: remote_address
-                descriptors:
-                  - key: generic_key
-                    value: rldesc
-                    rate_limit:
-                      unit: day
-                      requests_per_unit: 3
-

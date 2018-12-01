@@ -1,3 +1,4 @@
+.go-workspace/src/github.com/lyft/
 *.knaut
 *.knaut.claim
 env.*.mk
