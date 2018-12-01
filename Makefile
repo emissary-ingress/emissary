@@ -2,7 +2,7 @@ NAME=ambassador-ratelimit
 PROFILE ?= dev
 
 pkg = github.com/datawire/ambassador-ratelimit
-bins = rlcheck
+bins = apictl
 
 include build-aux/go.mk
 include build-aux/kubernaut.mk

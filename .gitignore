@@ -1,12 +1,12 @@
-.go-workspace
 *.knaut
 *.knaut.claim
 env.*.mk
 k8s.*
 !k8s.mk
+/vendor
 /kubeapply
 /teleproxy
-/rlcheck
+/apictl
 /image
 /ratelimit
 /ratelimit_check
