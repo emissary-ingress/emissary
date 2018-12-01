@@ -40,11 +40,11 @@ KUBEAPPLY=$(GOBIN)/kubeapply
 $(KUBEAPPLY):
 	$(GO) get github.com/datawire/teleproxy/cmd/kubeapply
 
-apply: $(CLUSTER) $(KUBEAPPLY)
+apply: manifests $(CLUSTER) $(KUBEAPPLY)
 	$(KUBEAPPLY) $(MANIFESTS:%=-f %)
 .PHONY: apply
 
-deploy: push manifests apply
+deploy: push apply
 .PHONY: deploy
 
 k8s.clean:

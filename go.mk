@@ -12,15 +12,14 @@ build: $(bins)
 build-image: $(bins:%=image/%)
 .PHONY: build-image
 
-$(bins): %: get FORCE
+vendor: glide.yaml glide.lock
+	glide install
+
+$(bins): %: FORCE vendor
 	$(GO) install $(pkg)/cmd/$@
 
-$(bins:%=image/%): %: get FORCE
+$(bins:%=image/%): %: FORCE vendor
 	$(IMAGE_GO) install $(pkg)/cmd/${@:image/%=%}
-
-get:
-	$(GO) get -t -d ./...
-.PHONY: get
 
 .SECONDARY:
 # The only reason .DELETE_ON_ERROR is off by default is for historical
