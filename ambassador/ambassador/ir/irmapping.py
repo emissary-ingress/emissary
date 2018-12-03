@@ -559,13 +559,13 @@ class IRMappingGroup (IRResource):
 
             for domain in labels.keys():
                 defaults = ir.ambassador_module.get_default_labels(domain)
-                ir.logger.info("%s: defaults %s" % (domain, defaults))
+                ir.logger.debug("%s: defaults %s" % (domain, defaults))
 
                 if defaults:
-                    ir.logger.info("%s: labels %s" % (domain, labels[domain]))
+                    ir.logger.debug("%s: labels %s" % (domain, labels[domain]))
 
                     for label in labels[domain]:
-                        ir.logger.info("%s: label %s" % (domain, label))
+                        ir.logger.debug("%s: label %s" % (domain, label))
 
                         lkeys = label.keys()
                         if len(lkeys) > 1:
