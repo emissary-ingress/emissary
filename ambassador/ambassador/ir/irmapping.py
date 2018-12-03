@@ -156,8 +156,12 @@ class IRMapping (IRResource):
                     rate_limit_headers = rate_limit.get('headers', [])
 
                     for rate_limit_header in rate_limit_headers:
-                        label.append({ 'header': rate_limit_header,
-                                       'omit_if_not_present': True })
+                        label.append({
+                            rate_limit_header: {
+                                'header': rate_limit_header,
+                                'omit_if_not_present': True
+                            }
+                        })
 
                     labels.append({
                         'v0_ratelimit_%02d' % rlcount: label

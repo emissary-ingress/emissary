@@ -10,6 +10,9 @@ from kat.manifests import AMBASSADOR
 from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
+from t_ratelimit import RateLimitTest
+from t_tracing import TracingTest
+
 # XXX: should test empty ambassador config
 
 GRAPHITE_CONFIG = """

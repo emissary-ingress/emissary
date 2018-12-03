@@ -60,13 +60,33 @@ spec:
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
-name:  tracing_target_mapping
+name:  ratelimit_target_mapping
 prefix: /target/
 service: {self.target.path.k8s}
 rate_limits:
 - descriptor: A test case
   headers:
   - "x-ambassador-test-allow"
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  ratelimit_label_mapping
+prefix: /labels/
+service: {self.target.path.k8s}
+labels:
+  ambassador:
+    - host_and_user:
+      - custom-label:
+          header: ":authority"
+          omit_if_not_present: true
+      - user:
+          header: "x-user"
+          omit_if_not_present: true
+
+    - omg_header:
+      - custom-label:
+          header: "x-omg"
+          default: "OMFG!"
 """)
 
         # For self.with_tracing, we want to configure the TracingService.

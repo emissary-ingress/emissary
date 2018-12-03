@@ -83,22 +83,24 @@ class V2RateLimitAction(dict):
                         }
                     })
 
-                    if not hdr_omit:
-                        if 'default' not in hdr_action:
-                            config.ir.logger.error("RateLimitAction '%s' is missing a default value" % rate_limit)
-                        else:
-                            hdr_default = hdr_action['default']
-
-                            self.save_action({
-                                'header_value_match': {
-                                    'headers': [{
-                                        'name': hdr_name,
-                                        'present_match': True
-                                    }],
-                                    'expect_match': False,
-                                    'descriptor_value': hdr_default
-                                }
-                            })
+                    ### This whole bit doesn't work with the existing RateLimit filter. We're
+                    ### going to have to tweak it to allow request_headers with a default value.
+                    # if not hdr_omit:
+                    #     if 'default' not in hdr_action:
+                    #         config.ir.logger.error("RateLimitAction '%s' is missing a default value" % rate_limit)
+                    #     else:
+                    #         hdr_default = hdr_action['default']
+                    #
+                    #         self.save_action({
+                    #             'header_value_match': {
+                    #                 'headers': [{
+                    #                     'name': hdr_name,
+                    #                     'present_match': True
+                    #                 }],
+                    #                 'expect_match': False,
+                    #                 'descriptor_value': hdr_default
+                    #             }
+                    #         })
             elif isinstance(action, str):
                 # This is a shorthand for a generic_key.
                 self.save_action({
