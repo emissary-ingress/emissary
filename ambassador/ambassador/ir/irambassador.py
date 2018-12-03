@@ -221,7 +221,7 @@ class IRAmbassador (IRResource):
 
         domain_info = self.default_labels.get(domain, {})
 
-        self.logger.info("default_labels info for %s: %s" % (domain, domain_info))
+        self.logger.debug("default_labels info for %s: %s" % (domain, domain_info))
 
         return domain_info.get('defaults')
 
