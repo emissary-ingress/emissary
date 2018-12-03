@@ -1,0 +1,26 @@
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  default_label_domain: ambassador
+  default_labels:
+    ambassador:
+      defaults:
+      - source_cluster
+      - destination_cluster
+      - remote_address
+      - default
+
+    using_defaults:
+      defaults:
+      - hiho
+      - hiho
+      - "off to work we go"
+
+      label_prefix:
+      - source_cluster
+      - destination_cluster
+      - remote_address
+
+    nodefaults: {}

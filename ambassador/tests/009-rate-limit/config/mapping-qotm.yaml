@@ -12,13 +12,32 @@ prefix: /qotm-rate/
 service: qotm
 rate_limits: [{}]
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: qotm_rate_limit_config_mapping
 prefix: /qotm-rate-custom/
 service: qotm
-rate_limits:                 # Configuring 2 rate_limits rules, so it should generate 2 Envoy rate_limits.actions and 2 external rate limit service calls
-  - {}                         # Rule #1: empty dict with default configuration
-  - descriptor: custom-label   # Rule #2: with configuration overrides
-    headers:
-      - ":authority"
+labels:
+  ambassador:
+    # We use an array here because order is relevant.
+    # Individual elements are dictionaries with names because it's easier
+    # for humans to have names for things.
+    - defaults: []
+
+    - host_and_user:
+      - custom-label:
+          header: ":authority"
+          omit_if_not_present: true
+      - user:
+          header: "x-user"
+          omit_if_not_present: true
+
+    - omg_header:
+      - custom-label:
+          header: "x-omg"
+          default: "OMFG!"
+
+  nodefaults:
+    - test:
+      - remote_address
+      - test
