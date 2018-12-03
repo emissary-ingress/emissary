@@ -12,10 +12,21 @@ prefix: /qotm-rate/
 service: qotm
 rate_limits: [{}]
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v0
 kind: Mapping
 name: qotm_rate_limit_config_mapping
 prefix: /qotm-rate-custom/
+service: qotm
+rate_limits:
+- {}
+- descriptor: custom-label
+  headers:
+  - ":authority"
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: qotm_labels_config_mapping
+prefix: /qotm-labels-custom/
 service: qotm
 labels:
   ambassador:
