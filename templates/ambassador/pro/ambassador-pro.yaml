@@ -30,7 +30,7 @@ spec:
   - name: ratelimit-debug
     port: 6070
     targetPort: 6070
-  - protocol: auth-http
+  - name: auth-http
     port: 80
     targetPort: 8080
   type: ClusterIP
@@ -74,6 +74,10 @@ rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
   - policies
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["getambassador.io"]
+  resources:
+  - ratelimits
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
