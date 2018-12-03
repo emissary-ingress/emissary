@@ -1,4 +1,4 @@
-# Statistics and Monitoring
+# Monitoring Ambassador
 
 Ambassador is an API gateway for microservices built on [Envoy](https://lyft.github.io/envoy/). A key feature of Envoy is the observability it enables by exposing a multitude of statistics about its own operations. Ambassador makes it easy to direct this information to a statistics and monitoring tool of your choice.
 
@@ -119,7 +119,7 @@ If you want to set up the StatsD sink as an independent deployment, [this exampl
 
 ## Grafana
 
-![Grafana dashboard](/images/grafana.png)
+![Grafana dashboard](images/grafana.png)
 
 If you're using Grafana, [Alex Gervais](https://twitter.com/alex_gervais) has written a template [Grafana dashboard for Ambassador](https://grafana.com/dashboards/4698).
 

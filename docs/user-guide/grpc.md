@@ -1,7 +1,5 @@
 # gRPC and Ambassador
 
----
-
 Ambassador makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
 ## Writing a gRPC service for Ambassador
@@ -16,10 +14,10 @@ Follow the example up through [Run a gRPC application](https://grpc.io/docs/quic
 
 After building our gRPC application and testing it locally, we need to package it as a Docker container and deploy it to Kubernetes.
 
-To run a gRPC application, we need to include the client/server and the protocol buffer definitions. 
+To run a gRPC application, we need to include the client/server and the protocol buffer definitions.
 
 
-For gRPC with python, we need to install `grpcio` and the common protos. 
+For gRPC with python, we need to install `grpcio` and the common protos.
 
 ```Dockerfile
 FROM python:2.7
@@ -180,11 +178,11 @@ Greeter client received: Hello, you!
 
 ### gRPC and TLS
 
-There is some extra configuration required to connect to a gRPC service through Ambassador over an encrypted channel. Currently, the gRPC call is being sent over cleartext to Ambassador which proxies it to the gRPC application. 
+There is some extra configuration required to connect to a gRPC service through Ambassador over an encrypted channel. Currently, the gRPC call is being sent over cleartext to Ambassador which proxies it to the gRPC application.
 
 ![](/images/gRPC-TLS.png)
 
-If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS. Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador. 
+If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS. Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador.
 
 ```diff
 - with grpc.insecure_channel(‘$AMBASSADORHOST:$PORT’) as channel:
@@ -193,16 +191,16 @@ If you want to add TLS encyrption to your gRPC calls, first you need to tell Amb
         response = stub.SayHello(helloworld_pb2.HelloRequest(name='you'))
     print("Greeter client received: " + response.message)
 ```
-`grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador. 
-The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. 
+`grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador.
+The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields.
 
-Ambassador is now terminating TLS from the gRPC client and proxying the call to the application over cleartext. 
+Ambassador is now terminating TLS from the gRPC client and proxying the call to the application over cleartext.
 
 ![](/images/gRPC-TLS-Ambassador.png)
 
 Refer to the Ambassador [TLS termination guide](/user-guide/tls-termination) for more information on the TLS module.
 
-[gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages. Generally, passing no arguments to the method that requests credentials gives the same behavior as above. 
+[gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages. Generally, passing no arguments to the method that requests credentials gives the same behavior as above.
 
 Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the case.  
 
@@ -235,7 +233,7 @@ Rebuild your docker container **making sure the certificates are included** and 
     print("Greeter client received: " + response.message)
 ```
 
-Once deployed we will need to tell Ambassador to originate TLS to the application. 
+Once deployed we will need to tell Ambassador to originate TLS to the application.
 
 ```
 ---
@@ -280,9 +278,9 @@ spec:
         upstream:
           alpn_protocols: h2
 ```
-We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` under a tls-context name (like `upstream`) in the TLS module and telling the service to use that tls-context in the mapping by setting `tls: upstream`. 
+We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` under a tls-context name (like `upstream`) in the TLS module and telling the service to use that tls-context in the mapping by setting `tls: upstream`.
 
-Refer to the [TLS document](/reference/core/tls) for more information on TLS origination. 
+Refer to the [TLS document](/reference/core/tls) for more information on TLS origination.
 
 
 ### gRPC Headers

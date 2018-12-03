@@ -1,7 +1,7 @@
 # Installing Ambassador Pro
 ---
 
-Ambassador Pro adds built in support for single sign-on with OAuth and OIDC. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes for adding single sign-on with OAuth and OIDC. 
+Ambassador Pro adds built in support for single sign-on with OAuth and OIDC. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes for adding single sign-on with OAuth and OIDC.
 
 ### 1. Install and Configure Ambassador
 This guide assumes you have Ambassador installed and configured correctly apart from the Authentication service. If this is not the case, follow the [Ambassador installation guide](/user-guide/getting-started) to get Ambassador running before continuing.
@@ -16,7 +16,7 @@ kubectl create secret docker-registry ambassador-pro-registry-credentials --dock
 - `<CREDNETIALS PASSWORD>`: Password given in signup email
 - `<YOUR EMAIL>`: Your email address
 
-### 3. Download the Ambassador Pro Deployment File 
+### 3. Download the Ambassador Pro Deployment File
 Ambassador Pro plugins run externally to Ambassador. You will need to download the Ambassador Pro Authentication service deployment in order to change the default values and integrate it with your Auth0 application. Download Ambassador Pro Authentication from https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml or with:
 
 ```
@@ -38,7 +38,7 @@ subjects:
 - kind: ServiceAccount
   name: ambassador-pro
 # Ensure Your namespace is configured correctly
-  namespace: default 
+  namespace: default
 ```
 
 ### 4. Configure and Deploy Ambassador Pro Authentication
