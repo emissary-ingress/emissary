@@ -2,7 +2,7 @@
 
 Ambassador lets you supply separate TLS certificates for different domains, instead of using a single TLS certificate for all domains. This allows Ambassador to serve multiple secure connections on the same IP address without requiring all websites to use the same certificate. Ambassador supports this use case through its support of Server Name Indication, an extension to the TLS protocol.
 
-Note: SNI is only available in the [0.50 early access release](early-access.md).
+Note: SNI is only available in the [0.50 early access release](/user-guide/early-access).
 
 ## Configuring SNI
 
