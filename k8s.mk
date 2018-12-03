@@ -1,10 +1,13 @@
+PROFILE?=dev
 
-build-aux/env.$(PROFILE).mk: build-aux/env.go config.json
-	PROFILE=$(PROFILE) go run build-aux/env.go -input config.json -output $@
-.PHONY: build-aux/env.$(PROFILE).mk
+# NOTE: this is not a typo, this is actually how you spell newline in make
+define NL
 
-env: build-aux/env.$(PROFILE).mk
-	$(eval $(file <build-aux/env.$(PROFILE).mk))
+
+endef
+
+env:
+	$(eval $(subst @NL,$(NL), $(shell go run build-aux/env.go -profile $(PROFILE) -newline "@NL" -input config.json)))
 .PHONY: env
 
 hash: env
@@ -21,7 +24,7 @@ export IMAGE
 
 $(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env
 	@echo "Generating $< -> $@"
-	mkdir -p $(MANIFESTS_DIR) && cat $< | IMAGE=$(file <build-aux/pushed.txt) envsubst> $@
+	mkdir -p $(MANIFESTS_DIR) && cat $< | IMAGE=$(file <pushed.txt) envsubst> $@
 
 push_ok: env
 	@if [ "$(PROFILE)" == "prod" ]; then echo "CANNOT PUSH TO PROD"; exit 1; fi
@@ -29,7 +32,7 @@ push_ok: env
 
 push: push_ok docker
 	docker push $(IMAGE)
-	echo $(IMAGE) > build-aux/pushed.txt
+	echo $(IMAGE) > pushed.txt
 .PHONY: push
 
 manifests: $(MANIFESTS)
@@ -48,7 +51,7 @@ deploy: push apply
 .PHONY: deploy
 
 k8s.clean:
-	rm -rf $(MANIFESTS_DIR) build-aux/env.*.mk
+	rm -rf $(MANIFESTS_DIR)
 .PHONY: k8s.clean
 
 k8s.clobber:
