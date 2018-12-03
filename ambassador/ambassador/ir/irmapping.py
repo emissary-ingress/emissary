@@ -61,6 +61,7 @@ class IRMapping (IRResource):
         "host_redirect": True,
         "host_regex": True,
         "host_rewrite": True,
+        # Do not include labels; it's only supported in v1.
         "method": True,
         "method_regex": True,
         "modules": True,
@@ -70,7 +71,7 @@ class IRMapping (IRResource):
         "prefix": True,
         "prefix_regex": True,
         "priority": True,
-        "rate_limits": True,
+        # Do not include rate_limits; it's only supported in v0,
         # Do not include regex_headers.
         # Do not include rewrite.
         "service": True,
@@ -90,7 +91,7 @@ class IRMapping (IRResource):
                  location: str,  # REQUIRED
 
                  kind: str="IRMapping",
-                 apiVersion: str="ambassador/v0",   # Not a typo! See below.
+                 apiVersion: str="ambassador/v1",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
                  **kwargs) -> None:
@@ -120,6 +121,53 @@ class IRMapping (IRResource):
 
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
+
+        if 'labels' in kwargs:
+            if apiVersion == 'ambassador/v1':
+                new_args['labels'] = kwargs['labels']
+            else:
+                self.post_error(RichStatus.fromError("labels supported only in ambassador/v1 Mapping resources"))
+
+        if 'rate_limits' in kwargs:
+            if apiVersion == 'ambassador/v0':
+                # Let's turn this into a set of labels instead.
+                labels = []
+                rlcount = 0
+
+                for rate_limit in kwargs['rate_limits']:
+                    rlcount += 1
+
+                    # If you're using a V0 Mapping, prepend the static default stuff that we (implicitly)
+                    # did back then.
+
+                    label = [
+                        'source_cluster',
+                        'destination_cluster',
+                        'remote_address'
+                    ]
+
+                    # Next up: old rate_limit "descriptor" becomes new "generic_key".
+                    rate_limit_descriptor = rate_limit.get('descriptor', None)
+
+                    if rate_limit_descriptor:
+                        label.append({ 'generic_key': rate_limit_descriptor })
+
+                    # Header names get turned into omit-if-not-present header dictionaries.
+                    rate_limit_headers = rate_limit.get('headers', [])
+
+                    for rate_limit_header in rate_limit_headers:
+                        label.append({ 'header': rate_limit_header,
+                                       'omit_if_not_present': True })
+
+                    labels.append({
+                        'v0_ratelimit_%02d' % rlcount: label
+                    })
+
+                if labels:
+                    domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
+                    new_args['labels'] = { domain: labels }
+            else:
+                self.post_error(RichStatus.fromError("rate_limits supported only in ambassador/v0 Mapping resources"))
 
         # ...and then init the superclass.
         super().__init__(
@@ -286,6 +334,9 @@ class IRMappingGroup (IRResource):
         'group_id': True,
         'headers': True,
         'host_rewrite': True,
+        # 'labels' doesn't appear in the TransparentKeys list for IRMapping, but it's still
+        # a CoreMappingKey -- if it appears, it can't have multiple values within an IRMappingGroup.
+        'labels': True,
         'method': True,
         'prefix': True,
         'prefix_regex': True,
@@ -479,6 +530,52 @@ class IRMappingGroup (IRResource):
 
         if 'rewrite' not in self:
             self.rewrite = "/"
+
+        # OK. Save some typing with local variables for default labels and our labels...
+        default_labels = ir.ambassador_module.default_labels
+        labels = self.get('labels', None)
+
+        if not labels:
+            # No labels. Use the default label domain to see if we have some valid defaults.
+            defaults = ir.ambassador_module.get_default_labels()
+
+            if defaults:
+                domain = ir.ambassador_module.get_default_label_domain()
+
+                self.labels = {
+                    domain: [
+                        {
+                            'defaults': defaults
+                        }
+                    ]
+                }
+        else:
+            # Walk all the domains in our labels, and prepend the defaults, if any.
+            # ir.logger.info("%s: labels %s" % (self.as_json(), labels))
+
+            for domain in labels.keys():
+                defaults = ir.ambassador_module.get_default_labels(domain)
+                ir.logger.info("%s: defaults %s" % (domain, defaults))
+
+                if defaults:
+                    ir.logger.info("%s: labels %s" % (domain, labels[domain]))
+
+                    for label in labels[domain]:
+                        ir.logger.info("%s: label %s" % (domain, label))
+
+                        lkeys = label.keys()
+                        if len(lkeys) > 1:
+                            err = RichStatus.fromError("label has multiple entries (%s) instead of just one" %
+                                                       lkeys)
+                            aconf.post_error(err, self)
+
+                        lkey = list(lkeys)[0]
+
+                        if lkey.startswith('v0_ratelimit_'):
+                            # Don't prepend defaults, as this was imported from a V0 rate_limit.
+                            continue
+
+                        label[lkey] = defaults + label[lkey]
 
         if self.shadows:
             # Only one shadow is supported right now.

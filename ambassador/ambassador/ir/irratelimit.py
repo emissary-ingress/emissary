@@ -52,20 +52,20 @@ class IRRateLimit (IRFilter):
 
         self.service = service
         self.name = "rate_limit"    # Force this, just in case.
+        self.domain = config.get('domain', ir.ambassador_module.default_label_domain)
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
 
         # Should we use the shiny new data_plane_proto? Default false right now.
         # XXX Needs to be configurable.
-
         self.data_plane_proto = False
 
         # Filter config.
         self.config = {
-            "domain": "ambassador",     # XXX configurability!
-            "request_type": "both",     # XXX configurability!
-            "timeout_ms": config.get('timeout_ms', 20)
+            "domain": self.domain,
+            "timeout_ms": config.get('timeout_ms', 20),
+            "request_type": "both"  # XXX configurability!
         }
 
         self.sourced_by(config)

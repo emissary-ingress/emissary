@@ -101,8 +101,28 @@ class V2Route(dict):
 
             route['cors'] = cors
 
-        if "rate_limits" in group:
-            route["rate_limits"] = [ V2RateLimitAction(rl) for rl in group.rate_limits ]
+        # Is RateLimit a thing?
+        rlsvc = config.ir.ratelimit
+
+        if rlsvc:
+            # Yup. Build our labels into a set of RateLimitActions (remember that default
+            # labels have already been handled, as has translating from v0 'rate_limits' to
+            # v1 'labels').
+
+            if "labels" in group:
+                # The Envoy RateLimit filter only supports one domain, so grab the configured domain
+                # from the RateLimitService and use that to look up the labels we should use.
+
+                rate_limits = []
+
+                for rl in group.labels.get(rlsvc.domain, []):
+                    action = V2RateLimitAction(config, rl)
+
+                    if action.valid:
+                        rate_limits.append(action.to_dict())
+
+                if rate_limits:
+                    route["rate_limits"] = rate_limits
 
         self['match'] = match
         self['route'] = route
