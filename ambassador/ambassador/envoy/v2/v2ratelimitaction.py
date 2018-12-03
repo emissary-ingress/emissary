@@ -33,7 +33,7 @@ class V2RateLimitAction(dict):
         if rate_limit == {}:
             rate_limit = []
 
-        config.ir.logger.info("RateLimitAction translating %s" % rate_limit)
+        config.ir.logger.debug("V2RateLimitAction translating %s" % rate_limit)
 
         lkeys = rate_limit.keys()
         if len(lkeys) > 1:
@@ -47,7 +47,7 @@ class V2RateLimitAction(dict):
         actions = rate_limit[lkey]
 
         for action in actions:
-            config.ir.logger.info("RateLimitAction working on '%s'" % action)
+            config.ir.logger.debug("V2RateLimitAction working on '%s'" % action)
 
             if ((action == "source_cluster") or
                 (action == "destination_cluster") or
@@ -58,7 +58,7 @@ class V2RateLimitAction(dict):
                 keylist = list(action.keys())
 
                 if len(keylist) != 1:
-                    config.ir.logger.error("RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
+                    config.ir.logger.error("V2RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
                     continue
 
                 dkey = keylist[0]
@@ -87,7 +87,7 @@ class V2RateLimitAction(dict):
                     ### going to have to tweak it to allow request_headers with a default value.
                     # if not hdr_omit:
                     #     if 'default' not in hdr_action:
-                    #         config.ir.logger.error("RateLimitAction '%s' is missing a default value" % rate_limit)
+                    #         config.ir.logger.error("V2RateLimitAction '%s' is missing a default value" % rate_limit)
                     #     else:
                     #         hdr_default = hdr_action['default']
                     #
@@ -110,7 +110,7 @@ class V2RateLimitAction(dict):
                 })
             else:
                 # WTF.
-                config.ir.logger.error("RateLimitAction: invalid action '%s'" % action)
+                config.ir.logger.error("V2RateLimitAction: invalid action '%s'" % action)
 
     def save_action(self, action):
         self.actions.append(action)
