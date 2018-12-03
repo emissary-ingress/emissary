@@ -1,0 +1,161 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  AuthService
+      name:  authentication
+      auth_service: ambassador-pro
+      allowed_headers:
+       - "Authorization"
+       - "Client-Id"
+       - "Client-Secret"
+      ---
+      apiVersion: ambassador/v0
+      kind: RateLimitService
+      name: ambassador-pro
+      service: "127.0.0.1:8081"
+spec:
+  selector:
+    service: ambassador-pro
+  type: ClusterIP
+  ports:
+  - name: ratelimit-grpc
+    port: 81
+    targetPort: 8081
+  - name: ratelimit-debug
+    port: 6070
+    targetPort: 6070
+  - protocol: auth-http
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: ambassador-pro-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-pro-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ambassador-pro-redis
+  template:
+    metadata:
+      labels:
+        app: ambassador-pro-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-pro
+rules:
+- apiGroups: ["stable.datawire.io"]
+  resources:
+  - policies
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador-pro
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-pro
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-pro
+subjects:
+- kind: ServiceAccount
+  name: ambassador-pro
+# Ensure Your namespace is configured correctly
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador-pro
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ambassador-pro
+  template:
+    metadata:
+      labels:
+        service: ambassador-pro
+    spec:
+      serviceAccountName: ambassador-pro
+      containers:
+      - name: auth
+        image: quay.io/datawire/ambassador_pro:auth-0.0.6
+        ports:
+        - containerPort: 8080
+        env:
+#         Configure to your callback URL
+          - name: AUTH_CALLBACK_URL
+            value: ""
+#         Configure to your Auth0 domain
+          - name: AUTH_DOMAIN
+            value: ""
+#         Configure to your Auth0 API Audience
+          - name: AUTH_AUDIENCE
+            value: ""
+#         Configure to your Auth0 Application client ID
+          - name: AUTH_CLIENT_ID
+            value: ""
+#          Uncomment if you want the Auth0 management API to validate your configurations
+#          - name: AUTH_CLIENT_SECRET
+#            value: <CLIENT SECRET>
+      - name: ratelimit
+        image: quay.io/datawire/ambassador-ratelimit-dev:c400cc21f6ae58bd4b50c44851bbbf20
+        env:
+        - name: REDIS_SOCKET_TYPE
+          value: tcp
+        - name: REDIS_URL
+          value: ambassador-pro-redis:6379
+      imagePullSecrets:
+      - name: ambassador-pro-registry-credentials
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: policies.stable.datawire.io
+spec:
+  group: stable.datawire.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: policies
+    singular: policy
+    kind: Policy
+    shortNames:
+    - pol
