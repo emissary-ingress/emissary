@@ -40,6 +40,39 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.50.0-ea7] November 19, 2018
+[0.50.0-ea7]: https://github.com/datawire/ambassador/compare/0.50.0-ea6...0.50.0-ea7
+
+**Ambassador 0.50.0-ea7 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+ 
+### Upcoming major changes:
+
+- **API version `ambassador/v0` will be officially deprecated in Ambassador 0.50.0.** 
+  API version `ambassador/v1` will the minimum recommended version for resources in Ambassador 0.50.0.
+
+- Some resources will change between `ambassador/v0` and `ambassador/v1`.
+   - For example, the `Mapping` resource will no longer support `rate_limits` as that functionality will
+     be subsumed by `labels`.   
+
+### Changes since 0.50.0-ea6:
+
+- Ambassador now supports `labels` for all `Mapping`s. 
+- Configuration of rate limits for a `Mapping` is now handled by providing `labels` in the domain configured
+  for the `RateLimitService` (by default, this is "ambassador").    
+- Ambassador, once again, supports `statsd` for statistics gathering. 
+- The Envoy `buffer` filter is supported.
+- Ambassador can now use GRPC to call the external authentication service, and also include the message body
+  in the auth call.
+- It's now possible to use environment variables to modify the configuration directory (thanks @n1koo!).
+- Setting environment variable `AMBASSADOR_KUBEWATCH_NO_RETRY` will cause the Ambassador pod to exit, and be
+  rescheduled, if it loses its connection to the Kubernetes API server. 
+- Many dependencies have been updated, most notably including switching to kube-client 8.0.0.
+
 ## [0.50.0-ea6] November 19, 2018
 [0.50.0-ea6]: https://github.com/datawire/ambassador/compare/0.50.0-ea5...0.50.0-ea6
 
