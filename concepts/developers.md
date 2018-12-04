@@ -1,4 +1,4 @@
-# Ambassador for Developers
+# Self-Service Routing and Deployment Control
 
 Traditionally, API Gateways have focused on operators as the primary user. Ambassador considers both developers and operators to be first-class citizens.
 
@@ -93,4 +93,4 @@ Ambassador has chosen not to support ingress resources for the following reasons
 
 * The ingress API is extremely limited, and supports only a small subset of Ambassador's features
 * The ingress API has been in beta for a number of years, and there is the possibility of it being deprecated altogether
-* Having a separate object that is associated with the `service` object 
+* Having a separate object that is associated with the `service` object
