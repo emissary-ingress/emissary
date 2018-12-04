@@ -17,13 +17,13 @@ In Ambassador Pro, each request can have multiple *labels*. Labels are arbitrary
 Logically, configuring rate limiting is straightforward.
 
 1. Configure a specific mapping to include one or more request labels.
-2. Configure a limit for a given request label.
+2. Configure a limit for a given request label with the `RateLimit` resource.
 
 ## Example 1: Global rate limiting for availability
 
 Imagine the `catalog` service is a Rust-y application that can only handle 1 request per second before crashing. While the engineering team really wants to rewrite the `catalog` service in Golang (because Rust isn't fast enough), they haven't had a chance to do so. We want to rate limit all requests for this service to 1 request per second. 
 
-We update the mapping for the `catalog` service to add a descriptor to the route:
+We update the mapping for the `catalog` service to add a request label to the route:
 
 ```
 apiVersion: ambassador/v0
@@ -38,6 +38,17 @@ request_labels:
 We then need to configure the rate limit for the catalog service:
 
 ```
+apiVersion: getambassador.io/v1beta1
+kind: RateLimit
+metadata:
+  name: catalog_rate_limit
+spec:
+  domain: appdev
+  limits:
+   - pattern: [{source_cluster: "*"}, {destination_cluster: "*"}, {remote_address: "*"}, {generic_key: rldesc}]
+     rate: 3
+     unit: second
+
 domain: catalog_team
 descriptors:
   - key: service
