@@ -12,35 +12,112 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, List, Dict
+from typing import Any, ClassVar, Dict, TYPE_CHECKING
 
-# from ...ir.irratelimit import IRRateLimit
+from ...utils import RichStatus
+
+if TYPE_CHECKING:
+    from . import V2Config
 
 
 class V2RateLimitAction(dict):
-    def __init__(self, rate_limit: Dict[str, Any]) -> None:
-        super().__init__({
-            'stage': 0,
-            'actions': [
-                { 'source_cluster': {} },
-                { 'destination_cluster': {} },
-                { 'remote_address': {} },
-            ]
-        })
+    already_errored: ClassVar[bool] = False
 
-        rate_limit_descriptor = rate_limit.get('descriptor', None)
+    def __init__(self, config: 'V2Config', rate_limit: Dict[str, Any]) -> None:
+        super().__init__()
 
-        if rate_limit_descriptor:
-            self['actions'].append({
-                'generic_key': { 'descriptor_value': rate_limit_descriptor }
-            })
+        self.valid = False
+        self.stage = 0
+        self.actions = []
 
-        rate_limit_headers = rate_limit.get('headers', [])
+        if rate_limit == {}:
+            rate_limit = []
 
-        for rate_limit_header in rate_limit_headers:
-            self['actions'].append({
-                'request_headers': {
-                    'header_name': rate_limit_header,
-                    'descriptor_key': rate_limit_header
-                }
-            })
+        config.ir.logger.debug("V2RateLimitAction translating %s" % rate_limit)
+
+        lkeys = rate_limit.keys()
+        if len(lkeys) > 1:
+            # "Impossible". This should've been caught earlier.
+            err = RichStatus.fromError("ratelimit has multiple entries (%s) instead of just one" %
+                                       lkeys)
+            config.ir.aconf.post_error(err)
+            return
+
+        lkey = list(lkeys)[ 0 ]
+        actions = rate_limit[lkey]
+
+        for action in actions:
+            config.ir.logger.debug("V2RateLimitAction working on '%s'" % action)
+
+            if ((action == "source_cluster") or
+                (action == "destination_cluster") or
+                (action == "remote_address")):
+                self.save_action({ action: {} })
+            elif isinstance(action, dict):
+                # This should be a dict with a single key.
+                keylist = list(action.keys())
+
+                if len(keylist) != 1:
+                    config.ir.logger.error("V2RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
+                    continue
+
+                dkey = keylist[0]
+
+                if dkey == 'generic_key':
+                    self.save_action({
+                        'generic_key': {
+                            'descriptor_value': action[dkey]
+                        }
+                    })
+                else:
+                    # This is a header block.
+                    hdr_action = action[dkey]
+
+                    hdr_name = hdr_action['header']
+                    hdr_omit = hdr_action.get('omit_if_not_present', False)
+
+                    self.save_action({
+                        'request_headers': {
+                            'header_name': hdr_name,
+                            'descriptor_key': dkey
+                        }
+                    })
+
+                    ### This whole bit doesn't work with the existing RateLimit filter. We're
+                    ### going to have to tweak it to allow request_headers with a default value.
+                    # if not hdr_omit:
+                    #     if 'default' not in hdr_action:
+                    #         config.ir.logger.error("V2RateLimitAction '%s' is missing a default value" % rate_limit)
+                    #     else:
+                    #         hdr_default = hdr_action['default']
+                    #
+                    #         self.save_action({
+                    #             'header_value_match': {
+                    #                 'headers': [{
+                    #                     'name': hdr_name,
+                    #                     'present_match': True
+                    #                 }],
+                    #                 'expect_match': False,
+                    #                 'descriptor_value': hdr_default
+                    #             }
+                    #         })
+            elif isinstance(action, str):
+                # This is a shorthand for a generic_key.
+                self.save_action({
+                    'generic_key': {
+                        'descriptor_value': action
+                    }
+                })
+            else:
+                # WTF.
+                config.ir.logger.error("V2RateLimitAction: invalid action '%s'" % action)
+
+    def save_action(self, action):
+        self.actions.append(action)
+        self.valid = True
+
+    def to_dict(self):
+        return {
+            'stage': self.stage,
+            'actions': self.actions
+        }

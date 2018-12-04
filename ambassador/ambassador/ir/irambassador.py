@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, Optional, TYPE_CHECKING
+from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
 
 import json
 
@@ -15,6 +15,22 @@ if TYPE_CHECKING:
 
 
 class IRAmbassador (IRResource):
+    AModTransparentKeys: ClassVar = [
+        'admin_port',
+        'auth_enabled',
+        'default_label_domain',
+        'default_labels',
+        'diag_port',
+        'diagnostics',
+        'liveness_probe',
+        'readiness_probe',
+        'service_port',
+        'statsd',
+        'use_proxy_proto',
+        'use_remote_address',
+        'x_forwarded_proto_redirect'
+    ]
+
     service_port: int
     diag_port: int
 
@@ -130,17 +146,19 @@ class IRAmbassador (IRResource):
 
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
-        for key in [ 'service_port', 'admin_port', 'diag_port',
-                     'liveness_probe', 'readiness_probe', 'auth_enabled',
-                     'use_proxy_proto', 'use_remote_address', 'diagnostics',
-                     'x_forwarded_proto_redirect' ]:
+        for key in IRAmbassador.AModTransparentKeys:
             if amod and (key in amod):
                 # Yes. It overrides the default.
                 self[key] = amod[key]
 
-        # Do they want statsd?
-        if amod and ('statsd' in amod):
-            self['statsd'] = amod['statsd']
+        # If we don't have a default label domain, force it to 'ambassador'.
+        if not self.get('default_label_domain'):
+            self.default_label_domain = 'ambassador'
+
+        # Likewise, if we have no default labels, force an empty dict (it makes life easier
+        # on other modules).
+        if not self.get('default_labels'):
+            self.default_labels = {}
 
         # Next up: diag port & services.
         diag_port = aconf.module_lookup('ambassador', 'diag_port', 8877)
@@ -193,3 +211,24 @@ class IRAmbassador (IRResource):
                 mapping = IRMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location, **cur)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
+
+    def get_default_label_domain(self) -> str:
+        return self.default_label_domain
+
+    def get_default_labels(self, domain: Optional[str]=None) -> Optional[List]:
+        if not domain:
+            domain = self.get_default_label_domain()
+
+        domain_info = self.default_labels.get(domain, {})
+
+        self.logger.debug("default_labels info for %s: %s" % (domain, domain_info))
+
+        return domain_info.get('defaults')
+
+    def get_default_label_prefix(self, domain: Optional[str]=None) -> Optional[List]:
+        if not domain:
+            domain = self.get_default_label_domain()
+
+        domain_info = self.default_labels.get(domain, {})
+        return domain_info.get('label_prefix')
+

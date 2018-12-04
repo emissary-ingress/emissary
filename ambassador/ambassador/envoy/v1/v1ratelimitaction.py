@@ -12,30 +12,85 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, List, Dict
+from typing import Any, List, Dict, TYPE_CHECKING
 
-# from ...ir.irratelimit import IRRateLimit
+from ...utils import RichStatus
+
+if TYPE_CHECKING:
+    from . import V2Config
 
 
 class V1RateLimitAction(dict):
-    def __init__(self, rate_limit: Dict[str, Any]) -> None:
-        super().__init__({
-            'actions': [
-                { 'type': 'source_cluster' },
-                { 'type': 'destination_cluster' },
-                { 'type': 'remote_address' },
-            ]
-        })
+    def __init__(self, config: 'V1Config', rate_limit: Dict[str, Any]) -> None:
+        super().__init__()
 
-        rate_limit_descriptor = rate_limit.get('descriptor', None)
+        self.valid = False
+        self.stage = 0
+        self.actions = []
 
-        if rate_limit_descriptor:
-            self['actions'].append({ 'type': 'generic_key',
-                                     'descriptor_value': rate_limit_descriptor })
+        if rate_limit == {}:
+            rate_limit = []
 
-        rate_limit_headers = rate_limit.get('headers', [])
+        config.ir.logger.debug("V1RateLimitAction translating %s" % rate_limit)
 
-        for rate_limit_header in rate_limit_headers:
-            self['actions'].append({ 'type': 'request_headers',
-                                     'header_name': rate_limit_header,
-                                     'descriptor_key': rate_limit_header})
+        lkeys = rate_limit.keys()
+        if len(lkeys) > 1:
+            # "Impossible". This should've been caught earlier.
+            err = RichStatus.fromError("ratelimit has multiple entries (%s) instead of just one" %
+                                       lkeys)
+            config.ir.aconf.post_error(err)
+            return
+
+        lkey = list(lkeys)[0]
+
+        if not lkey.startswith('v0_ratelimit_'):
+            # This isn't from a V0 rate_limit element. Skip it.
+            return
+
+        actions = rate_limit[lkey]
+
+        for action in actions:
+            config.ir.logger.debug("V1RateLimitAction working on '%s'" % action)
+
+            if ((action == "source_cluster") or
+                (action == "destination_cluster") or
+                (action == "remote_address")):
+                self.save_action({ 'type': action })
+            elif isinstance(action, dict):
+                # This should be a dict with a single key.
+                keylist = list(action.keys())
+
+                if len(keylist) != 1:
+                    config.ir.logger.error("V1RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
+                    continue
+
+                dkey = keylist[0]
+
+                if dkey == 'generic_key':
+                    self.save_action({ 'type': 'generic_key',
+                                       'descriptor_value': action[dkey] })
+                else:
+                    # This is a header block.
+                    hdr_action = action[dkey]
+                    hdr_name = hdr_action['header']
+
+                    self.save_action({ 'type': 'request_headers',
+                                       'header_name': hdr_name,
+                                       'descriptor_key': dkey })
+            elif isinstance(action, str):
+                # This is a shorthand for a generic_key.
+                self.save_action({ 'type': 'generic_key',
+                                   'descriptor_value': action })
+            else:
+                # WTF.
+                config.ir.logger.error("V1RateLimitAction: invalid action '%s'" % action)
+
+    def save_action(self, action):
+        self.actions.append(action)
+        self.valid = True
+
+    def to_dict(self):
+        return {
+            'stage': self.stage,
+            'actions': self.actions
+        }
