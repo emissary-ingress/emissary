@@ -142,6 +142,8 @@ spec:
           value: tcp
         - name: REDIS_URL
           value: ambassador-pro-redis:6379
+        - name: PORT
+          value: 7000
       imagePullSecrets:
       - name: ambassador-pro-registry-credentials
 ---
