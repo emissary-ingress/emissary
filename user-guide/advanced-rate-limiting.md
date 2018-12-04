@@ -33,8 +33,9 @@ prefix: /catalog/
 service: catalog
 labels:
   - ambassador:
-    - request_label:
-      - catalog
+    - request_label_group:
+      - string_label:
+          catalog
 ```
 
 We then need to configure the rate limit for the catalog service. Create a new YAML file, `catalog-ratelimit.yaml`, and put the following configuration into the file.
@@ -84,11 +85,12 @@ prefix: /catalog/
 service: catalog
 labels:
   - ambassador:
-    - request_label:
-      - catalog
-    - request_label:
-      - header: ":method"
-        omit_if_not_present: true
+    - request_label_group:
+      - string_label:
+          catalog
+      - method_label:
+        - header: ":method"
+          omit_if_not_present: true
 ```
 
 Our rate limiting configuration becomes:
