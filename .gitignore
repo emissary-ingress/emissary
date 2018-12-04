@@ -2,6 +2,7 @@
 *~
 .cache
 .coverage
+.dmypy
 .python-version
 .DS_Store
 venv
