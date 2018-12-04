@@ -14,18 +14,26 @@ prefix: /catalog/
 service: catalog
 labels:
   - ambassador:
-    - request_label: # a specific request label
-      - catalog      # annotate the request with the value `catalog`
-    - request_label:
-      - header: ":method"          # annotate the request with the specific HTTP method used
-        omit_if_not_present: true  # if the header is not present, omit the label
+    - string_request_label:            # a specific request label
+      - catalog                        # annotate the request with the string `catalog`
+    - header_request_label:
+      - header: ":method"              # annotate the request with the specific HTTP method used
+        omit_if_not_present: true      # if the header is not present, omit the label
+    - multi_request_label:
+      - header: ":authority"
+        omit_if_not_present: true
+      - header: "x-user"
+        omit_if_not_present: true
 ```
 
-Request labels must be part of the `ambassador` namespace. This limitation will be removed in future versions of Ambassador.
+Let's digest the above example:
 
-HTTP/2 request headers can be used in request labels, as shown in the example above. For example:
-- the `host` header should be specified as the `:authority` header; and
-- the `method` header should be specified as the `:method` header.
+* Request labels must be part of the `ambassador` namespace. This limitation will be removed in future versions of Ambassador.
+* Each label must have a name, e.g., `one_request_label`
+* The `string_request_label` simply adds the string `catalog` to every incoming request to the given mapping
+* The `header_request_label` adds a specific HTTP header value to the request, in this case, the method. Note that HTTP/2 request headers must be used here (e.g., the `host` header needs to be specified as the `:authority` header).
+* Multiple labels can be part of a single named label, e.g., `multi_request_label` specifies two different headers to be added
+* When an HTTP header is not present, the entire named label is omitted. The `omit_if_not_present: true` is an explicit notation to remind end users of this limitation. `false` is *not* a supported value. This limitation will be removed in future versions of Ambassador.
 
 ## The `rate_limits` attribute
 
