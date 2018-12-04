@@ -45,7 +45,6 @@ kind: RateLimit
 metadata:
   name: catalog_rate_limit
 spec:
-  domain: appdev
   limits:
    - pattern: [{generic_key: catalog}]
      rate: 3
@@ -64,7 +63,6 @@ kind: RateLimit
 metadata:
   name: catalog_rate_limit
 spec:
-  domain: appdev
   limits:
    - pattern: [{remote_address: "*"}]
      rate: 3
@@ -101,7 +99,6 @@ kind: RateLimit
 metadata:
   name: catalog_rate_limit
 spec:
-  domain: appdev
   limits:
    - pattern: [{remote_address: "*"}]
      rate: 3
