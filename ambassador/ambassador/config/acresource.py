@@ -1,6 +1,7 @@
 from typing import List, Optional, Type, TypeVar
 from typing import cast as typecast
 
+import json
 import os
 import yaml
 
@@ -135,8 +136,15 @@ class ResourceFetcher:
             for filename in os.listdir(config_dir_path):
                 filepath = os.path.join(config_dir_path, filename)
 
-                if not os.path.isfile(filepath):
+                if not filename.lower().endswith('.yaml'):
+                    self.logger.debug("%s: SKIP non-YAML" % filepath)
                     continue
+
+                if not os.path.isfile(filepath):
+                    self.logger.debug("%s: SKIP non-file" % filepath)
+                    continue
+
+                self.logger.debug("%s: SAVE configuration file" % filepath)
                 inputs.append((filepath, filename))
         else:
             # this allows a file to be passed into the ambassador cli
@@ -215,6 +223,17 @@ class ResourceFetcher:
 
     def process_object(self, obj: dict, rkey: Optional[str]=None, k8s: bool=False) -> int:
         # self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))
+
+        if not isinstance(obj, dict):
+            # Bug!!
+            self.post_error(RichStatus.fromError("%s.%d is not a dictionary? %s" %
+                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))))
+            return self.ocount + 1
+
+        if 'kind' not in obj:
+            # Bug!!
+            self.logger.warning("%s.%d is missing 'kind'?? %s" % (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4)))
+            return self.ocount + 1
 
         # Is this a pragma object?
         if obj['kind'] == 'Pragma':
