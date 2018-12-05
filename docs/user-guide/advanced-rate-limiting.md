@@ -19,59 +19,61 @@ Logically, configuring rate limiting is straightforward.
 1. Configure a specific mapping to include one or more request labels.
 2. Configure a limit for a given request label with the `RateLimit` resource.
 
+In the examples below, we'll use the QOTM sample service used in the [Getting Started](https://www.getambassador.io/user-guide/getting-started#5-adding-a-service).
+
 ## Example 1: Global rate limiting for availability
 
-Imagine the `catalog` service is a Rust-y application that can only handle 3 requests per minute before crashing. While the engineering team really wants to rewrite the `catalog` service in Golang (because Rust isn't fast enough), they haven't had a chance to do so. We want to rate limit all requests for this service to 3 requests per minute. (ProTip: Using requests per minute simplifies testing.)
+Imagine the `qotm` service is a Rust-y application that can only handle 3 requests per minute before crashing. While the engineering team really wants to rewrite the `qotm` service in Golang (because Rust isn't fast enough), they haven't had a chance to do so. We want to rate limit all requests for this service to 3 requests per minute. (ProTip: Using requests per minute simplifies testing.)
 
-We update the mapping for the `catalog` service to add a request label to the route:
+We update the mapping for the `qotm` service to add a request label to the route:
 
 ```
 apiVersion: ambassador/v1
 kind: Mapping
-name: catalog
-prefix: /catalog/
-service: catalog
+name: qotm
+prefix: /qotm/
+service: qotm
 labels:
   ambassador:
-    - request_label:
-      - catalog
+    - request_label_group:
+      - qotm
 ```
 
 *Note* If you're modifying an existing mapping, make sure you to update the apiVersion to `v1` as above from `v0`.
 
-We then need to configure the rate limit for the catalog service. Create a new YAML file, `catalog-ratelimit.yaml`, and put the following configuration into the file.
+We then need to configure the rate limit for the qotm service. Create a new YAML file, `qotm-ratelimit.yaml`, and put the following configuration into the file.
 
 ```
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
 metadata:
-  name: catalog-rate-limit
+  name: qotm-rate-limit
 spec:
   domain: ambassador
   limits:
-   - pattern: [{generic_key: catalog}]
+   - pattern: [{generic_key: qotm}]
      rate: 3
      unit: minute
 ```
 
 `generic_key` in the example above is a special, hard-coded value that is used when a single string label is added to a request.
 
-Deploy the rate limit with `kubectl apply -f catalog-ratelimit.yaml`. (Make sure you always `kubectly apply` your original `catalog` mapping as well.)
+Deploy the rate limit with `kubectl apply -f qotm-ratelimit.yaml`. (Make sure you always `kubectly apply` your original `qotm` mapping as well.)
 
 ## Example 2: Per user rate limiting
 
-Suppose you've rewritten the `catalog` service in Golang, and it's humming along nicely. You then discover that some users are taking advantage of this speed to sometimes cause a big spike in requests. You want to make sure that your API doesn't get overwhelmed by any single user. We use the `remote_address` special value in our mapping, which will automatically label all requests with the calling IP address:
+Suppose you've rewritten the `qotm` service in Golang, and it's humming along nicely. You then discover that some users are taking advantage of this speed to sometimes cause a big spike in requests. You want to make sure that your API doesn't get overwhelmed by any single user. We use the `remote_address` special value in our mapping, which will automatically label all requests with the calling IP address:
 
 ```
 apiVersion: ambassador/v1
 kind: Mapping
-name: catalog
-prefix: /catalog/
-service: catalog
+name: qotm
+prefix: /qotm/
+service: qotm
 labels:
   ambassador:
-    - request_label:
-      - catalog
+    - request_label_group:
+      - qotm
       - remote_address
 ```
 
@@ -81,11 +83,11 @@ We then update our rate limits to limit on `remote_address` and the key. When we
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
 metadata:
-  name: catalog-rate-limit
+  name: qotm-rate-limit
 spec:
   domain: ambassador
   limits:
-   - pattern: [{generic_key: catalog}, {remote_address: "*"}]
+   - pattern: [{generic_key: qotm}, {remote_address: "*"}]
      rate: 3
      unit: minute
 ```
@@ -94,7 +96,7 @@ Note for this to work, you need to make sure you've properly configured Ambassad
 
 ## Example 3: Load shedding GET requests
 
-You've dramatically improved availability of the `catalog` service, thanks to the per-user rate limiting. However, you've realized that on occasion the queries (e.g., the 'GET' requests) cause so much volume that updates to the catalog (e.g., the 'POST' requests) don't get processed. So we're going to add a more sophisticated rate limiting strategy:
+You've dramatically improved availability of the `qotm` service, thanks to the per-user rate limiting. However, you've realized that on occasion the queries (e.g., the 'GET' requests) cause so much volume that updates to the qotm (e.g., the 'POST' requests) don't get processed. So we're going to add a more sophisticated rate limiting strategy:
 
 * We're going to rate limit per user.
 * We're going to implement a global rate limit on `GET` requests, but not `POST` requests.
@@ -102,17 +104,17 @@ You've dramatically improved availability of the `catalog` service, thanks to th
 ```
 apiVersion: ambassador/v1
 kind: Mapping
-name: catalog
-prefix: /catalog/
-service: catalog
+name: qotm
+prefix: /qotm/
+service: qotm
 labels:
     ambassador:
-      - request_label:
-        - catalog
-      - method_label:
-        - http_method:
+      - request_label_group:
+        - remote_address
+        - qotm_http_method:
             header: ":method"
             omit_if_not_present: true
+        - remote_address
 ```
 
 Our rate limiting configuration becomes:
@@ -121,20 +123,28 @@ Our rate limiting configuration becomes:
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
 metadata:
-  name: catalog-rate-limit
+  name: qotm-rate-limit
 spec:
   domain: ambassador
   limits:
-   - pattern: [{http_method: GET}]
+   - pattern: [{remote_address: "*"}, {qotm_http_method: GET}]
      rate: 3
      unit: minute
 ```
 
+## Rate limiting matching rules
+
+The following rules apply to the rate limit patterns:
+
+* Patterns are order-sensitive, and must respect the order in which a request is labeled. For example, in #3 above, the `remote_address` pattern must come before the `qotm_http_method` pattern. Switching the two will fail to match.
+* Every label in a label group must exist in the pattern in order for matching to occur.
+* By default, any type of failure will let the request pass through (fail open).
+* Ambassador sets a hard timeout of 20ms on the rate limiting service. If the rate limit service does not respond within the timeout period, the request will pass through.
+* If a pattern does not match, the request will pass through.
+
 ## Troubleshooting rate limiting
 
 The most common source of failure of the rate limiting service will occur when the labels generated by Ambassador do not match the rate limiting pattern. By default, the rate limiting service will log all incoming labels from Ambassador. Use a tool such as [Stern](https://github.com/wercker/stern) to watch the rate limiting logs from Ambassador, and insure the labels match your descriptor.
-
-Also, note that Ambassador expects a response from the rate limiting service within 20 milliseconds. If the RLS does not respond within this timeframe, the request is passed through (fail open).
 
 ## More
 
