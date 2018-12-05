@@ -46,7 +46,7 @@ jobs:
   macos-build:
     macos:
       xcode: "9.0"
-    working_directory: ~/
+    working_directory: ~/repo
     steps:
       - aws-install
       - golang-install:
@@ -56,7 +56,7 @@ jobs:
 
   machine-build:
     machine: true
-    working_directory: ~/
+    working_directory: ~/repo
     steps:
       - aws-install
       - golang-install:
