@@ -22,14 +22,11 @@ commands:
 
       # Golang paths
       - run: |
-          echo 'export PATH=${PATH}:/usr/local/go/bin' >> ${BASH_ENV} &&
-          echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV}
+          echo 'export PATH=${HOME}/go/bin:${PATH}:/usr/local/go/bin' >> ${BASH_ENV} &&
+          echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV} &&
+          echo 'export GOBIN=${HOME}/go/bin' >> ${BASH_ENV}
 
-      - run: 'echo PATH: ${PATH} || true'
-      - run: 'echo GOPATH: ${GOPATH} || true'
-      - run: go version
-
-      - run: curl https://glide.sh/get | GOBIN=/usr/local/go/bin sudo sh
+      - run: curl https://glide.sh/get | sh
 
   kubectl-install:
     steps:
