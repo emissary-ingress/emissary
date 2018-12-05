@@ -4,13 +4,11 @@ PROFILE ?= dev
 pkg = github.com/datawire/ambassador-ratelimit
 bins = apictl
 
+include build-aux/shell.mk
 include build-aux/go.mk
+include build-aux/k8s.mk
 include build-aux/kubernaut.mk
 include build-aux/proxy.mk
-
-CLUSTER=rl-cluster.knaut
-export KUBECONFIG=${PWD}/$(CLUSTER)
-include build-aux/k8s.mk
 
 export GOPATH
 export GOBIN
@@ -55,14 +53,7 @@ diff:
 	cd ${RATELIMIT_REPO} && git diff > $(PATCH)
 .PHONY: diff
 
-shell:
-	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " PATH=$(PATH):$(BIN) bash
-.PHONY: shell
-
-claim: $(CLUSTER).clean $(CLUSTER)
-.PHONY: claim
-
-clean: $(CLUSTER).clean k8s.clean
+clean: $(CLUSTER).clean
 	rm -rf ratelimit ratelimit_client image
 .PHONY: clean
 

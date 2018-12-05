@@ -1,27 +1,20 @@
+PROFILE?=dev
 
-build-aux/env.$(PROFILE).mk: build-aux/env.go config.json
-	PROFILE=$(PROFILE) go run build-aux/env.go -input config.json -output $@
-.PHONY: build-aux/env.$(PROFILE).mk
+# NOTE: this is not a typo, this is actually how you spell newline in make
+define NL
 
-env: build-aux/env.$(PROFILE).mk
-	$(eval $(file <build-aux/env.$(PROFILE).mk))
+
+endef
+
+env:
+	$(eval $(subst @NL,$(NL), $(shell go run build-aux/env.go -profile $(PROFILE) -newline "@NL" -input config.json)))
 .PHONY: env
 
 hash: env
 	@echo HASH=$(HASH)
 .PHONY: hash
 
-K8S_DIR ?= k8s
-TEMPLATES:=$(wildcard $(K8S_DIR)/*.yaml)
-
-MANIFESTS_DIR=$(K8S_DIR).$(PROFILE)
-MANIFESTS=$(TEMPLATES:$(K8S_DIR)/%.yaml=$(MANIFESTS_DIR)/%.yaml)
-
-export IMAGE
-
-$(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env
-	@echo "Generating $< -> $@"
-	mkdir -p $(MANIFESTS_DIR) && cat $< | IMAGE=$(file <build-aux/pushed.txt) envsubst> $@
+MANIFESTS?=$(wildcard k8s/*.yaml)
 
 push_ok: env
 	@if [ "$(PROFILE)" == "prod" ]; then echo "CANNOT PUSH TO PROD"; exit 1; fi
@@ -29,27 +22,25 @@ push_ok: env
 
 push: push_ok docker
 	docker push $(IMAGE)
-	echo $(IMAGE) > build-aux/pushed.txt
+	echo $(IMAGE) > pushed.txt
 .PHONY: push
 
-manifests: $(MANIFESTS)
-.PHONY: manifests
-
-KUBEAPPLY=$(GOBIN)/kubeapply
+KUBEAPPLY=$(CURDIR)/kubeapply
+KUBEAPPLY_VERSION=0.3.2
+# This should maybe be replaced with a lighterweight dependency
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
 
 $(KUBEAPPLY):
-	$(GO) get github.com/datawire/teleproxy/cmd/kubeapply
+	curl -o $(KUBEAPPLY) https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/$(GOOS)/$(GOARCH)/kubeapply
+	chmod go-w,a+x $(KUBEAPPLY)
 
-apply: manifests $(CLUSTER) $(KUBEAPPLY)
-	$(KUBEAPPLY) $(MANIFESTS:%=-f %)
+apply: $(CLUSTER) $(KUBEAPPLY)
+	KUBECONFIG=$(CLUSTER) IMAGE=$(file <pushed.txt) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
 .PHONY: apply
 
 deploy: push apply
 .PHONY: deploy
-
-k8s.clean:
-	rm -rf $(MANIFESTS_DIR) build-aux/env.*.mk
-.PHONY: k8s.clean
 
 k8s.clobber:
 	rm -rf $(KUBEAPPLY)
