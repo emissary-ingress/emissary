@@ -20,14 +20,17 @@ export LANG=C.UTF-8
 AMBASSADOR_ROOT="/ambassador"
 AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
-ENVOY_CONFIG_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/envoy.json"
+ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
+ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
 
 if [ "$1" == "--demo" ]; then
+    # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
+    # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
 
-mkdir -p ${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config
-mkdir -p ${AMBASSADOR_CONFIG_BASE_DIR}/envoy
+mkdir -p "${CONFIG_DIR}"
+mkdir -p "${ENVOY_DIR}"
 
 DELAY=${AMBASSADOR_RESTART_TIME:-1}
 
@@ -121,11 +124,11 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-diagd "${AMBASSADOR_CONFIG_BASE_DIR}" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+diagd "${CONFIG_DIR}" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
-./ambex "${AMBASSADOR_CONFIG_BASE_DIR}/envoy" &
+./ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
