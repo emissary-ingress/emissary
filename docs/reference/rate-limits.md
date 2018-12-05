@@ -7,30 +7,33 @@ Rate limits are a powerful way to improve availability and scalability for your 
 In Ambassador 0.50 and later, each mapping in Ambassador can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels are specified with the `labels` annotation:
 
 ```
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: catalog
 prefix: /catalog/
 service: catalog
 labels:
-  - ambassador:
-    - string_request_label:            # a specific request label
-      - catalog                        # annotate the request with the string `catalog`
+  ambassador:
+    - string_request_label:         # a specific request label group
+      - catalog                     # annotate the request with the string `catalog`
     - header_request_label:
-      - header: ":method"              # annotate the request with the specific HTTP method used
-        omit_if_not_present: true      # if the header is not present, omit the label
-    - multi_request_label:
-      - header: ":authority"
-        omit_if_not_present: true
-      - header: "x-user"
-        omit_if_not_present: true
+      - headerkey:                  # The name of the label
+          header: ":method"         # annotate the request with the specific HTTP method used
+          omit_if_not_present: true # if the header is not present, omit the label
+    - multi_request_label_group:
+      - authorityheader:
+          header: ":authority"
+          omit_if_not_present: true
+      - xuserheader:
+          header: "x-user"
+          omit_if_not_present: true
 ```
 
 Let's digest the above example:
 
 * Request labels must be part of the `ambassador` namespace. This limitation will be removed in future versions of Ambassador.
 * Each label must have a name, e.g., `one_request_label`
-* The `string_request_label` simply adds the string `catalog` to every incoming request to the given mapping
+* The `string_request_label` simply adds the string `catalog` to every incoming request to the given mapping. The string is referenced with the key `generic_key`.
 * The `header_request_label` adds a specific HTTP header value to the request, in this case, the method. Note that HTTP/2 request headers must be used here (e.g., the `host` header needs to be specified as the `:authority` header).
 * Multiple labels can be part of a single named label, e.g., `multi_request_label` specifies two different headers to be added
 * When an HTTP header is not present, the entire named label is omitted. The `omit_if_not_present: true` is an explicit notation to remind end users of this limitation. `false` is *not* a supported value. This limitation will be removed in future versions of Ambassador.
