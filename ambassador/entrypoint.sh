@@ -41,6 +41,7 @@ check_debug () {
 }
 
 DIAGD_DEBUG=$(check_debug "diagd")
+KUBEWATCH_DEBUG=$(check_debug "kubewatch")
 ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
 
 if [ "$1" == "--demo" ]; then
@@ -135,7 +136,7 @@ wait_for_ready() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
+/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
 
 STATUS=$?
 
@@ -156,7 +157,7 @@ echo "AMBASSADOR: starting Envoy"
 envoy $ENVOY_DEBUG -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
 pids="${pids:+${pids} }$!:envoy"
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
+/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"
