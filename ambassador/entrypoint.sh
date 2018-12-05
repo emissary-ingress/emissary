@@ -23,6 +23,26 @@ CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
 
+# Set AMBASSADOR_DEBUG to things separated by spaces to enable debugging.
+check_debug () {
+    word="$1"
+    args="$2"
+
+    # I'm not sure if ${x:---debug} works, but it's too weird to read anyway.
+    if [ -z "$args" ]; then
+        args="--debug"
+    fi
+
+    if [ $(echo "$AMBASSADOR_DEBUG" | grep -c "$word" || :) -gt 0 ]; then
+        echo "$args"
+    else
+        echo ""
+    fi
+}
+
+DIAGD_DEBUG=$(check_debug "diagd")
+ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
+
 if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
@@ -124,7 +144,7 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-diagd "${CONFIG_DIR}" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+diagd "${CONFIG_DIR}" $DIAGD_DEBUG --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
@@ -133,7 +153,7 @@ AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
 echo "AMBASSADOR: starting Envoy"
-envoy -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
+envoy $ENVOY_DEBUG -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
 pids="${pids:+${pids} }$!:envoy"
 
 /usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
