@@ -64,7 +64,7 @@ jobs:
           os: linux
       - kubectl-install
       - main
-      - run: ${DOCKER_LOGIN}
+      - run: docker login -u="datawire+releasebot" -p="${DOCKER_TOKEN}" quay.io
       - run: make push
       - run: .circleci/promote.sh
 
