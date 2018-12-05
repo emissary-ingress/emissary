@@ -18,14 +18,14 @@ metadata:
       apiVersion: ambassador/v0
       kind: RateLimitService
       name: ambassador-pro
-      service: "127.0.0.1:8081"
+      service: "ambassador-pro:8081"
 spec:
   selector:
     service: ambassador-pro
   type: ClusterIP
   ports:
   - name: ratelimit-grpc
-    port: 81
+    port: 8081
     targetPort: 8081
   - name: ratelimit-debug
     port: 6070
