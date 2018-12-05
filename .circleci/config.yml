@@ -28,6 +28,7 @@ commands:
       - run: 'echo PATH: ${PATH} || true'
       - run: 'echo GOPATH: ${GOPATH} || true'
       - run: go version
+      - run: curl https://glide.sh/get | sh
 
   kubectl-install:
     steps:
