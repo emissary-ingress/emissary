@@ -14,7 +14,6 @@ import re
 # from shell import shell
 
 from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
-from ambassador.config import fetch_resources
 from ambassador import Config, IR
 from ambassador.envoy import V1Config
 
@@ -507,14 +506,8 @@ def test_config(testname, dirpath, configdir):
 
     print("==== loading resources")
 
-    raw = list(fetch_resources(configdir, logger))
-    resources = sorted(raw, key=lambda x: x.rkey)
-
-    # print("raw:    %s" % ", ".join([ x.rkey for x in raw ]))
-    # print("sorted: %s" % ", ".join([ x.rkey for x in resources ]))
-
     aconf = Config()
-    aconf.load_all(resources)
+    aconf.load_from_directory(configdir)
 
     ir = IR(aconf, file_checker=file_always_exists)
     v1config = V1Config(ir)

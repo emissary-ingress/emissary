@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import socket
-import sys
 
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
@@ -29,8 +28,8 @@ from ..utils import RichStatus
 
 from .acresource import ACResource
 from .acmapping import ACMapping
+from .resourcefetcher import ResourceFetcher
 
-#from .VERSION import Version
 
 #############################################################################
 ## config.py -- the main configuration parser for Ambassador
@@ -214,19 +213,48 @@ class Config:
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
-    def post_error(self, rc: RichStatus, resource: ACResource=None):
+    # Utility methods built around ResourceFetcher.
+    def fetch_resources(self, config_dir_path: str, k8s=False):
+        fetcher = ResourceFetcher(self, config_dir_path, k8s=k8s)
+        return fetcher.__iter__()
+
+    def load_from_directory(self, config_dir_path: str, k8s=False, key=lambda x: x.rkey) -> None:
+        """
+        Load all the resources contained in YAML files in a given directory. To be considered,
+        the files must have names ending in '.yaml' (case insensitive).
+
+        By default, resources are sorted according to their rkey before loading. Pass a different
+        sort function as key if you want to change the sort order.
+
+        This is a really just a convenience method that uses a ResourceFetcher to find the resources,
+        sorts them, and then calls self.load_all().
+
+        :param config_dir_path: the directory to search for YAML files
+        :param k8s: should we expect that the files we find are annotated K8s resources?
+        :param key: sort function; defaults to lambda x: x.rkey
+        """
+
+        raw = list(self.fetch_resources(config_dir_path, k8s=k8s))
+        resources = sorted(raw, key=key)
+
+        self.load_all(resources)
+
+    def post_error(self, rc: RichStatus, resource: ACResource=None, unparsed_resource=False):
         if not resource:
             resource = self.current_resource
 
-        if not resource:
-            raise Exception("FATAL: trying to post an error from a totally unknown resource??")
+        rkey = 'unparsed'
 
-        self.save_source(resource)
-        resource.post_error(rc)
+        if resource:
+            self.save_source(resource)
+            resource.post_error(rc)
+            rkey = resource.rkey
+        elif not unparsed_resource:
+            raise Exception("FATAL: trying to post an error from a totally unknown resource??")
 
         # XXX Probably don't need this data structure, since we can walk the source
         # list and get them all.
-        errors = self.errors.setdefault(resource.rkey, [])
+        errors = self.errors.setdefault(rkey, [])
         errors.append(rc.as_dict())
         self.logger.error("%s: %s" % (resource, rc))
 

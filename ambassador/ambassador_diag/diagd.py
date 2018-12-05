@@ -35,7 +35,6 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, ScoutNotice, Version
-from ambassador.config import fetch_resources
 from ambassador.utils import SystemInfo, PeriodicTrigger
 
 from ambassador.diagnostics import EnvoyStats
@@ -172,9 +171,8 @@ def get_aconf(app, what):
 
     app.logger.debug("Fetching resources from %s" % latest)
 
-    resources = fetch_resources(latest, app.logger, k8s=app.k8s)
     aconf = Config()
-    aconf.load_all(resources)
+    aconf.load_from_directory(latest, k8s=app.k8s)
 
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)

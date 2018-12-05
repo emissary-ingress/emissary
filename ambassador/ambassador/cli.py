@@ -24,8 +24,7 @@ import traceback
 import clize
 from clize import Parameter
 
-from . import Scout, ScoutNotice, Config, IR, Diagnostics, Version
-from .config import fetch_resources
+from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import V1Config
 from .envoy import V2Config
 
@@ -172,9 +171,8 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     diagconfig = None
 
     try:
-        resources = fetch_resources(config_dir_path, logger, k8s=k8s)
         aconf = Config()
-        aconf.load_all(resources)
+        aconf.load_from_directory(config_dir_path, k8s=k8s)
 
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
@@ -285,9 +283,8 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
 
-            resources = fetch_resources(config_dir_path, logger, k8s=k8s)
             aconf = Config()
-            aconf.load_all(resources)
+            aconf.load_from_directory(config_dir_path, k8s=k8s)
 
             if dump_aconf:
                 with open(dump_aconf, "w") as output:

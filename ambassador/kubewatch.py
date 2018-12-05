@@ -30,7 +30,6 @@ from typing import Optional, Dict
 
 from kubernetes import watch
 from ambassador import Config, Scout
-from ambassador.config import fetch_resources
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
 from ambassador.ir import IR
 from ambassador.envoy import V2Config
@@ -243,9 +242,8 @@ class Restarter(threading.Thread):
         logger.info("generating config with gencount %d (%d change%s)" % 
                     (self.restart_count, changes, plural))
 
-        resources = fetch_resources(output, logger)
         aconf = Config()
-        aconf.load_all(resources)
+        aconf.load_from_directory(output)
         ir = IR(aconf, tls_secret_resolver=self.tls_secret_resolver)
         envoy_config = V2Config(ir)
 
