@@ -52,6 +52,46 @@ spec:
 """
 
 
+class TLSContextsTest(AmbassadorTest):
+    """
+    This test makes sure that TLS is not turned on when it's not intended to. For example, when an 'upstream'
+    TLS configuration is passed, the port is not supposed to switch to 443
+    """
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: Module
+name: tls
+ambassador_id: {self.ambassador_id}
+config:
+  upstream:
+    enabled: True
+    secret: test-certs-secret
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /{self.name}/
+service: {self.target.path.k8s}
+""")
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"), error='connection reset by peer')
+
+    def requirements(self):
+        yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))
+
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
 
     target: ServiceType
