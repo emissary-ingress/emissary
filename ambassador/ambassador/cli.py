@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Optional, Dict
+from typing import Optional, Dict
+from typing import cast as typecast
 
 import sys
 
@@ -25,8 +26,7 @@ import clize
 from clize import Parameter
 
 from . import Scout, Config, IR, Diagnostics, Version
-from .envoy import V1Config
-from .envoy import V2Config
+from .envoy import EnvoyConfig, V1Config, V2Config
 
 from .utils import RichStatus
 
@@ -168,7 +168,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     dump_diag = diag
 
     od = {}
-    diagconfig = None
+    diagconfig: Optional[EnvoyConfig] = None
 
     try:
         aconf = Config()
@@ -193,9 +193,10 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['v2'] = v2config.as_dict()
 
         if dump_diag:
-            diag = Diagnostics(ir, diagconfig)
+            econf = typecast(EnvoyConfig, diagconfig)
+            diag = Diagnostics(ir, econf)
             od['diag'] = diag.as_dict()
-            od['elements'] = diagconfig.elements
+            od['elements'] = econf.elements
 
         scout = Scout()
         result = scout.report(action="dump", mode="cli")

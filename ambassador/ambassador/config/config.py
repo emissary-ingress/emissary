@@ -76,7 +76,10 @@ class Config:
             # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
 
-        self.statsd = {'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')}
+        self.statsd: Dict[str, Any] = {
+            'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')
+        }
+
         if self.statsd['enabled']:
             self.statsd['interval'] = os.environ.get('STATSD_FLUSH_INTERVAL', '1')
 

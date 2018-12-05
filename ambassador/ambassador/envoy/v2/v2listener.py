@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 import json
 
-from copy import deepcopy
+# from copy import deepcopy
 
 from multi import multi
 from ...ir.irlistener import IRListener
@@ -29,7 +29,7 @@ from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
 
 from .v2tls import V2TLSContext
-from .v2route import V2Route
+# from .v2route import V2Route
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -78,6 +78,7 @@ ExtAuthRequestHeaders = {
     'x-ot-span-context': True,
     'WWW-Authenticate': True,
 }
+
 
 @multi
 def v2filter(irfilter: IRFilter):
@@ -166,7 +167,6 @@ def v2filter_auth(auth: IRAuth):
             }
 
 
-
 @v2filter.when("IRRateLimit")
 def v2filter_ratelimit(ratelimit: IRRateLimit):
     config = dict(ratelimit.config)
@@ -211,11 +211,11 @@ class V2Listener(dict):
 
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
-        self.filter_chains = []
+        self.filter_chains: List[dict] = []
 
-        self.upgrade_configs: Optional[str] = None
+        self.upgrade_configs: Optional[List[dict]] = None
 
-        self.routes: List[V2Route] = typecast(List[V2Route], [ {
+        self.routes: List[dict] = [ {
             'match': {
                 'prefix': '/',
             },
@@ -223,7 +223,7 @@ class V2Listener(dict):
                 'https_redirect': True,
                 'path_redirect': '/'
             }
-        } ])
+        } ]
 
         if listener.redirect_listener:
             self.http_filters = [{'name': 'envoy.router'}]
@@ -364,12 +364,9 @@ class V2Listener(dict):
         # Is SNI active?
         global_sni = False
 
-        # We'll build our chain to return in filter_chain.
-        filter_chains: List[Dict[str, Any]] = []
-
         # We'll assemble a list of active TLS contexts here. It may end up empty,
         # of course.
-        envoy_contexts: List[V2TLSContext] = []
+        envoy_contexts: List[Tuple[str, List[str], V2TLSContext]] = []
 
         for tls_context in config.ir.tls_contexts:
             config.ir.logger.debug("V2Listener: SNI operating on context '%s'" % tls_context.name)
@@ -383,18 +380,20 @@ class V2Listener(dict):
         # this soon?
 
         v2ctx = V2TLSContext()
+        saved_ctx_name: Optional[str] = None
 
         for ctxname in ['client', 'server']:
-            ctx = config.ir.get_envoy_tls_context(ctxname)
+            tls_module_ctx = config.ir.get_envoy_tls_context(ctxname)
 
-            if ctx:
+            if tls_module_ctx:
+                saved_ctx_name = ctxname
                 config.ir.logger.debug("V2Listener: SNI operating on legacy '%s'" % ctxname)
-                config.ir.logger.debug(ctx.as_json())
-                v2ctx.add_context(ctx)
+                config.ir.logger.debug(tls_module_ctx.as_json())
+                v2ctx.add_context(tls_module_ctx)
 
         if v2ctx:   # must exist and be non-empty for this to eval True
             config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-            envoy_contexts.append((ctx.name, '*', v2ctx))
+            envoy_contexts.append((typecast(str, saved_ctx_name), ['*'], v2ctx))
 
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:

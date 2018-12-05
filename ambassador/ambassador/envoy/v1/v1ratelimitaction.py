@@ -17,7 +17,7 @@ from typing import Any, List, Dict, TYPE_CHECKING
 from ...utils import RichStatus
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V1Config
 
 
 class V1RateLimitAction(dict):
@@ -26,10 +26,11 @@ class V1RateLimitAction(dict):
 
         self.valid = False
         self.stage = 0
-        self.actions = []
+        self.actions: List[Any] = []
 
-        if rate_limit == {}:
-            rate_limit = []
+        if rate_limit == []:
+            # If empty, we can be done.
+            return
 
         config.ir.logger.debug("V1RateLimitAction translating %s" % rate_limit)
 

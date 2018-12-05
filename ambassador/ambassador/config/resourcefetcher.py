@@ -80,7 +80,7 @@ class ResourceFetcher:
                 else:
                     self.ocount = self.process_object(obj, rkey)
         except yaml.error.YAMLError as e:
-            self.post_error(RichStatus.fromError("%s: could not parse YAML: %s" % (filepath, e)),
+            self.post_error(RichStatus.fromError("%s: could not parse YAML: %s" % (self.filepath, e)),
                             unparsed_resource=True)
 
     def extract_k8s(self, obj: dict) -> None:
@@ -139,7 +139,7 @@ class ResourceFetcher:
         if 'kind' not in obj:
             # Bug!!
             self.post_error(RichStatus.fromError("%s.%d is missing 'kind'?? %s" %
-                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))),
+                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=True))),
                             unparsed_resource=True)
             return self.ocount + 1
 
