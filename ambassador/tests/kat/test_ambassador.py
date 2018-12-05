@@ -87,7 +87,7 @@ service: {self.target.path.k8s}
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), error='connection reset by peer')
+        yield Query(self.url(self.name + "/"), error=['connection reset by peer', 'EOF'])
 
     def requirements(self):
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))

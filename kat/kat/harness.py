@@ -311,8 +311,20 @@ class Result:
             pytest.xfail(self.query.xfail)
 
         if self.query.error is not None:
-            assert self.query.error in self.error, "{}: expected error to contain '{}', got {} instead".format(
-                self.query.url, self.query.error, self.error
+            errors = self.query.error
+
+            if isinstance(self.query.error, str):
+                errors = [ self.query.error ]
+
+            found = False
+
+            for error in errors:
+                if error in self.error:
+                    found = True
+                    break
+
+            assert found, "{}: expected error to contain any of {}; got '{}' instead".format(
+                self.query.url, ", ".join([ "'%s'" % x for x in errors ]), self.error
             )
         else:
             assert self.query.expected == self.status, \
