@@ -26,6 +26,8 @@ commands:
           echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV} &&
           echo 'export GOBIN=${HOME}/go/bin' >> ${BASH_ENV}
 
+      - run: mkdir -p ${GOPATH} ${GOBIN}
+
       - run: curl https://glide.sh/get | sh
 
   kubectl-install:
