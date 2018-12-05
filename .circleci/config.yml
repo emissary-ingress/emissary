@@ -19,7 +19,6 @@ commands:
           sudo rm -rf /usr/local/go &&
           curl https://dl.google.com/go/go1.10.2.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz &&
           sudo tar -C /usr/local -xzf /tmp/go.tgz
-      - run: curl https://glide.sh/get | sh
 
       # Golang paths
       - run: |
@@ -29,6 +28,8 @@ commands:
       - run: 'echo PATH: ${PATH} || true'
       - run: 'echo GOPATH: ${GOPATH} || true'
       - run: go version
+
+      - run: curl https://glide.sh/get | GOBIN=/usr/local/go/bin sh
 
   kubectl-install:
     steps:
