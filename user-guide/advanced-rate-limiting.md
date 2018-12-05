@@ -114,7 +114,6 @@ labels:
         - qotm_http_method:
             header: ":method"
             omit_if_not_present: true
-        - remote_address
 ```
 
 Our rate limiting configuration becomes:
