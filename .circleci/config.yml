@@ -29,7 +29,7 @@ commands:
       - run: 'echo GOPATH: ${GOPATH} || true'
       - run: go version
 
-      - run: curl https://glide.sh/get | GOBIN=/usr/local/go/bin sh
+      - run: curl https://glide.sh/get | GOBIN=/usr/local/go/bin sudo sh
 
   kubectl-install:
     steps:
