@@ -311,7 +311,7 @@ class Result:
             pytest.xfail(self.query.xfail)
 
         if self.query.error is not None:
-            assert self.query.error == self.error, "{}: expected error to be {}, got {} instead".format(
+            assert self.query.error in self.error, "{}: expected error to contain '{}', got {} instead".format(
                 self.query.url, self.query.error, self.error
             )
         else:

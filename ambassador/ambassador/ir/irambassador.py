@@ -126,7 +126,7 @@ class IRAmbassador (IRResource):
                         self.logger.debug("not updating context %s from %s" % (ctx_name, ctxloc))
                         # self.logger.debug(etls.as_json())
 
-                    if etls.get('valid_tls'):
+                    if etls.get('valid_tls') and ctx_name == 'server':
                         self.logger.debug("TLS termination enabled!")
                         self.service_port = 443
 

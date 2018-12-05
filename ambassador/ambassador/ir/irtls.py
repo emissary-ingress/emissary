@@ -51,14 +51,7 @@ class IREnvoyTLS (IRResource):
             **kwargs
         )
 
-    def setup(self, ir: 'IR', aconf: Config):
-        if not self.enabled:
-            return False
-
-        self['valid_tls'] = False
-        secret = self.get('secret')
-
-        # Check if secret and certs, both are specified
+    def cert_specified(self, ir: 'IR') -> bool:
         cert_specified = False
 
         cert_chain_file = self.get('cert_chain_file')
@@ -78,6 +71,17 @@ class IREnvoyTLS (IRResource):
                     RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
                 return False
             cert_specified = True
+
+        return cert_specified
+
+    def setup(self, ir: 'IR', aconf: Config):
+        if not self.enabled:
+            return False
+
+        self['valid_tls'] = False
+        secret = self.get('secret')
+
+        cert_specified = self.cert_specified(ir)
 
         if secret is not None and cert_specified:
             self.pop('secret', None)
