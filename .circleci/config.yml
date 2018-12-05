@@ -64,7 +64,7 @@ jobs:
           os: linux
       - kubectl-install
       - main
-      - run: $(DOCKER_LOGIN)
+      - run: ${DOCKER_LOGIN}
       - run: make push
       - run: .circleci/promote.sh
 
