@@ -170,6 +170,8 @@ def get_aconf(app, what):
     else:
         latest = app.config_dir_prefix
 
+    app.logger.debug("Fetching resources from %s" % latest)
+
     resources = fetch_resources(latest, app.logger, k8s=app.k8s)
     aconf = Config()
     aconf.load_all(resources)

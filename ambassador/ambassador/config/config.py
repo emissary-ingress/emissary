@@ -101,7 +101,7 @@ class Config:
         Resets this Config to the empty, default state so it can load a new config.
         """
 
-        self.logger.debug("RESET")
+        self.logger.debug("ACONF RESET")
 
         self.current_resource = None
 
@@ -176,7 +176,12 @@ class Config:
         Loads all of a set of ACResources. It is the caller's responsibility to arrange for
         the set of ACResources to be sorted in some way that makes sense.
         """
+
+        rcount = 0
+
         for resource in resources:
+            rcount += 1
+
             # Is an ambassador_id present in this object?
             allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 
@@ -192,13 +197,15 @@ class Config:
                                       (resource, Config.ambassador_id, allowed_ids))
                     continue
 
-            # self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
+            self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
 
             rc = self.process(resource)
 
             if not rc:
                 # Object error. Not good but we'll allow the system to start.
                 self.post_error(rc, resource=resource)
+
+        self.logger.debug("LOAD_ALL: processed %d resource%s" % (rcount, "" if (rcount == 1) else "s"))
 
         if self.fatal_errors:
             # Kaboom.
