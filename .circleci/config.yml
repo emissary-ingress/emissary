@@ -64,6 +64,10 @@ jobs:
           os: linux
       - kubectl-install
       - main
+      - run: $(DOCKER_LOGIN)
+      - run: make push
+      - run: .circleci/promote.sh
+
 
 workflows:
   version: 2.1
