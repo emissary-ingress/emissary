@@ -40,24 +40,6 @@ class V2Route(dict):
         if len(headers) > 0:
             match['headers'] = headers
 
-        # group_headers = group.get('headers', None)
-        #
-        # if group_headers:
-        #     match['headers'] = []
-        #
-        #     for hdr in group_headers:
-        #         matcher = { 'name': hdr.name }
-        #
-        #         if hdr.value:
-        #             if hdr.regex:
-        #                 matcher['regex_match'] = hdr.value
-        #             else:
-        #                 matcher['exact_match'] = hdr.value
-        #         else:
-        #             matcher['present_match'] = True
-        #
-        #         match['headers'].append(matcher)
-
         clusters = []
         req_hdrs_to_add = group.get('request_headers_to_add', None)
 
@@ -74,6 +56,7 @@ class V2Route(dict):
 
         route = {
             'priority': group.get('priority'),
+            'timeout': "%0.3fs" % (group.get('timeout_ms', 3000) / 1000.0),
             'weighted_clusters': {
                 'clusters': clusters
             }
