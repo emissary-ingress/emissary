@@ -73,6 +73,35 @@ spec:
 
 Configure the `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE`, and `AUTH_CLIENT_ID` variables by following the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) guide.
 
+After configuring the authentication, you will need to configure an `AuthService` for Ambassador. You can do this by updating the Ambassador Pro Kubernetes service, like the below:
+
+```
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: RateLimitService
+      name: ambassador-pro
+      service: "ambassador-pro:8081"
+      ---
+      apiVersion: ambassador/v0
+      kind:  AuthService
+      name:  authentication
+      auth_service: ambassador-pro
+      allowed_headers:
+        - "Authorization"
+        - "Client-Id"
+        - "Client-Secret"
+...
+```
+
+(For the sake of brevity, the full Kubernetes service is not duplicated above.)
+
 ### 5. Deploy Ambassador Pro
 
 Once you have fully configured Ambassador Pro, deploy the your configuration:

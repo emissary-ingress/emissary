@@ -7,15 +7,6 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
-      auth_service: ambassador-pro
-      allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-      ---
-      apiVersion: ambassador/v0
       kind: RateLimitService
       name: ambassador-pro
       service: "ambassador-pro:8081"
