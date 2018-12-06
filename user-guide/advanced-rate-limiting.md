@@ -25,7 +25,7 @@ In the examples below, we'll use the QOTM sample service used in the [Getting St
 
 Imagine the `qotm` service is a Rust-y application that can only handle 3 requests per minute before crashing. While the engineering team really wants to rewrite the `qotm` service in Golang (because Rust isn't fast enough), they haven't had a chance to do so. We want to rate limit all requests for this service to 3 requests per minute. (ProTip: Using requests per minute simplifies testing.)
 
-We update the mapping for the `qotm` service to add a request label to the route:
+We update the mapping for the `qotm` service to add a request label `qotm` to the route as part of a `request_label_group`:
 
 ```
 apiVersion: ambassador/v1
@@ -73,11 +73,10 @@ service: qotm
 labels:
   ambassador:
     - request_label_group:
-      - qotm
       - remote_address
 ```
 
-We then update our rate limits to limit on `remote_address` and the key. When we add multiple criteria to a pattern, the entire pattern matches when ANY of the rules match (i.e., a logical OR). A pattern match then triggers a rate limit event.
+We then update our rate limits to limit on `remote_address`:
 
 ```
 apiVersion: getambassador.io/v1beta1
@@ -87,7 +86,7 @@ metadata:
 spec:
   domain: ambassador
   limits:
-   - pattern: [{generic_key: qotm}, {remote_address: "*"}]
+   - pattern: [{remote_address: "*"}]
      rate: 3
      unit: minute
 ```
@@ -96,7 +95,7 @@ Note for this to work, you need to make sure you've properly configured Ambassad
 
 ## Example 3: Load shedding GET requests
 
-You've dramatically improved availability of the `qotm` service, thanks to the per-user rate limiting. However, you've realized that on occasion the queries (e.g., the 'GET' requests) cause so much volume that updates to the qotm (e.g., the 'POST' requests) don't get processed. So we're going to add a more sophisticated rate limiting strategy:
+You've dramatically improved availability of the `qotm` service, thanks to the per-user rate limiting. However, you've realized that on occasion the queries (e.g., the 'GET' requests) cause so much volume that updates to the qotm (e.g., the 'POST' requests) don't get processed. So we're going to add a more sophisticated load shedding strategy:
 
 * We're going to rate limit per user.
 * We're going to implement a global rate limit on `GET` requests, but not `POST` requests.
@@ -116,7 +115,7 @@ labels:
             omit_if_not_present: true
 ```
 
-Our rate limiting configuration becomes:
+When we add multiple criteria to a pattern, the entire pattern matches when ANY of the rules match (i.e., a logical OR). A pattern match then triggers a rate limit event. Our rate limiting configuration becomes:
 
 ```
 apiVersion: getambassador.io/v1beta1
