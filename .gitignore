@@ -1,9 +1,6 @@
 .go-workspace/src/github.com/lyft/
 *.knaut
 *.knaut.claim
-env.*.mk
-k8s.*
-!k8s.mk
 /vendor
 /kubeapply
 /teleproxy
@@ -12,4 +9,4 @@ k8s.*
 /ratelimit
 /ratelimit_check
 /ratelimit_client
-build-aux/pushed.txt
+/pushed.txt

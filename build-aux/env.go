@@ -42,8 +42,10 @@ func main() {
 		}
 	}
 
-	var output = flag.String("output", "", "output file")
-	var input = flag.String("input", "", "input file")
+	var profile = flag.String("profile", "dev", "profile")
+	var output = flag.String("output", "/dev/stdout", "output file")
+	var input = flag.String("input", "/dev/stdin", "input file")
+	var newline = flag.String("newline", "\n", "string to use for newline")
 	flag.Parse()
 
 	in, err := os.Open(*input)
@@ -53,10 +55,6 @@ func main() {
 	die(err)
 	defer out.Close()
 
-	profile := strings.ToLower(os.Getenv("PROFILE"))
-	if profile == "" {
-		profile = "dev"
-	}
 	bytes, err := ioutil.ReadAll(in)
 	die(err)
 
@@ -64,10 +62,12 @@ func main() {
 	err = json.Unmarshal(bytes, &config)
 	die(err)
 
-	current, ok := config.Profiles[profile]
+	current, ok := config.Profiles[*profile]
 	if !ok {
-		panic("no such profile: " + profile)
+		panic("no such profile: " + *profile)
 	}
+
+	out.WriteString(fmt.Sprintf("PROFILE=%s%s", *profile, *newline))
 
 	combined := make(map[string]string)
 
@@ -79,10 +79,10 @@ func main() {
 	}
 
 	for k, v := range combined {
-		out.WriteString(fmt.Sprintf("%s=%s\n", k, v))
+		out.WriteString(fmt.Sprintf("%s=%s%s", k, v, *newline))
 	}
 
-	out.WriteString(fmt.Sprintf("HASH=%x\n", hash(config.Unversioned)))
+	out.WriteString(fmt.Sprintf("HASH=%x%s", hash(config.Unversioned), *newline))
 }
 
 func versioned(path string, excludes []string) bool {
