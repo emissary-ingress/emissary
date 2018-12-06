@@ -136,7 +136,7 @@ spec:
 #          - name: AUTH_CLIENT_SECRET
 #            value: <CLIENT SECRET>
       - name: ratelimit
-        image: quay.io/datawire/ambassador-ratelimit-dev:c400cc21f6ae58bd4b50c44851bbbf20
+        image: quay.io/datawire/ambassador-ratelimit:0.0.1
         env:
         - name: REDIS_SOCKET_TYPE
           value: tcp
