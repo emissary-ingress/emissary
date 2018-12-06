@@ -19,6 +19,7 @@ allowed_request_headers:
 - "x-example-header"
 allowed_authorization_headers:
 - "x-qotm-session"
+allow_request_body: false
 ```
 
 - `allowed_request_headers` (optional) lists headers that will be sent from the client to the auth service. These headers are always included:
@@ -37,6 +38,8 @@ allowed_authorization_headers:
     * `Proxy-Authenticate`
     * `Set-cookie`
     * `WWW-Authenticate`
+
+- `allow_request_body` (optional) will pass the full body of the request to the auth service for use cases such as computing an HMAC or request signature.
 
 ### v0
 
