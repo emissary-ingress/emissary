@@ -53,6 +53,23 @@ clean-go:
 	rm -rf .gocache
 .PHONY: clean clean-go
 
+# Some utility targets:
+go-get:
+	go get -t -u -d $(go.module)/...
+.PHONY: go-get
+
+go-fmt:
+	go fmt $(go.module)/...
+.PHONY: go-fmt
+
+go-mod-tidy:
+	go mod tidy
+.PHONY: go-mod-tidy
+
+go-mod-vendor:
+	go mod vendor
+.PHONY: go-mod-vendor
+
 # The $(go.bins) aren't .PHONY--they're real files that will exist,
 # but we should try to update them every run, and let `go` decide if
 # they're up-to-date or not, rather than trying to teach Make to do
