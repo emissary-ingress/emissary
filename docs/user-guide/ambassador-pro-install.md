@@ -123,7 +123,9 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 Restart Ambassador once Pro is deployed so it will update the `AuthService` and `RateLimitService` configuration. You can do this by deleting the Ambassador pods and letting the deployment redeploy the pods.
 
 ### More
+
 For more details on Ambassador Pro, see:
 
 * [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) for information about configuring SSO
 * [Advanced Rate Limiting](/user-guide/advanced-rate-limiting) for information on configuring rate limiting
+

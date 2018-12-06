@@ -17,6 +17,7 @@
 DRAIN_TIME=${AMBASSADOR_DRAIN_TIME:-5}
 SHUTDOWN_TIME=${AMBASSADOR_SHUTDOWN_TIME:-10}
 AMBASSADOR_ROOT="/ambassador"
+CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 
-LATEST=$(ls -1v "$AMBASSADOR_ROOT"/envoy*.json | tail -1)
+LATEST=$(ls -1v "$CONFIG_DIR"/envoy*.json | tail -1)
 exec /usr/local/bin/envoy -c ${LATEST} --restart-epoch $RESTART_EPOCH --drain-time-s "${DRAIN_TIME}" --service-cluster "${AMBASSADOR_ID:-ambassador}-${AMBASSADOR_NAMESPACE}" --parent-shutdown-time-s "${SHUTDOWN_TIME}"

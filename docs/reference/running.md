@@ -44,6 +44,23 @@ spec:
 
 * If you are using `redirect_cleartext_from`, change the value of this field to point to your cleartext port (e.g., 8080) and set `service_port` to be your TLS port (e.g., 8443).
 
+## Changing the configuration directory
+
+While running, Ambassador needs to use a directory within its container for generated configuration data. 
+Normally this is `/ambassador`, but in some situations - especially if running as non-root - it may be necessary to
+change to a different directory. To do so, set the environment variable `AMBASSADOR_CONFIG_BASE_DIR` to the full 
+pathname of the directory to use, as shown below in this abbreviated example:
+
+```yaml
+env:
+- name: AMBASSADOR_CONFIG_BASE_DIR
+  value: /tmp/ambassador-config
+```
+
+With `AMBASSADOR_CONFIG_BASE_DIR` set as above, Ambassador will create and use the directory `/tmp/ambassador-config`
+for its generated data. (Note that, while the directory will be created if it does not exist, attempts to turn an
+existing file into a direcotry will fail.)
+
 ## Running as daemonset
 
 Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup up is especially helpful when you have Kubernetes cluster running on bare metal or private cloud. 

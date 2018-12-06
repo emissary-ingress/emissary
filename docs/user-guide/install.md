@@ -8,7 +8,7 @@ Ambassador can be installed in a variety of ways. The most common approach to in
 <table>
 <tr>
 <td>
-<a href="getting-started"><img src="/images/kubernetes.png"></a>
+<a href="/user-guide/getting-started"><img src="/images/kubernetes.png"></a>
 </td>
 <td>
 Ambassador is designed to run in Kubernetes for production. <a href="/user-guide/getting-started">Deploy to Kubernetes via YAML</a>.
