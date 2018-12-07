@@ -114,16 +114,17 @@ class IRAmbassador (IRResource):
                     continue
 
                 if isinstance(ctx, dict):
+                    ctxkey = ir.tls_module.get('rkey', self.rkey)
                     ctxloc = ir.tls_module.get('location', self.location)
 
-                    etls = IREnvoyTLS(ir=ir, aconf=aconf, name=ctx_name,
+                    etls = IREnvoyTLS(ir=ir, rkey=ctxkey, aconf=aconf, name=ctx_name,
                                       location=ctxloc, **ctx)
 
                     if ir.save_envoy_tls_context(ctx_name, etls):
-                        self.logger.debug("created context %s from %s" % (ctx_name, ctxloc))
+                        self.logger.debug("context %s: created from %s" % (ctx_name, ctxloc))
                         # self.logger.debug(etls.as_json())
                     else:
-                        self.logger.debug("not updating context %s from %s" % (ctx_name, ctxloc))
+                        self.logger.debug("context %s: not updating from %s" % (ctx_name, ctxloc))
                         # self.logger.debug(etls.as_json())
 
                     if etls.get('valid_tls') and ctx_name == 'server':

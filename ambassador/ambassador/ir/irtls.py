@@ -14,7 +14,7 @@
 
 import os
 
-from typing import TYPE_CHECKING
+from typing import ClassVar, TYPE_CHECKING
 
 from ..config import Config
 from .irresource import IRResource as IRResource
@@ -31,6 +31,8 @@ if TYPE_CHECKING:
 ## objects.
 
 class IREnvoyTLS (IRResource):
+    _cert_problems: ClassVar[bool] = False
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.envoytls",
                  kind: str="IREnvoyTLS",
@@ -57,18 +59,26 @@ class IREnvoyTLS (IRResource):
         cert_chain_file = self.get('cert_chain_file')
         if cert_chain_file is not None:
             if not ir.file_checker(cert_chain_file):
-                self.post_error(RichStatus.fromError('cert_chain_file path {} does not exist'.format(cert_chain_file)))
-                self.post_error(
-                    RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
+                self.post_error("TLS context '%s': cert_chain_file path %s does not exist" %
+                                (self.name, cert_chain_file))
+
+                if not IREnvoyTLS._cert_problems:
+                    IREnvoyTLS._cert_problems = True
+                    ir.post_error("TLS is not being turned on, traffic will NOT be served over HTTPS")
+
                 return False
             cert_specified = True
 
         private_key_file = self.get('private_key_file')
         if private_key_file is not None:
             if not ir.file_checker(private_key_file):
-                self.post_error(RichStatus.fromError('private_key_file path {} does not exist'.format(private_key_file)))
-                self.post_error(
-                    RichStatus.fromError("TLS is not being turned on, traffic will NOT be served over HTTPS"))
+                self.post_error("TLS context '%s': private_key_file path %s does not exist" %
+                                (self.name, private_key_file))
+
+                if not IREnvoyTLS._cert_problems:
+                    IREnvoyTLS._cert_problems = True
+                    self.post_error("TLS is not being turned on, traffic will NOT be served over HTTPS")
+
                 return False
             cert_specified = True
 

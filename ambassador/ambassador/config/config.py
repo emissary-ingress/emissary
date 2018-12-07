@@ -262,7 +262,7 @@ class Config:
 
     @post_error.when('RichStatus')
     def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None):
-        if not resource:
+        if resource is None:
             resource = self.current_resource
 
         rkey = '-global-'

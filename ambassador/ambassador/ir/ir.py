@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Iterable
+from typing import Any, Dict, Iterable, List, Optional, Union
 from typing import cast as typecast
 
 import json
@@ -204,8 +204,8 @@ class IR:
 
     # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
     # a common container that can hold errors.
-    def post_error(self, rc: RichStatus, resource: IRResource):
-        self.aconf.post_error(rc, resource)
+    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None):
+        self.aconf.post_error(rc, resource=resource)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():
