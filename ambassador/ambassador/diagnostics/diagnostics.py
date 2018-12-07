@@ -391,11 +391,6 @@ class Diagnostics:
                 fqkey,
                 {
                     'location': location,
-                    'objects': {},
-                    'count': 0,
-                    'plural': "objects",
-                    'error_count': 0,
-                    'error_plural': "errors",
                     'kind': rsrc.kind
                 }
             )
@@ -403,26 +398,9 @@ class Diagnostics:
             if uqkey and (uqkey != fqkey):
                 ambassador_element['parent'] = uqkey
 
-            raw_errors: List[dict] = self.ir.aconf.errors.get(fqkey, [])
-            errors = []
-
-            for error in raw_errors:
-                ambassador_element['error_count'] += 1
-
-                errors.append({
-                    'summary': error['error'].split('\n', 1)[0],
-                    'text': error['error']
-                })
-
-            ambassador_element['errors'] = errors
-
             serialization = rsrc.get('serialization', None)
             if serialization:
                 ambassador_element['serialization'] = serialization
-
-            ambassador_element['error_plural'] = "error" if (ambassador_element['error_count'] == 1) else "errors"
-            ambassador_element['count'] += 1
-            ambassador_element['plural'] = "object" if (ambassador_element[ 'count' ] == 1) else "objects"
 
         # Next up, the Envoy elements.
         for kind, elements in self.econf.elements.items():
