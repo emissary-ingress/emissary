@@ -94,19 +94,19 @@ class IRAuth (IRFilter):
         if self.location == '--internal--':
             self.sourced_by(module)
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service', 'allow_request_body' ]:
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service', 'allow_request_body', 'proto' ]:
             value = module.get(key, None)
 
             if value:
                 previous = self.get(key, None)
 
                 if previous and (previous != value):
-                    errstr = (
-                        "AuthService cannot support multiple %s values; using %s" %
-                        (key, previous)
+                    # Don't use self.post_error() here, since we need to explicitly override the
+                    # resource.
+                    self.ir.post_error(
+                        "AuthService cannot support multiple %s values; using %s" % (key, previous),
+                        resource=module
                     )
-
-                    self.post_error(RichStatus.fromError(errstr, resource=module))
                 else:
                     self[key] = value
 
@@ -121,9 +121,7 @@ class IRAuth (IRFilter):
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
 
-        
-
-        # Required fields check. 
+        # Required fields check.
         if self["api_version"] == None:
             self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
 

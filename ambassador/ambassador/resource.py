@@ -47,7 +47,8 @@ class Resource (dict):
     kind: str
     serialization: Optional[str]
 
-    _errors: List[RichStatus]
+    # _errors: List[RichStatus]
+    _errored: bool
     _referenced_by: Dict[str, 'Resource']
 
     def __init__(self, rkey: str, location: str, *,
@@ -65,7 +66,7 @@ class Resource (dict):
 
         super().__init__(rkey=rkey, location=location,
                          kind=kind, serialization=serialization,
-                         _errors=[],
+                         # _errors=[],
                          _referenced_by={},
                          **kwargs)
 
@@ -90,8 +91,8 @@ class Resource (dict):
     def is_referenced_by(self, other_location) -> Optional['Resource']:
         return self._referenced_by.get(other_location, None)
 
-    def post_error(self, error: RichStatus):
-        self._errors.append(error)
+    # def post_error(self, error: RichStatus):
+    #     self._errors.append(error)
 
     def __getattr__(self, key: str) -> Any:
         return self[key]
@@ -109,7 +110,7 @@ class Resource (dict):
         ad.pop('serialization', None)
         ad.pop('location', None)
         ad.pop('_referenced_by', None)
-        ad.pop('_errors', None)
+        ad.pop('_errored', None)
 
         return ad
 
@@ -161,6 +162,7 @@ class Resource (dict):
         new_attrs.pop('rkey', None)
         new_attrs.pop('location', None)
         new_attrs.pop('_errors', None)
+        new_attrs.pop('_errored', None)
         new_attrs.pop('_referenced_by', None)
 
         # ...and finally, use new_attrs for all the keyword args when we set up

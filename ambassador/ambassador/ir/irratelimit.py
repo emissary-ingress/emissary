@@ -33,8 +33,7 @@ class IRRateLimit (IRFilter):
         configs = config_info.values()
         number_configs = len(configs)
         if number_configs is not 1:
-            self.post_error(
-                RichStatus.fromError("only one RateLimitService is supported, got {}".format(number_configs)))
+            self.post_error("only one RateLimitService is supported, got {}".format(number_configs))
             return False
 
         config = list(configs)[0]

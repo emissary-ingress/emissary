@@ -48,7 +48,7 @@ class V1Route(dict):
             cors = config.ir.ambassador_module.cors.as_dict()
 
         if cors:
-            for key in [ "_active", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+            for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
                 cors.pop(key, None)
 
             self['cors'] = cors

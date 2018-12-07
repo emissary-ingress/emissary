@@ -920,6 +920,38 @@
         ]
     },
     "errors": {
+        "-global-": [
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
+        "auth.yaml.1": [
+            {
+                "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
         "mapping-redirector.yaml.3": [
             {
                 "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
@@ -1035,6 +1067,15 @@
         },
         "auth.yaml.1": {
             "_source": "auth.yaml",
+            "errors": [
+                {
+                    "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "auth.yaml",
             "index": 1,
             "kind": "AuthService",

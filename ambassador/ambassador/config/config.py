@@ -22,10 +22,12 @@ import os
 
 import jsonschema
 
+from multi import multi
 from pkg_resources import Requirement, resource_filename
 
 from ..utils import RichStatus
 
+from ..resource import Resource
 from .acresource import ACResource
 from .acmapping import ACMapping
 from .resourcefetcher import ResourceFetcher
@@ -242,24 +244,43 @@ class Config:
 
         self.load_all(resources)
 
-    def post_error(self, rc: RichStatus, resource: ACResource=None, unparsed_resource=False):
+
+    @multi
+    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None) -> str:
+        if isinstance(msg, RichStatus):
+            return 'RichStatus'
+        elif isinstance(msg, str):
+            return 'string'
+        else:
+            return type(msg).__name__
+
+    @post_error.when('string')
+    def post_error_string(self, msg: str, resource: Optional[Resource]=None):
+        rc = RichStatus.fromError(msg)
+
+        self.post_error(rc, resource=resource)
+
+    @post_error.when('RichStatus')
+    def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None):
         if not resource:
             resource = self.current_resource
 
-        rkey = 'unparsed'
+        rkey = '-global-'
 
-        if resource:
-            self.save_source(resource)
-            resource.post_error(rc)
+        if resource is not None:
             rkey = resource.rkey
-        elif not unparsed_resource:
-            raise Exception("FATAL: trying to post an error from a totally unknown resource??")
+            # resource.post_error(rc)
+
+            if isinstance(resource, ACResource):
+                self.save_source(resource)
+        # elif not unparsed_resource:
+        #     raise Exception("FATAL: trying to post an error from a totally unknown resource??")
 
         # XXX Probably don't need this data structure, since we can walk the source
         # list and get them all.
         errors = self.errors.setdefault(rkey, [])
         errors.append(rc.as_dict())
-        self.logger.error("%s: %s" % (resource, rc))
+        self.logger.error("%s: %s" % (rkey, rc))
 
     def process(self, resource: ACResource) -> RichStatus:
         # This should be impossible.

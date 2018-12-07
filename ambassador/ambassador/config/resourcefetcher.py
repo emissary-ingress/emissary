@@ -54,8 +54,7 @@ class ResourceFetcher:
             try:
                 serialization = open(filepath, "r").read()
             except IOError as e:
-                self.post_error(RichStatus.fromError("%s: could not load YAML: %s" % (filepath, e)),
-                                unparsed_resource=True)
+                self.post_error(RichStatus.fromError("%s: could not load YAML: %s" % (filepath, e)))
                 continue
 
             self.load_yaml(serialization, k8s=k8s)
@@ -66,8 +65,8 @@ class ResourceFetcher:
             self.filepath = None
             self.ocount = 0
 
-    def post_error(self, rc: RichStatus, resource: ACResource=None, unparsed_resource=False):
-        self.aconf.post_error(rc, resource=resource, unparsed_resource=unparsed_resource)
+    def post_error(self, rc: RichStatus, resource: ACResource=None):
+        self.aconf.post_error(rc, resource=resource)
 
     def load_yaml(self, serialization: str, rkey: Optional[str]=None, k8s: bool=False) -> None:
         try:
@@ -80,8 +79,7 @@ class ResourceFetcher:
                 else:
                     self.ocount = self.process_object(obj, rkey)
         except yaml.error.YAMLError as e:
-            self.post_error(RichStatus.fromError("%s: could not parse YAML: %s" % (self.filepath, e)),
-                            unparsed_resource=True)
+            self.post_error(RichStatus.fromError("%s: could not parse YAML: %s" % (self.filepath, e)))
 
     def extract_k8s(self, obj: dict) -> None:
         kind = obj.get('kind', None)
@@ -132,15 +130,13 @@ class ResourceFetcher:
         if not isinstance(obj, dict):
             # Bug!!
             self.post_error(RichStatus.fromError("%s.%d is not a dictionary? %s" %
-                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))),
-                            unparsed_resource=True)
+                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))))
             return self.ocount + 1
 
         if 'kind' not in obj:
             # Bug!!
             self.post_error(RichStatus.fromError("%s.%d is missing 'kind'?? %s" %
-                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=True))),
-                            unparsed_resource=True)
+                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=True))))
             return self.ocount + 1
 
         # Is this a pragma object?

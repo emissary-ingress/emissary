@@ -37,9 +37,7 @@ class V1RateLimitAction(dict):
         lkeys = rate_limit.keys()
         if len(lkeys) > 1:
             # "Impossible". This should've been caught earlier.
-            err = RichStatus.fromError("ratelimit has multiple entries (%s) instead of just one" %
-                                       lkeys)
-            config.ir.aconf.post_error(err)
+            config.ir.post_error("RateLimitAction has multiple entries instead of just one: %s" % rate_limit)
             return
 
         lkey = list(lkeys)[0]
@@ -62,7 +60,9 @@ class V1RateLimitAction(dict):
                 keylist = list(action.keys())
 
                 if len(keylist) != 1:
-                    config.ir.logger.error("V1RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
+                    # "Impossible". This should've been caught earlier.
+                    config.ir.post_error("RateLimitAction has invalid custom header '%s' (%s)" %
+                                         (action, rate_limit))
                     continue
 
                 dkey = keylist[0]
@@ -84,7 +84,7 @@ class V1RateLimitAction(dict):
                                    'descriptor_value': action })
             else:
                 # WTF.
-                config.ir.logger.error("V1RateLimitAction: invalid action '%s'" % action)
+                config.ir.post_error("RateLimitAction: invalid action '%s'" % action)
 
     def save_action(self, action):
         self.actions.append(action)

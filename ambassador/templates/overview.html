@@ -112,9 +112,13 @@ limitations under the License
             <ul>
             {% for error in errors | sort %}
               <li>
-                <a href="/ambassador/v0/diag/{{ error[0] }}">
-                  <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
-                </a>
+                {% if error[0] %}
+                  <a href="/ambassador/v0/diag/{{ error[0] }}">
+                    <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                  </a>
+                {% else %}
+                  <span style="color:red">{{ error[1] }}</span>
+                {% endif %}
               </li>
             {% endfor %}
             </ul>

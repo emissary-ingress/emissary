@@ -365,6 +365,9 @@ class Diagnostics:
         self.envoy_elements: Dict[str, dict] = {}
         self.ambassador_services: List[dict] = []
 
+        # Copy in the toplevel error set.
+        self.error_list = self.ir.aconf.errors
+
         # First up, walk the list of Ambassador sources.
         for key, rsrc in self.ir.aconf.sources.items():
             uqkey = key     # Unqualified key, e.g. ambassador.yaml
@@ -500,6 +503,7 @@ class Diagnostics:
             'ambassador_services': self.ambassador_services,
             'ambassador_elements': self.ambassador_elements,
             'envoy_elements': self.envoy_elements,
+            'error_list': self.error_list,
             'groups': { key: value.as_dict() for key, value in self.groups.items() },
             'clusters': { key: value.as_dict() for key, value in self.clusters.items() }
         }

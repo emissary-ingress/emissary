@@ -19,13 +19,13 @@ import json
 import logging
 import os
 
-from ..utils import TLSPaths
+from ..utils import RichStatus, TLSPaths
 from ..config import Config
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
-from .irbuffer import IRBuffer
+# from .irbuffer import IRBuffer
 from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
@@ -201,6 +201,11 @@ class IR:
 
                 self.logger.info("%s => %s" % (name, mangled_name))
                 self.clusters[name]['name'] = mangled_name
+
+    # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
+    # a common container that can hold errors.
+    def post_error(self, rc: RichStatus, resource: IRResource):
+        self.aconf.post_error(rc, resource)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():

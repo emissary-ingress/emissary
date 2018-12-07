@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Tuple, Union, TYPE_CHECKING
 
 from ..config import Config
 from ..resource import Resource
@@ -32,6 +32,7 @@ class IRResource (Resource):
     }
 
     _active: bool
+    _errored: bool
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,
@@ -48,11 +49,17 @@ class IRResource (Resource):
         self.ir = ir
         self.logger = ir.logger
 
+        self._errored = False
+
         self.__as_dict_helpers = IRResource.__as_dict_helpers
         self.add_dict_helper("_errors", IRResource.helper_list)
         self.add_dict_helper("_referenced_by", IRResource.helper_sort_keys)
         self.add_dict_helper("rkey", IRResource.helper_rkey)
 
+        # Make certain that _active has a default...
+        self.set_active(False)
+
+        # ...before we override it with the setup results.
         self.set_active(self.setup(ir, aconf))
 
     def add_dict_helper(self, key: str, helper) -> None:
@@ -65,7 +72,7 @@ class IRResource (Resource):
         return self._active
 
     def __bool__(self) -> bool:
-        return self._active and not self._errors
+        return self._active and not self._errored
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # If you don't override setup, you end up with an IRResource that's always active.
@@ -75,9 +82,15 @@ class IRResource (Resource):
         # If you don't override add_mappings, uh, no mappings will get added.
         pass
 
-    def post_error(self, error: RichStatus):
-        super().post_error(error)
-        self.ir.logger.error("%s: %s" % (self, error))
+    def post_error(self, error: Union[str, RichStatus]):
+        self._errored = True
+
+        if not self.ir:
+            raise Exception("post_error cannot be called before __init__")
+
+        self.ir.post_error(error, resource=self)
+        # super().post_error(error)
+        # self.ir.logger.error("%s: %s" % (self, error))
 
     def skip_key(self, k: str) -> bool:
         if k.startswith('__') or k.startswith("_IRResource__"):

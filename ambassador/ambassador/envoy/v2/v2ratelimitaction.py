@@ -38,9 +38,7 @@ class V2RateLimitAction(dict):
         lkeys = rate_limit.keys()
         if len(lkeys) > 1:
             # "Impossible". This should've been caught earlier.
-            err = RichStatus.fromError("ratelimit has multiple entries (%s) instead of just one" %
-                                       lkeys)
-            config.ir.aconf.post_error(err)
+            config.ir.post_error("Label for RateLimit has multiple entries instead of just one: %s" % rate_limit)
             return
 
         lkey = list(lkeys)[ 0 ]
@@ -58,7 +56,8 @@ class V2RateLimitAction(dict):
                 keylist = list(action.keys())
 
                 if len(keylist) != 1:
-                    config.ir.logger.error("V2RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
+                    config.ir.post_error("Label for RateLimit has invalid custom header '%s' (%s)" %
+                                         (action, rate_limit))
                     continue
 
                 dkey = keylist[0]
@@ -110,7 +109,8 @@ class V2RateLimitAction(dict):
                 })
             else:
                 # WTF.
-                config.ir.logger.error("V2RateLimitAction: invalid action '%s'" % action)
+                err = RichStatus.fromError()
+                config.ir.post_error("Label for RateLimit is not valid: %s" % action)
 
     def save_action(self, action):
         self.actions.append(action)

@@ -120,6 +120,7 @@ def as_sourceddict(res: dict) -> Any:
 
 def cors_clean(cors):
     sd = as_sourceddict(cors)
+    sd.pop('_errored', None)
     sd.pop('_referenced_by', None)
     sd.pop('_source', None)
     sd.pop('name', None)
@@ -169,7 +170,7 @@ class old_ir (dict):
             econf['cors_default'] = cors_clean(ir['ambassador']['cors'])
 
         for listener in econf['listeners']:
-            for k in [ '_referenced_by', 'name', 'serialization' ]:
+            for k in [ '_errored', '_referenced_by', 'name', 'serialization' ]:
                 listener.pop(k, None)
 
             if 'tls_contexts' in listener:
@@ -334,6 +335,7 @@ class old_ir (dict):
                 if not tls_array:
                     ctx['_ambassador_enabled'] = True
                     ctx.pop("_source", None)
+                    ctx.pop("_errored", None)
 
                 if host_rewrite:
                     tls_array.append({'key': 'sni', 'value': host_rewrite})

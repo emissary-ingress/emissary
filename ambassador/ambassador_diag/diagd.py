@@ -316,13 +316,20 @@ def show_overview(reqid=None):
         app.logger.debug("OV %s: collecting errors" % reqid)
 
     errors = []
+    #
+    # for element in diag.error_list.keys():
+    #     # If this isn't something that appeared in the ambassador_elements list...
+    #     if element not in diag.ambassador_elements:
+    #         # ...then we need to manage its errors separately.
+    #         errors.append()
 
-    for element in diag.ambassador_elements.values():
-        for obj in element['objects'].values():
-            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
 
-            if obj['errors']:
-                errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
+    # for element in diag.ambassador_elements.values():
+        # for obj in element['objects'].values():
+        #     obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
+        #
+        #     if obj['errors']:
+        #         errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
@@ -356,12 +363,12 @@ def show_intermediate(source=None, reqid=None):
     resource = request.args.get('resource', None)
     errors = []
 
-    for element in diag.ambassador_elements.values():
-        for obj in element['objects'].values():
-            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
-
-            if obj['errors']:
-                errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
+    # for element in diag.ambassador_elements.values():
+    #     for obj in element['objects'].values():
+    #         obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
+    #
+    #         if obj['errors']:
+    #             errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
 
     result = diag.lookup(request, source, app.estats)
 
