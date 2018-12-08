@@ -1,11 +1,13 @@
-hash: 41606c1493e41c6b41d69e03b2ec1be2d56b7c85f643c7980d7ab023fd3bf6c4
-updated: 2018-11-30T17:13:01.934708199-05:00
+hash: f89209e16afb65d05ab6821b21af53bfb3f33f362f1e39c63e83b02beadbf8ca
+updated: 2018-12-07T14:09:56.485808157-05:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/aokoli/goutils
+  version: 41ac8693c5c10a92ea1ff5ac3a7f95646f6123b0
 - name: github.com/Azure/go-autorest
   version: ea233b6412b0421a65dc6160e16c893364664a95
   subpackages:
@@ -16,10 +18,10 @@ imports:
   - logger
   - version
 - name: github.com/datawire/teleproxy
-  version: 37743a8270feac9d55340377f88b277ff96a3b63
+  version: b9379890f5d04f6d5d2eb33d0c7ec4ca6cfaa3f2
   subpackages:
-  - internal/pkg/tpu
   - pkg/k8s
+  - pkg/tpu
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
@@ -45,6 +47,8 @@ imports:
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/shlex
   version: c34317bd91bf98fab745d77b03933cf8769299fe
+- name: github.com/google/uuid
+  version: 064e2069ce9c359c118179501254f67d7d37ba24
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -68,12 +72,18 @@ imports:
   version: a0d98a5f288019575c6d1f4bb1573fef2d1fcdc4
   subpackages:
   - simplelru
+- name: github.com/huandu/xstrings
+  version: 8bbcf2f9ccb55755e748b7644164cd4bdce94c1d
 - name: github.com/imdario/mergo
-  version: 9316a62528ac99aaecb4e47eadd6dc8aa6533d58
+  version: 7fe0c75c13abdee74b09fcacef5ea1c6bba6a874
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/json-iterator/go
   version: ab8a2e0c74be9d3be70b3184d9acc634935ded82
+- name: github.com/Masterminds/semver
+  version: 59c29afe1a994eacb71c833025ca7acf874bb1da
+- name: github.com/Masterminds/sprig
+  version: 3af02e5631fd9eba272f91109da1a0bf2421f0ff
 - name: github.com/mitchellh/mapstructure
   version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
 - name: github.com/modern-go/concurrent
@@ -89,6 +99,8 @@ imports:
 - name: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
+  - pbkdf2
+  - scrypt
   - ssh/terminal
 - name: golang.org/x/net
   version: 0ed95abb35c445290478a5348a7b38bb154135fd

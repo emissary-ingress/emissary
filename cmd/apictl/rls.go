@@ -188,16 +188,6 @@ func (e *Errors) empty() bool {
 	return len(e.errors) != 0
 }
 
-func die(err error, args ...interface{}) {
-	if err != nil {
-		if args != nil {
-			panic(fmt.Errorf("%v: %v", err, args))
-		} else {
-			panic(err)
-		}
-	}
-}
-
 type Spec struct {
 	Domain string
 	Limits []Limit
