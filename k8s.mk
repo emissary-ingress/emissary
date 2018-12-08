@@ -26,7 +26,7 @@ push: push_ok docker
 .PHONY: push
 
 KUBEAPPLY=$(CURDIR)/kubeapply
-KUBEAPPLY_VERSION=0.3.2
+KUBEAPPLY_VERSION=0.3.5
 # This should maybe be replaced with a lighterweight dependency
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
