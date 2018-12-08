@@ -920,21 +920,16 @@
         ]
     },
     "errors": {
-        "-global-": [
+        "auth.yaml.1": [
             {
-                "error": "circuit_breaker and outlier_detection are not supported",
+                "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
                 "hostname": "sanitized",
                 "ok": false,
                 "resolvedname": "sanitized",
                 "version": "sanitized"
-            },
-            {
-                "error": "circuit_breaker and outlier_detection are not supported",
-                "hostname": "sanitized",
-                "ok": false,
-                "resolvedname": "sanitized",
-                "version": "sanitized"
-            },
+            }
+        ],
+        "mapping-qotm.yaml.1": [
             {
                 "error": "circuit_breaker and outlier_detection are not supported",
                 "hostname": "sanitized",
@@ -943,9 +938,18 @@
                 "version": "sanitized"
             }
         ],
-        "auth.yaml.1": [
+        "mapping-qotm.yaml.2": [
             {
-                "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
+        "mapping-qotm.yaml.3": [
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
                 "hostname": "sanitized",
                 "ok": false,
                 "resolvedname": "sanitized",
@@ -1193,6 +1197,15 @@
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
+            "errors": [
+                {
+                    "error": "circuit_breaker and outlier_detection are not supported",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "mapping-qotm.yaml",
             "index": 1,
             "kind": "Mapping",
@@ -1202,6 +1215,15 @@
         },
         "mapping-qotm.yaml.2": {
             "_source": "mapping-qotm.yaml",
+            "errors": [
+                {
+                    "error": "circuit_breaker and outlier_detection are not supported",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "mapping-qotm.yaml",
             "index": 2,
             "kind": "Mapping",
@@ -1211,6 +1233,15 @@
         },
         "mapping-qotm.yaml.3": {
             "_source": "mapping-qotm.yaml",
+            "errors": [
+                {
+                    "error": "circuit_breaker and outlier_detection are not supported",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "mapping-qotm.yaml",
             "index": 3,
             "kind": "Mapping",
