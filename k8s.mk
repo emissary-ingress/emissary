@@ -6,6 +6,16 @@ define NL
 
 endef
 
+# NOTE: this is not a typo, this is actually how you spell space in make
+define SPACE
+ 
+endef
+
+IMAGE_VARS=$(filter %_IMAGE,$(.VARIABLES))
+IMAGES=$(foreach var,$(IMAGE_VARS),$($(var)))
+IMAGE_DEFS=$(foreach var,$(IMAGE_VARS),$(var)=$($(var))$(NL))
+IMAGE_DEFS_SH="$(subst $(SPACE),\n,$(foreach var,$(IMAGE_VARS),$(var)=$($(var))))"
+
 env:
 	$(eval $(subst @NL,$(NL), $(shell go run build-aux/env.go -profile $(PROFILE) -newline "@NL" -input config.json)))
 .PHONY: env
@@ -20,13 +30,20 @@ push_ok: env
 	@if [ "$(PROFILE)" == "prod" ]; then echo "CANNOT PUSH TO PROD"; exit 1; fi
 .PHONY: push_ok
 
+
+blah: env
+	@echo '$(IMAGES)'
+	@echo '$(IMAGE_DEFS)'
+
 push: push_ok docker
-	docker push $(IMAGE)
-	echo $(IMAGE) > pushed.txt
+	@for IMAGE in $(IMAGES); do \
+		docker push $${IMAGE}; \
+	done
+	echo -e $(IMAGE_DEFS_SH) > pushed.txt
 .PHONY: push
 
 KUBEAPPLY=$(CURDIR)/kubeapply
-KUBEAPPLY_VERSION=0.3.2
+KUBEAPPLY_VERSION=0.3.5
 # This should maybe be replaced with a lighterweight dependency
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -36,7 +53,7 @@ $(KUBEAPPLY):
 	chmod go-w,a+x $(KUBEAPPLY)
 
 apply: $(CLUSTER) $(KUBEAPPLY)
-	KUBECONFIG=$(CLUSTER) IMAGE=$(file <pushed.txt) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
+	KUBECONFIG=$(CLUSTER) $(sort $(file <pushed.txt)) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
 .PHONY: apply
 
 deploy: push apply
