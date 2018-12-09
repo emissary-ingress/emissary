@@ -24,7 +24,8 @@ func main() {
 		Config: c,
 		Logger: l,
 	}
-	ct.Watch()
+
+	go ct.Watch()
 
 	a := app.App{
 		Config:     c,

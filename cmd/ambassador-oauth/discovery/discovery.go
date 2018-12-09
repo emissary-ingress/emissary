@@ -30,15 +30,13 @@ func New(cfg *config.Config) *Discovery {
 			cache: make(map[string]*JWK),
 			mux:   &sync.RWMutex{},
 		}
-		if cfg.Scheme == "" {
-			instance.url = fmt.Sprintf("%s/.well-known/jwks.json", cfg.Domain)
+		if cfg.Secure {
+			instance.url = fmt.Sprintf("https://%s/.well-known/jwks.json", cfg.Domain)
 		} else {
-			instance.url = fmt.Sprintf("%s://%s/.well-known/jwks.json", cfg.Scheme, cfg.Domain)
+			instance.url = fmt.Sprintf("http://%s/.well-known/jwks.json", cfg.Domain)
 		}
 	}
-
 	instance.fetchWebKeys()
-
 	return instance
 }
 
@@ -58,7 +56,6 @@ type JWKSlice struct {
 }
 
 // GetPemCert TODO(gsagula): comment
-// TODO(gsagula): This should return []byte instead of string.
 func (d *Discovery) GetPemCert(kid string) (string, error) {
 	if cert := d.getCert(kid); cert != "" {
 		return cert, nil

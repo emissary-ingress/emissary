@@ -41,7 +41,7 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 			return
 		}
 
-		redirectPath, err := c.checkState(r)
+		redirectURI, err := c.checkState(r)
 		if err != nil {
 			c.Logger.Errorf("check state failed: %v", err)
 			rw.WriteHeader(http.StatusBadRequest)
@@ -66,7 +66,7 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		var rs *client.AuthorizationResponse
 		rs, err = c.Rest.POSTAuthorization(rq)
 		if err != nil {
-			c.Logger.Errorf("authorization request failed:", err)
+			c.Logger.Errorf("authorization request failed: %v", err)
 			rw.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -83,8 +83,8 @@ func (c *Callback) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.
 		// If the user-agent request was a POST or PUT, 307 will preserve the body
 		// and just follow the location header.
 		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		http.Redirect(rw, r, redirectPath, http.StatusTemporaryRedirect)
-		c.Logger.Debugf("redirecting to path: %s", redirectPath)
+		http.Redirect(rw, r, redirectURI, http.StatusTemporaryRedirect)
+		c.Logger.Infof("HTTP 307 redirect: %s", redirectURI)
 		return
 	}
 
@@ -112,6 +112,8 @@ func (c *Callback) checkState(r *http.Request) (string, error) {
 	if !(ok && token.Valid) {
 		return "", errors.New("state token validation failed")
 	}
+
+	// c.Logger.Infof("CHECK STATE: %v", claims)
 
 	return claims["redirect_url"].(string), nil
 }

@@ -66,6 +66,10 @@ func (a *App) Handler() http.Handler {
 		Formatter:  &negroni.TextPanicFormatter{},
 	}
 
+	configCheckMW := &middleware.CheckConfig{
+		Config: a.Config,
+	}
+
 	jwtMW := &middleware.JWT{
 		Logger:    a.Logger,
 		Config:    a.Config,
@@ -84,6 +88,7 @@ func (a *App) Handler() http.Handler {
 	n := negroni.New()
 	n.Use(loggerMW)
 	n.Use(recoveryMW)
+	n.Use(configCheckMW)
 	n.Use(callbackMW)
 	n.Use(jwtMW)
 	n.UseHandlerFunc(authz.Check)

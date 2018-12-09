@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"strings"
@@ -80,14 +81,22 @@ func (h *Authorize) checkRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Authorize) signState(r *http.Request, exp time.Duration) string {
-	token := jwt.New(jwt.SigningMethodRS256)
+	var buf bytes.Buffer
+	if h.Config.Secure {
+		buf.WriteString("https://")
+	} else {
+		buf.WriteString("http://")
+	}
+	buf.WriteString(r.Host)
+	buf.WriteString(r.RequestURI)
 
+	token := jwt.New(jwt.SigningMethodRS256)
 	token.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(exp).Unix(),            // time when the token will expire (10 minutes from now)
 		"jti":          uuid.Must(uuid.NewV4(), nil).String(), // a unique identifier for the token
 		"iat":          time.Now().Unix(),                     // when the token was issued/created (now)
 		"nbf":          0,                                     // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": r.URL.String(),                        // original request url
+		"redirect_url": buf.String(),                          // original request url
 	}
 
 	key, err := token.SignedString(h.Secret.GetPrivateKey())

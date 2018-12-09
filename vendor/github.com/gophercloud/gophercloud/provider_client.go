@@ -126,11 +126,11 @@ func (client *ProviderClient) SetToken(t string) {
 	client.TokenID = t
 }
 
-//Reauthenticate calls client.ReauthFunc in a thread-safe way. If this is
-//called because of a 401 response, the caller may pass the previous token. In
-//this case, the reauthentication can be skipped if another thread has already
-//reauthenticated in the meantime. If no previous token is known, an empty
-//string should be passed instead to force unconditional reauthentication.
+// Reauthenticate calls client.ReauthFunc in a thread-safe way. If this is
+// called because of a 401 response, the caller may pass the previous token. In
+// this case, the reauthentication can be skipped if another thread has already
+// reauthenticated in the meantime. If no previous token is known, an empty
+// string should be passed instead to force unconditional reauthentication.
 func (client *ProviderClient) Reauthenticate(previousToken string) (err error) {
 	if client.ReauthFunc == nil {
 		return nil
@@ -295,11 +295,7 @@ func (client *ProviderClient) Request(method, url string, options *RequestOpts) 
 						seeker.Seek(0, 0)
 					}
 				}
-				// make a new call to request with a nil reauth func in order to avoid infinite loop
-				reauthFunc := client.ReauthFunc
-				client.ReauthFunc = nil
 				resp, err = client.Request(method, url, options)
-				client.ReauthFunc = reauthFunc
 				if err != nil {
 					switch err.(type) {
 					case *ErrUnexpectedResponseCode:

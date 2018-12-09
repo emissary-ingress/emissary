@@ -72,6 +72,7 @@ func NewAPPTestServer(idpURL string) (*httptest.Server, *app.App) {
 	os.Setenv("AUTH_CLIENT_ID", "foo")
 
 	c := config.New()
+
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)

@@ -63,7 +63,7 @@ func TestAppNoToken(t *testing.T) {
 	assert.StrEQ(appUT.Config.CallbackURL, u.Query().Get("redirect_uri"))
 	assert.StrEQ(appUT.Config.ClientID, u.Query().Get("client_id"))
 	assert.IntEQ(303, res.StatusCode)
-	assert.IntEQ(523, len(u.Query().Get("state")))
+	assert.IntEQ(552, len(u.Query().Get("state")))
 }
 
 // TestAppBadToken verifies the authorization server returns 401 when the authorization
@@ -106,12 +106,14 @@ func TestAppCallback(t *testing.T) {
 		return errors.New("")
 	}
 
+	// http://ip:port/foo
 	reqURL := fmt.Sprintf("%s/foo", appTS.URL)
+
 	req, _ := http.NewRequest("GET", reqURL, nil)
 	res, _ := appCL.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
-	assert.IntEQ(527, len(u.Query().Get("state")))
+	assert.IntEQ(556, len(u.Query().Get("state")))
 
 	// 2. Now we call the authorization server (appTS) again with a signed state and
 	// code query params. Note that by calling it with code=authorize, our
@@ -125,7 +127,7 @@ func TestAppCallback(t *testing.T) {
 	assert.NotNil(callbackRES)
 	assert.IntEQ(307, callbackRES.StatusCode)
 	assert.StrEQ(appUT.Config.ClientID, u.Query().Get("client_id"))
-	assert.StrEQ("/foo", callbackRES.Header.Get("location"))
+	assert.StrEQ(reqURL, callbackRES.Header.Get("location"))
 	cookie := callbackRES.Cookies()[0]
 	assert.StrEQ("access_token", cookie.Name)
 	assert.StrEQ("mocked_token_123", cookie.Value)
@@ -145,7 +147,7 @@ func TestAppCallbackNoCode(t *testing.T) {
 	res, _ := appCL.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
-	assert.IntEQ(527, len(u.Query().Get("state")))
+	assert.IntEQ(556, len(u.Query().Get("state")))
 
 	callbackURL := fmt.Sprintf("%s/callback?state=%s", appTS.URL, u.Query().Get("state"))
 	callbackREQ, _ := http.NewRequest("GET", callbackURL, nil)

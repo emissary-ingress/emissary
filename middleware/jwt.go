@@ -75,7 +75,7 @@ func (j *JWT) init() {
 			}
 
 			// Verifies 'iss' claim
-			if !claims.VerifyIssuer(fmt.Sprintf("%s://%s/", j.Config.Scheme, j.Config.Domain), false) {
+			if !claims.VerifyIssuer(fmt.Sprintf("https://%s/", j.Config.Domain), false) {
 				return token, errors.New("invalid issuer")
 			}
 
