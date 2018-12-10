@@ -173,8 +173,8 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     try:
         aconf = Config()
         aconf.load_from_directory(config_dir_path, k8s=k8s)
-        aconf.post_error("Error from string, boo yah")
-        aconf.post_error(RichStatus.fromError("Error from RichStatus"))
+        # aconf.post_error("Error from string, boo yah")
+        # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
