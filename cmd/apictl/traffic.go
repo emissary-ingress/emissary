@@ -245,7 +245,7 @@ func doIntercept(cmd *cobra.Command, args []string) {
 	remote_port := icept(args[0], name, match)
 	log.Printf("ICP: remote port %s", remote_port)
 	defer func() {
-		log.Printf("ICP: %s", cleanup(name, remote_port))
+		log.Printf("ICP: %s", cleanup(args[0], remote_port))
 	}()
 
 	if !strings.Contains(target, ":") {
