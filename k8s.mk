@@ -53,7 +53,7 @@ $(KUBEAPPLY):
 	chmod go-w,a+x $(KUBEAPPLY)
 
 apply: $(CLUSTER) $(KUBEAPPLY)
-	KUBECONFIG=$(CLUSTER) $(sort $(file <pushed.txt)) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
+	KUBECONFIG=$(CLUSTER) $(sort $(shell cat pushed.txt)) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
 .PHONY: apply
 
 deploy: push apply
