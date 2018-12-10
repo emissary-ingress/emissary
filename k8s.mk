@@ -39,7 +39,7 @@ push: push_ok docker
 	@for IMAGE in $(IMAGES); do \
 		docker push $${IMAGE}; \
 	done
-	echo -e $(IMAGE_DEFS_SH) > pushed.txt
+	printf $(IMAGE_DEFS_SH) > pushed.txt
 .PHONY: push
 
 KUBEAPPLY=$(CURDIR)/kubeapply
