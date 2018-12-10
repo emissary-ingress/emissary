@@ -14,7 +14,7 @@ endef
 IMAGE_VARS=$(filter %_IMAGE,$(.VARIABLES))
 IMAGES=$(foreach var,$(IMAGE_VARS),$($(var)))
 IMAGE_DEFS=$(foreach var,$(IMAGE_VARS),$(var)=$($(var))$(NL))
-IMAGE_DEFS_SH="$(subst $(SPACE),\n,$(foreach var,$(IMAGE_VARS),$(var)=$($(var))))"
+IMAGE_DEFS_SH="$(subst $(SPACE),\n,$(foreach var,$(IMAGE_VARS),$(var)=$($(var))))\n"
 
 env:
 	$(eval $(subst @NL,$(NL), $(shell go run build-aux/env.go -profile $(PROFILE) -newline "@NL" -input config.json)))
