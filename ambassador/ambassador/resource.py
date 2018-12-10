@@ -91,9 +91,6 @@ class Resource (dict):
     def is_referenced_by(self, other_location) -> Optional['Resource']:
         return self._referenced_by.get(other_location, None)
 
-    # def post_error(self, error: RichStatus):
-    #     self._errors.append(error)
-
     def __getattr__(self, key: str) -> Any:
         return self[key]
 
