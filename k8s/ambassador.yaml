@@ -146,7 +146,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: ratelimit
-        image: {{env "IMAGE"}}
+        image: {{env "RATELIMIT_IMAGE"}}
         env:
         - name: REDIS_SOCKET_TYPE
           value: tcp

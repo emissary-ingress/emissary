@@ -1,0 +1,46 @@
+# @TEMPLATE@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: intercepted
+spec:
+  type: ClusterIP
+  selector:
+    service: intercepted
+  ports:
+  - name: proxied
+    protocol: TCP
+    port: 80
+    targetPort: 9900
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intercepted
+  labels:
+    service: intercepted
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: intercepted
+  template:
+    metadata:
+      labels:
+        service: intercepted
+    spec:
+      containers:
+      - name: intercepted
+        image: kennethreitz/httpbin
+        ports:
+        - containerPort: 80
+      - env:
+        - name: APPNAME
+          value: intercepted
+        - name: APPPORT
+          value: "80"
+        image: {{env "SIDECAR_IMAGE"}}
+        name: traffic-sidecar
+        ports:
+        - containerPort: 9900

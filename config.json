@@ -10,7 +10,9 @@
       "NAMESPACE": "datawire",
       "REPO": "$(NAMESPACE)/$(NAME)-$(PROFILE)",
       "VERSION": "$(HASH)",
-      "IMAGE": "$(REGISTRY)/$(REPO):$(VERSION)"
+      "RATELIMIT_IMAGE": "$(REGISTRY)/$(REPO):ratelimit-$(VERSION)",
+      "PROXY_IMAGE": "$(REGISTRY)/$(REPO):proxy-$(VERSION)",
+      "SIDECAR_IMAGE": "$(REGISTRY)/$(REPO):sidecar-$(VERSION)"
     }
   }
 }

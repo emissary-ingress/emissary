@@ -39,7 +39,10 @@ lyft-build-image: $(RATELIMIT_REPO)/vendor $(BIN)
 .PHONY: lyft-build-image
 
 docker: env build-image lyft-build-image
-	docker build . -t $(IMAGE)
+	docker build . -t $(RATELIMIT_IMAGE)
+	docker build intercept --target telepresence-proxy -t $(PROXY_IMAGE)
+	docker build intercept --target telepresence-sidecar -t $(SIDECAR_IMAGE)
+.PHONY: docker
 
 docker-run: docker
 	docker run -it $(IMAGE)
