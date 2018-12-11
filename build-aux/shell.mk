@@ -1,6 +1,8 @@
 CLUSTER:=$(NAME).knaut
 
-claim:	$(CLUSTER).clean $(CLUSTER)
+claim:	release $(CLUSTER)
+
+release: $(CLUSTER).clean
 
 shell:
 	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " KUBECONFIG=$(CLUSTER) bash

@@ -43,17 +43,28 @@ func main() {
 	}
 
 	var profile = flag.String("profile", "dev", "profile")
-	var output = flag.String("output", "/dev/stdout", "output file")
-	var input = flag.String("input", "/dev/stdin", "input file")
+	var output = flag.String("output", "", "output file")
+	var input = flag.String("input", "", "input file")
 	var newline = flag.String("newline", "\n", "string to use for newline")
 	flag.Parse()
 
-	in, err := os.Open(*input)
-	defer in.Close()
+	var err error
+	var in *os.File
+	if *input != "" {
+		in, err = os.Open(*input)
+		defer in.Close()
+	} else {
+		in = os.Stdin
+	}
 
-	out, err := os.Create(*output)
-	die(err)
-	defer out.Close()
+	var out *os.File
+	if *output != "" {
+		out, err := os.Create(*output)
+		die(err)
+		defer out.Close()
+	} else {
+		out = os.Stdout
+	}
 
 	bytes, err := ioutil.ReadAll(in)
 	die(err)

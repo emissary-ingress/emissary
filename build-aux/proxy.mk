@@ -12,7 +12,7 @@ $(TELEPROXY):
 
 KUBE_URL=https://kubernetes/api/
 
-proxy: $(CLUSTER) unproxy
+proxy: $(CLUSTER) $(TELEPROXY) unproxy
 	@sleep 1
 	KUBECONFIG=$(CLUSTER) $(TELEPROXY) > /tmp/teleproxy.log 2>&1 &
 	@for i in 1 2 4 8 16 32 64 x; do \
@@ -27,7 +27,7 @@ proxy: $(CLUSTER) unproxy
 	done
 .PHONY: proxy
 
-unproxy: $(TELEPROXY)
+unproxy:
 	curl -s 127.254.254.254/api/shutdown || true
 .PHONY: unproxy
 
