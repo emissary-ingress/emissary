@@ -22,7 +22,13 @@ fi
 
 VERSION=${TAG}
 
-IMAGE=quay.io/datawire/ambassador-ratelimit:${VERSION}
+. pushed.txt
 
-docker tag $(cat pushed.txt) ${IMAGE}
-docker push ${IMAGE}
+docker tag ${RATELIMIT_IMAGE} quay.io/datawire/ambassador-ratelimit:${VERSION}
+docker push quay.io/datawire/ambassador-ratelimit:${VERSION}
+
+docker tag ${PROXY_IMAGE} quay.io/datawire/ambassador-ratelimit:proxy-${VERSION}
+docker push quay.io/datawire/ambassador-ratelimit:proxy-${VERSION}
+
+docker tag ${SIDECAR_IMAGE} quay.io/datawire/ambassador-ratelimit:sidecar-${VERSION}
+docker push quay.io/datawire/ambassador-ratelimit:sidecar-${VERSION}
