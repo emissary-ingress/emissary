@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -248,6 +249,22 @@ func doIntercept(cmd *cobra.Command, args []string) {
 		log.Printf("ICP: %s", cleanup(args[0], remote_port))
 	}()
 
+	iremote_port, err := strconv.Atoi(remote_port)
+	die(err)
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			_, err := json_request(args[0], "POST", map[string]interface{}{
+				"port": iremote_port,
+			})
+			if err != nil {
+				log.Fatalf("ICP: unable to renew port %s: %v", remote_port, err)
+			} else {
+				log.Printf("ICP: renewed port %s", remote_port)
+			}
+		}
+	}()
+
 	if !strings.Contains(target, ":") {
 		target = fmt.Sprintf("127.0.0.1:%s", target)
 	}
@@ -262,8 +279,6 @@ func doIntercept(cmd *cobra.Command, args []string) {
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
 	log.Printf("ICP: %v", <-signalChan)
-
-	// TODO: teardown state, pull intercept in, rename it's resources, add claims/timeouts?
 }
 
 func icept(name, header, regex string) string {

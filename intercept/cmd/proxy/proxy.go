@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jcuga/golongpoll"
@@ -20,9 +21,10 @@ type PatternInfo struct {
 
 // InterceptInfo tracks one intercept operation
 type InterceptInfo struct {
-	Name     string
-	Patterns []PatternInfo
-	Port     int
+	Name        string
+	Patterns    []PatternInfo
+	Port        int
+	LastQueryAt time.Time
 }
 
 func (intercept InterceptInfo) String() string {
@@ -31,12 +33,13 @@ func (intercept InterceptInfo) String() string {
 
 // DeploymentInfo tracks everything the proxy knows about one deployment
 type DeploymentInfo struct {
-	Intercepts  []InterceptInfo
+	Intercepts  []*InterceptInfo
 	LastQueryAt time.Time
 }
 
 // ProxyState holds the overall state of the proxy
 type ProxyState struct {
+	mutex       sync.Mutex
 	FreePorts   []int
 	Deployments map[string]*DeploymentInfo
 	manager     *golongpoll.LongpollManager
@@ -60,6 +63,9 @@ func newProxyState(manager *golongpoll.LongpollManager) *ProxyState {
 
 // Dump the current state of the proxy
 func (state *ProxyState) handleState(w http.ResponseWriter, r *http.Request) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
 	result, err := json.Marshal(*state)
 	if err != nil {
 		panic(err)
@@ -77,6 +83,14 @@ func (state *ProxyState) publish(deployment string) error {
 
 // Track that a deployment exists, handle long poll to get routes
 func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
+	state.mutex.Lock()
+	locked := true
+	defer func() {
+		if locked {
+			state.mutex.Unlock()
+		}
+	}()
+
 	deployment := r.URL.Query().Get("category")
 	if len(deployment) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -86,7 +100,7 @@ func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
 	dInfo := state.Deployments[deployment]
 	if dInfo == nil {
 		dInfo = &DeploymentInfo{
-			Intercepts:  make([]InterceptInfo, 0),
+			Intercepts:  make([]*InterceptInfo, 0),
 			LastQueryAt: time.Now(),
 		}
 		state.Deployments[deployment] = dInfo // FIXME need to garbage collect
@@ -97,6 +111,8 @@ func (state *ProxyState) handleRoutes(w http.ResponseWriter, r *http.Request) {
 	} else {
 		dInfo.LastQueryAt = time.Now()
 	}
+	state.mutex.Unlock()
+	locked = false
 	state.manager.SubscriptionHandler(w, r)
 }
 
@@ -110,10 +126,11 @@ func (state *ProxyState) startIntercept(deployment, name string, patterns []Patt
 	state.FreePorts = state.FreePorts[1:]
 
 	// Add an intercept entry
-	intercept := InterceptInfo{
-		Name:     name,
-		Patterns: patterns,
-		Port:     port,
+	intercept := &InterceptInfo{
+		Name:        name,
+		Patterns:    patterns,
+		Port:        port,
+		LastQueryAt: time.Now(),
 	}
 	dInfo := state.Deployments[deployment]
 	if dInfo == nil {
@@ -128,6 +145,23 @@ func (state *ProxyState) startIntercept(deployment, name string, patterns []Patt
 	}
 
 	return port, nil
+}
+
+// Add an intercept to a deployment, return a port number
+func (state *ProxyState) renewIntercept(deployment string, port int) error {
+	dInfo := state.Deployments[deployment]
+	if dInfo == nil {
+		return fmt.Errorf("Unknown deployment: %s", deployment)
+	}
+
+	for _, intercept := range dInfo.Intercepts {
+		if intercept.Port == port {
+			intercept.LastQueryAt = time.Now()
+			return nil
+		}
+	}
+
+	return fmt.Errorf("unclaimed port: deployment=%s, port=%d", deployment, port)
 }
 
 func max(i, j int) int {
@@ -145,7 +179,7 @@ func (state *ProxyState) stopIntercept(deployment string, port int) error {
 	}
 
 	// Filter out the intercept with the specified port
-	newIntercepts := make([]InterceptInfo, 0, max(0, len(dInfo.Intercepts)-1))
+	newIntercepts := make([]*InterceptInfo, 0, max(0, len(dInfo.Intercepts)-1))
 	for _, intercept := range dInfo.Intercepts {
 		if intercept.Port != port {
 			newIntercepts = append(newIntercepts, intercept)
@@ -167,6 +201,9 @@ func (state *ProxyState) stopIntercept(deployment string, port int) error {
 
 // Handle list, create, and delete of an intercept for a deployment
 func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request) {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
 	path := r.URL.Path
 	comps := strings.Split(path, "/")
 	if len(comps) != 3 {
@@ -191,6 +228,7 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 		type InInterceptInfo struct {
 			Name     string
 			Patterns []PatternInfo
+			Port     int
 		}
 		var inIntercept InInterceptInfo
 		err := d.Decode(&inIntercept)
@@ -198,10 +236,20 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "Unable to parse intercept info", 400)
 			return
 		}
-		port, err := state.startIntercept(deployment, inIntercept.Name, inIntercept.Patterns)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
+		var port int
+		if inIntercept.Port == 0 {
+			port, err = state.startIntercept(deployment, inIntercept.Name, inIntercept.Patterns)
+			if err != nil {
+				http.Error(w, err.Error(), 400)
+				return
+			}
+		} else {
+			err = state.renewIntercept(deployment, inIntercept.Port)
+			if err != nil {
+				http.Error(w, err.Error(), 400)
+				return
+			}
+			port = inIntercept.Port
 		}
 		result, err := json.Marshal(port)
 		if err != nil {
@@ -225,6 +273,38 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// cleanup expired proxy requests
+func (state *ProxyState) cleanup() {
+	state.mutex.Lock()
+	defer state.mutex.Unlock()
+
+	log.Printf("cleanup: started")
+	for deployment, dinfo := range state.Deployments {
+		var remaining []*InterceptInfo
+		var freePorts []int
+		for _, intercept := range dinfo.Intercepts {
+			// only keep intercepts older than 10 seconds
+			if time.Since(intercept.LastQueryAt) < 10*time.Second {
+				remaining = append(remaining, intercept)
+				fmt.Printf("keeping intercept %s:%s", deployment, intercept.Port)
+			} else {
+				fmt.Printf("expiring intercept %s:%s", deployment, intercept.Port)
+				freePorts = append(freePorts, intercept.Port)
+			}
+		}
+		if len(freePorts) > 0 {
+			dinfo.Intercepts = remaining
+			state.FreePorts = append(state.FreePorts, freePorts...)
+			// Post an event to update the deployment's pods
+			err := state.publish(deployment)
+			if err != nil {
+				log.Printf("cleanup: %v", err)
+			}
+		}
+	}
+	log.Printf("cleanup: finished")
+}
+
 func main() {
 	manager, err := golongpoll.StartLongpoll(golongpoll.Options{
 		LoggingEnabled:                 true,
@@ -238,7 +318,13 @@ func main() {
 	}
 	state := newProxyState(manager)
 
-	// FIXME these all data-race each other and themselves?
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+			state.cleanup()
+		}
+	}()
+
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
 	http.HandleFunc("/intercept/", state.handleIntercept)
