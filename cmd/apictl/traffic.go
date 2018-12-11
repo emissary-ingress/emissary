@@ -325,15 +325,15 @@ func request(name string, method string, data []byte) (result string, err error)
 		return
 	}
 	defer resp.Body.Close()
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		err = fmt.Errorf("%s: %s", resp.Status, http.StatusText(resp.StatusCode))
-		return
-	}
 	if resp.StatusCode == 404 {
 		return "", &FatalError{fmt.Sprintf("no such deployment: %s", name)}
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		return
+	}
+	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+		err = fmt.Errorf("%s: %s", http.StatusText(resp.StatusCode), string(body))
 		return
 	}
 	result = string(body)
