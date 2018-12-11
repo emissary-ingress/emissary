@@ -17,7 +17,7 @@ from typing import Any, List, Dict, TYPE_CHECKING
 from ...utils import RichStatus
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V1Config
 
 
 class V1RateLimitAction(dict):
@@ -26,19 +26,18 @@ class V1RateLimitAction(dict):
 
         self.valid = False
         self.stage = 0
-        self.actions = []
+        self.actions: List[Any] = []
 
-        if rate_limit == {}:
-            rate_limit = []
+        if rate_limit == []:
+            # If empty, we can be done.
+            return
 
         config.ir.logger.debug("V1RateLimitAction translating %s" % rate_limit)
 
         lkeys = rate_limit.keys()
         if len(lkeys) > 1:
             # "Impossible". This should've been caught earlier.
-            err = RichStatus.fromError("ratelimit has multiple entries (%s) instead of just one" %
-                                       lkeys)
-            config.ir.aconf.post_error(err)
+            config.ir.post_error("RateLimitAction has multiple entries instead of just one: %s" % rate_limit)
             return
 
         lkey = list(lkeys)[0]
@@ -61,7 +60,9 @@ class V1RateLimitAction(dict):
                 keylist = list(action.keys())
 
                 if len(keylist) != 1:
-                    config.ir.logger.error("V1RateLimitAction '%s' has invalid custom header '%s'" % (rate_limit, action))
+                    # "Impossible". This should've been caught earlier.
+                    config.ir.post_error("RateLimitAction has invalid custom header '%s' (%s)" %
+                                         (action, rate_limit))
                     continue
 
                 dkey = keylist[0]
@@ -83,7 +84,7 @@ class V1RateLimitAction(dict):
                                    'descriptor_value': action })
             else:
                 # WTF.
-                config.ir.logger.error("V1RateLimitAction: invalid action '%s'" % action)
+                config.ir.post_error("RateLimitAction: invalid action '%s'" % action)
 
     def save_action(self, action):
         self.actions.append(action)

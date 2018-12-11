@@ -61,7 +61,7 @@ class IRMapping (IRResource):
         "host_redirect": True,
         "host_regex": True,
         "host_rewrite": True,
-        # Do not include labels; it's only supported in v1.
+        "labels": True, # Only supported in v1, handled in setup
         "method": True,
         "method_regex": True,
         "modules": True,
@@ -71,7 +71,7 @@ class IRMapping (IRResource):
         "prefix": True,
         "prefix_regex": True,
         "priority": True,
-        # Do not include rate_limits; it's only supported in v0,
+        "rate_limits": True, # Only supported in v0, handled in setup
         # Do not include regex_headers.
         # Do not include rewrite.
         "service": True,
@@ -122,57 +122,6 @@ class IRMapping (IRResource):
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
-        if 'labels' in kwargs:
-            if apiVersion == 'ambassador/v1':
-                new_args['labels'] = kwargs['labels']
-            else:
-                self.post_error(RichStatus.fromError("labels supported only in ambassador/v1 Mapping resources"))
-
-        if 'rate_limits' in kwargs:
-            if apiVersion == 'ambassador/v0':
-                # Let's turn this into a set of labels instead.
-                labels = []
-                rlcount = 0
-
-                for rate_limit in kwargs['rate_limits']:
-                    rlcount += 1
-
-                    # If you're using a V0 Mapping, prepend the static default stuff that we (implicitly)
-                    # did back then.
-
-                    label = [
-                        'source_cluster',
-                        'destination_cluster',
-                        'remote_address'
-                    ]
-
-                    # Next up: old rate_limit "descriptor" becomes new "generic_key".
-                    rate_limit_descriptor = rate_limit.get('descriptor', None)
-
-                    if rate_limit_descriptor:
-                        label.append({ 'generic_key': rate_limit_descriptor })
-
-                    # Header names get turned into omit-if-not-present header dictionaries.
-                    rate_limit_headers = rate_limit.get('headers', [])
-
-                    for rate_limit_header in rate_limit_headers:
-                        label.append({
-                            rate_limit_header: {
-                                'header': rate_limit_header,
-                                'omit_if_not_present': True
-                            }
-                        })
-
-                    labels.append({
-                        'v0_ratelimit_%02d' % rlcount: label
-                    })
-
-                if labels:
-                    domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
-                    new_args['labels'] = { domain: labels }
-            else:
-                self.post_error(RichStatus.fromError("rate_limits supported only in ambassador/v0 Mapping resources"))
-
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
@@ -201,6 +150,58 @@ class IRMapping (IRResource):
                 self.cors.referenced_by(self)
             else:
                 return False
+
+        # Likewise, labels is supported only in V1:
+        if 'labels' in self:
+            if self.apiVersion != 'ambassador/v1':
+                self.post_error("labels supported only in ambassador/v1 Mapping resources")
+                return False
+
+        if 'rate_limits' in self:
+            if self.apiVersion != 'ambassador/v0':
+                self.post_error("rate_limits supported only in ambassador/v0 Mapping resources")
+                return False
+
+            # Let's turn this into a set of labels instead.
+            labels = []
+            rlcount = 0
+
+            for rate_limit in self.pop('rate_limits', []):
+                rlcount += 1
+
+                # Since this is a V0 Mapping, prepend the static default stuff that we were implicitly
+                # forcing back in the pre-0.50 days.
+
+                label = [
+                    'source_cluster',
+                    'destination_cluster',
+                    'remote_address'
+                ]
+
+                # Next up: old rate_limit "descriptor" becomes label "generic_key".
+                rate_limit_descriptor = rate_limit.get('descriptor', None)
+
+                if rate_limit_descriptor:
+                    label.append({ 'generic_key': rate_limit_descriptor })
+
+                # Header names get turned into omit-if-not-present header dictionaries.
+                rate_limit_headers = rate_limit.get('headers', [])
+
+                for rate_limit_header in rate_limit_headers:
+                    label.append({
+                        rate_limit_header: {
+                            'header': rate_limit_header,
+                            'omit_if_not_present': True
+                        }
+                    })
+
+                labels.append({
+                    'v0_ratelimit_%02d' % rlcount: label
+                })
+
+            if labels:
+                domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
+                self['labels'] = { domain: labels }
 
         return True
 

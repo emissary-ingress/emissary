@@ -20,14 +20,38 @@ export LANG=C.UTF-8
 AMBASSADOR_ROOT="/ambassador"
 AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
-ENVOY_CONFIG_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/envoy.json"
+ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
+ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
+
+# Set AMBASSADOR_DEBUG to things separated by spaces to enable debugging.
+check_debug () {
+    word="$1"
+    args="$2"
+
+    # I'm not sure if ${x:---debug} works, but it's too weird to read anyway.
+    if [ -z "$args" ]; then
+        args="--debug"
+    fi
+
+    if [ $(echo "$AMBASSADOR_DEBUG" | grep -c "$word" || :) -gt 0 ]; then
+        echo "$args"
+    else
+        echo ""
+    fi
+}
+
+DIAGD_DEBUG=$(check_debug "diagd")
+KUBEWATCH_DEBUG=$(check_debug "kubewatch")
+ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
 
 if [ "$1" == "--demo" ]; then
+    # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
+    # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
 fi
 
-mkdir -p ${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config
-mkdir -p ${AMBASSADOR_CONFIG_BASE_DIR}/envoy
+mkdir -p "${CONFIG_DIR}"
+mkdir -p "${ENVOY_DIR}"
 
 DELAY=${AMBASSADOR_RESTART_TIME:-1}
 
@@ -112,7 +136,7 @@ wait_for_ready() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
+/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
 
 STATUS=$?
 
@@ -121,19 +145,19 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "AMBASSADOR: starting diagd"
-diagd "${AMBASSADOR_CONFIG_BASE_DIR}" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+diagd "${CONFIG_DIR}" $DIAGD_DEBUG --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
-./ambex "${AMBASSADOR_CONFIG_BASE_DIR}/envoy" &
+./ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
 echo "AMBASSADOR: starting Envoy"
-envoy -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
+envoy $ENVOY_DEBUG -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
 pids="${pids:+${pids} }$!:envoy"
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
+/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"

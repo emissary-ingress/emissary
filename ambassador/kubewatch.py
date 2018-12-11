@@ -30,7 +30,6 @@ from typing import Optional, Dict
 
 from kubernetes import watch
 from ambassador import Config, Scout
-from ambassador.config import fetch_resources
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
 from ambassador.ir import IR
 from ambassador.envoy import V2Config
@@ -243,9 +242,8 @@ class Restarter(threading.Thread):
         logger.info("generating config with gencount %d (%d change%s)" % 
                     (self.restart_count, changes, plural))
 
-        resources = fetch_resources(output, logger)
         aconf = Config()
-        aconf.load_all(resources)
+        aconf.load_from_directory(output)
         ir = IR(aconf, tls_secret_resolver=self.tls_secret_resolver)
         envoy_config = V2Config(ir)
 
@@ -399,11 +397,13 @@ def watch_loop(restarter):
 @click.argument("mode", type=click.Choice(["sync", "watch"]))
 @click.argument("ambassador_config_dir")
 @click.argument("envoy_config_file")
+@click.option("--debug", is_flag=True,
+              help="Enable debugging")
 @click.option("-d", "--delay", type=click.FLOAT, default=1.0,
               help="The minimum delay in seconds between restart attempts.")
 @click.option("-p", "--pid", type=click.INT,
               help="The pid to kill with SIGHUP in order to iniate a restart.")
-def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
+def main(mode, ambassador_config_dir, envoy_config_file, debug, delay, pid):
     """This script watches the kubernetes API for changes in services. It
     collects ambassador configuration imput from the ambassador
     annotation on any services, and whenever these change, it will
@@ -420,6 +420,9 @@ def main(mode, ambassador_config_dir, envoy_config_file, delay, pid):
          This is the reconfig delay. It limits the minimum time this
          script will allow between subsequent reconfigure attempts.
     """
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
 
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 

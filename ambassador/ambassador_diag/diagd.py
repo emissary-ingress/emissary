@@ -35,7 +35,6 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, ScoutNotice, Version
-from ambassador.config import fetch_resources
 from ambassador.utils import SystemInfo, PeriodicTrigger
 
 from ambassador.diagnostics import EnvoyStats
@@ -170,9 +169,10 @@ def get_aconf(app, what):
     else:
         latest = app.config_dir_prefix
 
-    resources = fetch_resources(latest, app.logger, k8s=app.k8s)
+    app.logger.debug("Fetching resources from %s" % latest)
+
     aconf = Config()
-    aconf.load_all(resources)
+    aconf.load_from_directory(latest, k8s=app.k8s)
 
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)
@@ -315,22 +315,29 @@ def show_overview(reqid=None):
         app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
         app.logger.debug("OV %s: collecting errors" % reqid)
 
+    # This is a little odd because there's an 'errors' element in diag.as_dict(),
+    # and we need to tweak it for the HTML rendering. Ah well.
+    ddict = diag.as_dict()
+
+    # app.logger.debug("ddict %s" % json.dumps(ddict, indent=4, sort_keys=True))
+
+    derrors = ddict.pop('errors', {})
+
     errors = []
 
-    for element in diag.ambassador_elements.values():
-        for obj in element['objects'].values():
-            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
+    for err_key, err_list in derrors.items():
+        if err_key == "-global-":
+            err_key = ""
 
-            if obj['errors']:
-                errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
+        for err in err_list:
+            errors.append((err_key, err['error']))
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
                  errors=errors,
-                 **ov,
-                 **diag.as_dict())
+                 **ov, **ddict)
 
     if request.args.get('json', None):
         result = jsonify(tvars)
@@ -354,14 +361,20 @@ def show_intermediate(source=None, reqid=None):
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
+
+    # This is a little odd because there's an 'errors' element in diag.as_dict(),
+    # and we need to tweak it for the HTML rendering. Ah well.
+    ddict = diag.as_dict()
+    derrors = ddict.pop('errors', {})
+
     errors = []
 
-    for element in diag.ambassador_elements.values():
-        for obj in element['objects'].values():
-            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
+    for err_key, err_list in derrors.items():
+        if err_key == "-global-":
+            err_key = ""
 
-            if obj['errors']:
-                errors.extend([ (obj['key'], error['summary']) for error in obj['errors'] ])
+        for err in err_list:
+            errors.append((err_key, err['error']))
 
     result = diag.lookup(request, source, app.estats)
 
@@ -374,8 +387,7 @@ def show_intermediate(source=None, reqid=None):
                  method=method, resource=resource,
                  errors=errors,
                  notices=app.notices.notices,
-                 **result,
-                 **diag.as_dict())
+                 **result, **ddict)
 
     if request.args.get('json', None):
         return jsonify(tvars)

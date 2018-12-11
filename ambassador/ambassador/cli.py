@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Optional, Dict
+from typing import Optional, Dict
+from typing import cast as typecast
 
 import sys
 
@@ -24,10 +25,8 @@ import traceback
 import clize
 from clize import Parameter
 
-from . import Scout, ScoutNotice, Config, IR, Diagnostics, Version
-from .config import fetch_resources
-from .envoy import V1Config
-from .envoy import V2Config
+from . import Scout, Config, IR, Diagnostics, Version
+from .envoy import EnvoyConfig, V1Config, V2Config
 
 from .utils import RichStatus
 
@@ -169,12 +168,13 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     dump_diag = diag
 
     od = {}
-    diagconfig = None
+    diagconfig: Optional[EnvoyConfig] = None
 
     try:
-        resources = fetch_resources(config_dir_path, logger, k8s=k8s)
         aconf = Config()
-        aconf.load_all(resources)
+        aconf.load_from_directory(config_dir_path, k8s=k8s)
+        # aconf.post_error("Error from string, boo yah")
+        # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
@@ -195,9 +195,10 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['v2'] = v2config.as_dict()
 
         if dump_diag:
-            diag = Diagnostics(ir, diagconfig)
+            econf = typecast(EnvoyConfig, diagconfig)
+            diag = Diagnostics(ir, econf)
             od['diag'] = diag.as_dict()
-            od['elements'] = diagconfig.elements
+            od['elements'] = econf.elements
 
         scout = Scout()
         result = scout.report(action="dump", mode="cli")
@@ -285,9 +286,8 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             # a valid config. Regenerate.
             logger.info("Generating new Envoy configuration...")
 
-            resources = fetch_resources(config_dir_path, logger, k8s=k8s)
             aconf = Config()
-            aconf.load_all(resources)
+            aconf.load_from_directory(config_dir_path, k8s=k8s)
 
             if dump_aconf:
                 with open(dump_aconf, "w") as output:

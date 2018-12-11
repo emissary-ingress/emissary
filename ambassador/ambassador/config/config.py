@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import socket
-import sys
 
 from typing import Any, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 from typing import cast as typecast
@@ -23,14 +22,16 @@ import os
 
 import jsonschema
 
+from multi import multi
 from pkg_resources import Requirement, resource_filename
 
 from ..utils import RichStatus
 
+from ..resource import Resource
 from .acresource import ACResource
 from .acmapping import ACMapping
+from .resourcefetcher import ResourceFetcher
 
-#from .VERSION import Version
 
 #############################################################################
 ## config.py -- the main configuration parser for Ambassador
@@ -77,7 +78,10 @@ class Config:
             # with our ACResource class.
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
 
-        self.statsd = {'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')}
+        self.statsd: Dict[str, Any] = {
+            'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')
+        }
+
         if self.statsd['enabled']:
             self.statsd['interval'] = os.environ.get('STATSD_FLUSH_INTERVAL', '1')
 
@@ -101,7 +105,7 @@ class Config:
         Resets this Config to the empty, default state so it can load a new config.
         """
 
-        self.logger.debug("RESET")
+        self.logger.debug("ACONF RESET")
 
         self.current_resource = None
 
@@ -176,7 +180,12 @@ class Config:
         Loads all of a set of ACResources. It is the caller's responsibility to arrange for
         the set of ACResources to be sorted in some way that makes sense.
         """
+
+        rcount = 0
+
         for resource in resources:
+            rcount += 1
+
             # Is an ambassador_id present in this object?
             allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 
@@ -192,13 +201,15 @@ class Config:
                                       (resource, Config.ambassador_id, allowed_ids))
                     continue
 
-            # self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
+            self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
 
             rc = self.process(resource)
 
             if not rc:
                 # Object error. Not good but we'll allow the system to start.
                 self.post_error(rc, resource=resource)
+
+        self.logger.debug("LOAD_ALL: processed %d resource%s" % (rcount, "" if (rcount == 1) else "s"))
 
         if self.fatal_errors:
             # Kaboom.
@@ -207,21 +218,69 @@ class Config:
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
-    def post_error(self, rc: RichStatus, resource: ACResource=None):
-        if not resource:
+    # Utility methods built around ResourceFetcher.
+    def fetch_resources(self, config_dir_path: str, k8s=False):
+        fetcher = ResourceFetcher(self, config_dir_path, k8s=k8s)
+        return fetcher.__iter__()
+
+    def load_from_directory(self, config_dir_path: str, k8s=False, key=lambda x: x.rkey) -> None:
+        """
+        Load all the resources contained in YAML files in a given directory. To be considered,
+        the files must have names ending in '.yaml' (case insensitive).
+
+        By default, resources are sorted according to their rkey before loading. Pass a different
+        sort function as key if you want to change the sort order.
+
+        This is a really just a convenience method that uses a ResourceFetcher to find the resources,
+        sorts them, and then calls self.load_all().
+
+        :param config_dir_path: the directory to search for YAML files
+        :param k8s: should we expect that the files we find are annotated K8s resources?
+        :param key: sort function; defaults to lambda x: x.rkey
+        """
+
+        raw = list(self.fetch_resources(config_dir_path, k8s=k8s))
+        resources = sorted(raw, key=key)
+
+        self.load_all(resources)
+
+
+    @multi
+    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None) -> str:
+        if isinstance(msg, RichStatus):
+            return 'RichStatus'
+        elif isinstance(msg, str):
+            return 'string'
+        else:
+            return type(msg).__name__
+
+    @post_error.when('string')
+    def post_error_string(self, msg: str, resource: Optional[Resource]=None):
+        rc = RichStatus.fromError(msg)
+
+        self.post_error(rc, resource=resource)
+
+    @post_error.when('RichStatus')
+    def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None):
+        if resource is None:
             resource = self.current_resource
 
-        if not resource:
-            raise Exception("FATAL: trying to post an error from a totally unknown resource??")
+        rkey = '-global-'
 
-        self.save_source(resource)
-        resource.post_error(rc)
+        if resource is not None:
+            rkey = resource.rkey
+            # resource.post_error(rc)
+
+            if isinstance(resource, ACResource):
+                self.save_source(resource)
+        # elif not unparsed_resource:
+        #     raise Exception("FATAL: trying to post an error from a totally unknown resource??")
 
         # XXX Probably don't need this data structure, since we can walk the source
         # list and get them all.
-        errors = self.errors.setdefault(resource.rkey, [])
+        errors = self.errors.setdefault(rkey, [])
         errors.append(rc.as_dict())
-        self.logger.error("%s: %s" % (resource, rc))
+        self.logger.error("%s: %s" % (rkey, rc))
 
     def process(self, resource: ACResource) -> RichStatus:
         # This should be impossible.

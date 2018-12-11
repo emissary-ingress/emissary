@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Iterable
+from typing import Any, Dict, Iterable, List, Optional, Union
 from typing import cast as typecast
 
 import json
 import logging
 import os
 
-from ..utils import TLSPaths
+from ..utils import RichStatus, TLSPaths
 from ..config import Config
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
-from .irbuffer import IRBuffer
+# from .irbuffer import IRBuffer
 from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
@@ -35,6 +35,7 @@ from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
 
+from ..VERSION import Version, Build
 
 #############################################################################
 ## ir.py -- the Ambassador Intermediate Representation (IR)
@@ -73,7 +74,13 @@ class IR:
         self.logger = logging.getLogger("ambassador.ir")
         self.tls_secret_resolver = tls_secret_resolver
         self.file_checker = file_checker if file_checker is not None else os.path.isfile
-        self.logger.debug("File checker: {}".format(self.file_checker.__name__))
+
+        self.logger.debug("IR __init__:")
+        self.logger.debug("IR: Version       %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
+        self.logger.debug("IR: AMBASSADOR_ID %s" % self.ambassador_id)
+        self.logger.debug("IR: Namespace     %s" % self.ambassador_namespace)
+        self.logger.debug("IR: Nodename      %s" % self.ambassador_nodename)
+        self.logger.debug("IR: file checker: %s" % self.file_checker.__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -194,6 +201,11 @@ class IR:
 
                 self.logger.info("%s => %s" % (name, mangled_name))
                 self.clusters[name]['name'] = mangled_name
+
+    # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
+    # a common container that can hold errors.
+    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None):
+        self.aconf.post_error(rc, resource=resource)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():
