@@ -79,10 +79,13 @@
         link: /user-guide/auth-tutorial
       - title: Single Sign-On with OAuth & OIDC
         link: /user-guide/oauth-oidc-auth
-    - title: Implementing Rate Limiting
-      link: /user-guide/rate-limiting-tutorial
-    - title: Advanced Rate Limiting
-      link: /user-guide/advanced-rate-limiting
+    - title: Rate Limiting
+      link: /user-guide/rate-limiting
+      items:
+      - title: Implementing Rate Limiting
+        link: /user-guide/rate-limiting-tutorial
+      - title: Advanced Rate Limiting
+        link: /user-guide/advanced-rate-limiting
     - title: Adding Tracing
       link: /user-guide/tracing-tutorial
     - title: Service Mesh Integration
