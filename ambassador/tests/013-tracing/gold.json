@@ -129,13 +129,13 @@
 
         ]},
       {
-        "name": "cluster_tracing_example_tracing_5000",
+        "name": "cluster_tracing_example_tracing_with_a_r-0",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin",
         "hosts": [
           {
-            "url": "tcp://example-tracing:5000"
+            "url": "tcp://example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000"
           }
 
         ]}
@@ -146,8 +146,7 @@
       "driver": {
         "type": "zipkin",
         "config": {
-          "collector_cluster": "cluster_tracing_example_tracing_5000"
-        }
+          "collector_cluster": "cluster_tracing_example_tracing_with_a_r-0"        }
       }
     }
   }
