@@ -18,22 +18,18 @@ To get started:
    service. It will take a while the first time. It will be quicker
    subsequent times.
 
-2. Type `make proxy` to start teleproxy.
+2. Type `make proxy` to start teleproxy. This will start teleproxy in
+   the background. To stop it at any point type `make unproxy`.
 
-3. Type `make shell` in order to start a dev shell. This launches a
-   shell with KUBECONFIG setup to point to the acquired cluster. The
-   remaining steps all assume teleproxy is running and you are in
-   another unoccupied dev shell.
+The remaining steps all assume teleproxy is running. To query the
+ratelimit service in the cluster:
 
-To query the ratelimit service in the cluster:
-
-1. Type `make lyft-build` in order to build the ratelimit binaries. If
-   you are in a dev shell, these binaries will be in your path:
+1. Type `make lyft-build` in order to build the ratelimit binaries:
 
    - ratelimit: the ratelimit service itself
    - ratelimit_client: a client for querying the ratelimit service
 
-2. Run: `ratelimit_client -dial_string ratelimit:81 -domain test -descriptors a=b`
+2. Run: `./ratelimit_client -dial_string ratelimit:81 -domain test -descriptors a=b`
 
 To modify the ratelimit service config in the cluster:
 
