@@ -68,8 +68,9 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
 # COPY the entrypoint script and make it runnable.
 COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
-# XXX: ambex needs to be replaced with a proper release, or made traceable or something!!!
-COPY ambassador/ambex .
 RUN chmod 755 entrypoint.sh
+
+RUN wget -q https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex
+RUN chmod 755 ambex
 
 ENTRYPOINT [ "./entrypoint.sh" ]
