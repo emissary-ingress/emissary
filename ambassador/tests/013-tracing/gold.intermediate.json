@@ -24,14 +24,13 @@
                 "_referenced_by": [
                     "tracing-service.yaml.1"
                 ],
-                "_service": "example-tracing:5000",
+                "_service": "example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000",
                 "_source": "tracing-service.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_tracing_example_tracing_5000",
+                "name": "cluster_tracing_example_tracing_with_a_r-0",
                 "type": "strict_dns",
                 "urls": [
-                    "tcp://example-tracing:5000"
-                ]
+                    "tcp://example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000"                ]
             },
             {
                 "_referenced_by": [
@@ -173,10 +172,9 @@
         "tracing": [
             {
                 "_source": "tracing-service.yaml.1",
-                "cluster_name": "cluster_tracing_example_tracing_5000",
+                "cluster_name": "cluster_tracing_example_tracing_with_a_r-0",
                 "config": {
-                    "collector_cluster": "cluster_tracing_example_tracing_5000"
-                },
+                    "collector_cluster": "cluster_tracing_example_tracing_with_a_r-0"                },
                 "driver": "zipkin",
                 "tag_headers": [
                     ":authority",
@@ -232,7 +230,6 @@
             "kind": "TracingService",
             "name": "tracing",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing:5000\ntag_headers:\n- :authority\n- :path\n"
-        }
+            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000\ntag_headers:\n- :authority\n- :path\n"        }
     }
 }
