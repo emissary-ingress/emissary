@@ -106,4 +106,20 @@ spec:
     curl $AMBASSADOR_IP/qotm/ # will go to production instance
     ```
 
-7. Make a change 
+7. Make a change to the QOTM source code. In `qotm/qotm.py`, uncomment out line 149, and comment out line 148, so it reads like so:
+
+    ```
+    return RichStatus.OK(quote="Telepresence rocks!")
+    # return RichStatus.OK(quote=random.choice(quotes))
+    ```
+
+    This will insure that the QOTM service will return a quote of "Telepresence rocks" every time.
+
+8. Re-run the `curl` above, which will now route to your (modified) local copy of the QOTM service:
+
+   ```
+   curl $AMBASSADOR_IP/dev` # will go to local Docker instance
+   ```
+
+   To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
+
