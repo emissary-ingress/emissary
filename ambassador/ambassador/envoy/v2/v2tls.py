@@ -59,7 +59,7 @@ class V2TLSContext(Dict):
 
         if ctx.kind == 'IREnvoyTLS':
             for ctxkey, handler, hkey in [
-                ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
                 ( 'private_key_file', self.update_cert_zero, 'private_key' ),
                 ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
             ]:

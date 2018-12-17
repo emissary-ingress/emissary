@@ -108,31 +108,34 @@ class Restarter(threading.Thread):
 
     def tls_secret_resolver(self, secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
         (cert, key, data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
+        if not (cert and key):
+            return None
+
+        certificate_chain_path = None
+        private_key_path = None
+
         if context == 'server':
-            if cert and key:
-                logger.debug("saving contents of secret %s to %s for context %s" % (
-                    secret_name, TLSPaths.cert_dir.value, context))
-                save_cert(cert, key, TLSPaths.cert_dir.value)
-                return {
-                    'cert_chain_file': TLSPaths.tls_crt.value,
-                    'private_key_file': TLSPaths.tls_key.value
-                }
+            cert_dir = TLSPaths.cert_dir.value
+            certificate_chain_path = TLSPaths.tls_crt.value
+            private_key_path = TLSPaths.tls_key.value
         elif context == 'client':
             # TODO
             pass
         else:
-            if cert and key:
-                if cert_dir is None:
-                    return None
-                cert_paths = TLSPaths.generate(cert_dir)
-                logger.debug("saving contents of secret %s to %s for context %s" % (
-                    secret_name, cert_dir, context))
-                save_cert(cert, key, cert_dir)
-                return {
-                    'certificate_chain_file': cert_paths['crt'],
-                    'private_key_file': cert_paths['key']
-                }
-        return None
+            if cert_dir is None:
+                cert_dir = os.path.join("/ambassador/", context)
+
+            cert_paths = TLSPaths.generate(cert_dir)
+            certificate_chain_path = cert_paths['crt']
+            private_key_path = cert_paths['key']
+
+        logger.debug("saving contents of secret %s to %s for context %s" % (secret_name, cert_dir, context))
+        save_cert(cert, key, cert_dir)
+
+        return {
+            'certificate_chain_file': certificate_chain_path,
+            'private_key_file': private_key_path
+        }
 
     def read_fs(self, path):
         if os.path.exists(path):
