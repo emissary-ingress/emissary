@@ -45,55 +45,19 @@ class V2Cluster(dict):
         if cluster.get('grpc', False):
             self["http2_protocol_options"] = {}
 
-        if 'tls_context' in cluster:
-            fields['tls_context'] = {
-                'common_tls_context': {}
-            }
+        ctx = cluster.get('tls_context', None)
+        if ctx is not None:
+            # If TLS Context is enabled, then we at least need to specify `tls_context` to enabled HTTPS origination
+            if ctx.get('enabled'):
+                fields['tls_context'] = {
+                    'common_tls_context': {}
+                }
+
+            envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
+            if envoy_ctx:
+                self['tls_context'] = envoy_ctx
 
         self.update(fields)
-        return
-
-        self["name"] = cluster.name
-        self["connect_timeout_ms"] = cluster.get("timeout_ms", 3000)
-        self["type"] = cluster.get("dns_type", "strict_dns")
-        self["lb_type"] = cluster.get("lb_type", "round_robin")
-
-        self["hosts"] = [ { "url": url } for url in cluster.urls ]
-
-        if cluster.get('features', []):
-            self["features"] = cluster.features
-
-        if cluster.get('breakers', {}):
-            pass
-            # brk = cluster.breakers
-            #
-            # self["circuit_breakers"] = {
-            #     "default": {
-            #         "max_connections": {{ brk.max_connections or 1024 }},
-            #         "max_pending_requests": {{ brk.max_pending or 1024 }},
-            #         "max_requests": {{ brk.max_requests or 1024 }},
-            #         "max_retries": {{ brk.max_retries or 3 }}
-            #     }
-            # }
-
-        if cluster.get('outlier', {}):
-            pass
-            # outlier = cluster.outlier
-            #
-            # self["outlier_detection"] = {
-            #     "consecutive_5xx": outlier.consecutive_5xx or 5
-            #     "max_ejection_percent": outlier.max_ejection or 100
-            #     "interval_ms": outlier.interval_ms or 3000
-            # }
-
-        if 'tls_context' in cluster:
-            ctx = cluster.tls_context
-            host_rewrite = cluster.get('host_rewrite', None)
-
-            envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=host_rewrite)
-
-            if envoy_ctx:
-                self['ssl_context'] = dict(envoy_ctx)
 
     def get_endpoints(self, cluster: IRCluster):
         result = []

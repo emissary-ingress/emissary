@@ -92,6 +92,42 @@ service: {self.target.path.k8s}
     def requirements(self):
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))
 
+
+class TLSOriginationSecret(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+ambassador_id: {self.ambassador_id}
+name: tls
+config:
+  upstream:
+    secret: test-certs-secret
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /{self.name}/
+service: {self.target.path.k8s}
+tls: upstream
+""")
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"))
+
+    def check(self):
+        for r in self.results:
+            assert r.backend.request.tls.enabled
+
+
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
 
     target: ServiceType
@@ -956,7 +992,7 @@ kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: https://{self.target.path.k8s}
-    """
+"""
 
     EXPLICIT = """
 ---
@@ -966,7 +1002,7 @@ name:  {self.name}
 prefix: /{self.name}/
 service: {self.target.path.k8s}
 tls: true
-    """
+"""
 
     @classmethod
     def variants(cls):

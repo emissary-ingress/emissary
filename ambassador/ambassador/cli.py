@@ -110,7 +110,7 @@ def tls_secret_resolver(secret_name: str, context: str, cert_dir=None) -> Option
 
     if context == 'server':
         od = {
-            'cert_chain_file': "/path/to/%s.crt" % secret_name,
+            'certificate_chain_file': "/path/to/%s.crt" % secret_name,
             'private_key_file': "/path/to/%s.key" % secret_name
         }
     elif context == 'client':
