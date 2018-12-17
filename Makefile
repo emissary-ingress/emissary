@@ -34,8 +34,8 @@ lyft-build: $(RATELIMIT_REPO)/vendor $(BIN)
 .PHONY: lyft-build
 
 lyft-build-image: $(RATELIMIT_REPO)/vendor $(BIN)
-	$(IMAGE_GO) install github.com/lyft/ratelimit/src/service_cmd && mv image/service_cmd image/ratelimit
-	$(IMAGE_GO) install github.com/lyft/ratelimit/src/client_cmd && mv image/client_cmd image/ratelimit_client
+	$(IMAGE_GO) build -o image/ratelimit github.com/lyft/ratelimit/src/service_cmd
+	$(IMAGE_GO) build -o image/ratelimit_client github.com/lyft/ratelimit/src/client_cmd
 .PHONY: lyft-build-image
 
 docker: env build-image lyft-build-image

@@ -19,7 +19,7 @@ $(bins): %: FORCE vendor
 	$(GO) install $(pkg)/cmd/$@
 
 $(bins:%=image/%): %: FORCE vendor
-	$(IMAGE_GO) install $(pkg)/cmd/${@:image/%=%}
+	$(IMAGE_GO) build -o ${@} $(pkg)/cmd/${@:image/%=%}
 
 .SECONDARY:
 # The only reason .DELETE_ON_ERROR is off by default is for historical
