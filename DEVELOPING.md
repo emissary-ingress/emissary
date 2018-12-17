@@ -18,12 +18,12 @@ To get started:
    service. It will take a while the first time. It will be quicker
    subsequent times.
 
-2. Type `make proxy` to start teleproxy. The remaining steps all
-   assume teleproxy is running and you are in another unoccupied dev
-   shell.
+2. Type `make proxy` to start teleproxy.
 
-3. Type `make shell` in order to start a dev shell. This launch a
-   shell with KUBECONFIG setup to point to the acquired cluster.
+3. Type `make shell` in order to start a dev shell. This launches a
+   shell with KUBECONFIG setup to point to the acquired cluster. The
+   remaining steps all assume teleproxy is running and you are in
+   another unoccupied dev shell.
 
 To query the ratelimit service in the cluster:
 
