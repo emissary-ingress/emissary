@@ -26,3 +26,6 @@ class IRFilter(IRResource):
 
     def config_dict(self) -> Optional[dict]:
         return self.config
+
+    def finalize(self) -> None:
+        pass

@@ -202,6 +202,16 @@ class IR:
                 self.logger.info("%s => %s" % (name, mangled_name))
                 self.clusters[name]['name'] = mangled_name
 
+        # After we have the cluster names fixed up, go finalize filters.
+        if self.tracing:
+            self.tracing.finalize()
+
+        if self.ratelimit:
+            self.ratelimit.finalize()
+
+        for filter in self.filters:
+            filter.finalize()
+
     # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
     # a common container that can hold errors.
     def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None):

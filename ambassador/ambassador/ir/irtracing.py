@@ -92,7 +92,9 @@ class IRTracing (IRResource):
         cluster.referenced_by(self)
         self.cluster = cluster
 
-        self.driver_config['collector_cluster'] = cluster.name
-
         # if not ir.add_to_primary_listener(tracing=True):
         #     raise Exception("Failed to update primary listener with tracing config")
+
+    def finalize(self):
+        self.ir.logger.info("tracing cluster name: %s" % self.cluster.name)
+        self.driver_config['collector_cluster'] = self.cluster.name
