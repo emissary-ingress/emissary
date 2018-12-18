@@ -4,8 +4,7 @@
     {
       "address": "tcp://0.0.0.0:443",
 
-      "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-          "private_key_file": "/etc/ambassador-config/certs/tls.key"
+      "ssl_context": {"private_key_file": "/etc/ambassador-config/certs/tls.key"
       },"filters": [
         {
           "type": "read",
@@ -115,7 +114,6 @@
         ],
         "ssl_context": {
 
-          "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
 
           "private_key_file": "/etc/ambassador-config/certs/outbound.key"
 
@@ -133,7 +131,6 @@
         ],
         "ssl_context": {
 
-          "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
 
           "private_key_file": "/etc/ambassador-config/certs/outbound.key"
 

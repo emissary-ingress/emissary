@@ -89,6 +89,10 @@ class IREnvoyTLS (IRResource):
             return False
 
         self['valid_tls'] = False
+
+        if self.get('cert_chain_file') is not None:
+            self['certificate_chain_file'] = self.pop('cert_chain_file')
+
         secret = self.get('secret')
 
         cert_specified = self.cert_specified(ir)

@@ -108,6 +108,9 @@ name: tls
 config:
   upstream:
     secret: test-certs-secret
+  upstream-files:
+    cert_chain_file: /ambassador/upstream/tls.crt
+    private_key_file: /ambassador/upstream/tls.key
 """)
 
         yield self, self.format("""
@@ -120,8 +123,19 @@ service: {self.target.path.k8s}
 tls: upstream
 """)
 
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}-files
+prefix: /{self.name}-files/
+service: {self.target.path.k8s}
+tls: upstream-files
+""")
+
     def queries(self):
         yield Query(self.url(self.name + "/"))
+        yield Query(self.url(self.name + "-files/"))
 
     def check(self):
         for r in self.results:

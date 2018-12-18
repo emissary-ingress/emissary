@@ -4,8 +4,7 @@
     {
       "address": "tcp://0.0.0.0:443",
       
-      "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-          "private_key_file": "/etc/ambassador-config/certs/tls.key","alpn_protocols": "h2","ca_cert_file": "/etc/ambassador-config/ca_cert_chain/tls.crt","require_client_certificate": true
+      "ssl_context": {"private_key_file": "/etc/ambassador-config/certs/tls.key","alpn_protocols": "h2","ca_cert_file": "/etc/ambassador-config/ca_cert_chain/tls.crt","require_client_certificate": true
       },"filters": [
         {
           "type": "read",
