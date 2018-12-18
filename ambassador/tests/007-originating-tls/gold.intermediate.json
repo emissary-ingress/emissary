@@ -30,10 +30,6 @@
                 "name": "cluster_extauth_https___example_auth_3000_otls",
                 "tls_array": [
                     {
-                        "key": "cert_chain_file",
-                        "value": "/etc/ambassador-config/certs/outbound.crt"
-                    },
-                    {
                         "key": "private_key_file",
                         "value": "/etc/ambassador-config/certs/outbound.key"
                     }
@@ -44,7 +40,7 @@
                         "mapping-qotm.yaml.1"
                     ],
                     "_source": "tls.yaml.1",
-                    "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
+                    "certificate_chain_file": "/etc/ambassador-config/certs/outbound.crt",
                     "private_key_file": "/etc/ambassador-config/certs/outbound.key",
                     "namespace": "default",
                     "valid_tls": true
@@ -64,10 +60,6 @@
                 "name": "cluster_qotm_otls_upstream",
                 "tls_array": [
                     {
-                        "key": "cert_chain_file",
-                        "value": "/etc/ambassador-config/certs/outbound.crt"
-                    },
-                    {
                         "key": "private_key_file",
                         "value": "/etc/ambassador-config/certs/outbound.key"
                     }
@@ -78,7 +70,7 @@
                         "mapping-qotm.yaml.1"
                     ],
                     "_source": "tls.yaml.1",
-                    "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
+                    "certificate_chain_file": "/etc/ambassador-config/certs/outbound.crt",
                     "private_key_file": "/etc/ambassador-config/certs/outbound.key",
                     "namespace": "default",
                     "valid_tls": true
@@ -128,7 +120,6 @@
                 "service_port": 443,
                 "tls": {
                     "_source": "tls.yaml.1",
-                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },
