@@ -5,6 +5,7 @@
 /kubeapply
 /teleproxy
 /apictl
+/apictl-key
 /image
 /ratelimit
 /ratelimit_check

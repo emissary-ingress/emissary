@@ -2,7 +2,7 @@ NAME=ambassador-ratelimit
 PROFILE ?= dev
 
 pkg = github.com/datawire/ambassador-ratelimit
-bins = apictl
+bins = apictl apictl-key
 
 include build-aux/shell.mk
 include build-aux/go.mk
