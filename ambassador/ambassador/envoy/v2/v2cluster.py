@@ -55,7 +55,7 @@ class V2Cluster(dict):
 
             envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
             if envoy_ctx:
-                self['tls_context'] = envoy_ctx
+                fields['tls_context'] = envoy_ctx
 
         self.update(fields)
 
