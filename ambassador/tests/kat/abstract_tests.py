@@ -56,15 +56,13 @@ rules:
 - apiGroups: [""]
   resources:
   - services
+  - secrets
+  - namespaces
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
   - configmaps
   verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
