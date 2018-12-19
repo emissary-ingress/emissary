@@ -585,7 +585,7 @@ class RedirectTests(AmbassadorTest):
         # be annotated on the Ambassador itself.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -597,7 +597,7 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
@@ -652,7 +652,7 @@ class SimpleMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
@@ -699,7 +699,7 @@ class HostHeaderMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
@@ -751,7 +751,7 @@ host: tls-context-host-1
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: TLSContext
 name: {self.name}-same-context-1
 hosts:
@@ -760,7 +760,7 @@ secret: same-secret-1
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-same-prefix-2
 prefix: /tls-context-same/
@@ -769,7 +769,7 @@ host: tls-context-host-2
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: TLSContext
 name: {self.name}-same-context-2
 hosts:
@@ -780,7 +780,7 @@ alpn_protocols: h2,http/1.1
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
