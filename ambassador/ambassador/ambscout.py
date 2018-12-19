@@ -101,9 +101,6 @@ class AmbScout:
             if 'runtime' not in kwargs:
                 kwargs['runtime'] = self.runtime
 
-            if 'namespace' not in kwargs:
-                kwargs['namespace'] = self.namespace
-
             if 'commit' not in kwargs:
                 kwargs['commit'] = Build.git.commit
 

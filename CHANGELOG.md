@@ -40,6 +40,43 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.50.0-rc1] December 19, 2018
+[0.50.0-rc1]: https://github.com/datawire/ambassador/compare/0.50.0-ea7...0.50.0-rc1
+
+**Ambassador 0.50.0-rc1 is a release candidate.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+
+- **API version `ambassador/v0` is officially deprecated in Ambassador 0.50.0-rc1.**
+    - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0, starting in 0.50.0-rc1.
+
+- Some `ambassador/v1` resources change semantics from their `ambassador/v0` versions:
+    - The `Mapping` resource no longer supports `rate_limits` as that functionality has been 
+      subsumed by `labels`.
+    - The `AuthService` resource supports more extensive configuration options. An `ambassador/v0`
+      `AuthService` preserves the older, less flexible semantics: see the external authentication documentation for more information.
+    - The `RateLimitService` permits configuring its `domain` in `ambassador/v1`. 
+
+### Changes since 0.50.0-ea7:
+
+- Websockets should work happily with external authentication [#1026]
+- A `TracingService` using a long cluster name works now [#1025] 
+- TLS origination certificates are no longer offered to clients when Ambassador does TLS termination [#983]
+- Ambassador will listen on port 443 only if TLS termination contexts are present; a TLS origination context will not cause the switch 
+- The diagnostics service is working, and correctly reporting errors, again. [#1019]
+- `timeout_ms` in a `Mapping` works correctly again [#990]
+- Ambassador sends additional anonymized usage data to help Datawire prioritize bug fixes, etc.
+  See `docs/ambassador/running.md` for more information, including how to disable this function.
+
+[#983]: https://github.com/datawire/ambassador/issues/983
+[#990]: https://github.com/datawire/ambassador/issues/990
+[#1019]: https://github.com/datawire/ambassador/issues/1019
+[#1025]: https://github.com/datawire/ambassador/issues/1025
+[#1026]: https://github.com/datawire/ambassador/issues/1026
+
 ## [0.50.0-ea7] November 19, 2018
 [0.50.0-ea7]: https://github.com/datawire/ambassador/compare/0.50.0-ea6...0.50.0-ea7
 
