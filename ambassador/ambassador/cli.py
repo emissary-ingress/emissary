@@ -207,7 +207,12 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['features'] = ir.features()
 
         scout = Scout()
-        result = scout.report(action="dump", mode="cli")
+        scout_args = {}
+
+        if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+            scout_args["features"] = ir.features()
+
+        result = scout.report(action="dump", mode="cli", **scout_args)
         show_notices(result)
 
         json.dump(od, sys.stdout, sort_keys=True, indent=4)

@@ -258,9 +258,12 @@ class Restarter(threading.Thread):
         bootstrap_config = dict(envoy_config.bootstrap)
 
         scout = Scout()
-        result = scout.report(mode="kubewatch", action="reconfigure",
-                              gencount=self.restart_count)
+        scout_args = { "gencount": self.restart_count }
 
+        if not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+            scout_args["features"] = ir.features()
+
+        result = scout.report(mode="kubewatch", action="reconfigure", **scout_args)
         notices = result.pop("notices", [])
 
         logger.debug("scout result %s" % json.dumps(result, sort_keys=True, indent=4))
