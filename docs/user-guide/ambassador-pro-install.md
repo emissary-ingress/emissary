@@ -4,9 +4,22 @@
 Ambassador Pro is a commercial version of Ambassador that includes integrated SSO, flexible rate limiting, and more. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
 
 ### 1. Install and Configure Ambassador
-This guide assumes you have Ambassador installed and configured. If this is not the case, follow the [Ambassador installation guide](/user-guide/getting-started) to get Ambassador running before continuing.
+Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
 
-### 2. Create the Ambassador Pro registry credentials secret.
+```
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-service.yaml
+```
+
+Note: If you are using GKE, you will need additional privileges:
+
+```
+kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```
+
+For more detailed instructions on installing Ambassador, please see the [Ambassador installation guide](/user-guide/getting-started).
+
+### 2. Create the Ambassador Pro registry credentials secrets.
 Your credentials to pull the image from the Ambassador Pro registry were given in the signup email. If you have lost this email, please contact us at support@datawire.io.
 
 ```
@@ -20,12 +33,16 @@ kubectl create secret docker-registry ambassador-pro-registry-credentials --dock
 Ambassador Pro is deployed as an additional set of Kubernetes services that integrate with Ambassador. In addition, Ambassador Pro also relies on a Redis instance for its rate limit service. The default configuration for Ambassador Pro is available at https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml. Download this file locally:
 
 ```
-curl -O "https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml"
+curl -O "https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml"
 ```
 
 Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured correctly for your particular deployment. If you are not installing Ambassador into the `default` namespace, you will need to update this file accordingly.
 
-### 4. Single-Sign On
+### 4. License Key
+
+In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable with the license key that is supplied as part of your trial email.
+
+### 5. Single-Sign On
 
 Ambassador Pro's authentication service requires some additional information about your Identity Provider. This is done by configuring environment variables in the deployment manifest. 
 
@@ -102,7 +119,7 @@ metadata:
 
 (For the sake of brevity, the full Kubernetes service is not duplicated above.)
 
-### 5. Deploy Ambassador Pro
+### 6. Deploy Ambassador Pro
 
 Once you have fully configured Ambassador Pro, deploy the your configuration:
 
