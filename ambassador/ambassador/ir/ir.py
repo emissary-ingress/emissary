@@ -358,7 +358,7 @@ class IR:
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
     def features(self) -> Dict[str, Any]:
-        od = {}
+        od: Dict[str, Union[bool, int, str]] = {}
 
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts
@@ -480,14 +480,14 @@ class IR:
             tracing_driver = self.tracing.driver
 
         od['extauth'] = extauth
-        od['extauth_proto'] = extauth_proto or "N/A"
+        od['extauth_proto'] = extauth_proto
         od['extauth_allow_body'] = extauth_allow_body
         od['extauth_host_count'] = extauth_host_count
         od['ratelimit'] = ratelimit
         od['ratelimit_data_plane_proto'] = ratelimit_data_plane_proto
         od['ratelimit_custom_domain'] = ratelimit_custom_domain
         od['tracing'] = tracing
-        od['tracing_driver'] = tracing_driver or "N/A"
+        od['tracing_driver'] = tracing_driver
 
         group_count = 0
         group_precedence_count = 0      # groups using explicit precedence
@@ -498,6 +498,7 @@ class IR:
         group_host_redirect_count = 0   # groups using host_redirect
         group_host_rewrite_count = 0    # groups using host_rewrite
         group_canary_count = 0          # groups coalescing multiple mappings
+        mapping_count = 0               # total mappings
 
         for group in self.ordered_groups():
             group_count += 1
@@ -524,6 +525,8 @@ class IR:
             if len(group.mappings) > 1:
                 group_canary_count += 1
 
+            mapping_count += len(group.mappings)
+
             if group.get('shadows', []):
                 group_shadow_count += 1
 
@@ -542,6 +545,7 @@ class IR:
         od['group_host_redirect_count'] = group_host_redirect_count
         od['group_host_rewrite_count'] = group_host_rewrite_count
         od['group_canary_count'] = group_canary_count
+        od['mapping_count'] = mapping_count
 
         od['listener_count'] = len(self.listeners)
 
