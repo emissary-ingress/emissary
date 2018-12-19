@@ -22,6 +22,7 @@ import glob
 import json
 import logging
 import multiprocessing
+import os
 import re
 import time
 import uuid
@@ -231,6 +232,8 @@ def system_info():
     return {
         "version": __version__,
         "hostname": SystemInfo.MyHostName,
+        "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                     os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
         "boot_time": boot_time,
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }

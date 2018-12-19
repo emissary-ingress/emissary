@@ -80,6 +80,7 @@ class Restarter(threading.Thread):
         self.envoy_config_file = envoy_config_file
         self.delay = delay
         self.pid = pid
+        self.cluster_id = None
 
         self.mutex = threading.Condition()
         # This holds how many times we have been poked.
@@ -104,6 +105,10 @@ class Restarter(threading.Thread):
 
         path = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
         self.read_fs(path)
+
+    def set_cluster_id(self, cluster_id) -> None:
+        with self.mutex:
+            self.cluster_id = cluster_id
 
     def tls_secret_resolver(self, secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
         (cert, key, data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
@@ -255,7 +260,7 @@ class Restarter(threading.Thread):
 
         bootstrap_config = dict(envoy_config.bootstrap)
 
-        scout = Scout()
+        scout = Scout(install_id=self.cluster_id)
         result = scout.report(mode="kubewatch", action="reconfigure",
                               gencount=self.restart_count)
 
@@ -329,8 +334,10 @@ class Restarter(threading.Thread):
 
 class KubeWatcher:
     def __init__(self, logger, restarter):
-        self.cluster_id = os.environ.get('AMBASSADOR_SCOUT_ID', None)
+        self.cluster_id = os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                         os.environ.get('AMBASSADOR_SCOUT_ID', None))
         self.need_sync = True
+        self.restarter_started = False
 
         self.logger = logger
 
@@ -362,22 +369,31 @@ class KubeWatcher:
                         # Nope. Try to figure it out.
                         self.get_cluster_id(v1)
 
-                    # ...then do sync if needed...
+                    # ...then do sync if needed.
                     if self.need_sync:
                         self.sync(v1)
 
-                # Whether or not we got a Kube connection, generate the initial Envoy config if needed.
+                # Whether or not we got a Kube connection, generate the initial Envoy config if needed
+                # (including setting the restarter's cluster ID).
                 if self.need_sync:
-                    # Always generate an initial envoy config.
                     logger.debug("Generating initial Envoy config")
+
+                    self.restarter.set_cluster_id(self.cluster_id)
                     self.restarter.restart()
+
                     self.need_sync = False
 
-                # If we're just doing the sync, bail.
+                # If we're just doing the sync, dump the cluster_id to stdout and then bail.
                 if sync_only:
+                    print(self.cluster_id)
                     break
 
-                # OK, if we had a Kube connection, start watching.
+                # We're not just doing a resync. Start the restarter loop if we need to.
+                if not self.restarter_started:
+                    self.restarter.start()
+                    self.restarter_started = True
+
+                # Finally, start watching, if we need to.
                 if v1:
                     self.watch(v1)
 
@@ -429,7 +445,7 @@ class KubeWatcher:
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
         self.logger.debug("cluster ID URL is %s" % cluster_url)
 
-        self.cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).upper()
+        self.cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
         self.logger.info("cluster ID is %s (from %s)" % (self.cluster_id, found))
 
     def sync(self, v1):
@@ -517,14 +533,12 @@ def main(mode, ambassador_config_dir, envoy_config_file, debug, delay, pid):
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
-
     watcher =  KubeWatcher(logger, restarter)
 
     if mode == "sync":
         watcher.run(sync_only=True)
     elif mode == "watch":
-        restarter.start()
-        watcher.run()
+        watcher.run(sync_only=False)
     else:
         raise ValueError(mode)
 

@@ -136,13 +136,19 @@ wait_for_ready() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE")
 
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
     diediedie "kubewatch sync" "$STATUS"
 fi
+
+# Set Ambassador's cluster ID here. We can do this unconditionally because if AMBASSADOR_CLUSTER_ID was set
+# before, kubewatch sync will use it.
+AMBASSADOR_CLUSTER_ID="${cluster_id}"
+export AMBASSADOR_CLUSTER_ID
+echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 
 echo "AMBASSADOR: starting diagd"
 diagd "${CONFIG_DIR}" $DIAGD_DEBUG --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
