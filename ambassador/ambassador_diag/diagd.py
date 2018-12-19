@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import datetime
 import functools
@@ -31,11 +31,11 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, send_from_directory, request, jsonify # Response
+from flask import Flask, render_template, send_from_directory, request, jsonify
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, ScoutNotice, Version
+from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
 from ambassador.utils import SystemInfo, PeriodicTrigger
 
 from ambassador.diagnostics import EnvoyStats
@@ -70,6 +70,11 @@ envoy_targets = {
 
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
+
+
+# Get the Flask app defined early.
+app = Flask(__name__,
+            template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
 
 ######## DECORATORS
@@ -120,12 +125,9 @@ def standard_handler(f):
     return wrapper
 
 
-# Get the Flask app defined early.
-app = Flask(__name__,
-            template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
+######## UTILITIES
 
 
-# Next, various helpers.
 class Notices:
     def __init__(self, local_config_path: str) -> None:
         self.local_path = local_config_path
@@ -156,7 +158,8 @@ class Notices:
         for notice in notices:
             self.post(notice)
 
-def get_aconf(app, what):
+
+def get_aconf(app) -> Config:
     configs = glob.glob("%s-*" % app.config_dir_prefix)
 
     if configs:
@@ -175,23 +178,30 @@ def get_aconf(app, what):
     aconf = Config()
     aconf.load_from_directory(latest, k8s=app.k8s)
 
-    uptime = datetime.datetime.now() - boot_time
-    hr_uptime = td_format(uptime)
-
     app.notices = Notices(app.notice_path)
     app.notices.reset()
 
-    app.scout = Scout()
-    app.scout_result = app.scout.report(mode="diagd", action=what,
-                                        uptime=int(uptime.total_seconds()),
-                                        hr_uptime=hr_uptime)
+    return aconf
 
+
+def check_scout(app, what: str, ir: Optional[IR]=None) -> None:
+    uptime = datetime.datetime.now() - boot_time
+    hr_uptime = td_format(uptime)
+
+    app.scout = Scout()
+    app.scout_args = {
+        "uptime": int(uptime.total_seconds()),
+        "hr_uptime": hr_uptime
+    }
+
+    if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+        app.scout_args["features"] = ir.features()
+
+    app.scout_result = app.scout.report(mode="diagd", action=what, **app.scout_args)
     app.notices.extend(app.scout_result.pop('notices', []))
 
     app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
     app.logger.info("Scout notices: %s" % json.dumps(app.notices.notices))
-
-    return aconf
 
 
 def td_format(td_object):
@@ -299,8 +309,10 @@ def show_overview(reqid=None):
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
-    aconf = get_aconf(app, "overview")
+    aconf = get_aconf(app)
     ir = IR(aconf)
+    check_scout(app, "overview", ir)
+
     econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
 
@@ -357,8 +369,10 @@ def show_overview(reqid=None):
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    aconf = get_aconf(app, "detail: %s" % source)
+    aconf = get_aconf(app)
     ir = IR(aconf)
+    check_scout(app, "detail: %s" % source, ir)
+
     econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
 

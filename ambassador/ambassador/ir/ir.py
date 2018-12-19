@@ -343,7 +343,7 @@ class IR:
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
-            'tls_contexts': [context.as_dict() for context in self.tls_contexts]
+            'tls_contexts': [ context.as_dict() for context in self.tls_contexts ]
         }
 
         if self.tracing:
@@ -354,5 +354,199 @@ class IR:
 
         return od
 
-    def as_json(self):
+    def as_json(self) -> str:
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
+
+    def features(self) -> Dict[str, Any]:
+        od: Dict[str, Union[bool, int, str]] = {}
+
+        tls_termination_count = 0   # TLS termination contexts
+        tls_origination_count = 0   # TLS origination contexts
+
+        using_tls_module = False
+        using_tls_contexts = False
+
+        for ctx in self.envoy_tls.values():
+            using_tls_module = True
+
+            if ctx.get('certificate_chain_file', None) and ctx.get('valid_tls', False):
+                tls_termination_count += 1
+
+            if ctx.get('cacert_chain_file', None) and ctx.get('valid_tls', False):
+                tls_origination_count += 1
+
+        for ctx in self.tls_contexts:
+            if ctx:
+
+                secret_info = ctx.get('secret_info', {})
+
+                if secret_info:
+                    using_tls_contexts = True
+
+                    if secret_info.get('certificate_chain_file', None):
+                        tls_termination_count += 1
+
+                    if secret_info.get('cacert_chain_file', None):
+                        tls_origination_count += 1
+
+        od['tls_using_module'] = using_tls_module
+        od['tls_using_contexts'] = using_tls_contexts
+        od['tls_termination_count'] = tls_termination_count
+        od['tls_origination_count'] = tls_origination_count
+
+        for key in [ 'diagnostics', 'liveness_probe', 'readiness_probe', 'statsd' ]:
+            od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
+
+        for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect' ]:
+            od[key] = self.ambassador_module.get(key, False)
+
+        od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
+
+        default_port = 443 if tls_termination_count else 80
+
+        od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
+        od['custom_diag_port'] = bool(self.ambassador_module.diag_port != 8877)
+
+        cluster_count = 0
+        cluster_grpc_count = 0      # clusters using GRPC upstream
+        cluster_http_count = 0      # clusters using HTTP or HTTPS upstream
+        cluster_tls_count = 0       # clusters using TLS origination
+
+        endpoint_grpc_count = 0     # endpoints using GRPC upstream
+        endpoint_http_count = 0     # endpoints using HTTP/HTTPS upstream
+        endpoint_tls_count = 0      # endpoints using TLS origination
+
+        for cluster in self.clusters.values():
+            cluster_count += 1
+            using_tls = False
+            using_http = False
+            using_grpc = False
+
+            if cluster.get('tls_context', None):
+                using_tls = True
+                cluster_tls_count += 1
+
+            if cluster.get('grpc', False):
+                using_grpc = True
+                cluster_grpc_count += 1
+            else:
+                using_http = True
+                cluster_http_count += 1
+
+            for url in cluster.urls:
+                if using_tls:
+                    endpoint_tls_count += 1
+
+                if using_http:
+                    endpoint_http_count += 1
+
+                if using_grpc:
+                    endpoint_grpc_count += 1
+
+        od['cluster_count'] = cluster_count
+        od['cluster_grpc_count'] = cluster_grpc_count
+        od['cluster_http_count'] = cluster_http_count
+        od['cluster_tls_count'] = cluster_tls_count
+        od['endpoint_grpc_count'] = endpoint_grpc_count
+        od['endpoint_http_count'] = endpoint_http_count
+        od['endpoint_tls_count'] = endpoint_tls_count
+
+        extauth = False
+        extauth_proto = None
+        extauth_allow_body = False
+        extauth_host_count = 0
+
+        ratelimit = False
+        ratelimit_data_plane_proto = False
+        ratelimit_custom_domain = False
+
+        tracing = False
+        tracing_driver = None
+
+        for filter in self.filters:
+            if filter.kind == 'IRAuth':
+                extauth = True
+                extauth_proto = filter.get('proto', 'http')
+                extauth_allow_body = filter.get('allow_request_body', False)
+                extauth_host_count = len(filter.hosts.keys())
+
+        if self.ratelimit:
+            ratelimit = True
+            ratelimit_data_plane_proto = self.ratelimit.get('data_plane_proto', False)
+            ratelimit_custom_domain = bool(self.ratelimit.domain != 'ambassador')
+
+        if self.tracing:
+            tracing = True
+            tracing_driver = self.tracing.driver
+
+        od['extauth'] = extauth
+        od['extauth_proto'] = extauth_proto
+        od['extauth_allow_body'] = extauth_allow_body
+        od['extauth_host_count'] = extauth_host_count
+        od['ratelimit'] = ratelimit
+        od['ratelimit_data_plane_proto'] = ratelimit_data_plane_proto
+        od['ratelimit_custom_domain'] = ratelimit_custom_domain
+        od['tracing'] = tracing
+        od['tracing_driver'] = tracing_driver
+
+        group_count = 0
+        group_precedence_count = 0      # groups using explicit precedence
+        group_header_match_count = 0    # groups using header matches
+        group_regex_header_count = 0    # groups using regex header matches
+        group_regex_prefix_count = 0    # groups using regex prefix matches
+        group_shadow_count = 0          # groups using shadows
+        group_host_redirect_count = 0   # groups using host_redirect
+        group_host_rewrite_count = 0    # groups using host_rewrite
+        group_canary_count = 0          # groups coalescing multiple mappings
+        mapping_count = 0               # total mappings
+
+        for group in self.ordered_groups():
+            group_count += 1
+
+            if group.get('precedence', 0) != 0:
+                group_precedence_count += 1
+
+            using_headers = False
+            using_regex_headers = False
+
+            for header in group.get('headers', []):
+                using_headers = True
+
+                if header['regex']:
+                    using_regex_headers = True
+                    break
+
+            if using_headers:
+                group_header_match_count += 1
+
+            if using_regex_headers:
+                group_regex_header_count += 1
+
+            if len(group.mappings) > 1:
+                group_canary_count += 1
+
+            mapping_count += len(group.mappings)
+
+            if group.get('shadows', []):
+                group_shadow_count += 1
+
+            if group.get('host_redirect', {}):
+                group_host_redirect_count += 1
+
+            if group.get('host_rewrite', None):
+                group_host_rewrite_count += 1
+
+        od['group_count'] = group_count
+        od['group_precedence_count'] = group_precedence_count
+        od['group_header_match_count'] = group_header_match_count
+        od['group_regex_header_count'] = group_regex_header_count
+        od['group_regex_prefix_count'] = group_regex_prefix_count
+        od['group_shadow_count'] = group_shadow_count
+        od['group_host_redirect_count'] = group_host_redirect_count
+        od['group_host_rewrite_count'] = group_host_rewrite_count
+        od['group_canary_count'] = group_canary_count
+        od['mapping_count'] = mapping_count
+
+        od['listener_count'] = len(self.listeners)
+
+        return od

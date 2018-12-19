@@ -130,7 +130,7 @@ def tls_secret_resolver(secret_name: str, context: str, cert_dir=None) -> Option
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
          debug=False, debug_scout=False, k8s=False,
-         aconf=False, ir=False, v1=False, v2=False, diag=False):
+         aconf=False, ir=False, v1=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -146,6 +146,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param v1: If set, dump the Envoy V1 config
     :param v2: If set, dump the Envoy V2 config
     :param diag: If set, dump the Diagnostics overview
+    :param features: If set, dump the feature set
     """
 
     if debug:
@@ -154,18 +155,20 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     if debug_scout:
         logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
 
-    if not (aconf or ir or v1 or v2 or diag):
+    if not (aconf or ir or v1 or v2 or diag or features):
         aconf = True
         ir = True
         v1 = False  # Default to NOT dumping V1 any more.
         v2 = True
         diag = False
+        features = False
 
     dump_aconf = aconf
     dump_ir = ir
     dump_v1 = v1
     dump_v2 = v2
     dump_diag = diag
+    dump_features = features
 
     od = {}
     diagconfig: Optional[EnvoyConfig] = None
@@ -200,8 +203,16 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['diag'] = diag.as_dict()
             od['elements'] = econf.elements
 
+        if dump_features:
+            od['features'] = ir.features()
+
         scout = Scout()
-        result = scout.report(action="dump", mode="cli")
+        scout_args = {}
+
+        if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+            scout_args["features"] = ir.features()
+
+        result = scout.report(action="dump", mode="cli", **scout_args)
         show_notices(result)
 
         json.dump(od, sys.stdout, sort_keys=True, indent=4)
