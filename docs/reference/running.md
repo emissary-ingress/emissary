@@ -180,10 +180,10 @@ These environment variables can be set much like `AMBASSADOR_NAMESPACE`, above.
 
 ## Ambassador Update Checks (Scout)
 
-A running Ambassador instance checks with Datawire to be able to advise of available updates, and to help 
-Datawire better understand how Ambassador is being used. To completely disable this check, set the environment
-variable `SCOUT_DISABLE` to `1` in your Ambassador deployment (but note that this is not recommended, as you will
-lose notifications about new releases).
+Ambassador integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
+
+We do not recommend you disable Scout, since we use this mechanism to notify users of new release (including critical fixes and security issues). This check can be disabled by setting the environment
+variable `SCOUT_DISABLE` to `1` in your Ambassador deployment.
   
 Each Ambassador installation generates a unique cluster ID based on the UID of its Kubernetes namespace and
 its Ambassador ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor
@@ -192,8 +192,7 @@ default YAML files provided by Datawire; if not granted this permission it will 
 the Ambassador ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID`
 to a UUID that will be used for the cluster ID.
 
-Finally, each Ambassador installation reports a sanitized set of information about which features are in use.
-The current feature set reported is:
+Unless disabled, Ambassador will also report the following anonymized information back to Datawire:
 
 | Attribute                 | Type  | Description               |
 | :------------------------ | :---- | :------------------------ |
