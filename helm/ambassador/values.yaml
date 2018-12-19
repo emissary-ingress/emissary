@@ -66,6 +66,14 @@ volumes: {}
 
 volumeMounts: {}
 
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9102"
+
+env: {}
+  # Specify any additional environment variables in format 
+  # FOO: bar
+
 resources: {}
   # If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.

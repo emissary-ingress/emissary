@@ -20,8 +20,9 @@ spec:
         app: {{ template "ambassador.name" . }}
         release: {{ .Release.Name }}
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9102"
+      {{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+      {{- end }}
     spec:
       serviceAccountName: {{ template "ambassador.serviceAccountName" . }}
       volumes:
@@ -82,6 +83,12 @@ spec:
           - name: AMBASSADOR_SHUTDOWN_TIME
             value: {{ .Values.timing.shutdown | quote }}
           {{- end -}}
+          {{- end }}
+          {{- if .Values.env }}          
+          {{- range $key,$value := .Values.env }}
+          - name: {{ $key | upper | quote}}
+            value: {{ $value | quote}}
+          {{- end }}
           {{- end }}
           livenessProbe:
             httpGet:
