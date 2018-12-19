@@ -178,4 +178,16 @@ Ambassador is constantly watching for changes to the service annotations. When c
 
 These environment variables can be set much like `AMBASSADOR_NAMESPACE`, above.
 
+## Ambassador Update Checks (Scout)
 
+A running Ambassador instance checks with Datawire to be able to advise of available updates, and to help 
+Datawire better understand how Ambassador is being used. To completely disable this check, set the environment
+variable `SCOUT_DISABLE` to `1` in your Ambassador deployment (but note that this is not recommended, as you will
+lose notifications about new releases).
+  
+Each Ambassador installation generates a unique cluster ID based on the UID of its Kubernetes namespace and
+its Ambassador ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor
+Ambassador ID itself. Ambassador needs RBAC permission to get namespaces for this purpose, as shown in the 
+default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on
+the Ambassador ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID`
+to a UUID that will be used for the cluster ID.
