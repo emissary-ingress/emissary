@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import sys
-
 import click
 import json
 import logging
@@ -22,13 +20,14 @@ import shutil
 import signal
 import threading
 import time
-
+import uuid
 import yaml
 
 from urllib3.exceptions import ProtocolError
 from typing import Optional, Dict
 
 from kubernetes import watch
+from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
 from ambassador.ir import IR
@@ -81,6 +80,7 @@ class Restarter(threading.Thread):
         self.envoy_config_file = envoy_config_file
         self.delay = delay
         self.pid = pid
+        self.cluster_id = None
 
         self.mutex = threading.Condition()
         # This holds how many times we have been poked.
@@ -106,13 +106,17 @@ class Restarter(threading.Thread):
         path = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
         self.read_fs(path)
 
+    def set_cluster_id(self, cluster_id) -> None:
+        with self.mutex:
+            self.cluster_id = cluster_id
+
     def tls_secret_resolver(self, secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
         (cert, key, data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
         if not (cert and key):
             return None
 
-        certificate_chain_path = None
-        private_key_path = None
+        certificate_chain_path = ""
+        private_key_path = ""
 
         if context == 'server':
             cert_dir = TLSPaths.cert_dir.value
@@ -150,11 +154,6 @@ class Restarter(threading.Thread):
 
                     logger.debug("Loaded %s" % filepath)
 
-    def changes(self):
-        with self.mutex:
-            delta = self.pokes - self.processed
-        return delta
-
     def run(self):
         while True:
             logger.debug("Restarter sleeping...")
@@ -162,18 +161,19 @@ class Restarter(threading.Thread):
             time.sleep(self.delay)
 
             with self.mutex:
-                changes = self.changes()
-
-                logger.debug("Restarter found %s changes" % changes)
+                changes = self.pokes - self.processed
 
                 if changes > 0:
                     logger.debug("Processing %s changes" % changes)
+
                     try:
-                        self.restart()
+                        self.restart(changes)
                     except Exception as e:
                         logging.exception("could not restart Envoy: %s" % e)
 
                     self.processed += changes
+                else:
+                    logger.debug("No changes, cycling")
 
     @staticmethod
     def safe_write(temp_dir, target_dir, target_name, serialized):
@@ -189,10 +189,14 @@ class Restarter(threading.Thread):
 
         return target_path
 
-    def restart(self):
+    def restart(self, changes=None):
+        if changes is None:
+            with self.mutex:
+                changes = self.pokes - self.processed
+
         self.restart_count += 1
         output = "%s-%s" % (self.ambassador_config_dir, self.restart_count)
-        bootstrap_config, ads_config = self.generate_config(output)
+        bootstrap_config, ads_config = self.generate_config(changes, output)
 
         bootstrap_serialized = json.dumps(bootstrap_config, sort_keys=True, indent=4)
         need_restart = False
@@ -229,7 +233,7 @@ class Restarter(threading.Thread):
         if self.pid:
             os.kill(self.pid, signal.SIGHUP)
 
-    def generate_config(self, output):
+    def generate_config(self, changes, output):
         if os.path.exists(output):
             shutil.rmtree(output)
         os.makedirs(output)
@@ -239,10 +243,9 @@ class Restarter(threading.Thread):
                 fd.write(config)
             logger.debug("Wrote %s to %s" % (filename, path))
 
-        changes = self.changes()
         plural = "" if (changes == 1) else "s"
 
-        logger.info("generating config with gencount %d (%d change%s)" % 
+        logger.info("generating config with gencount %d (%d change%s)" %
                     (self.restart_count, changes, plural))
 
         aconf = Config()
@@ -257,7 +260,7 @@ class Restarter(threading.Thread):
 
         bootstrap_config = dict(envoy_config.bootstrap)
 
-        scout = Scout()
+        scout = Scout(install_id=self.cluster_id)
         result = scout.report(mode="kubewatch", action="reconfigure",
                               gencount=self.restart_count)
 
@@ -329,71 +332,171 @@ class Restarter(threading.Thread):
             self.pokes += 1
 
 
-def sync(restarter):
-    v1 = kube_v1()
+class KubeWatcher:
+    def __init__(self, logger, restarter):
+        self.cluster_id = os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                         os.environ.get('AMBASSADOR_SCOUT_ID', None))
+        self.need_sync = True
+        self.restarter_started = False
 
-    if v1:
-        # We have a Kube API! Do we have an ambassador-config ConfigMap?
-        cm_names = [ x.metadata.name 
-                     for x in v1.list_namespaced_config_map(restarter.namespace).items ]
+        self.logger = logger
 
-        if 'ambassador-config' in cm_names:
-            config_data = v1.read_namespaced_config_map("ambassador-config", restarter.namespace)
+        self.restarter = restarter
+        self.namespace = self.restarter.namespace
+        self.single_namespace = bool("AMBASSADOR_SINGLE_NAMESPACE" in os.environ)
 
-            if config_data:
-                for key, config_yaml in config_data.data.items():
-                    logger.info("ambassador-config: found %s" % key)
-                    restarter.update(key, restarter.read_yaml(config_yaml, "ambassador-config %s" % key))
+        if self.cluster_id:
+            self.logger.info("starting with ID %s" % self.cluster_id)
 
-        # Next, check for annotations and such.
+        self.logger.info("namespace %s, watching %s" %
+                         (self.namespace,
+                          "just this namespace" if self.single_namespace else "all namespaces"))
+
+    def run(self, sync_only=False):
+        self.logger.debug("starting run")
+
+        while True:
+            # Catch exceptions... just in case.
+            try:
+                # Try for a Kube connection.
+                v1 = kube_v1()
+
+                if v1:
+                    self.logger.debug("connected to Kubernetes!")
+
+                    # Manage cluster_id if needed...
+                    if not self.cluster_id:
+                        # Nope. Try to figure it out.
+                        self.get_cluster_id(v1)
+
+                    # ...then do sync if needed.
+                    if self.need_sync:
+                        self.sync(v1)
+
+                # Whether or not we got a Kube connection, generate the initial Envoy config if needed
+                # (including setting the restarter's cluster ID).
+                if self.need_sync:
+                    logger.debug("Generating initial Envoy config")
+
+                    self.restarter.set_cluster_id(self.cluster_id)
+                    self.restarter.restart()
+
+                    self.need_sync = False
+
+                # If we're just doing the sync, dump the cluster_id to stdout and then bail.
+                if sync_only:
+                    print(self.cluster_id)
+                    break
+
+                # We're not just doing a resync. Start the restarter loop if we need to.
+                if not self.restarter_started:
+                    self.restarter.start()
+                    self.restarter_started = True
+
+                # Finally, start watching, if we need to.
+                if v1:
+                    self.watch(v1)
+
+            except KeyboardInterrupt:
+                # If the user hit ^C, this is an interactive session and we should bail.
+                self.logger.warning("Exiting on ^C")
+                raise
+
+            except (ProtocolError, ApiException) as e:
+                # If any Kubernetes thing failed, cycle (unless told otherwise)
+                self.logger.warning("Kubernetes access failure! %s" % e)
+
+                if 'AMBASSADOR_NO_KUBEWATCH_RETRY' in os.environ:
+                    logger.info("not restarting! AMBASSADOR_NO_KUBEWATCH_RETRY is set")
+                    raise
+
+            except Exception:
+                # WTFO.
+                self.logger.warning("kubewatch failed!")
+                raise
+
+            finally:
+                # If we're cycling, wait 10 seconds.
+                logger.debug("10-second watch loop delay")
+                time.sleep(10)
+
+    def get_cluster_id(self, v1):
+        wanted = self.namespace if self.single_namespace else "default"
+        found = None
+        root_id = None
+
+        self.logger.debug("looking up ID for namespace %s" % wanted)
+
+        try:
+            ret = v1.read_namespace(wanted)
+            root_id = ret.metadata.uid
+            found = "namespace %s" % wanted
+        except ApiException as e:
+            # This means our namespace wasn't found?
+            self.logger.error("couldn't read namespace %s? %s" %
+                              (self.namespace, e))
+
+        if not root_id:
+            # OK, so we had a crack at this and something went wrong. Give up and hardcode
+            # something.
+            root_id = "00000000-0000-0000-0000-000000000000"
+            found = "hardcoded ID"
+
+        cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
+        self.logger.debug("cluster ID URL is %s" % cluster_url)
+
+        self.cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
+        self.logger.info("cluster ID is %s (from %s)" % (self.cluster_id, found))
+
+    def sync(self, v1):
+        # We have a Kube API! Check for annotations and such.
         svc_list = None
 
-        if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
-            svc_list = v1.list_namespaced_service(restarter.namespace)
+        self.logger.debug("sync attempting to list services for %s" %
+                          (("namespace %s" % self.namespace) if self.single_namespace else "all namespaces"))
+
+        if self.single_namespace:
+            svc_list = v1.list_namespaced_service(self.namespace)
         else:
             svc_list = v1.list_service_for_all_namespaces()
 
         if svc_list:
-            logger.debug("sync: found %d service%s" % 
+            self.logger.debug("sync found %d service%s" %
                          (len(svc_list.items), ("" if (len(svc_list.items) == 1) else "s")))
 
             for svc in svc_list.items:
-                restarter.update_from_service(svc)
+                self.restarter.update_from_service(svc)
         else:
-            logger.debug("sync: no services found")
-
-    # Always generate an initial envoy config.    
-    logger.debug("Generating initial Envoy config")
-    restarter.restart()
+            self.logger.debug("sync found no services")
 
 
-def watch_loop(restarter):
-    v1 = kube_v1()
-
-    if v1:
+    def watch(self, v1):
         w = watch.Watch()
 
-        if "AMBASSADOR_SINGLE_NAMESPACE" in os.environ:
-            watched = w.stream(v1.list_namespaced_service, namespace=restarter.namespace)
+        watched = None
+
+        self.logger.debug("watch attempting to watch services for %s" %
+                          (("namespace %s" % self.namespace) if self.single_namespace else "all namespaces"))
+
+        if self.single_namespace:
+            watched = w.stream(v1.list_namespaced_service, namespace=self.namespace)
         else:
             watched = w.stream(v1.list_service_for_all_namespaces)
 
         for evt in watched:
-            logger.debug("Event: %s %s/%s" %
-                         (evt["type"],
-                          evt["object"].metadata.namespace, evt["object"].metadata.name))
-            sys.stdout.flush()
+            self.logger.debug("event: %s %s/%s" %
+                              (evt["type"],
+                               evt["object"].metadata.namespace, evt["object"].metadata.name))
+            # sys.stdout.flush()
 
             if evt["type"] == "DELETED":
-                restarter.delete(evt["object"])
+                self.restarter.delete(evt["object"])
             else:
-                restarter.update_from_service(evt["object"])
+                self.restarter.update_from_service(evt["object"])
 
         # If here, something strange happened and the watch loop exited on its own.
         # Let our caller handle that.
         logger.info("watch loop exited?")
-    else:
-        logger.info("No K8s, idling")
 
 
 @click.command()
@@ -430,38 +533,14 @@ def main(mode, ambassador_config_dir, envoy_config_file, debug, delay, pid):
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
+    watcher =  KubeWatcher(logger, restarter)
 
-    try:
-        if mode == "sync":
-            sync(restarter)
-        elif mode == "watch":
-            restarter.start()
-
-            while True:
-                try:
-                    # this is in a loop because sometimes the auth expires
-                    # or the connection dies
-                    logger.debug("starting watch loop")
-                    watch_loop(restarter)
-                except KeyboardInterrupt:
-                    raise
-                except Exception as e:
-                    logger.warning("could not watch for Kubernetes service changes: %s" % e)
-
-                    if 'AMBASSADOR_NO_KUBEWATCH_RETRY' in os.environ:
-                        logger.info("not restarting! AMBASSADOR_NO_KUBEWATCH_RETRY is set")
-                        raise
-                finally:
-                    logger.debug("10-second watch loop delay")
-                    time.sleep(10)
-        else:
-            raise ValueError(mode)
-    except KeyboardInterrupt:
-        logger.warning("exiting due to keyboard interrupt")
-        sys.exit(1)
-    except Exception as e:
-        logger.exception("fatal exception: %s" % e)
-        sys.exit(1)
+    if mode == "sync":
+        watcher.run(sync_only=True)
+    elif mode == "watch":
+        watcher.run(sync_only=False)
+    else:
+        raise ValueError(mode)
 
 if __name__ == "__main__":
     main()

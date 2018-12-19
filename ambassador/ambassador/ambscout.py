@@ -39,8 +39,12 @@ class AmbScout:
     _latest_version: Optional[str] = None
     _latest_semver: Optional[semantic_version.Version] = None
 
-    def __init__(self) -> None:
-        self.install_id = os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")
+    def __init__(self, install_id=None) -> None:
+        if not install_id:
+            install_id = os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                        os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000"))
+
+        self.install_id = install_id
         self.runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
         self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
