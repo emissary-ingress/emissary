@@ -1,6 +1,8 @@
 .go-workspace/src/github.com/lyft/
+.go-workspace/pkg
 *.knaut
 *.knaut.claim
+/bin_*/
 /vendor
 /kubeapply
 /teleproxy
