@@ -14,7 +14,7 @@ const (
 	certFMT = "-----BEGIN CERTIFICATE-----\n%v\n-----END CERTIFICATE-----"
 )
 
-// Discovery ...
+// Discovery is used to fetch the certificate information from the IDP.
 type Discovery struct {
 	url   string
 	cache map[string]*JWK
@@ -23,24 +23,20 @@ type Discovery struct {
 
 var instance *Discovery
 
-// New ...
+// New creates a singleton instance of the discovery client.
 func New(cfg *config.Config) *Discovery {
 	if instance == nil {
 		instance = &Discovery{
 			cache: make(map[string]*JWK),
 			mux:   &sync.RWMutex{},
 		}
-		if cfg.Secure {
-			instance.url = fmt.Sprintf("https://%s/.well-known/jwks.json", cfg.Domain)
-		} else {
-			instance.url = fmt.Sprintf("http://%s/.well-known/jwks.json", cfg.Domain)
-		}
+		instance.url = fmt.Sprintf("https://%s/.well-known/jwks.json", cfg.Domain)
 	}
 	instance.fetchWebKeys()
 	return instance
 }
 
-// JWK - JSON Web Key data structure
+// JWK - JSON Web Key structure.
 type JWK struct {
 	Kty string   `json:"kty"`
 	Kid string   `json:"kid"`
@@ -50,12 +46,13 @@ type JWK struct {
 	X5c []string `json:"x5c"`
 }
 
-// JWKSlice TODO(gsagula): comment
+// JWKSlice contains a collection of JSON WEB Keys.
 type JWKSlice struct {
 	Keys []JWK `json:"keys"`
 }
 
-// GetPemCert TODO(gsagula): comment
+// GetPemCert fetches the certificate from the IDP. It returns a cert string or
+// error if a problem occurs.
 func (d *Discovery) GetPemCert(kid string) (string, error) {
 	if cert := d.getCert(kid); cert != "" {
 		return cert, nil

@@ -20,7 +20,7 @@ const (
 	bitSize    = 2048
 )
 
-// Secret TODO(gsagula): comment
+// Secret pointer to struct contains methods and fields to manage public and private keys.
 type Secret struct {
 	config      *config.Config
 	logger      *logrus.Logger
@@ -32,7 +32,7 @@ type Secret struct {
 
 var instance *Secret
 
-// New TODO(gsagula): comment
+// New returns singleton instance of secret.
 func New(cfg *config.Config, log *logrus.Logger) *Secret {
 	if instance == nil {
 		instance = &Secret{config: cfg, logger: log}
@@ -48,22 +48,22 @@ func New(cfg *config.Config, log *logrus.Logger) *Secret {
 	return instance
 }
 
-// GetPublicKeyPEM TODO(gsagula): comment
+// GetPublicKeyPEM returns private key PEM.
 func (k *Secret) GetPublicKeyPEM() []byte {
 	return k.verifyBytes
 }
 
-// GetPrivateKeyPEM TODO(gsagula): comment
+// GetPrivateKeyPEM returns public key PEM.
 func (k *Secret) GetPrivateKeyPEM() []byte {
 	return k.signBytes
 }
 
-// GetPublicKey TODO(gsagula): comment
+// GetPublicKey returns rsa public key object.
 func (k *Secret) GetPublicKey() *rsa.PublicKey {
 	return k.publicKey
 }
 
-// GetPrivateKey TODO(gsagula): comment
+// GetPrivateKey returns rsa private key object.
 func (k *Secret) GetPrivateKey() *rsa.PrivateKey {
 	return k.privateKey
 }

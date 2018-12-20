@@ -57,14 +57,6 @@
   version = "v1.0.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e4fd8a4041e47ec6cb6c38ad4baf4f1f37278c7ba23625905147a5823885787a"
-  name = "github.com/auth0/go-jwt-middleware"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5493cabe49f7bfa6e2ec444a09d334d90cd4e2bd"
-
-[[projects]]
   digest = "1:65b0d980b428a6ad4425f2df4cd5410edd81f044cf527bd1c345368444649e58"
   name = "github.com/census-instrumentation/opencensus-proto"
   packages = [
@@ -122,15 +114,15 @@
   version = "v0.2.3"
 
 [[projects]]
-  digest = "1:34e709f36fd4f868fb00dbaf8a6cab4c1ae685832d392874ba9d7c5dec2429d1"
+  digest = "1:b402bb9a24d108a9405a6f34675091b036c8b056aac843bf6ef2389a65c5cf48"
   name = "github.com/gogo/protobuf"
   packages = [
     "proto",
     "sortkeys",
   ]
   pruneopts = "UT"
-  revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
-  version = "v1.1.1"
+  revision = "4cbf7e384e768b4e01799441fdf2a706a5635ae7"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:8f0705fa33e8957018611cc81c65cb373b626c092d39931bb86882489fc4c3f4"
@@ -205,7 +197,23 @@
     "pagination",
   ]
   pruneopts = "UT"
-  revision = "26de66c23d78a75fc37e5dad5b6f16ffbfe9ee31"
+  revision = "239b98b295da175b9e38cca4363af37d291c8b83"
+
+[[projects]]
+  digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
+  name = "github.com/gorilla/context"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:e73f5b0152105f18bc131fba127d9949305c8693f8a762588a82a48f61756f5f"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   branch = "master"
@@ -244,14 +252,6 @@
   pruneopts = "UT"
   revision = "9f23e2d6bd2a77f959b2bf6acdbefd708a83a4a4"
   version = "v0.3.6"
-
-[[projects]]
-  branch = "master"
-  digest = "1:67af90f6f6551eed6e14b16833c68ff9e6a3d1e11ea296df70693b24744c24d1"
-  name = "github.com/joonix/log"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "d2d3f2f4a80658c67a0bc44021dcac30f3017c06"
 
 [[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
@@ -379,7 +379,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:29fe5460430a338b64f4a0259a6c59a1e2350bbcff54fa66f906fa8d10515c4d"
+  digest = "1:8ecb828bb550a8c6b7d75b8261a42c369461311616ebe5451966d067f5f993bf"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -392,7 +392,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "610586996380ceef02dd726cc09df7e00a3f8e56"
+  revision = "e147a9138326bc0e9d4e179541ffd8af41cff8a9"
 
 [[projects]]
   branch = "master"
@@ -418,14 +418,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b16098ed46629e6d6f66d37153a36b6f664c522a9228f12a5a36f3d9b8a93713"
+  digest = "1:ba8cbf57cfd92d5f8592b4aca1a35d92c162363d32aeabd5b12555f8896635e7"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ad97f365e15054527b467150f898ec66d7f81e14"
+  revision = "074acd46bca67915925527c07849494d115e7c43"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -464,7 +464,7 @@
   name = "google.golang.org/api"
   packages = ["support/bundler"]
   pruneopts = "UT"
-  revision = "1a5ef82f9af45ef51c486291ef2b0a16d82fdb95"
+  revision = "583d854617af4d2080b5d2a24d72f7fc5a128ab2"
 
 [[projects]]
   digest = "1:d2a8db567a76203e3b41c1f632d86485ffd57f8e650a0d1b19d240671c2fddd7"
@@ -491,7 +491,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "bd91e49a0898e27abb88c339b432fa53d7497ac0"
+  revision = "5a97ab628bfb2f65f6befec18f4bc7bc7f382b77"
 
 [[projects]]
   digest = "1:9edd250a3c46675d0679d87540b30c9ed253b19bd1fd1af08f4f5fb3c79fc487"
@@ -592,7 +592,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1957f92d676ab27c63cf0ec2b4b2876dbd289f8bd712a305d3fb99ed94746c97"
+  digest = "1:2a883fd9627f43bbc104dc01b3bdf5956b7b36fbeb1f4957acdad7f778c576aa"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -636,7 +636,7 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "f1a02064268befe9cb07b02128ff1b6c24041bec"
+  revision = "98853ca904e81a25e2000cae7f077dc30f81b85f"
 
 [[projects]]
   digest = "1:33e9cbe91f7fc4de922a22ef45d1a47764acf97f6e51bc21027d74532d012f30"
@@ -700,11 +700,10 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/auth0/go-jwt-middleware",
     "github.com/datawire/teleproxy/pkg/k8s",
     "github.com/dgrijalva/jwt-go",
     "github.com/gobwas/glob",
-    "github.com/joonix/log",
+    "github.com/gorilla/mux",
     "github.com/mitchellh/mapstructure",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
@@ -712,3 +711,4 @@
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
+  

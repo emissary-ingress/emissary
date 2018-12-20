@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
+	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/app"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
@@ -22,7 +23,7 @@ func main() {
 
 	ct := &controller.Controller{
 		Config: c,
-		Logger: l,
+		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
 
 	go ct.Watch()

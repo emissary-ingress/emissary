@@ -4,23 +4,25 @@ import (
 	"log"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
-	jlog "github.com/joonix/log"
 	"github.com/sirupsen/logrus"
 )
 
 var instance *logrus.Logger
 
-// New TODO(gsagula): comment
+// New returns singleton instance of logger.
 func New(c *config.Config) *logrus.Logger {
 	// Whatever common logger configurations we need, should
 	// be placed here.
 	if instance == nil {
 		instance = logrus.New()
 
-		// Set Kubernetes log formatter.
-		instance.Formatter = &jlog.FluentdFormatter{}
+		// Sets custom formatter.
+		customFormatter := new(logrus.TextFormatter)
+		customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+		instance.SetFormatter(customFormatter)
 
-		// Set log level.
+		customFormatter.FullTimestamp = true
+		// Sets log level.
 		if level, err := logrus.ParseLevel(c.Level); err == nil {
 			instance.SetLevel(level)
 		}

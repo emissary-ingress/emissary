@@ -8,7 +8,6 @@ package main
 // 5. Request contains Client-ID and Secret-ID (assert that Secret header is deleted).
 // 6. Cookie has valid token (requires signing token).
 // 7. Callback endpoint when IDP response is negative or an error.
-
 import (
 	"errors"
 	"fmt"
@@ -23,45 +22,44 @@ import (
 )
 
 var appUT *app.App
-var idpTS *httptest.Server
-var appTS *httptest.Server
-var appCL *http.Client
-var idpCL *http.Client
+var idpSRV *httptest.Server
+var appSRV *httptest.Server
+var appClient *http.Client
+var idpClient *http.Client
 
 func TestMain(m *testing.M) {
 	// Setup Test Servers & Clients
-	idpTS = testutil.NewIDPTestServer()
-	appTS, appUT = testutil.NewAPPTestServer(idpTS.URL)
-	appCL = appTS.Client()
+	idpSRV = testutil.NewIDP()
+	appSRV, appUT = testutil.NewAPP(idpSRV.URL)
+	appClient = appSRV.Client()
 
 	// Run
 	ok := m.Run()
 
 	// Teardown
-	appTS.Close()
-	idpTS.Close()
+	appSRV.Close()
+	idpSRV.Close()
 
 	// Exit
 	os.Exit(ok)
 }
 
 // TestAppNoToken verifies the authorization server redirects the call to the IDP
-// when tha authorization header is empty.
+// when the authorization header is empty.
 func TestAppNoToken(t *testing.T) {
 	assert := testutil.Assert{T: t}
 
-	appCL.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	appClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return errors.New("")
 	}
 
-	req, _ := http.NewRequest("GET", appTS.URL, nil)
-	res, _ := appCL.Do(req)
+	req, _ := http.NewRequest("GET", appSRV.URL, nil)
+	res, _ := appClient.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
-	assert.StrEQ(appUT.Config.Audience, u.Query().Get("audience"))
+	assert.StrEQ("friends", u.Query().Get("audience"))
 	assert.StrEQ("code", u.Query().Get("response_type"))
-	assert.StrEQ(appUT.Config.CallbackURL, u.Query().Get("redirect_uri"))
-	assert.StrEQ(appUT.Config.ClientID, u.Query().Get("client_id"))
+	assert.StrEQ(fmt.Sprintf("%s/callback", idpSRV.URL), u.Query().Get("redirect_uri"))
 	assert.IntEQ(303, res.StatusCode)
 	assert.IntEQ(552, len(u.Query().Get("state")))
 }
@@ -71,13 +69,13 @@ func TestAppNoToken(t *testing.T) {
 func TestAppBadToken(t *testing.T) {
 	assert := testutil.Assert{T: t}
 
-	req, _ := http.NewRequest("GET", appTS.URL, nil)
+	req, _ := http.NewRequest("GET", appSRV.URL, nil)
 	req.Header.Add("Authorization", "Bearer 1234")
 
-	res, _ := appCL.Do(req)
+	res, _ := appClient.Do(req)
 
 	assert.NotNil(res)
-	assert.IntEQ(401, res.StatusCode)
+	assert.IntEQ(303, res.StatusCode)
 }
 
 // TestAppBadCookie verifies the authorization server returns 401 when the authorization
@@ -85,13 +83,13 @@ func TestAppBadToken(t *testing.T) {
 func TestAppBadCookie(t *testing.T) {
 	assert := testutil.Assert{T: t}
 
-	req, _ := http.NewRequest("GET", appTS.URL, nil)
+	req, _ := http.NewRequest("GET", appSRV.URL, nil)
 	req.AddCookie(&http.Cookie{Name: "access_token", Value: "foo"})
 
-	res, _ := appCL.Do(req)
+	res, _ := appClient.Do(req)
 
 	assert.NotNil(res)
-	assert.IntEQ(401, res.StatusCode)
+	assert.IntEQ(303, res.StatusCode)
 }
 
 // TestAppCallback verifies the authorization server properly redirects when callback path
@@ -100,33 +98,36 @@ func TestAppBadCookie(t *testing.T) {
 func TestAppCallback(t *testing.T) {
 	assert := testutil.Assert{T: t}
 
-	// 1. We call the the authorization server (appTS) just to get a signed state token
+	// 1. We call the the authorization server (appSRV) just to get a signed state token
 	// via /authorize redirect.
-	appCL.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	appClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return errors.New("")
 	}
 
 	// http://ip:port/foo
-	reqURL := fmt.Sprintf("%s/foo", appTS.URL)
+	reqURL := fmt.Sprintf("%s/foo", appSRV.URL)
 
 	req, _ := http.NewRequest("GET", reqURL, nil)
-	res, _ := appCL.Do(req)
-	u, _ := url.Parse(res.Header.Get("location"))
+	res, _ := appClient.Do(req)
 
+	loc := res.Header.Get("location")
+	assert.StrNotEmpty(loc)
+
+	u, err := url.Parse(loc)
+	assert.Nil(err)
 	assert.IntEQ(556, len(u.Query().Get("state")))
 
-	// 2. Now we call the authorization server (appTS) again with a signed state and
+	// 2. Now we call the authorization server (appSRV) again with a signed state and
 	// code query params. Note that by calling it with code=authorize, our
-	// fake IDP server (idpTS) will respond with a mocked access_token.
-	callbackURL := fmt.Sprintf("%s/callback?state=%s&code=authorize", appTS.URL, u.Query().Get("state"))
+	// fake IDP server (idpSRV) will respond with a mocked access_token.
+	callbackURL := fmt.Sprintf("%s/callback?state=%s&code=authorize", appSRV.URL, u.Query().Get("state"))
 	callbackREQ, _ := http.NewRequest("GET", callbackURL, nil)
-	callbackRES, _ := appCL.Do(callbackREQ)
+	callbackRES, _ := appClient.Do(callbackREQ)
 
 	// 3. Finally we check if the request contains the redirect with the original
 	// request path `/foo`, client-id and cookie.
 	assert.NotNil(callbackRES)
 	assert.IntEQ(307, callbackRES.StatusCode)
-	assert.StrEQ(appUT.Config.ClientID, u.Query().Get("client_id"))
 	assert.StrEQ(reqURL, callbackRES.Header.Get("location"))
 	cookie := callbackRES.Cookies()[0]
 	assert.StrEQ("access_token", cookie.Name)
@@ -138,20 +139,20 @@ func TestAppCallback(t *testing.T) {
 func TestAppCallbackNoCode(t *testing.T) {
 	assert := testutil.Assert{T: t}
 
-	appCL.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	appClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return errors.New("")
 	}
 
-	reqURL := fmt.Sprintf("%s/foo", appTS.URL)
+	reqURL := fmt.Sprintf("%s/foo", appSRV.URL)
 	req, _ := http.NewRequest("GET", reqURL, nil)
-	res, _ := appCL.Do(req)
+	res, _ := appClient.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
 	assert.IntEQ(556, len(u.Query().Get("state")))
 
-	callbackURL := fmt.Sprintf("%s/callback?state=%s", appTS.URL, u.Query().Get("state"))
+	callbackURL := fmt.Sprintf("%s/callback?state=%s", appSRV.URL, u.Query().Get("state"))
 	callbackREQ, _ := http.NewRequest("GET", callbackURL, nil)
-	callbackRES, _ := appCL.Do(callbackREQ)
+	callbackRES, _ := appClient.Do(callbackREQ)
 
 	assert.NotNil(callbackRES)
 	assert.IntEQ(401, callbackRES.StatusCode)
