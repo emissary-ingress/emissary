@@ -59,7 +59,7 @@ class IRTLSContext(IRResource):
 
     def handle_secret(self, ir: 'IR', secret):
         if ir.tls_secret_resolver is not None:
-            resolved = ir.tls_secret_resolver(secret_name=secret, context=self.name,
+            resolved = ir.tls_secret_resolver(secret_name=secret, context=self,
                                               namespace=ir.ambassador_namespace,
                                               cert_dir='/ambassador/{}/'.format(secret))
             if resolved is None:
