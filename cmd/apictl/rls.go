@@ -12,14 +12,14 @@ import (
 
 	ms "github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 )
 
 var rls = &cobra.Command{
 	Use:   "rls [subcommand]",
-	Short: "Work with ratelimit crds",
+	Short: "Work with Rate Limits",
 }
 
 func init() {
@@ -27,8 +27,8 @@ func init() {
 }
 
 var validate = &cobra.Command{
-	Use:   "validate [files]",
-	Short: "Validate ratelimit crd files.",
+	Use:   "Validate [files]",
+	Short: "Validate RateLimit CRD files",
 	Run:   doValidate,
 }
 
@@ -101,7 +101,7 @@ func doValidate(cmd *cobra.Command, args []string) {
 
 var watch = &cobra.Command{
 	Use:   "watch",
-	Short: "Watch ratelimit crd files.",
+	Short: "Watch RateLimit CRD files",
 	Run:   doWatch,
 }
 

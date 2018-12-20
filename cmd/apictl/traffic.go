@@ -21,7 +21,7 @@ import (
 
 var traffic = &cobra.Command{
 	Use:   "traffic [subcommand]",
-	Short: "work with traffic",
+	Short: "Manage traffic in your cluster",
 }
 
 func init() {
@@ -30,7 +30,7 @@ func init() {
 
 var initialize = &cobra.Command{
 	Use:   "initialize",
-	Short: "initialize the traffic management subsystem",
+	Short: "Initialize the traffic management subsystem",
 	Run:   doInitialize,
 }
 
@@ -105,7 +105,7 @@ func doInitialize(cmd *cobra.Command, args []string) {
 
 var inject = &cobra.Command{
 	Use:   "inject",
-	Short: "inject the traffic sidecar into a deployment",
+	Short: "Inject the traffic sidecar into a deployment",
 	Run:   doInject,
 }
 
@@ -193,7 +193,7 @@ func mungeService(res k8s.Resource) {
 	spec := res.Spec()
 	iportSpecs, ok := spec["ports"]
 	if !ok {
-		die(fmt.Errorf("no ports found for service: %s", service))
+		die(fmt.Errorf("No ports found for service: %s", service))
 	}
 	portSpecs := iportSpecs.([]interface{})
 	for _, iportSpec := range portSpecs {
@@ -210,7 +210,7 @@ func mungeService(res k8s.Resource) {
 
 var intercept = &cobra.Command{
 	Use:   "intercept",
-	Short: "intercept the traffic sidecar into a deployment",
+	Short: "Intercept the traffic for a given deployment",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   doIntercept,
 }
