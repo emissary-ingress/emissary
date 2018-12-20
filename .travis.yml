@@ -36,8 +36,7 @@ jobs:
     - stage: testing
       script:
         - make check_format
-        - make install
-        - make test
+        - make build
     
     # On every release canditate OR release that matches the tag.  
     # Push image to quay and deploy test cluster. 
