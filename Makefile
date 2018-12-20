@@ -50,14 +50,6 @@ docker-run: docker
 	docker run -it $(IMAGE)
 .PHONY: docker-run
 
-# This is for managing minor diffs to upstream code. If we need
-# anything more than minor diffs this probably won't work so well. We
-# really don't want to have more than minor diffs though without a
-# good reason.
-diff:
-	cd ${RATELIMIT_REPO} && git diff > $(PATCH)
-.PHONY: diff
-
 clean: $(CLUSTER).clean
 	rm -rf -- bin_* image
 .PHONY: clean
