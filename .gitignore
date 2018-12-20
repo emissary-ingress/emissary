@@ -1,0 +1,13 @@
+.go-workspace/src/github.com/lyft/
+*.knaut
+*.knaut.claim
+/vendor
+/kubeapply
+/teleproxy
+/apictl
+/apictl-key
+/image
+/ratelimit
+/ratelimit_check
+/ratelimit_client
+/pushed.txt

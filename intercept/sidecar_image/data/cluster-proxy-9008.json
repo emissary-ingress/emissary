@@ -1,0 +1,25 @@
+{
+  "@type": "/envoy.api.v2.Cluster",
+  "name": "tel-proxy-9008",
+  "connect_timeout": "10s",
+  "type": "STRICT_DNS",
+  "load_assignment": {
+    "cluster_name": "tel-proxy-9008",
+    "endpoints": [
+      {
+        "lb_endpoints": [
+          {
+            "endpoint": {
+              "address": {
+                "socket_address": {
+                  "address": "telepresence-proxy",
+                  "port_value": 9008
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
