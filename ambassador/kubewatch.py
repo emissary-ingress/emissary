@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import base64
 import click
 import json
 import logging
@@ -112,20 +113,40 @@ class Restarter(threading.Thread):
 
     def tls_secret_resolver(self, secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
         (cert, key, data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
-        if not (cert and key):
+        if not cert:
+            logger.error("no certificate found in secret {}".format(secret_name))
             return None
 
         certificate_chain_path = ""
         private_key_path = ""
+        resolved = {}
 
         if context == 'server':
+            if not key:
+                logger.error("no key found in secret {} for context {}".format(secret_name, context))
+                return None
             cert_dir = TLSPaths.cert_dir.value
             certificate_chain_path = TLSPaths.tls_crt.value
             private_key_path = TLSPaths.tls_key.value
+            resolved = {
+                'certificate_chain_file': certificate_chain_path,
+                'private_key_file': private_key_path
+            }
         elif context == 'client':
-            # TODO
-            pass
+            cert_dir = TLSPaths.client_cert_dir.value
+            certificate_chain_path = TLSPaths.client_tls_crt.value
+            resolved = {
+                'cacert_chain_file': certificate_chain_path,
+            }
+
+            cert_required = data.get('cert_required')
+            if cert_required is not None:
+                decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
+                resolved['certificate_required'] = decoded
         else:
+            if not key:
+                logger.error("no key found in secret {} for context {}".format(secret_name, context))
+                return None
             if cert_dir is None:
                 cert_dir = os.path.join("/ambassador/", context)
 
@@ -133,13 +154,15 @@ class Restarter(threading.Thread):
             certificate_chain_path = cert_paths['crt']
             private_key_path = cert_paths['key']
 
+            resolved = {
+                'certificate_chain_file': certificate_chain_path,
+                'private_key_file': private_key_path
+            }
+
         logger.debug("saving contents of secret %s to %s for context %s" % (secret_name, cert_dir, context))
         save_cert(cert, key, cert_dir)
 
-        return {
-            'certificate_chain_file': certificate_chain_path,
-            'private_key_file': private_key_path
-        }
+        return resolved
 
     def read_fs(self, path):
         if os.path.exists(path):
