@@ -34,7 +34,7 @@
 .PRECIOUS: %.knaut.claim
 .SECONDARY: %.knaut.claim
 
-KUBERNAUT=go run build-aux/gubernaut.go
+KUBERNAUT=GO111MODULE=off go run build-aux/gubernaut.go
 KUBERNAUT_CLAIM_NAME=$(shell cat $(@:%.knaut=%.knaut.claim))
 
 %.knaut : %.knaut.claim

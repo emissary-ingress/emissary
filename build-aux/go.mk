@@ -12,8 +12,12 @@ build: $(bins)
 build-image: $(bins:%=image/%)
 .PHONY: build-image
 
-vendor: glide.yaml glide.lock
+vendor::
+ifneq ($(wildcard glide.yaml),)
+vendor:: glide.yaml $(wildcard glide.lock)
+	rm -rf $@
 	glide install
+endif
 
 $(bins): %: FORCE vendor
 	$(GO) install $(pkg)/cmd/$@

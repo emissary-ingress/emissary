@@ -1,0 +1,6 @@
+#!/bin/bash
+if ! npm list -g | grep -q doctoc; then
+  npm install -g doctoc
+fi
+
+doctoc README.md

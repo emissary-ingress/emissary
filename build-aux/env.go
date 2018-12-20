@@ -1,3 +1,5 @@
+// +build ignore
+
 package main
 
 import (
@@ -144,8 +146,8 @@ func hash(unversioned []string) []byte {
 				h.Write([]byte("file"))
 				f, err := os.Open(file)
 				die(err, file)
-				defer f.Close()
 				_, err = io.Copy(h, f)
+				f.Close()
 				die(err)
 			}
 		}
