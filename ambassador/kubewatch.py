@@ -111,8 +111,13 @@ class Restarter(threading.Thread):
         with self.mutex:
             self.cluster_id = cluster_id
 
-    def tls_secret_resolver(self, secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
-        (cert, key, data) = read_cert_secret(kube_v1(), secret_name, self.namespace)
+    def tls_secret_resolver(self, secret_name: str, context: str,
+                            namespace: str, cert_dir: Optional[str]=None) -> Optional[Dict[str, str]]:
+        # Allow secrets to override namespace when needed.
+        if "." in secret_name:
+            secret_name, namespace = secret_name.split('.', 1)
+
+        (cert, key, data) = read_cert_secret(kube_v1(), secret_name, namespace)
         if not cert:
             logger.error("no certificate found in secret {}".format(secret_name))
             return None
