@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+if [ ! -z "$SRCPATH" ]
+then
+	cd $SRCPATH
+	export PATH=/go/bin:$PATH
+fi
+
+PKGS=$(find . -maxdepth 3 -type d | sed s/\.\\/// | grep -vE '.git|\.|script|vendor' | grep -v protoc-gen-odie)
+
+LINT_PKGS=$(echo ${PKGS} | grep -v 'tests/generated')
+for pkg in $LINT_PKGS; do
+    golint $pkg | grep -v comment
+done
+
+go vet $(glide nv)
+goimports -d $(find . -type f -name '*.go' -not -path "./vendor/*")

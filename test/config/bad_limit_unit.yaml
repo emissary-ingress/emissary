@@ -1,0 +1,7 @@
+domain: test-domain
+descriptors:
+  - key: key1
+    value: value1
+    rate_limit:
+      unit: foo
+      requests_per_unit: 5
