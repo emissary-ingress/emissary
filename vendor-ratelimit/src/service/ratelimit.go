@@ -109,6 +109,8 @@ func (this *service) shouldRateLimitWorker(
 	snappedConfig := this.GetCurrentConfig()
 	checkServiceErr(snappedConfig != nil, "no rate limit configuration loaded")
 
+	logger.Warnf("REQUEST: %s", request.String())
+
 	limitsToCheck := make([]*config.RateLimit, len(request.Descriptors))
 	for i, descriptor := range request.Descriptors {
 		limitsToCheck[i] = snappedConfig.GetLimit(ctx, request.Domain, descriptor)
@@ -188,7 +190,7 @@ func NewService(runtime loader.IFace, cache redis.RateLimitCache,
 		rlStatsScope:       stats.Scope("rate_limit"),
 	}
 	newService.legacy = &legacyService{
-		s:                          newService,
+		s: newService,
 		shouldRateLimitLegacyStats: newShouldRateLimitLegacyStats(stats),
 	}
 

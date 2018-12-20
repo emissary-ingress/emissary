@@ -14,33 +14,51 @@ import (
 )
 
 type descriptorValue struct {
-	descriptor *pb_struct.RateLimitDescriptor
+	descriptors []*pb_struct.RateLimitDescriptor
 }
 
 func (this *descriptorValue) Set(arg string) error {
+	parts := strings.Split(arg, ":")
+	this.descriptors = make([]*pb_struct.RateLimitDescriptor, len(parts))
+	for idx, part := range parts {
+		desc, err := this.SetOne(part)
+		if err != nil {
+			return err
+		}
+		this.descriptors[idx] = desc
+	}
+	return nil
+}
+
+func (this *descriptorValue) SetOne(arg string) (*pb_struct.RateLimitDescriptor, error) {
+	result := &pb_struct.RateLimitDescriptor{}
 	pairs := strings.Split(arg, ",")
 	for _, pair := range pairs {
 		parts := strings.Split(pair, "=")
 		if len(parts) != 2 {
-			return errors.New("invalid descriptor list")
+			return nil, errors.New("invalid descriptor list")
 		}
 
-		this.descriptor.Entries = append(
-			this.descriptor.Entries, &pb_struct.RateLimitDescriptor_Entry{Key: parts[0], Value: parts[1]})
+		result.Entries = append(
+			result.Entries, &pb_struct.RateLimitDescriptor_Entry{Key: parts[0], Value: parts[1]})
 	}
 
-	return nil
+	return result, nil
 }
 
 func (this *descriptorValue) String() string {
-	return this.descriptor.String()
+	result := make([]string, len(this.descriptors))
+	for i, d := range this.descriptors {
+		result[i] = d.String()
+	}
+	return strings.Join(result, ":")
 }
 
 func main() {
 	dialString := flag.String(
 		"dial_string", "localhost:8081", "url of ratelimit server in <host>:<port> form")
 	domain := flag.String("domain", "", "rate limit configuration domain to query")
-	descriptorValue := descriptorValue{&pb_struct.RateLimitDescriptor{}}
+	descriptorValue := descriptorValue{}
 	flag.Var(
 		&descriptorValue, "descriptors",
 		"descriptor list to query in <key>=<value>,<key>=<value>,... form")
@@ -62,7 +80,7 @@ func main() {
 		context.Background(),
 		&pb.RateLimitRequest{
 			Domain:      *domain,
-			Descriptors: []*pb_struct.RateLimitDescriptor{descriptorValue.descriptor},
+			Descriptors: descriptorValue.descriptors,
 			HitsAddend:  1,
 		})
 	if err != nil {
