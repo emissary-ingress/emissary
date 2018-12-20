@@ -331,6 +331,9 @@ class V2Listener(dict):
                 }
             ]
 
+            if self.use_proxy_proto is not None:
+                chain['use_proxy_proto'] = self.use_proxy_proto
+
         self.update({
             'name': self.name,
             'address': {
@@ -437,8 +440,5 @@ class V2Listener(dict):
 
                 if matched:
                     chain['routes'].append(sni_route['route'])
-
-            if self.use_proxy_proto is not None:
-                chain['use_proxy_proto'] = self.use_proxy_proto
 
             self.filter_chains.append(chain)
