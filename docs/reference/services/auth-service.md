@@ -2,25 +2,28 @@
 
 Ambassador supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
-There are current two supported versions of the `AuthService` manifest: 
+There are current two supported versions of the `AuthService` manifest:
 
 ### V1
 
-`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher. 
+`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher.
 
 ```yaml
 ---
 apiVersion: ambassador/v1
-kind:  AuthService
-name:  authentication
+kind: AuthService
+name: authentication
 auth_service: "example-auth:3000"
-path_prefix: "/extauth"
+path_prefix:  "/extauth"
+proto: http
 allowed_request_headers:
 - "x-example-header"
 allowed_authorization_headers:
 - "x-qotm-session"
 allow_request_body: false
 ```
+
+- `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
 
 - `allowed_request_headers` (optional) lists headers that will be sent from the client to the auth service. These headers are always included:
     * `Authorization`

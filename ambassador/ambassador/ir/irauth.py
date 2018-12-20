@@ -62,7 +62,7 @@ class IRAuth (IRFilter):
         self.cluster = None
         cluster_good = False
 
-        for service, params in cluster_hosts.items(): 
+        for service, params in cluster_hosts.items():
             weight, grpc, ctx_name, location = params
 
             cluster = IRCluster(
@@ -114,7 +114,7 @@ class IRAuth (IRFilter):
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["api_version"] = module.get("apiVersion", None)
-        self["proto"] = module.get("proto", None)
+        self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
 
         self.__to_header_list('allowed_headers', module)
@@ -126,7 +126,7 @@ class IRAuth (IRFilter):
             self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
 
         if self["api_version"] == "ambassador/v1" and self["proto"] == None:
-            self.post_error(RichStatus.fromError("AuthService v1 config requires proto field."))      
+            self.post_error(RichStatus.fromError("AuthService v1 config requires proto field."))
 
 
         auth_service = module.get("auth_service", None)
@@ -156,7 +156,7 @@ class IRAuth (IRFilter):
 
         if headers:
             allowed_headers = self.get(list_name, [])
-        
+
             for hdr in headers:
                 if hdr not in allowed_headers:
                     allowed_headers.append(hdr.lower())
