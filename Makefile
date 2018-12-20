@@ -19,6 +19,12 @@ RATELIMIT_VERSION=v1.3.0
 
 PATCH=$(CURDIR)/ratelimit.patch
 
+lyft-pull:
+	git subtree pull --squash --prefix=vendor-ratelimit https://github.com/lyft/ratelimit.git $(RATELIMIT_VERSION)
+	cd vendor-ratelimit && rm -f go.mod go.sum && go mod init github.com/lyft/ratelimit && git add go.mod
+	git commit -m 'Run: make lyft-pull' || true
+.PHONY: lyft-pull
+
 $(RATELIMIT_REPO):
 	mkdir -p $(RATELIMIT_REPO) && git clone https://github.com/lyft/ratelimit $(RATELIMIT_REPO)
 	cd $(RATELIMIT_REPO) && git checkout -q $(RATELIMIT_VERSION)
