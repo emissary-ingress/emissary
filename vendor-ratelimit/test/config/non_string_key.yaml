@@ -1,0 +1,7 @@
+0.25: test-domain
+descriptors:
+  - key: key1
+    value: value1
+    rate_limit:
+      unit: day
+      requests_per_unit: 5

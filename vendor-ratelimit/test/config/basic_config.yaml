@@ -1,0 +1,58 @@
+# Basic configuration for testing.
+domain: test-domain
+descriptors:
+  # Top level key/value with no default rate limit.
+  - key: key1
+    value: value1
+    descriptors:
+      # 2nd level key only with default rate limit.
+      - key: subkey1
+        rate_limit:
+          unit: second
+          requests_per_unit: 5
+
+      # 2nd level key/value with limit. Specific override at 2nd level.
+      - key: subkey1
+        value: subvalue1
+        rate_limit:
+          unit: second
+          requests_per_unit: 10
+
+  # Top level key only with default rate limit.
+  - key: key2
+    rate_limit:
+      unit: minute
+      requests_per_unit: 20
+
+  # Top level key/value with limit. Specific override at 1st level.
+  - key: key2
+    value: value2
+    rate_limit:
+      unit: minute
+      requests_per_unit: 30
+
+  # First level override with no limit. This effectively whitelists the value.
+  - key: key2
+    value: value3
+
+  - key: key3
+    rate_limit:
+      unit: hour
+      requests_per_unit: 1
+
+  - key: key4
+    rate_limit:
+      unit: day
+      requests_per_unit: 1
+
+  - key: key5
+    value: value5
+    rate_limit:
+      unit: day
+      requests_per_unit: 15
+    descriptors:
+      - key: subkey5
+        value: subvalue5
+        rate_limit:
+          unit: day
+          requests_per_unit: 25
