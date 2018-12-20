@@ -25,13 +25,15 @@ import uuid
 import yaml
 
 from urllib3.exceptions import ProtocolError
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
 from ambassador.ir import IR
+from ambassador.ir.irtls import IREnvoyTLS
+from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
 
 from ambassador.VERSION import Version
@@ -111,7 +113,7 @@ class Restarter(threading.Thread):
         with self.mutex:
             self.cluster_id = cluster_id
 
-    def tls_secret_resolver(self, secret_name: str, context: str,
+    def tls_secret_resolver(self, secret_name: str, context: Union[IREnvoyTLS, IRTLSContext],
                             namespace: str, cert_dir: Optional[str]=None) -> Optional[Dict[str, str]]:
         # Allow secrets to override namespace when needed.
         if "." in secret_name:
@@ -126,9 +128,13 @@ class Restarter(threading.Thread):
         private_key_path = ""
         resolved = {}
 
-        if context == 'server':
+        context_name = context.get('name')
+
+        # termination_context = bool((context_name == 'server') or context.get('hosts'))
+
+        if context_name == 'server':
             if not key:
-                logger.error("no key found in secret {} for context {}".format(secret_name, context))
+                logger.error("no key found in secret {} for context {}".format(secret_name, context_name))
                 return None
             cert_dir = TLSPaths.cert_dir.value
             certificate_chain_path = TLSPaths.tls_crt.value
@@ -137,7 +143,7 @@ class Restarter(threading.Thread):
                 'certificate_chain_file': certificate_chain_path,
                 'private_key_file': private_key_path
             }
-        elif context == 'client':
+        elif context_name == 'client':
             cert_dir = TLSPaths.client_cert_dir.value
             certificate_chain_path = TLSPaths.client_tls_crt.value
             resolved = {
@@ -150,10 +156,10 @@ class Restarter(threading.Thread):
                 resolved['certificate_required'] = decoded
         else:
             if not key:
-                logger.error("no key found in secret {} for context {}".format(secret_name, context))
+                logger.error("no key found in secret {} for context {}".format(secret_name, context_name))
                 return None
             if cert_dir is None:
-                cert_dir = os.path.join("/ambassador/", context)
+                cert_dir = os.path.join("/ambassador/", context_name)
 
             cert_paths = TLSPaths.generate(cert_dir)
             certificate_chain_path = cert_paths['crt']
@@ -164,7 +170,7 @@ class Restarter(threading.Thread):
                 'private_key_file': private_key_path
             }
 
-        logger.debug("saving contents of secret %s to %s for context %s" % (secret_name, cert_dir, context))
+        logger.debug("saving contents of secret %s to %s for context %s" % (secret_name, cert_dir, context_name))
         save_cert(cert, key, cert_dir)
 
         return resolved
