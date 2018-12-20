@@ -106,8 +106,7 @@ class IREnvoyTLS (IRResource):
             return False
 
         if (secret is not None) and (ir.tls_secret_resolver is not None):
-            resolved = ir.tls_secret_resolver(secret_name=secret, context=self.get('name'),
-                                              namespace=ir.ambassador_namespace)
+            resolved = ir.tls_secret_resolver(secret_name=secret, context=self, namespace=ir.ambassador_namespace)
 
             if resolved is None:
                 self.post_error(RichStatus.fromError("Secret {} could not be resolved".format(secret)))
