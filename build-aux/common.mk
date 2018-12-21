@@ -2,6 +2,9 @@
 #
 # Makefile snippet for bits common bits we always want.
 
+#
+# Variables
+
 # If $@ is bin_GOOS_GOARCH/BINNAME, set GOOS and GOARCH accodingly,
 # otherwise inherit from the environment.
 #
@@ -9,6 +12,49 @@
 # https://golang.org/doc/install/source#environment
 export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(shell go env GOOS))
 export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(shell go env GOARCH))
+
+#
+# Targets
+
+# To the extent reasonable, use target names that agree with the GNU
+# standards.
+#
+# https://www.gnu.org/prep/standards/standards.html#Makefile-Conventions
+
+all: build
+.PHONY: all
+
+build: ## Build the software
+.PHONY: build
+
+check: ## Check whether the software works; run the tests
+check: lint
+.PHONY: check
+
+lint: ## Perform static analysis of the software
+.PHONY: lint
+
+format: ## Apply automatic formatting+cleanup to source code
+.PHONY: format
+
+clean: ## Delete all files that are normally created by building the software
+.PHONY: clean
+
+# XXX: Rename this to maintainer-clean, per GNU?
+clobber: ## Delete all files that this Makefile can re-generate
+clobber: clean
+.PHONY: clobber
+
+#
+# Targets: Default behavior
+
+clean: _common_clean
+_common_clean:
+	rm -rf -- bin_*
+.PHONY: _common_clean
+
+#
+# Functions
 
 # Usage: $(call joinlist,LIST,SEPERATOR)$
 joinlist=$(if $(word 2,$1),$(firstword $1)$2$(call joinlist,$(wordlist 2,$(words $1),$1),$2),$1)
