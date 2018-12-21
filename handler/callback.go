@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
 	"github.com/datawire/ambassador-oauth/util"
@@ -29,7 +28,6 @@ const (
 // Callback validates IDP requests and handles code exchange flow.
 type Callback struct {
 	Logger *logrus.Entry
-	Config *config.Config
 	Secret *secret.Secret
 	Ctrl   *controller.Controller
 	Rest   *client.Rest
@@ -83,14 +81,14 @@ func (c *Callback) Check(w http.ResponseWriter, r *http.Request) {
 		Name:     AccessTokenCookie,
 		Value:    res.AccessToken,
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   tenant.TLS,
 		Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
 	})
 
 	// If the user-agent request was a POST or PUT, 307 will preserve the body
 	// and just follow the location header.
 	// https://tools.ietf.org/html/rfc7231#section-6.4.7
-	c.Logger.Infof("HTTP 307 redirect: %s", rURL)
+	c.Logger.Debugf("redirecting user-agent to: %s", rURL)
 	http.Redirect(w, r, rURL, http.StatusTemporaryRedirect)
 }
 

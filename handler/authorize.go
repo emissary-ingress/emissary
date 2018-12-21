@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
@@ -39,25 +38,25 @@ func (h *Authorize) Check(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := url.Parse(util.ToRawURL(r))
-	if err != nil {
-		h.Logger.Errorf("error parsing request url: %v", err)
+	rule := controller.GetRuleFromContext(r.Context())
+	if rule == nil {
+		h.Logger.Errorf("Rule context cannot be nil")
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 		return
 	}
 
 	redirect := fmt.Sprintf(
 		RedirectURLFmt,
-		u.Scheme,
-		h.Config.Domain,
+		h.Config.BaseURL.Scheme,
+		h.Config.BaseURL.Host,
 		tenant.Audience,
 		tenant.CallbackURL,
 		tenant.ClientID,
 		h.signState(r),
-		tenant.Scopes,
+		rule.Scope,
 	)
 
-	h.Logger.Debug("redirecting to the authorization endpoint")
+	h.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
 	http.Redirect(w, r, redirect, http.StatusSeeOther)
 }
 

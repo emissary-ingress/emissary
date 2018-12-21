@@ -58,7 +58,6 @@ func (a *App) Handler() http.Handler {
 
 	cb := &handler.Callback{
 		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "callback"}),
-		Config: a.Config,
 		Secret: a.Secret,
 		Ctrl:   a.Controller,
 		Rest:   a.Rest,
@@ -89,19 +88,22 @@ func (a *App) Handler() http.Handler {
 
 	n.Use(&middleware.DomainCheck{
 		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "app_check"}),
-		Config: a.Config,
 		Ctrl:   a.Controller,
 	})
 
 	n.Use(&middleware.PolicyCheck{
 		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "policy_check"}),
 		Ctrl:   a.Controller,
+		DefaultRule: &controller.Rule{
+			Scope:  controller.DefaultScope,
+			Public: false,
+		},
 	})
 
 	n.Use(&middleware.JWTCheck{
 		Logger:    a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "jwt_check"}),
-		Config:    a.Config,
 		Discovery: a.Discovery,
+		Config:    a.Config,
 	})
 
 	n.UseHandler(r)

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
 	"github.com/datawire/ambassador-oauth/util"
 	"github.com/sirupsen/logrus"
@@ -16,7 +15,6 @@ import (
 // but after config_check. If an app is found, its configuration will be written to the request
 // context. See controller.App for more details.
 type DomainCheck struct {
-	Config *config.Config
 	Logger *logrus.Entry
 	Ctrl   *controller.Controller
 }

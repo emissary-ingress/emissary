@@ -19,4 +19,4 @@ spec:
      public: false
    - host: "*"
      path: /httpbin/headers/*
-     scopes: "read:test"
+     scope: "read:test"

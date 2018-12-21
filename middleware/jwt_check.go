@@ -18,13 +18,14 @@ import (
 // JWTCheck middleware validates signed tokens when present in the request.
 type JWTCheck struct {
 	Logger    *logrus.Entry
-	Config    *config.Config
 	Discovery *discovery.Discovery
+	Config    *config.Config
+	IssuerURL string
 }
 
 func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	// Check if Bearer token or cookie exists, otherwise call the next.
-	token, isCookie := j.getToken(r)
+	token := j.getToken(r)
 	if token == "" {
 		j.Logger.Debugf("token not present in the request")
 
@@ -71,7 +72,7 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 		}
 
 		// Verifies 'iss' claim.
-		if !claims.VerifyIssuer(fmt.Sprintf("https://%s/", j.Config.Domain), false) {
+		if !claims.VerifyIssuer(j.Config.IssuerURL, false) {
 			return "", errors.New("invalid issuer")
 		}
 
@@ -84,7 +85,7 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 		if claims["scope"] != nil {
 			for _, s := range strings.Split(claims["scope"].(string), " ") {
 				j.Logger.Debugf("verifying scope %s", s)
-				if rule.ScopeMap[s] == false {
+				if !rule.MatchScope(s) {
 					return "", fmt.Errorf("scope %v is not in the policy", s)
 				}
 			}
@@ -103,16 +104,6 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 	if err != nil {
 		j.Logger.Debug(err)
 
-		if isCookie {
-			http.SetCookie(w, &http.Cookie{
-				Name:     handler.AccessTokenCookie,
-				Value:    "",
-				HttpOnly: true,
-				MaxAge:   0,
-				Secure:   r.TLS != nil,
-			})
-		}
-
 		next(w, r)
 		return
 	}
@@ -120,22 +111,22 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 	w.WriteHeader(http.StatusOK)
 }
 
-func (j *JWTCheck) getToken(r *http.Request) (string, bool) {
+func (j *JWTCheck) getToken(r *http.Request) string {
 	cookie, err := r.Cookie(handler.AccessTokenCookie)
 	if err == nil {
-		return cookie.Value, true
+		return cookie.Value
 	}
 
 	header := r.Header.Get("Authorization")
 	if header != "" {
-		return "", false
+		return ""
 	}
 
 	bearer := strings.Split(header, " ")
 	if len(bearer) != 2 && strings.ToLower(bearer[0]) != "bearer" {
 		j.Logger.Debug("authorization header is not a bearer token")
-		return "", false
+		return ""
 	}
 
-	return bearer[1], false
+	return bearer[1]
 }

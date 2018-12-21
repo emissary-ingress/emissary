@@ -2,6 +2,9 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"net"
+	"net/url"
 	"strings"
 	"sync/atomic"
 
@@ -16,10 +19,10 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger *logrus.Entry
-	Config *config.Config
-	Rules  atomic.Value
-	Apps   atomic.Value
+	Logger  *logrus.Entry
+	Config  *config.Config
+	Rules   atomic.Value
+	Tenants atomic.Value
 }
 
 const (
@@ -29,8 +32,11 @@ const (
 	// TenantCTXKey is passed to the the request handler as a context key.
 	TenantCTXKey = util.HTTPContextKey("tenant")
 
-	// OfflineAccess is a default scope and commonly used scopes, e.g. "openid".
-	OfflineAccess = "offline_access"
+	// DefaultScope is normally used for when no rule has matched the request path or host.
+	DefaultScope = "offline_access"
+
+	// Callback is the path used to create the tenant callback url.
+	Callback = "callback"
 )
 
 // Watch monitor changes in k8s cluster and updates rules
@@ -38,57 +44,95 @@ func (c *Controller) Watch() {
 	c.Rules.Store(make([]Rule, 0))
 	w := k8s.NewClient(nil).Watcher()
 
-	// TODO(gsagula): DRY here and below.
 	w.Watch("tenants", func(w *k8s.Watcher) {
-		apps := make([]Tenant, 0)
+		tenants := make([]Tenant, 0)
+
 		for _, p := range w.List("tenants") {
 			spec, err := decode(p.QName(), p.Spec())
 			if err != nil {
-				c.Logger.Errorf("malformed tenant resource spec: %v", spec)
+				c.Logger.Errorf("malformed tenant resource spec")
 				continue
 			}
 			for _, r := range spec.Tenants {
 				t := Tenant{}
+
 				err := ms.Decode(r, &t)
 				if err != nil {
 					c.Logger.Errorf("decode tenant failed: %v", err)
-				} else {
-					c.Logger.Infof("loading tenant: %s: %s", t.Domain, t.ClientID)
-					apps = append(apps, t)
+					continue
 				}
+
+				u, err := url.Parse(t.TenantURL)
+				if err != nil {
+					c.Logger.Errorf("parsing tenant url: %v", err)
+					continue
+				}
+
+				if u.Scheme == "" {
+					c.Logger.Errorf("tenantUrl needs to be an absolute url: {scheme}://{host}:{port}")
+					continue
+				}
+
+				t.TLS = u.Scheme == "https"
+
+				_, port, _ := net.SplitHostPort(u.Host)
+				if port == "" {
+					t.CallbackURL = fmt.Sprintf("%s://%s/%s", u.Scheme, u.Host, Callback)
+				} else {
+					t.CallbackURL = fmt.Sprintf("%s://%s:%s/%s", u.Scheme, u.Host, port, Callback)
+				}
+
+				t.Domain = u.Host
+
+				c.Logger.Infof("loading tenant domain=%s, client_id=%s", t.Domain, t.ClientID)
+
+				tenants = append(tenants, t)
 			}
 		}
 
-		c.Apps.Store(apps)
+		if len(tenants) == 0 {
+			c.Logger.Error("0 tenant apps configured")
+		}
+
+		c.Tenants.Store(tenants)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
-		rules := make([]Rule, 0)
+		rules := make([]Rule, 1)
+
+		// callback is always default.
+		rules = append(rules, Rule{
+			Host: "*",
+			Path: "/callback",
+		})
+
 		for _, p := range w.List("policies") {
 			spec, err := decode(p.QName(), p.Spec())
+
 			if err != nil {
-				c.Logger.Errorf("malformed rule resource spec: %v", spec)
+				c.Logger.Error("malformed rule resource spec")
 				continue
 			}
+
 			for _, r := range spec.Rules {
 				rule := Rule{}
 				err := ms.Decode(r, &rule)
 
 				if err != nil {
 					c.Logger.Errorf("decode rule failed: %v", err)
-				} else {
-					c.Logger.Infof("loading rule host=%s, path=%s, public=%v, scopes=%s",
-						rule.Host, rule.Path, rule.Public, rule.Scopes)
-
-					rule.ScopeMap = make(map[string]bool)
-					rule.ScopeMap[OfflineAccess] = true
-					scopes := strings.Split(rule.Scopes, " ")
-					for _, s := range scopes {
-						rule.ScopeMap[s] = true
-					}
-
-					rules = append(rules, rule)
+					continue
 				}
+
+				c.Logger.Infof("loading rule host=%s, path=%s, public=%v, scope=%s",
+					rule.Host, rule.Path, rule.Public, rule.Scope)
+
+				rule.scopes = make(map[string]bool)
+				scopes := strings.Split(rule.Scope, " ")
+				for _, s := range scopes {
+					rule.scopes[s] = true
+				}
+
+				rules = append(rules, rule)
 			}
 		}
 
@@ -107,36 +151,32 @@ type Spec struct {
 
 // Rule defines authorization rules object.
 type Rule struct {
-	Host     string
-	Path     string
-	Public   bool
-	Scopes   string
-	ScopeMap map[string]bool
+	Host   string
+	Path   string
+	Public bool
+	Scope  string
+	scopes map[string]bool
 }
 
 // Tenant defines a single application object.
 type Tenant struct {
 	CallbackURL string
+	TenantURL   string
+	TLS         bool
 	Domain      string
 	Audience    string
 	ClientID    string
 	Secret      string
-	Scopes      string
 }
 
-// Match return true if rules matches the supplied hostname and path.
-func (r Rule) Match(host, path string) bool {
+// MatchHTTPHeaders return true if rules matches the supplied hostname and path.
+func (r Rule) MatchHTTPHeaders(host, path string) bool {
 	return match(r.Host, host) && match(r.Path, path)
 }
 
-// MatchHost return true if rules matches the supplied hostname.
-func (r Rule) MatchHost(host string) bool {
-	return match(r.Host, host)
-}
-
-// MatchPath return true if rules matches the supplied path.
-func (r Rule) MatchPath(path string) bool {
-	return match(r.Path, path)
+// MatchScope return true if rule scope.
+func (r Rule) MatchScope(scope string) bool {
+	return r.Scope == DefaultScope || r.scopes[scope]
 }
 
 // GetRuleFromContext is a handy method for retrieving a reference of Rule from an HTTP
@@ -159,7 +199,7 @@ func GetTenantFromContext(ctx context.Context) *Tenant {
 
 // FindTenant returns app definition resource by looking up the domain name.
 func (c *Controller) FindTenant(domain string) *Tenant {
-	apps := c.Apps.Load()
+	apps := c.Tenants.Load()
 	if apps != nil {
 		for _, app := range apps.([]Tenant) {
 			if app.isDomain(domain) {

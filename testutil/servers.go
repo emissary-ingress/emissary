@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"time"
 
@@ -55,12 +54,7 @@ func NewIDP() *httptest.Server {
 
 // NewAPP returns an instance of the authorization server.
 func NewAPP(idpURL string) (*httptest.Server, *app.App) {
-	u, err := url.Parse(idpURL)
-	if err != nil {
-		panic(err)
-	}
-
-	os.Setenv("AUTH_DOMAIN", u.Hostname())
+	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 
 	c := config.New()
 	l := logger.New(c)
@@ -72,24 +66,24 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 		Logger: l.WithField("test", "unit"),
 	}
 
-	apps := make([]controller.Tenant, 2)
-	apps[0] = controller.Tenant{
+	tenants := make([]controller.Tenant, 2)
+	tenants[0] = controller.Tenant{
 		CallbackURL: "dummy-host.net/callback",
 		Domain:      "dummy-host.net",
 		Audience:    "foo",
 		ClientID:    "bar",
 	}
-	apps[1] = controller.Tenant{
+	tenants[1] = controller.Tenant{
 		CallbackURL: fmt.Sprintf("%s/callback", idpURL),
-		Domain:      u.Hostname(),
+		Domain:      c.BaseURL.Hostname(),
 		Audience:    "friends",
 		ClientID:    "foo",
 	}
 
-	ct.Apps.Store(apps)
+	ct.Tenants.Store(tenants)
 	ct.Rules.Store(make([]controller.Rule, 0))
 
-	cl := client.NewRestClient(u)
+	cl := client.NewRestClient(c.BaseURL)
 
 	app := &app.App{
 		Config:     c,

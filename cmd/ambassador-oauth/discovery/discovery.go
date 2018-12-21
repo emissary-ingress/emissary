@@ -30,7 +30,7 @@ func New(cfg *config.Config) *Discovery {
 			cache: make(map[string]*JWK),
 			mux:   &sync.RWMutex{},
 		}
-		instance.url = fmt.Sprintf("https://%s/.well-known/jwks.json", cfg.Domain)
+		instance.url = fmt.Sprintf("%s://%s/.well-known/jwks.json", cfg.BaseURL.Scheme, cfg.BaseURL.Host)
 	}
 	instance.fetchWebKeys()
 	return instance
