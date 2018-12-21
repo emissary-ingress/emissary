@@ -19,11 +19,12 @@ endif
 #
 # So instead, we must deal with this abomination.  At least that means
 # we can share it between go-mod.mk and go-workspace.mk.
-go.bins := $(shell GO111MODULE=off GOCACHE=off go list -f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' ./...)
-go.bins := $(patsubst _$(CURDIR)/%,%,$(go.bins)) # remove mangled prefix
 _go.submods := $(patsubst %/go.mod,%,$(shell git ls-files '*/go.mod'))
-go.bins := $(filter-out $(foreach d,$(_go.submods),$d $d/%),$(go.bins))
-go.bins := $(addprefix $(go.module)/,$(go.bins))
+go.list = $(call path.addprefix,$(go.module),\
+                                $(filter-out $(foreach d,$(_go.submods),$d $d/%),\
+                                             $(call path.trimprefix,_$(CURDIR),\
+                                                                    $(shell GO111MODULE=off GOCACHE=off go list $1))))
+go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' ./...)
 
 #
 # Rules
