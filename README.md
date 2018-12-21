@@ -20,9 +20,8 @@ common bit of functionality that you want to make use of.
 
  - Update to latest build-aux:
 
-       $ git subtree pull --squash --prefix=build-aux git@github.com:datawire/build-aux.git master
+       $ ./build-aux/build-aux-pull
 
  - Push "vendored" changes upstream to build-aux.git:
 
-       $ git push git@github.com:datawire/build-aux.git "$(git subtree split --annotate='(YOUR-PROJECT-NAME) ' --prefix=build-aux HEAD)":master
-       $ #                                                                                ^^^^^^^^^^^^^^^^^
+       $ ./build-aux/build-aux-push
