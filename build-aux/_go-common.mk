@@ -48,7 +48,7 @@ check-go-fmt: ## Check whether the code conforms to `gofmt`
 
 go-vet: ## Check the code with `go vet`
 go-vet: go-get
-	go vet ./...
+	go vet $(go.pkgs)
 .PHONY: go-vet
 
 go-fmt: ## Fixup the code with `go fmt`
@@ -57,7 +57,7 @@ go-fmt: ## Fixup the code with `go fmt`
 
 go-test: ## Check the code with `go test`
 go-test: go-build
-	go test ./...
+	go test $(go.pkgs)
 .PHONY: go-test
 
 #

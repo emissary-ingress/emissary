@@ -73,3 +73,4 @@ clobber: _go-clobber
 .NOTPARALLEL:
 
 include $(dir $(lastword $(MAKEFILE_LIST)))/_go-common.mk
+go.pkgs := $(call go.list,./...)
