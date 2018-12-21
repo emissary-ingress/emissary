@@ -63,7 +63,7 @@ _go-clobber:
 	find .go-workspace -exec chmod +w {} +
 	rm -rf .go-workspace
 	mkdir -p $(dir .go-workspace/src/$(go.module))
-	ln -s $(call joinlist,$(patsubst %,..,$(subst /, ,$(dir .go-workspace/src/$(go.module)))),/) .go-workspace/src/$(go.module)
+	ln -s $(call joinlist,/,$(patsubst %,..,$(subst /, ,$(dir .go-workspace/src/$(go.module))))) .go-workspace/src/$(go.module)
 .PHONY: _go-clobber
 clobber: _go-clobber
 
