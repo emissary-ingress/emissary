@@ -29,34 +29,28 @@ lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit_client
 lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit_check
 .PHONY: lyft-build
 
-lyft-build-image: image/ratelimit
-lyft-build-image: image/ratelimit_client
-.PHONY: lyft-build-image
+bin_%/ratelimit       : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/service_cmd
+bin_%/ratelimit_client: FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/client_cmd
+bin_%/ratelimit_check : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/config_check_cmd
+
+# `docker build` mumbo-jumbo
+build-image: image/ratelimit
+build-image: image/ratelimit_client
+build-image: $(addprefix image/,$(bins))
+.PHONY: build-image
 image/%: bin_linux_amd64/%
 	@mkdir -p $(@D)
 	cp $< $@
-
-bin_%/ratelimit       : FORCE ; go build -o $@ github.com/lyft/ratelimit/src/service_cmd
-bin_%/ratelimit_client: FORCE ; go build -o $@ github.com/lyft/ratelimit/src/client_cmd
-bin_%/ratelimit_check : FORCE ; go build -o $@ github.com/lyft/ratelimit/src/config_check_cmd
-
-docker: env build-image lyft-build-image
+docker: env build-image
 	docker build . -t $(RATELIMIT_IMAGE)
 	docker build intercept --target telepresence-proxy -t $(PROXY_IMAGE)
 	docker build intercept --target telepresence-sidecar -t $(SIDECAR_IMAGE)
 .PHONY: docker
 
+# Utility targets
 docker-run: docker
 	docker run -it $(IMAGE)
 .PHONY: docker-run
-
-# This is for managing minor diffs to upstream code. If we need
-# anything more than minor diffs this probably won't work so well. We
-# really don't want to have more than minor diffs though without a
-# good reason.
-diff:
-	cd ${RATELIMIT_REPO} && git diff > $(PATCH)
-.PHONY: diff
 
 clean: $(CLUSTER).clean
 	rm -rf -- bin_* image
