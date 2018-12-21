@@ -153,7 +153,7 @@ class Restarter(threading.Thread):
             cert_required = data.get('cert_required')
             if cert_required is not None:
                 decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
-                resolved['certificate_required'] = decoded
+                resolved['cert_required'] = decoded
         else:
             if not key:
                 logger.error("no key found in secret {} for context {}".format(secret_name, context_name))

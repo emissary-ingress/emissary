@@ -80,7 +80,7 @@ class V2TLSContext(Dict):
 
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
-            ( 'certificate_required', self.__setitem__, 'require_client_certificate' ),
+            ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
         ]:
             value = ctx.get(ctxkey, None)
 
