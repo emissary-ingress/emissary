@@ -39,7 +39,7 @@ commands:
   main:
     steps:
       - checkout
-      - run: make build lyft-build
+      - run: make build
       - run: .circleci/deploy.sh
 
 jobs:

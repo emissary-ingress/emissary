@@ -23,11 +23,9 @@ lyft-pull:
 	git commit -m 'Run: make lyft-pull' || true
 .PHONY: lyft-pull
 
-lyft-build: ## Build programs imported from github.com/lyft/ratelimit
-lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit
-lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit_client
-lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit_check
-.PHONY: lyft-build
+build: bin_$(GOOS)_$(GOARCH)/ratelimit
+build: bin_$(GOOS)_$(GOARCH)/ratelimit_client
+build: bin_$(GOOS)_$(GOARCH)/ratelimit_check
 
 bin_%/ratelimit       : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/service_cmd
 bin_%/ratelimit_client: FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/client_cmd
