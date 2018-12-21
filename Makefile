@@ -29,9 +29,9 @@ lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit_client
 lyft-build: bin_$(GOOS)_$(GOARCH)/ratelimit_check
 .PHONY: lyft-build
 
-bin_%/ratelimit       : FORCE ; go build -o $@ github.com/lyft/ratelimit/src/service_cmd
-bin_%/ratelimit_client: FORCE ; go build -o $@ github.com/lyft/ratelimit/src/client_cmd
-bin_%/ratelimit_check : FORCE ; go build -o $@ github.com/lyft/ratelimit/src/config_check_cmd
+bin_%/ratelimit       : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/service_cmd
+bin_%/ratelimit_client: FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/client_cmd
+bin_%/ratelimit_check : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/config_check_cmd
 
 # `docker build` mumbo-jumbo
 build-image: image/ratelimit
