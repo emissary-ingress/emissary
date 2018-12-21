@@ -8,17 +8,13 @@ spec:
   selector:
     app: the-app
   ports:
-  - name: proxied
-    protocol: TCP
-    port: 80
-    targetPort: 9900
+  - port: 80
+    targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: the-app
-  labels:
-    app: the-app
 spec:
   replicas: 1
   selector:
@@ -34,12 +30,3 @@ spec:
         image: jmalloc/echo-server:latest
         ports:
         - containerPort: 8080
-      - name: sidecar
-        image: ark3/telepresence-sidecar:18
-        env:
-        - name: APPNAME
-          value: "myapp"
-        - name: APPPORT
-          value: "8080"
-        ports:
-        - containerPort: 9900
