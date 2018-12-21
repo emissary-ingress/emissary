@@ -3,8 +3,6 @@
 *.knaut
 *.knaut.claim
 /bin_*/
-/kubeapply
-/teleproxy
 /vendor/
 /image/
 /pushed.txt
