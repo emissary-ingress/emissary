@@ -4,11 +4,11 @@ PROFILE ?= dev
 include build-aux/common.mk
 include build-aux/go.mk
 include build-aux/help.mk
+include build-aux/teleproxy.mk
 
 include build-aux/shell.mk
 include build-aux/k8s.mk
 include build-aux/kubernaut.mk
-include build-aux/proxy.mk
 
 export PATH:=$(CURDIR)/bin_$(GOOS)_$(GOARCH):$(PATH)
 
@@ -53,4 +53,4 @@ docker-run: docker
 clean: $(CLUSTER).clean
 	rm -rf image
 
-clobber: proxy.clobber k8s.clobber
+clobber: k8s.clobber
