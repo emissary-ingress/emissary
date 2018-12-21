@@ -20,6 +20,7 @@
 #  - build
 #  - lint
 #  - check
+#  - format
 #  - clobber
 
 go.module := $(patsubst src/%,%,$(shell cd .go-workspace && find src \( -name '.*' -prune \) -o -type l -print))
@@ -63,7 +64,7 @@ _go-clobber:
 	find .go-workspace -exec chmod +w {} +
 	rm -rf .go-workspace
 	mkdir -p $(dir .go-workspace/src/$(go.module))
-	ln -s $(call joinlist,$(patsubst %,..,$(subst /, ,$(dir .go-workspace/src/$(go.module)))),/) .go-workspace/src/$(go.module)
+	ln -s $(call joinlist,/,$(patsubst %,..,$(subst /, ,$(dir .go-workspace/src/$(go.module))))) .go-workspace/src/$(go.module)
 .PHONY: _go-clobber
 clobber: _go-clobber
 
@@ -73,3 +74,4 @@ clobber: _go-clobber
 .NOTPARALLEL:
 
 include $(dir $(lastword $(MAKEFILE_LIST)))/_go-common.mk
+go.pkgs := $(call go.list,./...)

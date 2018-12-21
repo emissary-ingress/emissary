@@ -67,8 +67,17 @@ _common_clean:
 #
 # Functions
 
-# Usage: $(call joinlist,LIST,SEPERATOR)$
-joinlist=$(if $(word 2,$1),$(firstword $1)$2$(call joinlist,$(wordlist 2,$(words $1),$1),$2),$1)
+# Usage: $(call joinlist,SEPARATOR,LIST)
+# Example: $(call joinlist,/,foo bar baz) => foo/bar/baz
+joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
+
+# Usage: $(call path.trimprefix,PREFIX,LIST)
+# Example: $(call path.trimprefix,foo/bar,foo/bar foo/bar/baz) => . baz
+path.trimprefix = $(patsubst $1/%,%,$(patsubst $1,$1/.,$2))
+
+# Usage: $(call path.addprefix,PREFIX,LIST)
+# Example: $(call path.addprefix,foo/bar,. baz) => foo/bar foo/bar/baz
+path.addprefix = $(patsubst %/.,%,$(addprefix $1/,$2))
 
 #
 # Configure how Make works
