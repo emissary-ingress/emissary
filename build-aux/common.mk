@@ -10,6 +10,12 @@
 export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(shell go env GOOS))
 export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(shell go env GOARCH))
 
+# Usage: $(call joinlist,LIST,SEPERATOR)$
+joinlist=$(if $(word 2,$1),$(firstword $1)$2$(call joinlist,$(wordlist 2,$(words $1),$1),$2),$1)
+
+#
+# Configure how Make works
+
 # Turn off .INTERMEDIATE file removal by marking all files as
 # .SECONDARY.  .INTERMEDIATE file removal is a space-saving hack from
 # a time when drives were small; on modern computers with plenty of
