@@ -13,6 +13,17 @@
 export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(shell go env GOOS))
 export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(shell go env GOARCH))
 
+# NOTE: this is not a typo, this is actually how you spell newline in Make
+define NL
+
+
+endef
+
+# NOTE: this is not a typo, this is actually how you spell space in Make
+define SPACE
+ 
+endef
+
 #
 # Targets
 

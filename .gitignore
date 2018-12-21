@@ -3,7 +3,6 @@
 *.knaut
 *.knaut.claim
 /bin_*/
-/kubeapply
 /vendor/
 /image/
 /pushed.txt
