@@ -20,6 +20,7 @@
 #  - build
 #  - lint
 #  - check
+#  - format
 #  - clobber
 
 go.module := $(patsubst src/%,%,$(shell cd .go-workspace && find src \( -name '.*' -prune \) -o -type l -print))
