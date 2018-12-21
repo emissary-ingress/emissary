@@ -44,6 +44,8 @@ ifeq ($(go.module),)
   $(error Could not extract $$(go.module) from ./go.mod)
 endif
 
+go.pkgs := ./...
+
 export GO111MODULE = on
 
 go-get:
