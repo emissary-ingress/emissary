@@ -26,7 +26,7 @@
 # Makefile-parse-time; what if we're running `make clean`?
 #
 # See: cmd/go/internal/modfile/read.go:ModulePath()
-go.module := $(strip $(shell sed -n -e 's,//.*,,' -e '/^\s*module/{s/^\s*module//;p;q}' go.mod))
+go.module := $(strip $(shell sed -n -e 's,//.*,,' -e '/^\s*module/{s/^\s*module//;p;q;}' go.mod))
 #go.module := $(shell $(GO) list -m)
 ifeq ($(go.module),)
   # Print a helpful message
