@@ -2,7 +2,7 @@
 
 Ambassador supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
-There are current two supported versions of the `AuthService` manifest:
+There are currently two supported versions of the `AuthService` manifest:
 
 ### V1
 
