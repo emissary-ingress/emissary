@@ -3,13 +3,8 @@
 *.knaut
 *.knaut.claim
 /bin_*/
-/vendor
 /kubeapply
 /teleproxy
-/apictl
-/apictl-key
-/image
-/ratelimit
-/ratelimit_check
-/ratelimit_client
+/vendor/
+/image/
 /pushed.txt
