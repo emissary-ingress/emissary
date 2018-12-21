@@ -39,7 +39,7 @@ commands:
   main:
     steps:
       - checkout
-      - run: make apictl apictl-key
+      - run: make build lyft-build
       - run: .circleci/deploy.sh
 
 jobs:
