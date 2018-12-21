@@ -22,6 +22,14 @@ $(bins): %: FORCE vendor
 $(bins:%=image/%): %: FORCE vendor
 	$(IMAGE_GO) build -o ${@} $(pkg)/cmd/${@:image/%=%}
 
+_go-clean:
+	find .go-workspace -exec chmod +w {} +
+	rm -rf .go-workspace
+	mkdir -p $(dir .go-workspace/src/$(pkg))
+	ln -s $(call joinlist,$(patsubst %,..,$(subst /, ,$(dir .go-workspace/src/$(pkg)))),/) .go-workspace/src/$(pkg)
+.PHONY: _go-clean
+clobber: _go-clean
+
 # .NOTPARALLEL is important, as having multiple `go install`s going at
 # once can corrupt `$(GOPATH)/pkg`.  Setting .NOTPARALLEL is simpler
 # than mucking with multi-target pattern rules.
