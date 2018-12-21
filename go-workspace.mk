@@ -1,5 +1,5 @@
-
-GOPATH=$(CURDIR)/.go-workspace
+export GO111MODULE = off
+export GOPATH = $(CURDIR)/.go-workspace
 GOBIN=$(CURDIR)
 GO = GOPATH=$(GOPATH) GOBIN=$(GOBIN) go
 
