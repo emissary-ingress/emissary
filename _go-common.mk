@@ -41,7 +41,7 @@ go-build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(notdir $(go.bins)))
 .PHONY: go-build
 
 check-go-fmt: ## Check whether the code conforms to `gofmt`
-	test -z "$$(git ls-files -z '*.go'|xargs -0 dirname -z --|sort -uz|xargs -0 gofmt -d|tee /dev/stderr)"
+	test -z "$$(git ls-files -z '*.go' | xargs -0 gofmt -d | tee /dev/stderr)"
 .PHONY: check-go-fmt
 
 go-vet: ## Check the code with `go vet`
