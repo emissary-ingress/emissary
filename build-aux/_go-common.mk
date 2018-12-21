@@ -66,3 +66,4 @@ go-test: go-build
 build: go-build
 lint: check-go-fmt go-vet
 check: go-test
+format: go-fmt

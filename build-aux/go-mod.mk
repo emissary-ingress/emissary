@@ -17,6 +17,7 @@
 #  - build
 #  - lint
 #  - check
+#  - format
 
 #
 
