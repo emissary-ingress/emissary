@@ -76,11 +76,12 @@ class IR:
         self.file_checker = file_checker if file_checker is not None else os.path.isfile
 
         self.logger.debug("IR __init__:")
-        self.logger.debug("IR: Version       %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
-        self.logger.debug("IR: AMBASSADOR_ID %s" % self.ambassador_id)
-        self.logger.debug("IR: Namespace     %s" % self.ambassador_namespace)
-        self.logger.debug("IR: Nodename      %s" % self.ambassador_nodename)
-        self.logger.debug("IR: file checker: %s" % self.file_checker.__name__)
+        self.logger.debug("IR: Version          %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
+        self.logger.debug("IR: AMBASSADOR_ID    %s" % self.ambassador_id)
+        self.logger.debug("IR: Namespace        %s" % self.ambassador_namespace)
+        self.logger.debug("IR: Nodename         %s" % self.ambassador_nodename)
+        self.logger.debug("IR: file checker:    %s" % self.file_checker.__name__)
+        self.logger.debug("IR: secret resolver: %s" % self.tls_secret_resolver.__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -131,7 +132,8 @@ class IR:
         # ...and from any TLSContext resources.
         self.save_tls_contexts(aconf)
 
-        # Next, handle the "Ambassador" module.
+        # Next, handle the "Ambassador" module. This is last so that the Ambassador module has all
+        # the TLS contexts available to it.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
 
         # Save breaker & outlier configs.
@@ -223,13 +225,18 @@ class IR:
 
         return resource
 
+    # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
+    # are just ACResources; they need to be turned into IRTLSContexts.
     def save_tls_contexts(self, aconf):
         tls_contexts = aconf.get_config('tls_contexts')
         if tls_contexts is not None:
             for config in tls_contexts.values():
                 resource = IRTLSContext(self, config)
                 if resource.is_active():
-                    self.tls_contexts.append(resource)
+                    self.save_tls_context(resource)
+
+    def save_tls_context(self, ctx: IRTLSContext) -> None:
+        self.tls_contexts.append(ctx)
 
     def get_tls_contexts(self):
         return self.tls_contexts

@@ -16,6 +16,10 @@
 
         "hosts": { "type": "array", "items": { "type": "string" } },
         "secret": { "type": "string" },
+        "cert_chain_file": { "type": "string" },
+        "private_key_file": { "type": "string" },
+        "ca_secret": { "type": "string" },
+        "cacert_chain_file": { "type": "string" },
         "alpn_protocols": { "type": "string" },
         "cert_required": { "type": "boolean" }
     },

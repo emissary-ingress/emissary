@@ -7,6 +7,7 @@ from ..config import Config
 from .irresource import IRResource
 from .irmapping import IRMapping
 from .irtls import IREnvoyTLS, IRAmbassadorTLS
+from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
 from .irbuffer import IRBuffer
 
@@ -85,9 +86,6 @@ class IRAmbassador (IRResource):
             amod_tls = amod.get('tls', None)
 
             if amod_tls:
-                # ir.logger.debug("IRAmbassador saving TLS module: %s" %
-                #                 json.dumps(amod_tls, sort_keys=True, indent=4))
-
                 # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
                 # this painless.
                 new_args = dict(amod_tls)
@@ -104,46 +102,118 @@ class IRAmbassador (IRResource):
                                                 location=new_location,
                                                 **new_args)
 
-        if ir.tls_module:
-            self.logger.debug("final TLS module: %s" %
-                              json.dumps(ir.tls_module.as_dict(), sort_keys=True, indent=4))
+                # ir.logger.debug("IRAmbassador saving TLS module: %s" % ir.tls_module.as_json())
 
-            # Create TLS contexts.
-            for ctx_name, ctx in ir.tls_module.items():
-                if ctx_name.startswith('_'):
+        if ir.tls_module:
+            self.logger.debug("final TLS module: %s" % ir.tls_module.as_json())
+
+            # The TLS module 'server' and 'client' blocks are actually a _single_ TLSContext
+            # to Ambassador.
+
+            server = ir.tls_module.pop('server', None)
+            client = ir.tls_module.pop('client', None)
+
+            if server or client:
+                ctx_name = 'legacy-server' if server else 'legacy-client'
+                ctx_rkey = ir.tls_module.get('rkey', self.rkey)
+                ctx_location = ir.tls_module.get('location', self.location)
+
+                new_args = {
+                    'hosts': ['*']
+                }
+
+                if server and server.get('enabled', True):
+                    if 'secret' in server:
+                        new_args['secret'] = server['secret']
+
+                    if 'cert_chain_file' in server:
+                        new_args['cert_chain_file'] = server['cert_chain_file']
+
+                    if 'private_key_file' in server:
+                        new_args['private_key_file'] = server['private_key_file']
+
+                    if 'alpn_protocols' in server:
+                        new_args['alpn_protocols'] = server['alpn_protocols']
+
+                    if 'redirect_cleartext_from' in server:
+                        new_args['redirect_cleartext_from'] = server['redirect_cleartext_from']
+
+                    if (('secret' not in new_args) and
+                        ('cert_chain_file' not in new_args) and
+                        ('private_key_file' not in new_args)):
+                        # Assume they want the 'ambassador-certs' secret.
+                        new_args['secret'] = 'ambassador-certs'
+
+                if client and client.get('enabled', True):
+                    if 'secret' in client:
+                        new_args['ca_secret'] = client['secret']
+
+                    if 'cacert_chain_file' in client:
+                        new_args['cacert_chain_file'] = client['cacert_chain_file']
+
+                    if 'cert_required' in client:
+                        new_args['cert_required'] = client['cert_required']
+
+                    if (('ca_secret' not in new_args) and
+                        ('cacert_chain_file' not in new_args)):
+                        # Assume they want the 'ambassador-cacert' secret.
+                        new_args['secret'] = 'ambassador-cacert'
+
+                ctx = IRTLSContext.fromConfig(ir, ctx_rkey, ctx_location,
+                                              kind="synthesized-TLS-context",
+                                              name=ctx_name, **new_args)
+
+                if ctx.is_active():
+                    ir.tls_contexts.append(ctx)
+
+            # We're going to call other blocks in the TLS module errors. They weren't ever really
+            # documented, so I seriously doubt that they're a factor.
+
+            any_errors = False
+
+            for ctx_name, ctx in ir.tls_module.as_dict().items():
+                if (ctx_name.startswith('_') or
+                    (ctx_name == 'name') or
+                    (ctx_name == 'location') or
+                    (ctx_name == 'kind') or
+                    (ctx_name == 'enabled')):
                     continue
 
-                if isinstance(ctx, dict):
-                    ctxkey = ir.tls_module.get('rkey', self.rkey)
-                    ctxloc = ir.tls_module.get('location', self.location)
+                if not any_errors:
+                    ir.post_error("The TLS Module (see %s) no longer supports arbitrary contexts." % ir.tls_module.location,
+                                  ir.tls_module)
 
-                    etls = IREnvoyTLS(ir=ir, rkey=ctxkey, aconf=aconf, name=ctx_name,
-                                      location=ctxloc, **ctx)
+                ir.post_error("Use a TLSContext for the %s block in your TLS module" % ctx_name, ir.tls_module)
+                any_errors = True
 
-                    if ir.save_envoy_tls_context(ctx_name, etls):
-                        self.logger.debug("context %s: created from %s" % (ctx_name, ctxloc))
-                        # self.logger.debug(etls.as_json())
-                    else:
-                        self.logger.debug("context %s: not updating from %s" % (ctx_name, ctxloc))
-                        # self.logger.debug(etls.as_json())
+                # if isinstance(ctx, dict):
+                #     ctxkey = ir.tls_module.get('rkey', self.rkey)
+                #     ctxloc = ir.tls_module.get('location', self.location)
+                #
+                #     etls = IREnvoyTLS(ir=ir, rkey=ctxkey, aconf=aconf, name=ctx_name,
+                #                       location=ctxloc, **ctx)
+                #
+                #     if ir.save_envoy_tls_context(ctx_name, etls):
+                #         self.logger.debug("context %s: created from %s" % (ctx_name, ctxloc))
+                #         # self.logger.debug(etls.as_json())
+                #     else:
+                #         self.logger.debug("context %s: not updating from %s" % (ctx_name, ctxloc))
+                #         # self.logger.debug(etls.as_json())
+                #
+                #     if etls.get('valid_tls') and ctx_name == 'server':
+                #         self.logger.debug("TLS termination enabled!")
+                #         self.service_port = 443
 
-                    if etls.get('valid_tls') and ctx_name == 'server':
-                        self.logger.debug("TLS termination enabled!")
-                        self.service_port = 443
-
-        # We also have to check TLSContext resources.
-
+        # Finally, check TLSContext resources to see if we should enable TLS termination.
         for ctx in ir.tls_contexts:
             if ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
                 self.service_port = 443
 
-        ctx = ir.get_envoy_tls_context('client')
-
-        if ctx:
-            # Client-side TLS is enabled.
-            self.logger.debug("TLS client certs enabled!")
+                if ctx.get('ca_cert', None):
+                    # Client-side TLS is enabled.
+                    self.logger.debug("TLSContext %s enables client certs!" % ctx.name)
 
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.

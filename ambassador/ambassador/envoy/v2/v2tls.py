@@ -69,7 +69,7 @@ class V2TLSContext(Dict):
                     handler(hkey, value)
         elif ctx.kind == 'IRTLSContext':
             for secretinfokey, handler, hkey in [
-                ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
                 ( 'private_key_file', self.update_cert_zero, 'private_key' ),
                 ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
             ]:

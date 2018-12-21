@@ -379,24 +379,24 @@ class V2Listener(dict):
 
             envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
 
-        # Hack for backward compatibility with the old TLS module. Hopefully we can get rid of
-        # this soon?
-
-        v2ctx = V2TLSContext()
-        saved_ctx_name: Optional[str] = None
-
-        for ctxname in ['client', 'server']:
-            tls_module_ctx = config.ir.get_envoy_tls_context(ctxname)
-
-            if tls_module_ctx:
-                saved_ctx_name = ctxname
-                config.ir.logger.debug("V2Listener: SNI operating on legacy '%s'" % ctxname)
-                config.ir.logger.debug(tls_module_ctx.as_json())
-                v2ctx.add_context(tls_module_ctx)
-
-        if v2ctx:   # must exist and be non-empty for this to eval True
-            config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-            envoy_contexts.append((typecast(str, saved_ctx_name), ['*'], v2ctx))
+        # # Hack for backward compatibility with the old TLS module. Hopefully we can get rid of
+        # # this soon?
+        #
+        # v2ctx = V2TLSContext()
+        # saved_ctx_name: Optional[str] = None
+        #
+        # for ctxname in ['client', 'server']:
+        #     tls_module_ctx = config.ir.get_envoy_tls_context(ctxname)
+        #
+        #     if tls_module_ctx:
+        #         saved_ctx_name = ctxname
+        #         config.ir.logger.debug("V2Listener: SNI operating on legacy '%s'" % ctxname)
+        #         config.ir.logger.debug(tls_module_ctx.as_json())
+        #         v2ctx.add_context(tls_module_ctx)
+        #
+        # if v2ctx:   # must exist and be non-empty for this to eval True
+        #     config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+        #     envoy_contexts.append((typecast(str, saved_ctx_name), ['*'], v2ctx))
 
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:
@@ -429,7 +429,7 @@ class V2Listener(dict):
                 matched = sorted(sni_route['info']['hosts']) == sorted(hosts)
 
                 # Check for certificate match too.
-                for sni_key, ctx_key in [ ('certificate_chain_file', 'certificate_chain'),
+                for sni_key, ctx_key in [ ('cert_chain_file', 'certificate_chain'),
                                           ('private_key_file', 'private_key') ]:
                     sni_value = sni_route['info']['secret_info'][sni_key]
                     ctx_value = ctx['common_tls_context']['tls_certificates'][0][ctx_key]['filename']   # XXX ugh. Multiple certs?

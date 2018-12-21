@@ -148,7 +148,7 @@ class IRAmbassadorTLS (IRResource):
         Initialize an IRAmbassadorTLS from the raw fields of its Resource.
         """
 
-        ir.logger.debug("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
+        # ir.logger.debug("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -165,7 +165,7 @@ class TLSModuleFactory:
         tls_module = aconf.get_module('tls')
 
         if tls_module:
-            ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
+            # ir.logger.debug("TLSModuleFactory saving TLS module: %s" % tls_module.as_json())
 
             # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
             # this painless.
@@ -182,7 +182,7 @@ class TLSModuleFactory:
                                             location=new_location,
                                             **new_args)
 
-            ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+            # ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:

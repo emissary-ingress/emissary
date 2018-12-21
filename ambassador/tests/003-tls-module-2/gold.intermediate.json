@@ -55,6 +55,7 @@
                 "tls": {
                     "_source": "ambassador.yaml.1",
                     "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "cert_required": true,
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true

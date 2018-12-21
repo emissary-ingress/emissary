@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Optional, Dict
+from typing import Dict, Optional, Union
 from typing import cast as typecast
 
 import sys
@@ -27,6 +27,8 @@ from clize import Parameter
 
 from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import EnvoyConfig, V1Config, V2Config
+from .ir.irtls import IREnvoyTLS
+from .ir.irtlscontext import IRTLSContext
 
 from .utils import RichStatus
 
@@ -97,31 +99,38 @@ def showid():
     show_notices(result, printer=stdout_printer)
 
 
-
 def file_checker(path: str) -> bool:
     logger.debug("CLI file checker: pretending %s exists" % path)
     return True
 
-def tls_secret_resolver(secret_name: str, context: str, cert_dir=None) -> Optional[Dict[str, str]]:
+
+def cli_secret_resolver(secret_name: str, context: IRTLSContext,
+                        namespace: str, cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
     # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
     # Here we're just gonna fake it.
 
-    od: Optional[Dict[str, str]] = None
+    # Do we have secret info?
+    if not 'secret_info':
+        # Nope. This is a problem.
+        context.post_error("no secret_info in TLSContext?")
+        return None
 
-    if context == 'server':
-        od = {
-            'certificate_chain_file': "/path/to/%s.crt" % secret_name,
-            'private_key_file': "/path/to/%s.key" % secret_name
-        }
-    elif context == 'client':
-        od = {
-            'cacert_chain_file': "/path/to/%s.crt" % secret_name,
-        }
-    elif cert_dir is not None:
-        od = {
-            'certificate_chain_file': os.path.join(cert_dir, 'cert.crt'),
-            'private_key_file': os.path.join(cert_dir, 'cert.key')
-        }
+    # OK, do we have secrets to look up?
+    ctxinfo = context.secret_info
+    od = dict(ctxinfo)
+
+    if not cert_dir:
+        # Default.
+        cert_dir = "/ambassador/certs"
+
+    if 'secret' in ctxinfo:
+        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
+        od['cert_chain_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.crt")
+        od['private_key_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.key")
+
+    if 'ca_secret' in ctxinfo:
+        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
+        od['cacert_chain_file'] = os.path.join(cert_dir, ctxinfo['ca_secret'], "tls.crt")
 
     logger.debug("CLI secret resolver: returning %s" % od)
 
@@ -182,7 +191,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=tls_secret_resolver)
+        ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=cli_secret_resolver)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -244,7 +253,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param output_json_path: Path to output envoy.json
     :param debug: If set, generate debugging output
-    :param debug_scout: If set, generate debugging output
+    :param debug_scout: If set, generate debugging output when talking to Scout
     :param check: If set, generate configuration only if it doesn't already exist
     :param k8s: If set, assume configuration files are annotated K8s manifests
     :param exit_on_error: If set, will exit with status 1 on any configuration error
@@ -309,7 +318,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=tls_secret_resolver)
+            ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=cli_secret_resolver)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:

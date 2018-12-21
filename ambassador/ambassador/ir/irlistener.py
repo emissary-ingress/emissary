@@ -63,30 +63,50 @@ class ListenerFactory:
 
         override_source = bool(amod.location == '--internal--')
 
-        for ctxname in [ 'server', 'client' ]:
-            ctx = ir.get_envoy_tls_context(ctxname)
+        for ctx in ir.get_tls_contexts():
+            if ctx.is_active() and ctx.get('hosts', None):
+                # This is a termination context.
+                contexts[ctx.name] = ctx
 
-            if not ctx:
-                continue
-
-            # ir.logger.debug("primary listener: ctx %s: %s" % (ctxname, ctx.as_json()))
-
-            if ctx.enabled:
-                contexts[ctxname] = ctx
+                ir.logger.debug("primary listener: ctx %s is a termination context" % ctx.name)
 
                 if override_source:
                     primary_listener.sourced_by(ctx)
                     override_source = False
 
-                # XXX Should we be making sure that this is a termination context somehow??
-                if 'redirect_cleartext_from' in ctx:
+                if ctx.get('redirect_cleartext_from', None):
                     redirect_cleartext_from = ctx.redirect_cleartext_from
 
                     if 'location' in ctx:
                         ctx_location = ctx.location
 
-                    # ir.logger.debug("primary listener: ctx %s sets redirect_cleartext_from %s" %
-                    #                 (ctxname, redirect_cleartext_from))
+                    ir.logger.debug("primary listener: ctx %s sets redirect_cleartext_from %s" %
+                                    (ctx.name, redirect_cleartext_from))
+
+        # for ctxname in [ 'server', 'client' ]:
+        #     ctx = ir.get_envoy_tls_context(ctxname)
+        #
+        #     if not ctx:
+        #         continue
+        #
+        #     # ir.logger.debug("primary listener: ctx %s: %s" % (ctxname, ctx.as_json()))
+        #
+        #     if ctx.enabled:
+        #         contexts[ctxname] = ctx
+        #
+        #         if override_source:
+        #             primary_listener.sourced_by(ctx)
+        #             override_source = False
+        #
+        #         # XXX Should we be making sure that this is a termination context somehow??
+        #         if 'redirect_cleartext_from' in ctx:
+        #             redirect_cleartext_from = ctx.redirect_cleartext_from
+        #
+        #             if 'location' in ctx:
+        #                 ctx_location = ctx.location
+        #
+        #             # ir.logger.debug("primary listener: ctx %s sets redirect_cleartext_from %s" %
+        #             #                 (ctxname, redirect_cleartext_from))
 
         if contexts:
             primary_listener['tls_contexts'] = contexts
