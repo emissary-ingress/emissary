@@ -190,7 +190,7 @@ func NewService(runtime loader.IFace, cache redis.RateLimitCache,
 		rlStatsScope:       stats.Scope("rate_limit"),
 	}
 	newService.legacy = &legacyService{
-		s: newService,
+		s:                          newService,
 		shouldRateLimitLegacyStats: newShouldRateLimitLegacyStats(stats),
 	}
 

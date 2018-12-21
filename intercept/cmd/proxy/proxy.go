@@ -66,7 +66,7 @@ func (state *ProxyState) handleState(w http.ResponseWriter, r *http.Request) {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	result, err := json.Marshal(*state)
+	result, err := json.Marshal(state)
 	if err != nil {
 		panic(err)
 	}
@@ -286,9 +286,9 @@ func (state *ProxyState) cleanup() {
 			// only keep intercepts older than 10 seconds
 			if time.Since(intercept.LastQueryAt) < 10*time.Second {
 				remaining = append(remaining, intercept)
-				fmt.Printf("keeping intercept %s:%s", deployment, intercept.Port)
+				fmt.Printf("keeping intercept %s:%d", deployment, intercept.Port)
 			} else {
-				fmt.Printf("expiring intercept %s:%s", deployment, intercept.Port)
+				fmt.Printf("expiring intercept %s:%d", deployment, intercept.Port)
 				freePorts = append(freePorts, intercept.Port)
 			}
 		}
