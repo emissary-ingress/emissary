@@ -14,6 +14,11 @@ ifneq ($(wildcard glide.yaml),)
 vendor:: glide.yaml $(wildcard glide.lock)
 	rm -rf $@
 	glide install
+
+_go-clobber-vendor:
+	rm -rf vendor
+.PHONY: _go-clobber-vendor
+clobber: _go-clobber-vendor
 endif
 
 $(bins): %: FORCE vendor
@@ -22,13 +27,13 @@ $(bins): %: FORCE vendor
 $(bins:%=image/%): %: FORCE vendor
 	$(IMAGE_GO) build -o ${@} $(pkg)/cmd/${@:image/%=%}
 
-_go-clean:
+_go-clobber:
 	find .go-workspace -exec chmod +w {} +
 	rm -rf .go-workspace
 	mkdir -p $(dir .go-workspace/src/$(pkg))
 	ln -s $(call joinlist,$(patsubst %,..,$(subst /, ,$(dir .go-workspace/src/$(pkg)))),/) .go-workspace/src/$(pkg)
-.PHONY: _go-clean
-clobber: _go-clean
+.PHONY: _go-clobber
+clobber: _go-clobber
 
 # .NOTPARALLEL is important, as having multiple `go install`s going at
 # once can corrupt `$(GOPATH)/pkg`.  Setting .NOTPARALLEL is simpler
