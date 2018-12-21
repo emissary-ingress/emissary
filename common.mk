@@ -67,8 +67,9 @@ _common_clean:
 #
 # Functions
 
-# Usage: $(call joinlist,LIST,SEPERATOR)$
-joinlist=$(if $(word 2,$1),$(firstword $1)$2$(call joinlist,$(wordlist 2,$(words $1),$1),$2),$1)
+# Usage: $(call joinlist,SEPARATOR,LIST)
+# Example: $(call joinlist,/,foo bar baz) => foo/bar/baz
+joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 
 #
 # Configure how Make works
