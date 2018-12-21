@@ -29,7 +29,8 @@ go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' ./..
 #
 # Rules
 
-go-get:
+# go-FOO.mk is responsible for implementing go-get
+go-get: ## Download Go dependencies
 .PHONY: go-get
 
 define _go.bin.rule
