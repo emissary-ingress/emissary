@@ -9,9 +9,6 @@ IMAGE_GO = CGO_ENABLED=0 GOOS=linux GOPATH=$(GOPATH) GOBIN=$(IMAGE_GOBIN) go
 build: $(bins)
 .PHONY: build
 
-build-image: $(bins:%=image/%)
-.PHONY: build-image
-
 vendor::
 ifneq ($(wildcard glide.yaml),)
 vendor:: glide.yaml $(wildcard glide.lock)
