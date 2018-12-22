@@ -532,7 +532,7 @@ def test_config(testname, dirpath, configdir):
     aconf = Config()
     aconf.load_from_directory(configdir)
 
-    ir = IR(aconf, file_checker=file_always_exists, tls_secret_resolver=tls_test_resolver)
+    ir = IR(aconf, file_checker=file_always_exists, tls_secret_resolver=atest_tls_secret_resolver)
     v1config = V1Config(ir)
 
     print("==== checking IR")
@@ -658,10 +658,12 @@ def file_always_exists(filename):
     return True
 
 
-def tls_test_resolver(secret_name: str, context: 'IRTLSContext',
-                      namespace: str, cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
+def atest_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
+                              cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
     # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
     # Here we're just gonna fake it.
+    #
+    # This is very much like the base CLI secret resolver.
 
     # Do we have secret info?
     if not 'secret_info':

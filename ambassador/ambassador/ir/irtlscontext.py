@@ -61,10 +61,15 @@ class IRTLSContext(IRResource):
             ir.logger.debug("IRTLSContext skipping resolution of null context")
             rc = True
         else:
-            resolved = ir.tls_secret_resolver(secret_name=self.name, context=self,
-                                              namespace=ir.ambassador_namespace)
+            resolved = ir.tls_secret_resolver(context=self, namespace=ir.ambassador_namespace)
 
             if resolved:
+                # Ew.
+                cert_required = resolved.pop('cert_required', None)
+
+                if cert_required is not None:
+                    self.cert_required = cert_required
+
                 self.secret_info.update(resolved)
                 rc = True
 

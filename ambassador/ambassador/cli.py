@@ -104,8 +104,8 @@ def file_checker(path: str) -> bool:
     return True
 
 
-def cli_secret_resolver(secret_name: str, context: IRTLSContext,
-                        namespace: str, cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
+def cli_secret_resolver(context: IRTLSContext, namespace: str,
+                        cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
     # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
     # Here we're just gonna fake it.
 
