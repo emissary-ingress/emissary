@@ -372,12 +372,15 @@ class V2Listener(dict):
         envoy_contexts: List[Tuple[str, List[str], V2TLSContext]] = []
 
         for tls_context in config.ir.get_tls_contexts():
-            config.ir.logger.debug("V2Listener: SNI operating on context '%s'" % tls_context.name)
-            config.ir.logger.debug(tls_context.as_json())
-            v2ctx = V2TLSContext(tls_context)
-            config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+            if tls_context.get('hosts', None):
+                config.ir.logger.debug("V2Listener: SNI operating on termination context '%s'" % tls_context.name)
+                config.ir.logger.debug(tls_context.as_json())
+                v2ctx = V2TLSContext(tls_context)
+                config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+                envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
+            else:
+                config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
 
-            envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
 
         # # Hack for backward compatibility with the old TLS module. Hopefully we can get rid of
         # # this soon?
