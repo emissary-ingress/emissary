@@ -6,7 +6,8 @@ from ..config import Config
 
 from .irresource import IRResource
 from .irmapping import IRMapping
-from .irtls import IREnvoyTLS, IRAmbassadorTLS
+# from .irtls import IREnvoyTLS
+from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
 from .irbuffer import IRBuffer

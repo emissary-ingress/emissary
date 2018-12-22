@@ -32,7 +32,7 @@ from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
 from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
 from ambassador.ir import IR
-from ambassador.ir.irtls import IREnvoyTLS
+# from ambassador.ir.irtls import IREnvoyTLS
 from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
 
@@ -113,7 +113,7 @@ class Restarter(threading.Thread):
         with self.mutex:
             self.cluster_id = cluster_id
 
-    def tls_secret_resolver(self, secret_name: str, context: Union[IREnvoyTLS, IRTLSContext],
+    def tls_secret_resolver(self, secret_name: str, context: IRTLSContext,
                             namespace: str, cert_dir: Optional[str]=None) -> Optional[Dict[str, str]]:
         # Allow secrets to override namespace when needed.
         if "." in secret_name:

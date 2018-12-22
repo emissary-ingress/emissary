@@ -30,7 +30,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
-from .irtls import TLSModuleFactory, IRAmbassadorTLS, IREnvoyTLS
+from .irtls import TLSModuleFactory, IRAmbassadorTLS   #, IREnvoyTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
@@ -60,7 +60,7 @@ class IR:
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
-    envoy_tls: Dict[str, IREnvoyTLS]
+    # envoy_tls: Dict[str, IREnvoyTLS]
     tls_contexts: Dict[str, IRTLSContext]
     tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
@@ -262,15 +262,15 @@ class IR:
         for res in self.saved_resources.values():
             getattr(res, method_name)(self, aconf)
 
-    def save_envoy_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
-        if ctx_name in self.envoy_tls:
-            return False
-
-        self.envoy_tls[ctx_name] = ctx
-        return True
-
-    def get_envoy_tls_context(self, ctx_name: str) -> Optional[IREnvoyTLS]:
-        return self.envoy_tls.get(ctx_name, None)
+    # def save_envoy_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
+    #     if ctx_name in self.envoy_tls:
+    #         return False
+    #
+    #     self.envoy_tls[ctx_name] = ctx
+    #     return True
+    #
+    # def get_envoy_tls_context(self, ctx_name: str) -> Optional[IREnvoyTLS]:
+    #     return self.envoy_tls.get(ctx_name, None)
 
     def get_tls_defaults(self, ctx_name: str) -> Optional[Dict]:
         return self.tls_defaults.get(ctx_name, None)
