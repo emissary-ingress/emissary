@@ -107,84 +107,41 @@ class IRAmbassador (IRResource):
         if ir.tls_module:
             self.logger.debug("final TLS module: %s" % ir.tls_module.as_json())
 
+            # Stash a sane rkey and location for contexts we create.
+            ctx_rkey = ir.tls_module.get('rkey', self.rkey)
+            ctx_location = ir.tls_module.get('location', self.location)
+
             # The TLS module 'server' and 'client' blocks are actually a _single_ TLSContext
             # to Ambassador.
 
             server = ir.tls_module.pop('server', None)
             client = ir.tls_module.pop('client', None)
 
-            if server or client:
-                ctx_name = 'legacy-server' if server else 'legacy-client'
-                ctx_rkey = ir.tls_module.get('rkey', self.rkey)
-                ctx_location = ir.tls_module.get('location', self.location)
+            if server and server.get('enabled', True):
+                # We have a server half. Excellent.
 
-                new_args = {
-                    'hosts': ['*']
-                }
-
-                if server and server.get('enabled', True):
-                    if 'secret' in server:
-                        new_args['secret'] = server['secret']
-
-                    if 'cert_chain_file' in server:
-                        new_args['cert_chain_file'] = server['cert_chain_file']
-
-                    if 'private_key_file' in server:
-                        new_args['private_key_file'] = server['private_key_file']
-
-                    if 'alpn_protocols' in server:
-                        new_args['alpn_protocols'] = server['alpn_protocols']
-
-                    if 'redirect_cleartext_from' in server:
-                        new_args['redirect_cleartext_from'] = server['redirect_cleartext_from']
-
-                    if (('secret' not in new_args) and
-                        ('cert_chain_file' not in new_args) and
-                        ('private_key_file' not in new_args)):
-                        # Assume they want the 'ambassador-certs' secret.
-                        new_args['secret'] = 'ambassador-certs'
-
-                if client and client.get('enabled', True):
-                    if 'secret' in client:
-                        new_args['ca_secret'] = client['secret']
-
-                    if 'cacert_chain_file' in client:
-                        new_args['cacert_chain_file'] = client['cacert_chain_file']
-
-                    if 'cert_required' in client:
-                        new_args['cert_required'] = client['cert_required']
-
-                    if (('ca_secret' not in new_args) and
-                        ('cacert_chain_file' not in new_args)):
-                        # Assume they want the 'ambassador-cacert' secret.
-                        new_args['secret'] = 'ambassador-cacert'
-
-                ctx = IRTLSContext.fromConfig(ir, ctx_rkey, ctx_location,
-                                              kind="synthesized-TLS-context",
-                                              name=ctx_name, **new_args)
+                ctx = IRTLSContext.from_legacy(ir, 'server', ctx_rkey, ctx_location,
+                                               cert=server, termination=True, validation_ca=client)
 
                 if ctx.is_active():
                     ir.tls_contexts.append(ctx)
 
-            # We're going to call other blocks in the TLS module errors. They weren't ever really
-            # documented, so I seriously doubt that they're a factor.
+            # Other blocks in the TLS module weren't ever really documented, so I seriously doubt
+            # that they're a factor... but, weirdly, we have a test for them...
 
-            any_errors = False
-
-            for ctx_name, ctx in ir.tls_module.as_dict().items():
-                if (ctx_name.startswith('_') or
-                    (ctx_name == 'name') or
-                    (ctx_name == 'location') or
-                    (ctx_name == 'kind') or
-                    (ctx_name == 'enabled')):
+            for legacy_name, legacy_ctx in ir.tls_module.as_dict().items():
+                if (legacy_name.startswith('_') or
+                    (legacy_name == 'name') or
+                    (legacy_name == 'location') or
+                    (legacy_name == 'kind') or
+                    (legacy_name == 'enabled')):
                     continue
 
-                if not any_errors:
-                    ir.post_error("The TLS Module (see %s) no longer supports arbitrary contexts." % ir.tls_module.location,
-                                  ir.tls_module)
+                ctx = IRTLSContext.from_legacy(ir, legacy_name, ctx_rkey, ctx_location,
+                                               cert=legacy_ctx, termination=False, validation_ca=None)
 
-                ir.post_error("Use a TLSContext for the %s block in your TLS module" % ctx_name, ir.tls_module)
-                any_errors = True
+                if ctx.is_active():
+                    ir.tls_contexts.append(ctx)
 
                 # if isinstance(ctx, dict):
                 #     ctxkey = ir.tls_module.get('rkey', self.rkey)

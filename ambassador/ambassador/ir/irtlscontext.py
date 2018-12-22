@@ -3,6 +3,7 @@ from typing import ClassVar, List, Optional, TYPE_CHECKING
 from ..utils import RichStatus
 from ..config import ACResource
 from .irresource import IRResource
+from .irtls import IRAmbassadorTLS
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -29,6 +30,7 @@ class IRTLSContext(IRResource):
         )
 
     def setup(self, ir: 'IR', config) -> bool:
+        ir.logger.debug("IRTLSContext incoming config: %s" % config.as_json())
 
         if not self.validate(config):
             return False
@@ -68,32 +70,28 @@ class IRTLSContext(IRResource):
             self.post_error(RichStatus.fromError("`name` field is required in a TLSContext resource", module=config))
             return False
 
-        if 'hosts' in config:
-            termination_count = 0
-            errors = 0
+        spec_count = 0
+        errors = 0
 
-            if 'secret' in config:
-                termination_count += 1
+        if config.get('secret', None):
+            spec_count += 1
 
-            if 'cert_chain_file' in config:
-                termination_count += 1
+        if config.get('cert_chain_file', None):
+            spec_count += 1
 
-                if 'private_key_file' not in config:
-                    self.post_error(
-                        RichStatus.fromError("`cert_chain_file` requires `private_key` in a TLSContext resource",
-                                             module=config))
-                    errors += 1
+            if not config.get('private_key_file', None):
+                err_msg = "TLSContext %s: 'cert_chain_file' requires 'private_key_file' as well" % config.name
 
-            if termination_count != 1:
-                self.post_error(RichStatus.fromError(
-                    "Either `secret` or `cert_chain_file` must be present in a TLSContext resource", module=config))
+                self.post_error(RichStatus.fromError(err_msg, module=config))
                 errors += 1
 
-            if errors:
-                return False
-        else:
-            # Not a termination context. We don't support this yet.
-            self.post_error(RichStatus.fromError("`hosts` is currently required in a TLSContext resource", module=config))
+        if spec_count != 1:
+            err_msg = "TLSContext %s: exactly one of 'secret' and 'cert_chain_file' must be present" % config.name
+
+            self.post_error(RichStatus.fromError(err_msg, module=config))
+            errors += 1
+
+        if errors:
             return False
 
         return True
@@ -109,8 +107,66 @@ class IRTLSContext(IRResource):
     #         return resolved
 
     @classmethod
-    def fromConfig(cls, ir: 'IR', rkey: str, location: str, *,
-                   kind="synthesized-TLS-context", name: str, **kwargs) -> 'IRTLSContext':
+    def from_config(cls, ir: 'IR', rkey: str, location: str, *,
+                    kind="synthesized-TLS-context", name: str, **kwargs) -> 'IRTLSContext':
         ctx_config = ACResource(rkey, location, kind=kind, name=name, **kwargs)
 
         return cls(ir, ctx_config)
+
+    @classmethod
+    def from_legacy(cls, ir: 'IR', name: str, rkey: str, location: str,
+                    cert: IRAmbassadorTLS, termination: bool,
+                    validation_ca: Optional[IRAmbassadorTLS]) -> 'IRTLSContext':
+        """
+        Create an IRTLSContext from a legacy TLS-module style definition.
+
+        'cert' is the TLS certificate that we'll offer to our peer -- for a termination
+        context, this is our server cert, and for an origination context, it's our client
+        cert.
+
+        For termination contexts, 'validation_ca' may also be provided. It's the TLS
+        certificate that we'll use to validate the certificates our clients offer. Note
+        that no private key is needed or supported.
+
+        :param ir: IR in play
+        :param name: name for the newly-created context
+        :param rkey: rkey for the newly-created context
+        :param location: location for the newly-created context
+        :param cert: information about the cert to present to the peer
+        :param termination: is this a termination context?
+        :param validation_ca: information about how we'll validate the peer's cert
+        :return: newly-created IRTLSContext
+        """
+        new_args = {}
+
+        for key in [ 'secret', 'cert_chain_file', 'private_key_file',
+                     'alpn_protocols', 'redirect_cleartext_from' ]:
+            value = cert.get(key, None)
+
+            if value:
+                new_args[key] = value
+
+        if (('secret' not in new_args) and
+            ('cert_chain_file' not in new_args) and
+            ('private_key_file' not in new_args)):
+            # Assume they want the 'ambassador-certs' secret.
+            new_args['secret'] = 'ambassador-certs'
+
+        if termination:
+            new_args['hosts'] = [ '*' ]
+
+            if validation_ca and validation_ca.get('enabled', True):
+                for key in [ 'secret', 'cacert_chain_file', 'cert_required' ]:
+                    value = validation_ca.get(key, None)
+
+                    if value:
+                        new_args[key] = value
+
+                if (('ca_secret' not in new_args) and
+                        ('cacert_chain_file' not in new_args)):
+                    # Assume they want the 'ambassador-cacert' secret.
+                    new_args['secret'] = 'ambassador-cacert'
+
+        return IRTLSContext.from_config(ir, rkey, location,
+                                        kind="synthesized-TLS-context",
+                                        name=name, **new_args)
