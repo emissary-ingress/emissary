@@ -46,16 +46,19 @@ class V2Cluster(dict):
             self["http2_protocol_options"] = {}
 
         ctx = cluster.get('tls_context', None)
+
         if ctx is not None:
-            # If TLS Context is enabled, then we at least need to specify `tls_context` to enabled HTTPS origination
-            if ctx.get('enabled'):
+            # If this is a null TLS Context (_ambassador_enabled is True), then we at need to specify a
+            # minimal `tls_context` to enable HTTPS origination.
+
+            if ctx.get('_ambassador_enabled', False):
                 fields['tls_context'] = {
                     'common_tls_context': {}
                 }
-
-            envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
-            if envoy_ctx:
-                fields['tls_context'] = envoy_ctx
+            else:
+                envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
+                if envoy_ctx:
+                    fields['tls_context'] = envoy_ctx
 
         self.update(fields)
 
