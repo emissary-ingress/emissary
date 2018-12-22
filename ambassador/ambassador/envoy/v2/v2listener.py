@@ -371,7 +371,7 @@ class V2Listener(dict):
         # of course.
         envoy_contexts: List[Tuple[str, List[str], V2TLSContext]] = []
 
-        for tls_context in config.ir.tls_contexts:
+        for tls_context in config.ir.get_tls_contexts():
             config.ir.logger.debug("V2Listener: SNI operating on context '%s'" % tls_context.name)
             config.ir.logger.debug(tls_context.as_json())
             v2ctx = V2TLSContext(tls_context)

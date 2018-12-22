@@ -124,7 +124,7 @@ class IRAmbassador (IRResource):
                                                cert=server, termination=True, validation_ca=client)
 
                 if ctx.is_active():
-                    ir.tls_contexts.append(ctx)
+                    ir.save_tls_context(ctx)
 
             # Other blocks in the TLS module weren't ever really documented, so I seriously doubt
             # that they're a factor... but, weirdly, we have a test for them...
@@ -141,7 +141,7 @@ class IRAmbassador (IRResource):
                                                cert=legacy_ctx, termination=False, validation_ca=None)
 
                 if ctx.is_active():
-                    ir.tls_contexts.append(ctx)
+                    ir.save_tls_context(ctx)
 
                 # if isinstance(ctx, dict):
                 #     ctxkey = ir.tls_module.get('rkey', self.rkey)
@@ -162,7 +162,7 @@ class IRAmbassador (IRResource):
                 #         self.service_port = 443
 
         # Finally, check TLSContext resources to see if we should enable TLS termination.
-        for ctx in ir.tls_contexts:
+        for ctx in ir.get_tls_contexts():
             if ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)

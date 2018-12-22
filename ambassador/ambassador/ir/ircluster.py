@@ -23,7 +23,7 @@ from ..config import Config
 from ..utils import RichStatus
 
 from .irresource import IRResource
-from .irtls import IREnvoyTLS
+from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -87,7 +87,7 @@ class IRCluster (IRResource):
 
         originate_tls: bool = False
         name_fields: List[str] = [ 'cluster' ]
-        ctx: Optional[IREnvoyTLS] = None
+        ctx: Optional[IRTLSContext] = None
         errors: List[str] = []
 
         # Do we have a marker?
@@ -100,12 +100,9 @@ class IRCluster (IRResource):
         # If we have a ctx_name, does it match a real context?
         if ctx_name:
             if ctx_name is True:
-                ctx = IREnvoyTLS(ir=ir, aconf=aconf,
-                                 rkey="ir.nulltlscontext",
-                                 name="ir.nulltlscontext",
-                                 _ambassador_enabled=True)
+                ctx = IRTLSContext.null_context(ir=ir)
             else:
-                ctx = ir.get_envoy_tls_context(typecast(str, ctx_name))
+                ctx = ir.get_tls_context(typecast(str, ctx_name))
 
             if not ctx:
                 errors.append("Originate-TLS context %s is not defined" % ctx_name)
@@ -198,10 +195,9 @@ class IRCluster (IRResource):
 
         if originate_tls:
             if ctx:
-                new_args['tls_context'] = typecast(IREnvoyTLS, ctx)
+                new_args['tls_context'] = typecast(IRTLSContext, ctx)
             else:
-                new_args['tls_context'] = IREnvoyTLS(ir=ir, aconf=aconf, location=location,
-                                                     enabled=True)
+                new_args['tls_context'] = IRTLSContext.null_context(ir=ir)
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,

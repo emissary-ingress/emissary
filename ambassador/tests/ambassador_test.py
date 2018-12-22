@@ -337,14 +337,26 @@ class old_ir (dict):
 
                 tls_array = []
 
-                for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
-                    if k in ctx:
-                        tls_array.append({'key': k, 'value': ctx[k]})
+                if 'secret_info' in ctx:
+                    for k in [ 'cert_chain_file', 'cacert_chain_file', 'private_key_file' ]:
+                        value = ctx['secret_info'].get(k, None)
+
+                        if value:
+                            tls_array.append({'key': k, 'value': value})
+
+                value = ctx.get('cert_required')
+
+                if value:
+                    tls_array.append({'key': 'cert_required', 'value': value})
 
                 if not tls_array:
                     ctx['_ambassador_enabled'] = True
                     ctx.pop("_source", None)
+                    ctx.pop("_referenced_by", None)
                     ctx.pop("_errored", None)
+
+                    if not ctx.get('valid_tls', None):
+                        ctx['valid_tls'] = False
 
                 if host_rewrite:
                     tls_array.append({'key': 'sni', 'value': host_rewrite})

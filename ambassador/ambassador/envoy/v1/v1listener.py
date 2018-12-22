@@ -49,11 +49,9 @@ class V1Listener(dict):
         if listener.use_proxy_proto:
             self["use_proxy_proto"] = True
 
-        print("V1LISTENER: %s" % listener.as_json())
-
         if 'tls_contexts' in listener:
-            if 'legacy-server' in listener.tls_contexts:
-                envoy_ctx = V1TLSContext(listener.tls_contexts['legacy-server'])
+            if 'server' in listener.tls_contexts:
+                envoy_ctx = V1TLSContext(listener.tls_contexts['server'])
 
                 if envoy_ctx:
                     self['ssl_context'] = dict(envoy_ctx)

@@ -32,7 +32,10 @@ class IRTLSContext(IRResource):
     def setup(self, ir: 'IR', config) -> bool:
         ir.logger.debug("IRTLSContext incoming config: %s" % config.as_json())
 
-        if not self.validate(config):
+        if config.get('_ambassador_enabled', False):
+            # Null context.
+            self['_ambassador_enabled'] = True
+        elif not self.validate(config):
             return False
 
         self.sourced_by(config)
@@ -52,14 +55,18 @@ class IRTLSContext(IRResource):
 
         ir.logger.debug("IRTLSContext at setup: %s" % self.as_json())
 
-        resolved = ir.tls_secret_resolver(secret_name=self.name, context=self,
-                                          namespace=ir.ambassador_namespace)
-
         rc = False
 
-        if resolved:
-            self.secret_info.update(resolved)
+        if self.get('_ambassador_enabled', False):
+            ir.logger.debug("IRTLSContext skipping resolution of null context")
             rc = True
+        else:
+            resolved = ir.tls_secret_resolver(secret_name=self.name, context=self,
+                                              namespace=ir.ambassador_namespace)
+
+            if resolved:
+                self.secret_info.update(resolved)
+                rc = True
 
         ir.logger.debug("IRTLSContext setup done (returning %s): %s" % (rc, self.as_json()))
 
@@ -112,6 +119,19 @@ class IRTLSContext(IRResource):
         ctx_config = ACResource(rkey, location, kind=kind, name=name, **kwargs)
 
         return cls(ir, ctx_config)
+
+    @classmethod
+    def null_context(cls, ir: 'IR') -> 'IRTLSContext':
+        ctx = ir.get_tls_context("no-cert-upstream")
+
+        if not ctx:
+            ctx = IRTLSContext.from_config(ir, "ir.no-cert-upstream", "ir.no-cert-upstream",
+                                           kind="null-TLS-context", name="no-cert-upstream",
+                                           _ambassador_enabled=True)
+
+            ir.save_tls_context(ctx)
+
+        return ctx
 
     @classmethod
     def from_legacy(cls, ir: 'IR', name: str, rkey: str, location: str,
