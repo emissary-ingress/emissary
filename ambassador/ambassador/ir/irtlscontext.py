@@ -188,7 +188,7 @@ class IRTLSContext(IRResource):
                         new_args[key] = value
 
                 if (('ca_secret' not in new_args) and
-                        ('cacert_chain_file' not in new_args)):
+                    ('cacert_chain_file' not in new_args)):
                     # Assume they want the 'ambassador-cacert' secret.
                     new_args['secret'] = 'ambassador-cacert'
 

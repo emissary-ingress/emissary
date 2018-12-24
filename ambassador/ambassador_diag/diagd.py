@@ -355,7 +355,12 @@ def show_overview(reqid=None):
                  **ov, **ddict)
 
     if request.args.get('json', None):
-        result = jsonify(tvars)
+        key = request.args.get('filter', None)
+
+        if key:
+            return jsonify(tvars.get(key, None))
+        else:
+            return jsonify(tvars)
     else:
         return render_template("overview.html", **tvars)
 
@@ -407,7 +412,12 @@ def show_intermediate(source=None, reqid=None):
                  **result, **ddict)
 
     if request.args.get('json', None):
-        return jsonify(tvars)
+        key = request.args.get('filter', None)
+
+        if key:
+            return jsonify(tvars.get(key, None))
+        else:
+            return jsonify(tvars)
     else:
         return render_template("diag.html", **tvars)
 

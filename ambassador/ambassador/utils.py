@@ -281,7 +281,7 @@ def kube_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
     secret_info: Dict[str, str] = context.get('secret_info', {})
 
     if not secret_info:
-        context.post_error("TLSContext has no certificate information at all?")
+        context.post_error("TLSContext %s has no certificate information at all?" % context.name)
         return None
 
     # OK. Where is the root of the secret store?
@@ -309,12 +309,12 @@ def kube_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
                 # give up.
-                context.post_error("no certificate found in %s" % ss.name)
+                context.post_error("TLSContext %s found no certificate in %s" % (context.name, ss.name))
                 return None
 
             # If they only gave a public key, that's an error too.
             if not ss.key_path:
-                context.post_error("no private key found in %s" % ss.name)
+                context.post_error("TLSContext %s found no private key in %s" % (context.name, ss.name))
                 return None
 
             # So far, so good.
@@ -344,47 +344,59 @@ def kube_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
 
         if missing:
             # Sigh.
-            context.post_error("no certificate given")
+            context.post_error("TLSContext %s was given no certificate" % context.name)
             return None
 
-    # OK, if they gave a cert_chain_file, we should also check for a validation cert.
-    if resolved.get('cert_chain_file'):
-        ca_secret_name = secret_info.get('ca_secret')
+    ca_secret_name = secret_info.get('ca_secret')
 
-        if ca_secret_name:
-            # They gave a secret name for the validation cert.. Should we try to go check with Kube?
-            if get_kube_api:
-                v1 = get_kube_api()
+    if ca_secret_name:
+        if not resolved.get('cert_chain_file'):
+            # DUPLICATED BELOW: This is an error: validation without termination isn't meaningful.
+            # (This is duplicated for the case where they gave a validation path.)
+            context.post_error("TLSContext %s cannot validate client certs without TLS termination" %
+                               context.name)
+            return None
 
-            if v1:
-                ss = kube_secret_loader(v1, secret_root, ca_secret_name, namespace)
+        # They gave a secret name for the validation cert.. Should we try to go check with Kube?
+        if get_kube_api:
+            v1 = get_kube_api()
 
-                if not ss:
-                    # This is definitively an error: they mentioned a secret, it can't be loaded,
-                    # give up.
-                    context.post_error("no validation certificate found in %s" % ss.name)
-                    return None
+        if v1:
+            ss = kube_secret_loader(v1, secret_root, ca_secret_name, namespace)
 
-                # Validation certs don't need the private key, but it's not an error if they gave
-                # one. We're good to go here.
-                logger.debug("TLSContext %s saved CA secret %s" % (context.name, ss.name))
+            if not ss:
+                # This is definitively an error: they mentioned a secret, it can't be loaded,
+                # give up.
+                context.post_error("TLSContext %s found no validation certificate in %s" % (context.name, ss.name))
+                return None
 
-                resolved['cacert_chain_file'] = ss.cert_path
+            # Validation certs don't need the private key, but it's not an error if they gave
+            # one. We're good to go here.
+            logger.debug("TLSContext %s saved CA secret %s" % (context.name, ss.name))
 
-                # While we're here, did they set cert_required _in the secret_?
-                if ss.cert_data:
-                    cert_required = ss.cert_data.get('cert_required')
+            resolved['cacert_chain_file'] = ss.cert_path
 
-                    if cert_required is not None:
-                        decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
+            # While we're here, did they set cert_required _in the secret_?
+            if ss.cert_data:
+                cert_required = ss.cert_data.get('cert_required')
 
-                        resolved['cert_required'] = decoded
-        else:
-            # No secret is named. Copy the path if they gave one, though.
-            cacert_chain_file = secret_info.get('cacert_chain_file')
+                if cert_required is not None:
+                    decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
 
-            if cacert_chain_file:
-                resolved['cacert_chain_file'] = cacert_chain_file
+                    resolved['cert_required'] = decoded
+    else:
+        # No secret is named. Copy the path if they gave one, though.
+        cacert_chain_file = secret_info.get('cacert_chain_file')
+
+        if cacert_chain_file:
+            if not resolved.get('cert_chain_file'):
+                # DUPLICATED ABOVE: This is an error: validation without termination isn't meaningful.
+                # (This is duplicated for the case where they gave a validation secret.)
+                context.post_error("TLSContext %s cannot validate client certs without TLS termination" %
+                                   context.name)
+                return None
+
+            resolved['cacert_chain_file'] = cacert_chain_file
 
     # OK. Check paths.
     errors = 0
@@ -394,15 +406,12 @@ def kube_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
     for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
         path = resolved.get(key, None)
 
-        # if not path:
-        #     path = secret_info.get(key, None)
-        #
         if path:
             if not os.path.isfile(path):
-                context.post_error("no such %s '%s' for TLS context" % (key, path))
+                context.post_error("TLSContext %s found no %s '%s'" % (context.name, key, path))
                 errors += 1
         elif key != 'cacert_chain_file':
-            context.post_error("missing %s for TLS context" % key)
+            context.post_error("TLSContext %s is missing %s" % (context.name, key))
             errors += 1
 
     if errors:
