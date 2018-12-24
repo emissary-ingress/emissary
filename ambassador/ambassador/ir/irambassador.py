@@ -6,7 +6,8 @@ from ..config import Config
 
 from .irresource import IRResource
 from .irmapping import IRMapping
-from .irtls import IREnvoyTLS, IRAmbassadorTLS
+from .irtls import IRAmbassadorTLS
+from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
 from .irbuffer import IRBuffer
 
@@ -85,9 +86,6 @@ class IRAmbassador (IRResource):
             amod_tls = amod.get('tls', None)
 
             if amod_tls:
-                # ir.logger.debug("IRAmbassador saving TLS module: %s" %
-                #                 json.dumps(amod_tls, sort_keys=True, indent=4))
-
                 # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
                 # this painless.
                 new_args = dict(amod_tls)
@@ -104,46 +102,57 @@ class IRAmbassador (IRResource):
                                                 location=new_location,
                                                 **new_args)
 
-        if ir.tls_module:
-            self.logger.debug("final TLS module: %s" %
-                              json.dumps(ir.tls_module.as_dict(), sort_keys=True, indent=4))
+                # ir.logger.debug("IRAmbassador saving TLS module: %s" % ir.tls_module.as_json())
 
-            # Create TLS contexts.
-            for ctx_name, ctx in ir.tls_module.items():
-                if ctx_name.startswith('_'):
+        if ir.tls_module:
+            self.logger.debug("final TLS module: %s" % ir.tls_module.as_json())
+
+            # Stash a sane rkey and location for contexts we create.
+            ctx_rkey = ir.tls_module.get('rkey', self.rkey)
+            ctx_location = ir.tls_module.get('location', self.location)
+
+            # The TLS module 'server' and 'client' blocks are actually a _single_ TLSContext
+            # to Ambassador.
+
+            server = ir.tls_module.pop('server', None)
+            client = ir.tls_module.pop('client', None)
+
+            if server and server.get('enabled', True):
+                # We have a server half. Excellent.
+
+                ctx = IRTLSContext.from_legacy(ir, 'server', ctx_rkey, ctx_location,
+                                               cert=server, termination=True, validation_ca=client)
+
+                if ctx.is_active():
+                    ir.save_tls_context(ctx)
+
+            # Other blocks in the TLS module weren't ever really documented, so I seriously doubt
+            # that they're a factor... but, weirdly, we have a test for them...
+
+            for legacy_name, legacy_ctx in ir.tls_module.as_dict().items():
+                if (legacy_name.startswith('_') or
+                    (legacy_name == 'name') or
+                    (legacy_name == 'location') or
+                    (legacy_name == 'kind') or
+                    (legacy_name == 'enabled')):
                     continue
 
-                if isinstance(ctx, dict):
-                    ctxkey = ir.tls_module.get('rkey', self.rkey)
-                    ctxloc = ir.tls_module.get('location', self.location)
+                ctx = IRTLSContext.from_legacy(ir, legacy_name, ctx_rkey, ctx_location,
+                                               cert=legacy_ctx, termination=False, validation_ca=None)
 
-                    etls = IREnvoyTLS(ir=ir, rkey=ctxkey, aconf=aconf, name=ctx_name,
-                                      location=ctxloc, **ctx)
+                if ctx.is_active():
+                    ir.save_tls_context(ctx)
 
-                    if ir.save_envoy_tls_context(ctx_name, etls):
-                        self.logger.debug("context %s: created from %s" % (ctx_name, ctxloc))
-                        # self.logger.debug(etls.as_json())
-                    else:
-                        self.logger.debug("context %s: not updating from %s" % (ctx_name, ctxloc))
-                        # self.logger.debug(etls.as_json())
-
-                    if etls.get('valid_tls') and ctx_name == 'server':
-                        self.logger.debug("TLS termination enabled!")
-                        self.service_port = 443
-
-        # We also have to check TLSContext resources.
-
-        for ctx in ir.tls_contexts:
+        # Finally, check TLSContext resources to see if we should enable TLS termination.
+        for ctx in ir.get_tls_contexts():
             if ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
                 self.service_port = 443
 
-        ctx = ir.get_envoy_tls_context('client')
-
-        if ctx:
-            # Client-side TLS is enabled.
-            self.logger.debug("TLS client certs enabled!")
+                if ctx.get('ca_cert', None):
+                    # Client-side TLS is enabled.
+                    self.logger.debug("TLSContext %s enables client certs!" % ctx.name)
 
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.

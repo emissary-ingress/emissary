@@ -371,32 +371,15 @@ class V2Listener(dict):
         # of course.
         envoy_contexts: List[Tuple[str, List[str], V2TLSContext]] = []
 
-        for tls_context in config.ir.tls_contexts:
-            config.ir.logger.debug("V2Listener: SNI operating on context '%s'" % tls_context.name)
-            config.ir.logger.debug(tls_context.as_json())
-            v2ctx = V2TLSContext(tls_context)
-            config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-
-            envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
-
-        # Hack for backward compatibility with the old TLS module. Hopefully we can get rid of
-        # this soon?
-
-        v2ctx = V2TLSContext()
-        saved_ctx_name: Optional[str] = None
-
-        for ctxname in ['client', 'server']:
-            tls_module_ctx = config.ir.get_envoy_tls_context(ctxname)
-
-            if tls_module_ctx:
-                saved_ctx_name = ctxname
-                config.ir.logger.debug("V2Listener: SNI operating on legacy '%s'" % ctxname)
-                config.ir.logger.debug(tls_module_ctx.as_json())
-                v2ctx.add_context(tls_module_ctx)
-
-        if v2ctx:   # must exist and be non-empty for this to eval True
-            config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-            envoy_contexts.append((typecast(str, saved_ctx_name), ['*'], v2ctx))
+        for tls_context in config.ir.get_tls_contexts():
+            if tls_context.get('hosts', None):
+                config.ir.logger.debug("V2Listener: SNI operating on termination context '%s'" % tls_context.name)
+                config.ir.logger.debug(tls_context.as_json())
+                v2ctx = V2TLSContext(tls_context)
+                config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+                envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
+            else:
+                config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
 
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:
@@ -429,7 +412,7 @@ class V2Listener(dict):
                 matched = sorted(sni_route['info']['hosts']) == sorted(hosts)
 
                 # Check for certificate match too.
-                for sni_key, ctx_key in [ ('certificate_chain_file', 'certificate_chain'),
+                for sni_key, ctx_key in [ ('cert_chain_file', 'certificate_chain'),
                                           ('private_key_file', 'private_key') ]:
                     sni_value = sni_route['info']['secret_info'][sni_key]
                     ctx_value = ctx['common_tls_context']['tls_certificates'][0][ctx_key]['filename']   # XXX ugh. Multiple certs?

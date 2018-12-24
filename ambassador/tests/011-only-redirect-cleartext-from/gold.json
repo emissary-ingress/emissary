@@ -77,7 +77,11 @@
             ]
           }
         }
-      ]
+      ],
+      "ssl_context": {
+          "cert_chain_file": "/ambassador/certs/ambassador-certs/tls.crt",
+          "private_key_file": "/ambassador/certs/ambassador-certs/tls.key"
+      }
     },
     {
       "address": "tcp://0.0.0.0:8888",

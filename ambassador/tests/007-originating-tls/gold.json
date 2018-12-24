@@ -4,7 +4,7 @@
     {
       "address": "tcp://0.0.0.0:443",
 
-      "ssl_context": {"private_key_file": "/etc/ambassador-config/certs/tls.key"
+      "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt","private_key_file": "/etc/ambassador-config/certs/tls.key"
       },"filters": [
         {
           "type": "read",
@@ -43,6 +43,32 @@
                           "clusters": [
 
                                  { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+
+                          ]
+                      }
+
+                    }
+                    ,
+
+                    {
+                      "timeout_ms": 3000,"prefix": "/qotm2/","prefix_rewrite": "/",
+                      "weighted_clusters": {
+                          "clusters": [
+
+                                 { "name": "cluster_https___qotm2__otls", "weight": 100.0 }
+
+                          ]
+                      }
+
+                    }
+                    ,
+
+                    {
+                      "timeout_ms": 3000,"prefix": "/qotm1/","prefix_rewrite": "/",
+                      "weighted_clusters": {
+                          "clusters": [
+
+                                 { "name": "cluster_qotm1_otls_no_cert_upstream", "weight": 100.0 }
 
                           ]
                       }
@@ -114,10 +140,34 @@
         ],
         "ssl_context": {
 
-
+          "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
           "private_key_file": "/etc/ambassador-config/certs/outbound.key"
 
 	}},
+      {
+        "name": "cluster_https___qotm2__otls",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://qotm2:443"
+          }
+        ],
+        "ssl_context": {}
+      },
+      {
+        "name": "cluster_qotm1_otls_no_cert_upstream",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://qotm1:443"
+          }
+        ],
+        "ssl_context": {}
+      },
       {
         "name": "cluster_qotm_otls_upstream",
         "connect_timeout_ms": 3000,
@@ -131,7 +181,7 @@
         ],
         "ssl_context": {
 
-
+          "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
           "private_key_file": "/etc/ambassador-config/certs/outbound.key"
 
         }}

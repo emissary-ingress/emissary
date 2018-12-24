@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union, ValuesView
 from typing import cast as typecast
 
 import json
@@ -30,7 +30,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
 from .irratelimit import IRRateLimit
-from .irtls import TLSModuleFactory, IRAmbassadorTLS, IREnvoyTLS
+from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
@@ -60,8 +60,7 @@ class IR:
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
-    envoy_tls: Dict[str, IREnvoyTLS]
-    tls_contexts: List[IRTLSContext]
+    tls_contexts: Dict[str, IRTLSContext]
     tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
 
@@ -76,11 +75,12 @@ class IR:
         self.file_checker = file_checker if file_checker is not None else os.path.isfile
 
         self.logger.debug("IR __init__:")
-        self.logger.debug("IR: Version       %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
-        self.logger.debug("IR: AMBASSADOR_ID %s" % self.ambassador_id)
-        self.logger.debug("IR: Namespace     %s" % self.ambassador_namespace)
-        self.logger.debug("IR: Nodename      %s" % self.ambassador_nodename)
-        self.logger.debug("IR: file checker: %s" % self.file_checker.__name__)
+        self.logger.debug("IR: Version          %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
+        self.logger.debug("IR: AMBASSADOR_ID    %s" % self.ambassador_id)
+        self.logger.debug("IR: Namespace        %s" % self.ambassador_namespace)
+        self.logger.debug("IR: Nodename         %s" % self.ambassador_nodename)
+        self.logger.debug("IR: file checker:    %s" % self.file_checker.__name__)
+        self.logger.debug("IR: secret resolver: %s" % self.tls_secret_resolver.__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -98,7 +98,7 @@ class IR:
         self.grpc_services = {}
         self.filters = []
         self.tracing = None
-        self.tls_contexts = []
+        self.tls_contexts = {}
         self.ratelimit = None
         self.listeners = []
         self.groups = {}
@@ -131,7 +131,8 @@ class IR:
         # ...and from any TLSContext resources.
         self.save_tls_contexts(aconf)
 
-        # Next, handle the "Ambassador" module.
+        # Next, handle the "Ambassador" module. This is last so that the Ambassador module has all
+        # the TLS contexts available to it.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
 
         # Save breaker & outlier configs.
@@ -223,16 +224,31 @@ class IR:
 
         return resource
 
+    # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
+    # are just ACResources; they need to be turned into IRTLSContexts.
     def save_tls_contexts(self, aconf):
         tls_contexts = aconf.get_config('tls_contexts')
+
         if tls_contexts is not None:
             for config in tls_contexts.values():
-                resource = IRTLSContext(self, config)
-                if resource.is_active():
-                    self.tls_contexts.append(resource)
+                ctx = IRTLSContext(self, config)
 
-    def get_tls_contexts(self):
-        return self.tls_contexts
+                if ctx.is_active():
+                    self.save_tls_context(ctx)
+
+    def save_tls_context(self, ctx: IRTLSContext) -> None:
+        extant_ctx = self.tls_contexts.get(ctx.name, None)
+
+        if extant_ctx:
+            self.post_error("Duplicate TLSContext %s; keeping definition from %s" % (ctx.name, extant_ctx.location))
+        else:
+            self.tls_contexts[ctx.name] = ctx
+
+    def get_tls_context(self, name: str) -> Optional[IRTLSContext]:
+        return self.tls_contexts.get(name, None)
+
+    def get_tls_contexts(self) -> ValuesView[IRTLSContext]:
+        return self.tls_contexts.values()
 
     def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():
@@ -244,16 +260,6 @@ class IR:
     def walk_saved_resources(self, aconf, method_name):
         for res in self.saved_resources.values():
             getattr(res, method_name)(self, aconf)
-
-    def save_envoy_tls_context(self, ctx_name: str, ctx: IREnvoyTLS) -> bool:
-        if ctx_name in self.envoy_tls:
-            return False
-
-        self.envoy_tls[ctx_name] = ctx
-        return True
-
-    def get_envoy_tls_context(self, ctx_name: str) -> Optional[IREnvoyTLS]:
-        return self.envoy_tls.get(ctx_name, None)
 
     def get_tls_defaults(self, ctx_name: str) -> Optional[Dict]:
         return self.tls_defaults.get(ctx_name, None)
@@ -343,7 +349,7 @@ class IR:
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
-            'tls_contexts': [ context.as_dict() for context in self.tls_contexts ]
+            'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ]
         }
 
         if self.tracing:
@@ -375,9 +381,8 @@ class IR:
             if ctx.get('cacert_chain_file', None) and ctx.get('valid_tls', False):
                 tls_origination_count += 1
 
-        for ctx in self.tls_contexts:
+        for ctx in self.get_tls_contexts():
             if ctx:
-
                 secret_info = ctx.get('secret_info', {})
 
                 if secret_info:

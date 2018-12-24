@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import sys
 
@@ -41,7 +41,7 @@ TESTDIR = DIR
 DEFAULT_CONFIG = os.path.join(DIR, "..", "default-config")
 MATCHES = [ n for n in os.listdir(TESTDIR) 
             if (n.startswith('0') and os.path.isdir(os.path.join(TESTDIR, n)) and (n not in EXCLUDES)) ]
-# MATCHES = [ '006-headers-and-host' ]
+# MATCHES = [ '001-broader-v0' ]
 
 os.environ['SCOUT_DISABLE'] = "1"
 
@@ -179,16 +179,25 @@ class old_ir (dict):
                 location = None
 
                 for ctx_name, ctx in listener['tls_contexts'].items():
-                    for key in [ "cert_chain_file", "private_key_file",
-                                 "alpn_protocols", "cacert_chain_file",
-                                 "cert_required" ]:
-                        if key in ctx:
-                            ssl_context[key] = ctx[key]
+                    if 'secret_info' in ctx:
+                        for key in [ "cert_chain_file", "private_key_file",
+                                     "cacert_chain_file", "cert_required" ]:
+                            value = ctx['secret_info'].get(key, None)
+
+                            if value:
+                                ssl_context[key] = ctx['secret_info'][key]
+                                found_some = True
+
+                    for key in [ "alpn_protocols", "cert_required" ]:
+                        value = ctx.get(key, None)
+
+                        if value:
+                            ssl_context[key] = value
                             found_some = True
 
                     # Handle redirect_cleartext_from specially -- found_some should NOT
                     # be set if it's the only thing present.
-                    if "redirect_cleartext_from" in ctx:
+                    if ctx.get("redirect_cleartext_from", None):
                         ssl_context["redirect_cleartext_from"] = ctx["redirect_cleartext_from"]
 
                     if not location and ('_source' in ctx):
@@ -328,14 +337,26 @@ class old_ir (dict):
 
                 tls_array = []
 
-                for k in [ 'cert_chain_file', 'cert_required', 'cacert_chain_file', 'private_key_file' ]:
-                    if k in ctx:
-                        tls_array.append({'key': k, 'value': ctx[k]})
+                if 'secret_info' in ctx:
+                    for k in [ 'cert_chain_file', 'cacert_chain_file', 'private_key_file' ]:
+                        value = ctx['secret_info'].get(k, None)
+
+                        if value:
+                            tls_array.append({'key': k, 'value': value})
+
+                value = ctx.get('cert_required')
+
+                if value:
+                    tls_array.append({'key': 'cert_required', 'value': value})
 
                 if not tls_array:
                     ctx['_ambassador_enabled'] = True
                     ctx.pop("_source", None)
+                    ctx.pop("_referenced_by", None)
                     ctx.pop("_errored", None)
+
+                    if not ctx.get('valid_tls', None):
+                        ctx['valid_tls'] = False
 
                 if host_rewrite:
                     tls_array.append({'key': 'sni', 'value': host_rewrite})
@@ -511,7 +532,7 @@ def test_config(testname, dirpath, configdir):
     aconf = Config()
     aconf.load_from_directory(configdir)
 
-    ir = IR(aconf, file_checker=file_always_exists)
+    ir = IR(aconf, file_checker=file_always_exists, tls_secret_resolver=atest_tls_secret_resolver)
     v1config = V1Config(ir)
 
     print("==== checking IR")
@@ -635,3 +656,38 @@ def test_diag(testname, dirpath, configdir):
 
 def file_always_exists(filename):
     return True
+
+
+def atest_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
+                              cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
+    # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
+    # Here we're just gonna fake it.
+    #
+    # This is very much like the base CLI secret resolver.
+
+    # Do we have secret info?
+    if not 'secret_info':
+        # Nope. This is a problem.
+        context.post_error("no secret_info in TLSContext?")
+        return None
+
+    # OK, do we have secrets to look up?
+    ctxinfo = context.secret_info
+    od = dict(ctxinfo)
+
+    if not cert_dir:
+        # Default.
+        cert_dir = "/ambassador/certs"
+
+    if 'secret' in ctxinfo:
+        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
+        od['cert_chain_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.crt")
+        od['private_key_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.key")
+
+    if 'ca_secret' in ctxinfo:
+        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
+        od['cacert_chain_file'] = os.path.join(cert_dir, ctxinfo['ca_secret'], "tls.crt")
+
+    logger.debug("CLI secret resolver: returning %s" % od)
+
+    return od

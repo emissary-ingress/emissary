@@ -93,7 +93,7 @@
                 ],
                 "tls_context": {
                     "_ambassador_enabled": true,
-                    "namespace": "default",
+                    "secret_info": {},
                     "valid_tls": false
                 },
                 "type": "strict_dns",
@@ -227,7 +227,7 @@
                 ],
                 "tls_context": {
                     "_ambassador_enabled": true,
-                    "namespace": "default",
+                    "secret_info": {},
                     "valid_tls": false
                 },
                 "type": "strict_dns",
@@ -291,7 +291,7 @@
                 "tls": {
                     "_source": "ambassador.yaml.1",
                     "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                    "cert_required": true,
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt","cert_required": true,
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },

@@ -14,26 +14,29 @@
 
 from typing import Dict, Optional
 
-from ...ir.irtls import IREnvoyTLS
+from ...ir.irtlscontext import IRTLSContext
 
 
 class V1TLSContext(Dict[str, str]):
-    def __init__(self, ctx: Optional[IREnvoyTLS]=None, host_rewrite: Optional[str]=None) -> None:
+    def __init__(self, ctx: IRTLSContext, host_rewrite: Optional[str]=None) -> None:
         super().__init__()
 
-        if ctx:
-            self.add_context(ctx)
+        if 'secret_info' in ctx:
+            for ir_key, v1_key in [
+                ("cert_chain_file", "cert_chain_file"),
+                ("private_key_file", "private_key_file"),
+                ("cacert_chain_file", "ca_cert_file")
+            ]:
+                if ctx['secret_info'].get(ir_key, None):
+                    self[v1_key] = ctx['secret_info'][ir_key]
+
+        for ir_key, v1_key in [
+            ("alpn_protocols", "alpn_protocols"),
+            ("cert_required", "require_client_certificate")
+        ]:
+            if ctx.get(ir_key, None):
+                self[v1_key] = ctx[ir_key]
 
         if host_rewrite:
             self['sni'] = host_rewrite
 
-    def add_context(self, ctx: IREnvoyTLS) -> None:
-        for ir_key, v1_key in [
-            ("cert_chain_file", "cert_chain_file"),
-            ("private_key_file", "private_key_file"),
-            ("alpn_protocols", "alpn_protocols"),
-            ("cacert_chain_file", "ca_cert_file"),
-            ("cert_required", "require_client_certificate")
-        ]:
-            if ir_key in ctx:
-                self[v1_key] = ctx[ir_key]

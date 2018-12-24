@@ -13,13 +13,11 @@
 # limitations under the License
 
 from typing import Dict, Optional, Union
-
-from ...ir.irtls import IREnvoyTLS
 from ...ir.irtlscontext import IRTLSContext
 
 
 class V2TLSContext(Dict):
-    def __init__(self, ctx: Optional[Union[IREnvoyTLS, IRTLSContext]]=None, host_rewrite: Optional[str]=None) -> None:
+    def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
         super().__init__()
 
         if ctx:
@@ -52,24 +50,16 @@ class V2TLSContext(Dict):
         validation: Dict[str, str] = self.get_common().setdefault('validation_context', {})
         validation[key] = { 'filename': value }
 
-    def add_context(self, ctx: Union[IREnvoyTLS, IRTLSContext]) -> None:
+    def add_context(self, ctx: IRTLSContext) -> None:
         # This is a weird method, because the definition of a V2 TLS context in
         # Envoy is weird, and because we need to manage two different inputs (which
         # is silly).
 
-        if ctx.kind == 'IREnvoyTLS':
-            for ctxkey, handler, hkey in [
-                ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
-                ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-                ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
-            ]:
-                value = ctx.get(ctxkey, None)
+        assert ctx.kind == 'IRTLSContext'
 
-                if value is not None:
-                    handler(hkey, value)
-        elif ctx.kind == 'IRTLSContext':
+        if ctx.kind == 'IRTLSContext':
             for secretinfokey, handler, hkey in [
-                ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
+                ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
                 ( 'private_key_file', self.update_cert_zero, 'private_key' ),
                 ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
             ]:

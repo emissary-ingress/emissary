@@ -50,13 +50,11 @@ class V1Listener(dict):
             self["use_proxy_proto"] = True
 
         if 'tls_contexts' in listener:
-            envoy_ctx = V1TLSContext()
+            if 'server' in listener.tls_contexts:
+                envoy_ctx = V1TLSContext(listener.tls_contexts['server'])
 
-            for ctx_name, ctx in listener.tls_contexts.items():
-                envoy_ctx.add_context(ctx)
-
-            if envoy_ctx:
-                self['ssl_context'] = dict(envoy_ctx)
+                if envoy_ctx:
+                    self['ssl_context'] = dict(envoy_ctx)
 
         vhost = {
             "name": "backend",

@@ -30,9 +30,8 @@ from typing import Optional, Dict, Union
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
-from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
+from ambassador.utils import kube_v1, TLSPaths, kube_tls_secret_resolver
 from ambassador.ir import IR
-from ambassador.ir.irtls import IREnvoyTLS
 from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
 
@@ -112,68 +111,6 @@ class Restarter(threading.Thread):
     def set_cluster_id(self, cluster_id) -> None:
         with self.mutex:
             self.cluster_id = cluster_id
-
-    def tls_secret_resolver(self, secret_name: str, context: Union[IREnvoyTLS, IRTLSContext],
-                            namespace: str, cert_dir: Optional[str]=None) -> Optional[Dict[str, str]]:
-        # Allow secrets to override namespace when needed.
-        if "." in secret_name:
-            secret_name, namespace = secret_name.split('.', 1)
-
-        (cert, key, data) = read_cert_secret(kube_v1(), secret_name, namespace)
-        if not cert:
-            logger.error("no certificate found in secret {}".format(secret_name))
-            return None
-
-        certificate_chain_path = ""
-        private_key_path = ""
-        resolved = {}
-
-        context_name = context.get('name')
-
-        # termination_context = bool((context_name == 'server') or context.get('hosts'))
-
-        if context_name == 'server':
-            if not key:
-                logger.error("no key found in secret {} for context {}".format(secret_name, context_name))
-                return None
-            cert_dir = TLSPaths.cert_dir.value
-            certificate_chain_path = TLSPaths.tls_crt.value
-            private_key_path = TLSPaths.tls_key.value
-            resolved = {
-                'certificate_chain_file': certificate_chain_path,
-                'private_key_file': private_key_path
-            }
-        elif context_name == 'client':
-            cert_dir = TLSPaths.client_cert_dir.value
-            certificate_chain_path = TLSPaths.client_tls_crt.value
-            resolved = {
-                'cacert_chain_file': certificate_chain_path,
-            }
-
-            cert_required = data.get('cert_required')
-            if cert_required is not None:
-                decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
-                resolved['cert_required'] = decoded
-        else:
-            if not key:
-                logger.error("no key found in secret {} for context {}".format(secret_name, context_name))
-                return None
-            if cert_dir is None:
-                cert_dir = os.path.join("/ambassador/", context_name)
-
-            cert_paths = TLSPaths.generate(cert_dir)
-            certificate_chain_path = cert_paths['crt']
-            private_key_path = cert_paths['key']
-
-            resolved = {
-                'certificate_chain_file': certificate_chain_path,
-                'private_key_file': private_key_path
-            }
-
-        logger.debug("saving contents of secret %s to %s for context %s" % (secret_name, cert_dir, context_name))
-        save_cert(cert, key, cert_dir)
-
-        return resolved
 
     def read_fs(self, path):
         if os.path.exists(path):
@@ -284,7 +221,7 @@ class Restarter(threading.Thread):
 
         aconf = Config()
         aconf.load_from_directory(output)
-        ir = IR(aconf, tls_secret_resolver=self.tls_secret_resolver)
+        ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
         envoy_config = V2Config(ir)
 
         ads_config = {
