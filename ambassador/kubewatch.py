@@ -30,7 +30,7 @@ from typing import Optional, Dict, Union
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
-from ambassador.utils import kube_v1, read_cert_secret, save_cert, TLSPaths
+from ambassador.utils import kube_v1, TLSPaths, kube_tls_secret_resolver
 from ambassador.ir import IR
 # from ambassador.ir.irtls import IREnvoyTLS
 from ambassador.ir.irtlscontext import IRTLSContext
@@ -70,44 +70,6 @@ def get_source(svc):
 def get_filename(svc):
     return "%s-%s.yaml" % (svc.metadata.name, svc.metadata.namespace)
 
-
-class KubeResolver:
-    def __init__(self) -> None:
-        self.v1 = None
-        self.secret = None
-        self.namespace = None
-        self.cert = None
-        self.key = None
-        self.data = None
-        self.cert_path = None
-        self.key_path = None
-
-        self.secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-
-    def resolve(self, secret_name, namespace) -> bool:
-        if not self.v1:
-            self.v1 = kube_v1()
-
-        # Allow secrets to override namespace when needed.
-        self.name = secret_name
-        self.namespace = namespace
-
-        if "." in self.name:
-            self.name, self.namespace = self.name.split('.', 1)
-
-        self.cert, self.key, self.data = read_cert_secret(self.v1, self.name, self.namespace)
-
-        if self.cert:
-            secret_path = os.path.join(self.secret_root, self.namespace, "secrets", self.name)
-
-            save_cert(self.cert, self.key, secret_path)
-
-            self.cert_path = os.path.join(secret_path, "tls.crt")
-            self.key_path = os.path.join(secret_path, "tls.key")
-
-            return True
-        else:
-            return False
 
 class Restarter(threading.Thread):
 
@@ -150,85 +112,6 @@ class Restarter(threading.Thread):
     def set_cluster_id(self, cluster_id) -> None:
         with self.mutex:
             self.cluster_id = cluster_id
-
-    def tls_secret_resolver(self, context: IRTLSContext, namespace: str,
-                            cert_dir: Optional[str]=None) -> Optional[Dict[str, str]]:
-        # If we don't have secret info, something is horribly wrong.
-        secret_info: Dict[str, str] = context.get('secret_info', {})
-
-        if not secret_info:
-            context.post_error("TLSContext has no certificate information at all?")
-            return None
-
-        # Default to returning {}, which will result in the context not being loaded.
-        resolved: Dict[str, str] = {}
-
-        # OK. Do we have a secret name?
-        secret_name = secret_info.get('secret')
-
-        if secret_name:
-            # Yes. Use a KubeResolver for the heavy lifting here.
-            kr = KubeResolver()
-
-            if not kr.resolve(secret_name, namespace):
-                context.post_error("no certificate found in secret %s in namespace %s" % (kr.name, kr.namespace))
-                return None
-
-            # So far, so good.
-            logger.debug("TLSContext %s saved secret %s" % (context.name, secret_name))
-
-            # Kinda has to be true...
-            if kr.cert_path:
-                resolved['cert_chain_file'] = kr.cert_path
-
-            if kr.key_path:
-                resolved['private_key_file'] = kr.key_path
-
-            # Do we also have a ca_secret name?
-            ca_secret_name = secret_info.get('ca_secret')
-
-            if ca_secret_name:
-                # Yup. Resolve that too.
-                if not kr.resolve(ca_secret_name, namespace):
-                    context.post_error("no certificate found in secret %s in namespace %s" % (kr.name, kr.namespace))
-                    # Ugh. What should we do here? I guess we'll call it unresolved for now...
-                    return None
-
-                # Kinda has to be true...
-                if kr.cert_path:
-                    resolved['cacert_chain_file'] = kr.cert_path
-
-                # While we're here, did they set cert_required _in the secret_?
-                if kr.data:
-                    cert_required = kr.data.get('cert_required')
-
-                    if cert_required is not None:
-                        decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
-                        resolved['cert_required'] = decoded
-
-            logger.debug("TLSContext %s saved secret %s" % (context.name, secret_name))
-
-        # OK. Check paths.
-        errors = 0
-
-        for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
-            path = resolved.get(key, None)
-
-            if not path:
-                path = secret_info.get(key, None)
-
-            if path:
-                if not os.path.isfile(path):
-                    context.post_error("no such %s '%s' for TLS context" % (key, path))
-                    errors += 1
-            elif key != 'cacert_chain_file':
-                context.post_error("missing %s for TLS context" % key)
-                errors += 1
-
-        if errors:
-            return None
-
-        return resolved
 
     def read_fs(self, path):
         if os.path.exists(path):
@@ -339,7 +222,7 @@ class Restarter(threading.Thread):
 
         aconf = Config()
         aconf.load_from_directory(output)
-        ir = IR(aconf, tls_secret_resolver=self.tls_secret_resolver)
+        ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
         envoy_config = V2Config(ir)
 
         ads_config = {

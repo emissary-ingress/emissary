@@ -36,7 +36,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger
+from ambassador.utils import SystemInfo, PeriodicTrigger, kube_tls_secret_resolver
 
 from ambassador.diagnostics import EnvoyStats
 
@@ -310,7 +310,7 @@ def show_overview(reqid=None):
         #     return redirect("/ambassador/v0/diag/", code=302)
 
     aconf = get_aconf(app)
-    ir = IR(aconf)
+    ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
     check_scout(app, "overview", ir)
 
     econf = EnvoyConfig.generate(ir, "V2")
@@ -370,7 +370,7 @@ def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     aconf = get_aconf(app)
-    ir = IR(aconf)
+    ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
     check_scout(app, "detail: %s" % source, ir)
 
     econf = EnvoyConfig.generate(ir, "V2")
