@@ -27,7 +27,6 @@ from clize import Parameter
 
 from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import EnvoyConfig, V1Config, V2Config
-# from .ir.irtls import IREnvoyTLS
 from .ir.irtlscontext import IRTLSContext
 
 from .utils import RichStatus

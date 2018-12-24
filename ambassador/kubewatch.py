@@ -32,7 +32,6 @@ from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
 from ambassador.utils import kube_v1, TLSPaths, kube_tls_secret_resolver
 from ambassador.ir import IR
-# from ambassador.ir.irtls import IREnvoyTLS
 from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
 

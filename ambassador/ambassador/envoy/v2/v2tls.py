@@ -13,8 +13,6 @@
 # limitations under the License
 
 from typing import Dict, Optional, Union
-
-# from ...ir.irtls import IREnvoyTLS
 from ...ir.irtlscontext import IRTLSContext
 
 
@@ -56,18 +54,6 @@ class V2TLSContext(Dict):
         # This is a weird method, because the definition of a V2 TLS context in
         # Envoy is weird, and because we need to manage two different inputs (which
         # is silly).
-
-        # if ctx.kind == 'IREnvoyTLS':
-        #     for ctxkey, handler, hkey in [
-        #         ( 'certificate_chain_file', self.update_cert_zero, 'certificate_chain' ),
-        #         ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-        #         ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
-        #     ]:
-        #         value = ctx.get(ctxkey, None)
-        #
-        #         if value is not None:
-        #             handler(hkey, value)
-        # el
 
         assert ctx.kind == 'IRTLSContext'
 

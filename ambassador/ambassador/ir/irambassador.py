@@ -6,7 +6,6 @@ from ..config import Config
 
 from .irresource import IRResource
 from .irmapping import IRMapping
-# from .irtls import IREnvoyTLS
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
@@ -143,24 +142,6 @@ class IRAmbassador (IRResource):
 
                 if ctx.is_active():
                     ir.save_tls_context(ctx)
-
-                # if isinstance(ctx, dict):
-                #     ctxkey = ir.tls_module.get('rkey', self.rkey)
-                #     ctxloc = ir.tls_module.get('location', self.location)
-                #
-                #     etls = IREnvoyTLS(ir=ir, rkey=ctxkey, aconf=aconf, name=ctx_name,
-                #                       location=ctxloc, **ctx)
-                #
-                #     if ir.save_envoy_tls_context(ctx_name, etls):
-                #         self.logger.debug("context %s: created from %s" % (ctx_name, ctxloc))
-                #         # self.logger.debug(etls.as_json())
-                #     else:
-                #         self.logger.debug("context %s: not updating from %s" % (ctx_name, ctxloc))
-                #         # self.logger.debug(etls.as_json())
-                #
-                #     if etls.get('valid_tls') and ctx_name == 'server':
-                #         self.logger.debug("TLS termination enabled!")
-                #         self.service_port = 443
 
         # Finally, check TLSContext resources to see if we should enable TLS termination.
         for ctx in ir.get_tls_contexts():
