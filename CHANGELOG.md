@@ -40,6 +40,40 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.50.0-rc2] December 24, 2018
+[0.50.0-rc2]: https://github.com/datawire/ambassador/compare/0.50.0-rc1...0.50.0-rc2
+
+**Ambassador 0.50.0-rc2 fixes some significant TLS bugs found in RC1.**
+
+### Major changes:
+
+- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
+- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
+
+- **API version `ambassador/v0` is officially deprecated in Ambassador 0.50.0-rc1.**
+    - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0, starting in 0.50.0-rc1.
+
+- Some `ambassador/v1` resources change semantics from their `ambassador/v0` versions:
+    - The `Mapping` resource no longer supports `rate_limits` as that functionality has been 
+      subsumed by `labels`.
+    - The `AuthService` resource supports more extensive configuration options. An `ambassador/v0`
+      `AuthService` preserves the older, less flexible semantics: see the external authentication documentation for more information.
+    - The `RateLimitService` permits configuring its `domain` in `ambassador/v1`. 
+
+
+### Changes since 0.50.0-rc1:
+
+- TLS client certificate verification should function correctly (including requiring client certs).
+- TLS context handling (especially with multiple contexts and origination contexts) has been made more consistent and correct.
+    - Ambassador is now much more careful about reporting errors in TLS configuration (especially around missing keys).
+    - You can reference a secret in another namespace with `secret: $secret_name.$namespace`.
+    - Ambassador will now save certifications loaded from Kubernetes to `$AMBASSADOR_CONFIG_BASE_DIR/$namespace/secrets/$secret_name`.
+- `use_proxy_proto` should be correctly supported [#1050].
+- `AuthService` v1 will default its `proto` to `http` (thanks @flands!)
+- The JSON diagnostics service supports filtering: requesting `/ambassador/v0/diag/?json=true&filter=errors`, for example, will return only the errors element from the diagnostic output.
+
+[#1050]: https://github.com/datawire/ambassador/issues/1026
+
 ## [0.50.0-rc1] December 19, 2018
 [0.50.0-rc1]: https://github.com/datawire/ambassador/compare/0.50.0-ea7...0.50.0-rc1
 
