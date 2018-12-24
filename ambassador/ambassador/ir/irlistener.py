@@ -83,31 +83,6 @@ class ListenerFactory:
                     ir.logger.debug("primary listener: ctx %s sets redirect_cleartext_from %s" %
                                     (ctx.name, redirect_cleartext_from))
 
-        # for ctxname in [ 'server', 'client' ]:
-        #     ctx = ir.get_envoy_tls_context(ctxname)
-        #
-        #     if not ctx:
-        #         continue
-        #
-        #     # ir.logger.debug("primary listener: ctx %s: %s" % (ctxname, ctx.as_json()))
-        #
-        #     if ctx.enabled:
-        #         contexts[ctxname] = ctx
-        #
-        #         if override_source:
-        #             primary_listener.sourced_by(ctx)
-        #             override_source = False
-        #
-        #         # XXX Should we be making sure that this is a termination context somehow??
-        #         if 'redirect_cleartext_from' in ctx:
-        #             redirect_cleartext_from = ctx.redirect_cleartext_from
-        #
-        #             if 'location' in ctx:
-        #                 ctx_location = ctx.location
-        #
-        #             # ir.logger.debug("primary listener: ctx %s sets redirect_cleartext_from %s" %
-        #             #                 (ctxname, redirect_cleartext_from))
-
         if contexts:
             primary_listener['tls_contexts'] = contexts
 

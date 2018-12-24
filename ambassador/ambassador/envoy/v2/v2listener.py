@@ -381,26 +381,6 @@ class V2Listener(dict):
             else:
                 config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
 
-
-        # # Hack for backward compatibility with the old TLS module. Hopefully we can get rid of
-        # # this soon?
-        #
-        # v2ctx = V2TLSContext()
-        # saved_ctx_name: Optional[str] = None
-        #
-        # for ctxname in ['client', 'server']:
-        #     tls_module_ctx = config.ir.get_envoy_tls_context(ctxname)
-        #
-        #     if tls_module_ctx:
-        #         saved_ctx_name = ctxname
-        #         config.ir.logger.debug("V2Listener: SNI operating on legacy '%s'" % ctxname)
-        #         config.ir.logger.debug(tls_module_ctx.as_json())
-        #         v2ctx.add_context(tls_module_ctx)
-        #
-        # if v2ctx:   # must exist and be non-empty for this to eval True
-        #     config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-        #     envoy_contexts.append((typecast(str, saved_ctx_name), ['*'], v2ctx))
-
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:
             config.ir.logger.debug("V2Listener: enabling SNI, %d contexts" % len(envoy_contexts))

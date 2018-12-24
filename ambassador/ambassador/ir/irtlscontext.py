@@ -108,16 +108,6 @@ class IRTLSContext(IRResource):
 
         return True
 
-    # def handle_secret(self, ir: 'IR', secret):
-    #     if ir.tls_secret_resolver is not None:
-    #         resolved = ir.tls_secret_resolver(secret_name=secret, context=self,
-    #                                           namespace=ir.ambassador_namespace,
-    #                                           cert_dir='/ambassador/{}/'.format(secret))
-    #         if resolved is None:
-    #             self.post_error(RichStatus.fromError("Secret {} could not be resolved".format(secret)))
-    #             return None
-    #         return resolved
-
     @classmethod
     def from_config(cls, ir: 'IR', rkey: str, location: str, *,
                     kind="synthesized-TLS-context", name: str, **kwargs) -> 'IRTLSContext':
