@@ -224,12 +224,7 @@ class Restarter(threading.Thread):
         ir = IR(aconf)
         envoy_config = V2Config(ir)
 
-        ads_config = {
-            '@type': '/envoy.config.bootstrap.v2.Bootstrap',
-            'static_resources': envoy_config.static_resources
-        }
-
-        bootstrap_config = dict(envoy_config.bootstrap)
+        bootstrap_config, ads_config = envoy_config.split_config()
 
         scout = Scout(install_id=self.cluster_id)
         scout_args = { "gencount": self.restart_count }

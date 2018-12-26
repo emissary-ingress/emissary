@@ -67,3 +67,14 @@ class V2Config (EnvoyConfig):
 
     def as_json(self):
         return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
+
+    def split_config(self) -> tuple:
+        ads_config = {
+            '@type': '/envoy.config.bootstrap.v2.Bootstrap',
+            'static_resources': self.static_resources
+        }
+
+        bootstrap_config = dict(self.bootstrap)
+
+        return bootstrap_config, ads_config
+

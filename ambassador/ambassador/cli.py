@@ -17,10 +17,13 @@ from typing import cast as typecast
 
 import sys
 
+import binascii
 import json
 import logging
 import os
+import signal
 import traceback
+import yaml
 
 import clize
 from clize import Parameter
@@ -343,8 +346,175 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
         sys.exit(1)
 
 
+class SplitConfigChecker:
+    def __init__(self, logger, root_path: str) -> None:
+        self.logger = logger
+        self.root = root_path
+
+    def secret_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
+        yaml_path = os.path.join(self.root, namespace, "secrets", "%s.yaml" % secret_name)
+
+        serialization = None
+        objects = []
+        cert_data = None
+        cert = None
+        key = None
+        cert_path = None
+        key_path = None
+
+        try:
+            serialization = open(yaml_path, "r").read()
+        except IOError as e:
+            self.logger.error("TLSContext %s: SCC.secret_reader could not open %s" % (context.name, yaml_path))
+
+        if serialization:
+            try:
+                objects.extend(list(yaml.safe_load_all(serialization)))
+            except yaml.error.YAMLError as e:
+                self.logger.error("TLSContext %s: SCC.secret_reader could not parse %s: %s" %
+                                  (context.name, yaml_path, e))
+
+        ocount = 0
+        errors = 0
+
+        for obj in objects:
+            ocount += 1
+            kind = obj.get('kind', None)
+
+            if kind != "Secret":
+                self.logger.error("TLSContext %s: SCC.secret_reader found K8s %s at %s.%d?" %
+                                  (context.name, kind, yaml_path, ocount))
+                errors += 1
+                continue
+
+            metadata = obj.get('metadata', None)
+
+            if not metadata:
+                self.logger.error("TLSContext %s: SCC.secret_reader found K8s Secret with no metadata at %s.%d?" %
+                                  (context.name, yaml_path, ocount))
+                errors += 1
+                continue
+
+            if 'data' in obj:
+                if cert_data:
+                    self.logger.error("TLSContext %s: SCC.secret_reader found multiple Secrets in %s?" %
+                                      (context.name, yaml_path))
+                    errors += 1
+                    continue
+
+                cert_data = obj['data']
+
+        # if errors:
+        #     return None
+        #
+        # if not cert_data:
+        #     self.logger.error("TLSContext %s: SCC.secret_reader found no certificate in %s?" %
+        #                       (context.name, yaml_path))
+        #     return None
+
+        # OK, we have something to work with. Hopefully.
+        if not errors and cert_data:
+            cert = cert_data.get('tls.crt', None)
+
+            if cert:
+                cert = binascii.a2b_base64(cert)
+
+            key = cert_data.get('tls.key', None)
+
+            if key:
+                key = binascii.a2b_base64(key)
+
+        # if not cert:
+        #     # This is an error. Having a cert but no key might be OK, we'll let our caller decide.
+        #     self.logger.error("TLSContext %s: SCC.secret_reader found data but no cert in %s?" %
+        #                       (context.name, yaml_path))
+        #     return None
+
+        if cert:
+            secret_dir = os.path.join(self.root, namespace, "secrets-decoded", secret_name)
+
+            try:
+                os.makedirs(secret_dir)
+            except FileExistsError:
+                pass
+
+            cert_path = os.path.join(secret_dir, "tls.crt")
+            open(cert_path, "w").write(cert.decode("utf-8"))
+
+            if key:
+                key_path = os.path.join(secret_dir, "tls.key")
+                open(key_path, "w").write(key.decode("utf-8"))
+
+        return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
+
+
+def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
+                bootstrap_path=None, ads_path=None, changes=None, gencount=None,
+                debug=False, debug_scout=False, k8s=False):
+    """
+    Generate an Envoy configuration from resources that have already been pulled from Kube
+
+    :param root_path: Root of the config data. Expected to contain subdirs for namespaces
+    :param ambex_pid: PID of running Ambex to signal on config changes
+    :param bootstrap_path: Path to which to write Envoy bootstrap config
+    :param ads_path: Path to which to write Envoy ADS config for Ambex
+    :param changes: How many changes since the last update have happened?
+    :param gencount: Generation count of this update
+    :param debug: If set, generate debugging output
+    :param debug_scout: If set, generate debugging output when talking to Scout
+    :param k8s: If set, assume configuration files are annotated K8s manifests
+    """
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
+    if debug_scout:
+        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
+
+    # root_path contains directories for each resource type: services, secrets, optional
+    # crd-whatever paths.
+    scc = SplitConfigChecker(logger, root_path)
+
+    # Start by assuming that we're going to look at everything.
+    config_root = root_path
+
+    # ...then override that if we're running in single-namespace mode.
+    if os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'):
+        config_root = os.path.join(root_path, os.environ.get('AMBASSADOR_NAMESPACE', 'default'))
+
+    # OK. Load the Config from the config_root.
+    aconf = Config()
+    aconf.load_from_directory(config_root, k8s=k8s, recurse=True)
+
+    # Use the SplitConfigChecker to resolve secrets. We don't pass a file checker
+    # because anything in the config using an actual path needs to be passing a
+    # correct path by this point.
+    ir = IR(aconf, secret_reader=scc.secret_reader)
+
+    # Generate a V2Config from that, and grab the split bootstrap and ADS configs.
+    v2config = V2Config(ir)
+    bootstrap_config, ads_config = v2config.split_config()
+
+    if not bootstrap_path:
+        bootstrap_path="bootstrap-ads.json"
+
+    if not ads_path:
+        ads_path="envoy/envoy.json"
+
+    with open(bootstrap_path, "w") as output:
+        output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+
+    with open(ads_path, "w") as output:
+        output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+
+    logger.info("RESTARTING")
+
+    if ambex_pid != 0:
+        os.kill(ambex_pid, signal.SIGHUP)
+
+
 def main():
-    clize.run([config, dump, validate], alt=[version, showid],
+    clize.run([config, splitconfig, dump, validate], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
