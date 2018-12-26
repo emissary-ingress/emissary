@@ -19,7 +19,7 @@ import json
 import logging
 import os
 
-from ..utils import RichStatus, TLSPaths
+from ..utils import RichStatus, KubeSecretReader
 from ..config import Config
 
 from .irresource import IRResource
@@ -63,24 +63,30 @@ class IR:
     tls_contexts: Dict[str, IRTLSContext]
     tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
+    secret_root: str
+    secret_reader: callable
+    file_checker: callable
 
-    def __init__(self, aconf: Config, tls_secret_resolver=None, file_checker=None) -> None:
+    def __init__(self, aconf: Config, secret_reader=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
         self.statsd = aconf.statsd
 
         self.logger = logging.getLogger("ambassador.ir")
-        self.tls_secret_resolver = tls_secret_resolver
+        self.secret_reader = secret_reader or KubeSecretReader()
         self.file_checker = file_checker if file_checker is not None else os.path.isfile
 
+        # OK. Remember the root of the secret store...
+        self.secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
+
         self.logger.debug("IR __init__:")
-        self.logger.debug("IR: Version          %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
-        self.logger.debug("IR: AMBASSADOR_ID    %s" % self.ambassador_id)
-        self.logger.debug("IR: Namespace        %s" % self.ambassador_namespace)
-        self.logger.debug("IR: Nodename         %s" % self.ambassador_nodename)
-        self.logger.debug("IR: file checker:    %s" % self.file_checker.__name__)
-        self.logger.debug("IR: secret resolver: %s" % self.tls_secret_resolver.__name__)
+        self.logger.debug("IR: Version         %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
+        self.logger.debug("IR: AMBASSADOR_ID   %s" % self.ambassador_id)
+        self.logger.debug("IR: Namespace       %s" % self.ambassador_namespace)
+        self.logger.debug("IR: Nodename        %s" % self.ambassador_nodename)
+        self.logger.debug("IR: file checker:   %s" % self.file_checker.__name__)
+        self.logger.debug("IR: secret reader:  %s" % self.secret_reader.__name__ if self.secret_reader else "(default)")
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -111,19 +117,19 @@ class IR:
 
         self.tls_module = None
         self.envoy_tls = {}
-        self.tls_defaults = {
-            "server": {},
-            "client": {},
-        }
-
-        if os.path.isfile(TLSPaths.mount_tls_crt.value):
-            self.tls_defaults["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
-
-        if os.path.isfile(TLSPaths.mount_tls_key.value):
-            self.tls_defaults["server"]["private_key_file"] = TLSPaths.mount_tls_key.value
-
-        if os.path.isfile(TLSPaths.client_mount_crt.value):
-            self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
+        # self.tls_defaults = {
+        #     "server": {},
+        #     "client": {},
+        # }
+        #
+        # if os.path.isfile(TLSPaths.mount_tls_crt.value):
+        #     self.tls_defaults["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
+        #
+        # if os.path.isfile(TLSPaths.mount_tls_key.value):
+        #     self.tls_defaults["server"]["private_key_file"] = TLSPaths.mount_tls_key.value
+        #
+        # if os.path.isfile(TLSPaths.client_mount_crt.value):
+        #     self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)

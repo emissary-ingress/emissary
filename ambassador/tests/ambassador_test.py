@@ -16,6 +16,7 @@ import re
 from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
 from ambassador import Config, IR
 from ambassador.envoy import V1Config
+from ambassador.utils import SavedSecret
 
 from ambassador.VERSION import Version
 
@@ -532,7 +533,7 @@ def test_config(testname, dirpath, configdir):
     aconf = Config()
     aconf.load_from_directory(configdir)
 
-    ir = IR(aconf, file_checker=file_always_exists, tls_secret_resolver=atest_tls_secret_resolver)
+    ir = IR(aconf, file_checker=file_always_exists, secret_reader=atest_secret_reader)
     v1config = V1Config(ir)
 
     print("==== checking IR")
@@ -658,36 +659,13 @@ def file_always_exists(filename):
     return True
 
 
-def atest_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
-                              cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
-    # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
+def atest_secret_reader(context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str) -> SavedSecret:
+    # In the Real World, the secret reader should, y'know, read secrets..
     # Here we're just gonna fake it.
-    #
-    # This is very much like the base CLI secret resolver.
 
-    # Do we have secret info?
-    if not 'secret_info':
-        # Nope. This is a problem.
-        context.post_error("no secret_info in TLSContext?")
-        return None
+    logger.debug("atest_secret_reader faking finding secret %s" % secret_name)
 
-    # OK, do we have secrets to look up?
-    ctxinfo = context.secret_info
-    od = dict(ctxinfo)
+    cert_path = os.path.join("/ambassador/certs", secret_name, "tls.crt")
+    key_path = os.path.join("/ambassador/certs", secret_name, "tls.key")
 
-    if not cert_dir:
-        # Default.
-        cert_dir = "/ambassador/certs"
-
-    if 'secret' in ctxinfo:
-        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
-        od['cert_chain_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.crt")
-        od['private_key_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.key")
-
-    if 'ca_secret' in ctxinfo:
-        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
-        od['cacert_chain_file'] = os.path.join(cert_dir, ctxinfo['ca_secret'], "tls.crt")
-
-    logger.debug("CLI secret resolver: returning %s" % od)
-
-    return od
+    return SavedSecret(secret_name, namespace, cert_path, key_path, {})

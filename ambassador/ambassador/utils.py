@@ -16,7 +16,6 @@
 
 from typing import Dict, Optional, TYPE_CHECKING
 
-import base64
 import binascii
 import socket
 import threading
@@ -188,36 +187,8 @@ class PeriodicTrigger(threading.Thread):
             self.onfired()
 
 
-def read_cert_secret(k8s_api, secret_name, namespace):
-    cert_data = None
-    cert = None
-    key = None
-
-    try:
-        cert_data = k8s_api.read_namespaced_secret(secret_name, namespace)
-    except client.rest.ApiException as e:
-        if e.reason == "Not Found":
-            logger.info("secret {} not found".format(secret_name))
-        else:
-            logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
-
-    if cert_data and cert_data.data:
-        cert_data = cert_data.data
-        cert = cert_data.get('tls.crt', None)
-
-        if cert:
-            cert = binascii.a2b_base64(cert)
-
-        key = cert_data.get('tls.key', None)
-
-        if key:
-            key = binascii.a2b_base64(key)
-
-    return cert, key, cert_data
-
-
 class SavedSecret:
-    def __init__(self, secret_name:str, namespace:str,
+    def __init__(self, secret_name: str, namespace: str,
                  cert_path: Optional[str], key_path: Optional[str], cert_data: Optional[Dict]) -> None:
         self.secret_name = secret_name
         self.namespace = namespace
@@ -230,194 +201,68 @@ class SavedSecret:
         return "secret %s in namespace %s" % (self.secret_name, self.namespace)
 
     def __bool__(self) -> bool:
-        return bool(bool(self.cert_path) and bool(self.cert_data))
+        return bool(bool(self.cert_path) and (self.cert_data is not None))
 
-def save_secret(secret_root: str, secret_name: str, namespace: str, cert, key, cert_data) -> SavedSecret:
-    # We always return a SavedSecret, so that our caller has access to the name and namespace.
-    # The SavedSecret will evaluate non-True if we found no cert though.
+    def __str__(self) -> str:
+        return "<SavedSecret %s.%s -- cert_path %s, key_path %s, cert_data %s>" % (
+                  self.secret_name, self.namespace, self.cert_path, self.key_path,
+                  "present" if self.cert_data else "absent"
+                )
 
-    secret_dir = os.path.join(secret_root, namespace, "secrets", secret_name)
 
-    if cert:
+class KubeSecretReader:
+    def __init__(self) -> None:
+        self.v1 = None
+        self.__name__ = 'KubeSecretReader'
+
+    def __call__(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
+        # Make sure we have a Kube connection.
+        if not self.v1:
+            self.v1 = kube_v1()
+
+        cert_data = None
+        cert = None
+        key = None
+
         try:
-            os.makedirs(secret_dir)
-        except FileExistsError:
-            pass
+            cert_data = self.v1.read_namespaced_secret(secret_name, namespace)
+        except client.rest.ApiException as e:
+            if e.reason == "Not Found":
+                logger.info("secret {} not found".format(secret_name))
+            else:
+                logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
 
-        cert_path = os.path.join(secret_dir, "tls.crt")
-        open(cert_path, "w").write(cert.decode("utf-8"))
+        if cert_data and cert_data.data:
+            cert_data = cert_data.data
+            cert = cert_data.get('tls.crt', None)
 
+            if cert:
+                cert = binascii.a2b_base64(cert)
+
+            key = cert_data.get('tls.key', None)
+
+            if key:
+                key = binascii.a2b_base64(key)
+
+        secret_dir = os.path.join(secret_root, namespace, "secrets", secret_name)
+
+        cert_path = None
         key_path = None
 
-        if key:
-            key_path = os.path.join(secret_dir, "tls.key")
-            open(key_path, "w").write(key.decode("utf-8"))
+        if cert:
+            try:
+                os.makedirs(secret_dir)
+            except FileExistsError:
+                pass
+
+            cert_path = os.path.join(secret_dir, "tls.crt")
+            open(cert_path, "w").write(cert.decode("utf-8"))
+
+            if key:
+                key_path = os.path.join(secret_dir, "tls.key")
+                open(key_path, "w").write(key.decode("utf-8"))
 
         return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
-    else:
-        return SavedSecret(secret_name, namespace, None, None, None)
-
-
-def kube_secret_loader(v1, secret_root: str, secret_name: str, namespace: str) -> SavedSecret:
-    # Allow secrets to override namespace when needed.
-
-    if "." in secret_name:
-        secret_name, namespace = secret_name.split('.', 1)
-
-    cert, key, data = read_cert_secret(v1, secret_name, namespace)
-
-    # We always return a SavedSecret, so that our caller has access to the name and namespace.
-    # The SavedSecret will evaluate non-True if we found no cert though.
-    return save_secret(secret_root, secret_name, namespace, cert, key, data)
-
-
-def kube_tls_secret_resolver(context: 'IRTLSContext', namespace: str,
-                             get_kube_api: Optional[callable]=None) -> Optional[Dict[str, str]]:
-    # If they don't override this, use our own kube_v1.
-    if not get_kube_api:
-        get_kube_api = kube_v1
-
-    # If we don't have secret info, something is horribly wrong.
-    secret_info: Dict[str, str] = context.get('secret_info', {})
-
-    if not secret_info:
-        context.post_error("TLSContext %s has no certificate information at all?" % context.name)
-        return None
-
-    # OK. Where is the root of the secret store?
-    secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-
-    # Assume that we aren't going to muck with Kube...
-    v1 = None
-
-    # ...and default to returning {}, which will result in the context not being loaded.
-    resolved: Dict[str, str] = {}
-
-    logger.info("resolver working on: %s" % context.as_json())
-
-    # OK. Do we have a secret name?
-    secret_name = secret_info.get('secret')
-
-    if secret_name:
-        # Yes. Should we try to go check with Kube?
-        if get_kube_api:
-            v1 = get_kube_api()
-
-        if v1:
-            ss = kube_secret_loader(v1, secret_root, secret_name, namespace)
-
-            if not ss:
-                # This is definitively an error: they mentioned a secret, it can't be loaded,
-                # give up.
-                context.post_error("TLSContext %s found no certificate in %s" % (context.name, ss.name))
-                return None
-
-            # If they only gave a public key, that's an error too.
-            if not ss.key_path:
-                context.post_error("TLSContext %s found no private key in %s" % (context.name, ss.name))
-                return None
-
-            # So far, so good.
-            logger.debug("TLSContext %s saved secret %s" % (context.name, ss.name))
-
-            resolved['cert_chain_file'] = ss.cert_path
-            resolved['private_key_file'] = ss.key_path
-    else:
-        # No secret is named. Did they provide file locations?
-        missing = False
-
-        cert_chain_file = secret_info.get('cert_chain_file')
-        private_key_file = secret_info.get('private_key_file')
-
-        if cert_chain_file:
-            resolved['cert_chain_file'] = cert_chain_file
-        else:
-            missing = True
-
-        if private_key_file:
-            resolved['private_key_file'] = private_key_file
-        else:
-            missing = True
-
-        # If there's no secret name _and_ no path information, that's also an error
-        # (which should've already been caught, honestly).
-
-        if missing:
-            # Sigh.
-            context.post_error("TLSContext %s was given no certificate" % context.name)
-            return None
-
-    ca_secret_name = secret_info.get('ca_secret')
-
-    if ca_secret_name:
-        if not resolved.get('cert_chain_file'):
-            # DUPLICATED BELOW: This is an error: validation without termination isn't meaningful.
-            # (This is duplicated for the case where they gave a validation path.)
-            context.post_error("TLSContext %s cannot validate client certs without TLS termination" %
-                               context.name)
-            return None
-
-        # They gave a secret name for the validation cert.. Should we try to go check with Kube?
-        if get_kube_api:
-            v1 = get_kube_api()
-
-        if v1:
-            ss = kube_secret_loader(v1, secret_root, ca_secret_name, namespace)
-
-            if not ss:
-                # This is definitively an error: they mentioned a secret, it can't be loaded,
-                # give up.
-                context.post_error("TLSContext %s found no validation certificate in %s" % (context.name, ss.name))
-                return None
-
-            # Validation certs don't need the private key, but it's not an error if they gave
-            # one. We're good to go here.
-            logger.debug("TLSContext %s saved CA secret %s" % (context.name, ss.name))
-
-            resolved['cacert_chain_file'] = ss.cert_path
-
-            # While we're here, did they set cert_required _in the secret_?
-            if ss.cert_data:
-                cert_required = ss.cert_data.get('cert_required')
-
-                if cert_required is not None:
-                    decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
-
-                    resolved['cert_required'] = decoded
-    else:
-        # No secret is named. Copy the path if they gave one, though.
-        cacert_chain_file = secret_info.get('cacert_chain_file')
-
-        if cacert_chain_file:
-            if not resolved.get('cert_chain_file'):
-                # DUPLICATED ABOVE: This is an error: validation without termination isn't meaningful.
-                # (This is duplicated for the case where they gave a validation secret.)
-                context.post_error("TLSContext %s cannot validate client certs without TLS termination" %
-                                   context.name)
-                return None
-
-            resolved['cacert_chain_file'] = cacert_chain_file
-
-    # OK. Check paths.
-    errors = 0
-
-    logger.info("resolved: %s" % resolved)
-
-    for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
-        path = resolved.get(key, None)
-
-        if path:
-            if not os.path.isfile(path):
-                context.post_error("TLSContext %s found no %s '%s'" % (context.name, key, path))
-                errors += 1
-        elif key != 'cacert_chain_file':
-            context.post_error("TLSContext %s is missing %s" % (context.name, key))
-            errors += 1
-
-    if errors:
-        return None
-
-    return resolved
 
 
 def kube_v1():

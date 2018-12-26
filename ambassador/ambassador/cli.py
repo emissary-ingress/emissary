@@ -29,7 +29,7 @@ from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import EnvoyConfig, V1Config, V2Config
 from .ir.irtlscontext import IRTLSContext
 
-from .utils import RichStatus
+from .utils import RichStatus, SavedSecret
 
 __version__ = Version
 
@@ -103,37 +103,14 @@ def file_checker(path: str) -> bool:
     return True
 
 
-def cli_secret_resolver(context: IRTLSContext, namespace: str,
-                        cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
-    # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
+def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str, secret_root: str) -> SavedSecret:
+    # In the Real World, the secret reader should, y'know, read secrets..
     # Here we're just gonna fake it.
 
-    # Do we have secret info?
-    if not 'secret_info':
-        # Nope. This is a problem.
-        context.post_error("no secret_info in TLSContext?")
-        return None
+    cert_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.crt")
+    key_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.key")
 
-    # OK, do we have secrets to look up?
-    ctxinfo = context.secret_info
-    od = dict(ctxinfo)
-
-    if not cert_dir:
-        # Default.
-        cert_dir = "/ambassador/certs"
-
-    if 'secret' in ctxinfo:
-        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
-        od['cert_chain_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.crt")
-        od['private_key_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.key")
-
-    if 'ca_secret' in ctxinfo:
-        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
-        od['cacert_chain_file'] = os.path.join(cert_dir, ctxinfo['ca_secret'], "tls.crt")
-
-    logger.debug("CLI secret resolver: returning %s" % od)
-
-    return od
+    return SavedSecret(secret_name, namespace, cert_path, key_path, {})
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
@@ -190,7 +167,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=cli_secret_resolver)
+        ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -317,7 +294,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=cli_secret_resolver)
+            ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:

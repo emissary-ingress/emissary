@@ -30,7 +30,7 @@ from typing import Optional, Dict, Union
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
-from ambassador.utils import kube_v1, TLSPaths, kube_tls_secret_resolver
+from ambassador.utils import kube_v1
 from ambassador.ir import IR
 from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
@@ -221,7 +221,7 @@ class Restarter(threading.Thread):
 
         aconf = Config()
         aconf.load_from_directory(output)
-        ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
+        ir = IR(aconf)
         envoy_config = V2Config(ir)
 
         ads_config = {
