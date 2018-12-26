@@ -61,7 +61,6 @@ class IR:
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
     tls_contexts: Dict[str, IRTLSContext]
-    tls_defaults: Dict[str, Dict[str, str]]
     aconf: Config
     secret_root: str
     secret_reader: callable
@@ -117,19 +116,6 @@ class IR:
 
         self.tls_module = None
         self.envoy_tls = {}
-        # self.tls_defaults = {
-        #     "server": {},
-        #     "client": {},
-        # }
-        #
-        # if os.path.isfile(TLSPaths.mount_tls_crt.value):
-        #     self.tls_defaults["server"]["cert_chain_file"] = TLSPaths.mount_tls_crt.value
-        #
-        # if os.path.isfile(TLSPaths.mount_tls_key.value):
-        #     self.tls_defaults["server"]["private_key_file"] = TLSPaths.mount_tls_key.value
-        #
-        # if os.path.isfile(TLSPaths.client_mount_crt.value):
-        #     self.tls_defaults["client"]["cacert_chain_file"] = TLSPaths.client_mount_crt.value
 
         # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)
@@ -266,9 +252,6 @@ class IR:
     def walk_saved_resources(self, aconf, method_name):
         for res in self.saved_resources.values():
             getattr(res, method_name)(self, aconf)
-
-    def get_tls_defaults(self, ctx_name: str) -> Optional[Dict]:
-        return self.tls_defaults.get(ctx_name, None)
 
     def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)

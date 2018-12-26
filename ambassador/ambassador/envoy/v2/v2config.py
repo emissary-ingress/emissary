@@ -57,16 +57,6 @@ class V2Config (EnvoyConfig):
         V2StaticResources.generate(self)
         V2Bootstrap.generate(self)
 
-#         # print("v1.admin %s" % self.admin)
-#
-#         self.listeners: List[V1Listener] = V1Listener.generate(self)
-#
-#         # print("v1.listeners %s" % self.listeners)
-#
-#         self.clustermgr: V1ClusterManager = V1ClusterManager.generate(self)
-#
-#         # print("v1.clustermgr %s" % self.clustermgr)
-
     def as_dict(self):
         d = {
             'bootstrap': self.bootstrap,
