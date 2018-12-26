@@ -587,7 +587,7 @@ service: {self.target.path.k8s}
         return "http"
 
     def queries(self):
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors", phase=2))
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
 
     def check(self):
         errors = self.results[0].backend.response
