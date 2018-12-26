@@ -114,7 +114,7 @@ def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str, s
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
-         debug=False, debug_scout=False, k8s=False,
+         debug=False, debug_scout=False, k8s=False, recurse=False,
          aconf=False, ir=False, v1=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -123,9 +123,10 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     will be dumped.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output
+    :param k8s: If set, assume configuration files are annotated K8s manifests
+    :param recurse: If set, recurse into directories below config_dir_path
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
     :param v1: If set, dump the Envoy V1 config
@@ -160,7 +161,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
     try:
         aconf = Config()
-        aconf.load_from_directory(config_dir_path, k8s=k8s)
+        aconf.load_from_directory(config_dir_path, k8s=k8s, recurse=recurse)
         # aconf.post_error("Error from string, boo yah")
         # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 

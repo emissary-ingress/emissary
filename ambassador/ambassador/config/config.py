@@ -219,11 +219,11 @@ class Config:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
     # Utility methods built around ResourceFetcher.
-    def fetch_resources(self, config_dir_path: str, k8s=False):
-        fetcher = ResourceFetcher(self, config_dir_path, k8s=k8s)
+    def fetch_resources(self, config_dir_path: str, k8s=False, recurse=False):
+        fetcher = ResourceFetcher(self, config_dir_path, k8s=k8s, recurse=recurse)
         return fetcher.__iter__()
 
-    def load_from_directory(self, config_dir_path: str, k8s=False, key=lambda x: x.rkey) -> None:
+    def load_from_directory(self, config_dir_path: str, k8s=False, recurse=False, key=lambda x: x.rkey) -> None:
         """
         Load all the resources contained in YAML files in a given directory. To be considered,
         the files must have names ending in '.yaml' (case insensitive).
@@ -239,7 +239,7 @@ class Config:
         :param key: sort function; defaults to lambda x: x.rkey
         """
 
-        raw = list(self.fetch_resources(config_dir_path, k8s=k8s))
+        raw = list(self.fetch_resources(config_dir_path, k8s=k8s, recurse=recurse))
         resources = sorted(raw, key=key)
 
         self.load_all(resources)

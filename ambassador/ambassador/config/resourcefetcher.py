@@ -3,8 +3,6 @@ import os
 import yaml
 
 from typing import List, Optional, TYPE_CHECKING
-# from typing import Type, TypeVar
-# from typing import cast as typecast
 
 from .acresource import ACResource
 from ..utils import RichStatus
@@ -18,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class ResourceFetcher:
-    def __init__(self, aconf: 'Config', config_dir_path: str, k8s: bool=False) -> None:
+    def __init__(self, aconf: 'Config', config_dir_path: str, k8s: bool=False, recurse=False) -> None:
         self.aconf = aconf
         self.logger = aconf.logger
         self.resources: List[ACResource] = []
@@ -26,19 +24,30 @@ class ResourceFetcher:
         inputs = []
 
         if os.path.isdir(config_dir_path):
-            for filename in os.listdir(config_dir_path):
-                filepath = os.path.join(config_dir_path, filename)
+            dirs = [ config_dir_path ]
 
-                if not filename.lower().endswith('.yaml'):
-                    self.logger.debug("%s: SKIP non-YAML" % filepath)
-                    continue
+            while dirs:
+                dirpath = dirs.pop(0)
 
-                if not os.path.isfile(filepath):
-                    self.logger.debug("%s: SKIP non-file" % filepath)
-                    continue
+                for filename in os.listdir(dirpath):
+                    filepath = os.path.join(dirpath, filename)
 
-                self.logger.debug("%s: SAVE configuration file" % filepath)
-                inputs.append((filepath, filename))
+                    if recurse and os.path.isdir(filepath):
+                        self.logger.debug("%s: RECURSE" % filepath)
+                        dirs.append(filepath)
+                        continue
+
+                    if not os.path.isfile(filepath):
+                        self.logger.debug("%s: SKIP non-file" % filepath)
+                        continue
+
+                    if not filename.lower().endswith('.yaml'):
+                        self.logger.debug("%s: SKIP non-YAML" % filepath)
+                        continue
+
+                    self.logger.debug("%s: SAVE configuration file" % filepath)
+                    inputs.append((filepath, filename))
+
         else:
             # this allows a file to be passed into the ambassador cli
             # rather than just a directory
