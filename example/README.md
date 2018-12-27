@@ -1,11 +1,10 @@
 ### Example files:
 
-ambassador.yaml     - Load-balancer deployment and service.
-ambassador-pro.yaml - Authorization deployment and service.
-httpbin.yaml        - Service example that will seat behind the load balancer.
-policy.yaml         - Tells which resources the Ambassador-Pro service should protect.
-tenants.yaml        - Tells which applications should Ambassador-Pro protects.
-
+* ambassador.yaml - Load-balancer deployment and service.
+* ambassador-pro.yaml - Authorization deployment and service.
+* httpbin.yaml - Service example that will seat behind the load balancer.
+* policy.yaml - Tells which resources the Ambassador-Pro service should protect.
+* tenants.yaml - Tells which applications should Ambassador-Pro protects.
 
 ### Configuration:
 
@@ -28,7 +27,6 @@ This error means that no app has been supplied in the list of tenants:
 time="2018-12-27 23:22:05" level=error msg="0 tenant apps configured" MAIN=controller
 ```
 
-
 ### Testing Single Application:
 
 1. From a browser call the following: `{ TENANT URL }/httpbin/ip`
@@ -38,7 +36,6 @@ Client should not get redirected to Auth0 and an IP should be displayed.
 2. From a browser call the following: `{ TENANT URL }/httpbin/user-agent`    
 
 Client should get redirected to Auth0 after a successful login, the user-agent information should be displayed.
-
 
 ### Testing Multiple Applications:
 
