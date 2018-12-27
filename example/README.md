@@ -29,7 +29,7 @@ time="2018-12-27 23:22:05" level=error msg="0 tenant apps configured" MAIN=contr
 ```
 
 
-### Single App Testing:
+### Testing Single Application:
 
 1. From a browser call the following: `{ TENANT URL }/httpbin/ip`
 
@@ -40,7 +40,7 @@ Client should not get redirected to Auth0 and an IP should be displayed.
 Client should get redirected to Auth0 after a successful login, the user-agent information should be displayed.
 
 
-### Multiple Applications Testing:
+### Testing Multiple Applications:
 
 1. Configure a second app domain in Auth0 and add it to the `tenants` list.
 2. From a browser: `{ TENANT URL 2 }/httpbin/ip`
