@@ -1,0 +1,22 @@
+---
+apiVersion: stable.datawire.io/v1beta1
+kind: Policy
+metadata:
+  name: policy
+spec:
+  # everything defaults to private; you can create rules to make stuff
+  # public, and you can create rules to require additional scopes
+  # which will be automatically checked
+  rules:
+  - host: "*"
+    path: /httpbin/ip
+    public: true
+    scope: offline_access email
+  - host: "*"
+    path: /httpbin/user-agent
+    public: false
+    scope: offline_access brogramemrs
+  - host: "*"
+    path: /qotm
+    public: true
+    scope: offline_access dogs
