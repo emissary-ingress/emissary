@@ -1087,6 +1087,35 @@ tls: true
             assert r.backend.request.tls.enabled
 
 
+class HostRedirectMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+    canary: ServiceType
+    weight: int
+
+    def init(self):
+        MappingTest.init(self, HTTP())
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: foobar.com
+host_redirect: true
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/anything?itworked=true"), expected=301)
+
+    def check(self):
+        assert self.results[0].headers['Location'] == [
+            self.format("http://foobar.com/{self.name}/anything?itworked=true")
+        ]
+
+
 class CanaryMapping(MappingTest):
 
     parent: AmbassadorTest

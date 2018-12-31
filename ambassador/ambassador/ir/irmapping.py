@@ -351,6 +351,7 @@ class IRMappingGroup (IRResource):
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
+        'add_request_headers': True,    # do this manually.
         'cluster': True,
         'host': True,
         'kind': True,
@@ -505,6 +506,8 @@ class IRMappingGroup (IRResource):
         # if verbose:
         #     self.ir.logger.debug("%s: FINALIZING: %s" % (self, self.as_json()))
 
+        add_request_headers = {}
+
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
             #     self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
@@ -519,6 +522,11 @@ class IRMappingGroup (IRResource):
                 #     self.ir.logger.debug("%s: flatten %s" % (self, k))
 
                 self[k] = mapping[k]
+
+            add_request_headers.update(mapping.get('add_request_headers', {}))
+
+        if add_request_headers:
+            self.add_request_headers = add_request_headers
 
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
