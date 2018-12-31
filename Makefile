@@ -59,7 +59,6 @@ cert.pem: $(CURDIR)/cert.pem
 scripts/02-ambassador-certs.yaml: cert.pem key.pem
 	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert cert.pem --key key.pem > $@
 
-.PHONY: deploy
 deploy: ## Deploy $(DEV_IMAGE) to a kubernaut.io cluster
 deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	$(KUBEAPPLY) -f scripts/00-registry.yaml
@@ -70,29 +69,30 @@ deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	    docker push $(DEV_IMAGE); \
 	}
 	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
+.PHONY: deploy
 
-e2e_build: ## Build a oauth-client Docker image, for e2e testing
-	@echo " >>> building docker for e2e testing"
+build-e2e: ## Build an oauth-client Docker image, for e2e testing
 	docker build -t e2e/test:latest e2e
+.PHONY: build-e2e
 
 check-e2e: ## Check: e2e tests
 check-e2e: build-e2e deploy
 	$(MAKE) proxy
 	docker run --rm e2e/test:latest
 	$(MAKE) unproxy
-check: e2e_test
+.PHONY: check-e2e
+check: check-e2e
 
 #
 # Utility targets
 
-.PHONY: push-tagged-image
 push-tagged-image: ## docker push $(PRD_IMAGE)
 #push-tagged-image: build
 	docker tag $(DEV_IMAGE) $(PRD_IMAGE)
 	docker push $(PRD_IMAGE)
+.PHONY: push-tagged-image
 
-.PHONY: run
 run: ## Run ambassador-oauth locally
 run: bin_$(GOOS)_$(GOARCH)/ambassador-oauth
-	@echo " >>> running oauth server"
 	./$<
+.PHONY: run
