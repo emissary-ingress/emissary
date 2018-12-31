@@ -9,25 +9,18 @@ documentation is here: https://github.com/datawire/ambassador-pro
 
  > ! ! ! REALEASES CANNOT RUN CURRENTLY ! ! !
 
-### Cloning
-
-Project must be cloned in
-`$GOPATH/src/github.com/datawire/ambassador-oauth/`.
-
 ### Compile
 
-    $ make install
+    $ make build
 
 ### Testing
-
-    $ make test
-
-### Testing end-to-end
 
     $ # if on macOS, first you must configure dockerd, see below
     $ export KUBERNAUT_TOKEN=...
     $ ln -s ./e2e/env.in ./env.sh
-    $ make e2e_test
+    $ make check
+
+This will run both unit tests and e2e tests.
 
  > *NOTE:* This will talk to the Auth0 account configured in
  > `./e2e/env.in`.  The login credentials for that Auth0 can be found

@@ -5,13 +5,13 @@ RUN apk add make git openssl && rm /var/cache/apk/*
 
 RUN go get -u github.com/golang/dep/...
 
-WORKDIR $GOPATH/src/github.com/datawire/ambassador-oauth
+WORKDIR /root/ambassador-oauth
 COPY . ./
+RUN ln -s ../../../.. .go-workspace/src/github.com/datawire/ambassador-oauth
 
-RUN make vendor
-RUN make install
-RUN make test
 
-CMD ["ambassador-oauth"]
+RUN make go-build
+
+CMD ["./bin_linux_amd64/ambassador-oauth"]
 
 EXPOSE 8080

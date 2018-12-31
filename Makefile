@@ -1,5 +1,6 @@
 NAME=ambassador-pro
 
+include build-aux/go-workspace.mk
 include build-aux/kubeapply.mk
 include build-aux/help.mk
 include build-aux/teleproxy.mk
@@ -69,37 +70,12 @@ push-tagged-image: ## docker push $(PRD_IMAGE)
 
 .PHONY: run
 run: ## Run ambassador-oauth locally
-run: install
+run: bin_$(GOOS)_$(GOARCH)/ambassador-oauth
 	@echo " >>> running oauth server"
-	ambassador-oauth 
-
-.PHONY: install
-install: ## Compile ambassador-oauth (to $GOBIN)
-install: vendor
-	@echo " >>> building"
-	go install ./cmd/...
+	./$<
 
 clean:
-	@echo " >>> cleaning compiled objects and binaries"
 	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
-	go clean -i ./...
-
-.PHONY: test
-test: ## Check: unit tests
-	@echo " >>> testing code.."
-	go test ./...
-
-vendor: ## Update the ./vendor/ directory based on Gopkg.toml
-	@echo " >>> installing dependencies"
-	dep ensure -vendor-only
-
-format:
-	@echo " >>> running format"
-	go fmt ./...
-
-check_format: ## Check: go fmt
-	@echo " >>> checking format"
-	if [ $$(go fmt $$(go list ./... | grep -v vendor/)) ]; then exit 1; fi
 
 e2e_build: ## Build a oauth-client Docker image, for e2e testing
 	@echo " >>> building docker for e2e testing"
@@ -110,3 +86,4 @@ check-e2e: build-e2e deploy
 	$(MAKE) proxy
 	docker run --rm e2e/test:latest
 	$(MAKE) unproxy
+check: e2e_test

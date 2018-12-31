@@ -40,10 +40,8 @@ script:
   # commands from running (but it will be marked as a failure).
 
   # Main
-  - make check_format
-  - make install
-  - make test
-  - make e2e_test
+  - make build
+  - make check
   # Delete kubernaut.io claim
   - make unclaim
 deploy:
