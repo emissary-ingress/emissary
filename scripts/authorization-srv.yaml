@@ -1,4 +1,5 @@
 ---
+# @TEMPLATE@
 apiVersion: v1
 kind: Service
 metadata:
@@ -44,17 +45,17 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: auth0-service
-        image: ${IMAGE}
+        image: {{env "IMAGE"}}
         ports:
         - containerPort: 8080
         env:
           - name: AUTH_CALLBACK_URL
-            value: ${AUTH_CALLBACK_URL}
+            value: {{env "AUTH_CALLBACK_URL"}}
           - name: AUTH_DOMAIN
-            value: ${AUTH_DOMAIN}
+            value: {{env "AUTH_DOMAIN"}}
           - name: AUTH_AUDIENCE
-            value: ${AUTH_AUDIENCE}
+            value: {{env "AUTH_AUDIENCE"}}
           - name: AUTH_CLIENT_ID
-            value: ${AUTH_CLIENT_ID}
+            value: {{env "AUTH_CLIENT_ID"}}
           - name: AUTH_CLIENT_SECRET
-            value: ${AUTH_CLIENT_SECRET}            
+            value: {{env "AUTH_CLIENT_SECRET"}}

@@ -1,3 +1,6 @@
+ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+include $(dir $(lastword $(MAKEFILE_LIST)))/build-aux/kubeapply.mk
+
 CI_IMAGE_SHA=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(TRAVIS_COMMIT)
 CI_IMAGE_TAG=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(TRAVIS_TAG)
 
@@ -19,7 +22,6 @@ IMAGE=$($(PROFILE)_IMAGE)
 
 K8S_BUILD ?= k8s_build
 K8S_DIR ?= k8s
-TEMPLATES:=$(wildcard $(K8S_DIR)/*.yaml)
 
 UNVERSIONED ?= "(Makefile|k8s.make|$(K8S_DIR)/.*)"
 VERSIONED=$(K8S_BUILD)/versioned.txt
@@ -59,37 +61,17 @@ push_ok: $(HASH_FILE)
 push: push_ok build
 	$(call guard, push, docker push $(IMAGE))
 
-MANIFESTS_DIR=$(K8S_BUILD)/$(PROFILE)
-MANIFESTS=$(TEMPLATES:$(K8S_DIR)/%.yaml=$(MANIFESTS_DIR)/%.yaml)
-
-$(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env.sh
-	@echo "Generating $< -> $@"
-	mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source env.sh && set +a && IMAGE=$(IMAGE) envsubst" > $@
-
-manifests: $(HASH_FILE) $(MANIFESTS)
-
-apply_cmd = kubectl apply -f $$FILE
-
-define apply
-for FILE in $(MANIFESTS); do echo "$(apply_cmd)" && $(apply_cmd); done
-endef
-
 .PHONY: deploy
-deploy: push $(MANIFESTS)
-	$(call guard, deploy, $(apply))
+deploy: push $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
+	set -a && IMAGE=$(IMAGE) && source ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: apply
-apply: $(HASH_FILE) $(MANIFESTS)
-	@set IMAGE=test
-	$(call guard, apply-$(PROFILE), $(apply))
+apply: push $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
+	set -a && source ./env.sh && IMAGE=test && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: clean-k8s
 clean-k8s:
 	rm -rf $(K8S_BUILD)
-
-.PHONY: check
-check:
-	/bin/bash e2e/k8s_check.sh
 
 .PHONY: push-commit-image
 push-commit-image: $(HASH_FILE)
@@ -101,3 +83,5 @@ push-tagged-image:
 	docker pull $(CI_IMAGE_SHA)
 	docker tag $(CI_IMAGE_SHA) $(CI_IMAGE_TAG)
 	docker push $(CI_IMAGE_TAG)
+
+endif
