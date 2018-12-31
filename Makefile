@@ -20,7 +20,7 @@ install: tools vendor
 	go install ./cmd/...
 
 .PHONY: clean
-clean: clean-k8s
+clean:
 	@echo " >>> cleaning compiled objects and binaries"
 	go clean -i ./...
 
