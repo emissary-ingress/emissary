@@ -321,7 +321,7 @@ class KubeWatcher:
                          (self.namespace,
                           "just this namespace" if self.single_namespace else "all namespaces"))
 
-    def run(self, sync_only=False):
+    def run(self, id_only=False, sync_only=False):
         self.logger.debug("starting run")
 
         while True:
@@ -339,7 +339,7 @@ class KubeWatcher:
                         self.get_cluster_id(v1)
 
                     # ...then do sync if needed.
-                    if self.need_sync:
+                    if self.need_sync and not id_only:
                         self.sync(v1)
 
                 # Whether or not we got a Kube connection, generate the initial Envoy config if needed
@@ -348,12 +348,13 @@ class KubeWatcher:
                     logger.debug("Generating initial Envoy config")
 
                     self.restarter.set_cluster_id(self.cluster_id)
-                    self.restarter.restart()
 
-                    self.need_sync = False
+                    if not id_only:
+                        self.restarter.restart()
+                        self.need_sync = False
 
                 # If we're just doing the sync, dump the cluster_id to stdout and then bail.
-                if sync_only:
+                if sync_only or id_only:
                     print(self.cluster_id)
                     break
 
@@ -499,12 +500,17 @@ def main(mode, ambassador_config_dir, envoy_config_file, debug, delay, pid):
     if debug:
         logger.setLevel(logging.DEBUG)
 
+    logger.info("kubewatch starting: mode '%s' ambassador_config_dir '%s' envoy_config_file '%s' debug '%s' delay '%s' pid '%s'" %
+                (mode, ambassador_config_dir, envoy_config_file, debug, delay, pid))
+
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
     watcher =  KubeWatcher(logger, restarter)
 
-    if mode == "sync":
+    if mode == "cluster-id":
+        watcher.run(id_only=True)
+    elif mode == "sync":
         watcher.run(sync_only=True)
     elif mode == "watch":
         watcher.run(sync_only=False)

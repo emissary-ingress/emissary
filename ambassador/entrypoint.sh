@@ -136,9 +136,13 @@ wait_for_ready() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
+KUBEWATCH_DEBUG="--debug"
+
 # We use an empty config dir for the sync pass, just to have something to point Ambex to and to get the
 # cluster ID.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync /tmp/sync-config "$ENVOY_CONFIG_FILE")
+EMPTY="${AMBASSADOR_CONFIG_BASE_DIR}/empty-sync-dir"
+mkdir "$EMPTY"
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "$EMPTY" "$ENVOY_CONFIG_FILE")
 
 STATUS=$?
 
@@ -166,7 +170,9 @@ envoy $ENVOY_DEBUG -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
 pids="${pids:+${pids} }$!:envoy"
 
 #/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
-"$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "ambassador splitconfig --debug --k8s --bootstrap-path={$AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY} --ambex-pid=${AMBEX_PID}"
+KUBEWATCH_SYNC_CMD="ambassador splitconfig --debug --k8s --bootstrap-path=${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY_CONFIG_FILE} --ambex-pid=${AMBEX_PID}"
+
+"$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" secrets services &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"
