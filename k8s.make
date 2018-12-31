@@ -87,25 +87,9 @@ apply: $(HASH_FILE) $(MANIFESTS)
 clean-k8s:
 	rm -rf $(K8S_BUILD)
 
-.PHONY: gcloud
-gcloud:
-	@gcloud version
-	@gcloud auth activate-service-account $$K8S_ACCOUNT_NAME --key-file=./key-file.json
-	@gcloud --quiet config set container/use_client_certificate False
-	@gcloud --quiet config set project $$K8S_PROJECT
-	@gcloud --quiet config set container/cluster $$K8S_CLUSTER
-	@gcloud --quiet config set compute/zone $$K8S_ZONE
-	@gcloud --quiet container clusters get-credentials $$K8S_CLUSTER --zone=$$K8S_ZONE
-
 .PHONY: check
 check:
 	@/bin/bash e2e/k8s_check.sh
-
-.PHONY: docker-login
-docker-login:
-	@if [ -z "$$DOCKER_USERNAME" ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
-	@if [ -z "$$DOCKER_PASSWORD" ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
-	@printf "$$DOCKER_PASSWORD" | docker login -u="$$DOCKER_USERNAME" --password-stdin "$$DOCKER_REGISTRY"
 
 .PHONY: push-commit-image
 push-commit-image: $(HASH_FILE)
