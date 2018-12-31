@@ -197,8 +197,8 @@ class Config:
                     allowed_ids = typecast(StringOrList, [ allowed_ids ])
 
                 if Config.ambassador_id not in allowed_ids:
-                    self.logger.debug("LOAD_ALL: skip %s; id %s not in %s" %
-                                      (resource, Config.ambassador_id, allowed_ids))
+                    # self.logger.debug("LOAD_ALL: skip %s; id %s not in %s" %
+                    #                   (resource, Config.ambassador_id, allowed_ids))
                     continue
 
             self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))

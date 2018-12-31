@@ -45,7 +45,7 @@ class ResourceFetcher:
                         self.logger.debug("%s: SKIP non-YAML" % filepath)
                         continue
 
-                    self.logger.debug("%s: SAVE configuration file" % filepath)
+                    # self.logger.debug("%s: SAVE configuration file" % filepath)
                     inputs.append((filepath, filename))
 
         else:
@@ -94,13 +94,13 @@ class ResourceFetcher:
         kind = obj.get('kind', None)
 
         if kind != "Service":
-            self.logger.debug("%s.%s: ignoring K8s %s object" % (self.filepath, self.ocount, kind))
+            # self.logger.debug("%s.%s: ignoring K8s %s object" % (self.filepath, self.ocount, kind))
             return
 
         metadata = obj.get('metadata', None)
 
         if not metadata:
-            self.logger.debug("%s.%s: ignoring unannotated K8s %s" % (self.filepath, self.ocount, kind))
+            # self.logger.debug("%s.%s: ignoring unannotated K8s %s" % (self.filepath, self.ocount, kind))
             return
 
         # Use metadata to build a unique resource identifier
@@ -108,7 +108,7 @@ class ResourceFetcher:
 
         # This should never happen as the name field is required in metadata for Service
         if not resource_name:
-            self.logger.debug("%s.%s: ignoring unnamed K8s %s" % (self.filepath, self.ocount, kind))
+            # self.logger.debug("%s.%s: ignoring unnamed K8s %s" % (self.filepath, self.ocount, kind))
             return
 
         resource_namespace = metadata.get('namespace', 'default')
@@ -124,8 +124,8 @@ class ResourceFetcher:
         # self.logger.debug("annotations %s" % annotations)
 
         if not annotations:
-            self.logger.debug("%s.%s: ignoring K8s %s without Ambassador annotation" %
-                              (self.filepath, self.ocount, kind))
+            # self.logger.debug("%s.%s: ignoring K8s %s without Ambassador annotation" %
+            #                   (self.filepath, self.ocount, kind))
             return
 
         if self.filename and (not self.filename.endswith(":annotation")):
@@ -177,8 +177,8 @@ class ResourceFetcher:
         r = ACResource.from_dict(rkey, rkey, serialization, obj)
         self.resources.append(r)
 
-        self.logger.debug("%s.%d: save %s %s" %
-                          (self.filename, self.ocount, obj['kind'], obj['name']))
+        # self.logger.debug("%s.%d: save %s %s" %
+        #                   (self.filename, self.ocount, obj['kind'], obj['name']))
 
         return self.ocount + 1
 
