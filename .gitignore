@@ -8,6 +8,7 @@ node_modules/
 
 /key.pem
 /cert.pem
+/vendor/
 
 # --- IntelliJ IDEA ---
 .idea
