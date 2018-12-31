@@ -42,7 +42,7 @@ When a branch is tagged, the
 [CI](https://travis-ci.com/datawire/ambassador-oauth) will build,
 deploy and test end-to-end you branch tag before pushing the new image
 to the [docker
-registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags). Not
+registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags). Note
 that the CI does not check tag hierarchy, so make sure that the new
 tag makes sense. Only tags with format `x.x.x` or `x.x.x-rc` will be
 accepted.
