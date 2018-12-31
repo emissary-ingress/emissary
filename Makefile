@@ -65,7 +65,7 @@ else
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
 endif
 
-# This gives the _previous_ tag, plus a git delta, like 
+# This gives the _previous_ tag, plus a git delta, like
 # 0.36.0-436-g8b8c5d3
 GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
 
@@ -321,7 +321,7 @@ cluster.yaml: $(CLAIM_FILE)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 	rm -f /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
@@ -330,7 +330,7 @@ setup-test: cluster.yaml
 teleproxy-restart:
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
 
 teleproxy-stop:
 	$(call kill_teleproxy)
@@ -347,7 +347,7 @@ KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
-	KUBECONFIG=$(KUBECONFIG) \
+	KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
@@ -360,12 +360,12 @@ clean-test:
 test: setup-develop cluster.yaml
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
-	KUBECONFIG=$(KUBECONFIG) \
+	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
 
 test-list: setup-develop
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
+	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
