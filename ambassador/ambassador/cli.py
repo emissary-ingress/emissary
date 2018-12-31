@@ -450,7 +450,7 @@ class SplitConfigChecker:
 
 def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
                 bootstrap_path=None, ads_path=None, changes=None, gencount=None,
-                debug=False, debug_scout=False, k8s=False):
+                debug=False, debug_scout=False, k8s=True, ir_path=None):
     """
     Generate an Envoy configuration from resources that have already been pulled from Kube
 
@@ -458,12 +458,14 @@ def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
     :param ambex_pid: PID of running Ambex to signal on config changes
     :param bootstrap_path: Path to which to write Envoy bootstrap config
     :param ads_path: Path to which to write Envoy ADS config for Ambex
+    :param ir_path: If set, path to which to dump the IR
     :param changes: How many changes since the last update have happened?
     :param gencount: Generation count of this update
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output when talking to Scout
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     """
+    # :param k8s: If set, assume configuration files are annotated K8s manifests
+    # """
 
     if debug:
         logger.setLevel(logging.DEBUG)
@@ -501,15 +503,20 @@ def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
     if not ads_path:
         ads_path="envoy/envoy.json"
 
+    logger.info("SAVING CONFIG")
+
     with open(bootstrap_path, "w") as output:
         output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
 
     with open(ads_path, "w") as output:
         output.write(json.dumps(ads_config, sort_keys=True, indent=4))
 
-    logger.info("RESTARTING")
+    if ir_path:
+        with open(ir_path, "w") as output:
+            output.write(ir.as_json())
 
     if ambex_pid != 0:
+        logger.info("RESTARTING")
         os.kill(ambex_pid, signal.SIGHUP)
 
 
