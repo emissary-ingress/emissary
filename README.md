@@ -1,4 +1,6 @@
-### User documentation
+# ambassador-oauth
+
+## User documentation
 
 If you just want to try to run this as an end user, the end user
 documentation is here: https://github.com/datawire/ambassador-pro
@@ -12,7 +14,7 @@ documentation is here: https://github.com/datawire/ambassador-pro
 Project must be cloned in
 `$GOPATH/src/github.com/datawire/ambassador-oauth/`.
 
-### Installing
+### Compile
 
     $ make install
 
@@ -56,7 +58,7 @@ accepted.
    on every pull-request. The images will be tagged with the
    correspondent PR number prefixed with `pull-`.
 
-## Manual deployment:
+### Manual deployment:
 
  1. Create a k8s cluster.
 
@@ -85,7 +87,7 @@ accepted.
         auth0-service      ClusterIP      10.31.254.65    <none>         80/TCP           12m
         httpbin            NodePort       10.31.245.125   <none>         80:30641/TCP     13m
 
-## Manual testing:
+### Manual testing:
 
  1. Go to `http://{EXTERNAL IP}/httpbin/ip`. Your IP address should be
     displayed in a JSON message.
