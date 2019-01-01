@@ -172,7 +172,8 @@ pids="${pids:+${pids} }$!:envoy"
 #/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
 KUBEWATCH_SYNC_CMD="ambassador splitconfig --debug --k8s --bootstrap-path=${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY_CONFIG_FILE} --ambex-pid=${AMBEX_PID}"
 
-"$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" secrets services &
+set -x
+"$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
 pids="${pids:+${pids} }$!:kubewatch"
 
 echo "AMBASSADOR: waiting"
