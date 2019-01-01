@@ -14,6 +14,7 @@ import pytest
 import time
 import threading
 import traceback
+from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
@@ -628,18 +629,26 @@ class Runner:
             for cfg in n.config():
                 if isinstance(cfg, str):
                     parent_config = configs[n.parent][0][1][0]
-                    for o in load(n.path, cfg, Tag.MAPPING):
-                        parent_config.merge(o)
+
+                    try:
+                        for o in load(n.path, cfg, Tag.MAPPING):
+                            parent_config.merge(o)
+                    except YAMLScanError as e:
+                        raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg))
                 else:
                     target = cfg[0]
-                    yaml = load(n.path, cfg[1], Tag.MAPPING)
 
-                    if n.ambassador_id:
-                        for obj in yaml:
-                            if "ambassador_id" not in obj:
-                                obj["ambassador_id"] = n.ambassador_id
+                    try:
+                        yaml = load(n.path, cfg[1], Tag.MAPPING)
 
-                    configs[n].append((target, yaml))
+                        if n.ambassador_id:
+                            for obj in yaml:
+                                if "ambassador_id" not in obj:
+                                    obj["ambassador_id"] = n.ambassador_id
+
+                        configs[n].append((target, yaml))
+                    except YAMLScanError as e:
+                        raise Exception("Parse Error: %s, input text:\n%s" % (e, cfg[1]))
 
         for tgt_cfgs in configs.values():
             for target, cfg in tgt_cfgs:
@@ -744,10 +753,16 @@ class Runner:
     @_ready.when("pod")
     def _ready(self, _, requirements):
         pods = self._pods()
+        not_ready = []
+
         for node, name in requirements:
             if not pods.get(name, False):
-                print("%s not ready, " % name, end="")
-                return False
+                not_ready.append(name)
+
+        if not_ready:
+            print("%d not ready (%s), " % (len(not_ready), name), end="")
+            return False
+
         return True
 
     @_ready.when("url")
@@ -764,7 +779,7 @@ class Runner:
 
         if not_ready:
             first = not_ready[0]
-            print("%s not ready (%s) " % (first.query.url, first.status or first.error), end="")
+            print("%d not ready (%s) " % (len(not_ready), first.status or first.error), end="")
             return False
         else:
             return True
