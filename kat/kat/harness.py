@@ -779,7 +779,7 @@ class Runner:
 
         if not_ready:
             first = not_ready[0]
-            print("%d not ready (%s) " % (len(not_ready), first.status or first.error), end="")
+            print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
             return False
         else:
             return True
