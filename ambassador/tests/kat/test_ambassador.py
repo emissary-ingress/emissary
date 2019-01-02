@@ -1091,8 +1091,6 @@ tls: true
 class HostRedirectMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
-    canary: ServiceType
-    weight: int
 
     def init(self):
         MappingTest.init(self, HTTP())
