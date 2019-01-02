@@ -12,6 +12,7 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
 from t_ratelimit import RateLimitTest
 from t_tracing import TracingTest
+from t_shadow import ShadowTest
 
 # XXX: should test empty ambassador config
 
@@ -1108,8 +1109,6 @@ tls: true
 class HostRedirectMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
-    canary: ServiceType
-    weight: int
 
     def init(self):
         MappingTest.init(self, HTTP())
