@@ -6,10 +6,31 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro
       service: "ambassador-pro:8081"
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      name: authentication
+      auth_service: ambassador-pro
+      allowed_request_headers:
+      - "Location"
+      - "Client-Id"
+      - "Client-Secret"
+      allowed_authorization_headers:
+      - "Location"
+      - "Set-Cookie"
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: ambassador-pro
 spec:
   selector:
     service: ambassador-pro
@@ -110,21 +131,9 @@ spec:
         ports:
         - containerPort: 8080
         env:
-#         Configure to your callback URL
-          - name: AUTH_CALLBACK_URL
+        # Auth provider's abolute url: {scheme}://{host}
+          - name: AUTH_PROVIDER_URL
             value: ""
-#         Configure to your Auth0 domain
-          - name: AUTH_DOMAIN
-            value: ""
-#         Configure to your Auth0 API Audience
-          - name: AUTH_AUDIENCE
-            value: ""
-#         Configure to your Auth0 Application client ID
-          - name: AUTH_CLIENT_ID
-            value: ""
-#          Uncomment if you want the Auth0 management API to validate your configurations
-#          - name: AUTH_CLIENT_SECRET
-#            value: <CLIENT SECRET>
       - name: ratelimit
         image: quay.io/datawire/ambassador_pro:ratelimit-0.2
         env:
@@ -158,6 +167,25 @@ spec:
     kind: Policy
     shortNames:
     - pol
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tenants.stable.datawire.io
+spec:
+  group: stable.datawire.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: tenants
+    singular: tenant
+    kind: Tenant
+    shortNames:
+    - ten
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
