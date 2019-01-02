@@ -5,6 +5,28 @@ Ambassador Pro adds native support for the OAuth and OIDC authentication schemes
 
 **Note:** If you need to use an IDP other than Auth0, please contact us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
 
+## Create an Authentication Application with your IDP
+You will need to have a running application with your IDP to integrate with Ambassador Pro. 
+
+#### Auth0
+You will need to create an application with Auth0 before integrating it with Ambassador Pro. 
+
+1. Navigate to Applications and Select "CREATE APPLICATION"
+
+  ![](/images/create-application.png)
+
+2. In the pop-up window, give the application a name and create a "Machine to Machine App"
+
+  ![](/images/machine-machine.png)
+
+3. Select the Auth0 Management API and grant all scopes to the Application.
+
+  ![](/images/scopes.png)
+  
+4. In your newly created application, list the Domain and Callback URLs for your service and set the "Token Endpoint Authentication Method" to `None`.
+
+  ![](/images/Auth0_none.png)
+
 ## Set Your Auth Provider
 You first need to tell Ambassador Pro which URL to redirect to for authentication. If you are using Auth0, this URL will be the Domain of your Auth0 application and which can be found here:
 
@@ -49,6 +71,12 @@ The `audience` is the API Audience of your Auth0 Management API:
 
 ![](/images/Auth0_audience.png)
 
+Apply the YAML with `kubectl`
+
+```
+kubectl apply -f tenants.yaml
+```
+
 ## Configure Authentication Across Multiple Domains
 
 Ambassador Pro allows authentication from multiple domains. This is easily configured in your `tenants.yaml` file. Each tenant object is processed separately allowing for you to define multiple tenants authenticating with the same IDP. 
@@ -82,10 +110,16 @@ This will configure Ambassador Pro to require authentication from requests to `h
 **Note:** ensure both domains and callback URLs are listed in `Allowed Web Origins` and `Allowed Callback URLs` respectively. 
 
 ## Test Authentication
-After applying Ambassador Pro and the `tenants.yaml` file, Ambassador Pro should be configured to authenticate with your IDP. You can use any service to test this. From a web browser, attempt to access your service e.g. `http://domain1.example.com/httpbin/`. You should be redirected to an Auth0 login page. Log in using your credentials and you should be redirected to your application. Test SSO by attempting to access the application from a different tab. You should be sent to your application without being redirected to Auth0. 
+After applying Ambassador Pro and the `tenants.yaml` file, Ambassador Pro should be configured to authenticate with your IDP. 
+
+You can use any service to test this. From a web browser, attempt to access your service e.g. `http://domain1.example.com/httpbin/`, and you should be redirected to an Auth0 login page. Log in using your credentials and you should be redirected to your application. 
+
+Next, test SSO by attempting to access the application from a different tab. You should be sent to your application without being redirected to Auth0. 
 
 ## Configure Access Controls
 By default, Ambassador Pro will require all requests be authenticated before passing through. If some services or resources do not require authentication, Ambassador Pro allows for you to configure which services you want authenticated. This is done with the `Policy` custom resource definition. 
+
+This is an example policy for the `httpbin` service defined in the [YAML instalation guide](/user-guide/getting-started#3-creating-your-first-route).
 
 ```
 ---
