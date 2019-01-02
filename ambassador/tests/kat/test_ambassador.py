@@ -743,9 +743,12 @@ class AddResponseHeaders(OptionTest):
 
     def check(self):
         for r in self.parent.results:
+            # Why do we end up with capitalized headers anyway??
+            lowercased_headers = { k.lower(): v for k, v in r.headers.items() }
+
             for k, v in self.value.items():
-                actual = r.backend.response.headers.get(k.lower())
-                assert actual == [v], (actual, [v])
+                actual = lowercased_headers.get(k.lower())
+                assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
 
 
 class HostHeaderMapping(MappingTest):
