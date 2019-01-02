@@ -340,8 +340,11 @@ class Result:
             'headers': self.headers,
         }
 
-        if self.backend:
+        if self.backend and self.backend.name:
             od['backend'] = self.backend.as_dict()
+        else:
+            od['json'] = self.json
+            od['text'] = self.text
 
         return od
 
