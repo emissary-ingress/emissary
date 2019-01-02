@@ -50,6 +50,7 @@ class IRMapping (IRResource):
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "add_request_headers": True,
+        "add_response_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
         # "circuit_breaker": True,
@@ -352,6 +353,7 @@ class IRMappingGroup (IRResource):
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'add_request_headers': True,    # do this manually.
+        'add_response_headers': True,    # do this manually.
         'cluster': True,
         'host': True,
         'kind': True,
@@ -507,6 +509,7 @@ class IRMappingGroup (IRResource):
         #     self.ir.logger.debug("%s: FINALIZING: %s" % (self, self.as_json()))
 
         add_request_headers = {}
+        add_response_headers = {}
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
@@ -524,9 +527,12 @@ class IRMappingGroup (IRResource):
                 self[k] = mapping[k]
 
             add_request_headers.update(mapping.get('add_request_headers', {}))
+            add_response_headers.update(mapping.get('add_response_headers', {}))
 
         if add_request_headers:
             self.add_request_headers = add_request_headers
+        if add_response_headers:
+            self.add_response_headers = add_response_headers
 
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))

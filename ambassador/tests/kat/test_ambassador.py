@@ -728,6 +728,24 @@ class AddRequestHeaders(OptionTest):
                 actual = r.backend.request.headers.get(k.lower())
                 assert actual == [v], (actual, [v])
 
+class AddResponseHeaders(OptionTest):
+
+    parent: Test
+
+    VALUES: ClassVar[Sequence[Dict[str, str]]] = (
+        { "foo": "bar" },
+        { "moo": "arf" }
+    )
+
+    def config(self):
+        yield "add_response_headers: %s" % json.dumps(self.value)
+
+    def check(self):
+        for r in self.parent.results:
+            for k, v in self.value.items():
+                actual = r.backend.response.headers.get(k.lower())
+                assert actual == [v], (actual, [v])
+
 
 class HostHeaderMapping(MappingTest):
 

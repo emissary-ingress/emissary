@@ -115,6 +115,12 @@ class V1Route(dict):
                     for k, v in group.add_request_headers.items()
                 ]
 
+            if "add_response_headers" in group:
+                self["response_headers_to_add"] = [
+                    {"key": k, "value": v}
+                    for k, v in group.add_response_headers.items()
+                ]
+
             if "use_websocket" in group:
                 self["cluster"] = group.mappings[0].cluster.name
             else:
