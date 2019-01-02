@@ -55,6 +55,19 @@ class V2Route(dict):
                 } for k, v in request_headers_to_add.items()
             ]
 
+        response_headers_to_add = group.get('add_response_headers', None)
+
+        if response_headers_to_add:
+            self['response_headers_to_add'] = [
+                {
+                    'header': {
+                        'key': k,
+                        'value': v
+                    },
+                    'append': True  # ???
+                } for k, v in response_headers_to_add.items()
+            ]
+
         # If a host_redirect is set, we won't do a 'route' entry.
         host_redirect = group.get('host_redirect', None)
 
