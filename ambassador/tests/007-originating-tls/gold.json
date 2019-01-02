@@ -68,6 +68,10 @@
               ]
             },
             "filters": [
+              {
+                "name": "grpc_web",
+                "config": {}
+              },
               {"type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_ext_auth_otls_upstream", "path_prefix": "/extauth", "timeout_ms": 5000}

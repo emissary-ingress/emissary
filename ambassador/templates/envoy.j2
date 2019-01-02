@@ -104,6 +104,10 @@
               ]
             },
             "filters": [
+              {
+                "name": "grpc_web",
+                "config": {}
+              },
               {% for filter in filters -%}
               { 
                 {%- if filter.type -%}"type": "{{ filter.type }}",{% endif %}

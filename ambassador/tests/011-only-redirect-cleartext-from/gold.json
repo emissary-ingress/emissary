@@ -67,6 +67,10 @@
             },
             "filters": [
               {
+                "name": "grpc_web",
+                "config": {}
+              },
+              {
                 "name": "cors",
                 "config": {}
               },{"type": "decoder",
@@ -143,6 +147,10 @@
               ]
             },
             "filters": [
+              {
+                "name": "grpc_web",
+                "config": {}
+              },
               {
                 "name": "cors",
                 "config": {}

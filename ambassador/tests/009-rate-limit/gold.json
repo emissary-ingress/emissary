@@ -105,6 +105,10 @@
               ]
             },
             "filters": [
+              {
+                "name": "grpc_web",
+                "config": {}
+              },
               {"type": "decoder",
                 "name": "rate_limit",
                 "config": {"domain": "ambassador", "request_type": "both", "timeout_ms": 20}
