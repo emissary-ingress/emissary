@@ -411,7 +411,7 @@ class IRMappingGroup (IRResource):
 
         self.add_mapping(aconf, mapping)
 
-    def add_mapping(self, aconf: Config, mapping: IRMapping):
+    def add_mapping(self, aconf: Config, mapping: IRMapping) -> None:
         mismatches = []
 
         for k in IRMappingGroup.CoreMappingKeys:
@@ -420,9 +420,11 @@ class IRMappingGroup (IRResource):
                 mismatches.append((k, mapping[k], self.get(k, '-unset-')))
 
         if mismatches:
-            raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
-                            (self.name, mapping.name,
-                             ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])))
+            self.post_error("cannot accept new mapping %s with mismatched %s" % (
+                                mapping.name,
+                                ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
+                            ))
+            return
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
