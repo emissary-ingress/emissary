@@ -88,11 +88,10 @@ service: shadow
     def requirements(self):
         yield from super().requirements()
         yield ("url", Query("http://shadow/check/"))
-        yield ("url", Query("http://zipkin:9411/api/v2/services"))
 
     def queries(self):
         for i in range(100):
-            yield Query(self.parent.url("%s/mark/%d" % (self.name, i)))
+            yield Query(self.parent.url("%s/mark/%d" % (self.name, i % 10)))
 
         yield Query(self.parent.url("%s/check/" % self.name), phase=2)
 
@@ -102,8 +101,13 @@ service: shadow
                 assert not result.headers.get('X-Shadowed', False)
             elif "check" in result.query.url:
                 data = result.json
+                errors = 0
 
-                for i in range(100):
-                    assert data.get(str(i), -1) == 1, "marker %d should be 1, not %d" % (i, data[i])
+                for i in range(10):
+                    value = data.get(str(i), -1)
+                    error = abs(value - 10)
 
+                    if error > 2:
+                        errors += 1
 
+                assert errors == 0
