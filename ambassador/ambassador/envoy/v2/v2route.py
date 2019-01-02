@@ -105,6 +105,16 @@ class V2Route(dict):
 
                 route['cors'] = cors
 
+            # Is shadowing enabled?
+            shadow = group.get("shadows", None)
+
+            if shadow:
+                shadow = shadow[0]
+
+                route['request_mirror_policy'] = {
+                    'cluster': shadow.cluster.name
+                }
+
             # Is RateLimit a thing?
             rlsvc = config.ir.ratelimit
 
