@@ -48,15 +48,24 @@ help.body ?=
 help:  ## Show this message
 	@echo 'Usage: make [TARGETS...]'
 	@echo
-	@printf '%s\n' '$(call _help.escape_quotes,$(help.body))'
+	@printf '%s\n' $(call _help.quote.shell,$(help.body))
 	@echo
 	@echo TARGETS:
 	@sed -En 's/^([^#]*) *: *[#]# */\1	/p' ${MAKEFILE_LIST} | column -t -s '	' | sed 's/^/  /'
 .PHONY: help
 
+define _help.nl
+
+
+endef
+
 # I put this as the last line in the file because it confuses Emacs
 # syntax highlighting and makes the remainder of the file difficult to
 # edit.
-_help.escape_squotes = $(subst ','\'',$1)
+#
+# Based on
+# https://git.lukeshu.com/autothing/tree/build-aux/Makefile.once.head/00-quote.mk?id=9384e763b00774603208b3d44977ed0e6762a09a
+# but modified to make newlines work with shells other than Bash.
+_help.quote.shell = "$$(printf '%s\n' $(subst $(_help.nl),' ','$(subst ','\'',$1)'))"
 
 endif
