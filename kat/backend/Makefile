@@ -1,4 +1,4 @@
-TAG=5
+TAG=6
 
 build:
 	docker build . -t quay.io/datawire/kat-backend:${TAG}

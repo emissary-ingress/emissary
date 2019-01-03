@@ -103,13 +103,20 @@ def v2filter_auth(auth: IRAuth):
     
     assert auth.api_version
     if auth.api_version == "ambassador/v0":
-        # This preserves exactly the same logic prior to ambassador/v1 implementation.
+        # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
         request_headers = dict(ExtAuthRequestHeaders)
 
         for hdr in auth.allowed_headers:
             request_headers[hdr] = True
 
-        allowed_authorization_headers = auth.allowed_headers
+        # Always allow the default set, above. This may be a slight behavior change from the
+        # v0 config, but it seems to aid usability.
+
+        hdrs = set(auth.allowed_headers or [])      # turn list into a set
+        hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
+
+        allowed_authorization_headers = sorted(hdrs)    # sorted() turns the set back into a list
+
         allowed_request_headers = sorted(request_headers.keys())
 
         return {

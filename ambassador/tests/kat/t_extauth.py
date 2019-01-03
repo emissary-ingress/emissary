@@ -256,9 +256,9 @@ path_prefix: "/extauth"
 allowed_headers:
 - X-Foo
 - X-Bar
+- Requested-Location
 - Requested-Status
 - Requested-Header
-- Location
 - X-Foo
 
 """)
@@ -278,7 +278,7 @@ service: {self.target.path.k8s}
                                                   "Request-Header": "Baz"}, expected=401)
         # [1]
         yield Query(self.url("target/"), headers={"requested-status": "302",
-                                                  "location": "foo",
+                                                  "requested-location": "foo",
                                                   "requested-header": "location"}, expected=302)
         # [2]
         yield Query(self.url("target/"), headers={"Requested-Status": "401",
@@ -308,7 +308,7 @@ service: {self.target.path.k8s}
         assert self.results[1].backend.name == self.auth.path.k8s
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
-        assert self.results[1].backend.request.headers["location"] == ["foo"]
+        assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Server"] == ["envoy"]
         assert self.results[1].headers["Location"] == ["foo"]

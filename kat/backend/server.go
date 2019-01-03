@@ -71,6 +71,13 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// If they asked for a specific location to be returned, handle that too.
+	location, ok := r.Header["Requested-Location"]
+
+	if ok {
+	    w.Header()[http.CanonicalHeaderKey("Location")] = location
+	}
+
 	w.WriteHeader(statusCode)
 
 	// Write out all request/response information
