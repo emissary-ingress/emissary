@@ -129,8 +129,11 @@ class ResourceFetcher:
 
         if not isinstance(obj, dict):
             # Bug!!
-            self.post_error(RichStatus.fromError("%s.%d is not a dictionary? %s" %
-                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))))
+            if not obj:
+                self.post_error(RichStatus.fromError("%s.%d is empty" % (self.filename, self.ocount)))
+            else:
+                self.post_error(RichStatus.fromError("%s.%d is not a dictionary? %s" %
+                                                     (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))))
             return self.ocount + 1
 
         if 'kind' not in obj:
