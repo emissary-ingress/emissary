@@ -23,7 +23,7 @@
 #  - format
 #  - clobber
 
-go.module := $(patsubst src/%,%,$(shell cd .go-workspace && find src \( -name '.*' -prune \) -o -type l -print))
+go.module := $(patsubst src/%,%,$(shell cd ./.go-workspace && find src \( -name '.*' -prune \) -o -type l -print))
 ifneq ($(words $(go.module)),1)
   # Print a helpful message
   ifeq ($(wildcard .go-workspace/),)
