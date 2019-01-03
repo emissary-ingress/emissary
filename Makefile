@@ -7,8 +7,6 @@ K8S_DIR=scripts
 
 include k8s.make
 
-.SHELL: /bin/bash
-
 .PHONY: run
 run: install
 	@echo " >>> running oauth server"
