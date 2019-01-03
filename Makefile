@@ -26,8 +26,6 @@ PROFILE=DEV
 
 IMAGE=$($(PROFILE)_IMAGE)
 
-K8S_DIR ?= k8s
-
 .PHONY: build
 build:
 	docker build . -t $(IMAGE)
