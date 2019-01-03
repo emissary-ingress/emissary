@@ -29,11 +29,11 @@ HASH=$(shell cat $(HASH_FILE))
 .PHONY: $(VERSIONED)
 $(VERSIONED):
 	@mkdir -p $(dir $(VERSIONED))
-	@git ls-files --exclude-standard | fgrep -v $(K8S_BUILD) | egrep -v $(UNVERSIONED) > $@
-	@git ls-files --exclude-standard --others | fgrep -v $(K8S_BUILD) | ( egrep -v $(UNVERSIONED) || true ) >> $@
+	git ls-files --exclude-standard | fgrep -v $(K8S_BUILD) | egrep -v $(UNVERSIONED) > $@
+	git ls-files --exclude-standard --others | fgrep -v $(K8S_BUILD) | ( egrep -v $(UNVERSIONED) || true ) >> $@
 
 $(HASH_FILE): $(VERSIONED)
-	@sha1sum $(VERSIONED) $(shell cat $(VERSIONED)) | sha1sum | cut -d" " -f1 > $@
+	sha1sum $(VERSIONED) $(shell cat $(VERSIONED)) | sha1sum | cut -d" " -f1 > $@
 
 ACTIONS=$(K8S_BUILD)/actions
 
@@ -64,7 +64,7 @@ MANIFESTS=$(TEMPLATES:$(K8S_DIR)/%.yaml=$(MANIFESTS_DIR)/%.yaml)
 
 $(MANIFESTS_DIR)/%.yaml : $(K8S_DIR)/%.yaml env.sh
 	@echo "Generating $< -> $@"
-	@mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source env.sh && set +a && IMAGE=$(IMAGE) envsubst" > $@
+	mkdir -p $(MANIFESTS_DIR) && cat $< | /bin/bash -c "set -a && source env.sh && set +a && IMAGE=$(IMAGE) envsubst" > $@
 
 manifests: $(HASH_FILE) $(MANIFESTS)
 
@@ -89,15 +89,15 @@ clean-k8s:
 
 .PHONY: check
 check:
-	@/bin/bash e2e/k8s_check.sh
+	/bin/bash e2e/k8s_check.sh
 
 .PHONY: push-commit-image
 push-commit-image: $(HASH_FILE)
-	@docker tag $(IMAGE) $(CI_IMAGE_SHA)
-	@docker push $(CI_IMAGE_SHA)
+	docker tag $(IMAGE) $(CI_IMAGE_SHA)
+	docker push $(CI_IMAGE_SHA)
 
 .PHONY: push-tagged-image
 push-tagged-image:
-	@docker pull $(CI_IMAGE_SHA)
-	@docker tag $(CI_IMAGE_SHA) $(CI_IMAGE_TAG)
-	@docker push $(CI_IMAGE_TAG)
+	docker pull $(CI_IMAGE_SHA)
+	docker tag $(CI_IMAGE_SHA) $(CI_IMAGE_TAG)
+	docker push $(CI_IMAGE_TAG)
