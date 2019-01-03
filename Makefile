@@ -47,7 +47,7 @@ tools:
 
 e2e_build:
 	@echo " >>> building docker for e2e testing"
-	/bin/bash -c "cd $(PWD)/e2e && docker build -t e2e/test:latest ."
+	docker build -t e2e/test:latest e2e
 
 e2e_test:
 	@echo " >>> running e2e tests"
