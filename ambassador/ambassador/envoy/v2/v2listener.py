@@ -73,7 +73,7 @@ ExtAuthRequestHeaders = {
     'x-b3-spanid': True,
     'X-Forwarded-For': True,
     'X-Forwarded-Host': True,
-    'X-Forwarded-Proto'
+    'X-Forwarded-Proto': True,
     'X-Gateway-Proto': True,
     'x-ot-span-context': True,
     'WWW-Authenticate': True,
