@@ -51,6 +51,11 @@ There are a number of breaking changes in Ambassador 0.50.0:
    
     More information is available in `docs/reference/services/auth-service.md`.
 
+### Microsoft Azure
+
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
+updates after running for a short time. This will be fixed in 0.50.0-GA.
+
 ### AMBASSADOR 0.36.0
 
 - The Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
@@ -99,6 +104,28 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.0-rc3] January 3, 2019
+[0.50.0-rc3]: https://github.com/datawire/ambassador/compare/0.50.0-rc2...0.50.0-rc3
+
+**Ambassador 0.50.0-rc3 is a release candidate**, but see below for an important warning about Azure.
+
+### Microsoft Azure
+
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
+updates after running for a short time. This will be fixed in 0.50.0-GA.
+
+### Changes since 0.50.0-rc2
+
+- The `Location` and `Set-Cookie` headers should always be allowed from the auth service when using an `ambassador/v0` config [#1054] 
+- `add_response_headers` (parallel to `add_request_headers`) is now supported (thanks, @n1koo!)
+- `host_redirect` and `shadow` both now work correctly [#1057], [#1069]
+- Kat is able to give better information when it cannot parse a YAML specification. 
+
+[#1054]: https://github.com/datawire/ambassador/issues/1054
+[#1057]: https://github.com/datawire/ambassador/issues/1057
+[#1069]: https://github.com/datawire/ambassador/issues/1069
+
 ## [0.50.0-rc2] December 24, 2018
 [0.50.0-rc2]: https://github.com/datawire/ambassador/compare/0.50.0-rc1...0.50.0-rc2
 
@@ -115,7 +142,7 @@ Format:
 - `AuthService` v1 will default its `proto` to `http` (thanks @flands!)
 - The JSON diagnostics service supports filtering: requesting `/ambassador/v0/diag/?json=true&filter=errors`, for example, will return only the errors element from the diagnostic output.
 
-[#1050]: https://github.com/datawire/ambassador/issues/1026
+[#1050]: https://github.com/datawire/ambassador/issues/1050
 
 ## [0.50.0-rc1] December 19, 2018
 [0.50.0-rc1]: https://github.com/datawire/ambassador/compare/0.50.0-ea7...0.50.0-rc1
