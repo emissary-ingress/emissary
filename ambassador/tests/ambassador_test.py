@@ -242,6 +242,13 @@ class old_ir (dict):
                 route['request_headers_to_add'] = to_add
                 del(route['add_request_headers'])
 
+            if 'add_response_headers' in route:
+                to_add = [ { "key": k, "value": v }
+                           for k, v in route['add_response_headers'].items() ]
+
+                route['response_headers_to_add'] = to_add
+                del(route['add_response_headers'])
+
             route['clusters'] = []
             rl_actions = []
             
