@@ -19,11 +19,11 @@ You will need to create an application with Auth0 before integrating it with Amb
 
   ![](/images/machine-machine.png)
 
-3. Select the Auth0 Management API and grant all scopes to the Application.
+3. Select the Auth0 Management API. Grant any scopes you may require. You may grant none.
 
   ![](/images/scopes.png)
   
-4. In your newly created application, list the Domain and Callback URLs for your service and set the "Token Endpoint Authentication Method" to `None`.
+4. In your newly created application, list the Domain and Callback URLs for your service and leave "Token Endpoint Authentication Method" as `Post`.
 
   ![](/images/Auth0_none.png)
 
@@ -32,15 +32,18 @@ You first need to tell Ambassador Pro which URL to redirect to for authenticatio
 
 ![](/images/Auth0_domain_clientID.png)
 
+This is done by setting the `AUTH_PROVIDER_URL` environment variable in the Ambassador Pro deployment to your Auth0 domain.
+
 ```
-env:
-# Auth provider's abolute url: {scheme}://{host}
-- name: AUTH_PROVIDER_URL
-  value: https://datawire-ambassador.auth0.com
+- name: auth
+  env:
+  # Auth provider's abolute url: {scheme}://{host}
+    - name: AUTH_PROVIDER_URL
+      value: https://datawire-ambassador.auth0.com
 ```
 
 ## Configure your Authentication Tenants
-Ambassador Pro's authentication service is configured per application you need authenticating. This is configured with the `Tenant` custom resource definition. 
+Ambasador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and what client to use for authentication. 
 
 To configure your tenant, create the following YAML and put it in a file called `tenants.yaml`.
 
@@ -78,8 +81,9 @@ kubectl apply -f tenants.yaml
 ```
 
 ## Configure Authentication Across Multiple Domains
+Ambassador Pro allows supports authentication for multiple domains where each domain is issued it's own separate access token. This allows for a user to log into `foo.example.com` and not have access to `bar.example.com`.
 
-Ambassador Pro allows authentication from multiple domains. This is easily configured in your `tenants.yaml` file. Each tenant object is processed separately allowing for you to define multiple tenants authenticating with the same IDP. 
+To configure this, you will need to create another application with you IDP (see [Create an Authentication Application with your IDP](/user-guide/oauth-oidc-auth/#create-an-authentication-application-with-your-idp)) and create another `Tenant`. 
 
 Example:
 
@@ -88,26 +92,34 @@ Example:
 apiVersion: stable.datawire.io/v1beta1
 kind: Tenant
 metadata:
-  name: tenant
+  name: domain1-tenant
 spec:
   tenants:
   
     # Domain 1
     - tenantUrl: http://domain1.example.com
       audience: https://datawire-ambassador.auth0.com/api/v2/
-      clientId: <CLIENT_ID>
-      secret: <CLIENT_SECRET>
+      clientId: <APP1_CLIENT_ID>
+      secret: <APP1_CLIENT_SECRET>
+```
+
+```
+---
+apiVersion: stable.datawire.io/v1beta1
+kind: Tenant
+metadata:
+  name: domain2-tenant
+spec:
+  tenants:
     
     # Domain 2
     - tenantUrl: http://domain2.example.com
       audience: https://datawire-ambassador.auth0.com/api/v2/
-      clientId: <CLIENT_ID>
-      secret: <CLIENT_SECRET>
+      clientId: <APP2_CLIENT_ID>
+      secret: <APP2_CLIENT_SECRET>
 ```
 
 This will configure Ambassador Pro to require authentication from requests to `http://domain1.example.com` and `http://domain2.example.com`. Ambassador Pro will then create a separate SSO token for each domain.
-
-**Note:** ensure both domains and callback URLs are listed in `Allowed Web Origins` and `Allowed Callback URLs` respectively. 
 
 ## Test Authentication
 After applying Ambassador Pro and the `tenants.yaml` file, Ambassador Pro should be configured to authenticate with your IDP. 
@@ -129,10 +141,10 @@ metadata:
   name: policy
 spec:
   rules:
-  - host: "*"
+  - host: example.com
     path: /httpbin/ip
     public: true
-  - host: "*"
+  - host: example.com
     path: /httpbin/user-agent
     public: false
 ```
