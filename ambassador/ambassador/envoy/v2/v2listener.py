@@ -34,7 +34,7 @@ from .v2tls import V2TLSContext
 if TYPE_CHECKING:
     from . import V2Config
 
-# Static header keys normally used in the context of and authorization request.
+# Static header keys normally used in the context of an authorization request.
 AllowedRequestHeaders = frozenset([
     'authorization',
     'cookie',
@@ -46,7 +46,7 @@ AllowedRequestHeaders = frozenset([
     'x-forwarded-proto'
 ])
 
-# Static header keys normally used in the context of and authorization response.
+# Static header keys normally used in the context of an authorization response.
 AllowedAuthorizationHeaders = frozenset([
     'location',
     'authorization',
@@ -73,7 +73,7 @@ ExtAuthRequestHeaders = {
     'x-b3-spanid': True,
     'X-Forwarded-For': True,
     'X-Forwarded-Host': True,
-    'X-Forwarded-Proto'
+    'X-Forwarded-Proto': True,
     'X-Gateway-Proto': True,
     'x-ot-span-context': True,
     'WWW-Authenticate': True,
@@ -103,13 +103,20 @@ def v2filter_auth(auth: IRAuth):
     
     assert auth.api_version
     if auth.api_version == "ambassador/v0":
-        # This preserves exactly the same logic prior to ambassador/v1 implementation.
+        # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
         request_headers = dict(ExtAuthRequestHeaders)
 
         for hdr in auth.allowed_headers:
             request_headers[hdr] = True
 
-        allowed_authorizarion_headers = auth.allowed_headers
+        # Always allow the default set, above. This may be a slight behavior change from the
+        # v0 config, but it seems to aid usability.
+
+        hdrs = set(auth.allowed_headers or [])      # turn list into a set
+        hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
+
+        allowed_authorization_headers = sorted(hdrs)    # sorted() turns the set back into a list
+
         allowed_request_headers = sorted(request_headers.keys())
 
         return {
@@ -122,7 +129,7 @@ def v2filter_auth(auth: IRAuth):
                         'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                     },
                     'path_prefix': auth.path_prefix,
-                    'allowed_authorization_headers': allowed_authorizarion_headers,
+                    'allowed_authorization_headers': allowed_authorization_headers,
                     'allowed_request_headers': allowed_request_headers,
                 },
                 'send_request_data': auth.allow_request_body
@@ -132,7 +139,7 @@ def v2filter_auth(auth: IRAuth):
     if auth.api_version == "ambassador/v1":
         assert auth.proto
         if auth.proto == "http":
-            allowed_authorizarion_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
+            allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
             allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
 
             return {
@@ -145,7 +152,7 @@ def v2filter_auth(auth: IRAuth):
                             'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                         },
                         'path_prefix': auth.path_prefix,
-                        'allowed_authorization_headers': allowed_authorizarion_headers,
+                        'allowed_authorization_headers': allowed_authorization_headers,
                         'allowed_request_headers': allowed_request_headers,
                     },
                     'send_request_data': auth.allow_request_body
