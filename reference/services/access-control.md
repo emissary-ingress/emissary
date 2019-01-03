@@ -36,7 +36,7 @@ spec:
 The `Policy` defines rules based on matching the `host` and `path` to a request and refers to the `public` attribute to decide whether or not it needs to be authenticated. Since both `host` and `path` support wildcards, it is easy to configure an entire mapping to need to be authenticated or not. 
 
 ```
-apiVersion: stable.datawire.io/v1beta
+apiVersion: stable.datawire.io/v1beta1
 kind: Policy
 metadata:
   name: mappings-policy
@@ -58,6 +58,25 @@ The above `policy` configures Ambassador Pro authentication to
 2. Require authentication for the `qotm` mapping.
 3. Explicitly express the default requiring authentication for all routes. 
 
+#### Mutliple Domains
+
+```
+apiVersion: stable.datawire.io/v1beta1
+kind: Policy
+metadata:
+  name: multi-domain-policy
+spec:
+  rules:
+  - host: foo.bar.com
+    path: /qotm/
+    public: true
+  - host: example.com
+    path: /qotm/
+    public: false
+```
+Imagine you have multiple domains behind Ambassador Pro. A domain `foo.bar.com` and `example.com`. Imagine a service named `qotm` sits behind both of these domains, you want `foo.bar.com` to have public access to `qotm` without authenticating but requests from `example.com` require authentication. The above mapping will accomplish this. 
+
+#### Pass-Through by Default
 ```
 ---
 apiVersion: stable.datawire.io/v1beta1
