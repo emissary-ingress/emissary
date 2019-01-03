@@ -1,5 +1,3 @@
-/.go-workspace
-!/.go-workspace/src/github.com/datawire/ambassador-ratelimit
 *.knaut
 *.knaut.claim
 /bin_*/

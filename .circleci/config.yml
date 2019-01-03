@@ -28,8 +28,6 @@ commands:
 
       - run: mkdir -p ${GOPATH} ${GOBIN}
 
-      - run: curl https://glide.sh/get | sh
-
   kubectl-install:
     steps:
       - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/$(go env GOOS)/$(go env GOARCH)/kubectl
