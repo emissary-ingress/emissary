@@ -20,10 +20,10 @@ include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
 
 TELEPROXY ?= $(dir $(_teleproxy.mk))teleproxy
 TELEPROXY_LOG ?= $(dir $(_teleproxy.mk))teleproxy.log
-TELEPROXY_VERSION = 0.3.2
+TELEPROXY_VERSION = 0.3.8
 KUBE_URL = https://kubernetes/api/
 
-$(TELEPROXY):
+$(TELEPROXY): $(_teleproxy.mk)
 	curl -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $@
 	sudo chmod go-w,a+sx $@
