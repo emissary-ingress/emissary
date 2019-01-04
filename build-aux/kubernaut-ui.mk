@@ -12,7 +12,7 @@
 ## common.mk targets ##
 #  - clean
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-include $(dir $(lastword $(MAKEFILE_LIST)))/kubernaut.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))kubernaut.mk
 
 # We do $(or $(NAME),cluster) instead of setting NAME?=cluster, so
 # that a .mk file providing automatic NAME can set `NAME?=` without
