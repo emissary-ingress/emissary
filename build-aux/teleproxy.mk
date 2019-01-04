@@ -15,13 +15,13 @@
 #  - clean
 #  - clobber
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+_teleproxy.mk := $(lastword $(MAKEFILE_LIST))
+include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
 
-TELEPROXY ?= $(dir $(lastword $(MAKEFILE_LIST)))teleproxy
-TELEPROXY_LOG ?= $(dir $(lastword $(MAKEFILE_LIST)))teleproxy.log
+TELEPROXY ?= $(dir $(_teleproxy.mk))teleproxy
+TELEPROXY_LOG ?= $(dir $(_teleproxy.mk))teleproxy.log
 TELEPROXY_VERSION = 0.3.2
 KUBE_URL = https://kubernetes/api/
-
-include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
 
 $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
