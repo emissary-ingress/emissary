@@ -14,6 +14,7 @@ metadata:
       apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
+      proto: http
       auth_service: ambassador-pro
       allowed_request_headers:
       - "Client-Id"
