@@ -1,9 +1,9 @@
 # Configuring OAuth/OIDC Authentication
 ---
 
-Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with various identity providers (IDPs). This guide will demonstrate configuration using Auth0 as your IDP. 
+Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). This guide will demonstrate configuration using Auth0 as your IDP. 
 
-**Note:** If you need to use an IDP other than Auth0, please contact us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
+**Note:** If you need to use an IDP other than Auth0, please [slack](https://d6e.co/slack) or email us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
 
 ## Create an Authentication Application with your IDP
 You will need to have a running application with your IDP to integrate with Ambassador Pro. 
@@ -30,9 +30,7 @@ You will need to create an application with Auth0 before integrating it with Amb
 
 ## Configure your Authentication Tenants
 
-**Note:** Ensure your [authentication provider](/user-guide/ambassador-pro-install/?no-cache=1#5-single-sign-on) is set in your Ambassador Pro deployment before configuring authentication tenants.
-
--
+**Note:** Ensure your [authentication provider](/user-guide/ambassador-pro-install/#5-single-sign-on) is set in your Ambassador Pro deployment before configuring authentication tenants.
 
 Ambasador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and what client to use for authentication. 
 
@@ -72,9 +70,9 @@ kubectl apply -f tenants.yaml
 ```
 
 ## Configure Authentication Across Multiple Domains
-Ambassador Pro allows supports authentication for multiple domains where each domain is issued it's own separate access token. This allows for a user to log into `foo.example.com` and not have access to `bar.example.com`.
+Ambassador Pro supports authentication for multiple domains where each domain is issued it's own access token. This, for example, allows a user to log into `domain1.example.com` and recieve an access token while remaining to not have access to `domain2.example.com`.
 
-To configure this, you will need to create another application with you IDP (see [Create an Authentication Application with your IDP](/user-guide/oauth-oidc-auth/#create-an-authentication-application-with-your-idp)) and create another `Tenant`. 
+To configure this, you will need to create another application with your IDP (see [Create an Authentication Application with your IDP](/user-guide/oauth-oidc-auth/#create-an-authentication-application-with-your-idp)) and create another `Tenant` for the new domain. 
 
 Example:
 
@@ -110,7 +108,7 @@ spec:
       secret: <APP2_CLIENT_SECRET>
 ```
 
-This will configure Ambassador Pro to require authentication from requests to `http://domain1.example.com` and `http://domain2.example.com`. Ambassador Pro will then create a separate SSO token for each domain.
+This will tell Ambassador Pro to configure separate access tenants for `http://domain1.example.com` and `http://domain2.example.com`. After a subsequent login to either domain, Ambassador Pro will create a separate SSO token for just that domain.
 
 ## Test Authentication
 After applying Ambassador Pro and the `tenants.yaml` file, Ambassador Pro should be configured to authenticate with your IDP. 
