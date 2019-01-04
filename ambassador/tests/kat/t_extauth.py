@@ -153,7 +153,7 @@ allowed_request_headers:
 
 allowed_authorization_headers:
 - X-Foo
-
+- Extauth
 
 """)
         yield self, self.format("""
@@ -186,6 +186,9 @@ service: {self.target.path.k8s}
         yield Query(self.url("target/"), headers={"Requested-Status": "200",
                                                   "Authorization": "foo-11111",
                                                   "Requested-Header": "Authorization"}, expected=200)
+
+        # [5]
+        yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -233,6 +236,29 @@ service: {self.target.path.k8s}
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
+
+        # [5] Verify that X-Forwarded-Proto makes it to the auth service.
+        #
+        # We use the 'extauth' header returned from the test extauth service for this, since
+        # the extauth service (on success) won't actually alter other things going upstream.
+        r5 = self.results[5]
+        assert r5
+
+        assert r5.status == 200
+        assert r5.headers["Server"] == ["envoy"]
+
+        eahdr = r5.backend.request.headers["extauth"]
+        assert eahdr, "no extauth header was returned?"
+        assert eahdr[0], "an empty extauth header element was returned?"
+
+        try:
+            eainfo = json.loads(eahdr[0])
+
+            if eainfo:
+                # Envoy should force this to HTTP, not HTTPS.
+                assert eainfo['request']['headers']['x-forwarded-proto'] == [ 'http' ]
+        except ValueError as e:
+            assert False, "could not parse Extauth header '%s': %s" % (eahdr, e)
 
         # TODO(gsagula): Write tests for all UCs which request header headers
         # are overridden, e.g. Authorization.
@@ -296,7 +322,7 @@ service: {self.target.path.k8s}
                                                   "Authorization": "foo-11111",
                                                   "Requested-Header": "Authorization"}, expected=200)
         # [5]
-        yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200, debug=True)
+        yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
