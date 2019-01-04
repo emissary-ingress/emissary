@@ -28,7 +28,6 @@ config:
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
-proto: http
 auth_service: "{self.auth.path.k8s}"
 path_prefix: "/extauth"
 timeout_ms: 5000
