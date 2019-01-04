@@ -20,14 +20,6 @@ common bit of functionality that you want to make use of.
 
  - Update to latest build-aux:
 
-<<<<<<< HEAD
-       $ git subtree pull --squash --prefix=build-aux git@github.com:datawire/build-aux.git master
-
- - Push "vendored" changes upstream to build-aux.git:
-
-       $ git push git@github.com:datawire/build-aux.git "$(git subtree split --annotate='(YOUR-PROJECT-NAME) ' --prefix=build-aux HEAD)":master
-       $ #                                                                                ^^^^^^^^^^^^^^^^^
-=======
        $ ./build-aux/build-aux-pull
 
  - Push "vendored" changes upstream to build-aux.git:
@@ -75,4 +67,3 @@ understand the `-r` flag.
 	$ rm -rf -- .go-workspace vendor glide.*
 	$ sed -E 's,/go(-workspace)?\.mk,/go-mod.mk,' Makefile
 	$ sed -e '/\.go-workspace/d' .gitignore
->>>>>>> origin
