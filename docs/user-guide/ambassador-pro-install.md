@@ -58,6 +58,8 @@ Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured cor
 
 In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable with the license key that is supplied as part of your trial email.
 
+**Note:** The Ambassador Pro rate limit container will not properly start without your license key.
+
 ### 5. Single Sign-On
 
 Ambassador Pro's authentication service requires a URL for your authentication provider. This will be the URL Ambassador Pro will direct to for authentication. If you are using Auth0, this URL with be the Domain of your Auth0 application. This can be found here:
@@ -75,6 +77,8 @@ Add this as the `AUTH_PROVIDER_URL` in your Ambassador Pro deployment manifest.
 ```
 
 Next, you will need to configure a tenant for Ambassador Pro to authenticate against. Details on how to configure this can be found in the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth#configure-your-authentication-tenants) documentation.
+
+**Note:** The Ambassador Pro authentication container will not properly start without this set.
 
 ### 6. Deploy Ambassador Pro
 
