@@ -16,16 +16,12 @@ metadata:
       name: authentication
       auth_service: ambassador-pro
       allowed_request_headers:
-      - "Location"
       - "Client-Id"
       - "Client-Secret"
       allowed_authorization_headers:
-      - "Location"
-      - "Set-Cookie"
       - "Authorization"
       - "Client-Id"
       - "Client-Secret"
-      - "X-Forwarded-Proto"
       ---
       apiVersion: ambassador/v1
       kind: Mapping
@@ -128,7 +124,7 @@ spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: auth
-        image: quay.io/datawire/ambassador_pro:auth-0.0.6
+        image: quay.io/datawire/ambassador-pro:66d06c253c34632a4e6ea4f13c8f9945c0169439-dirty
         ports:
         - containerPort: 8080
         env:
@@ -206,3 +202,22 @@ spec:
     kind: RateLimit
     shortNames:
     - rl
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tenants.stable.datawire.io
+spec:
+  group: stable.datawire.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: tenants
+    singular: tenant
+    kind: Tenant
+    shortNames:
+    - ten
