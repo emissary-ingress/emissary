@@ -34,8 +34,8 @@ scripts/02-ambassador-certs.yaml: cert.pem key.pem
 
 .PHONY: deploy
 deploy: ## Deploy $(DEV_IMAGE) to a k8s cluster
-deploy: push-commit-image $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml) $(K8S_DIR)/02-ambassador-certs.yaml
-	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
+deploy: push-commit-image $(KUBEAPPLY) env.sh $(K8S_DIR)/02-ambassador-certs.yaml
+	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(wildcard $(K8S_DIR)/*.yaml), -f $y)
 
 .PHONY: push-commit-image
 push-commit-image: ## docker push $(DEV_IMAGE)
