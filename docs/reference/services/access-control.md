@@ -11,7 +11,7 @@ A `rule` for the `Policy` CRD is a set of hosts, paths, and permission settings 
 | `host`    | "*", "foo.com" | the Host that a given rule should match |
 | `path`    | "/foo/url/"    | the URL path that a given rule should match to |
 | `public`  | true           | a boolean that indicates whether or not authentication is required; default false |
-| `scopes`  | "read:test" | the rights that need to be granted in a given API |
+| `scopes`  | openid | the rights that need to be granted in a given API. Not all APIs will need a scope defined.<br> e.g. `scope: openid` is required for OIDC conformant authentication servers |
 
 ### Examples
 The following policy is shown in the [OAuth/OIDC Authentication](/user-guide/oauth-oidc-auth#test-the-auth0-application) guide and is used to secure the example `httpbin` service. 
@@ -26,17 +26,19 @@ spec:
   - host: "*"
     path: /httpbin/ip
     public: true
+    scope: openid
   - host: "*"
     path: /httpbin/user-agent/*
     public: false
+    scope: openid
   - host: "*"
     path: /httpbin/headers/*
-    scopes: "read:test"
+    scope: openid
 ```
 The `Policy` defines rules based on matching the `host` and `path` to a request and refers to the `public` attribute to decide whether or not it needs to be authenticated. Since both `host` and `path` support wildcards, it is easy to configure an entire mapping to need to be authenticated or not. 
 
 ```
-apiVersion: stable.datawire.io/v1beta
+apiVersion: stable.datawire.io/v1beta1
 kind: Policy
 metadata:
   name: mappings-policy
@@ -58,6 +60,25 @@ The above `policy` configures Ambassador Pro authentication to
 2. Require authentication for the `qotm` mapping.
 3. Explicitly express the default requiring authentication for all routes. 
 
+#### Mutliple Domains
+
+```
+apiVersion: stable.datawire.io/v1beta1
+kind: Policy
+metadata:
+  name: multi-domain-policy
+spec:
+  rules:
+  - host: foo.bar.com
+    path: /qotm/
+    public: true
+  - host: example.com
+    path: /qotm/
+    public: false
+```
+Imagine you have multiple domains behind Ambassador Pro. A domain `foo.bar.com` and `example.com`. Imagine a service named `qotm` sits behind both of these domains, you want `foo.bar.com` to have public access to `qotm` without authenticating but requests from `example.com` require authentication. The above mapping will accomplish this. 
+
+#### Pass-Through by Default
 ```
 ---
 apiVersion: stable.datawire.io/v1beta1
