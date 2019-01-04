@@ -6,22 +6,16 @@ services:
 env:
   global:
   # Kubernetes
-  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
-  - K8S_PROJECT=datawireio
-  - K8S_CLUSTER=ambassador-oauth-testing
-  - K8S_ZONE=us-central1-a
-  - K8S_ACCOUNT_NAME=ambassador-oauth@datawireio.iam.gserviceaccount.com
   - KUBECTL_VERSION=v1.12.0
-  # Docker
+  # GKE
+  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+  - K8S_ACCOUNT_NAME=ambassador-oauth@datawireio.iam.gserviceaccount.com
+  - K8S_CLUSTER=ambassador-oauth-testing
+  - K8S_PROJECT=datawireio
+  - K8S_ZONE=us-central1-a
+  # Quay
   - DOCKER_REGISTRY=quay.io/datawire
   - DOCKER_REPO=ambassador-pro
-  # Kubernetes
-  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
-  - K8S_PROJECT=datawireio
-  - K8S_CLUSTER=ambassador-oauth-testing
-  - K8S_ZONE=us-central1-a
-  - K8S_ACCOUNT_NAME=ambassador-oauth@datawireio.iam.gserviceaccount.com
-  # Quay
   - secure: Wvi4QIy1EfLYeVMkb/x49jA0MOIqzwuE0FaOcpfmZnn2+Jrw8ZXXUT3ZK6B7ROTE5uYlVyCsHLtgZRpA2Sj1zyPorYfQ05FSh2ULDTm3LW/MvzSb+q83EMQyy8yw+fQsBHoedbm+Ygbw4mVaV1DgK5MvUHBvetQqhkhv8v2dM90xDErXKY75pJaNCX1sZiqWvLyLx89Wq5wCGwwhDgeKz3iPa/uLC7VZgxPNkdNEWDInwzf0xuukYivVOQSgYE8qW6OWSqtdwRHPJbMu8kEh/cDa1nWmIby4XaaV3jgSjmzFWGRYCQeW8P/Hpzk9LvNSMc9gqdiwRCgMJ97OMpYclLIKHpcY0p4KghS3/mAZMtaqirXFWc9yUsQ9ZQ1Raw5iN5eqkci/5bF6auKOvYZ49ufjIXiok2h3djK3/L5bSIDqtWNOsHfOxXp0vxz4k0tqSho+T+6YpOR4y1Z4Vi7Q6b1c1xnWlhOWrqPni4w0oPkYnbh3Pv0jE7PCSZoCQySrRP3Vp/iEeT/yY0++9/RuOn4eIUBvRKezUrge+oRLNOKkaCOZ35CV5RjaQvTODmNIm5Xg0HvDQkyi1weJG+4U4DUE4cTKT5sFtkUuqjOlcnMEYAqXmVA3Z7koGCpSn4tMi428HcRuCOfotd9huHxQRH/tQ0oVFBbQJjHnbqRfd38=
   - secure: l8nQVSKVwYpLZTBoMVYnFGxaIbpb0mYCk+fhz5uJQi+P1MkvbXiFcVLrnWqwC/A7Xc+d3v/QHV6fib5sZXaABPLl+Z+fpFc/Q7eLFVfZBVoGVxupfNsF4co7oUMhH6+yJSYjOZTZoqIosp5qJdfLRGgJZYIJgv0cG00G1BmF1HaehzSgp8AaOqdzg0Lzh0IYiksUKbgvEo1JXW9i++xY5gOeu5GMjPsg2mSM3jGa38SBxNd9ftTr2Sx6XQSKIXa17oZkT5CTo3VZrz0dKSKdjB3m9Yud3gvNo1NqrkdbOaUPZSwUDvCYJxz9ADb51bBm0ahuw+TrkEXMcOhE37YZyUXieBpDgc8puKGkkpPKWtfBCV/2AxKJSfrU6BRW0zK8ne6IQgg1VZVLpVNTmTA4mvuJreqkXe0ACGsqp9sbVFVl3IkteSevyl2cLLWrVNKJlStrIOnyBNTqq2qBdDmYB+8SKfF57YSG+rRXRgw/voB95BcVfG6UrQZnmPdGSDXW80RzLnwq6vTonT8XrbF44QG65Fz77mPrNrYYr3ptr5BRn4MEb6ET9todY+JFEn2DnLntjfEcDSIkBrSB4VGxPnh37Q9qF7BP+cTAKQKoHHpQwNW9DvUII7oLcsEAeueS9ngKCx1qPa6VxkbtRHGSPlUbuQMrEUkplZePGLT/nHU=
 
@@ -32,7 +26,7 @@ cache:
 jobs:
   include:
     # On every commit.
-    # Buuild and run unit tests.
+    # Build and run unit tests.
     - stage: testing
       script:
         - make check_format
@@ -41,7 +35,7 @@ jobs:
     # On every release canditate OR release that matches the tag.  
     # Push image to quay and deploy test cluster. 
     - stage: deploying
-      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
+      if: tag =~ /^\d+\.\d+\.\d+(-rc)?$/
       install:
         # Google Cloud SDK installation
         - if [ ! -d "$TRAVIS_HOME/google-cloud-sdk/bin" ]; then rm -rf $TRAVIS_HOME/google-cloud-sdk; curl https://sdk.cloud.google.com | bash; fi
@@ -51,24 +45,24 @@ jobs:
         - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl
         - chmod +x ./kubectl
         - sudo mv ./kubectl /usr/local/bin/kubectl
-        # ServiceAccount keys
+        # log in to quay.io
+        - sh -c 'printf "%s\n" "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"'
+        # log in to GKE
         - openssl aes-256-cbc -K $encrypted_3c8a53ca0ead_key -iv $encrypted_3c8a53ca0ead_iv -in key-file.json.enc -out key-file.json -d
+        - gcloud auth activate-service-account $K8S_ACCOUNT_NAME --key-file=./key-file.json
+        - gcloud --quiet config set container/use_client_certificate False
+        - gcloud --quiet config set project $K8S_PROJECT
+        - gcloud --quiet config set container/cluster $K8S_CLUSTER
+        - gcloud --quiet config set compute/zone $K8S_ZONE
+        - gcloud --quiet container clusters get-credentials $K8S_CLUSTER --zone=$K8S_ZONE
         # Deployment vars
         - cat ./e2e/env.in > env.sh && chmod +x env.sh && source env.sh
       script:
-        - make build
-        - make docker-login
+        # Main
         - make push 
-        - make gcloud 
         - make apply 
-        - make check
         - make push-commit-image
-    
-    # Run headless browser tests on the deployed code.
-    - stage: testing e2e and releasing
-      if: tag =~ /^(\d+\.\d+\.\d+\-rc)$/ OR tag =~ /^(\d+\.\d+\.\d+)$/
-      script:
+        # Headless browser tests
         - make e2e_build
         - make e2e_test
-        - make docker-login 
         - make push-tagged-image    
