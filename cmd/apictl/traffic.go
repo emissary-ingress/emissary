@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -223,19 +225,45 @@ func init() {
 	intercept.MarkFlagRequired("target")
 }
 
-const (
-	API_PORT     = 1237
-	INBOUND_PORT = 1236
-)
+// GetFreePort asks the kernel for a free open port that is ready to use.
+// Similar to telepresence.utilities.find_free_port()
+func GetFreePort() (int, error) {
+	lc := net.ListenConfig{
+		Control: func(network, address string, c syscall.RawConn) error {
+			var operr error
+			fn := func(fd uintptr) {
+				operr = syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
+			}
+			if err := c.Control(fn); err != nil {
+				return err
+			}
+			return operr
+		},
+	}
+	l, err := lc.Listen(context.Background(), "tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+	defer l.Close()
+	return l.Addr().(*net.TCPAddr).Port, nil
+}
+
+var apiPort int
+var inboundPort int
 
 var name string
 var match string
 var target string
 
 func doIntercept(cmd *cobra.Command, args []string) {
+	var err error
+	apiPort, err = GetFreePort()
+	die(err)
+	inboundPort, err = GetFreePort()
+	die(err)
 	info, err := k8s.NewKubeInfo("", "", "")
 	die(err)
-	kargs := fmt.Sprintf("port-forward service/telepresence-proxy %d:8022 %d:8081", INBOUND_PORT, API_PORT)
+	kargs := fmt.Sprintf("port-forward service/telepresence-proxy %d:8022 %d:8081", inboundPort, apiPort)
 	pf := tpu.NewKeeper("KPF", "kubectl "+info.GetKubectl(kargs))
 	pf.Inspect = "kubectl " + info.GetKubectl("describe service/telepresence-proxy deployment/telepresence-proxy")
 	pf.Start()
@@ -270,7 +298,7 @@ func doIntercept(cmd *cobra.Command, args []string) {
 	}
 
 	ssh := tpu.NewKeeper("SSH", "ssh -C -N -oConnectTimeout=5 -oExitOnForwardFailure=yes "+
-		fmt.Sprintf("-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null telepresence@localhost -p %d ", INBOUND_PORT)+
+		fmt.Sprintf("-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null telepresence@localhost -p %d ", inboundPort)+
 		fmt.Sprintf("-R %s:%s", remote_port, target))
 	ssh.Start()
 	defer ssh.Stop()
@@ -329,7 +357,7 @@ func (e *FatalError) Error() string {
 }
 
 func request(name string, method string, data []byte) (result string, err error) {
-	url := fmt.Sprintf("http://127.0.0.1:%d/intercept/%s", API_PORT, name)
+	url := fmt.Sprintf("http://127.0.0.1:%d/intercept/%s", apiPort, name)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
 		return
