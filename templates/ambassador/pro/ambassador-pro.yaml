@@ -14,6 +14,7 @@ metadata:
       apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
+      proto: http
       auth_service: ambassador-pro
       allowed_request_headers:
       - "Client-Id"
@@ -130,6 +131,7 @@ spec:
         - containerPort: 8080
         env:
         # Auth provider's abolute url: {scheme}://{host}
+        # This is required for the container to start
           - name: AUTH_PROVIDER_URL
             value: ""
       - name: ratelimit
@@ -141,7 +143,8 @@ spec:
           value: ambassador-pro-redis:6379
         - name: PORT
           value: "7000"
-#       Enter License Key from trial email
+        # Enter License Key from trial email
+        # This is a required property for the container to start
         - name: AMBASSADOR_LICENSE_KEY
           value: ""
       imagePullSecrets:
