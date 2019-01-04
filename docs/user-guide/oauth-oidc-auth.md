@@ -27,24 +27,13 @@ You will need to create an application with Auth0 before integrating it with Amb
 
   ![](/images/Auth0_none.png)
 
-## Set Your Auth Provider
-You first need to tell Ambassador Pro which URL to redirect to for authentication. If you are using Auth0, this URL will be the Domain of your Auth0 application and which can be found here:
-
-![](/images/Auth0_domain_clientID.png)
-
-This is done by setting the `AUTH_PROVIDER_URL` environment variable in the Ambassador Pro deployment to your Auth0 domain.
-
-```
-- name: auth
-  env:
-  # Auth provider's abolute url: {scheme}://{host}
-    - name: AUTH_PROVIDER_URL
-      value: https://datawire-ambassador.auth0.com
-```
-
-Make these changes in your `ambassador-pro.yaml`, and apply this to your cluster with `kubectl apply -f ambassador-pro.yaml`.
 
 ## Configure your Authentication Tenants
+
+**Note:** Ensure your [authentication provider](/user-guide/ambassador-pro-install/?no-cache=1#5-single-sign-on) is set in your Ambassador Pro deployment before configuring authentication tenants.
+
+-
+
 Ambasador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and what client to use for authentication. 
 
 To configure your tenant, create the following YAML and put it in a file called `tenants.yaml`.
