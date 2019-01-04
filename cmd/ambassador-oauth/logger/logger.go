@@ -23,7 +23,7 @@ func New(c *config.Config) *logrus.Logger {
 
 		customFormatter.FullTimestamp = true
 		// Sets log level.
-		if level, err := logrus.ParseLevel(c.Level); err == nil {
+		if level, err := logrus.ParseLevel(c.LogLevel); err == nil {
 			instance.SetLevel(level)
 		}
 

@@ -17,7 +17,7 @@ import (
 type Config struct {
 	AuthProviderURL string
 	IssuerURL       string
-	Level           string
+	LogLevel        string
 	PKey            string
 	PvtKPath        string
 	PubKPath        string
@@ -34,7 +34,7 @@ func New() *Config {
 		instance = &Config{}
 
 		flag.StringVar(&instance.AuthProviderURL, "auth_provider_url", os.Getenv("AUTH_PROVIDER_URL"), "authorization and identity provider's url")
-		flag.StringVar(&instance.Level, "level", logrus.InfoLevel.String(), "sets log level")
+		flag.StringVar(&instance.LogLevel, "level", os.Getenv("APP_DEBUG"), "sets debug log level")
 		flag.StringVar(&instance.PvtKPath, "private_key", os.Getenv("APP_PRIVATE_KEY_PATH"), "path for private key file")
 		flag.StringVar(&instance.PubKPath, "public_key", os.Getenv("APP_PUBLIC_KEY_PATH"), "path for public key file")
 
@@ -44,6 +44,10 @@ func New() *Config {
 		flag.Parse()
 
 		instance.StateTTL = time.Duration(stateTTL) * time.Minute
+
+		if instance.LogLevel == "" {
+			instance.LogLevel = logrus.InfoLevel.String()
+		}
 
 		if err := instance.Validate(); err != nil {
 			log.Printf("config error: %v", err)
