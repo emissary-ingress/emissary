@@ -23,7 +23,7 @@ You will need to create an application with Auth0 before integrating it with Amb
 
   ![](/images/scopes.png)
   
-4. In your newly created application, list the Domain and Callback URLs for your service and set the "Token Endpoint Authentication Method" to `None`.
+4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `None`. The default YAML installation of Ambassador Pro uses `/callback` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/callback` and `example.com`.
 
   ![](/images/Auth0_none.png)
 
@@ -38,6 +38,8 @@ env:
 - name: AUTH_PROVIDER_URL
   value: https://datawire-ambassador.auth0.com
 ```
+
+Make these changes in your `ambassador-pro.yaml`, and apply this to your cluster with `kubectl apply -f ambassador-pro.yaml`.
 
 ## Configure your Authentication Tenants
 Ambassador Pro's authentication service is configured per application you need authenticating. This is configured with the `Tenant` custom resource definition. 
