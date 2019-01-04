@@ -4,10 +4,26 @@
 Ambassador Pro is a commercial version of Ambassador that includes integrated SSO, flexible rate limiting, and more. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
 
 ### 1. Install and Configure Ambassador
-Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
+Install and configure Ambassador. Ambassador Pro requires Ambassador version `0.50.0-rc2` and above.
+
+Download Ambassador and upgrade the image to `quay.io/datawire/ambassador:0.50.0-rc2`.
 
 ```
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+curl -O https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+```
+
+```diff
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador
+-       image: quay.io/datawire/ambassador:0.40.2
++       image: quay.io/datawire/ambassador:0.50.0-rc2
+```
+Deploy Ambassador and the LoadBalancer service. 
+
+```
+kubectl apply -f ambassador-rbac.yaml
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-service.yaml
 ```
 

@@ -144,9 +144,13 @@ spec:
   - host: example.com
     path: /httpbin/ip
     public: true
+    scope: openid
   - host: example.com
     path: /httpbin/user-agent
     public: false
+    scope: openid
 ```
 This policy will tell Ambassador Pro to not require authentication for requests to `http://example.com/httpbin/ip`. See [Access Control](/reference/services/access-control) for more information.
+
+**Note:** `scope: openid` is required if your authentication server is OIDC Conformant.
 
