@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-## Quickstart (and pretty much everything else you need to know)
-=======
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Makefile snippet for managing kubernaut.io clusters.
@@ -23,7 +20,6 @@
 # called; by default it looks up 'gubernaut' in $PATH.
 #
 ## Quickstart ##
->>>>>>> origin
 #
 #  1. Put this file in your source tree and include it from your
 #     Makefile, e.g.:
@@ -49,30 +45,6 @@
 #
 #     clean: test-cluster.knaut.clean
 #
-<<<<<<< HEAD
-
-%.knaut.claim :
-	@if [ -z $${CI+x} ]; then \
-		echo $(@:%.knaut.claim=%)-$${USER} > $@; \
-	else \
-		echo $(@:%.knaut.claim=%)-$${USER}-$(shell uuidgen) > $@; \
-	fi
-.PRECIOUS: %.knaut.claim
-.SECONDARY: %.knaut.claim
-
-KUBERNAUT=GO111MODULE=off go run build-aux/gubernaut.go
-KUBERNAUT_CLAIM_NAME=$(shell cat $(@:%.knaut=%.knaut.claim))
-
-%.knaut : %.knaut.claim
-	$(KUBERNAUT) -release $(KUBERNAUT_CLAIM_NAME)
-	$(KUBERNAUT) -claim $(KUBERNAUT_CLAIM_NAME) -output $@
-
-%.knaut.clean :
-	if [ -e $(@:%.clean=%.claim) ]; then $(KUBERNAUT) -release $$(cat $(@:%.clean=%.claim)); fi
-	rm -f $(@:%.knaut.clean=%.knaut)
-	rm -f $(@:%.clean=%.claim)
-.PHONY: %.knaut.clean
-=======
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 include $(dir $(lastword $(MAKEFILE_LIST)))/common.mk
 
@@ -92,4 +64,3 @@ GUBERNAUT = GO111MODULE=off go run build-aux/gubernaut.go
 clobber: $(addsuffix .clean,$(wildcard *.knaut))
 
 endif
->>>>>>> origin
