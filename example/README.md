@@ -1,13 +1,12 @@
-***Example files:***
+### Example files:
 
-ambassador.yaml     - Load-balancer deployment and service.
-ambassador-pro.yaml - Authorization deployment and service.
-httpbin.yaml        - Service example that will seat behind the load balancer.
-policy.yaml         - Tells which resources the Ambassador-Pro service should protect.
-tenants.yaml        - Tells which applications should Ambassador-Pro protects.
+* ambassador.yaml - Load-balancer deployment and service.
+* ambassador-pro.yaml - Authorization deployment and service.
+* httpbin.yaml - Service example that will seat behind the load balancer.
+* policy.yaml - Tells which resources the Ambassador-Pro service should protect.
+* tenants.yaml - Tells which applications should Ambassador-Pro protects.
 
-
-***Configuration:***
+### Configuration:
 
 1. In ambassador-pro.yaml, search for `AUTH_PROVIDER_URL`. This is the absolute URL that allows Ambassador-Pro communicating with the auth provider. In this case, Auth0.com.
 2. In tenants.yaml, at least on app configuration needs to be supplied to `tenants` list. Follow the instructions in the manifest on how to configure an application.
@@ -28,8 +27,7 @@ This error means that no app has been supplied in the list of tenants:
 time="2018-12-27 23:22:05" level=error msg="0 tenant apps configured" MAIN=controller
 ```
 
-
-***Single App Testing:***
+### Testing Single Application:
 
 1. From a browser call the following: `{ TENANT URL }/httpbin/ip`
 
@@ -39,8 +37,7 @@ Client should not get redirected to Auth0 and an IP should be displayed.
 
 Client should get redirected to Auth0 after a successful login, the user-agent information should be displayed.
 
-
-***Multiple Applications Testing:***
+### Testing Multiple Applications:
 
 1. Configure a second app domain in Auth0 and add it to the `tenants` list.
 2. From a browser: `{ TENANT URL 2 }/httpbin/ip`
