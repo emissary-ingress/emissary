@@ -24,9 +24,9 @@ TELEPROXY_VERSION = 0.3.2
 KUBE_URL = https://kubernetes/api/
 
 $(TELEPROXY):
-	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
-	sudo chown root $(TELEPROXY)
-	sudo chmod go-w,a+sx $(TELEPROXY)
+	curl -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+	sudo chown root $@
+	sudo chmod go-w,a+sx $@
 
 proxy: ## Launch teleproxy in the background
 proxy: $(CLUSTER) $(TELEPROXY) unproxy
