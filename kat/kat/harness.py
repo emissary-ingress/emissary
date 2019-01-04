@@ -70,8 +70,9 @@ def get_nodes(node_type: type):
     if not inspect.isabstract(node_type) and not node_type.__dict__.get("abstract_test", False):
         yield node_type
     for sc in node_type.__subclasses__():
-        for ssc in get_nodes(sc):
-            yield ssc
+        if not sc.__dict__.get("skip_variant", False):
+            for ssc in get_nodes(sc):
+                yield ssc
 
 
 def variants(cls, *args, **kwargs) -> Tuple[Any]:
