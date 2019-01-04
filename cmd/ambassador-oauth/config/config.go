@@ -33,10 +33,10 @@ func New() *Config {
 	if instance == nil {
 		instance = &Config{}
 
-		flag.StringVar(&instance.AuthProviderURL, "auth_provider_url", os.Getenv("AUTH_PROVIDER_URL"), "authorization and identity provider's url")
-		flag.StringVar(&instance.LogLevel, "level", os.Getenv("APP_DEBUG"), "sets debug log level")
-		flag.StringVar(&instance.PvtKPath, "private_key", os.Getenv("APP_PRIVATE_KEY_PATH"), "path for private key file")
-		flag.StringVar(&instance.PubKPath, "public_key", os.Getenv("APP_PUBLIC_KEY_PATH"), "path for public key file")
+		flag.StringVar(&instance.AuthProviderURL, "auth_provider_url", os.Getenv("AUTH_PROVIDER_URL"), "sets the authorization provider's url")
+		flag.StringVar(&instance.LogLevel, "log_level", os.Getenv("APP_LOG_LEVEL"), "sets app's log level")
+		flag.StringVar(&instance.PvtKPath, "private_key", os.Getenv("APP_PRIVATE_KEY_PATH"), "set's the path for private key file")
+		flag.StringVar(&instance.PubKPath, "public_key", os.Getenv("APP_PUBLIC_KEY_PATH"), "set's the path for public key file")
 
 		var stateTTL int64
 		flag.Int64Var(&stateTTL, "state_ttl", 5, "TTL (in minutes) of a signed state token; default 5")
@@ -65,7 +65,7 @@ func (c *Config) Validate() error {
 	}
 
 	if u.Scheme == "" {
-		return errors.New("UTH_PROVIDER_URL is missing scheme. Accepted formats: [scheme]://[host] or [scheme]://[host]:[port]")
+		return errors.New("AUTH_PROVIDER_URL is missing scheme. Acceptable formats: [scheme]://[host] or [scheme]://[host]:[port]")
 	}
 
 	instance.BaseURL = u

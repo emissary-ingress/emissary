@@ -25,6 +25,9 @@ func New(c *config.Config) *logrus.Logger {
 		// Sets log level.
 		if level, err := logrus.ParseLevel(c.LogLevel); err == nil {
 			instance.SetLevel(level)
+		} else {
+			instance.Errorf("%v. Setting info log level as default.", err)
+			instance.SetLevel(logrus.InfoLevel)
 		}
 
 		log.SetOutput(instance.Writer())

@@ -1,5 +1,5 @@
 ---
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Tenant
 metadata:
   name: tenant
