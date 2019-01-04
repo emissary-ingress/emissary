@@ -14,7 +14,6 @@ metadata:
       apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
-      proto: http
       auth_service: ambassador-pro
       allowed_request_headers:
       - "Client-Id"
@@ -133,7 +132,7 @@ spec:
         # Auth provider's abolute url: {scheme}://{host}
         # This is required for the container to start
           - name: AUTH_PROVIDER_URL
-            value: ""
+            value: https://example.auth0.com
       - name: ratelimit
         image: quay.io/datawire/ambassador_pro:ratelimit-0.2
         env:
