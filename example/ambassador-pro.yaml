@@ -14,6 +14,7 @@ metadata:
        - "Authorization"
        - "Client-Id"
        - "Client-Secret"
+       - "X-Forwarded-Proto"
 spec:
   selector:
     service: ambassador-pro-auth

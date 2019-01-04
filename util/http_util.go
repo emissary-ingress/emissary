@@ -36,11 +36,12 @@ func ToJSONResponse(w http.ResponseWriter, status int, i interface{}) {
 func ToRawURL(r *http.Request) string {
 	var buf bytes.Buffer
 
-	if r.TLS != nil {
+	if r.TLS != nil || r.Header.Get("x-forwarded-proto") == "https" {
 		buf.WriteString("https://")
 	} else {
 		buf.WriteString("http://")
 	}
+
 	buf.WriteString(r.Host)
 	buf.WriteString(r.RequestURI)
 
