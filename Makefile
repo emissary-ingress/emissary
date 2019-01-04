@@ -4,73 +4,41 @@ include build-aux/help.mk
 
 NAME=ambassador-pro
 
-REGISTRY=quay.io
-REGISTRY_NAMESPACE=datawire
 VERSION=0.0.2
 K8S_DIR=scripts
 
-CI_IMAGE_SHA=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(TRAVIS_COMMIT)
-CI_IMAGE_TAG=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(TRAVIS_TAG)
-
-DEV_REGISTRY ?= $(REGISTRY)
-DEV_REGISTRY_NAMESPACE=$(REGISTRY_NAMESPACE)
-DEV_VERSION=$(shell git describe --no-match --always --abbrev=40 --dirty)
-DEV_REPO=$(DEV_REGISTRY_NAMESPACE)/$(NAME)
-DEV_IMAGE=$(DEV_REGISTRY)/$(DEV_REPO):$(DEV_VERSION)
-
-PRD_REGISTRY ?= $(REGISTRY)
-PRD_REGISTRY_NAMESPACE ?= $(REGISTRY_NAMESPACE)
-PRD_VERSION ?= $(VERSION)
-PRD_REPO=$(PRD_REGISTRY_NAMESPACE)/$(NAME)
-PRD_IMAGE=$(PRD_REGISTRY)/$(PRD_REPO):$(PRD_VERSION)
-
-PROFILE=DEV
-
-IMAGE=$($(PROFILE)_IMAGE)
+DOCKER_REGISTRY ?= quay.io/datawire
+DOCKER_REPO ?= ambassador-pro
+DEV_VERSION ?= $(or $(TRAVIS_COMMIT),$(shell git describe --no-match --always --abbrev=40 --dirty))
+PRD_VERSION ?= $(or $(TRAVIS_TAG),$(VERSION))
+DEV_IMAGE=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DEV_VERSION)
+PRD_IMAGE=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(PRD_VERSION)
 
 define help.body
-  PROFILE      = $(PROFILE)
-  DEV_IMAGE    = $(DEV_IMAGE)
-  PRD_IMAGE    = $(PRD_IMAGE)
-  IMAGE        = $(IMAGE) # $(value IMAGE)
-  CI_IMAGE_SHA = $(CI_IMAGE_SHA) # $(value CI_IMAGE_SHA)
-  CI_IMAGE_TAG = $(CI_IMAGE_TAG) # $(value CI_IMAGE_TAG)
+  DEV_IMAGE = $(DEV_IMAGE) # $(value DEV_IMAGE)
+  PRD_IMAGE = $(PRD_IMAGE) # $(value PRD_IMAGE)
   GOBIN        = $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 endef
 
 .PHONY: build
-build: ## docker build -t $(IMAGE)
-	docker build . -t $(IMAGE)
-
-.PHONY: push_ok
-push_ok: ## Check whether it is OK to Docker push
-	@if [ "$(IMAGE)" == "$(PRD_IMAGE)" ]; then echo "CANNOT PUSH TO PROD"; exit 1; fi
-
-.PHONY: push
-push: ## docker push $(IMAGE)
-push: push_ok build
-	docker push $(IMAGE)
+build: ## docker build -t $(DEV_IMAGE)
+	docker build . -t $(DEV_IMAGE)
 
 .PHONY: deploy
-deploy: ## Deploy $(IMAGE) to a k8s cluster
-deploy: push $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
-	set -a && IMAGE=$(IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
-
-.PHONY: apply
-apply: ## Like 'deploy', but sets IMAGE=test
-apply: push $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
-	set -a && . ./env.sh && IMAGE=test && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
+deploy: ## Deploy $(DEV_IMAGE) to a k8s cluster
+deploy: push-commit-image $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
+	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: push-commit-image
-push-commit-image: ## docker push $(CI_IMAGE_SHA)
-	docker tag $(IMAGE) $(CI_IMAGE_SHA)
-	docker push $(CI_IMAGE_SHA)
+push-commit-image: ## docker push $(DEV_IMAGE)
+push-commit-image: build
+	docker push $(DEV_IMAGE)
 
 .PHONY: push-tagged-image
-push-tagged-image: ## docker push $(CI_IMAGE_TAG)
-	docker pull $(CI_IMAGE_SHA)
-	docker tag $(CI_IMAGE_SHA) $(CI_IMAGE_TAG)
-	docker push $(CI_IMAGE_TAG)
+push-tagged-image: ## docker push $(PRD_IMAGE)
+push-tagged-image: build
+	docker tag $(DEV_IMAGE) $(PRD_IMAGE)
+	docker push $(PRD_IMAGE)
 
 .PHONY: run
 run: ## Run ambassador-oauth locally
