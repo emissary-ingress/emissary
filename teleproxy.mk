@@ -5,7 +5,7 @@
 ## Inputs ##
 #  - Variable: TELEPROXY     ?= ./build-aux/teleproxy
 #  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
-#  - Variable: CLUSTER
+#  - Variable: KUBECONFIG
 #  - Variable: KUBE_URL
 ## Outputs ##
 #  - Target       : $(TELERPOXY)
@@ -30,8 +30,9 @@ $(TELEPROXY): $(_teleproxy.mk)
 	sudo chmod go-w,a+sx $@
 
 proxy: ## Launch teleproxy in the background
-proxy: $(CLUSTER) $(TELEPROXY) unproxy
-	KUBECONFIG=$(CLUSTER) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 &
+proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
+# NB: we say KUBECONFIG=$(KUBECONFIG) here because it might not be exported
+	KUBECONFIG=$(KUBECONFIG) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 &
 	@for i in 1 2 4 8 16 32 64 x; do \
 		if [ "$$i" == "x" ]; then echo "ERROR: proxy did not come up"; exit 1; fi; \
 		echo "Checking proxy: $(KUBE_URL)"; \
