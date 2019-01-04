@@ -80,7 +80,7 @@ run: install
 
 .PHONY: install
 install: ## Compile ambassador-oauth (to $GOBIN)
-install: tools vendor
+install: vendor
 	@echo " >>> building"
 	go install ./cmd/...
 
@@ -105,12 +105,6 @@ format: ## Adjust the source code per `go fmt`
 check_format: ## Check: go fmt
 	@echo " >>> checking format"
 	if [ $$(go fmt $$(go list ./... | grep -v vendor/)) ]; then exit 1; fi
-
-tools: ## Install the `dep` command, if it isn't already
-	command -v dep >/dev/null ; if [ $$? -ne 0 ]; then \
-		echo " >>> installing go dep"; \
-		curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh; \
-	fi
 
 e2e_build: ## Build a oauth-client Docker image, for e2e testing
 	@echo " >>> building docker for e2e testing"

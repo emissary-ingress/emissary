@@ -46,6 +46,8 @@ jobs:
         - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl
         - chmod +x ./kubectl
         - sudo mv ./kubectl /usr/local/bin/kubectl
+        # Go dep installation
+        - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
         # log in to quay.io
         - sh -c 'printf "%s\n" "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"'
         # log in to GKE
