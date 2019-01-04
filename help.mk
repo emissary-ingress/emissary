@@ -41,6 +41,9 @@
 #     my-rule: dep1 dep2
 #             recipe
 #     .PHONY: my-rule
+#
+# Because your editor's syntax-highlighting might be unhappy with
+# things inside of help.body, you may prefix lines with "#" or "# ".
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 
 help.body ?=
@@ -48,7 +51,7 @@ help.body ?=
 help:  ## Show this message
 	@echo 'Usage: make [TARGETS...]'
 	@echo
-	@printf '%s\n' $(call _help.quote.shell,$(help.body))
+	@printf '%s\n' $(call _help.quote.shell,$(help.body)) | sed -e 's/^# //' -e 's/^#//'
 	@echo
 	@echo TARGETS:
 	@sed -En 's/^([^#]*) *: *[#]# */\1	/p' ${MAKEFILE_LIST} | column -t -s '	' | sed 's/^/  /'
