@@ -11,7 +11,7 @@ A `rule` for the `Policy` CRD is a set of hosts, paths, and permission settings 
 | `host`    | "*", "foo.com" | the Host that a given rule should match |
 | `path`    | "/foo/url/"    | the URL path that a given rule should match to |
 | `public`  | true           | a boolean that indicates whether or not authentication is required; default false |
-| `scopes`  | "read:test" | the rights that need to be granted in a given API |
+| `scopes`  | openid | the rights that need to be granted in a given API. Not all APIs will need a scope defined.<br> e.g. `scope: openid` is required for OIDC conformant authentication servers |
 
 ### Examples
 The following policy is shown in the [OAuth/OIDC Authentication](/user-guide/oauth-oidc-auth#test-the-auth0-application) guide and is used to secure the example `httpbin` service. 
@@ -26,12 +26,14 @@ spec:
   - host: "*"
     path: /httpbin/ip
     public: true
+    scope: openid
   - host: "*"
     path: /httpbin/user-agent/*
     public: false
+    scope: openid
   - host: "*"
     path: /httpbin/headers/*
-    scopes: "read:test"
+    scope: openid
 ```
 The `Policy` defines rules based on matching the `host` and `path` to a request and refers to the `public` attribute to decide whether or not it needs to be authenticated. Since both `host` and `path` support wildcards, it is easy to configure an entire mapping to need to be authenticated or not. 
 
