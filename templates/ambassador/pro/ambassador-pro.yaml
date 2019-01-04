@@ -82,6 +82,7 @@ rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
   - policies
+  - tenants
   verbs: ["get", "list", "watch"]
 - apiGroups: ["getambassador.io"]
   resources:
@@ -202,22 +203,3 @@ spec:
     kind: RateLimit
     shortNames:
     - rl
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: tenants.stable.datawire.io
-spec:
-  group: stable.datawire.io
-  version: v1beta1
-  versions:
-    - name: v1beta1
-      served: true
-      storage: true
-  scope: Namespaced
-  names:
-    plural: tenants
-    singular: tenant
-    kind: Tenant
-    shortNames:
-    - ten
