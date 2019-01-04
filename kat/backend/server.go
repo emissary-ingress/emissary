@@ -78,6 +78,25 @@ func requestLogger(w http.ResponseWriter, r *http.Request) {
 	    w.Header()[http.CanonicalHeaderKey("Location")] = location
 	}
 
+    add_extauth := os.Getenv("INCLUDE_EXTAUTH_HEADER")
+
+    if len(add_extauth) > 0 {
+        extauth := make(map[string]interface{})
+        extauth["request"] = request
+        extauth["resp_headers"] = lower(w.Header())
+
+        ea_json, err := json.Marshal(extauth)
+
+        if err != nil {
+            ea_json = []byte(fmt.Sprintf("err: %v", err))
+        }
+
+        ea_array := make([]string, 1, 1)
+        ea_array[0] = string(ea_json)
+
+        w.Header()[http.CanonicalHeaderKey("extauth")] = ea_array
+    }
+
 	w.WriteHeader(statusCode)
 
 	// Write out all request/response information

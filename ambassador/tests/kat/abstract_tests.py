@@ -240,11 +240,15 @@ class ServiceType(Node):
 
     path: Name
 
+    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._manifests = service_manifests or manifests.BACKEND
+
     def config(self):
         yield from ()
 
     def manifests(self):
-        return self.format(manifests.BACKEND)
+        return self.format(self._manifests)
 
     def requirements(self):
         yield ("url", Query("http://%s" % self.path.k8s))
@@ -257,6 +261,20 @@ class HTTP(ServiceType):
 
 class GRPC(ServiceType):
     pass
+
+
+class AHTTP(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, service_manifests=manifests.AUTH_BACKEND, **kwargs)
+
+
+class AGRPC(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, service_manifests=manifests.AUTH_BACKEND, **kwargs)
 
 
 @abstract_test
