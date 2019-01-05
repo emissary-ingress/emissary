@@ -123,7 +123,7 @@ spec:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
-              fieldPath: metadata.namespace          
+              fieldPath: metadata.namespace
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -137,4 +137,3 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       restartPolicy: Always
-
