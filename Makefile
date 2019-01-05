@@ -6,19 +6,31 @@ NAME=ambassador-pro
 
 VERSION=0.0.2
 
-DOCKER_REGISTRY ?= quay.io/datawire
-DOCKER_REPO ?= ambassador-pro
-DEV_VERSION ?= $(or $(TRAVIS_COMMIT),$(shell git describe --no-match --always --abbrev=40 --dirty))
-PRD_VERSION ?= $(or $(TRAVIS_TAG),$(VERSION))
-DEV_IMAGE=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(DEV_VERSION)
-PRD_IMAGE=$(DOCKER_REGISTRY)/$(DOCKER_REPO):$(PRD_VERSION)
+PRD_DOCKER_REGISTRY = quay.io/datawire
+PRD_DOCKER_REPO = ambassador-pro
+PRD_VERSION = $(or $(TRAVIS_TAG),$(VERSION))
+PRD_IMAGE = $(PRD_DOCKER_REGISTRY)/$(PRD_DOCKER_REPO):$(PRD_VERSION)
+
+DEV_DOCKER_REGISTRY = localhost:31000
+DEV_DOCKER_REPO = ambassador-pro
+DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --no-match --always --abbrev=40 --dirty))
+DEV_IMAGE = $(DEV_DOCKER_REGISTRY)/$(DEV_DOCKER_REPO):$(DEV_VERSION)
 
 define help.body
-  DEV_IMAGE = $(DEV_IMAGE) # $(value DEV_IMAGE)
-  PRD_IMAGE = $(PRD_IMAGE) # $(value PRD_IMAGE)
-  GOBIN        = $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
+# Unlike most Makefiles, the output of `make build` isn't a file, but
+# is the Docker image $$(DEV_IMAGE).
+#
+#   DEV_IMAGE = $(value DEV_IMAGE)
+#             = $(DEV_IMAGE)
+#
+#   PRD_IMAGE = $(value PRD_IMAGE)
+#             = $(PRD_IMAGE)
+#
+#   GOBIN     = $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 endef
 
+# The main "output" of the Makefile is actually a Docker image, not a
+# file.
 .PHONY: build
 build: ## docker build -t $(DEV_IMAGE)
 	docker build . -t $(DEV_IMAGE)
@@ -33,13 +45,15 @@ scripts/02-ambassador-certs.yaml: cert.pem key.pem
 
 .PHONY: deploy
 deploy: ## Deploy $(DEV_IMAGE) to a k8s cluster
-deploy: push-commit-image $(KUBEAPPLY) env.sh scripts/02-ambassador-certs.yaml
+deploy: build $(KUBEAPPLY) env.sh scripts/02-ambassador-certs.yaml
+	$(KUBEAPPLY) -f scripts/00-registry.yaml
+	{ \
+	    kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & \
+	    trap "kill $$!; wait" EXIT; \
+	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
+	    docker push $(DEV_IMAGE); \
+	}
 	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
-
-.PHONY: push-commit-image
-push-commit-image: ## docker push $(DEV_IMAGE)
-push-commit-image: build
-	docker push $(DEV_IMAGE)
 
 .PHONY: push-tagged-image
 push-tagged-image: ## docker push $(PRD_IMAGE)

@@ -65,7 +65,6 @@ jobs:
         # commands from running (but it will be marked as a failure).
 
         # Main
-        - make push-commit-image
         - make deploy
         # Headless browser tests
         - make e2e_build
