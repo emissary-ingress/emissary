@@ -19,7 +19,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: ambassador
-  namespace: datawire
 rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
@@ -69,7 +68,7 @@ metadata:
        - "Client-Id"
        - "Client-Secret"
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
   - name: http
     port: 80
@@ -84,7 +83,6 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   name: ambassador
-  namespace: datawire
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -100,7 +98,7 @@ metadata:
   name: ambassador
   namespace: datawire
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       annotations:
@@ -112,28 +110,9 @@ spec:
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:0.39.0
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
         env:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        livenessProbe:
-          httpGet:
-            path: /ambassador/v0/check_alive
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /ambassador/v0/check_ready
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
       restartPolicy: Always
