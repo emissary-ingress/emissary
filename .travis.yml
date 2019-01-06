@@ -25,17 +25,7 @@ env:
 
 jobs:
   include:
-    # On every commit.
-    # Build and run unit tests.
-    - stage: testing
-      script:
-        - make check_format
-        - make install
-        - make test
-    
-    # On every release canditate OR release that matches the tag.  
-    # Push image to quay and deploy test cluster. 
-    - stage: deploying
+    - stage: main
       install:
         # Kubectl installation
         - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl
@@ -50,6 +40,11 @@ jobs:
       script:
         # Note that if one command fails, it won't stop the remaining
         # commands from running (but it will be marked as a failure).
+
+        # Main
+        - make check_format
+        - make install
+        - make test
         - make e2e_test
         # Release kubernaut.io claim
         - make release
