@@ -54,12 +54,12 @@ push: push_ok build
 .PHONY: deploy
 deploy: ## Deploy $(IMAGE) to a k8s cluster
 deploy: push $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
-	set -a && IMAGE=$(IMAGE) && source ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
+	set -a && IMAGE=$(IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: apply
 apply: ## Like 'deploy', but sets IMAGE=test
 apply: push $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
-	set -a && source ./env.sh && IMAGE=test && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
+	set -a && . ./env.sh && IMAGE=test && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: push-commit-image
 push-commit-image: ## docker push $(CI_IMAGE_SHA)
