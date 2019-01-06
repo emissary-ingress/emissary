@@ -2,7 +2,7 @@ NAME=ambassador-ratelimit
 PROFILE ?= dev
 
 include build-aux/common.mk
-include build-aux/go.mk
+include build-aux/go-mod.mk
 include build-aux/help.mk
 include build-aux/teleproxy.mk
 include build-aux/kubernaut.mk
