@@ -1,5 +1,6 @@
 include build-aux/kubeapply.mk
 include build-aux/help.mk
+include build-aux/teleproxy.mk
 .DEFAULT_GOAL = help
 
 NAME=ambassador-pro
@@ -101,5 +102,8 @@ e2e_build: ## Build a oauth-client Docker image, for e2e testing
 	docker build -t e2e/test:latest e2e
 
 e2e_test: ## Check: e2e tests
+e2e_test: e2e_build deploy
 	@echo " >>> running e2e tests"
+	$(MAKE) proxy
 	docker run --rm e2e/test:latest
+	$(MAKE) unproxy

@@ -63,11 +63,6 @@ jobs:
       script:
         # Note that if one command fails, it won't stop the remaining
         # commands from running (but it will be marked as a failure).
-
-        # Main
-        - make deploy
-        # Headless browser tests
-        - make e2e_build
         - make e2e_test
       after_success:
         - make push-tagged-image
