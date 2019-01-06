@@ -59,7 +59,7 @@ deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 
 .PHONY: push-tagged-image
 push-tagged-image: ## docker push $(PRD_IMAGE)
-push-tagged-image: build
+#push-tagged-image: build
 	docker tag $(DEV_IMAGE) $(PRD_IMAGE)
 	docker push $(PRD_IMAGE)
 
