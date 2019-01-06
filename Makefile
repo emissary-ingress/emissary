@@ -5,8 +5,7 @@ include build-aux/common.mk
 include build-aux/go-mod.mk
 include build-aux/help.mk
 include build-aux/teleproxy.mk
-include build-aux/kubernaut.mk
-include build-aux/shell.mk
+include build-aux/kubernaut-ui.mk
 include build-aux/kubeapply.mk
 
 include build-aux/k8s.mk
