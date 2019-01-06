@@ -33,6 +33,7 @@ jobs:
         - sudo mv ./kubectl /usr/local/bin/kubectl
         # Go dep installation
         - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+      before_script:
         # log in to quay.io
         - sh -c 'printf "%s\n" "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"'
         # Deployment vars
