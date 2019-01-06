@@ -36,7 +36,6 @@ jobs:
     # On every release canditate OR release that matches the tag.  
     # Push image to quay and deploy test cluster. 
     - stage: deploying
-      if: tag =~ /^\d+\.\d+\.\d+(-rc)?$/
       install:
         # Kubectl installation
         - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl
@@ -54,5 +53,9 @@ jobs:
         - make e2e_test
         # Release kubernaut.io claim
         - make release
-      after_success:
-        - make push-tagged-image
+      deploy:
+        on:
+          condition: tag =~ /^\d+\.\d+\.\d+(-rc)?$/
+        skip_cleanup: true
+        provider: script
+        script: make push-tagged-image
