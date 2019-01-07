@@ -3,7 +3,7 @@
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). This guide will demonstrate configuration using Auth0 as your IDP. 
 
-**Note:** If you need to use an IDP other than Auth0, please [slack](https://d6e.co/slack) or email us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
+**Note:** If you need to use an IDP other than Auth0, please [Slack](https://d6e.co/slack) or email us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
 
 ## Configure your IDP
 You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
@@ -41,21 +41,20 @@ To configure your tenant, create the following YAML and put it in a file called 
 apiVersion: stable.datawire.io/v1beta1
 kind: Tenant
 metadata:
-  name: tenant
+  name: domain1-tenant
 spec:
   tenants:
-  
     # The URL used to access your app.
     - tenantUrl: {scheme}://{hostname or ip}
     # The API Audience that is listening for authentication requests
-      audience: <AUDIENCE>
+      audience: https://example.auth0.com/api/v2/
     # Client ID from your authentication application
       clientId: <CLIENT_ID>
     # Client Secret from your authentication application
       secret: <CLIENT_SECRET>
 ```
 
-If you are using Auth0, grab the `Client ID` and `Client Secret` from your application settings:
+If you are using Auth0, get the `Client ID` and `Client Secret` from your application settings:
 
 ![](/images/Auth0_secret.png)
 
@@ -69,10 +68,10 @@ Apply the YAML with `kubectl`.
 kubectl apply -f tenants.yaml
 ```
 
-## Configure Authentication Across Multiple Domains
-Ambassador Pro supports authentication for multiple domains where each domain is issued it's own access token. This, for example, allows a user to log into `domain1.example.com` and receive an access token while remaining to not have access to `domain2.example.com`.
+## Configure Authentication Across Multiple Domains (Optional)
+Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
 
-To configure this, you will need to create another authentication endpoint with your IDP (see [Configure your IDP](/user-guide/oauth-oidc-auth/#configure-your-idp)) and create another `Tenant` for the new domain. 
+To configure multi-domain access, you will need to create another authentication endpoint with your IDP (see [Configure your IDP](/user-guide/oauth-oidc-auth/#configure-your-idp)) and create another `Tenant` for the new domain.
 
 Example:
 
@@ -84,10 +83,9 @@ metadata:
   name: domain1-tenant
 spec:
   tenants:
-  
     # Domain 1
     - tenantUrl: http://domain1.example.com
-      audience: https://datawire-ambassador.auth0.com/api/v2/
+      audience: https://example.auth0.com/api/v2/
       clientId: <APP1_CLIENT_ID>
       secret: <APP1_CLIENT_SECRET>
 ```
@@ -100,10 +98,9 @@ metadata:
   name: domain2-tenant
 spec:
   tenants:
-    
     # Domain 2
     - tenantUrl: http://domain2.example.com
-      audience: https://datawire-ambassador.auth0.com/api/v2/
+      audience: https://example.auth0.com/api/v2/
       clientId: <APP2_CLIENT_ID>
       secret: <APP2_CLIENT_SECRET>
 ```
@@ -113,15 +110,15 @@ This will tell Ambassador Pro to configure separate access tenants for `http://d
 ## Test Authentication
 After applying Ambassador Pro and the `tenants.yaml` file, Ambassador Pro should be configured to authenticate with your IDP. 
 
-You can use any service to test this. From a web browser, attempt to access your service (e.g. `http://domain1.example.com/httpbin/`) and you should be redirected to an Auth0 login page. Log in using your credentials and you should be redirected to your application. 
+You can use any service to test this. From a web browser, attempt to access your service (e.g., `http://domain1.example.com/httpbin/`) and you should be redirected to a login page. Log in using your credentials and you should be redirected to your application.
 
-Next, test SSO by attempting to access the application from a different tab. You should be sent to your application without being redirected to Auth0. 
+Next, test SSO by attempting to access the application from a different tab. You should be sent to your application without being redirected to the login page.
 
-You can also use a JWT for authentication through Ambassador Pro. To do this, click on APIs, the API you're using for the Ambassador Authentication service, and then the Test tab. Run the curl command given to get the JWT. 
+You can also use a JWT for authentication through Ambassador Pro. To do this, click on APIs, the API you're using for the Ambassador Authentication service, and then the Test tab. Run the curl command given to get the JWT.
 
 ![](/images/Auth0_JWT.png)
 
-After you have the JWT, use it to send a test cURL to your app by passing it in the `authorization:` header.
+After you have the JWT, use it to send a test `curl` to your app by passing it in the `authorization:` header.
 
 ```
 $ curl --header 'authorization: Bearer eyeJdfasdf...' http://datawire-ambassador.com/httpbin/user-agent
