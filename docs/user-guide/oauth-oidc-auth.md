@@ -5,11 +5,11 @@ Ambassador Pro adds native support for the OAuth and OIDC authentication schemes
 
 **Note:** If you need to use an IDP other than Auth0, please [slack](https://d6e.co/slack) or email us. We are currently testing support for other IDPs, including Keycloak, Okta, and AWS Cognito.
 
-## Create an Authentication Application with your IDP
-You will need to have a running application with your IDP to integrate with Ambassador Pro. 
+## Configure your IDP
+You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
 
 #### Auth0
-You will need to create an application with Auth0 before integrating it with Ambassador Pro. 
+With Auth0 as your IDP, you will need to create an `Application` to handle authentication requests from Ambassador Pro.
 
 1. Navigate to Applications and Select "CREATE APPLICATION"
 
@@ -19,11 +19,11 @@ You will need to create an application with Auth0 before integrating it with Amb
 
   ![](/images/machine-machine.png)
 
-3. Select the Auth0 Management API. Grant any scopes you may require. You may grant none.
+3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.)
 
   ![](/images/scopes.png)
   
-4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `None`. The default YAML installation of Ambassador Pro uses `/callback` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/callback` and `example.com`.
+4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `Post`. The default YAML installation of Ambassador Pro uses `/callback` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/callback` and `example.com`.
 
   ![](/images/Auth0_none.png)
 
@@ -32,7 +32,7 @@ You will need to create an application with Auth0 before integrating it with Amb
 
 **Note:** Ensure your [authentication provider](/user-guide/ambassador-pro-install/#5-single-sign-on) is set in your Ambassador Pro deployment before configuring authentication tenants.
 
-Ambasador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and what client to use for authentication. 
+Ambassador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and what client to use for authentication. 
 
 To configure your tenant, create the following YAML and put it in a file called `tenants.yaml`.
 
@@ -55,7 +55,7 @@ spec:
       secret: <CLIENT_SECRET>
 ```
 
-If you are using Auth0, grab the Client ID and Client Secret from your application settings:
+If you are using Auth0, grab the `Client ID` and `Client Secret` from your application settings:
 
 ![](/images/Auth0_secret.png)
 
@@ -63,16 +63,16 @@ The `audience` is the API Audience of your Auth0 Management API:
 
 ![](/images/Auth0_audience.png)
 
-Apply the YAML with `kubectl`
+Apply the YAML with `kubectl`.
 
 ```
 kubectl apply -f tenants.yaml
 ```
 
 ## Configure Authentication Across Multiple Domains
-Ambassador Pro supports authentication for multiple domains where each domain is issued it's own access token. This, for example, allows a user to log into `domain1.example.com` and recieve an access token while remaining to not have access to `domain2.example.com`.
+Ambassador Pro supports authentication for multiple domains where each domain is issued it's own access token. This, for example, allows a user to log into `domain1.example.com` and receive an access token while remaining to not have access to `domain2.example.com`.
 
-To configure this, you will need to create another application with your IDP (see [Create an Authentication Application with your IDP](/user-guide/oauth-oidc-auth/#create-an-authentication-application-with-your-idp)) and create another `Tenant` for the new domain. 
+To configure this, you will need to create another authentication endpoint with your IDP (see [Configure your IDP](/user-guide/oauth-oidc-auth/#configure-your-idp)) and create another `Tenant` for the new domain. 
 
 Example:
 
@@ -113,14 +113,27 @@ This will tell Ambassador Pro to configure separate access tenants for `http://d
 ## Test Authentication
 After applying Ambassador Pro and the `tenants.yaml` file, Ambassador Pro should be configured to authenticate with your IDP. 
 
-You can use any service to test this. From a web browser, attempt to access your service e.g. `http://domain1.example.com/httpbin/`, and you should be redirected to an Auth0 login page. Log in using your credentials and you should be redirected to your application. 
+You can use any service to test this. From a web browser, attempt to access your service (e.g. `http://domain1.example.com/httpbin/`) and you should be redirected to an Auth0 login page. Log in using your credentials and you should be redirected to your application. 
 
 Next, test SSO by attempting to access the application from a different tab. You should be sent to your application without being redirected to Auth0. 
+
+You can also use a JWT for authentication through Ambassador Pro. To do this, click on APIs, the API you're using for the Ambassador Authentication service, and then the Test tab. Run the curl command given to get the JWT. 
+
+![](/images/Auth0_JWT.png)
+
+After you have the JWT, use it to send a test cURL to your app by passing it in the `authorization:` header.
+
+```
+$ curl --header 'authorization: Bearer eyeJdfasdf...' http://datawire-ambassador.com/httpbin/user-agent
+{
+  "user-agent": "curl/7.54.0"
+}
+```
 
 ## Configure Access Controls
 By default, Ambassador Pro will require all requests be authenticated before passing through. If some services or resources do not require authentication, Ambassador Pro allows for you to configure which services you want authenticated. This is done with the `Policy` custom resource definition. 
 
-This is an example policy for the `httpbin` service defined in the [YAML instalation guide](/user-guide/getting-started#3-creating-your-first-route).
+This is an example policy for the `httpbin` service defined in the [YAML installation guide](/user-guide/getting-started#3-creating-your-first-route).
 
 ```
 ---

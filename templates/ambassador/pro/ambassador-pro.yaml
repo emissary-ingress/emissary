@@ -130,7 +130,7 @@ spec:
         ports:
         - containerPort: 8080
         env:
-        # Auth provider's abolute url: {scheme}://{host}
+        # Auth provider's absolute url: {scheme}://{host}
         # This is required for the container to start
           - name: AUTH_PROVIDER_URL
             value: https://example.auth0.com
