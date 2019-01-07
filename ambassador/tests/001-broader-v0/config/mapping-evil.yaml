@@ -30,3 +30,9 @@ prefix: /evil/
 rewrite: /qotm/quote/
 method: PUT
 service: http://qotm
+---
+hello world
+---
+dictionary: true
+with-no-kind: true
+---

@@ -26,12 +26,50 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:5
+    image: quay.io/datawire/kat-backend:7
     ports:
     - containerPort: 8080
     env:
     - name: BACKEND
       value: {self.path.k8s}
+"""
+
+AUTH_BACKEND = """
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    backend: {self.path.k8s}
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {self.path.k8s}
+  labels:
+    backend: {self.path.k8s}
+spec:
+  containers:
+  - name: backend
+    image: quay.io/datawire/kat-backend:7
+    ports:
+    - containerPort: 8080
+    env:
+    - name: BACKEND
+      value: {self.path.k8s}
+    - name: INCLUDE_EXTAUTH_HEADER
+      value: "yes"
 """
 
 AMBASSADOR = """

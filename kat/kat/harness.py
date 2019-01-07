@@ -70,8 +70,9 @@ def get_nodes(node_type: type):
     if not inspect.isabstract(node_type) and not node_type.__dict__.get("abstract_test", False):
         yield node_type
     for sc in node_type.__subclasses__():
-        for ssc in get_nodes(sc):
-            yield ssc
+        if not sc.__dict__.get("skip_variant", False):
+            for ssc in get_nodes(sc):
+                yield ssc
 
 
 def variants(cls, *args, **kwargs) -> Tuple[Any]:
@@ -340,8 +341,11 @@ class Result:
             'headers': self.headers,
         }
 
-        if self.backend:
+        if self.backend and self.backend.name:
             od['backend'] = self.backend.as_dict()
+        else:
+            od['json'] = self.json
+            od['text'] = self.text
 
         return od
 
@@ -779,7 +783,7 @@ class Runner:
 
         if not_ready:
             first = not_ready[0]
-            print("%d not ready (%s) " % (len(not_ready), first.status or first.error), end="")
+            print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
             return False
         else:
             return True

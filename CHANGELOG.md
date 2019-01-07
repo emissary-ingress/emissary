@@ -2,23 +2,87 @@
 
 ## BREAKING NEWS
 
-- In Ambassador 0.36.0, the Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
+### AMBASSADOR 0.50.0
 
-- **Ambassador 0.35.0 resupports websockets, with the important caveat that a websocket cannot have multiple upstream services**.
+Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS. It also introduces the KAT suite for dramatically-faster functional testing (see `ambassador/tests/kat` for more).
+
+There are a number of breaking changes in Ambassador 0.50.0:
+
+   - Configuration from a `ConfigMap` is no longer supported.
+     
+   - **API version `ambassador/v0` is officially deprecated as of Ambassador 0.50.0-rc1.**
+      - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0.
+   
+      - **Some `ambassador/v1` resources change semantics from their `ambassador/v0` versions**:
+          - The `Mapping` resource no longer supports `rate_limits` as that functionality has been 
+            subsumed by `labels`.
+          - The `AuthService` resource supports more extensive configuration options. An `ambassador/v0`
+            `AuthService` preserves the older, less flexible semantics: see below for more.
+          - The `RateLimitService` permits configuring its `domain` in `ambassador/v1`. 
+
+   - The default value of `use_remote_address` is now `True`. See `docs/reference/modules.md` for more information.
+
+   - Circuit breakers and outlier detection are not supported. They will be reintroduced in a later Ambassador release.
+     
+   - Ambassador now _requires_ a TLS `Module` to enable TLS termination, where previous versions would automatically enable
+     termation if the `ambassador-certs` secret was present. A minimal `Module` for the same behavior is:
+     
+           ---
+           kind: Module
+           name: tls
+           config:
+             server:
+               secret: ambassador-certs
+
+   - There are many changes around the external authentication service:
+   
+      - The authentication `Module` is no longer supported; use `AuthService` instead (which you probably already were).
+     
+      - External authentication now uses the core Envoy `envoy.ext_authz` filter, rather than the custom Datawire auth filter.
+         - `ext_authz` speaks the same protocol, and your existing external auth services should work, however:
+         - `ext_authz` does _not_ send all the request headers to the external auth service, and
+         - `ext_authz` _does_ authenticate `OPTIONS` requests!
+      
+      - We strongly recommend using API version `ambassador/v1` for all `AuthService` resources, so that you can fully
+        configure which headers are allowed from the client to the auth service, and from the auth service upstream. Using
+        API version `ambassador/v0`, Ambassador will attempt to preserve old behavior as documented in
+        `docs/reference/services/auth-service.md`, but you may very well find that you need to shift to API version
+        `ambassador/v1` to fully support your authentication system.
+   
+    More information is available in `docs/reference/services/auth-service.md`.
+
+### Microsoft Azure
+
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
+updates after running for a short time. This will be fixed in 0.50.0-GA.
+
+### AMBASSADOR 0.36.0
+
+- The Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
+
+### AMBASSADOR 0.35.0
+
+- **Websockets are again supported**, with the important caveat that a websocket cannot have multiple upstream services.
   - This means that you cannot do canary deployments for websockets.
     We're actively working on fixing this.
   - Multiple websocket `Mapping`s are still supported.
 
-- Ambassador version 0.35.0 supports running as a non-root user, to improve security and work on other Kubernetes runtimes (e.g. OpenShift). **Running as non-root will become the default in a future Ambassador release; this will be a breaking change.** We recommend proactively switching to non-root now:
+- Running as a non-root user is now supported, to improve security and work on other Kubernetes runtimes (e.g. OpenShift). **Running as non-root will become the default in a future Ambassador release; this will be a breaking change.** We recommend proactively switching to non-root now:
     - Use a `securityContext` in your Ambassador `Deployment` to switch to a non-root user.
     - Set the `service_port` element in the `ambassador` `Module` to a port number greater than 1024. (Ambassador's defaults will change to 8080 for cleartext and 8443 for TLS.)
     - Make sure that incoming traffic to Ambassador routes to the `service_port`. The most likely required change is the `targetPort` in the Kubernetes `Service` resource for Ambassador.
     - If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
     - If you have modified Ambassador's behavior around TLS certificates using a custom Ambassador build, please contact Datawire for more information.
 
-- Ambassador versions **0.34.2** and **0.34.3** cannot support websockets; see the **WARNING** above. This bug is fixed in Ambassador 0.35.0.
+### AMBASSADOR 0.34.2 and 0.34.3
 
-- As of **0.28.0**, Ambassador supports Envoy's `use_remote_address` capability, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
+- **Websockets are not supported in these releases**. This bug is fixed in Ambassador 0.35.0.
+
+### AMBASSADOR 0.28.0
+
+- `use_remote_address` is now supported, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
+
+## RELEASE NOTES
 
 <!---
 Add release notes right after this point.
@@ -40,26 +104,32 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.0-rc3] January 3, 2019
+[0.50.0-rc3]: https://github.com/datawire/ambassador/compare/0.50.0-rc2...0.50.0-rc3
+
+**Ambassador 0.50.0-rc3 is a release candidate**, but see below for an important warning about Azure.
+
+### Microsoft Azure
+
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
+updates after running for a short time. This will be fixed in 0.50.0-GA.
+
+### Changes since 0.50.0-rc2
+
+- The `Location` and `Set-Cookie` headers should always be allowed from the auth service when using an `ambassador/v0` config [#1054] 
+- `add_response_headers` (parallel to `add_request_headers`) is now supported (thanks, @n1koo!)
+- `host_redirect` and `shadow` both now work correctly [#1057], [#1069]
+- Kat is able to give better information when it cannot parse a YAML specification. 
+
+[#1054]: https://github.com/datawire/ambassador/issues/1054
+[#1057]: https://github.com/datawire/ambassador/issues/1057
+[#1069]: https://github.com/datawire/ambassador/issues/1069
+
 ## [0.50.0-rc2] December 24, 2018
 [0.50.0-rc2]: https://github.com/datawire/ambassador/compare/0.50.0-rc1...0.50.0-rc2
 
 **Ambassador 0.50.0-rc2 fixes some significant TLS bugs found in RC1.**
-
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
-
-- **API version `ambassador/v0` is officially deprecated in Ambassador 0.50.0-rc1.**
-    - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0, starting in 0.50.0-rc1.
-
-- Some `ambassador/v1` resources change semantics from their `ambassador/v0` versions:
-    - The `Mapping` resource no longer supports `rate_limits` as that functionality has been 
-      subsumed by `labels`.
-    - The `AuthService` resource supports more extensive configuration options. An `ambassador/v0`
-      `AuthService` preserves the older, less flexible semantics: see the external authentication documentation for more information.
-    - The `RateLimitService` permits configuring its `domain` in `ambassador/v1`. 
-
 
 ### Changes since 0.50.0-rc1:
 
@@ -67,32 +137,17 @@ Format:
 - TLS context handling (especially with multiple contexts and origination contexts) has been made more consistent and correct.
     - Ambassador is now much more careful about reporting errors in TLS configuration (especially around missing keys).
     - You can reference a secret in another namespace with `secret: $secret_name.$namespace`.
-    - Ambassador will now save certifications loaded from Kubernetes to `$AMBASSADOR_CONFIG_BASE_DIR/$namespace/secrets/$secret_name`.
+    - Ambassador will now save certificates loaded from Kubernetes to `$AMBASSADOR_CONFIG_BASE_DIR/$namespace/secrets/$secret_name`.
 - `use_proxy_proto` should be correctly supported [#1050].
 - `AuthService` v1 will default its `proto` to `http` (thanks @flands!)
 - The JSON diagnostics service supports filtering: requesting `/ambassador/v0/diag/?json=true&filter=errors`, for example, will return only the errors element from the diagnostic output.
 
-[#1050]: https://github.com/datawire/ambassador/issues/1026
+[#1050]: https://github.com/datawire/ambassador/issues/1050
 
 ## [0.50.0-rc1] December 19, 2018
 [0.50.0-rc1]: https://github.com/datawire/ambassador/compare/0.50.0-ea7...0.50.0-rc1
 
 **Ambassador 0.50.0-rc1 is a release candidate.**
-
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
-
-- **API version `ambassador/v0` is officially deprecated in Ambassador 0.50.0-rc1.**
-    - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0, starting in 0.50.0-rc1.
-
-- Some `ambassador/v1` resources change semantics from their `ambassador/v0` versions:
-    - The `Mapping` resource no longer supports `rate_limits` as that functionality has been 
-      subsumed by `labels`.
-    - The `AuthService` resource supports more extensive configuration options. An `ambassador/v0`
-      `AuthService` preserves the older, less flexible semantics: see the external authentication documentation for more information.
-    - The `RateLimitService` permits configuring its `domain` in `ambassador/v1`. 
 
 ### Changes since 0.50.0-ea7:
 
@@ -116,11 +171,6 @@ Format:
 
 **Ambassador 0.50.0-ea7 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
 ### Upcoming major changes:
 
 - **API version `ambassador/v0` will be officially deprecated in Ambassador 0.50.0.** 
@@ -149,12 +199,7 @@ Format:
 
 **Ambassador 0.50.0-ea6 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
-### Fixes since 0.50.0-ea5:
+### Changes since 0.50.0-ea5:
 
 - `alpn_protocols` is now supported in the `TLS` module and `TLSContext`s
 - Using `TLSContext`s to provide TLS termination contexts will correctly switch Ambassador to listening on port 443.
@@ -171,12 +216,7 @@ Format:
 
 **Ambassador 0.50.0-ea5 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
-### Fixes since 0.50.0-ea4:
+### Changes since 0.50.0-ea4:
 
 - **`use_remote_address` is now set to `true` by default.** If you need the old behavior, you will need to manually set `use_remote_address` to `false` in the `ambassador` `Module`.
 - Ambassador 0.50.0-ea5 **supports SNI!**  See the docs for more here.
@@ -187,12 +227,7 @@ Format:
 
 **Ambassador 0.50.0-ea4 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
-### Fixes since 0.50.0-ea3:
+### Changes since 0.50.0-ea3:
 
 - Ambassador 0.50.0-ea4 uses Envoy 1.8.0.
 - `RateLimitService` is now supported. **You will need to restart Ambassador if you change the `RateLimitService` configuration.** We expect to lift this restriction in a later release; for now, the diag service will warn you when a restart is required.
@@ -205,12 +240,7 @@ Format:
 
 **Ambassador 0.50.0-ea3 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
-### Fixes since 0.50.0-ea2:
+### Changes since 0.50.0-ea2:
 
 - `TracingService` is now supported. **You will need to restart Ambassador if you change the `TracingService` configuration.** We expect to lift this restriction in a later release; for now, the diag service will warn you when a restart is required.
 - Websockets are now supported, **including** mapping the same websocket prefix to multiple upstream services for canary releases or load balancing.
@@ -223,12 +253,7 @@ Format:
 
 **Ambassador 0.50.0-ea2 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
-### Fixes since 0.50.0-ea1:
+### Changes since 0.50.0-ea1:
 
 - Attempting to enable TLS termination without supplying a valid cert secret will result in HTTP on port 80, rather than HTTP on port 443. **No error will be displayed in the diagnostic service yet.** This is a bug and will be fixed in `-ea3`. 
 - CORS is now supported.
@@ -244,11 +269,6 @@ Format:
 
 **Ambassador 0.50.0-ea1 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
 
-### Major changes:
-
-- Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS.
-- The KAT suite provides dramatically-faster functional testing. See ambassador/tests/kat.
- 
 ### Ambassador 0.50.0 is not yet feature-complete. Limitations:
 
 - `RateLimitService` and `TracingService` resources are not currently supported.

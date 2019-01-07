@@ -40,91 +40,39 @@ class V2Route(dict):
         if len(headers) > 0:
             match['headers'] = headers
 
-        clusters = []
-        req_hdrs_to_add = group.get('request_headers_to_add', None)
-
-        for mapping in group.mappings:
-            cluster = {
-                'name': mapping.cluster.name,
-                'weight': mapping.weight
-            }
-
-            if req_hdrs_to_add:
-                cluster['request_headers_to_add'] = req_hdrs_to_add
-
-            clusters.append(cluster)
-
-        route = {
-            'priority': group.get('priority'),
-            'timeout': "%0.3fs" % (group.get('timeout_ms', 3000) / 1000.0),
-            'weighted_clusters': {
-                'clusters': clusters
-            }
-        }
-
-        if group.get('rewrite', None):
-            route['prefix_rewrite'] = group['rewrite']
-
-        if 'host_rewrite' in group:
-            route['host_rewrite'] = group['host_rewrite']
-
-        if 'auto_host_rewrite' in group:
-            route['auto_host_rewrite'] = group['auto_host_rewrite']
-
-        cors = None
-
-        if "cors" in group:
-            cors = group.cors.as_dict()
-        elif "cors" in config.ir.ambassador_module:
-            cors = config.ir.ambassador_module.cors.as_dict()
-
-        if cors:
-            for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
-                cors.pop(key, None)
-
-            route['cors'] = cors
-
-        # Is RateLimit a thing?
-        rlsvc = config.ir.ratelimit
-
-        if rlsvc:
-            # Yup. Build our labels into a set of RateLimitActions (remember that default
-            # labels have already been handled, as has translating from v0 'rate_limits' to
-            # v1 'labels').
-
-            if "labels" in group:
-                # The Envoy RateLimit filter only supports one domain, so grab the configured domain
-                # from the RateLimitService and use that to look up the labels we should use.
-
-                rate_limits = []
-
-                for rl in group.labels.get(rlsvc.domain, []):
-                    action = V2RateLimitAction(config, rl)
-
-                    if action.valid:
-                        rate_limits.append(action.to_dict())
-
-                if rate_limits:
-                    route["rate_limits"] = rate_limits
-
         self['match'] = match
-        self['route'] = route
 
-        request_headers_to_add = []
-
-        for mapping in group.mappings:
-            for k, v in mapping.get('add_request_headers', {}).items():
-                request_headers_to_add.append({
-                    'header': {'key': k, 'value': v},
-                    'append': True, # ???
-                    })
+        request_headers_to_add = group.get('add_request_headers', None)
 
         if request_headers_to_add:
-            self['request_headers_to_add'] = request_headers_to_add
+            self['request_headers_to_add'] = [
+                {
+                    'header': {
+                        'key': k,
+                        'value': v
+                    },
+                    'append': True  # ???
+                } for k, v in request_headers_to_add.items()
+            ]
 
+        response_headers_to_add = group.get('add_response_headers', None)
+
+        if response_headers_to_add:
+            self['response_headers_to_add'] = [
+                {
+                    'header': {
+                        'key': k,
+                        'value': v
+                    },
+                    'append': True  # ???
+                } for k, v in response_headers_to_add.items()
+            ]
+
+        # If a host_redirect is set, we won't do a 'route' entry.
         host_redirect = group.get('host_redirect', None)
 
         if host_redirect:
+            # We have a host_redirect. Deal with it.
             self['redirect'] = {
                 'host_redirect': host_redirect.service
             }
@@ -133,6 +81,77 @@ class V2Route(dict):
 
             if path_redirect:
                 self['redirect']['path_redirect'] = path_redirect
+        else:
+            # No host_redirect. Do route stuff.
+            clusters = [ {
+                'name': mapping.cluster.name,
+                'weight': mapping.weight
+            } for mapping in group.mappings ]
+
+            route = {
+                'priority': group.get('priority'),
+                'timeout': "%0.3fs" % (group.get('timeout_ms', 3000) / 1000.0),
+                'weighted_clusters': {
+                    'clusters': clusters
+                }
+            }
+
+            if group.get('rewrite', None):
+                route['prefix_rewrite'] = group['rewrite']
+
+            if 'host_rewrite' in group:
+                route['host_rewrite'] = group['host_rewrite']
+
+            if 'auto_host_rewrite' in group:
+                route['auto_host_rewrite'] = group['auto_host_rewrite']
+
+            cors = None
+
+            if "cors" in group:
+                cors = group.cors.as_dict()
+            elif "cors" in config.ir.ambassador_module:
+                cors = config.ir.ambassador_module.cors.as_dict()
+
+            if cors:
+                for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+                    cors.pop(key, None)
+
+                route['cors'] = cors
+
+            # Is shadowing enabled?
+            shadow = group.get("shadows", None)
+
+            if shadow:
+                shadow = shadow[0]
+
+                route['request_mirror_policy'] = {
+                    'cluster': shadow.cluster.name
+                }
+
+            # Is RateLimit a thing?
+            rlsvc = config.ir.ratelimit
+
+            if rlsvc:
+                # Yup. Build our labels into a set of RateLimitActions (remember that default
+                # labels have already been handled, as has translating from v0 'rate_limits' to
+                # v1 'labels').
+
+                if "labels" in group:
+                    # The Envoy RateLimit filter only supports one domain, so grab the configured domain
+                    # from the RateLimitService and use that to look up the labels we should use.
+
+                    rate_limits = []
+
+                    for rl in group.labels.get(rlsvc.domain, []):
+                        action = V2RateLimitAction(config, rl)
+
+                        if action.valid:
+                            rate_limits.append(action.to_dict())
+
+                    if rate_limits:
+                        route["rate_limits"] = rate_limits
+
+            self['route'] = route
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:

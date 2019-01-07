@@ -50,6 +50,7 @@ class IRMapping (IRResource):
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "add_request_headers": True,
+        "add_response_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
         # "circuit_breaker": True,
@@ -351,6 +352,8 @@ class IRMappingGroup (IRResource):
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
+        'add_request_headers': True,    # do this manually.
+        'add_response_headers': True,    # do this manually.
         'cluster': True,
         'host': True,
         'kind': True,
@@ -410,7 +413,7 @@ class IRMappingGroup (IRResource):
 
         self.add_mapping(aconf, mapping)
 
-    def add_mapping(self, aconf: Config, mapping: IRMapping):
+    def add_mapping(self, aconf: Config, mapping: IRMapping) -> None:
         mismatches = []
 
         for k in IRMappingGroup.CoreMappingKeys:
@@ -419,9 +422,11 @@ class IRMappingGroup (IRResource):
                 mismatches.append((k, mapping[k], self.get(k, '-unset-')))
 
         if mismatches:
-            raise Exception("IRMappingGroup %s: cannot accept IRMapping %s with mismatched %s" %
-                            (self.name, mapping.name,
-                             ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])))
+            self.post_error("cannot accept new mapping %s with mismatched %s" % (
+                                mapping.name,
+                                ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
+                            ))
+            return
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
@@ -505,6 +510,9 @@ class IRMappingGroup (IRResource):
         # if verbose:
         #     self.ir.logger.debug("%s: FINALIZING: %s" % (self, self.as_json()))
 
+        add_request_headers = {}
+        add_response_headers = {}
+
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
             #     self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
@@ -519,6 +527,14 @@ class IRMappingGroup (IRResource):
                 #     self.ir.logger.debug("%s: flatten %s" % (self, k))
 
                 self[k] = mapping[k]
+
+            add_request_headers.update(mapping.get('add_request_headers', {}))
+            add_response_headers.update(mapping.get('add_response_headers', {}))
+
+        if add_request_headers:
+            self.add_request_headers = add_request_headers
+        if add_response_headers:
+            self.add_response_headers = add_response_headers
 
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))

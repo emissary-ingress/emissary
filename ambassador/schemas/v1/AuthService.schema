@@ -31,6 +31,6 @@
             "items": { "type": "string" }
         }
     },
-    "required": [ "apiVersion", "kind", "name", "auth_service", "proto" ],
+    "required": [ "apiVersion", "kind", "name", "auth_service" ],
     "additionalProperties": false
 }

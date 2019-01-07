@@ -919,6 +919,36 @@
         ]
     },
     "errors": {
+        "-global-": [
+            {
+                "error": "evil source.4 is not a dictionary? \"hello world\"",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "evil source.5 is missing 'kind'?? {\n    \"dictionary\": true,\n    \"with-no-kind\": true\n}",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "evil source.6 is empty",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "empty.yaml.1 is empty",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
         "auth.yaml.1": [
             {
                 "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
