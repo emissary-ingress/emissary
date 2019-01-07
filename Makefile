@@ -25,14 +25,16 @@ build: ## docker build -t $(DEV_IMAGE)
 	docker build . -t $(DEV_IMAGE)
 
 %/cert.pem %/key.pem: | %
-	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=whatever.com"
+	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
 key.pem: $(CURDIR)/key.pem
 cert.pem: $(CURDIR)/cert.pem
 
+scripts/02-ambassador-certs.yaml: cert.pem key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert cert.pem --key key.pem > $@
+
 .PHONY: deploy
 deploy: ## Deploy $(DEV_IMAGE) to a k8s cluster
-deploy: push-commit-image $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml) cert.pem key.pem
-	kubectl create secret tls ambassador-certs --cert cert.pem --key key.pem
+deploy: push-commit-image $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml) $(K8S_DIR)/02-ambassador-certs.yaml
 	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: push-commit-image
@@ -61,7 +63,7 @@ install: vendor
 .PHONY: clean
 clean: ## Clean
 	@echo " >>> cleaning compiled objects and binaries"
-	rm -f key.pem cert.pem
+	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
 	go clean -i ./...
 
 .PHONY: test

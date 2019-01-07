@@ -1,11 +1,4 @@
 ---
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: datawire
-  labels:
-    name: datawire
----
 apiVersion: v1
 kind: Service
 metadata:
