@@ -2,6 +2,17 @@
 
 How do you verify that the code you've written actually works? Ambassador Pro's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
 
+## Install `apictl`
+
+`apictl` is the command client for Ambassador Pro.
+
+Download the latest version of the client:
+
+[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.0.8/darwin/amd64/apictl)
+[Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.0.8/linux/amd64/apictl)
+
+Make sure the client is somewhere on your PATH.
+
 ## Getting started
 
 In this quick start, we're going to preview a change we make to the QOTM service, without impacting normal users of the QOTM service. Before getting started, make sure:
@@ -24,61 +35,61 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
 2. Now, in another terminal window, redeploy the QOTM service with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `service` and `deployment` is updated as per below.
 
-    ```
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: qotm
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: qotm
-spec:
-  selector:
-    app: qotm
-  ports:
-    - port: 80
-      targetPort: 9900
-  type: ClusterIP
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: qotm
-spec:
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-     labels:
-        app: qotm
-    spec:
-      containers:
-      - name: qotm
-        image: datawire/qotm:1.1
-        ports:
-        - name: http-api
-          containerPort: 5000
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
-      - env:
-        - name: APPNAME
-          value: qotm
-        - name: APPPORT
-          value: "5000"
-        image: ark3/telepresence-sidecar:18
-        name: traffic-sidecar
-        ports:
-        - containerPort: 9900
-    ```
+  ```
+  ---
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: qotm
+    annotations:
+      getambassador.io/config: |
+        ---
+        apiVersion: ambassador/v0
+        kind:  Mapping
+        name:  qotm_mapping
+        prefix: /qotm/
+        service: qotm
+  spec:
+    selector:
+      app: qotm
+    ports:
+      - port: 80
+        targetPort: 9900
+    type: ClusterIP
+  ---
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: qotm
+  spec:
+    replicas: 1
+    strategy:
+      type: RollingUpdate
+    template:
+      metadata:
+       labels:
+          app: qotm
+      spec:
+        containers:
+        - name: qotm
+          image: datawire/qotm:1.1
+          ports:
+          - name: http-api
+            containerPort: 5000
+          resources:
+            limits:
+              cpu: "0.1"
+              memory: 100Mi
+        - env:
+          - name: APPNAME
+            value: qotm
+          - name: APPPORT
+            value: "5000"
+          image: ark3/telepresence-sidecar:18
+          name: traffic-sidecar
+          ports:
+          - containerPort: 9900
+  ```
 
 3. Test to make sure that both your production and development instances of QOTM work:
 
