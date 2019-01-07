@@ -2,5 +2,8 @@
 .vscode/
 env.sh
 
+/key.pem
+/cert.pem
+
 # --- IntelliJ IDEA ---
 .idea

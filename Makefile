@@ -24,9 +24,15 @@ endef
 build: ## docker build -t $(DEV_IMAGE)
 	docker build . -t $(DEV_IMAGE)
 
+%/cert.pem %/key.pem: | %
+	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=whatever.com"
+key.pem: $(CURDIR)/key.pem
+cert.pem: $(CURDIR)/cert.pem
+
 .PHONY: deploy
 deploy: ## Deploy $(DEV_IMAGE) to a k8s cluster
-deploy: push-commit-image $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml)
+deploy: push-commit-image $(KUBEAPPLY) env.sh $(wildcard $(K8S_DIR)/*.yaml) cert.pem key.pem
+	kubectl create secret tls ambassador-certs --cert cert.pem --key key.pem
 	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(foreach y,$(filter %.yaml,$^), -f $y)
 
 .PHONY: push-commit-image
@@ -55,6 +61,7 @@ install: vendor
 .PHONY: clean
 clean: ## Clean
 	@echo " >>> cleaning compiled objects and binaries"
+	rm -f key.pem cert.pem
 	go clean -i ./...
 
 .PHONY: test
