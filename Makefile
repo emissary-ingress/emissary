@@ -37,10 +37,19 @@ define help.body
 #   GOBIN     = $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
 endef
 
+#
+# Main
+
 # The main "output" of the Makefile is actually a Docker image, not a
 # file.
 build:
 	docker build . -t $(DEV_IMAGE)
+
+clean:
+	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
+
+#
+# Check
 
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
@@ -62,6 +71,20 @@ deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	}
 	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
 
+e2e_build: ## Build a oauth-client Docker image, for e2e testing
+	@echo " >>> building docker for e2e testing"
+	docker build -t e2e/test:latest e2e
+
+check-e2e: ## Check: e2e tests
+check-e2e: build-e2e deploy
+	$(MAKE) proxy
+	docker run --rm e2e/test:latest
+	$(MAKE) unproxy
+check: e2e_test
+
+#
+# Utility targets
+
 .PHONY: push-tagged-image
 push-tagged-image: ## docker push $(PRD_IMAGE)
 #push-tagged-image: build
@@ -73,17 +96,3 @@ run: ## Run ambassador-oauth locally
 run: bin_$(GOOS)_$(GOARCH)/ambassador-oauth
 	@echo " >>> running oauth server"
 	./$<
-
-clean:
-	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
-
-e2e_build: ## Build a oauth-client Docker image, for e2e testing
-	@echo " >>> building docker for e2e testing"
-	docker build -t e2e/test:latest e2e
-
-check-e2e: ## Check: e2e tests
-check-e2e: build-e2e deploy
-	$(MAKE) proxy
-	docker run --rm e2e/test:latest
-	$(MAKE) unproxy
-check: e2e_test
