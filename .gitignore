@@ -1,14 +1,21 @@
-*.log
+/vendor/
+
+/env.sh
+/key.pem
+/cert.pem
+
 *.knaut
 *.knaut.claim
-.vscode/
-env.sh
 
 node_modules/
 
-/key.pem
-/cert.pem
-/vendor/
+*.log
+.tmp*
+*.tmp
 
-# --- IntelliJ IDEA ---
+# --- IDE/text editor stuff ---
 .idea
+.vscode/
+#*#
+.#*
+*~
