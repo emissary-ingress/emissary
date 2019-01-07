@@ -1,4 +1,6 @@
 *.log
+*.knaut
+*.knaut.claim
 .vscode/
 env.sh
 

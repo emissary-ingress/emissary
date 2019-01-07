@@ -1,9 +1,10 @@
+NAME=ambassador-pro
+
 include build-aux/kubeapply.mk
 include build-aux/help.mk
 include build-aux/teleproxy.mk
+include build-aux/kubernaut-ui.mk
 .DEFAULT_GOAL = help
-
-NAME=ambassador-pro
 
 VERSION=0.0.2
 
@@ -45,8 +46,8 @@ scripts/02-ambassador-certs.yaml: cert.pem key.pem
 	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert cert.pem --key key.pem > $@
 
 .PHONY: deploy
-deploy: ## Deploy $(DEV_IMAGE) to a k8s cluster
-deploy: build $(KUBEAPPLY) env.sh scripts/02-ambassador-certs.yaml
+deploy: ## Deploy $(DEV_IMAGE) to a kubernaut.io cluster
+deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	$(KUBEAPPLY) -f scripts/00-registry.yaml
 	{ \
 	    kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & \
