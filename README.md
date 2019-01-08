@@ -24,6 +24,7 @@ Project must be cloned in
 
 ### Testing end-to-end
 
+    $ # if on macOS, first you must configure dockerd, see below
     $ export KUBERNAUT_TOKEN=...
     $ ln -s ./e2e/env.in ./env.sh
     $ make e2e_test
@@ -31,6 +32,11 @@ Project must be cloned in
  > *NOTE:* This will talk to the Auth0 account configured in
  > `./e2e/env.in`.  The login credentials for that Auth0 can be found
  > in Keybase under `/datawireio/global/ambassador-oauth-ci.txt`.
+
+On macOS, you will first need to add `host.docker.internal:31000` to
+Docker's list of "Insecure registries":
+
+![Docker for Mac "Preferences…" dialog to set the list of "Insecure registries"](README-macos-insecure-registries.png)
 
 ### Formatting
 
