@@ -112,17 +112,14 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 }
 
 func (j *JWTCheck) getToken(r *http.Request) string {
-	cookie, err := r.Cookie(handler.AccessTokenCookie)
-	if err == nil {
+	cookie, _ := r.Cookie(handler.AccessTokenCookie)
+	if cookie != nil {
 		return cookie.Value
 	}
 
-	header := r.Header.Get("Authorization")
-	if header != "" {
-		return ""
-	}
+	j.Logger.Debugf("request has no %s cookie", handler.AccessTokenCookie)
 
-	bearer := strings.Split(header, " ")
+	bearer := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(bearer) != 2 && strings.ToLower(bearer[0]) != "bearer" {
 		j.Logger.Debug("authorization header is not a bearer token")
 		return ""
