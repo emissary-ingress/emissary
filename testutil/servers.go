@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"time"
 
@@ -21,15 +20,9 @@ import (
 	"github.com/datawire/ambassador-oauth/util"
 )
 
-// NewIDPTestServer returns an instance of the identity provider server.
-func NewIDPTestServer() *httptest.Server {
+// NewIDP returns an instance of the identity provider server.
+func NewIDP() *httptest.Server {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO(gsagula): This should return `discovery.JWK` object with out app public keys so
-		// we can call the authorization server with a valid access token.
-		// if r.URL.Path == "/.well-known" {
-		//
-		// }
-
 		if r.URL.Path == "/oauth/token" {
 			authREQ := &client.AuthorizationRequest{}
 			body, err := ioutil.ReadAll(r.Body)
@@ -59,31 +52,38 @@ func NewIDPTestServer() *httptest.Server {
 	return httptest.NewServer(h)
 }
 
-// NewAPPTestServer returns an instance of the authorization server.
-func NewAPPTestServer(idpURL string) (*httptest.Server, *app.App) {
-	u, err := url.Parse(idpURL)
-	if err != nil {
-		panic(err)
-	}
-
-	os.Setenv("AUTH_AUDIENCE", "friends")
-	os.Setenv("AUTH_DOMAIN", fmt.Sprintf("%s:%s", u.Hostname(), u.Port()))
-	os.Setenv("AUTH_CALLBACK_URL", fmt.Sprintf("%s/callback", idpURL))
-	os.Setenv("AUTH_CLIENT_ID", "foo")
+// NewAPP returns an instance of the authorization server.
+func NewAPP(idpURL string) (*httptest.Server, *app.App) {
+	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 
 	c := config.New()
-
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)
 
 	ct := &controller.Controller{
 		Config: c,
-		Logger: l,
+		Logger: l.WithField("test", "unit"),
 	}
+
+	tenants := make([]controller.Tenant, 2)
+	tenants[0] = controller.Tenant{
+		CallbackURL: "dummy-host.net/callback",
+		Domain:      "dummy-host.net",
+		Audience:    "foo",
+		ClientID:    "bar",
+	}
+	tenants[1] = controller.Tenant{
+		CallbackURL: fmt.Sprintf("%s/callback", idpURL),
+		Domain:      c.BaseURL.Hostname(),
+		Audience:    "friends",
+		ClientID:    "foo",
+	}
+
+	ct.Tenants.Store(tenants)
 	ct.Rules.Store(make([]controller.Rule, 0))
 
-	cl := client.NewRestClient(u)
+	cl := client.NewRestClient(c.BaseURL)
 
 	app := &app.App{
 		Config:     c,

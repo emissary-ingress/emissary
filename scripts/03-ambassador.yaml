@@ -60,13 +60,13 @@ metadata:
           redirect_cleartext_from: 80
       ---
       apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
+      kind: AuthService
+      name: authentication
       auth_service: auth0-service
       allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
 spec:
   type: NodePort
   ports:

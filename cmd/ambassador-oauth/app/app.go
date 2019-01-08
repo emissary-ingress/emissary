@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
+	"github.com/gorilla/mux"
 
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
 	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
@@ -47,51 +48,65 @@ func (a *App) Handler() http.Handler {
 		a.Logger.Fatal("certificate util object cannot be nil")
 	}
 
-	// Handlers
-	authz := handler.Authorize{
+	// Handler
+	auth := handler.Authorize{
 		Config: a.Config,
-		Logger: a.Logger,
+		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "authorize"}),
 		Ctrl:   a.Controller,
 		Secret: a.Secret,
 	}
 
-	// Middlewares
-	loggerMW := &middleware.Logger{Logger: a.Logger}
+	cb := &handler.Callback{
+		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "callback"}),
+		Secret: a.Secret,
+		Ctrl:   a.Controller,
+		Rest:   a.Rest,
+	}
 
-	recoveryMW := &negroni.Recovery{
-		Logger:     a.Logger,
+	// Router
+	r := mux.NewRouter()
+
+	r.HandleFunc("/callback", cb.Check)
+	r.PathPrefix("/").HandlerFunc(auth.Check)
+
+	// Middleware
+	n := negroni.New()
+
+	n.Use(&middleware.Logger{Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "http"})})
+
+	n.Use(&negroni.Recovery{
+		Logger:     a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "recovery"}),
 		PrintStack: false,
 		StackAll:   false,
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
-	}
+	})
 
-	configCheckMW := &middleware.CheckConfig{
+	n.Use(&middleware.CheckConfig{
 		Config: a.Config,
-	}
+	})
 
-	jwtMW := &middleware.JWT{
-		Logger:    a.Logger,
-		Config:    a.Config,
+	n.Use(&middleware.DomainCheck{
+		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "app_check"}),
+		Ctrl:   a.Controller,
+	})
+
+	n.Use(&middleware.PolicyCheck{
+		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "policy_check"}),
+		Ctrl:   a.Controller,
+		DefaultRule: &controller.Rule{
+			Scope:  controller.DefaultScope,
+			Public: false,
+		},
+	})
+
+	n.Use(&middleware.JWTCheck{
+		Logger:    a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "jwt_check"}),
 		Discovery: a.Discovery,
-		Rest:      a.Rest,
-	}
+		Config:    a.Config,
+	})
 
-	callbackMW := &middleware.Callback{
-		Logger: a.Logger,
-		Config: a.Config,
-		Secret: a.Secret,
-		Rest:   a.Rest,
-	}
-
-	// HTTP handler (note that middlewares are executed in order).
-	n := negroni.New()
-	n.Use(loggerMW)
-	n.Use(recoveryMW)
-	n.Use(configCheckMW)
-	n.Use(callbackMW)
-	n.Use(jwtMW)
-	n.UseHandlerFunc(authz.Check)
+	n.UseHandler(r)
 
 	return n
 }

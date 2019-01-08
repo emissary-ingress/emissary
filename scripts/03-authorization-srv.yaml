@@ -49,6 +49,10 @@ spec:
         ports:
         - containerPort: 8080
         env:
+<<<<<<< HEAD
+          - name: AUTH_DOMAIN
+            value: ${AUTH_DOMAIN}
+=======
           - name: AUTH_CALLBACK_URL
             value: {{env "AUTH_CALLBACK_URL"}}
           - name: AUTH_DOMAIN
@@ -59,3 +63,4 @@ spec:
             value: {{env "AUTH_CLIENT_ID"}}
           - name: AUTH_CLIENT_SECRET
             value: {{env "AUTH_CLIENT_SECRET"}}
+>>>>>>> origin
