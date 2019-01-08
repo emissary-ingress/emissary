@@ -51,6 +51,10 @@ There are a number of breaking changes in Ambassador 0.50.0:
    
     More information is available in `docs/reference/services/auth-service.md`.
 
+### 0.50.0-rc3
+
+- TLS client certificate authentication must be configured using a new `TLSContext` resource to work correctly in 0.50.0-rc3. This will be corrected in 0.50.0-rc4, but *note well* that TLS client certificate authentication will require a configuration change in -rc3 if you are upgrading from pre-0.50.
+
 ### Microsoft Azure
 
 There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
