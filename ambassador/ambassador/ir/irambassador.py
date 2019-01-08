@@ -218,7 +218,8 @@ class IRAmbassador (IRResource):
             if cur and cur.get("enabled", False):
                 name = "internal_%s_probe_mapping" % name
 
-                mapping = IRMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location, **cur)
+                mapping = IRMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location,
+                                    timeout_ms=10000, **cur)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 
