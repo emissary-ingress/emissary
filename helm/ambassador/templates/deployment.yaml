@@ -26,16 +26,19 @@ spec:
     spec:
       serviceAccountName: {{ template "ambassador.serviceAccountName" . }}
       volumes:
+      {{- if .Values.exporter.enabled }}
       - name: stats-exporter-mapping-config
         configMap:
           name: '{{ template "ambassador.fullname" . }}-config'
           items:
           - key: exporterConfiguration
             path: mapping-config.yaml
+      {{- end }}
       {{- with .Values.volumes }}
 {{ toYaml . | indent 6 }}
       {{- end }}
       containers:
+        {{- if .Values.exporter.enabled }}
         - name: statsd-sink
           image: "{{ .Values.exporter.image }}"
           ports:
@@ -48,6 +51,7 @@ spec:
           - name: stats-exporter-mapping-config
             mountPath: /statsd-exporter/
             readOnly: true
+        {{- end }}
         - name: ambassador
           image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -116,9 +120,9 @@ spec:
     {{- with .Values.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
-    {{- end }}    
+    {{- end }}
      {{- with .Values.image.imagePullSecrets}}
       imagePullSecrets:
        - name : {{ toYaml . }}
      {{- end }}
-{{- end }}     
+{{- end }}
