@@ -54,8 +54,8 @@ class ResourceFetcher:
             inputs.append((config_dir_path, os.path.basename(config_dir_path)))
 
         for filepath, filename in inputs:
-            self.filename: Optional[str] = filename
-            self.filepath: Optional[str] = filepath
+            self.filename = filename
+            self.filepath = filepath
             self.ocount: int = 1
 
             # self.logger.debug("%s: init ocount %d" % (self.filename, self.ocount))
@@ -70,8 +70,9 @@ class ResourceFetcher:
 
             # self.logger.debug("%s: parsed ocount %d" % (self.filename, self.ocount))
 
-            self.filename = None
-            self.filepath = None
+            # Resetting the filename and filepath are basically just paranoia here.
+            self.filename = "-none-"
+            self.filepath = "-none-"
             self.ocount = 0
 
     def post_error(self, rc: RichStatus, resource: ACResource=None):
@@ -86,7 +87,7 @@ class ResourceFetcher:
                     self.extract_k8s(obj)
                     self.ocount += 1
                 else:
-                    self.ocount = self.process_object(obj, rkey)
+                    self.ocount = self.process_object(obj, rkey=rkey or self.filename)
         except yaml.error.YAMLError as e:
             self.post_error(RichStatus.fromError("%s: could not parse YAML: %s" % (self.filepath, e)))
 
@@ -131,25 +132,33 @@ class ResourceFetcher:
         if self.filename and (not self.filename.endswith(":annotation")):
             self.filename += ":annotation"
 
+        saved = self.ocount
+        self.ocount = 1
+        # self.logger.debug("%s.%d extract_k8s calling load_yaml with rkey %s" %
+        #                   (self.filename, self.ocount, resource_identifier))
         self.load_yaml(annotations, rkey=resource_identifier)
+        self.ocount = saved
 
-    def process_object(self, obj: dict, rkey: Optional[str]=None, k8s: bool=False) -> int:
-        # self.logger.debug("%s.%d PROCESS %s" % (self.filename, self.ocount, obj['kind']))
-
+    def process_object(self, obj: dict, rkey: str) -> int:
         if not isinstance(obj, dict):
             # Bug!!
             if not obj:
                 self.post_error(RichStatus.fromError("%s.%d is empty" % (self.filename, self.ocount)))
             else:
                 self.post_error(RichStatus.fromError("%s.%d is not a dictionary? %s" %
-                                                     (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=4))))
+                                                     (self.filename, self.ocount,
+                                                      json.dumps(obj, indent=4, sort_keys=4))))
             return self.ocount + 1
 
         if 'kind' not in obj:
             # Bug!!
             self.post_error(RichStatus.fromError("%s.%d is missing 'kind'?? %s" %
-                                                 (self.filename, self.ocount, json.dumps(obj, indent=4, sort_keys=True))))
+                                                 (self.filename, self.ocount,
+                                                  json.dumps(obj, indent=4, sort_keys=True))))
             return self.ocount + 1
+
+        # self.logger.debug("%s.%d PROCESS %s initial rkey %s" %
+        #                   (self.filename, self.ocount, obj['kind'] if obj else "-none-", rkey))
 
         # Is this a pragma object?
         if obj['kind'] == 'Pragma':
@@ -169,10 +178,12 @@ class ResourceFetcher:
         # Not a pragma.
 
         if not rkey:
-            rkey = "%s.%d" % (self.filename, self.ocount)
-        elif rkey and k8s:
-            # rkey should be unique for k8s objects
-            rkey = (''.join([rkey, ".%d" % self.ocount]))
+            rkey = self.filename
+
+        rkey = "%s.%d" % (rkey, self.ocount)
+
+        # self.logger.debug("%s.%d PROCESS %s updated rkey to %s" %
+        #                   (self.filename, self.ocount, obj['kind'] if obj else "-none-", rkey))
 
         # Fine. Fine fine fine.
         serialization = yaml.safe_dump(obj, default_flow_style=False)
