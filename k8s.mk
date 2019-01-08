@@ -32,8 +32,8 @@ push: push_ok docker
 .PHONY: push
 
 apply: ## Apply the most recently pushed images. (This is useful for quickly deploying yaml only changes without rebuilding & pushing containers.)
-apply: $(CLUSTER) $(KUBEAPPLY)
-	KUBECONFIG=$(CLUSTER) $(sort $(shell cat pushed.txt)) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
+apply: $(KUBECONFIG) $(KUBEAPPLY)
+	KUBECONFIG=$(KUBECONFIG) $(sort $(shell cat pushed.txt)) $(KUBEAPPLY) $(MANIFESTS:%=-f %)
 .PHONY: apply
 
 deploy: ## Shorthand for `make push apply`.
