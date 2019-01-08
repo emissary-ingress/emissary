@@ -57,7 +57,7 @@ GUBERNAUT = GO111MODULE=off go run build-aux/gubernaut.go
 	$(GUBERNAUT) -claim $$(cat $<) -output $@
 
 %.knaut.clean:
-	if [ -e $*.claim ]; then $(GUBERNAUT) -release $$(cat $*.claim); fi
+	if [ -e $*.knaut.claim ]; then $(GUBERNAUT) -release $$(cat $*.knaut.claim); fi
 	rm -f $*.knaut $*.knaut.claim
 .PHONY: %.knaut.clean
 
