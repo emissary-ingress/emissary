@@ -1,6 +1,6 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-include $(dir $(lastword $(MAKEFILE_LIST)))/kubernaut-ui.mk
-include $(dir $(lastword $(MAKEFILE_LIST)))/kubeapply.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))kubernaut-ui.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))kubeapply.mk
 
 PROFILE?=dev
 
