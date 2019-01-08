@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional, Union
+from typing import Optional
 from typing import cast as typecast
 
 import sys
 
-import binascii
 import json
 import logging
 import os
 import signal
 import traceback
-import yaml
 
 import clize
 from clize import Parameter
@@ -32,7 +30,7 @@ from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import EnvoyConfig, V1Config, V2Config
 from .ir.irtlscontext import IRTLSContext
 
-from .utils import RichStatus, SavedSecret
+from .utils import RichStatus, SavedSecret, SplitConfigChecker
 
 __version__ = Version
 
@@ -344,108 +342,6 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
 
         # This is fatal.
         sys.exit(1)
-
-
-class SplitConfigChecker:
-    def __init__(self, logger, root_path: str) -> None:
-        self.logger = logger
-        self.root = root_path
-
-    def secret_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
-        yaml_path = os.path.join(self.root, namespace, "secrets", "%s.yaml" % secret_name)
-
-        serialization = None
-        objects = []
-        cert_data = None
-        cert = None
-        key = None
-        cert_path = None
-        key_path = None
-
-        try:
-            serialization = open(yaml_path, "r").read()
-        except IOError as e:
-            self.logger.error("TLSContext %s: SCC.secret_reader could not open %s" % (context.name, yaml_path))
-
-        if serialization:
-            try:
-                objects.extend(list(yaml.safe_load_all(serialization)))
-            except yaml.error.YAMLError as e:
-                self.logger.error("TLSContext %s: SCC.secret_reader could not parse %s: %s" %
-                                  (context.name, yaml_path, e))
-
-        ocount = 0
-        errors = 0
-
-        for obj in objects:
-            ocount += 1
-            kind = obj.get('kind', None)
-
-            if kind != "Secret":
-                self.logger.error("TLSContext %s: SCC.secret_reader found K8s %s at %s.%d?" %
-                                  (context.name, kind, yaml_path, ocount))
-                errors += 1
-                continue
-
-            metadata = obj.get('metadata', None)
-
-            if not metadata:
-                self.logger.error("TLSContext %s: SCC.secret_reader found K8s Secret with no metadata at %s.%d?" %
-                                  (context.name, yaml_path, ocount))
-                errors += 1
-                continue
-
-            if 'data' in obj:
-                if cert_data:
-                    self.logger.error("TLSContext %s: SCC.secret_reader found multiple Secrets in %s?" %
-                                      (context.name, yaml_path))
-                    errors += 1
-                    continue
-
-                cert_data = obj['data']
-
-        # if errors:
-        #     return None
-        #
-        # if not cert_data:
-        #     self.logger.error("TLSContext %s: SCC.secret_reader found no certificate in %s?" %
-        #                       (context.name, yaml_path))
-        #     return None
-
-        # OK, we have something to work with. Hopefully.
-        if not errors and cert_data:
-            cert = cert_data.get('tls.crt', None)
-
-            if cert:
-                cert = binascii.a2b_base64(cert)
-
-            key = cert_data.get('tls.key', None)
-
-            if key:
-                key = binascii.a2b_base64(key)
-
-        # if not cert:
-        #     # This is an error. Having a cert but no key might be OK, we'll let our caller decide.
-        #     self.logger.error("TLSContext %s: SCC.secret_reader found data but no cert in %s?" %
-        #                       (context.name, yaml_path))
-        #     return None
-
-        if cert:
-            secret_dir = os.path.join(self.root, namespace, "secrets-decoded", secret_name)
-
-            try:
-                os.makedirs(secret_dir)
-            except FileExistsError:
-                pass
-
-            cert_path = os.path.join(secret_dir, "tls.crt")
-            open(cert_path, "w").write(cert.decode("utf-8"))
-
-            if key:
-                key_path = os.path.join(secret_dir, "tls.key")
-                open(key_path, "w").write(key.decode("utf-8"))
-
-        return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
 
 
 def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,

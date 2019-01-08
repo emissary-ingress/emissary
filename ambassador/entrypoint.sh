@@ -157,7 +157,7 @@ export AMBASSADOR_CLUSTER_ID
 echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 
 echo "AMBASSADOR: starting diagd"
-diagd "${CONFIG_DIR}" $DIAGD_DEBUG --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+diagd "${CONFIG_DIR}" $DIAGD_DEBUG --k8s --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
