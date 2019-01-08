@@ -33,16 +33,16 @@ class ResourceFetcher:
                     filepath = os.path.join(dirpath, filename)
 
                     if recurse and os.path.isdir(filepath):
-                        self.logger.debug("%s: RECURSE" % filepath)
+                        # self.logger.debug("%s: RECURSE" % filepath)
                         dirs.append(filepath)
                         continue
 
                     if not os.path.isfile(filepath):
-                        self.logger.debug("%s: SKIP non-file" % filepath)
+                        # self.logger.debug("%s: SKIP non-file" % filepath)
                         continue
 
                     if not filename.lower().endswith('.yaml'):
-                        self.logger.debug("%s: SKIP non-YAML" % filepath)
+                        # self.logger.debug("%s: SKIP non-YAML" % filepath)
                         continue
 
                     # self.logger.debug("%s: SAVE configuration file" % filepath)
@@ -171,7 +171,7 @@ class ResourceFetcher:
                 if key == 'source':
                     self.filename = obj['source']
 
-                    self.logger.debug("PRAGMA: override source_name to %s" % self.filename)
+                    # self.logger.debug("PRAGMA: override source_name to %s" % self.filename)
 
             return self.ocount
 
