@@ -1,5 +1,10 @@
+dist: xenial
+language: generic
 sudo: required
-language: go
+addons:
+  apt:
+    packages:
+    - libgconf2-4 # for Puppeteer's chrome
 services:
 - docker
 

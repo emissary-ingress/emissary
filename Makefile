@@ -71,14 +71,15 @@ deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
 .PHONY: deploy
 
-build-e2e: ## Build an oauth-client Docker image, for e2e testing
-	docker build -t e2e/test:latest e2e
-.PHONY: build-e2e
+e2e/node_modules: e2e/package.json $(wildcard e2e/package-lock.json)
+	cd $(@D) && npm install
+	@test -d $@
+	@touch $@
 
 check-e2e: ## Check: e2e tests
-check-e2e: build-e2e deploy
+check-e2e: e2e/node_modules deploy
 	$(MAKE) proxy
-	docker run --rm e2e/test:latest
+	cd e2e && npm test
 	$(MAKE) unproxy
 .PHONY: check-e2e
 check: check-e2e
