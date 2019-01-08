@@ -292,7 +292,8 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	if err != nil {
 		log.Fatalf("Snapshot error %q for %+v", err, snapshot)
 	} else {
-		log.Infof("Snapshot %+v", snapshot)
+		// log.Infof("Snapshot %+v", snapshot)
+		log.Infof("Pushing snapshot %+v", version)
 	}
 }
 
