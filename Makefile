@@ -13,7 +13,12 @@ PRD_DOCKER_REPO = ambassador-pro
 PRD_VERSION = $(or $(TRAVIS_TAG),$(VERSION))
 PRD_IMAGE = $(PRD_DOCKER_REGISTRY)/$(PRD_DOCKER_REPO):$(PRD_VERSION)
 
-DEV_DOCKER_REGISTRY = localhost:31000
+ifeq ($(GOOS),darwin)
+LOCALHOST = host.docker.internal
+else
+LOCALHOST = localhost
+endif
+DEV_DOCKER_REGISTRY = $(LOCALHOST):31000
 DEV_DOCKER_REPO = ambassador-pro
 DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --no-match --always --abbrev=40 --dirty))
 DEV_IMAGE = $(DEV_DOCKER_REGISTRY)/$(DEV_DOCKER_REPO):$(DEV_VERSION)
@@ -55,7 +60,7 @@ deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push $(DEV_IMAGE); \
 	}
-	set -a && IMAGE=$(DEV_IMAGE) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
+	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
 
 .PHONY: push-tagged-image
 push-tagged-image: ## docker push $(PRD_IMAGE)
