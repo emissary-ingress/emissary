@@ -1,4 +1,5 @@
 ---
+# @TEMPLATE@
 apiVersion: stable.datawire.io/v1beta1
 kind: Tenant
 metadata:
@@ -6,8 +7,7 @@ metadata:
 spec:
   # List of tenant apps that are registered in the auth provider service.
   tenants:
-    - tenantUrl: ${AUTH_TENANT_DOMAIN}
-      audience: ${AUTH_AUDIENCE}
-      clientId: ${AUTH_CLIENT_ID}
-      secret: ${AUTH_CLIENT_SECRET} 
-
+    - tenantUrl: {{env "AUTH_TENANT_DOMAIN"}}
+      audience: {{env "AUTH_AUDIENCE"}}
+      clientId: {{env "AUTH_CLIENT_ID"}}
+      secret: {{env "AUTH_CLIENT_SECRET"}}
