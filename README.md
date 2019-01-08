@@ -24,10 +24,13 @@ Project must be cloned in
 
 ### Testing end-to-end
 
-    $ make e2e_build && make e2e_test
+    $ export KUBERNAUT_TOKEN=...
+    $ ln -s ./e2e/env.in ./env.sh
+    $ make e2e_test
 
- > *NOTE:* Auth0 account login credentials can be found in Keybase
- > under `/datawireio/global/ambassador-oauth-ci.txt`.
+ > *NOTE:* This will talk to the Auth0 account configured in
+ > `./e2e/env.in`.  The login credentials for that Auth0 can be found
+ > in Keybase under `/datawireio/global/ambassador-oauth-ci.txt`.
 
 ### Formatting
 

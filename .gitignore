@@ -1,6 +1,13 @@
 *.log
+*.knaut
+*.knaut.claim
 .vscode/
 env.sh
+
+node_modules/
+
+/key.pem
+/cert.pem
 
 # --- IntelliJ IDEA ---
 .idea
