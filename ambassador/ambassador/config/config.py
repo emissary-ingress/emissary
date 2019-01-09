@@ -66,6 +66,7 @@ class Config:
     sources: Dict[str, ACResource]
 
     errors: Dict[str, List[dict]]
+    notices: Dict[str, List[dict]]
     fatal_errors: int
     object_errors: int
 
@@ -122,6 +123,7 @@ class Config:
         self.save_source(ACResource.diagnostics_resource())
 
         self.errors = {}
+        self.notices = {}
         self.fatal_errors = 0
         self.object_errors = 0
 
@@ -147,6 +149,7 @@ class Config:
     def as_dict(self) -> Dict[str, Any]:
         od: Dict[str, Any] = {
             '_errors': self.errors,
+            '_notices': self.notices,
             '_sources': {}
         }
 
@@ -244,6 +247,18 @@ class Config:
 
         self.load_all(resources)
 
+    def post_notice(self, msg: str, resource: Optional[Resource]=None) -> None:
+        if resource is None:
+            resource = self.current_resource
+
+        rkey = '-global-'
+
+        if resource is not None:
+            rkey = resource.rkey
+
+        notices = self.notices.setdefault(rkey, [])
+        notices.append(msg)
+        self.logger.info("%s: NOTICE: %s" % (rkey, msg))
 
     @multi
     def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None) -> str:
@@ -309,6 +324,17 @@ class Config:
             # Well that's no good.
             return rc
 
+        # Is this a v0 resource?
+        version = resource.apiVersion.lower()
+
+        if version != 'ambassador/v1':
+            desc = "is deprecated, consider upgrading"
+
+            if version != 'ambassador/v0':
+                desc = "is not supported"
+
+            self.post_notice("apiVersion ambassador/v0 %s" % desc, resource=resource)
+
         # OK, so far so good. Grab the handler for this object type.
         handler_name = "handle_%s" % resource.kind.lower()
         handler = getattr(self, handler_name, None)
@@ -324,7 +350,7 @@ class Config:
         except Exception as e:
             # Bzzzt.
             raise
-            return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))
+            # return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))
 
         # OK, all's well.
         self.current_resource = None
