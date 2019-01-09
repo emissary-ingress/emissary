@@ -19,9 +19,15 @@
 #             recipe
 #     .PHONY: my-rule
 #
+#     my-other-rule: ## (Category) A description of my-other-rule
+#     my-other-rule: dep1 dep2
+#             recipe
+#     .PHONY: my-other-rule
+#
 # The double "##" is important.  It is also important that there be no
 # dependencies between the ":" and the "##"; any ammount of whitespace
-# is acceptable, though.
+# is acceptable, though.  The "##" may optionally be followed by a
+# category in parenthesis.
 #
 ## Advanced example ##
 #
@@ -45,30 +51,17 @@
 # Because your editor's syntax-highlighting might be unhappy with
 # things inside of help.body, you may prefix lines with "#" or "# ".
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
 
 help.body ?=
 
 help:  ## Show this message
 	@echo 'Usage: make [TARGETS...]'
 	@echo
-	@printf '%s\n' $(call _help.quote.shell,$(help.body)) | sed -e 's/^# //' -e 's/^#//'
+	@printf '%s\n' $(call quote.shell,$(help.body)) | sed -e 's/^# //' -e 's/^#//'
 	@echo
 	@echo TARGETS:
-	@sed -En 's/^([^#]*) *: *[#]# */\1	/p' ${MAKEFILE_LIST} | column -t -s '	' | sed 's/^/  /'
+	@sed -En 's/^([^#]*) *: *[#]# *(\([^)]*\))? */\2	\1	/p' $(sort $(abspath $(MAKEFILE_LIST))) | sort | column -t -s '	' | sed 's/^/  /'
 .PHONY: help
-
-define _help.nl
-
-
-endef
-
-# I put this as the last line in the file because it confuses Emacs
-# syntax highlighting and makes the remainder of the file difficult to
-# edit.
-#
-# Based on
-# https://git.lukeshu.com/autothing/tree/build-aux/Makefile.once.head/00-quote.mk?id=9384e763b00774603208b3d44977ed0e6762a09a
-# but modified to make newlines work with shells other than Bash.
-_help.quote.shell = "$$(printf '%s\n' $(subst $(_help.nl),' ','$(subst ','\'',$1)'))"
 
 endif
