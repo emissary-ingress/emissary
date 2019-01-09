@@ -1,0 +1,120 @@
+---
+# @TEMPLATE@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  # XXX: what is group name supposed to mean???
+  name: policies.stable.datawire.io
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: stable.datawire.io
+  # list of versions supported by this CustomResourceDefinition
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+  # either Namespaced or Cluster
+  scope: Namespaced
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: policies
+    # singular name to be used as an alias on the CLI and for display
+    singular: policy
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: Policy
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - pol
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  # XXX: what is group name supposed to mean???
+  name: tenants.stable.datawire.io
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: stable.datawire.io
+  # list of versions supported by this CustomResourceDefinition
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+  # either Namespaced or Cluster
+  scope: Namespaced
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: tenants
+    # singular name to be used as an alias on the CLI and for display
+    singular: tenant
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: Tenant
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - ten
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-auth
+  namespace: datawire
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind:  AuthService
+      name:  authentication
+      auth_service: ambassador-pro-auth
+      allowed_headers:
+       - "Authorization"
+       - "Client-Id"
+       - "Client-Secret"
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  callback_mapping
+      prefix: /callback
+      service: ambassador-pro-auth
+      timeout_ms: 5000
+spec:
+  type: ClusterIP
+  selector:
+    name: ambassador-pro-auth
+  ports:
+  - protocol: TCP 
+    port: 80
+    targetPort: 8080
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador-pro-auth
+  namespace: datawire
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      name: ambassador-pro-auth
+  template:
+    metadata:
+      labels:
+        name: ambassador-pro-auth
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador-pro-auth
+        image: {{env "IMAGE"}}
+        ports:
+        - containerPort: 8080
+        env:
+          - name: AUTH_PROVIDER_URL
+            value: {{env "AUTH_PROVIDER_URL"}}
