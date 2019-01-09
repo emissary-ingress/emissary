@@ -57,16 +57,6 @@ class V2Config (EnvoyConfig):
         V2StaticResources.generate(self)
         V2Bootstrap.generate(self)
 
-#         # print("v1.admin %s" % self.admin)
-#
-#         self.listeners: List[V1Listener] = V1Listener.generate(self)
-#
-#         # print("v1.listeners %s" % self.listeners)
-#
-#         self.clustermgr: V1ClusterManager = V1ClusterManager.generate(self)
-#
-#         # print("v1.clustermgr %s" % self.clustermgr)
-
     def as_dict(self):
         d = {
             'bootstrap': self.bootstrap,
@@ -77,3 +67,14 @@ class V2Config (EnvoyConfig):
 
     def as_json(self):
         return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
+
+    def split_config(self) -> tuple:
+        ads_config = {
+            '@type': '/envoy.config.bootstrap.v2.Bootstrap',
+            'static_resources': self.static_resources
+        }
+
+        bootstrap_config = dict(self.bootstrap)
+
+        return bootstrap_config, ads_config
+

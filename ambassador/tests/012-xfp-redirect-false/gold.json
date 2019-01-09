@@ -24,7 +24,7 @@
                   "domains": ["*"],"routes": [
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready","weighted_clusters": {
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
@@ -37,7 +37,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive","weighted_clusters": {
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
@@ -50,7 +50,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/","weighted_clusters": {
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/","weighted_clusters": {
                               "clusters": [
                                   
                                     { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }

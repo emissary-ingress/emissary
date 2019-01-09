@@ -25,7 +25,7 @@
                   "domains": ["*"],"routes": [
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready",
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready",
                         "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
                       "prefix_rewrite": "/ambassador/v0/check_ready","weighted_clusters": {
                               "clusters": [
@@ -40,7 +40,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive",
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive",
                         "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
                       "prefix_rewrite": "/ambassador/v0/check_alive","weighted_clusters": {
                               "clusters": [
@@ -83,7 +83,7 @@
                     ,
                     
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/",
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/",
                         "cors": {"allow_credentials": true, "allow_headers": "Content-Type", "allow_methods": "POST, GET, OPTIONS", "allow_origin": ["http://foo.example", "http://bar.example"], "enabled": true, "expose_headers": "X-Custom-Header", "max_age": "86400"},
                       "prefix_rewrite": "/ambassador/v0/","weighted_clusters": {
                               "clusters": [

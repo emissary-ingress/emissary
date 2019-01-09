@@ -30,7 +30,7 @@ from typing import Optional, Dict, Union
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
-from ambassador.utils import kube_v1, TLSPaths, kube_tls_secret_resolver
+from ambassador.utils import kube_v1
 from ambassador.ir import IR
 from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
@@ -221,15 +221,10 @@ class Restarter(threading.Thread):
 
         aconf = Config()
         aconf.load_from_directory(output)
-        ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
+        ir = IR(aconf)
         envoy_config = V2Config(ir)
 
-        ads_config = {
-            '@type': '/envoy.config.bootstrap.v2.Bootstrap',
-            'static_resources': envoy_config.static_resources
-        }
-
-        bootstrap_config = dict(envoy_config.bootstrap)
+        bootstrap_config, ads_config = envoy_config.split_config()
 
         scout = Scout(install_id=self.cluster_id)
         scout_args = { "gencount": self.restart_count }
@@ -326,7 +321,7 @@ class KubeWatcher:
                          (self.namespace,
                           "just this namespace" if self.single_namespace else "all namespaces"))
 
-    def run(self, sync_only=False):
+    def run(self, id_only=False, sync_only=False):
         self.logger.debug("starting run")
 
         while True:
@@ -344,7 +339,7 @@ class KubeWatcher:
                         self.get_cluster_id(v1)
 
                     # ...then do sync if needed.
-                    if self.need_sync:
+                    if self.need_sync and not id_only:
                         self.sync(v1)
 
                 # Whether or not we got a Kube connection, generate the initial Envoy config if needed
@@ -353,12 +348,13 @@ class KubeWatcher:
                     logger.debug("Generating initial Envoy config")
 
                     self.restarter.set_cluster_id(self.cluster_id)
-                    self.restarter.restart()
 
-                    self.need_sync = False
+                    if not id_only:
+                        self.restarter.restart()
+                        self.need_sync = False
 
                 # If we're just doing the sync, dump the cluster_id to stdout and then bail.
-                if sync_only:
+                if sync_only or id_only:
                     print(self.cluster_id)
                     break
 
@@ -504,12 +500,17 @@ def main(mode, ambassador_config_dir, envoy_config_file, debug, delay, pid):
     if debug:
         logger.setLevel(logging.DEBUG)
 
+    logger.info("kubewatch starting: mode '%s' ambassador_config_dir '%s' envoy_config_file '%s' debug '%s' delay '%s' pid '%s'" %
+                (mode, ambassador_config_dir, envoy_config_file, debug, delay, pid))
+
     namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
     restarter = Restarter(ambassador_config_dir, namespace, envoy_config_file, delay, pid)
     watcher =  KubeWatcher(logger, restarter)
 
-    if mode == "sync":
+    if mode == "cluster-id":
+        watcher.run(id_only=True)
+    elif mode == "sync":
         watcher.run(sync_only=True)
     elif mode == "watch":
         watcher.run(sync_only=False)
