@@ -217,12 +217,12 @@ func processIntercepts(intercepts []InterceptInfo) {
 	log.Print(string(routesJSON))
 	log.Print("---")
 
-	contents := fmt.Sprintf(listenerTemplate, string(routesJSON))
-	err = ioutil.WriteFile("temp/listener.json", []byte(contents), 0644)
+	contents := fmt.Sprintf(routeTemplate, string(routesJSON))
+	err = ioutil.WriteFile("temp/route.json", []byte(contents), 0644)
 	if err != nil {
 		panic(err)
 	}
-	err = os.Rename("temp/listener.json", "data/listener.json")
+	err = os.Rename("temp/route.json", "data/route.json")
 }
 
 func main() {
@@ -270,42 +270,17 @@ func main() {
 
 }
 
-const listenerTemplate = `
+const routeTemplate = `
 {
-	"@type": "/envoy.api.v2.Listener",
-	"name": "test-listener",
-	"address": {
-		"socket_address": {
-			"address": "0.0.0.0",
-			"port_value": 9900
-		}
-	},
-	"filter_chains": [
+	"@type": "/envoy.api.v2.RouteConfiguration",
+	"name": "application_route",
+	"virtual_hosts": [
 		{
-			"filters": [
-				{
-					"name": "envoy.http_connection_manager",
-					"config": {
-						"stat_prefix": "sidecar",
-						"http_filters": [
-							{
-								"name": "envoy.router"
-							}
-						],
-						"route_config": {
-							"virtual_hosts": [
-								{
-									"name": "all-the-hosts",
-									"domains": [
-										"*"
-									],
-									"routes": %s
-								}
-							]
-						}
-					}
-				}
-			]
+			"name": "all-the-hosts",
+			"domains": [
+				"*"
+			],
+			"routes": %s
 		}
 	]
 }

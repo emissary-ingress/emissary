@@ -19,25 +19,12 @@
                 "name": "envoy.router"
               }
             ],
-            "route_config": {
-              "virtual_hosts": [
-                {
-                  "name": "all-the-hosts",
-                  "domains": [
-                    "*"
-                  ],
-                  "routes": [
-                    {
-                      "match": {
-                        "prefix": "/"
-                      },
-                      "route": {
-                        "cluster": "app"
-                      }
-                    }
-                  ]
+            "rds": {
+              "route_config_name": "application_route",
+              "config_source": {
+                "ads": {
                 }
-              ]
+              }
             }
           }
         }
