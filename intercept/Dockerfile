@@ -1,13 +1,3 @@
-FROM golang:1-alpine as builder
-RUN apk update && apk add git
-WORKDIR /go/src/app
-COPY cmd ./cmd
-RUN go get -d -v ./...
-RUN wget -q https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex
-RUN chmod 755 ambex
-RUN CGO_ENABLED=0 GOOS=linux go build cmd/proxy/proxy.go
-RUN CGO_ENABLED=0 GOOS=linux go build cmd/sidecar/sidecar.go
-
 FROM alpine:3.6 as telepresence-proxy
 RUN apk add --no-cache openssh && \
     ssh-keygen -A && \
@@ -17,12 +7,14 @@ RUN apk add --no-cache openssh && \
     chmod g+w /etc/passwd
 USER 1000:0
 WORKDIR /app
-COPY proxy_image/run.sh .
-COPY --from=builder /go/src/app/proxy .
+COPY intercept/proxy_image/run.sh .
+COPY image/proxy .
 CMD ["/app/run.sh"]
 
 FROM envoyproxy/envoy:28d5f4118d60f828b1453cd8ad25033f2c8e38ab as telepresence-sidecar
 WORKDIR /application
-COPY sidecar_image /application/
-COPY --from=builder /go/src/app/sidecar /go/src/app/ambex /application/
+COPY intercept/sidecar_image /application/
+RUN wget -q https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex
+RUN chmod 755 ambex
+COPY image/sidecar /application/
 CMD ["/application/entrypoint.sh"]

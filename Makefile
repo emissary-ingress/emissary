@@ -43,8 +43,8 @@ image/%: bin_linux_amd64/%
 	cp $< $@
 docker: env build-image
 	docker build . -t $(RATELIMIT_IMAGE)
-	docker build intercept --target telepresence-proxy -t $(PROXY_IMAGE)
-	docker build intercept --target telepresence-sidecar -t $(SIDECAR_IMAGE)
+	docker build . -f intercept/Dockerfile --target telepresence-proxy -t $(PROXY_IMAGE)
+	docker build . -f intercept/Dockerfile --target telepresence-sidecar -t $(SIDECAR_IMAGE)
 .PHONY: docker
 
 # Utility targets
