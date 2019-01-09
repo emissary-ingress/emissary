@@ -17,5 +17,5 @@ func init() {
 }
 
 func showVersion(cmd *cobra.Command, args []string) {
-	fmt.Println(VERSION)
+	fmt.Println(Version)
 }

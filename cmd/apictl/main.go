@@ -22,9 +22,8 @@ var apictl = &cobra.Command{
 	PersistentPreRun: keyCheck,
 }
 
-const (
-	VERSION = "0.0.8"
-)
+// Version is inserted at build using --ldflags -X
+var Version = "(unknown version)"
 
 var (
 	LICENSE_KEY   string
@@ -86,7 +85,7 @@ func keyCheck(cmd *cobra.Command, args []string) {
 		data := make(map[string]interface{})
 		data["application"] = "apictl"
 		data["install_id"] = install_id.String()
-		data["version"] = VERSION
+		data["version"] = Version
 		data["metadata"] = map[string]string{"id": id}
 		body, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
