@@ -173,7 +173,7 @@ class IRMapping (IRResource):
                 # Since this is a V0 Mapping, prepend the static default stuff that we were implicitly
                 # forcing back in the pre-0.50 days.
 
-                label = [
+                label: List[Any] = [
                     'source_cluster',
                     'destination_cluster',
                     'remote_address'
@@ -241,7 +241,7 @@ class IRMapping (IRResource):
 
     def match_tls_context(self, host: str, ir: 'IR'):
         for context in ir.get_tls_contexts():
-            for context_host in context.get('hosts'):
+            for context_host in context.get('hosts', []):
                 if context_host == host:
                     ir.logger.info("Matched host {} with TLSContext {}".format(host, context.get('name')))
                     self.sni = True
@@ -510,8 +510,8 @@ class IRMappingGroup (IRResource):
         # if verbose:
         #     self.ir.logger.debug("%s: FINALIZING: %s" % (self, self.as_json()))
 
-        add_request_headers = {}
-        add_response_headers = {}
+        add_request_headers: Dict[str, str] = {}
+        add_response_headers: Dict[str, str] = {}
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:

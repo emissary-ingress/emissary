@@ -26,7 +26,7 @@ class IRTLSContext(IRResource):
     hosts: List[str]
     alpn_protocols: Optional[str]
     cert_required: Optional[bool]
-    redirect_cleartext_from: Optional[str]
+    redirect_cleartext_from: Optional[int]
     secret_info: dict
 
     def __init__(self, ir: 'IR', config,
@@ -51,11 +51,19 @@ class IRTLSContext(IRResource):
         self.sourced_by(config)
         self.referenced_by(config)
 
-        self.name: st = config.get('name')
+        self.name = config.get('name')
         self.hosts = config.get('hosts')
         self.alpn_protocols = config.get('alpn_protocols')
         self.cert_required = config.get('cert_required')
-        self.redirect_cleartext_from = config.get('redirect_cleartext_from')
+
+        rcf = config.get('redirect_cleartext_from')
+
+        if rcf is not None:
+            try:
+                self.redirect_cleartext_from = int(rcf)
+            except ValueError:
+                self.post_error("redirect_cleartext_from must give a port number rather than '%s'" % rcf)
+                self.redirect_cleartext_from = None
 
         # Finally, set up our secret_info.
         self.secret_info = {}
@@ -118,7 +126,8 @@ class IRTLSContext(IRResource):
         if "." in secret_name:
             secret_name, namespace = secret_name.split('.', 1)
 
-        return self.ir.secret_reader(self, secret_name, namespace, self.ir.secret_root)
+        sr = getattr(self.ir, 'secret_reader')
+        return sr(self, secret_name, namespace, self.ir.secret_root)
 
     def resolve(self) -> bool:
         # context = self, namespace = ir.ambassador_namespace, secret_reader = ir.secret_reader
@@ -217,7 +226,8 @@ class IRTLSContext(IRResource):
             path = self.secret_info.get(key, None)
 
             if path:
-                if not self.ir.file_checker(path):
+                fc = getattr(self.ir, 'file_checker')
+                if not fc(path):
                     self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
                     errors += 1
             elif key != 'cacert_chain_file':

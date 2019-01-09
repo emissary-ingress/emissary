@@ -1,6 +1,6 @@
-from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
 
-import json
+# import json
 
 from ..config import Config
 
@@ -168,7 +168,7 @@ class IRAmbassador (IRResource):
         # Likewise, if we have no default labels, force an empty dict (it makes life easier
         # on other modules).
         if not self.get('default_labels'):
-            self.default_labels = {}
+            self.default_labels: Dict[str, Any] = {}
 
         # Next up: diag port & services.
         diag_port = aconf.module_lookup('ambassador', 'diag_port', 8877)

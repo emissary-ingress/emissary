@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Iterable, List, Optional, Union, ValuesView
+from typing import Any, Callable, Dict, Iterable, List, Optional, Union, ValuesView
 from typing import cast as typecast
 
 import json
 import logging
 import os
 
-from ..utils import RichStatus, KubeSecretReader
+from ..utils import RichStatus, KubeSecretReader, SavedSecret
 from ..config import Config
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
 from .irauth import IRAuth
-# from .irbuffer import IRBuffer
 from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irmapping import MappingFactory, IRMapping, IRMappingGroup
@@ -63,8 +62,8 @@ class IR:
     tls_contexts: Dict[str, IRTLSContext]
     aconf: Config
     secret_root: str
-    secret_reader: callable
-    file_checker: callable
+    secret_reader: Callable[[IRTLSContext, str, str, str], SavedSecret]
+    file_checker: Callable[[str], bool]
 
     def __init__(self, aconf: Config, secret_reader=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -73,8 +72,10 @@ class IR:
         self.statsd = aconf.statsd
 
         self.logger = logging.getLogger("ambassador.ir")
-        self.secret_reader = secret_reader or KubeSecretReader()
-        self.file_checker = file_checker if file_checker is not None else os.path.isfile
+
+        # We're using setattr since since mypy complains about assigning directly to a method.
+        setattr(self, 'secret_reader', secret_reader or KubeSecretReader())
+        setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
 
         # OK. Remember the root of the secret store...
         self.secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
@@ -84,8 +85,9 @@ class IR:
         self.logger.debug("IR: AMBASSADOR_ID   %s" % self.ambassador_id)
         self.logger.debug("IR: Namespace       %s" % self.ambassador_namespace)
         self.logger.debug("IR: Nodename        %s" % self.ambassador_nodename)
-        self.logger.debug("IR: file checker:   %s" % self.file_checker.__name__)
-        self.logger.debug("IR: secret reader:  %s" % self.secret_reader.__name__ if self.secret_reader else "(default)")
+
+        self.logger.debug("IR: file checker:   %s" % getattr(self, 'file_checker').__name__)
+        self.logger.debug("IR: secret reader:  %s" % getattr(self, 'secret_reader').__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -115,7 +117,7 @@ class IR:
         # this though.
 
         self.tls_module = None
-        self.envoy_tls = {}
+        # self.envoy_tls = {}
 
         # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)
@@ -236,6 +238,9 @@ class IR:
         else:
             self.tls_contexts[ctx.name] = ctx
 
+    # def has_tls_context(self, name: str) -> bool:
+    #     return bool(self.get_tls_context(name))
+
     def get_tls_context(self, name: str) -> Optional[IRTLSContext]:
         return self.tls_contexts.get(name, None)
 
@@ -333,8 +338,8 @@ class IR:
                           for cluster_name, cluster in self.clusters.items() },
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
-            'envoy_tls_contexts': { ctx_name: ctx.as_dict()
-                                    for ctx_name, ctx in self.envoy_tls.items() },
+            # 'envoy_tls_contexts': { ctx_name: ctx.as_dict()
+            #                         for ctx_name, ctx in self.envoy_tls.items() },
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
@@ -353,7 +358,7 @@ class IR:
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
     def features(self) -> Dict[str, Any]:
-        od: Dict[str, Union[bool, int, str]] = {}
+        od: Dict[str, Union[bool, int, Optional[str]]] = {}
 
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts
@@ -361,14 +366,14 @@ class IR:
         using_tls_module = False
         using_tls_contexts = False
 
-        for ctx in self.envoy_tls.values():
-            using_tls_module = True
-
-            if ctx.get('certificate_chain_file', None) and ctx.get('valid_tls', False):
-                tls_termination_count += 1
-
-            if ctx.get('cacert_chain_file', None) and ctx.get('valid_tls', False):
-                tls_origination_count += 1
+        # for ctx in self.envoy_tls.values():
+        #     using_tls_module = True
+        #
+        #     if ctx.get('certificate_chain_file', None) and ctx.get('valid_tls', False):
+        #         tls_termination_count += 1
+        #
+        #     if ctx.get('cacert_chain_file', None) and ctx.get('valid_tls', False):
+        #         tls_origination_count += 1
 
         for ctx in self.get_tls_contexts():
             if ctx:
@@ -446,7 +451,7 @@ class IR:
         od['endpoint_tls_count'] = endpoint_tls_count
 
         extauth = False
-        extauth_proto = None
+        extauth_proto: Optional[str] = None
         extauth_allow_body = False
         extauth_host_count = 0
 
@@ -455,7 +460,7 @@ class IR:
         ratelimit_custom_domain = False
 
         tracing = False
-        tracing_driver = None
+        tracing_driver: Optional[str] = None
 
         for filter in self.filters:
             if filter.kind == 'IRAuth':

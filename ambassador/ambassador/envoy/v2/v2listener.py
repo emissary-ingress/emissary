@@ -401,12 +401,12 @@ class V2Listener(dict):
             })
 
         for name, hosts, ctx in envoy_contexts:
-            config.ir.logger.info("V2Listener: SNI route check %s, %s, %s" % (name, hosts, json.dumps(ctx, indent=4, sort_keys=True)))
+            config.ir.logger.info("V2Listener: SNI route check %s, %s, %s" %
+                                  (name, hosts, json.dumps(ctx, indent=4, sort_keys=True)))
 
-            chain = {
-                'tls_context': ctx,
-                'routes': list(self.routes)
-            }
+            routes = list(self.routes)
+
+            chain: Dict[str, Any] = { 'tls_context': ctx }
 
             if global_sni:
                 chain['filter_chain_match'] = {
@@ -415,20 +415,24 @@ class V2Listener(dict):
 
             for sni_route in config.sni_routes:
                 # Check if filter chain and SNI route have matching hosts
-                config.ir.logger.info("V2Listener: SNI route check %s, route %s" % (name, json.dumps(sni_route, indent=4, sort_keys=True)))
+                config.ir.logger.info("V2Listener: SNI route check %s, route %s" %
+                                      (name, json.dumps(sni_route, indent=4, sort_keys=True)))
                 matched = sorted(sni_route['info']['hosts']) == sorted(hosts)
 
                 # Check for certificate match too.
                 for sni_key, ctx_key in [ ('cert_chain_file', 'certificate_chain'),
                                           ('private_key_file', 'private_key') ]:
                     sni_value = sni_route['info']['secret_info'][sni_key]
-                    ctx_value = ctx['common_tls_context']['tls_certificates'][0][ctx_key]['filename']   # XXX ugh. Multiple certs?
+                    # XXX ugh. Multiple certs?
+                    ctx_value = ctx['common_tls_context']['tls_certificates'][0][ctx_key]['filename']
 
                     if sni_value != ctx_value:
                         matched = False
                         break
 
                 if matched:
-                    chain['routes'].append(sni_route['route'])
+                    routes.append(sni_route['route'])
 
+
+            chain['routes'] = routes
             self.filter_chains.append(chain)

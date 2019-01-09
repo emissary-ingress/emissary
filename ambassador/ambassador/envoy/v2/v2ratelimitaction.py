@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, TYPE_CHECKING
 
-from ...utils import RichStatus
+# from ...utils import RichStatus
 
 if TYPE_CHECKING:
     from . import V2Config
@@ -28,10 +28,10 @@ class V2RateLimitAction(dict):
 
         self.valid = False
         self.stage = 0
-        self.actions = []
+        self.actions: List[dict] = []
 
-        if rate_limit == {}:
-            rate_limit = []
+        # if rate_limit == {}:
+        #     rate_limit = []
 
         config.ir.logger.debug("V2RateLimitAction translating %s" % rate_limit)
 
@@ -41,7 +41,7 @@ class V2RateLimitAction(dict):
             config.ir.post_error("Label for RateLimit has multiple entries instead of just one: %s" % rate_limit)
             return
 
-        lkey = list(lkeys)[ 0 ]
+        lkey = list(lkeys)[0]
         actions = rate_limit[lkey]
 
         for action in actions:
@@ -73,7 +73,7 @@ class V2RateLimitAction(dict):
                     hdr_action = action[dkey]
 
                     hdr_name = hdr_action['header']
-                    hdr_omit = hdr_action.get('omit_if_not_present', False)
+                    # hdr_omit = hdr_action.get('omit_if_not_present', False)
 
                     self.save_action({
                         'request_headers': {
@@ -109,7 +109,6 @@ class V2RateLimitAction(dict):
                 })
             else:
                 # WTF.
-                err = RichStatus.fromError()
                 config.ir.post_error("Label for RateLimit is not valid: %s" % action)
 
     def save_action(self, action):

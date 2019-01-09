@@ -133,26 +133,26 @@ class IRResource (Resource):
 
         return normalized_service
 
-    def is_service_tls(self, service: str, context: dict) -> bool:
-        is_tls: bool = False
-
-        if service.lower().startswith("https://"):
-            is_tls = True
-
-        if context is not None:
-            if context in self.ir.envoy_tls:
-                is_tls = True
-
-        return is_tls
-
-    def get_service_url(self, service: str, context: dict) -> str:
-        normalized_service = self.normalize_service(service)
-        is_tls = self.is_service_tls(normalized_service, context)
-
-        service_url = 'tcp://%s' % normalized_service
-
-        port = 443 if is_tls else 80
-        if ':' not in normalized_service:
-            service_url = '%s:%d' % (service_url, port)
-
-        return service_url
+    # def is_service_tls(self, service: str, context: dict) -> bool:
+    #     is_tls: bool = False
+    #
+    #     if service.lower().startswith("https://"):
+    #         is_tls = True
+    #
+    #     if context is not None:
+    #         if self.ir.has_tls_context(context):
+    #             is_tls = True
+    #
+    #     return is_tls
+    #
+    # def get_service_url(self, service: str, context: dict) -> str:
+    #     normalized_service = self.normalize_service(service)
+    #     is_tls = self.is_service_tls(normalized_service, context)
+    #
+    #     service_url = 'tcp://%s' % normalized_service
+    #
+    #     port = 443 if is_tls else 80
+    #     if ':' not in normalized_service:
+    #         service_url = '%s:%d' % (service_url, port)
+    #
+    #     return service_url
