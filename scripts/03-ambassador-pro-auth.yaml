@@ -1,5 +1,44 @@
----
 # @TEMPLATE@
+
+######################################################################
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador-pro-auth that has access to the CRDs that we will
+# create for it below
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-pro-auth
+rules:
+- apiGroups: ["stable.datawire.io"]
+  resources:
+  - policies
+  - tenants
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador-pro-auth
+  namespace: datawire
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-pro-auth
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-pro-auth
+subjects:
+- kind: ServiceAccount
+  name: ambassador-pro-auth
+  namespace: datawire
+
+
+######################################################################
+# Create a CRDs used to configure ambassador-pro-auth
+---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -59,6 +98,10 @@ spec:
     # shortNames allow shorter string to match your resource on the CLI
     shortNames:
     - ten
+
+
+######################################################################
+# Create the ambassador-pro-auth Service+Deployment
 ---
 apiVersion: v1
 kind: Service
@@ -109,7 +152,7 @@ spec:
       labels:
         name: ambassador-pro-auth
     spec:
-      serviceAccountName: ambassador
+      serviceAccountName: ambassador-pro-auth
       containers:
       - name: ambassador-pro-auth
         image: {{env "IMAGE"}}
