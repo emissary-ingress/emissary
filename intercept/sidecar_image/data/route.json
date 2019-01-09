@@ -1,0 +1,22 @@
+{
+  "@type": "/envoy.api.v2.RouteConfiguration",
+  "name": "application_route",
+  "virtual_hosts": [
+    {
+      "name": "all-the-hosts",
+      "domains": [
+        "*"
+      ],
+      "routes": [
+        {
+          "match": {
+            "prefix": "/"
+          },
+          "route": {
+            "cluster": "app"
+          }
+        }
+      ]
+    }
+  ]
+}
