@@ -38,8 +38,7 @@ endef
 
 # The main "output" of the Makefile is actually a Docker image, not a
 # file.
-.PHONY: build
-build: ## docker build -t $(DEV_IMAGE)
+build:
 	docker build . -t $(DEV_IMAGE)
 
 %/cert.pem %/key.pem: | %
@@ -80,8 +79,7 @@ install: vendor
 	@echo " >>> building"
 	go install ./cmd/...
 
-.PHONY: clean
-clean: ## Clean
+clean:
 	@echo " >>> cleaning compiled objects and binaries"
 	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
 	go clean -i ./...
@@ -95,7 +93,7 @@ vendor: ## Update the ./vendor/ directory based on Gopkg.toml
 	@echo " >>> installing dependencies"
 	dep ensure -vendor-only
 
-format: ## Adjust the source code per `go fmt`
+format:
 	@echo " >>> running format"
 	go fmt ./...
 
