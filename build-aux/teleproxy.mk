@@ -34,7 +34,7 @@ proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
 # NB: we say KUBECONFIG=$(KUBECONFIG) here because it might not be exported
 	KUBECONFIG=$(KUBECONFIG) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 &
 	@for i in 1 2 4 8 16 32 64 x; do \
-		if [ "$$i" == "x" ]; then echo "ERROR: proxy did not come up"; exit 1; fi; \
+		if [ "$$i" = "x" ]; then echo "ERROR: proxy did not come up"; exit 1; fi; \
 		echo "Checking proxy: $(KUBE_URL)"; \
 		if curl -sk $(KUBE_URL); then \
 			echo -e "\n\nProxy UP!"; \
