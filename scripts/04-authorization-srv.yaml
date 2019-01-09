@@ -49,5 +49,5 @@ spec:
         ports:
         - containerPort: 8080
         env:
-          - name: AUTH_DOMAIN
-            value: {{env "AUTH_DOMAIN"}}
+          - name: AUTH_PROVIDER_URL
+            value: {{env "AUTH_PROVIDER_URL"}}
