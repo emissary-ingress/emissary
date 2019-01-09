@@ -36,7 +36,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, kube_tls_secret_resolver
+from ambassador.utils import SystemInfo, PeriodicTrigger, SplitConfigChecker
 
 from ambassador.diagnostics import EnvoyStats
 
@@ -160,23 +160,26 @@ class Notices:
 
 
 def get_aconf(app) -> Config:
-    configs = glob.glob("%s-*" % app.config_dir_prefix)
+    # We need to find the sync-# directory with the highest number...
+    sync_dirs = []
 
-    if configs:
-        keyfunc = lambda x: x.split("-")[-1]
-        key_match = lambda x: re.match('^\d+$', keyfunc(x))
-        key_as_int = lambda x: int(keyfunc(x))
+    for subdir in os.listdir(app.config_dir_prefix):
+        if subdir.startswith("sync-"):
+            try:
+                sync_dirs.append(int(subdir.replace("sync-", "")))
+            except ValueError:
+                pass
 
-        configs = sorted(filter(key_match, configs), key=key_as_int)
+    latest_generation = sorted(sync_dirs, reverse=True)[0]
 
-        latest = configs[-1]
-    else:
-        latest = app.config_dir_prefix
+    latest = os.path.join(app.config_dir_prefix, "sync-%d" % latest_generation)
 
     app.logger.debug("Fetching resources from %s" % latest)
 
+    app.scc = SplitConfigChecker(app.logger, latest)
+
     aconf = Config()
-    aconf.load_from_directory(latest, k8s=app.k8s)
+    aconf.load_from_directory(latest, k8s=app.k8s, recurse=True)
 
     app.notices = Notices(app.notice_path)
     app.notices.reset()
@@ -310,7 +313,7 @@ def show_overview(reqid=None):
         #     return redirect("/ambassador/v0/diag/", code=302)
 
     aconf = get_aconf(app)
-    ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
+    ir = IR(aconf, secret_reader=app.scc.secret_reader)
     check_scout(app, "overview", ir)
 
     econf = EnvoyConfig.generate(ir, "V2")
@@ -375,7 +378,7 @@ def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     aconf = get_aconf(app)
-    ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
+    ir = IR(aconf, secret_reader=scc.secret_reader)
     check_scout(app, "detail: %s" % source, ir)
 
     econf = EnvoyConfig.generate(ir, "V2")

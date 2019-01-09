@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional, Union
+from typing import Optional
 from typing import cast as typecast
 
 import sys
@@ -20,6 +20,7 @@ import sys
 import json
 import logging
 import os
+import signal
 import traceback
 
 import clize
@@ -29,7 +30,7 @@ from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import EnvoyConfig, V1Config, V2Config
 from .ir.irtlscontext import IRTLSContext
 
-from .utils import RichStatus
+from .utils import RichStatus, SavedSecret, SplitConfigChecker
 
 __version__ = Version
 
@@ -103,41 +104,18 @@ def file_checker(path: str) -> bool:
     return True
 
 
-def cli_secret_resolver(context: IRTLSContext, namespace: str,
-                        cert_dir: Optional[str] = None) -> Optional[Dict[str, str]]:
-    # In the Real World, kubewatch hands in a resolver that looks into kubernetes.
+def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str, secret_root: str) -> SavedSecret:
+    # In the Real World, the secret reader should, y'know, read secrets..
     # Here we're just gonna fake it.
 
-    # Do we have secret info?
-    if not 'secret_info':
-        # Nope. This is a problem.
-        context.post_error("no secret_info in TLSContext?")
-        return None
+    cert_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.crt")
+    key_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.key")
 
-    # OK, do we have secrets to look up?
-    ctxinfo = context.secret_info
-    od = dict(ctxinfo)
-
-    if not cert_dir:
-        # Default.
-        cert_dir = "/ambassador/certs"
-
-    if 'secret' in ctxinfo:
-        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
-        od['cert_chain_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.crt")
-        od['private_key_file'] = os.path.join(cert_dir, ctxinfo['secret'], "tls.key")
-
-    if 'ca_secret' in ctxinfo:
-        # Pretend for now. Note that we know that we don't have path info if we have a secret name.
-        od['cacert_chain_file'] = os.path.join(cert_dir, ctxinfo['ca_secret'], "tls.crt")
-
-    logger.debug("CLI secret resolver: returning %s" % od)
-
-    return od
+    return SavedSecret(secret_name, namespace, cert_path, key_path, {})
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
-         debug=False, debug_scout=False, k8s=False,
+         debug=False, debug_scout=False, k8s=False, recurse=False,
          aconf=False, ir=False, v1=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -146,9 +124,10 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     will be dumped.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
-    :param k8s: If set, assume configuration files are annotated K8s manifests
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output
+    :param k8s: If set, assume configuration files are annotated K8s manifests
+    :param recurse: If set, recurse into directories below config_dir_path
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
     :param v1: If set, dump the Envoy V1 config
@@ -183,14 +162,14 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
     try:
         aconf = Config()
-        aconf.load_from_directory(config_dir_path, k8s=k8s)
+        aconf.load_from_directory(config_dir_path, k8s=k8s, recurse=recurse)
         # aconf.post_error("Error from string, boo yah")
         # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=cli_secret_resolver)
+        ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -317,7 +296,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf, file_checker=file_checker, tls_secret_resolver=cli_secret_resolver)
+            ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:
@@ -365,8 +344,80 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
         sys.exit(1)
 
 
+def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
+                bootstrap_path=None, ads_path=None, changes=None, gencount=None,
+                debug=False, debug_scout=False, k8s=True, ir_path=None):
+    """
+    Generate an Envoy configuration from resources that have already been pulled from Kube
+
+    :param root_path: Root of the config data. Expected to contain subdirs for namespaces
+    :param ambex_pid: PID of running Ambex to signal on config changes
+    :param bootstrap_path: Path to which to write Envoy bootstrap config
+    :param ads_path: Path to which to write Envoy ADS config for Ambex
+    :param ir_path: If set, path to which to dump the IR
+    :param changes: How many changes since the last update have happened?
+    :param gencount: Generation count of this update
+    :param debug: If set, generate debugging output
+    :param debug_scout: If set, generate debugging output when talking to Scout
+    """
+    # :param k8s: If set, assume configuration files are annotated K8s manifests
+    # """
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
+    if debug_scout:
+        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
+
+    # root_path contains directories for each resource type: services, secrets, optional
+    # crd-whatever paths.
+    scc = SplitConfigChecker(logger, root_path)
+
+    # Start by assuming that we're going to look at everything.
+    config_root = root_path
+
+    # ...then override that if we're running in single-namespace mode.
+    if os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'):
+        config_root = os.path.join(root_path, os.environ.get('AMBASSADOR_NAMESPACE', 'default'))
+
+    # OK. Load the Config from the config_root.
+    aconf = Config()
+    aconf.load_from_directory(config_root, k8s=k8s, recurse=True)
+
+    # Use the SplitConfigChecker to resolve secrets. We don't pass a file checker
+    # because anything in the config using an actual path needs to be passing a
+    # correct path by this point.
+    ir = IR(aconf, secret_reader=scc.secret_reader)
+
+    # Generate a V2Config from that, and grab the split bootstrap and ADS configs.
+    v2config = V2Config(ir)
+    bootstrap_config, ads_config = v2config.split_config()
+
+    if not bootstrap_path:
+        bootstrap_path="bootstrap-ads.json"
+
+    if not ads_path:
+        ads_path="envoy/envoy.json"
+
+    logger.info("SAVING CONFIG")
+
+    with open(bootstrap_path, "w") as output:
+        output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+
+    with open(ads_path, "w") as output:
+        output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+
+    if ir_path:
+        with open(ir_path, "w") as output:
+            output.write(ir.as_json())
+
+    if ambex_pid != 0:
+        logger.info("RESTARTING")
+        os.kill(ambex_pid, signal.SIGHUP)
+
+
 def main():
-    clize.run([config, dump, validate], alt=[version, showid],
+    clize.run([config, splitconfig, dump, validate], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
