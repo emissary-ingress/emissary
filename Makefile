@@ -11,6 +11,7 @@ include build-aux/kubeapply.mk
 include build-aux/k8s.mk
 
 export PATH:=$(CURDIR)/bin_$(GOOS)_$(GOARCH):$(PATH)
+export CGO_ENABLED=0
 
 #
 

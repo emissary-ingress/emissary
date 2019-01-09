@@ -152,4 +152,6 @@ spec:
           value: tcp
         - name: REDIS_URL
           value: ratelimit-redis:6379
+        - name: AMBASSADOR_LICENSE_KEY
+          value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6LTM4MTA0MzkzMTN9.cYkrotOFlodqhwHlD_NzXrO4YG3Yfz3SsNqJpK27h2A
       restartPolicy: Always
