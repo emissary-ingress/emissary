@@ -16,6 +16,13 @@ metadata:
        - "Authorization"
        - "Client-Id"
        - "Client-Secret"
+      ---
+      apiVersion: ambassador/v0
+      kind:  Mapping
+      name:  callback_mapping
+      prefix: /callback
+      service: auth0-service
+      timeout_ms: 5000
 spec:
   type: ClusterIP
   selector:
