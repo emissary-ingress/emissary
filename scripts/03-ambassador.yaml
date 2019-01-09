@@ -23,6 +23,7 @@ rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
   - policies
+  - tenants
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
