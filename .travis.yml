@@ -48,7 +48,7 @@ script:
   - make release
 deploy:
   on:
-    condition: $TRAVIS_TAG =~ ^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-rc)?$
+    condition: $TRAVIS_TAG =~ ^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-rc[[:digit:]]*)?$
   skip_cleanup: true
   provider: script
   script: make push-tagged-image
