@@ -119,6 +119,7 @@ metadata:
        - "Authorization"
        - "Client-Id"
        - "Client-Secret"
+       - "X-Forwarded-Proto"
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
