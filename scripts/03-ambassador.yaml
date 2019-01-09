@@ -20,10 +20,6 @@ kind: ClusterRole
 metadata:
   name: ambassador
 rules:
-- apiGroups: ["stable.datawire.io"]
-  resources:
-  - policies
-  verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
   - services
@@ -58,15 +54,6 @@ metadata:
         server:
           enabled: True
           redirect_cleartext_from: 80
-      ---
-      apiVersion: ambassador/v0
-      kind: AuthService
-      name: authentication
-      auth_service: auth0-service
-      allowed_headers:
-      - "Authorization"
-      - "Client-Id"
-      - "Client-Secret"
 spec:
   type: NodePort
   ports:
@@ -109,7 +96,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.39.0
+        image: quay.io/datawire/ambassador:0.50.0-rc3
         env:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:

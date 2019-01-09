@@ -19,4 +19,4 @@ spec:
      public: false
    - host: "*"
      path: /httpbin/headers/*
-     scope: "read:test"
+     scope: "openid"
