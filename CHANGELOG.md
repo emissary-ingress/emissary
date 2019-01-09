@@ -57,8 +57,8 @@ There are a number of breaking changes in Ambassador 0.50.0:
 
 ### Microsoft Azure
 
-There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
-updates after running for a short time. This will be fixed in 0.50.0-GA.
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador prior to 0.50.0-rc4
+will stop receiving service updates after running for a short time. This is fixed in 0.50.0-rc4.
 
 ### AMBASSADOR 0.36.0
 
@@ -108,6 +108,19 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.0-rc4] January 9, 2019
+[0.50.0-rc4]: https://github.com/datawire/ambassador/compare/0.50.0-rc3...0.50.0-rc4
+
+**Ambassador 0.50.0-rc4 is a release candidate**, and fully supports running under Microsoft Azure.
+
+### Changes since 0.50.0-rc3
+
+- Ambassador fully supports running under Azure [#1039]
+- The `proto` attribute of a v1 `AuthService` is now optional, and defaults to `http`
+- Ambassador will warn about the use of v0 configuration resources.
+
+[#1039]: https://github.com/datawire/ambassador/issues/1039
 
 ## [0.50.0-rc3] January 3, 2019
 [0.50.0-rc3]: https://github.com/datawire/ambassador/compare/0.50.0-rc2...0.50.0-rc3
