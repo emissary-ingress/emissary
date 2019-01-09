@@ -305,7 +305,11 @@ func (state *ProxyState) cleanup() {
 	log.Printf("cleanup: finished")
 }
 
+// Version is inserted at build using --ldflags -X
+var Version = "(unknown version)"
+
 func main() {
+	log.Printf("Proxy version %s", Version)
 	manager, err := golongpoll.StartLongpoll(golongpoll.Options{
 		LoggingEnabled:                 true,
 		MaxLongpollTimeoutSeconds:      120,

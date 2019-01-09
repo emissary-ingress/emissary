@@ -225,8 +225,12 @@ func processIntercepts(intercepts []InterceptInfo) {
 	err = os.Rename("temp/route.json", "data/route.json")
 }
 
+// Version is inserted at build using --ldflags -X
+var Version = "(unknown version)"
+
 func main() {
 	log.SetPrefix("SIDECAR: ")
+	log.Printf("Sidecar version %s", Version)
 
 	os.Mkdir("temp", 0775)
 
