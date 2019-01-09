@@ -20,7 +20,7 @@ LOCALHOST = localhost
 endif
 DEV_DOCKER_REGISTRY = $(LOCALHOST):31000
 DEV_DOCKER_REPO = ambassador-pro
-DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --no-match --always --abbrev=40 --dirty))
+DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --match NoThInGEvErMaTcHeS --always --abbrev=40 --dirty))
 DEV_IMAGE = $(DEV_DOCKER_REGISTRY)/$(DEV_DOCKER_REPO):$(DEV_VERSION)
 
 define help.body
