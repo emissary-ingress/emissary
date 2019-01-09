@@ -89,7 +89,6 @@ class IRAuth (IRFilter):
             ir.add_cluster(typecast(IRCluster, self.cluster))
             self.referenced_by(typecast(IRCluster, self.cluster))
 
-
     def _load_auth(self, module: Resource):
         if self.location == '--internal--':
             self.sourced_by(module)
@@ -102,8 +101,8 @@ class IRAuth (IRFilter):
 
                 if previous and (previous != value):
                     # Don't use self.post_error() here, since we need to explicitly override the
-                    # resource.
-                    self.ir.post_error(
+                    # resource. And don't use self.ir.post_error, since our module isn't an IRResource.
+                    self.ir.aconf.post_error(
                         "AuthService cannot support multiple %s values; using %s" % (key, previous),
                         resource=module
                     )

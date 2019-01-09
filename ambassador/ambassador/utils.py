@@ -225,13 +225,14 @@ class KubeSecretReader:
         cert = None
         key = None
 
-        try:
-            cert_data = self.v1.read_namespaced_secret(secret_name, namespace)
-        except client.rest.ApiException as e:
-            if e.reason == "Not Found":
-                logger.info("secret {} not found".format(secret_name))
-            else:
-                logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
+        if self.v1:
+            try:
+                cert_data = self.v1.read_namespaced_secret(secret_name, namespace)
+            except client.rest.ApiException as e:
+                if e.reason == "Not Found":
+                    logger.info("secret {} not found".format(secret_name))
+                else:
+                    logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
 
         if cert_data and cert_data.data:
             cert_data = cert_data.data

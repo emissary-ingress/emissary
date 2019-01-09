@@ -54,7 +54,7 @@ class ListenerFactory:
         if primary_listener.require_tls:
             ir.logger.debug("x_forwarded_proto_redirect is set to true, enabling 'require_tls' in listener")
 
-        redirect_cleartext_from = None
+        redirect_cleartext_from: Optional[int] = None
 
         # What do we know about TLS?
         # XXX This will have to change as we mess more with arbitrary contexts.
