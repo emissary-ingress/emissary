@@ -5,6 +5,7 @@
 ## Inputs ##
 #  - File: ./go.mod
 #  - Variable: go.DISABLE_GO_TEST ?=
+#  - Variable: go.LDFLAGS ?=
 ## Outputs ##
 #  - Variable: go.module = EXAMPLE.COM/YOU/YOURREPO
 #  - Variable: go.bins = List of "main" Go packages
@@ -30,6 +31,8 @@ include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
 # 0. configure the `go` command
 
 export GO111MODULE = on
+
+.NOTPARALLEL:
 
 #
 # 1. Set go.module
