@@ -51,6 +51,10 @@ func keyCheck(cmd *cobra.Command, args []string) {
 	var keysource string
 
 	if LICENSE_KEY == "" {
+		if LICENSE_FILE == "" {
+			fmt.Printf("no license key or license key file specified")
+			os.Exit(1)
+		}
 		key, err := ioutil.ReadFile(LICENSE_FILE)
 		if err != nil {
 			fmt.Printf("error reading license key from %s: %v\n", LICENSE_FILE, err)
