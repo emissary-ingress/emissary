@@ -297,27 +297,12 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    loglevel = request.args.get('loglevel', None)
-
-    notice = None
-
-    if loglevel:
-        app.logger.debug("OV %s -- requesting loglevel %s" % (reqid, loglevel))
-
-        if not app.estats.update_log_levels(time.time(), level=loglevel):
-            notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
-        # else:
-        #     return redirect("/ambassador/v0/diag/", code=302)
-
     aconf = get_aconf(app)
     ir = IR(aconf, tls_secret_resolver=kube_tls_secret_resolver)
     check_scout(app, "overview", ir)
 
     econf = EnvoyConfig.generate(ir, "V2")
     diag = Diagnostics(ir, econf)
-
-    if notice:
-        app.notices.prepend(notice)
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -330,28 +315,12 @@ def show_overview(reqid=None):
         app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
         app.logger.debug("OV %s: collecting errors" % reqid)
 
-    # This is a little odd because there's an 'errors' element in diag.as_dict(),
-    # and we need to tweak it for the HTML rendering. Ah well.
-    ddict = diag.as_dict()
-
-    # app.logger.debug("ddict %s" % json.dumps(ddict, indent=4, sort_keys=True))
-
-    derrors = ddict.pop('errors', {})
-
-    errors = []
-
-    for err_key, err_list in derrors.items():
-        if err_key == "-global-":
-            err_key = ""
-
-        for err in err_list:
-            errors.append((err_key, err['error']))
+    ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
-                 errors=errors,
                  **ov, **ddict)
 
     if request.args.get('json', None):
@@ -369,6 +338,52 @@ def show_overview(reqid=None):
     return result
 
 
+def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> Dict:
+    loglevel = request.args.get('loglevel', None)
+    notice = None
+
+    if loglevel:
+        app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
+
+        if not app.estats.update_log_levels(time.time(), level=loglevel):
+            notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
+        # else:
+        #     return redirect("/ambassador/v0/diag/", code=302)
+
+    # We need to grab errors and notices from diag.as_dict(), process the errors so
+    # they work for the HTML rendering, and post the notices to app.notices. Then we
+    # return the dict representation that our caller should work with.
+
+    ddict = diag.as_dict()
+
+    # app.logger.debug("ddict %s" % json.dumps(ddict, indent=4, sort_keys=True))
+
+    derrors = ddict.pop('errors', {})
+
+    errors = []
+
+    for err_key, err_list in derrors.items():
+        if err_key == "-global-":
+            err_key = ""
+
+        for err in err_list:
+            errors.append((err_key, err[ 'error' ]))
+
+    dnotices = ddict.pop('notices', {})
+
+    # Make sure that anything about the loglevel gets folded into this set.
+    if notice:
+        app.notices.prepend(notice)
+
+    for notice_key, notice_list in dnotices.items():
+        for notice in notice_list:
+            app.logger.debug("POSTING NOTICE %s %s" % (notice_key, notice))
+            app.notices.post({'level': 'NOTICE', 'message': "%s: %s" % (notice_key, notice)})
+
+    ddict['errors'] = errors
+
+    return ddict
+
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
@@ -384,31 +399,18 @@ def show_intermediate(source=None, reqid=None):
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    # This is a little odd because there's an 'errors' element in diag.as_dict(),
-    # and we need to tweak it for the HTML rendering. Ah well.
-    ddict = diag.as_dict()
-    derrors = ddict.pop('errors', {})
-
-    errors = []
-
-    for err_key, err_list in derrors.items():
-        if err_key == "-global-":
-            err_key = ""
-
-        for err in err_list:
-            errors.append((err_key, err['error']))
-
     result = diag.lookup(request, source, app.estats)
 
     if app.verbose:
         app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
 
+    ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
+
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
-                 method=method, resource=resource,
-                 errors=errors,
                  notices=app.notices.notices,
+                 method=method, resource=resource,
                  **result, **ddict)
 
     if request.args.get('json', None):

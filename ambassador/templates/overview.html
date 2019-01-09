@@ -96,8 +96,10 @@ limitations under the License
           <div class="col-12">
             {% for notice in notices %}
               <span 
-              {% if notice.level == 'WARNING' %}
+              {% if (notice.level == 'WARNING') or (notice.level == 'ERROR') %}
               style="color:red"
+              {% elif notice.level == 'NOTICE' %}
+              style="color:orange"
               {% elif notice.level == 'INFO' %}
               style="color:green"
               {% endif %}

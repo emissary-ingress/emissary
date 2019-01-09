@@ -365,8 +365,9 @@ class Diagnostics:
         self.envoy_elements: Dict[str, dict] = {}
         self.ambassador_services: List[dict] = []
 
-        # Copy in the toplevel error set.
+        # Copy in the toplevel error and notice sets.
         self.errors = self.ir.aconf.errors
+        self.notices = self.ir.aconf.notices
 
         # First up, walk the list of Ambassador sources.
         for key, rsrc in self.ir.aconf.sources.items():
@@ -482,6 +483,7 @@ class Diagnostics:
             'ambassador_elements': self.ambassador_elements,
             'envoy_elements': self.envoy_elements,
             'errors': self.errors,
+            'notices': self.notices,
             'groups': { key: value.as_dict() for key, value in self.groups.items() },
             'clusters': { key: value.as_dict() for key, value in self.clusters.items() }
         }

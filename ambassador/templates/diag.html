@@ -98,8 +98,10 @@ limitations under the License
           <div class="col-12">
             {% for notice in notices %}
               <span 
-              {% if notice.level == 'WARNING' %}
+              {% if (notice.level == 'WARNING') or (notice.level == 'ERROR') %}
               style="color:red"
+              {% elif notice.level == 'NOTICE' %}
+              style="color:orange"
               {% elif notice.level == 'INFO' %}
               style="color:green"
               {% endif %}
@@ -140,7 +142,7 @@ limitations under the License
 
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/route_config/route.html">Routes</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.8.0/api-v2/api/v2/route/route.proto">Routes</a>
 
           {% for route in route_info %}
           <div class="row">
@@ -192,7 +194,7 @@ limitations under the License
 
       <div class="row">
         <div class="col-12">
-          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.5.0/api-v1/cluster_manager/cluster.html">Clusters</a>
+          Currently active Envoy <a href="https://www.envoyproxy.io/docs/envoy/v1.8.0/api-v2/api/v2/cds.proto">Clusters</a>
 
           <div class="row">
             {% for cluster in cluster_info.values() | sort(attribute = 'name') %}
