@@ -37,7 +37,9 @@ apply: $(KUBECONFIG) $(KUBEAPPLY)
 .PHONY: apply
 
 deploy: ## Shorthand for `make push apply`.
-deploy: push apply
+deploy:
+	$(MAKE) push
+	$(MAKE) apply
 .PHONY: deploy
 
 endif
