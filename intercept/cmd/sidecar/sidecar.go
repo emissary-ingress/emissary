@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -242,8 +243,8 @@ func main() {
 		log.Print("ERROR: APPNAME env var not configured.")
 		log.Print("Running without intercept capabilities.")
 		processIntercepts(intercepts)
-		select {} // Block forever
-		// not reached
+		<-time.After(time.Duration(math.MaxInt64)) // Block forever-ish
+		// not reached for a long time
 	}
 
 	log.SetPrefix(fmt.Sprintf("%s(%s) ", log.Prefix(), appName))
