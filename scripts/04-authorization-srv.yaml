@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth0-service
+  name: ambassador-pro-auth
   namespace: datawire
   annotations:
     getambassador.io/config: |
@@ -11,7 +11,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  AuthService
       name:  authentication
-      auth_service: auth0-service
+      auth_service: ambassador-pro-auth
       allowed_headers:
        - "Authorization"
        - "Client-Id"
@@ -21,12 +21,12 @@ metadata:
       kind:  Mapping
       name:  callback_mapping
       prefix: /callback
-      service: auth0-service
+      service: ambassador-pro-auth
       timeout_ms: 5000
 spec:
   type: ClusterIP
   selector:
-    name: auth0-service
+    name: ambassador-pro-auth
   ports:
   - protocol: TCP 
     port: 80
@@ -35,7 +35,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: auth0-service
+  name: ambassador-pro-auth
   namespace: datawire
 spec:
   replicas: 1
@@ -43,15 +43,15 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      name: auth0-service
+      name: ambassador-pro-auth
   template:
     metadata:
       labels:
-        name: auth0-service
+        name: ambassador-pro-auth
     spec:
       serviceAccountName: ambassador
       containers:
-      - name: auth0-service
+      - name: ambassador-pro-auth
         image: {{env "IMAGE"}}
         ports:
         - containerPort: 8080
