@@ -1,5 +1,6 @@
 NAME=ambassador-ratelimit
 PROFILE ?= dev
+include config.mk
 
 include build-aux/common.mk
 include build-aux/go-mod.mk
@@ -8,7 +9,6 @@ include build-aux/help.mk
 include build-aux/teleproxy.mk
 include build-aux/kubernaut-ui.mk
 include build-aux/kubeapply.mk
-
 include build-aux/k8s.mk
 
 export PATH:=$(CURDIR)/bin_$(GOOS)_$(GOARCH):$(PATH)
