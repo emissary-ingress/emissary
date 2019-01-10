@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -60,6 +61,14 @@ func rlimit() {
 }
 
 type Query map[string]interface{}
+
+func (q Query) ClientCert() string {
+	val, ok := q["client_cert"]
+	if ok {
+		return val.(string)
+	}
+	return ""
+}
 
 func (q Query) Insecure() bool {
 	val, ok := q["insecure"]
@@ -204,6 +213,18 @@ func main() {
 				IdleConnTimeout:    30 * time.Second,
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			}
+
+			clientCert := query.ClientCert()
+			if len(clientCert) > 0 {
+				caCertPool := x509.NewCertPool()
+				caCertPool.AppendCertsFromPEM([]byte(clientCert))
+				insecure_tr.TLSClientConfig.RootCAs = caCertPool
+				insecure_tr.TLSClientConfig.BuildNameToCertificate()
+				//tls.X509KeyPair()
+				//insecure_tr.TLSClientConfig.ClientAuth = tls.RequireAndVerifyClientCert
+				fmt.Printf("%#v\n", insecure_tr.TLSClientConfig.ClientAuth)
+			}
+
 			insecure_client := &http.Client{
 				Transport: insecure_tr,
 				Timeout: time.Duration(10 * time.Second),
