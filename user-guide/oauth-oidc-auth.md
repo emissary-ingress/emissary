@@ -32,7 +32,7 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
 **Note:** Ensure your [authentication provider](/user-guide/ambassador-pro-install/#5-single-sign-on) is set in your Ambassador Pro deployment before configuring authentication tenants.
 
-Ambassador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and what client to use for authentication. 
+Ambassador Pro is integrated with your IDP via the `Tenant` custom resource definition. This is where you will tell Ambassador Pro which hosts to require authentication from and which client to use for authentication. 
 
 To configure your tenant, create the following YAML and put it in a file called `tenants.yaml`.
 
@@ -47,7 +47,7 @@ spec:
     # The URL used to access your app.
     - tenantUrl: {scheme}://{hostname or ip}
     # The API Audience that is listening for authentication requests
-      audience: https://example.auth0.com/api/v2/
+      audience: https://datawire-ambassador.auth0.com/api/v2/
     # Client ID from your authentication application
       clientId: <CLIENT_ID>
     # Client Secret from your authentication application
