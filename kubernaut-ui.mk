@@ -14,7 +14,7 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 include $(dir $(lastword $(MAKEFILE_LIST)))kubernaut.mk
 
-_KUBECONFIG := $(or $(NAME),cluster).knaut
+_KUBECONFIG := build-aux/$(or $(NAME),cluster).knaut
 export KUBECONFIG = $(_KUBECONFIG)
 
 claim: ## (Kubernaut) Obtain an ephemeral k8s cluster from kubernaut.io
