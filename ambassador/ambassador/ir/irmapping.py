@@ -248,70 +248,6 @@ class IRMapping (IRResource):
                     return context
         return None
 
-    # def new_route(self, svc, cluster_name) -> SourcedDict:
-    #     route = SourcedDict(
-    #         _source=self[ '_source' ],
-    #         _group_id=self.group_id,
-    #         _precedence=self.get('precedence', 0),
-    #         prefix_rewrite=self.get('rewrite', '/')
-    #     )
-    #
-    #     if self.get('prefix_regex', False):
-    #         # if `prefix_regex` is true, then use the `prefix` attribute as the envoy's regex
-    #         route[ 'regex' ] = self[ 'prefix' ]
-    #     else:
-    #         route[ 'prefix' ] = self[ 'prefix' ]
-    #
-    #     host_redirect = self.get('host_redirect', False)
-    #     shadow = self.get('shadow', False)
-    #
-    #     if not host_redirect and not shadow:
-    #         route[ 'clusters' ] = [ {"name": cluster_name,
-    #                                  "weight": self.get("weight", None)} ]
-    #     else:
-    #         route.setdefault('clusters', [ ])
-    #
-    #         if host_redirect and not shadow:
-    #             route[ 'host_redirect' ] = svc
-    #             route.setdefault('clusters', [ ])
-    #         elif shadow:
-    #             # If both shadow and host_redirect are set, we let shadow win.
-    #             #
-    #             # XXX CODE DUPLICATION with config.py!!
-    #             # We're going to need to support shadow weighting later, so use a dict here.
-    #             route[ 'shadow' ] = {
-    #                 'name': cluster_name
-    #             }
-    #
-    #     if self.headers:
-    #         route[ 'headers' ] = self.headers
-    #
-    #     add_request_headers = self.get('add_request_headers')
-    #     if add_request_headers:
-    #         route[ 'request_headers_to_add' ] = [ ]
-    #         for key, value in add_request_headers.items():
-    #             route[ 'request_headers_to_add' ].append({"key": key, "value": value})
-    #
-    #
-    #     # Even though we don't use it for generating the Envoy config, go ahead
-    #     # and make sure that any ':method' header match gets saved under the
-    #     # route's '_method' key -- diag uses it to make life easier.
-    #
-    #     route[ '_method' ] = self.method
-    #
-    #     # We refer to this route, of course.
-    #     route.referenced_by(self[ '_source' ])
-    #
-    #     # There's a slew of things we'll just copy over transparently; handle
-    #     # those.
-    #
-    #     for key, value in self.items():
-    #         if key in Mapping.TransparentRouteKeys:
-    #             route[ key ] = value
-    #
-    #     # Done!
-    #     return route
-
 
 ########
 ## IRMappingGroup is a collection of Mappings. We'll use it to build Envoy routes later,
@@ -324,17 +260,6 @@ class IRMappingGroup (IRResource):
     group_id: str
     group_weight: List[Union[str, int]]
     rewrite: str
-
-    # TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
-    #     "auto_host_rewrite": True,
-    #     "case_sensitive": True,
-    #     "envoy_override": True,
-    #     "host_rewrite": True,
-    #     "path_redirect": True,
-    #     "priority": True,
-    #     "timeout_ms": True,
-    #     "use_websocket": True
-    # }
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         'group_id': True,
@@ -652,28 +577,5 @@ class MappingFactory:
         # OK. We've created whatever IRMappings we need. Time to create the clusters
         # they need.
 
-        # print("CLUSTERS")
         for group in ir.groups.values():
-            # print("\n  %s (%s, %s):" % (group.name, group.group_id, group.group_weight))
-
             group.finalize(ir, aconf)
-
-            # hdrstring = ""
-            #
-            # if group.headers:
-            #     hdrstring = " [ %s ]" % ",".join([ "%s%s%s" % (h.name, "~" if h.regex else "=", h.value)
-            #                                        for h in group.headers ])
-            #
-            # print("    %s %s%s:" % (group.get('method', 'ANY'), group.prefix, hdrstring))
-            #
-            # mappings = reversed(sorted(group.mappings, key=lambda x: x['route_weight']))
-            #
-            # for mapping in mappings:
-            #     print("      %d%% => %s rewrite %s" % (mapping.weight, mapping.service, mapping.rewrite))
-            #
-            #     ctx = mapping.cluster.get('tls_context', None)
-            #     ctx_name = ctx.name if ctx else "(none)"
-            #
-            #     print("        cluster %s: TLS %s" % (mapping.cluster.name, ctx_name))
-            #     print("          refs %s" % ", ".join(mapping.cluster._referenced_by))
-            #     print("          urls %s" % ", ".join(mapping.cluster.urls))
