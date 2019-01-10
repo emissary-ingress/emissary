@@ -14,16 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import datetime
 import functools
-import glob
 import json
 import logging
 import multiprocessing
 import os
-import re
 import time
 import uuid
 
@@ -72,9 +70,25 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
+class DiagApp (Flask):
+    estats: EnvoyStats
+    config_dir_prefix: str
+    health_checks: bool
+    debugging: bool
+    verbose: bool
+    k8s: bool
+    notice_path: str
+    logger: logging.Logger
+    scc: SplitConfigChecker
+    aconf: Config
+    notices: 'Notices'
+    scout: Scout
+    scout_args: Dict[str, Any]
+    scout_result: Dict[str, Any]
+
 # Get the Flask app defined early.
-app = Flask(__name__,
-            template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
+app = DiagApp(__name__,
+              template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
 
 ######## DECORATORS
@@ -336,10 +350,6 @@ def show_overview(reqid=None):
     else:
         return render_template("overview.html", **tvars)
 
-    # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
-
-    return result
-
 
 def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> Dict:
     loglevel = request.args.get('loglevel', None)
@@ -386,6 +396,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
     ddict['errors'] = errors
 
     return ddict
+
 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
