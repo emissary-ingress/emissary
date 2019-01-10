@@ -234,7 +234,6 @@ class AmbassadorTest(Test):
         yield ("url", Query(self.url("ambassador/v0/check_ready")))
         yield ("url", Query(self.url("ambassador/v0/check_alive")))
 
-
 @abstract_test
 class ServiceType(Node):
 

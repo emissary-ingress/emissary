@@ -247,7 +247,7 @@ class Test(Node):
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
-                 xfail=None, phase=1, debug=False, sni=False, error=None, client_cert=None, client_cert_required=False):
+                 xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None, client_cert_required=False, ca_cert=None):
         self.method = method
         self.url = url
         self.headers = headers
@@ -269,7 +269,9 @@ class Query:
         self.sni = sni
         self.error = error
         self.client_cert_required = client_cert_required
-        self.client_cert = client_cert
+        self.client_cert = client_crt
+        self.client_key = client_key
+        self.ca_cert = ca_cert
 
     def as_json(self):
         result = {
@@ -287,6 +289,10 @@ class Query:
             result["messages"] = self.messages
         if self.client_cert is not None:
             result["client_cert"] = self.client_cert
+        if self.client_key is not None:
+            result["client_key"] = self.client_key
+        if self.ca_cert is not None:
+            result["ca_cert"] = self.ca_cert
         if self.client_cert_required:
             result["client_cert_required"] = self.client_cert_required
 
