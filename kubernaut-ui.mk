@@ -1,13 +1,13 @@
 # Copyright 2018 Datawire. All rights reserved.
 #
-# Makefile snippet for providing claim/release/shell user-facing
+# Makefile snippet for providing claim/unclaim/shell user-facing
 # targets for interacting with kubernaut.
 #
 ## Inputs ##
 #  - Variable: export KUBECONFIG := $(or $(NAME),cluster).knaut
 ## Outputs ##
 #  - .PHONY Target: claim
-#  - .PHONY Target: release
+#  - .PHONY Target: unclaim
 #  - .PHONY Target: shell
 ## common.mk targets ##
 #  - clean
@@ -21,15 +21,15 @@ claim: ## (Kubernaut) Obtain an ephemeral k8s cluster from kubernaut.io
 claim: $(KUBECONFIG)
 .PHONY: claim
 
-release: ## (Kubernaut) Release the cluster claimed by 'claim'
-release: $(_KUBECONFIG).clean
-.PHONY: release
+unclaim: ## (Kubernaut) Release the cluster claimed by 'claim'
+unclaim: $(_KUBECONFIG).clean
+.PHONY: unclaim
 
 shell: ## (Kubernaut) Run an interactive Bash shell with KUBECONFIG= set to a Kubernaut claim
 shell: $(KUBECONFIG)
 	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " bash
 .PHONY: shell
 
-clean: release
+clean: unclaim
 
 endif
