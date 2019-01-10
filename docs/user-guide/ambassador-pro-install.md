@@ -4,7 +4,7 @@
 Ambassador Pro is a commercial version of Ambassador that includes integrated SSO, flexible rate limiting, and more. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
 
 ### 1. Install and Configure Ambassador
-Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
+Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type: 
 
 ```
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -19,14 +19,14 @@ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster
 
 For more detailed instructions on installing Ambassador, please see the [Ambassador installation guide](/user-guide/getting-started).
 
-### 2. Create the Ambassador Pro registry credentials secrets.
-Your credentials to pull the image from the Ambassador Pro registry were given in the signup email. If you have lost this email, please contact us at support@datawire.io.
+### 2. Create the Ambassador Pro registry credentials secret.
+Your credentials to pull the image from the Ambassador Pro registry were given in the sign up email. If you have lost this email, please contact us at support@datawire.io.
 
 ```
 kubectl create secret docker-registry ambassador-pro-registry-credentials --docker-server=quay.io --docker-username=<CREDENTIALS USERNAME> --docker-password=<CREDENTIALS PASSWORD> --docker-email=<YOUR EMAIL>
 ```
-- `<CREDENTIALS USERNAME>`: Username given in signup email
-- `<CREDNETIALS PASSWORD>`: Password given in signup email
+- `<CREDENTIALS USERNAME>`: Username given in sign up email
+- `<CREDNETIALS PASSWORD>`: Password given in sign up email
 - `<YOUR EMAIL>`: Your email address
 
 ### 3. Download the Ambassador Pro Deployment File 
@@ -38,86 +38,49 @@ curl -O "https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml"
 
 Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured correctly for your particular deployment. If you are not installing Ambassador into the `default` namespace, you will need to update this file accordingly.
 
+**Note:** Ambassador 0.40.2 and below does not support v1 `AuthService` configurations. If you are using a lower version of Ambassador, replace the `AuthService` in the downloaded YAML with:
+
+```
+      ---
+      apiVersion: ambassador/v0
+      kind: AuthService
+      name: authentication
+      auth_service: ambassador-pro
+      allowed_headers:
+      - "Client-Id"
+      - "Client-Secret"
+      - "Authorization"
+```
+
 ### 4. License Key
 
 In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable with the license key that is supplied as part of your trial email.
 
-### 5. Single-Sign On
+**Note:** The Ambassador Pro rate limit container will not properly start without your license key.
 
-Ambassador Pro's authentication service requires some additional information about your Identity Provider. This is done by configuring environment variables in the deployment manifest. 
+### 5. Single Sign-On
 
-```
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: ambassador-pro-auth
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      service: ambassador-pro-auth
-  template:
-    metadata:
-      labels:
-        service: ambassador-pro-auth
-    spec:
-      serviceAccountName: ambassador-pro
-      containers:
-      - name: ambassador-pro
-        image: quay.io/datawire/ambassador-pro:0.0.6
-        ports:
-        - containerPort: 8080
-        env:
-#         Configure to your callback URL
-          - name: AUTH_CALLBACK_URL
-            value: ""
-#         Configure to your Auth0 domain
-          - name: AUTH_DOMAIN
-            value: ""
-#         Configure to your Auth0 API Audience
-          - name: AUTH_AUDIENCE
-            value: ""
-#         Configure to your Auth0 Application client ID
-          - name: AUTH_CLIENT_ID
-            value: ""
-#          Uncomment if you want the Auth0 management API to validate your configurations
-#          - name: AUTH_CLIENT_SECRET
-#            value: <CLIENT SECRET>
-      imagePullSecrets:
-      - name: ambassador-pro-registry-credentials
-```
+Ambassador Pro's authentication service requires a URL for your authentication provider. This will be the URL Ambassador Pro will direct to for authentication. 
 
-Configure the `AUTH_CALLBACK_URL`, `AUTH_DOMAIN`, `AUTH_AUDIENCE`, and `AUTH_CLIENT_ID` variables by following the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) guide.
+If you are using Auth0, this will be the name of the tenant you created (e.g `datawire-ambassador`). To create an Auth0 tenant, go to auth0.com and sign up for a free account. Once you have created an Auth0 tenant, the full `AUTH_PROVIDER_URL` is `https://<auth0-tenant-name>.auth0.com`. 
 
-After configuring the authentication, you will need to configure an `AuthService` for Ambassador. You can do this by updating the Ambassador Pro Kubernetes service, like the below:
+You can also find this as the domain for your application.
+
+![](/images/Auth0_domain_clientID.png)
+
+Add this as the `AUTH_PROVIDER_URL` in your Ambassador Pro deployment manifest.
 
 ```
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ambassador-pro
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind: RateLimitService
-      name: ambassador-pro
-      service: "ambassador-pro:8081"
-      ---
-      apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
-      auth_service: ambassador-pro
-      allowed_headers:
-        - "Authorization"
-        - "Client-Id"
-        - "Client-Secret"
-...
+- name: auth
+  env:
+  # Auth provider's absolute url: {scheme}://{host}
+    - name: AUTH_PROVIDER_URL
+      value: https://datawire-ambassador.auth0.com
 ```
 
-(For the sake of brevity, the full Kubernetes service is not duplicated above.)
+Next, you will need to configure a tenant resource for Ambassador Pro to authenticate against. Details on how to configure this can be found in the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth#configure-your-authentication-tenants) documentation.
+
+**Note:** The Ambassador Pro authentication container will not properly start without this value configured.
 
 ### 6. Deploy Ambassador Pro
 
@@ -137,7 +100,7 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 
 ### 6. Restart Ambassador
 
-Restart Ambassador once Pro is deployed so it will update the `AuthService` and `RateLimitService` configuration. You can do this by deleting the Ambassador pods and letting the deployment redeploy the pods.
+Restart Ambassador once Ambassador Pro is deployed so it will update the `AuthService` and `RateLimitService` configuration. You can do this by deleting all Ambassador pods and letting the deployment reschedule the pods.
 
 ### More
 
