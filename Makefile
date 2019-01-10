@@ -44,8 +44,10 @@ endef
 
 # The main "output" of the Makefile is actually a Docker image, not a
 # file.
-build: bin_linux_amd64/ambassador-oauth
-	docker build . -t $(DEV_IMAGE)
+build: docker/ambassador-pro/ambassador-oauth
+	docker build -t $(DEV_IMAGE) docker/ambassador-pro
+docker/ambassador-pro/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+	cp $< $@
 
 clean:
 	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
