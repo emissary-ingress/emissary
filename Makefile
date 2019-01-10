@@ -7,6 +7,8 @@ include build-aux/teleproxy.mk
 include build-aux/kubernaut-ui.mk
 .DEFAULT_GOAL = help
 
+export CGO_ENABLED = 0
+
 VERSION=0.0.2
 
 PRD_DOCKER_REGISTRY = quay.io/datawire
@@ -42,7 +44,7 @@ endef
 
 # The main "output" of the Makefile is actually a Docker image, not a
 # file.
-build:
+build: bin_linux_amd64/ambassador-oauth
 	docker build . -t $(DEV_IMAGE)
 
 clean:

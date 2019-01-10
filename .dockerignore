@@ -1,1 +1,2 @@
-/.go-workspace/src/github.com/datawire/ambassador-oauth
+*
+!/bin_linux_amd64/

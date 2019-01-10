@@ -1,17 +1,6 @@
-FROM golang:1.10.3-alpine3.8
+FROM alpine:3.8
+RUN apk add ca-certificates && rm -rf /var/cache/apk/*
 
-# install git
-RUN apk add make git openssl && rm /var/cache/apk/*
-
-RUN go get -u github.com/golang/dep/...
-
-WORKDIR /root/ambassador-oauth
-COPY . ./
-RUN ln -s ../../../.. .go-workspace/src/github.com/datawire/ambassador-oauth
-
-
-RUN make go-build
-
-CMD ["./bin_linux_amd64/ambassador-oauth"]
-
+COPY bin_linux_amd64/ambassador-oauth /bin/
+CMD ["/bin/ambassador-oauth"]
 EXPOSE 8080
