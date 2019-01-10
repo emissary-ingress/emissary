@@ -44,8 +44,8 @@ script:
   - make install
   - make test
   - make e2e_test
-  # Release kubernaut.io claim
-  - make release
+  # Delete kubernaut.io claim
+  - make unclaim
 deploy:
   on:
     tags: true
