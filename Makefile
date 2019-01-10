@@ -1,13 +1,14 @@
 NAME=ambassador-ratelimit
 PROFILE ?= dev
+include config.mk
 
 include build-aux/common.mk
 include build-aux/go-mod.mk
+include build-aux/go-version.mk
 include build-aux/help.mk
 include build-aux/teleproxy.mk
 include build-aux/kubernaut-ui.mk
 include build-aux/kubeapply.mk
-
 include build-aux/k8s.mk
 
 export PATH:=$(CURDIR)/bin_$(GOOS)_$(GOARCH):$(PATH)
@@ -40,10 +41,10 @@ build-image: $(addprefix image/,$(notdir $(go.bins)))
 image/%: bin_linux_amd64/%
 	@mkdir -p $(@D)
 	cp $< $@
-docker: env build-image
+docker: build-image
 	docker build . -t $(RATELIMIT_IMAGE)
-	docker build intercept --target telepresence-proxy -t $(PROXY_IMAGE)
-	docker build intercept --target telepresence-sidecar -t $(SIDECAR_IMAGE)
+	docker build . -f intercept/Dockerfile --target telepresence-proxy -t $(PROXY_IMAGE)
+	docker build . -f intercept/Dockerfile --target telepresence-sidecar -t $(SIDECAR_IMAGE)
 .PHONY: docker
 
 # Utility targets
@@ -51,5 +52,5 @@ docker-run: docker
 	docker run -it $(IMAGE)
 .PHONY: docker-run
 
-clean: $(CLUSTER).clean
+clean:
 	rm -rf image

@@ -13,7 +13,7 @@ var version = &cobra.Command{
 }
 
 func init() {
-	apictl.AddCommand(version)
+	apictl_key.AddCommand(version)
 }
 
 func showVersion(cmd *cobra.Command, args []string) {
