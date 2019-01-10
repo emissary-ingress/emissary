@@ -41,7 +41,7 @@ build-image: $(addprefix image/,$(notdir $(go.bins)))
 image/%: bin_linux_amd64/%
 	@mkdir -p $(@D)
 	cp $< $@
-docker: env build-image
+docker: build-image
 	docker build . -t $(RATELIMIT_IMAGE)
 	docker build . -f intercept/Dockerfile --target telepresence-proxy -t $(PROXY_IMAGE)
 	docker build . -f intercept/Dockerfile --target telepresence-sidecar -t $(SIDECAR_IMAGE)
