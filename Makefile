@@ -52,5 +52,5 @@ docker-run: docker
 	docker run -it $(IMAGE)
 .PHONY: docker-run
 
-clean: $(CLUSTER).clean
+clean:
 	rm -rf image
