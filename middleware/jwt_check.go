@@ -108,6 +108,7 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 		return
 	}
 
+	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
 	w.WriteHeader(http.StatusOK)
 }
 
