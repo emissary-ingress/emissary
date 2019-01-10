@@ -6,10 +6,29 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro
       service: "ambassador-pro:8081"
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      name: authentication
+      proto: http
+      auth_service: ambassador-pro
+      allowed_request_headers:
+      - "Client-Id"
+      - "Client-Secret"
+      allowed_authorization_headers:
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: ambassador-pro
 spec:
   selector:
     service: ambassador-pro
@@ -64,6 +83,7 @@ rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
   - policies
+  - tenants
   verbs: ["get", "list", "watch"]
 - apiGroups: ["getambassador.io"]
   resources:
@@ -106,25 +126,14 @@ spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: auth
-        image: quay.io/datawire/ambassador_pro:auth-0.0.6
+        image: quay.io/datawire/ambassador_pro:auth-0.1.0
         ports:
         - containerPort: 8080
         env:
-#         Configure to your callback URL
-          - name: AUTH_CALLBACK_URL
-            value: ""
-#         Configure to your Auth0 domain
-          - name: AUTH_DOMAIN
-            value: ""
-#         Configure to your Auth0 API Audience
-          - name: AUTH_AUDIENCE
-            value: ""
-#         Configure to your Auth0 Application client ID
-          - name: AUTH_CLIENT_ID
-            value: ""
-#          Uncomment if you want the Auth0 management API to validate your configurations
-#          - name: AUTH_CLIENT_SECRET
-#            value: <CLIENT SECRET>
+        # Auth provider's absolute url: {scheme}://{host}
+        # This is required for the container to start
+          - name: AUTH_PROVIDER_URL
+            value: https://example.auth0.com
       - name: ratelimit
         image: quay.io/datawire/ambassador_pro:ratelimit-0.2
         env:
@@ -134,7 +143,8 @@ spec:
           value: ambassador-pro-redis:6379
         - name: PORT
           value: "7000"
-#       Enter License Key from trial email
+        # Enter License Key from trial email
+        # This is a required property for the container to start
         - name: AMBASSADOR_LICENSE_KEY
           value: ""
       imagePullSecrets:
@@ -158,6 +168,25 @@ spec:
     kind: Policy
     shortNames:
     - pol
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tenants.stable.datawire.io
+spec:
+  group: stable.datawire.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: tenants
+    singular: tenant
+    kind: Tenant
+    shortNames:
+    - ten
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
