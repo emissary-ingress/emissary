@@ -55,13 +55,11 @@ clean:
 #
 # Check
 
+# Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
-key.pem: $(CURDIR)/key.pem
-cert.pem: $(CURDIR)/cert.pem
-
-scripts/02-ambassador-certs.yaml: cert.pem key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert cert.pem --key key.pem > $@
+scripts/02-ambassador-certs.yaml: scripts/cert.pem scripts/key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert scripts/cert.pem --key scripts/key.pem > $@
 
 deploy: ## Deploy $(DEV_IMAGE) to a kubernaut.io cluster
 deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml

@@ -4,11 +4,11 @@
 /vendor/
 
 /env.sh
-/key.pem
-/cert.pem
 
 *.knaut
 *.knaut.claim
+
+*.pem
 
 node_modules/
 
