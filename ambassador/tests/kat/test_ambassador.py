@@ -95,6 +95,59 @@ service: {self.target.path.k8s}
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))
 
 
+class ClientCertificateAuthentication(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return super().manifests() + """
+---
+apiVersion: v1
+metadata:
+  name: client-cert-secret
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUN3ekNDQWl3Q0NRRCs1UjJLY2ZVbGR6QU5CZ2txaGtpRzl3MEJBUVVGQURDQnBURUxNQWtHQTFVRUJoTUMKVlZNeEZqQVVCZ05WQkFnVERVMWhjM05oWTJoMWMyVjBkSE14RHpBTkJnTlZCQWNUQmtKdmMzUnZiakVSTUE4RwpBMVVFQ2hNSVJHRjBZWGRwY21VeEV6QVJCZ05WQkFzVENrRnRZbUZ6YzJGa2IzSXhIakFjQmdOVkJBTVRGWFJsCmMzUXVaMlYwWVcxaVlYTnpZV1J2Y2k1cGJ6RWxNQ01HQ1NxR1NJYjNEUUVKQVJZV2FHOXpkRzFoYzNSbGNrQmsKWVhSaGQybHlaUzVwYnpBZUZ3MHhOekV3TWpVeU1UUTFORFJhRncweU1EQTNNakl5TVRRMU5EUmFNSUdsTVFzdwpDUVlEVlFRR0V3SlZVekVXTUJRR0ExVUVDQk1OVFdGemMyRmphSFZ6WlhSMGN6RVBNQTBHQTFVRUJ4TUdRbTl6CmRHOXVNUkV3RHdZRFZRUUtFd2hFWVhSaGQybHlaVEVUTUJFR0ExVUVDeE1LUVcxaVlYTnpZV1J2Y2pFZU1Cd0cKQTFVRUF4TVZkR1Z6ZEM1blpYUmhiV0poYzNOaFpHOXlMbWx2TVNVd0l3WUpLb1pJaHZjTkFRa0JGaFpvYjNOMApiV0Z6ZEdWeVFHUmhkR0YzYVhKbExtbHZNSUdmTUEwR0NTcUdTSWIzRFFFQkFRVUFBNEdOQURDQmlRS0JnUURPClRBL1dYUktGU0J1RUJzS2tRdFlhd2Y5QjdXNEtsUWlzOExwanYyY2ttTDRnN3FpaTZIT2VxaVE2cml5Wmc3LzUKVjJ1VDlxOW9RZ0xzbTdUQmwrWkFCaXhwMnlhUXZvVFVkU1d2TU1vMTZDZThPSmpJRVlYdWtZWEJsdFpFemVpeAoxSjJjTEpaZy92NjMwUFhkdFFodWtsaVN4MFZQVUJnVzlkUitoOGJaS1FJREFRQUJNQTBHQ1NxR1NJYjNEUUVCCkJRVUFBNEdCQUJrTEx4alJpeXYwQ3Vnb3k4Ym8zQ3hPKzVuSmkyejlVOWNNcnYrWnAvZ3JkN21OK2s3Uy85ZXcKbEtGa3FoVlZka0dpRTBzblVWVHJKY2VKU251MWRYbWNVamUwNnpQWmRmOVFVZlJEeGVGNVpmdjVUeHFKakFDYgp3b1pvWGJ5bmZSejdTV09IeDI3ckFvQnliL0lxakRNZ08zRTZWV0ZsOWpvSmswY0xaNW05Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+kind: Secret
+type: Opaque
+"""
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+ambassador_id: {self.ambassador_id}
+name: tls
+config:
+  server:
+    enabled: True
+    secret: test-certs-secret
+  client:
+    enabled: True
+    secret: client-cert-secret
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /{self.name}/
+service: {self.target.path.k8s}
+""")
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"), insecure=True)
+
+    # def check(self):
+    #     for r in self.results:
+    #         assert r.backend.request.tls.enabled
+
+
 class TLSOriginationSecret(AmbassadorTest):
 
     def init(self):
