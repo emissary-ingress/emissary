@@ -3,6 +3,7 @@
 .cache
 .coverage
 .dmypy
+.dmypy.json
 .python-version
 .DS_Store
 venv
