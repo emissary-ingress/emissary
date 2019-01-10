@@ -306,7 +306,10 @@ class IRTLSContext(IRResource):
                     value = validation_ca.get(key, None)
 
                     if value:
-                        new_args[key] = value
+                        if key == 'secret':
+                            new_args['ca_secret'] = value
+                        else:
+                            new_args[key] = value
 
                 if (('ca_secret' not in new_args) and
                     ('cacert_chain_file' not in new_args)):
