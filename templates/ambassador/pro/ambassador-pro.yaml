@@ -126,7 +126,7 @@ spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: auth
-        image: quay.io/datawire/ambassador-pro:66d06c253c34632a4e6ea4f13c8f9945c0169439-dirty
+        image: quay.io/datawire/ambassador_pro:auth-0.1.0
         ports:
         - containerPort: 8080
         env:
