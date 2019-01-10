@@ -20,7 +20,7 @@ LOCALHOST = localhost
 endif
 DEV_DOCKER_REGISTRY = $(LOCALHOST):31000
 DEV_DOCKER_REPO = ambassador-pro
-DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --no-match --always --abbrev=40 --dirty))
+DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --match NoThInGEvErMaTcHeS --always --abbrev=40 --dirty))
 DEV_IMAGE = $(DEV_DOCKER_REGISTRY)/$(DEV_DOCKER_REPO):$(DEV_VERSION)
 
 define help.body
@@ -38,8 +38,7 @@ endef
 
 # The main "output" of the Makefile is actually a Docker image, not a
 # file.
-.PHONY: build
-build: ## docker build -t $(DEV_IMAGE)
+build:
 	docker build . -t $(DEV_IMAGE)
 
 %/cert.pem %/key.pem: | %
@@ -80,8 +79,7 @@ install: vendor
 	@echo " >>> building"
 	go install ./cmd/...
 
-.PHONY: clean
-clean: ## Clean
+clean:
 	@echo " >>> cleaning compiled objects and binaries"
 	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
 	go clean -i ./...
@@ -95,7 +93,7 @@ vendor: ## Update the ./vendor/ directory based on Gopkg.toml
 	@echo " >>> installing dependencies"
 	dep ensure -vendor-only
 
-format: ## Adjust the source code per `go fmt`
+format:
 	@echo " >>> running format"
 	go fmt ./...
 
