@@ -62,12 +62,35 @@ func rlimit() {
 
 type Query map[string]interface{}
 
+func (q Query) CACert() string {
+	val, ok := q["ca_cert"]
+	if ok {
+		return val.(string)
+	}
+	return ""
+}
+
 func (q Query) ClientCert() string {
 	val, ok := q["client_cert"]
 	if ok {
 		return val.(string)
 	}
 	return ""
+}
+
+
+
+func (q Query) ClientKey() string {
+	val, ok := q["client_key"]
+	if ok {
+		return val.(string)
+	}
+	return ""
+}
+
+func (q Query) ClientCertRequired() bool {
+	val, ok := q[""]
+	return ok && val.(bool)
 }
 
 func (q Query) Insecure() bool {
@@ -214,15 +237,19 @@ func main() {
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			}
 
-			clientCert := query.ClientCert()
-			if len(clientCert) > 0 {
+			caCert := query.CACert()
+			if len(caCert) > 0 {
+
 				caCertPool := x509.NewCertPool()
-				caCertPool.AppendCertsFromPEM([]byte(clientCert))
+				caCertPool.AppendCertsFromPEM([]byte(caCert))
+
+				clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
+				if err != nil {
+					log.Fatal(err)
+				}
+
 				insecure_tr.TLSClientConfig.RootCAs = caCertPool
-				insecure_tr.TLSClientConfig.BuildNameToCertificate()
-				//tls.X509KeyPair()
-				//insecure_tr.TLSClientConfig.ClientAuth = tls.RequireAndVerifyClientCert
-				fmt.Printf("%#v\n", insecure_tr.TLSClientConfig.ClientAuth)
+				insecure_tr.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 			}
 
 			insecure_client := &http.Client{
