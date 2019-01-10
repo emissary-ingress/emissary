@@ -8,7 +8,7 @@ Ambassador is a production tested, open source API Gateway that exposes the powe
 
 * [Developer Guide](/user-guide/developers). These guides focus on the core functionality of Ambassador relevant to application developers. 
   - [Self-Service Routing and Deployment Control](/concepts/developers)
-  - [Safely Testing in Production](/dev-guide/test-in-prod)
+  - [Safely Testing in Production](/docs/dev-guide/test-in-prod)
   - [Detect Issues and Determine Root Cause (Monitoring)](/reference/statistics)
   - [Support for gRPC, WebSockets, etc.](/user-guide/protocol-support-ambassador)
 
