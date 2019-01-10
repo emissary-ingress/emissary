@@ -235,8 +235,8 @@ class V2Listener(dict):
         if listener.redirect_listener:
             self.http_filters = [{'name': 'envoy.router'}]
         else:
-            # Use the actual listener name
-            self.name = listener.name
+            # Use the actual listener name & port number
+            self.name = "ambassador-listener-%s" % listener.service_port
 
             # Use a sane access log spec
             self.access_log = [ {
@@ -246,14 +246,6 @@ class V2Listener(dict):
                     'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
                 }
             } ]
-
-            # # If we have a server context here, use it.
-            # envoy_ctx = V2TLSContext()
-            # for name, ctx in config.ir.envoy_tls.items():
-            #     config.ir.logger.info("envoy_ctx adding %s" % ctx.as_json())
-            #     envoy_ctx.add_context(ctx)
-            #
-            # config.ir.logger.info("envoy_ctx final %s" % envoy_ctx)
 
             # Assemble filters
             for f in config.ir.filters:
