@@ -393,7 +393,7 @@ def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
     aconf = get_aconf(app)
-    ir = IR(aconf, secret_reader=scc.secret_reader)
+    ir = IR(aconf, secret_reader=app.scc.secret_reader)
     check_scout(app, "detail: %s" % source, ir)
 
     econf = EnvoyConfig.generate(ir, "V2")
