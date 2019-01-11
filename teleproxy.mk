@@ -29,7 +29,7 @@ $(TELEPROXY): $(_teleproxy.mk)
 	sudo chown root $@
 	sudo chmod go-w,a+sx $@
 
-proxy: ## Launch teleproxy in the background
+proxy: ## (Teleproxy) Launch teleproxy in the background
 proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
 # NB: we say KUBECONFIG=$(KUBECONFIG) here because it might not be exported
 	KUBECONFIG=$(KUBECONFIG) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 &
@@ -43,7 +43,7 @@ proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
 	@printf '\n\nProxy UP!'
 .PHONY: proxy
 
-unproxy: ## Shut down 'proxy'
+unproxy: ## (Teleproxy) Shut down 'proxy'
 	curl -s 127.254.254.254/api/shutdown || true
 	@sleep 1
 .PHONY: unproxy
