@@ -12,9 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
+from typing import cast as typecast
+
 from ...ir.irtlscontext import IRTLSContext
 
+# This stuff isn't really accurate, but it'll do for now.
+EnvoyCoreSource = Dict[str, str]
+
+EnvoyTLSCert = Dict[str, EnvoyCoreSource]
+ListOfCerts = List[EnvoyTLSCert]
+
+EnvoyValidationElements = Union[EnvoyCoreSource, bool]
+EnvoyValidationContext = Dict[str, EnvoyValidationElements]
+
+EnvoyCommonTLSElements = Union[List[str], ListOfCerts, EnvoyValidationContext]
+EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
+
+ElementHandler = Callable[[str, str], None]
 
 class V2TLSContext(Dict):
     def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
@@ -23,50 +38,49 @@ class V2TLSContext(Dict):
         if ctx:
             self.add_context(ctx)
 
-    def get_common(self) -> Dict[str, str]:
+    def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
 
-    def get_certs(self) -> Dict[str, str]:
+    def get_certs(self) -> ListOfCerts:
         common = self.get_common()
-        return common.setdefault('tls_certificates', [])
 
-    def update_cert_zero(self, key, value) -> None:
+        # We have to explicitly cast this empty list to a list of strings.
+        empty_cert_list: List[str] = []
+        cert_list = common.setdefault('tls_certificates', empty_cert_list)
+
+        # cert_list is of type EnvoyCommonTLSElements right now, so we need to cast it.
+        return typecast(ListOfCerts, cert_list)
+
+    def update_cert_zero(self, key: str, value: str) -> None:
         certs = self.get_certs()
 
         if not certs:
             certs.append({})
 
-        certs[0][key] = { 'filename': value }
+        src: EnvoyCoreSource = { 'filename': value }
+        certs[0][key] = src
 
-    def update_common(self, key, value) -> None:
-        common = self.get_common()
-        common[key] = value
-
-    def update_alpn(self, key, value) -> None:
+    def update_alpn(self, key: str, value: str) -> None:
         common = self.get_common()
         common[key] = [ value ]
 
-    def update_validation(self, key, value) -> None:
-        validation: Dict[str, str] = self.get_common().setdefault('validation_context', {})
-        validation[key] = { 'filename': value }
+    def update_validation(self, key: str, value: str) -> None:
+        empty_context: EnvoyValidationContext = {}
+        validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
+
+        src: EnvoyCoreSource = { 'filename': value }
+        validation[key] = src
 
     def add_context(self, ctx: IRTLSContext) -> None:
-        # This is a weird method, because the definition of a V2 TLS context in
-        # Envoy is weird, and because we need to manage two different inputs (which
-        # is silly).
+        handler: ElementHandler = self.__setitem__
 
-        assert ctx.kind == 'IRTLSContext'
-
-        if ctx.kind == 'IRTLSContext':
-            for secretinfokey, handler, hkey in [
-                ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
-                ( 'private_key_file', self.update_cert_zero, 'private_key' ),
-                ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
-            ]:
-                if secretinfokey in ctx['secret_info']:
-                    handler(hkey, ctx['secret_info'][secretinfokey])
-        else:
-            raise TypeError("impossible? error: V2TLS handed a %s" % ctx.kind)
+        for secretinfokey, handler, hkey in [
+            ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
+            ( 'private_key_file', self.update_cert_zero, 'private_key' ),
+            ( 'cacert_chain_file', self.update_validation, 'trusted_ca' ),
+        ]:
+            if secretinfokey in ctx['secret_info']:
+                handler(hkey, ctx['secret_info'][secretinfokey])
 
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),

@@ -66,7 +66,7 @@ class Config:
     sources: Dict[str, ACResource]
 
     errors: Dict[str, List[dict]]
-    notices: Dict[str, List[dict]]
+    notices: Dict[str, List[str]]
     fatal_errors: int
     object_errors: int
 
