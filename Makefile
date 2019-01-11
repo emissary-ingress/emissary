@@ -72,7 +72,7 @@ deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push $(DEV_IMAGE); \
 	}
-	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
+	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) -f scripts
 .PHONY: deploy
 
 e2e/node_modules: e2e/package.json $(wildcard e2e/package-lock.json)
