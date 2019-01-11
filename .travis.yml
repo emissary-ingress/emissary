@@ -1,5 +1,10 @@
+dist: xenial
+language: generic
 sudo: required
-language: go
+addons:
+  apt:
+    packages:
+    - libgconf2-4 # for Puppeteer's chrome
 services:
 - docker
 
@@ -40,12 +45,10 @@ script:
   # commands from running (but it will be marked as a failure).
 
   # Main
-  - make check_format
-  - make install
-  - make test
-  - make e2e_test
-  # Release kubernaut.io claim
-  - make release
+  - make build
+  - make check
+  # Delete kubernaut.io claim
+  - make unclaim
 deploy:
   on:
     tags: true

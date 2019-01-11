@@ -1,13 +1,25 @@
-*.log
+/.go-workspace
+!/.go-workspace/src/github.com/datawire/ambassador-oauth
+/bin_*/
+/vendor/
+
+/env.sh
+
+*.docker
 *.knaut
 *.knaut.claim
-.vscode/
-env.sh
+
+*.pem
 
 node_modules/
 
-/key.pem
-/cert.pem
+*.log
+.tmp*
+*.tmp
 
-# --- IntelliJ IDEA ---
+# --- IDE/text editor stuff ---
 .idea
+.vscode/
+#*#
+.#*
+*~

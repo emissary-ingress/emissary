@@ -1,113 +1,60 @@
-NAME=ambassador-pro
+NAME            = ambassador-pro
+DOCKER_REGISTRY = quay.io/datawire
 
-include build-aux/kubeapply.mk
-include build-aux/help.mk
+export CGO_ENABLED = 0
+
+include build-aux/go-workspace.mk
+include build-aux/docker.mk
 include build-aux/teleproxy.mk
-include build-aux/kubernaut-ui.mk
+include build-aux/help.mk
+
 .DEFAULT_GOAL = help
 
-VERSION=0.0.2
+#
+# Main
 
-PRD_DOCKER_REGISTRY = quay.io/datawire
-PRD_DOCKER_REPO = ambassador-pro
-PRD_VERSION = $(or $(TRAVIS_TAG),$(VERSION))
-PRD_IMAGE = $(PRD_DOCKER_REGISTRY)/$(PRD_DOCKER_REPO):$(PRD_VERSION)
+build: docker/ambassador-pro.docker
+docker/ambassador-pro.docker: docker/ambassador-pro/ambassador-oauth
+docker/ambassador-pro/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+	cp $< $@
 
-ifeq ($(GOOS),darwin)
-LOCALHOST = host.docker.internal
-else
-LOCALHOST = localhost
-endif
-DEV_DOCKER_REGISTRY = $(LOCALHOST):31000
-DEV_DOCKER_REPO = ambassador-pro
-DEV_VERSION = $(or $(TRAVIS_COMMIT),$(shell git describe --match NoThInGEvErMaTcHeS --always --abbrev=40 --dirty))
-DEV_IMAGE = $(DEV_DOCKER_REGISTRY)/$(DEV_DOCKER_REPO):$(DEV_VERSION)
+clean: $(addsuffix .clean,$(wildcard docker/*.docker))
+	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
 
-define help.body
-# Unlike most Makefiles, the output of `make build` isn't a file, but
-# is the Docker image $$(DEV_IMAGE).
-#
-#   DEV_IMAGE = $(value DEV_IMAGE)
-#             = $(DEV_IMAGE)
-#
-#   PRD_IMAGE = $(value PRD_IMAGE)
-#             = $(PRD_IMAGE)
-#
-#   GOBIN     = $(or $(shell go env GOBIN),$(shell go env GOPATH)/bin)
-endef
+#
+# Check
 
-# The main "output" of the Makefile is actually a Docker image, not a
-# file.
-build:
-	docker build . -t $(DEV_IMAGE)
-
+# Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
-key.pem: $(CURDIR)/key.pem
-cert.pem: $(CURDIR)/cert.pem
+scripts/02-ambassador-certs.yaml: scripts/cert.pem scripts/key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert scripts/cert.pem --key scripts/key.pem > $@
 
-scripts/02-ambassador-certs.yaml: cert.pem key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert cert.pem --key key.pem > $@
-
+deploy: ## Deploy to a kubernaut.io cluster
+deploy: docker/ambassador-pro.docker.knaut-push $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
+	set -a && IMAGE=localhost:31000/ambassador-pro:$(VERSION) && . ./env.sh && $(KUBEAPPLY) -f scripts
 .PHONY: deploy
-deploy: ## Deploy $(DEV_IMAGE) to a kubernaut.io cluster
-deploy: build $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
-	$(KUBEAPPLY) -f scripts/00-registry.yaml
-	{ \
-	    kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & \
-	    trap "kill $$!; wait" EXIT; \
-	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
-	    docker push $(DEV_IMAGE); \
-	}
-	set -a && IMAGE=$(foreach LOCALHOST,localhost,$(DEV_IMAGE)) && . ./env.sh && $(KUBEAPPLY) $(addprefix -f ,$(wildcard scripts/*.yaml))
 
-.PHONY: push-tagged-image
-push-tagged-image: ## docker push $(PRD_IMAGE)
-#push-tagged-image: build
-	docker tag $(DEV_IMAGE) $(PRD_IMAGE)
-	docker push $(PRD_IMAGE)
+e2e/node_modules: e2e/package.json $(wildcard e2e/package-lock.json)
+	cd $(@D) && npm install
+	@test -d $@
+	@touch $@
 
-.PHONY: run
-run: ## Run ambassador-oauth locally
-run: install
-	@echo " >>> running oauth server"
-	ambassador-oauth 
-
-.PHONY: install
-install: ## Compile ambassador-oauth (to $GOBIN)
-install: vendor
-	@echo " >>> building"
-	go install ./cmd/...
-
-clean:
-	@echo " >>> cleaning compiled objects and binaries"
-	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
-	go clean -i ./...
-
-.PHONY: test
-test: ## Check: unit tests
-	@echo " >>> testing code.."
-	go test ./...
-
-vendor: ## Update the ./vendor/ directory based on Gopkg.toml
-	@echo " >>> installing dependencies"
-	dep ensure -vendor-only
-
-format:
-	@echo " >>> running format"
-	go fmt ./...
-
-check_format: ## Check: go fmt
-	@echo " >>> checking format"
-	if [ $$(go fmt $$(go list ./... | grep -v vendor/)) ]; then exit 1; fi
-
-e2e_build: ## Build a oauth-client Docker image, for e2e testing
-	@echo " >>> building docker for e2e testing"
-	docker build -t e2e/test:latest e2e
-
-e2e_test: ## Check: e2e tests
-e2e_test: e2e_build deploy
-	@echo " >>> running e2e tests"
+check-e2e: ## Check: e2e tests
+check-e2e: e2e/node_modules deploy
 	$(MAKE) proxy
-	docker run --rm e2e/test:latest
+	cd e2e && npm test
 	$(MAKE) unproxy
+.PHONY: check-e2e
+check: check-e2e
+
+#
+# Utility targets
+
+push-tagged-image: ## docker push
+push-tagged-image: docker/ambassador-pro.docker.push
+
+run: ## Run ambassador-oauth locally
+run: bin_$(GOOS)_$(GOARCH)/ambassador-oauth
+	./$<
+.PHONY: run
