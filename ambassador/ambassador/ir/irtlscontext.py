@@ -316,6 +316,9 @@ class IRTLSContext(IRResource):
                     # Assume they want the 'ambassador-cacert' secret.
                     new_args['secret'] = 'ambassador-cacert'
 
+        # Remember that this is a legacy context.
+        new_args['_legacy'] = True
+
         return IRTLSContext.from_config(ir, rkey, location,
                                         kind="synthesized-TLS-context",
                                         name=name, **new_args)

@@ -117,7 +117,6 @@ class IR:
         # this though.
 
         self.tls_module = None
-        # self.envoy_tls = {}
 
         # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)
@@ -338,8 +337,6 @@ class IR:
                           for cluster_name, cluster in self.clusters.items() },
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
-            # 'envoy_tls_contexts': { ctx_name: ctx.as_dict()
-            #                         for ctx_name, ctx in self.envoy_tls.items() },
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
@@ -366,15 +363,6 @@ class IR:
         using_tls_module = False
         using_tls_contexts = False
 
-        # for ctx in self.envoy_tls.values():
-        #     using_tls_module = True
-        #
-        #     if ctx.get('certificate_chain_file', None) and ctx.get('valid_tls', False):
-        #         tls_termination_count += 1
-        #
-        #     if ctx.get('cacert_chain_file', None) and ctx.get('valid_tls', False):
-        #         tls_origination_count += 1
-
         for ctx in self.get_tls_contexts():
             if ctx:
                 secret_info = ctx.get('secret_info', {})
@@ -387,6 +375,9 @@ class IR:
 
                     if secret_info.get('cacert_chain_file', None):
                         tls_origination_count += 1
+
+                if ctx.get('_legacy', False):
+                    using_tls_module = True
 
         od['tls_using_module'] = using_tls_module
         od['tls_using_contexts'] = using_tls_contexts
