@@ -33,16 +33,14 @@ proxy: ## Launch teleproxy in the background
 proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
 # NB: we say KUBECONFIG=$(KUBECONFIG) here because it might not be exported
 	KUBECONFIG=$(KUBECONFIG) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 &
-	@for i in 1 2 4 8 16 32 64 x; do \
-		if [ "$$i" = "x" ]; then echo "ERROR: proxy did not come up"; exit 1; fi; \
-		echo "Checking proxy: $(KUBE_URL)"; \
+	@for i in $$(seq 127); do \
+		echo "Checking proxy ($$i): $(KUBE_URL)"; \
 		if curl -sk $(KUBE_URL); then \
-			echo -e "\n\nProxy UP!"; \
-			break; \
+			exit 0; \
 		fi; \
-		echo "Waiting $$i seconds..."; \
-		sleep $$i; \
-	done
+		sleep 1; \
+	done; echo "ERROR: proxy did not come up"; exit 1
+	@printf '\n\nProxy UP!'
 .PHONY: proxy
 
 unproxy: ## Shut down 'proxy'
