@@ -1,6 +1,7 @@
+*.docker
+*.docker.knaut-push
 *.knaut
 *.knaut.claim
 /bin_*/
 /vendor/
-/image/
 /pushed.txt
