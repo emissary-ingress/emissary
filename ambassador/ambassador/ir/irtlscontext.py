@@ -23,7 +23,7 @@ class IRTLSContext(IRResource):
     ]
 
     name: str
-    hosts: List[str]
+    hosts: Optional[List[str]]
     alpn_protocols: Optional[str]
     cert_required: Optional[bool]
     redirect_cleartext_from: Optional[int]
@@ -315,6 +315,9 @@ class IRTLSContext(IRResource):
                     ('cacert_chain_file' not in new_args)):
                     # Assume they want the 'ambassador-cacert' secret.
                     new_args['secret'] = 'ambassador-cacert'
+
+        # Remember that this is a legacy context.
+        new_args['_legacy'] = True
 
         return IRTLSContext.from_config(ir, rkey, location,
                                         kind="synthesized-TLS-context",

@@ -241,11 +241,14 @@ class IRMapping (IRResource):
 
     def match_tls_context(self, host: str, ir: 'IR'):
         for context in ir.get_tls_contexts():
-            for context_host in context.get('hosts', []):
+            hosts = context.get('hosts') or []
+
+            for context_host in hosts:
                 if context_host == host:
                     ir.logger.info("Matched host {} with TLSContext {}".format(host, context.get('name')))
                     self.sni = True
                     return context
+
         return None
 
 

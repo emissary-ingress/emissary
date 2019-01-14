@@ -368,7 +368,7 @@ class V2Listener(dict):
 
         # We'll assemble a list of active TLS contexts here. It may end up empty,
         # of course.
-        envoy_contexts: List[Tuple[str, List[str], V2TLSContext]] = []
+        envoy_contexts: List[Tuple[str, Optional[List[str]], V2TLSContext]] = []
 
         for tls_context in config.ir.get_tls_contexts():
             if tls_context.get('hosts', None):
@@ -409,7 +409,9 @@ class V2Listener(dict):
                 # Check if filter chain and SNI route have matching hosts
                 config.ir.logger.info("V2Listener: SNI route check %s, route %s" %
                                       (name, json.dumps(sni_route, indent=4, sort_keys=True)))
-                matched = sorted(sni_route['info']['hosts']) == sorted(hosts)
+
+                context_hosts = sorted(hosts or [])
+                matched = sorted(sni_route['info']['hosts']) == context_hosts
 
                 # Check for certificate match too.
                 for sni_key, ctx_key in [ ('cert_chain_file', 'certificate_chain'),
