@@ -1,6 +1,10 @@
-NAME=ambassador-ratelimit
-PROFILE ?= dev
-include config.mk
+NAME            = ambassador-ratelimit
+REGISTRY        = quay.io
+NAMESPACE       = datawire
+REPO            = $(NAMESPACE)/$(NAME)$(if $(findstring -,$(VERSION)),-dev)
+RATELIMIT_IMAGE = $(REGISTRY)/$(REPO):ratelimit-$(VERSION)
+PROXY_IMAGE     = $(REGISTRY)/$(REPO):proxy-$(VERSION)
+SIDECAR_IMAGE   = $(REGISTRY)/$(REPO):sidecar-$(VERSION)
 
 include build-aux/common.mk
 include build-aux/go-mod.mk
