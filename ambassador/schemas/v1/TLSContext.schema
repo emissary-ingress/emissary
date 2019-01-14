@@ -23,6 +23,6 @@
         "alpn_protocols": { "type": "string" },
         "cert_required": { "type": "boolean" }
     },
-    "required": [ "apiVersion", "kind", "name", "hosts" ],
+    "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false
 }
