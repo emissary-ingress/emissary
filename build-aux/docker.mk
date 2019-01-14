@@ -11,6 +11,8 @@
 #  - .PHONY Target : %.docker.clean
 #  - .PHONY Target : %.docker.knaut-push     # pushes to private in-kubernaut-cluster registry
 #  - .PHONY Target : %.docker.push           # pushes to $(DOCKER_REGISTRY)
+## common.mk targets ##
+#  - clean
 #
 # The private in-kubernaut-cluster registry is known as
 # "localhost:31000" to the cluster Nodes.
@@ -19,6 +21,7 @@
 # name/tag, it is evaluated in the context of "%.docker.push"
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
+include $(dir $(_docker.mk))flock.mk
 include $(dir $(_docker.mk))kubeapply.mk
 include $(dir $(_docker.mk))kubernaut-ui.mk
 include $(dir $(_docker.mk))version.mk
@@ -30,6 +33,8 @@ docker.LOCALHOST = localhost
 endif
 
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
+
+_docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 
 %.docker: %/Dockerfile
 	docker build -t $(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest) $*
@@ -43,7 +48,7 @@ DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
 %.docker.knaut-push: %.docker $(KUBEAPPLY) $(KUBECONFIG)
 	$(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
 	{ \
-	    kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & \
+	    $(FLOCK) $(_docker.port-forward).lock kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & \
 	    trap "kill $$!; wait" EXIT; \
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push $(docker.LOCALHOST):31000/$(notdir $*):$(VERSION); \
@@ -54,5 +59,11 @@ DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
 	docker tag $$(cat $<) $(DOCKER_IMAGE)
 	docker push $(DOCKER_IMAGE)
 .PHONY: %.docker.push
+
+_clean-docker:
+	$(FLOCK) $(_docker.port-forward).lock rm $(_docker.port-forward).lock
+	rm -f $(_docker.port-forward).log
+clean: _clean-docker
+.PHONY: _clean-docker
 
 endif
