@@ -23,7 +23,7 @@ class IRTLSContext(IRResource):
     ]
 
     name: str
-    hosts: List[str]
+    hosts: Optional[List[str]]
     alpn_protocols: Optional[str]
     cert_required: Optional[bool]
     redirect_cleartext_from: Optional[int]
