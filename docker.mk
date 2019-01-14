@@ -9,7 +9,7 @@
 ## Outputs ##
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
 #  - .PHONY Target : %.docker.clean
-#  - .PHONY Target : %.docker.knaut-push     # pushes to private in-kubernaut-cluster registry
+#  - Target        : %.docker.knaut-push     # pushes to private in-kubernaut-cluster registry
 #  - .PHONY Target : %.docker.push           # pushes to $(DOCKER_REGISTRY)
 ## common.mk targets ##
 #  - clean
@@ -53,7 +53,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push $(docker.LOCALHOST):31000/$(notdir $*):$(VERSION); \
 	}
-.PHONY: %.docker.knaut-push
+	echo localhost:31000/$(notdir $*):$(VERSION) > $@
 
 %.docker.push: %.docker
 	docker tag $$(cat $<) $(DOCKER_IMAGE)
