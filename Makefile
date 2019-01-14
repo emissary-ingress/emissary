@@ -25,13 +25,19 @@ lyft-pull: # Update vendor-ratelimit from github.com/lyft/ratelimit.git
 	git commit -m 'Run: make lyft-pull' || true
 .PHONY: lyft-pull
 
-build: bin_$(GOOS)_$(GOARCH)/ratelimit
-build: bin_$(GOOS)_$(GOARCH)/ratelimit_client
-build: bin_$(GOOS)_$(GOARCH)/ratelimit_check
+lyft.bins  = ratelimit:github.com/lyft/ratelimit/src/service_cmd
+lyft.bins += ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
+lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 
-bin_%/ratelimit       : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/service_cmd
-bin_%/ratelimit_client: FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/client_cmd
-bin_%/ratelimit_check : FORCE ; GO111MODULE=on go build -o $@ github.com/lyft/ratelimit/src/config_check_cmd
+# This mimics _go-common.mk
+define lyft.bin.rule
+bin_%/.tmp.$(word 1,$(subst :, ,$(lyft.bin))).tmp: go-get FORCE
+	go build -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
+bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.tmp.$(word 1,$(subst :, ,$(lyft.bin))).tmp
+	if cmp -s $$< $$@; then rm -f $$< || true; else mv -f $$< $$@; fi
+endef
+$(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
+build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
 
 # `docker build` mumbo-jumbo
 build-image: image/ratelimit
