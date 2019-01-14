@@ -93,7 +93,7 @@
       items:
         - title: Istio and Ambassador
           link: /user-guide/with-istio
-        - title: Consul Connect (coming soon)
+        - title: Consul Connect
           link: /user-guide/consul-connect-ambassador
 
 - title: Reference
