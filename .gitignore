@@ -1,4 +1,5 @@
 *.docker
+*.docker.knaut-push
 *.knaut
 *.knaut.claim
 /bin_*/

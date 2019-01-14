@@ -1,12 +1,9 @@
-NAME            = ambassador-ratelimit
-_REGISTRY       = quay.io/datawire
-_REPO           = $(NAME)$(if $(findstring -,$(VERSION)),-dev)
+NAME         = ambassador-ratelimit
 # For docker.mk
-DOCKER_IMAGE    = $(_REGISTRY)/$(_REPO):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
+DOCKER_IMAGE = quay.io/datawire/$(NAME)$(if $(findstring -,$(VERSION)),-dev):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
-RATELIMIT_IMAGE = $(_REGISTRY)/$(_REPO):ratelimit-$(VERSION)
-PROXY_IMAGE     = $(_REGISTRY)/$(_REPO):proxy-$(VERSION)
-SIDECAR_IMAGE   = $(_REGISTRY)/$(_REPO):sidecar-$(VERSION)
+K8S_IMAGES   = docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
+K8S_ENV      = k8s/env.sh
 
 include build-aux/common.mk
 include build-aux/go-mod.mk
@@ -48,24 +45,10 @@ build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word
 #
 # Docker images
 
-ifneq ($(shell which docker 2>/dev/null),)
-build: docker
-else
-build:
-	@echo 'SKIPPING DOCKER BUILD'
-endif
-
-docker: ## Build docker images
-.PHONY: docker
-
-docker: docker/traffic-proxy.docker
-clean: docker/traffic-proxy.docker.clean
 docker/traffic-proxy.docker: docker/traffic-proxy/proxy
 docker/traffic-proxy/%: bin_linux_amd64/%
 	cp $< $@
 
-docker: docker/traffic-sidecar.docker
-clean: docker/traffic-sidecar.docker.clean
 docker/traffic-sidecar.docker: docker/traffic-sidecar/ambex
 docker/traffic-sidecar.docker: docker/traffic-sidecar/sidecar
 docker/traffic-sidecar/ambex:
@@ -74,8 +57,6 @@ docker/traffic-sidecar/ambex:
 docker/traffic-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker: docker/ambassador-ratelimit.docker
-clean: docker/ambassador-ratelimit.docker.clean
 docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/apictl
 docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit
 docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_check
