@@ -48,7 +48,7 @@ spec:
 Ambassador Pro integrates with Consul Connect via a sidecar service. This service does two things:
 
 - Talks to Consul and registers Ambassador as a Consul Service
-- Retrieves the TLS certificate issue by the Consul CA and stores it as a Kubernetes secret Ambassador will use to authenticate with upstream services.
+- Retrieves the TLS certificate issued by the Consul CA and stores it as a Kubernetes secret Ambassador will use to authenticate with upstream services.
 
 Deploy the Ambassador Consul Connector via kubectl:
 
