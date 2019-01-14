@@ -5,7 +5,7 @@
 #
 ## Inputs ##
 #  - Variable: VERSION
-#  - Variable: DOCKER_REGISTRY
+#  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
 ## Outputs ##
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
 #  - .PHONY Target : %.docker.clean
@@ -14,6 +14,9 @@
 #
 # The private in-kubernaut-cluster registry is known as
 # "localhost:31000" to the cluster Nodes.
+#
+# DOCKER_IMAGE defines the mapping to publicly the pushed image
+# name/tag, it is evaluated in the context of "%.docker.push"
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))kubeapply.mk
@@ -25,6 +28,8 @@ docker.LOCALHOST = host.docker.internal
 else
 docker.LOCALHOST = localhost
 endif
+
+DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
 
 %.docker: %/Dockerfile
 	docker build -t $(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest) $*
@@ -46,8 +51,8 @@ endif
 .PHONY: %.docker.knaut-push
 
 %.docker.push: %.docker
-	docker tag $$(cat $<) $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
-	docker push $(DOCKER_REGISTRY)/$(notdir $*):$(VERSION)
+	docker tag $$(cat $<) $(DOCKER_IMAGE)
+	docker push $(DOCKER_IMAGE)
 .PHONY: %.docker.push
 
 endif
