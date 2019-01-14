@@ -1,26 +1,28 @@
 NAME            = ambassador-ratelimit
-REGISTRY        = quay.io
-NAMESPACE       = datawire
-REPO            = $(NAMESPACE)/$(NAME)$(if $(findstring -,$(VERSION)),-dev)
-RATELIMIT_IMAGE = $(REGISTRY)/$(REPO):ratelimit-$(VERSION)
-PROXY_IMAGE     = $(REGISTRY)/$(REPO):proxy-$(VERSION)
-SIDECAR_IMAGE   = $(REGISTRY)/$(REPO):sidecar-$(VERSION)
+_REGISTRY       = quay.io/datawire
+_REPO           = $(NAME)$(if $(findstring -,$(VERSION)),-dev)
+# For docker.mk
+DOCKER_IMAGE    = $(_REGISTRY)/$(_REPO):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
+# For k8s.mk
+RATELIMIT_IMAGE = $(_REGISTRY)/$(_REPO):ratelimit-$(VERSION)
+PROXY_IMAGE     = $(_REGISTRY)/$(_REPO):proxy-$(VERSION)
+SIDECAR_IMAGE   = $(_REGISTRY)/$(_REPO):sidecar-$(VERSION)
 
 include build-aux/common.mk
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/help.mk
 include build-aux/teleproxy.mk
-include build-aux/kubernaut-ui.mk
-include build-aux/kubeapply.mk
+include build-aux/docker.mk
 include build-aux/k8s.mk
 
 export PATH:=$(CURDIR)/bin_$(GOOS)_$(GOARCH):$(PATH)
 export CGO_ENABLED=0
 
-#
-
 .DEFAULT_GOAL = help
+
+#
+# Lyft
 
 RATELIMIT_VERSION=v1.3.0
 lyft-pull: # Update vendor-ratelimit from github.com/lyft/ratelimit.git
@@ -43,24 +45,62 @@ endef
 $(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
 build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
 
-# `docker build` mumbo-jumbo
-build-image: image/ratelimit
-build-image: image/ratelimit_client
-build-image: $(addprefix image/,$(notdir $(go.bins)))
-.PHONY: build-image
-image/%: bin_linux_amd64/%
-	@mkdir -p $(@D)
-	cp $< $@
-docker: build-image
-	docker build . -t $(RATELIMIT_IMAGE)
-	docker build . -f intercept/Dockerfile --target telepresence-proxy -t $(PROXY_IMAGE)
-	docker build . -f intercept/Dockerfile --target telepresence-sidecar -t $(SIDECAR_IMAGE)
+#
+# Docker images
+
+ifneq ($(shell which docker 2>/dev/null),)
+build: docker
+else
+build:
+	@echo 'SKIPPING DOCKER BUILD'
+endif
+
+docker: ## Build docker images
 .PHONY: docker
 
-# Utility targets
-docker-run: docker
-	docker run -it $(IMAGE)
-.PHONY: docker-run
+docker: docker/traffic-proxy.docker
+clean: docker/traffic-proxy.docker.clean
+docker/traffic-proxy.docker: docker/traffic-proxy/proxy
+docker/traffic-proxy/%: bin_linux_amd64/%
+	cp $< $@
+
+docker: docker/traffic-sidecar.docker
+clean: docker/traffic-sidecar.docker.clean
+docker/traffic-sidecar.docker: docker/traffic-sidecar/ambex
+docker/traffic-sidecar.docker: docker/traffic-sidecar/sidecar
+docker/traffic-sidecar/ambex:
+	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
+	chmod 755 $@
+docker/traffic-sidecar/%: bin_linux_amd64/%
+	cp $< $@
+
+docker: docker/ambassador-ratelimit.docker
+clean: docker/ambassador-ratelimit.docker.clean
+docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/apictl
+docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit
+docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_check
+docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_client
+docker/ambassador-ratelimit/%: bin_linux_amd64/%
+	cp $< $@
 
 clean:
-	rm -rf image
+	rm -f docker/traffic-proxy/proxy
+	rm -f docker/traffic-sidecar/sidecar
+	rm -f docker/ambassador-ratelimit/apictl
+	rm -f docker/ambassador-ratelimit/ratelimit
+	rm -f docker/ambassador-ratelimit/ratelimit_check
+	rm -f docker/ambassador-ratelimit/ratelimit_client
+clobber:
+	rm -f docker/traffic-sidecar/ambex
+
+#
+# Release
+
+.PHONY: release release-%
+
+release: ## Cut a release; upload Docker images to Quay
+release: release-docker
+release-docker: ## Upload Docker images to Quay
+release-docker: docker/ambassador-ratelimit.docker.push
+release-docker: docker/traffic-proxy.docker.push
+release-docker: docker/traffic-sidecar.docker.push
