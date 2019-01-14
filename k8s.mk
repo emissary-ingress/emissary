@@ -8,12 +8,8 @@ IMAGE_DEFS=$(foreach var,$(IMAGE_VARS),$(var)=$($(var))$(NL))
 IMAGE_DEFS_SH="$(subst $(SPACE),\n,$(foreach var,$(IMAGE_VARS),$(var)=$($(var))))\n"
 MANIFESTS?=$(wildcard k8s/*.yaml)
 
-push_ok:
-	@if [ "$(PROFILE)" == "prod" ]; then echo "CANNOT PUSH TO PROD"; exit 1; fi
-.PHONY: push_ok
-
 push: ## Build docker images, tag them with the computed hash, and push them to the docker repo specified in config.json.
-push: push_ok docker
+push: docker
 	@for IMAGE in $(IMAGES); do \
 		docker push $${IMAGE}; \
 	done
