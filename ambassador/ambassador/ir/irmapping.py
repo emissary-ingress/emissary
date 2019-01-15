@@ -81,6 +81,7 @@ class IRMapping (IRResource):
         "tls": True,
         "use_websocket": True,
         "weight": True,
+        "bypass_auth": True,
 
         # Include the serialization, too.
         "serialization": True,
@@ -275,7 +276,8 @@ class IRMappingGroup (IRResource):
         'prefix': True,
         'prefix_regex': True,
         'rewrite': True,
-        'timeout_ms': True
+        'timeout_ms': True,
+        'bypass_auth': True
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
@@ -427,8 +429,8 @@ class IRMappingGroup (IRResource):
         """
         Finalize a MappingGroup based on the attributes of its Mappings. Core elements get lifted into
         the Group so we can more easily build Envoy routes; host-redirect and shadow get handled, etc.
-        
-        :param ir: the IR we're working from 
+
+        :param ir: the IR we're working from
         :param aconf: the Config we're working from
         :return: a list of the IRClusters this Group uses
         """
