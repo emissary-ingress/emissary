@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
-	"github.com/datawire/ambassador-oauth/util"
+	"github.com/datawire/apro/cmd/ambassador-oauth/client"
+	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/util"
 
 	"github.com/dgrijalva/jwt-go"
 

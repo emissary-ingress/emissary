@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
-	"github.com/datawire/ambassador-oauth/handler"
-	"github.com/datawire/ambassador-oauth/util"
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
+	"github.com/datawire/apro/handler"
+	"github.com/datawire/apro/util"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 )

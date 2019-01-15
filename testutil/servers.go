@@ -10,14 +10,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/app"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/logger"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
-	"github.com/datawire/ambassador-oauth/util"
+	"github.com/datawire/apro/cmd/ambassador-oauth/app"
+	"github.com/datawire/apro/cmd/ambassador-oauth/client"
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
+	"github.com/datawire/apro/cmd/ambassador-oauth/logger"
+	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/util"
 )
 
 // NewIDP returns an instance of the identity provider server.

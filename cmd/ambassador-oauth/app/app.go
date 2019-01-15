@@ -3,15 +3,15 @@ package app
 import (
 	"net/http"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/client"
+	"github.com/datawire/apro/cmd/ambassador-oauth/client"
 	"github.com/gorilla/mux"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/controller"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/discovery"
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/secret"
-	"github.com/datawire/ambassador-oauth/handler"
-	"github.com/datawire/ambassador-oauth/middleware"
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
+	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/handler"
+	"github.com/datawire/apro/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 )

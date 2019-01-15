@@ -7,7 +7,7 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 )

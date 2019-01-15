@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/datawire/ambassador-oauth/cmd/ambassador-oauth/config"
-	"github.com/datawire/ambassador-oauth/util"
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/util"
 	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/gobwas/glob"
 	"github.com/sirupsen/logrus"
