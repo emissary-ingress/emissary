@@ -89,7 +89,13 @@ check-e2e: e2e-oauth/node_modules deploy
 	cd e2e-oauth && npm test
 	$(MAKE) unproxy
 .PHONY: check-e2e
+
+ifneq ($(shell which docker 2>/dev/null),)
 check: check-e2e
+else
+check:
+	@echo 'SKIPPING OAUTH E2E TESTS'
+endif
 
 #
 # Clean
