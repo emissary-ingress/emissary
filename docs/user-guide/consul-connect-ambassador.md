@@ -1,6 +1,6 @@
 # Consul Connect Integration with Ambassador
 
-*In Beta:* Please contact us on [Slack](https://d6e.co/slack) or Email at support@datawire.io if you would like to learn more about how to implement this feature.
+**In Beta:** Please contact us on [Slack](https://d6e.co/slack) or Email at support@datawire.io if you would like to learn more about how to implement this feature.
 
 
 ## Prerequisites
