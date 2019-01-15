@@ -8,13 +8,11 @@ rules:
     resources:
       - secrets
     verbs: ["get", "list", "create", "delete"]
-
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador-pro-consul-connect
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -28,7 +26,6 @@ subjects:
   - kind: ServiceAccount
     name: ambassador-pro-consul-connect
     namespace: default
-
 ---
 apiVersion: apps/v1
 kind: Deployment
