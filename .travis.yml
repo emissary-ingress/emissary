@@ -40,8 +40,6 @@ install:
 before_script:
   # log in to quay.io
   - sh -c 'printf "%s\n" "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"'
-  # Deployment vars
-  - ln -s ./e2e/env.in ./env.sh
 script:
   # Note that if one command fails, it won't stop the remaining
   # commands from running (but it will be marked as a failure).

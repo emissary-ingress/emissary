@@ -17,14 +17,14 @@ documentation is here: https://github.com/datawire/ambassador-pro
 
     $ # if on macOS, first you must configure dockerd, see below
     $ export KUBERNAUT_TOKEN=...
-    $ ln -s ./e2e/env.in ./env.sh
     $ make check
 
 This will run both unit tests and e2e tests.
 
  > *NOTE:* This will talk to the Auth0 account configured in
- > `./e2e/env.in`.  The login credentials for that Auth0 can be found
- > in Keybase under `/datawireio/global/ambassador-oauth-ci.txt`.
+ > `./e2e-oauth/env.sh`.  The login credentials for that Auth0 can be
+ > found in Keybase under
+ > `/datawireio/global/ambassador-oauth-ci.txt`.
 
 On macOS, you will first need to add `host.docker.internal:31000` to
 Docker's list of "Insecure registries":

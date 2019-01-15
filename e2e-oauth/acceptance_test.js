@@ -2,7 +2,7 @@ const dotenv = require('dotenv')
 const puppeteer = require('puppeteer');
 const { expect } = require('chai');
 
-const result = dotenv.config({path: __dirname + "/env.in"})
+const result = dotenv.config({path: __dirname + "/env.sh"})
 if (result.error) {
   throw result.error
 }
