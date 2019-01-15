@@ -3,7 +3,7 @@ NAME         = ambassador-ratelimit
 DOCKER_IMAGE = quay.io/datawire/$(NAME)$(if $(findstring -,$(VERSION)),-dev):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
 K8S_IMAGES   = docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
-K8S_ENV      = k8s/env.sh
+K8S_ENVS     = k8s/env.sh
 
 export CGO_ENABLED=0
 
