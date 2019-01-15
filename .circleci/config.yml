@@ -58,7 +58,7 @@ commands:
   release:
     steps:
       - run: |
-          if [[ "$CIRCLE_TAG" =~ ^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+          if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
               export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
               export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
               if test -n "$(which docker 2>/dev/null)"; then
