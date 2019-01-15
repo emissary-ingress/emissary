@@ -4,6 +4,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: intercepted
+  annotations:
+    getambassador.io/config: |
+      ---
+        apiVersion: ambassador/v1
+        kind:  Mapping
+        name:  mapping_for_intercepted
+        prefix: /intercepted/
+        service: intercepted
 spec:
   type: ClusterIP
   selector:
