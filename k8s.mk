@@ -39,7 +39,7 @@ push: ## (Kubernaut) Push Docker images to kubernaut.io cluster
 push: $(addsuffix .docker.knaut-push,$(K8S_IMAGES))
 .PHONY: push
 
-apply:  ## (Kubernaut) Apply YAML to kubernaut.io cluster, without pushing newer Docker images the (this is useful for quickly deploying YAML-only changes)
+apply:  ## (Kubernaut) Apply YAML to kubernaut.io cluster, without pushing newer Docker images (this is useful for quickly deploying YAML-only changes)
 deploy: ## (Kubernaut) Apply YAML to kubernaut.io cluster, pushing newer Docker images
 _k8s.push = $(addsuffix .docker.knaut-push,$(K8S_IMAGES))
 apply: $(filter-out $(wildcard $(_k8s.push)),$(_k8s.push))
