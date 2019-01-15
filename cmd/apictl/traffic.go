@@ -106,9 +106,11 @@ func doInitialize(cmd *cobra.Command, args []string) {
 }
 
 var inject = &cobra.Command{
-	Use:   "inject",
-	Short: "Inject the traffic sidecar into a deployment",
-	Run:   doInject,
+	Use:     "inject [flags] <manifest files...>",
+	Short:   "Inject the traffic sidecar into a deployment",
+	Args:    cobra.MinimumNArgs(1),
+	Example: "apictl traffic inject -d example-dep -s example-svc -p 9000 k8s/example.yaml > injected-example.yaml",
+	Run:     doInject,
 }
 
 func init() {
