@@ -126,9 +126,7 @@ release-docker: ## Upload Docker images to Quay
 release-docker: docker/ambassador-ratelimit.docker.push
 release-docker: docker/traffic-proxy.docker.push
 release-docker: docker/traffic-sidecar.docker.push
+release-docker: docker/ambassador-oauth.docker.push
 
 release-apictl release-apictl-key: release-%: bin_$(GOOS)_$(GOARCH)/%
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/$*/$(VERSION)/$(GOOS)/$(GOARCH)/$*'
-
-push-tagged-image: ## docker push
-push-tagged-image: docker/ambassador-oauth.docker.push
