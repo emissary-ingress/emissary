@@ -1,10 +1,13 @@
 NAME            = ambassador-pro
 DOCKER_REGISTRY = quay.io/datawire
+K8S_IMAGES      = docker/ambassador-pro
+K8S_DIR         = scripts
+K8S_ENV         = env.sh
 
 export CGO_ENABLED = 0
 
 include build-aux/go-mod.mk
-include build-aux/docker.mk
+include build-aux/k8s.mk
 include build-aux/teleproxy.mk
 include build-aux/help.mk
 
@@ -13,12 +16,11 @@ include build-aux/help.mk
 #
 # Main
 
-build: docker/ambassador-pro.docker
 docker/ambassador-pro.docker: docker/ambassador-pro/ambassador-oauth
 docker/ambassador-pro/ambassador-oauth: bin_linux_amd64/ambassador-oauth
 	cp $< $@
 
-clean: $(addsuffix .clean,$(wildcard docker/*.docker))
+clean:
 	rm -f key.pem cert.pem scripts/??-ambassador-certs.yaml
 
 #
@@ -30,10 +32,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker))
 scripts/02-ambassador-certs.yaml: scripts/cert.pem scripts/key.pem
 	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert scripts/cert.pem --key scripts/key.pem > $@
 
-deploy: ## Deploy to a kubernaut.io cluster
-deploy: docker/ambassador-pro.docker.knaut-push $(KUBEAPPLY) $(KUBECONFIG) env.sh scripts/02-ambassador-certs.yaml
-	set -a && IMAGE=localhost:31000/ambassador-pro:$(VERSION) && . ./env.sh && $(KUBEAPPLY) -f scripts
-.PHONY: deploy
+deploy: scripts/02-ambassador-certs.yaml
+apply: scripts/02-ambassador-certs.yaml
 
 e2e/node_modules: e2e/package.json $(wildcard e2e/package-lock.json)
 	cd $(@D) && npm install
