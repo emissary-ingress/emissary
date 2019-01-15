@@ -112,6 +112,7 @@ clean:
 	rm -f docker/ambassador-ratelimit/ratelimit
 	rm -f docker/ambassador-ratelimit/ratelimit_check
 	rm -f docker/ambassador-ratelimit/ratelimit_client
+	rm -f docker/ambassador-oauth/ambassador-oauth
 	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
 clobber:
 	rm -f docker/traffic-sidecar/ambex
