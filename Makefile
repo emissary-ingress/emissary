@@ -3,18 +3,15 @@ NAME         = ambassador-ratelimit
 DOCKER_IMAGE = quay.io/datawire/$(NAME)$(if $(findstring -,$(VERSION)),-dev):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
 K8S_IMAGES   = docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
-K8S_ENV      = k8s/env.sh
+K8S_ENVS     = k8s/env.sh
 
-include build-aux/common.mk
+export CGO_ENABLED=0
+
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
-include build-aux/help.mk
 include build-aux/teleproxy.mk
-include build-aux/docker.mk
 include build-aux/k8s.mk
-
-export PATH:=$(CURDIR)/bin_$(GOOS)_$(GOARCH):$(PATH)
-export CGO_ENABLED=0
+include build-aux/help.mk
 
 .DEFAULT_GOAL = help
 
