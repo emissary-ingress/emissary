@@ -1,8 +1,8 @@
 NAME            = ambassador-pro
 DOCKER_REGISTRY = quay.io/datawire
 K8S_IMAGES      = docker/ambassador-pro
-K8S_DIR         = e2e-oauth/k8s
-K8S_ENV         = e2e-oauth/env.sh
+K8S_DIRS        = e2e-oauth/k8s
+K8S_ENVS        = e2e-oauth/env.sh
 
 export CGO_ENABLED = 0
 
