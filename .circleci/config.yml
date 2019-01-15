@@ -31,14 +31,14 @@ commands:
       # For some reason it is faster to curl into a file than to just
       # pipe the curl straight to tar.
       - run: |
-          sudo rm -rf /usr/local/go &&
-          curl https://dl.google.com/go/go1.11.4.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz &&
+          sudo rm -rf /usr/local/go
+          curl https://dl.google.com/go/go1.11.4.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz
           sudo tar -C /usr/local -xzf /tmp/go.tgz
 
       # Golang paths
       - run: |
-          echo 'export PATH=${HOME}/go/bin:${PATH}:/usr/local/go/bin' >> ${BASH_ENV} &&
-          echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV} &&
+          echo 'export PATH=${HOME}/go/bin:${PATH}:/usr/local/go/bin' >> ${BASH_ENV}
+          echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV}
           echo 'export GOBIN=${HOME}/go/bin' >> ${BASH_ENV}
 
       - run: mkdir -p ${GOPATH} ${GOBIN}
