@@ -1,14 +1,11 @@
 /bin_*/
 /vendor/
 
-/env.sh
-
 *.docker
 *.knaut
 *.knaut.claim
 
 *.pem
-
 node_modules/
 
 *.log

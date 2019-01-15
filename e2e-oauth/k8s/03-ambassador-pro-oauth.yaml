@@ -2,13 +2,13 @@
 
 ######################################################################
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador-pro-auth that has access to the CRDs that we will
+# ambassador-pro-oauth that has access to the CRDs that we will
 # create for it below
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
 rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
@@ -19,25 +19,25 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
   namespace: datawire
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
 subjects:
 - kind: ServiceAccount
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
   namespace: datawire
 
 
 ######################################################################
-# Create a CRDs used to configure ambassador-pro-auth
+# Create a CRDs used to configure ambassador-pro-oauth
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -101,12 +101,12 @@ spec:
 
 
 ######################################################################
-# Create the ambassador-pro-auth Service+Deployment
+# Create the ambassador-pro-oauth Service+Deployment
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
   namespace: datawire
   annotations:
     getambassador.io/config: |
@@ -114,7 +114,7 @@ metadata:
       apiVersion: ambassador/v0
       kind:  AuthService
       name:  authentication
-      auth_service: ambassador-pro-auth
+      auth_service: ambassador-pro-oauth
       allowed_headers:
        - "Authorization"
        - "Client-Id"
@@ -125,12 +125,12 @@ metadata:
       kind:  Mapping
       name:  callback_mapping
       prefix: /callback
-      service: ambassador-pro-auth
+      service: ambassador-pro-oauth
       timeout_ms: 5000
 spec:
   type: ClusterIP
   selector:
-    name: ambassador-pro-auth
+    name: ambassador-pro-oauth
   ports:
   - protocol: TCP 
     port: 80
@@ -139,7 +139,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador-pro-auth
+  name: ambassador-pro-oauth
   namespace: datawire
 spec:
   replicas: 1
@@ -147,15 +147,15 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      name: ambassador-pro-auth
+      name: ambassador-pro-oauth
   template:
     metadata:
       labels:
-        name: ambassador-pro-auth
+        name: ambassador-pro-oauth
     spec:
-      serviceAccountName: ambassador-pro-auth
+      serviceAccountName: ambassador-pro-oauth
       containers:
-      - name: ambassador-pro-auth
+      - name: ambassador-pro-oauth
         image: {{env "IMAGE"}}
         ports:
         - containerPort: 8080
