@@ -60,8 +60,6 @@ github.com/google/uuid v1.1.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/googleapis/gnostic v0.2.0 h1:l6N3VoaVzTncYYW+9yOz2LJJammFZGBO13sqgEhpy9g=
 github.com/googleapis/gnostic v0.2.0/go.mod h1:sJBsCZ4ayReDTBIg8b9dl28c5xFWyhBTVRp3pOg5EKY=
 github.com/gophercloud/gophercloud v0.0.0-20181221023737-94924357ebf6/go.mod h1:3WdhXV3rUYy9p6AUW8d94kr+HS62Y4VL9mBnFxsD8q4=
-github.com/gophercloud/gophercloud v0.0.0-20190112201648-b8a40d168295 h1:s45FVISQVLsvwzrpNGy2Rqwkr+ON3u191NQUpXJf9Kg=
-github.com/gophercloud/gophercloud v0.0.0-20190112201648-b8a40d168295/go.mod h1:3WdhXV3rUYy9p6AUW8d94kr+HS62Y4VL9mBnFxsD8q4=
 github.com/gophercloud/gophercloud v0.0.0-20190115030418-a9f90060ebd9 h1:zwgwzXYMHd2ZyHU3fmcDq8zDIlxPbFOycDv/Hy5nFnk=
 github.com/gophercloud/gophercloud v0.0.0-20190115030418-a9f90060ebd9/go.mod h1:3WdhXV3rUYy9p6AUW8d94kr+HS62Y4VL9mBnFxsD8q4=
 github.com/gorilla/context v1.1.1 h1:AWwleXJkX/nhcU9bZSnZoi3h/qGYqQAGhq6zZe/aQW8=
