@@ -1,7 +1,21 @@
+/bin_*/
+/vendor/
+
 *.docker
 *.docker.knaut-push
 *.knaut
 *.knaut.claim
-/bin_*/
-/vendor/
-/pushed.txt
+
+*.pem
+node_modules/
+
+*.log
+.tmp*
+*.tmp
+
+# --- IDE/text editor stuff ---
+.idea
+.vscode/
+#*#
+.#*
+*~

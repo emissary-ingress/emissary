@@ -1,16 +1,17 @@
-NAME         = ambassador-ratelimit
+NAME            = ambassador-pro
 # For docker.mk
-DOCKER_IMAGE = quay.io/datawire/$(NAME)$(if $(findstring -,$(VERSION)),-dev):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
+DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
-K8S_IMAGES   = docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
-K8S_ENVS     = k8s/env.sh
+K8S_IMAGES      = docker/ambassador-pro docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
+K8S_DIRS        = k8s e2e-oauth/k8s
+K8S_ENVS        = k8s/env.sh e2e-oauth/env.sh
 
-export CGO_ENABLED=0
+export CGO_ENABLED = 0
 
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
-include build-aux/teleproxy.mk
 include build-aux/k8s.mk
+include build-aux/teleproxy.mk
 include build-aux/help.mk
 
 .DEFAULT_GOAL = help
@@ -61,6 +62,38 @@ docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_client
 docker/ambassador-ratelimit/%: bin_linux_amd64/%
 	cp $< $@
 
+docker/ambassador-pro.docker: docker/ambassador-pro/ambassador-oauth
+docker/ambassador-pro/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+	cp $< $@
+
+#
+# Check
+
+# Generate the TLS secret
+%/cert.pem %/key.pem: | %
+	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
+e2e-oauth/k8s/02-ambassador-certs.yaml: e2e-oauth/k8s/cert.pem e2e-oauth/k8s/key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert e2e-oauth/k8s/cert.pem --key e2e-oauth/k8s/key.pem > $@
+
+deploy: e2e-oauth/k8s/02-ambassador-certs.yaml
+apply: e2e-oauth/k8s/02-ambassador-certs.yaml
+
+e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock.json)
+	cd $(@D) && npm install
+	@test -d $@
+	@touch $@
+
+check-e2e: ## Check: e2e tests
+check-e2e: e2e-oauth/node_modules deploy
+	$(MAKE) proxy
+	cd e2e-oauth && npm test
+	$(MAKE) unproxy
+.PHONY: check-e2e
+check: check-e2e
+
+#
+# Clean
+
 clean:
 	rm -f docker/traffic-proxy/proxy
 	rm -f docker/traffic-sidecar/sidecar
@@ -68,8 +101,10 @@ clean:
 	rm -f docker/ambassador-ratelimit/ratelimit
 	rm -f docker/ambassador-ratelimit/ratelimit_check
 	rm -f docker/ambassador-ratelimit/ratelimit_client
+	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
 clobber:
 	rm -f docker/traffic-sidecar/ambex
+	rm -rf e2e-oauth/node_modules
 
 #
 # Release
@@ -88,3 +123,6 @@ release-docker: docker/traffic-sidecar.docker.push
 
 release-apictl release-apictl-key: release-%: bin_$(GOOS)_$(GOARCH)/%
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/$*/$(VERSION)/$(GOOS)/$(GOARCH)/$*'
+
+push-tagged-image: ## docker push
+push-tagged-image: docker/ambassador-pro.docker.push
