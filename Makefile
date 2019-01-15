@@ -2,7 +2,7 @@ NAME            = ambassador-pro
 # For docker.mk
 DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
-K8S_IMAGES      = docker/ambassador-pro docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
+K8S_IMAGES      = docker/ambassador-oauth docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
 K8S_DIRS        = k8s e2e-oauth/k8s
 K8S_ENVS        = k8s/env.sh e2e-oauth/env.sh
 
@@ -62,8 +62,8 @@ docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_client
 docker/ambassador-ratelimit/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/ambassador-pro.docker: docker/ambassador-pro/ambassador-oauth
-docker/ambassador-pro/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+docker/ambassador-oauth.docker: docker/ambassador-oauth/ambassador-oauth
+docker/ambassador-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
 	cp $< $@
 
 #
@@ -125,4 +125,4 @@ release-apictl release-apictl-key: release-%: bin_$(GOOS)_$(GOARCH)/%
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/$*/$(VERSION)/$(GOOS)/$(GOARCH)/$*'
 
 push-tagged-image: ## docker push
-push-tagged-image: docker/ambassador-pro.docker.push
+push-tagged-image: docker/ambassador-oauth.docker.push
