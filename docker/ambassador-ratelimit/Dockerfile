@@ -1,5 +1,5 @@
 FROM alpine:3.8
-RUN apk add --no-cache ca-certificates && mkdir /go
+RUN apk add --no-cache ca-certificates bash && mkdir /go
 
 COPY . .
 ENV USE_STATSD false
