@@ -1,5 +1,3 @@
-/.go-workspace
-!/.go-workspace/src/github.com/datawire/ambassador-oauth
 /bin_*/
 /vendor/
 

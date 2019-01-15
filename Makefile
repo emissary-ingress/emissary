@@ -3,7 +3,7 @@ DOCKER_REGISTRY = quay.io/datawire
 
 export CGO_ENABLED = 0
 
-include build-aux/go-workspace.mk
+include build-aux/go-mod.mk
 include build-aux/docker.mk
 include build-aux/teleproxy.mk
 include build-aux/help.mk
