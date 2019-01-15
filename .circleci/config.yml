@@ -54,6 +54,9 @@ commands:
       - checkout
       - run: make build
       - run: make check
+      - run:
+          command: make unclaim
+          when: always
 
   release:
     steps:
