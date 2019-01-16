@@ -176,6 +176,7 @@ class Notices:
 def get_aconf(app) -> Config:
     # We need to find the sync-# directory with the highest number...
     sync_dirs = []
+    latest = app.config_dir_prefix
 
     for subdir in os.listdir(app.config_dir_prefix):
         if subdir.startswith("sync-"):
@@ -184,9 +185,9 @@ def get_aconf(app) -> Config:
             except ValueError:
                 pass
 
-    latest_generation = sorted(sync_dirs, reverse=True)[0]
-
-    latest = os.path.join(app.config_dir_prefix, "sync-%d" % latest_generation)
+    if sync_dirs:
+        latest_generation = sorted(sync_dirs, reverse=True)[0]
+        latest = os.path.join(app.config_dir_prefix, "sync-%d" % latest_generation)
 
     app.logger.debug("Fetching resources from %s" % latest)
 

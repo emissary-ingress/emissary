@@ -325,6 +325,8 @@ class KubeWatcher:
         self.logger.debug("starting run")
 
         while True:
+            need_wait = True
+
             # Catch exceptions... just in case.
             try:
                 # Try for a Kube connection.
@@ -356,6 +358,7 @@ class KubeWatcher:
                 # If we're just doing the sync, dump the cluster_id to stdout and then bail.
                 if sync_only or id_only:
                     print(self.cluster_id)
+                    need_wait = False
                     break
 
                 # We're not just doing a resync. Start the restarter loop if we need to.
@@ -370,6 +373,7 @@ class KubeWatcher:
             except KeyboardInterrupt:
                 # If the user hit ^C, this is an interactive session and we should bail.
                 self.logger.warning("Exiting on ^C")
+                need_wait = False
                 raise
 
             except (ProtocolError, ApiException) as e:
@@ -386,9 +390,10 @@ class KubeWatcher:
                 raise
 
             finally:
-                # If we're cycling, wait 10 seconds.
-                logger.debug("10-second watch loop delay")
-                time.sleep(10)
+                # If we're cycling, wait 10 seconds, unless that was turned off.
+                if need_wait:
+                    logger.debug("10-second watch loop delay")
+                    time.sleep(10)
 
     def get_cluster_id(self, v1):
         wanted = self.namespace if self.single_namespace else "default"
