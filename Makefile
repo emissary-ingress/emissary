@@ -94,6 +94,7 @@ check-e2e: ## Check: e2e tests
 check-e2e: e2e-oauth/node_modules deploy
 	$(MAKE) proxy
 	cd e2e-oauth && npm test
+	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
 	$(MAKE) unproxy
 .PHONY: check-e2e
 
