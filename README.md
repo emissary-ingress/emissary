@@ -1,7 +1,7 @@
 # Ambassador Pro
 
 This is the proprietary Ambassador Pro source-code.  The public
-user-facing documentation and issue tracking lives at
+user-facing documentation and issue-tracking lives at
 <https://github.com/datawire/ambassador-pro>.
 
 ## CI/CD and manual release
@@ -18,9 +18,10 @@ the Kubernaut cluster).
 
 ### Continuous Deployment
 
-On Git tags matching `vX.Y.Z[-PRE]` (for integers X, Y, Z, and
-arbitrary string PRE), CircleCI does the the above, and (assuming the
-tests pass), proceeds to:
+On Git tags matching `vX.Y.Z[-PRE]` (for integers `X`, `Y`, `Z`, and
+arbitrary string `PRE`), CircleCI does the the
+[above](#continuous-integration), and (assuming the tests pass),
+proceeds to:
  - push `apictl` and `apictl-key` for Linux and Darwin to AWS S3
  - push all 4 Docker images to
    [`quay.io/datawire/ambassador-pro`](https://quay.io/repository/datawire/ambassador-pro?tab=tags)
@@ -67,8 +68,6 @@ Docker's list of "Insecure registries":
 
 ![Docker for Mac "Preferences…" dialog to set the list of "Insecure registries"](README-macos-insecure-registries.png)
 
-### Deploying
-
 ## Cutting a release
 
 When you've identified a commit that you believe should be a release
@@ -76,10 +75,10 @@ When you've identified a commit that you believe should be a release
 simply create a Git tag, and push that Git tag.  e.g.:
 
     $ git tag v0.1.2-rc3
-	$ git push origin v0.1.2-rc3
+    $ git push origin v0.1.2-rc3
 
-See [#Continuous Deployment][] above for information on what this
-does, and on the format of the tag names.
+See [Continuous Deployment](#continuous-deployment) above for
+information on what this does, and on the format of the tag names.
 
 ## How users get this
 
@@ -89,7 +88,8 @@ has read permissions in the `quay.io/datawire/ambassador_pro`
 registry.  This secret is then used to authorize the image pull in the
 deployment (see below).  These deployments can currently be found in
 the `/templates/ambassador` directory on the `Ambassador` repo in the
-`nkrause/AmPro/auth-docs` branch.
+`nkrause/AmPro/auth-docs` branch (TODO: Can we get a hyperlink in
+here?).
 
 ## TODO:
 
@@ -97,10 +97,10 @@ the `/templates/ambassador` directory on the `Ambassador` repo in the
    public.  `quay.io/datawire/ambassador_pro` is private, and is where
    we send new customers to.  When we push a release to the public
    repo, it goes to RHS/Noah for testing, and if they accept it, they
-   push the tag to the private repo. Problems with this:
+   push the tag to the private repo (using `./release.sh`?). Problems
+   with this:
     * What's the point in having a private repo if it's a subset of
-      what's in the private repo? (this isn't as big of a concern as
-      we roll out license keys)
+      what's in the public repo?
     * Does that mean that we should only ever tag `-rc` releases, and
       leave RHS/Noah to tag stable releases from them?
     * There's a concern that switching the
