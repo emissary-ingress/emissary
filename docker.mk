@@ -53,8 +53,8 @@ endif
 %.docker.knaut-push: %.docker $(KUBEAPPLY) $(KUBECONFIG)
 	$(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
 	{ \
+	    trap "jobs -p | xargs -r kill" EXIT; \
 	    $(FLOCK) $(_docker.port-forward).lock kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & \
-	    trap "kill $$!; wait" EXIT; \
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push $(docker.LOCALHOST):31000/$(notdir $*):$(VERSION); \
 	}
