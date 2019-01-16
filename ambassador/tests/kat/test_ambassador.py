@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: {0}
-        image: hopsoft/graphite-statsd:latest
+        image: hopsoft/graphite-statsd:v0.9.15-phusion0.9.18
       restartPolicy: Always
 ---
 apiVersion: v1
