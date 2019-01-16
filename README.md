@@ -1,17 +1,53 @@
 # Ambassador Pro
 
-## User documentation
+This is the proprietary Ambassador Pro source-code.  The public
+user-facing documentation and issue tracking lives at
+<https://github.com/datawire/ambassador-pro>.
 
-If you just want to try to run this as an end user, the end user
-documentation is here: https://github.com/datawire/ambassador-pro
+## CI/CD and manual release
 
-## Developer Documentation
+### Continuous Integration
 
- > ! ! ! REALEASES CANNOT RUN CURRENTLY ! ! !
+On every Git branch, tag, and pull request, CircleCI runs:
+ - the `go test` unit tests on Ubuntu and macOS
+ - the e2e tests on Ubuntu+Kubernaut+`ambassador-oauth-e2e.auth0.com`
 
-### Compile
+It does NOT push Docker images to any persistent registry for normal
+CI runs (it pushes the test images to an ephemeral registry inside of
+the Kubernaut cluster).
+
+### Continuous Deployment
+
+On Git tags matching `vX.Y.Z[-PRE]` (for integers X, Y, Z, and
+arbitrary string PRE), CircleCI does the the above, and (assuming the
+tests pass), proceeds to:
+ - push `apictl` and `apictl-key` for Linux and Darwin to AWS S3
+ - push all 4 Docker images to
+   [`quay.io/datawire/ambassador-pro`](https://quay.io/repository/datawire/ambassador-pro?tab=tags)
+
+### Manual release
+
+If you would like to push a development version without tagging a
+release or pre-release, you may run
+
+    $ make release
+
+which will build and push a release with the pseudo-version generated
+by `git describe --tags`.  You will need the appropriate Quay and AWS
+credentials.
+
+## Local development
+
+### Building
 
     $ make build
+
+This will build
+ - all executable programs, which it will put in
+   `./bin_$(go env GOOS)_$(go env GOARCH)/`
+ - all Docker images, which it will tag as
+   `localhost:31000/$(IMAGE_NAME):$(VERSION)` (or
+   `host.docker.internal:31000` on macOS).
 
 ### Testing
 
@@ -31,96 +67,43 @@ Docker's list of "Insecure registries":
 
 ![Docker for Mac "Preferences…" dialog to set the list of "Insecure registries"](README-macos-insecure-registries.png)
 
-### Formatting
+### Deploying
 
-    $ make format
+## Cutting a release
 
-### Releasing
+When you've identified a commit that you believe should be a release
+(preferably on `master` that CI has already identified as passing),
+simply create a Git tag, and push that Git tag.  e.g.:
 
- 1. Create a git tag, e.g. `git tag 0.0.x-rc`
- 2. Push your tag, e.g. `git push origin 0.0.x-rc`
- 3. Update the container image tag in
-    [Ambassador-pro](https://github.com/datawire/ambassador-pro)
+    $ git tag v0.1.2-rc3
+	$ git push origin v0.1.2-rc3
 
-When a branch is tagged, the
-[CI](https://travis-ci.com/datawire/ambassador-oauth) will build,
-deploy and test end-to-end you branch tag before pushing the new image
-to the [docker
-registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags). Note
-that the CI does not check tag hierarchy, so make sure that the new
-tag makes sense. Only tags with format `x.x.x` or `x.x.x-rc` will be
-accepted.
+See [#Continuous Deployment][] above for information on what this
+does, and on the format of the tag names.
 
-### CI & Images
+## How users get this
 
- * CI [repo](https://travis-ci.com/datawire/ambassador-oauth) will
-   build and test on every commit.
- * An docker image will be pushed to [docker
-   registry](https://quay.io/repository/datawire/ambassador-pro?tab=tags)
-   on every pull-request. The images will be tagged with the
-   correspondent PR number prefixed with `pull-`.
-
-### Manual deployment:
-
- 1. Create a k8s cluster.
-
- 2. Make sure that you have cluster-admin permissions:
-
-        $ kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user user@datawire.io
-
- 3. Deploy Ambassador
-
-        $ kubectl apply -f scripts/ambassador.yaml
-
- 4. Get Ambassador's external address (EXTERNAL_IP)
- 5. Create an Auth0 application and set your callback to
-    `http://{EXTERNAL IP}/callback`. In the app `Connections`, make
-    sure that `google-oauth2` is enabled and that your "Token Endpoint
-    Authetication Method" is set to "Post" or "None".
- 6. Copy `env.sh.in to env.sh` and fill in the variables according to
-    the comments.
- 7. If OSx, run `$ brew install md5sha1sum`
- 8. Run `make deploy`.
- 9. By running `$ kubectl get services -n datawire`, you should see
-    something like these:
-
-        ambassador         LoadBalancer   10.31.248.239   35.230.19.92   80:30664/TCP     16m
-        ambassador-admin   NodePort       10.31.240.190   <none>         8877:30532/TCP   16m
-        auth0-service      ClusterIP      10.31.254.65    <none>         80/TCP           12m
-        httpbin            NodePort       10.31.245.125   <none>         80:30641/TCP     13m
-
-### Manual testing:
-
- 1. Go to `http://{EXTERNAL IP}/httpbin/ip`. Your IP address should be
-    displayed in a JSON message.
- 2. Go to `http://{EXTERNAL IP}/httpbin/headers`. This should take you
-    to the 3-leg auth flow. By signing in with your Google account,
-    you should get redirect back to the original URL and headers
-    should be displayed.
- 3. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. This should
-    display your `user-agent` without asking for authorization.
- 4. Open you browser's admin tool and delete your access_token cookie.
- 5. Go to `http://{EXTERNAL IP}/httpbin/user-agent`. You should be
-    prompt with the 3-leg auth flow again.
-
-### Deployment Workflow Notes:
-
-There is a private repository in quay.io called `ambassador_pro` that
-is has a clone of the `ambassador-pro:0.0.5` image.  This exists
-because we would like to have a way to manage someone's ability to
-install Ambassador Pro but didn't want to hinder current users of it
-like DFS but turning the `ambassador-pro` registry private.  The
-installation instructions have users create a secret with credentials
-for a bot named `datawire+ambassador_pro` that has read permissions in
-the `ambassador_pro` registry. This secret is then used to authorize
-the image pull in the deployment. These deployments can currently be
-found in the `/templates/ambassador` directory on the `Ambassador`
-repo in the `nkrause/AmPro/auth-docs` branch.
+The installation instructions have users create a secret with
+credentials for a Quay account named `datawire+ambassador_pro` that
+has read permissions in the `quay.io/datawire/ambassador_pro`
+registry.  This secret is then used to authorize the image pull in the
+deployment (see below).  These deployments can currently be found in
+the `/templates/ambassador` directory on the `Ambassador` repo in the
+`nkrause/AmPro/auth-docs` branch.
 
 ## TODO:
 
- - rename the `ambassador_pro` registry to `ambassador_auth` or
-   somthing like that since it contains the auth image.
- - Automate this deployment pattern so an image push from this repo
-   pushes the image to both `ambassador-pro` and the priavte repo (for
-   now)
+ - The `quay.io/datawire/ambassador-pro` repo that CD pushes to is
+   public.  `quay.io/datawire/ambassador_pro` is private, and is where
+   we send new customers to.  When we push a release to the public
+   repo, it goes to RHS/Noah for testing, and if they accept it, they
+   push the tag to the private repo. Problems with this:
+    * What's the point in having a private repo if it's a subset of
+      what's in the private repo? (this isn't as big of a concern as
+      we roll out license keys)
+    * Does that mean that we should only ever tag `-rc` releases, and
+      leave RHS/Noah to tag stable releases from them?
+    * There's a concern that switching the
+      `quay.io/datawire/ambassador-pro` repo to private would disrupt
+      some current users like DFS.
+ - Unify `./example/` and `./e2e-oauth/k8s/`

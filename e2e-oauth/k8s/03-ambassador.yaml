@@ -1,19 +1,6 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador-admin
-  name: ambassador-admin
-  namespace: datawire
-spec:
-  type: NodePort
-  ports:
-  - name: ambassador-admin
-    port: 8877
-    targetPort: 8877
-  selector:
-    service: ambassador
+######################################################################
+# Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -51,6 +38,26 @@ subjects:
 - kind: ServiceAccount
   name: ambassador
   namespace: datawire
+
+
+######################################################################
+# Create the ambassador Service+Service+Deployment
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+  namespace: datawire
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador
 ---
 apiVersion: v1
 kind: Service
@@ -68,7 +75,7 @@ metadata:
           enabled: True
           redirect_cleartext_from: 80
 spec:
-  type: NodePort
+  type: NodePort # XXX: Kubernaut
   ports:
   - name: http
     port: 80

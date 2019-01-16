@@ -22,9 +22,14 @@ include build-aux/help.mk
 RATELIMIT_VERSION=v1.3.0
 lyft-pull: # Update vendor-ratelimit from github.com/lyft/ratelimit.git
 	git subtree pull --squash --prefix=vendor-ratelimit https://github.com/lyft/ratelimit.git $(RATELIMIT_VERSION)
-	cd vendor-ratelimit && rm -f go.mod go.sum && go mod init github.com/lyft/ratelimit && git add go.mod
+	cd vendor-ratelimit && rm -f go.mod && go mod init github.com/lyft/ratelimit && go mod tidy && go mod download && git add go.mod go.sum
 	git commit -m 'Run: make lyft-pull' || true
 .PHONY: lyft-pull
+
+go-get: go-get-lyft
+go-get-lyft:
+	cd vendor-ratelimit && go mod download
+.PHONY: go-get-lyft
 
 lyft.bins  = ratelimit:github.com/lyft/ratelimit/src/service_cmd
 lyft.bins += ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
@@ -107,6 +112,7 @@ clean:
 	rm -f docker/ambassador-ratelimit/ratelimit
 	rm -f docker/ambassador-ratelimit/ratelimit_check
 	rm -f docker/ambassador-ratelimit/ratelimit_client
+	rm -f docker/ambassador-oauth/ambassador-oauth
 	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
 clobber:
 	rm -f docker/traffic-sidecar/ambex
