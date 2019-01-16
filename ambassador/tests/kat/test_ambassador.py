@@ -417,11 +417,11 @@ service: {self.target.path.k8s}
         found = 0
 
         wanted = {
-            "TLSContext server found no certificate in secret test-certs-secret-invalid in namespace default",
+            "TLSContext server found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
             "TLSContext bad-path-info found no cert_chain_file '/nonesuch'",
             "TLSContext bad-path-info found no private_key_file '/nonesuch'",
-            "TLSContext validation-without-termination found no certificate in secret test-certs-secret-invalid in namespace default",
-            "TLSContext missing-secret-key: 'cert_chain_file' requires 'private_key_file' as well"
+            "TLSContext validation-without-termination found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
+            "TLSContext missing-secret-key: 'cert_chain_file' requires 'private_key_file' as well",
         }
 
         for errsvc, errtext in errors:
@@ -467,6 +467,36 @@ service: {self.target.path.k8s}
 
     def queries(self):
         yield Query(self.url("tls-target/"), expected=301)
+
+class RedirectTestsInvalidSecret(RedirectTests):
+    """
+    This test tests that even if the specified secret is invalid, the rest of TLS Context should
+    go through. In this case, even though the secret does not exist, redirect_cleartext_from
+    should still take effect.
+    """
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: Module
+name: tls
+ambassador_id: {self.ambassador_id}
+config:
+  server:
+    enabled: True
+    secret: does-not-exist-secret
+    redirect_cleartext_from: 80
+""")
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  tls_target_mapping
+prefix: /tls-target/
+service: {self.target.path.k8s}
+""")
+
 
 class Plain(AmbassadorTest):
 
