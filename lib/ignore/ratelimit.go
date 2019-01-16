@@ -3,5 +3,5 @@
 package ignore
 
 import (
-	_ "github.com/lyft/ratelimit/src/settings"
+	_ "github.com/lyft/ratelimit/src/service_cmd/runner"
 )
