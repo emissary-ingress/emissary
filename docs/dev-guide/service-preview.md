@@ -11,7 +11,7 @@ Download the latest version of the client:
 [Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.0.8/darwin/amd64/apictl)
 [Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.0.8/linux/amd64/apictl)
 
-Make sure the client is somewhere on your PATH.
+Make sure the client is somewhere on your PATH. In addition, place your license key in your HOME directory in a file called `.ambassador.key`.
 
 ## Getting started
 
@@ -33,30 +33,15 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
     In the `docker run` command above, we mount the local directory into the container, so that any code changes to the QOTM service happen immediately. 
 
-2. Now, in another terminal window, redeploy the QOTM service with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `service` and `deployment` is updated as per below.
+2. Now, in another terminal window, redeploy the QOTM service with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `apictl traffic inject` command will automatically create the appropriate YAML to inject the sidecar. In the `qotm` directory, pass the file name of the QOTM deployment:
 
   ```
-  ---
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: qotm
-    annotations:
-      getambassador.io/config: |
-        ---
-        apiVersion: ambassador/v0
-        kind:  Mapping
-        name:  qotm_mapping
-        prefix: /qotm/
-        service: qotm
-  spec:
-    selector:
-      app: qotm
-    ports:
-      - port: 80
-        targetPort: 9900
-    type: ClusterIP
-  ---
+  apictl traffic inject kubernetes/qotm-deployment.yaml -d qotm -p 5000 > qotm-sidecar.yaml
+  ```
+
+  This will create a YAML file called `qotm-sidecar.yaml`. The file will look like the following:
+
+  ```
   apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
@@ -85,35 +70,41 @@ In this quick start, we're going to preview a change we make to the QOTM service
             value: qotm
           - name: APPPORT
             value: "5000"
-          image: ark3/telepresence-sidecar:18
+          image: quay.io/datawire/ambassador-ratelimit:sidecar-0.0.5
           name: traffic-sidecar
           ports:
           - containerPort: 9900
   ```
 
-3. Test to make sure that both your production and development instances of QOTM work:
+3. Redeploy the QOTM service with the sidecar:
+
+   ```
+   kubectl apply -f qotm-sidecar.yaml
+   ```
+
+4. Test to make sure that both your production and development instances of QOTM work:
 
     ```
     curl $AMBASSADOR_IP/qotm/ # test production
     curl localhost:5000       # test development
     ```
 
-4. Initialize the traffic manager for the cluster.
+5. Initialize the traffic manager for the cluster.
 
     ```
     apictl traffic initialize
     ```
 
-5. We need to create an `intercept` rule that tells Ambassador where to route specific requests. Enter the following:
+6. We need to create an `intercept` rule that tells Ambassador where to route specific requests. Enter the following:
 
     ```
     apictl traffic intercept qotm -n :path -m /dev -t 5000
     ```
 
-6. Requests to `/dev` will now get routed locally:
+7. Requests to `/dev` will now get routed locally:
 
     ```
-    curl $AMBASSADOR_IP/dev` # will go to local Docker instance
+    curl $AMBASSADOR_IP/qotm/dev` # will go to local Docker instance
     curl $AMBASSADOR_IP/qotm/ # will go to production instance
     ```
 
