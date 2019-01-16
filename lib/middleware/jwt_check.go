@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
+
 	"github.com/datawire/apro/cmd/ambassador-oauth/config"
 	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
 	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
-	"github.com/datawire/apro/handler"
-	"github.com/datawire/apro/util"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
+	"github.com/datawire/apro/lib/handler"
+	"github.com/datawire/apro/lib/util"
 )
 
 // JWTCheck middleware validates signed tokens when present in the request.

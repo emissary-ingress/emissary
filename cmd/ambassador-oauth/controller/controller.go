@@ -8,13 +8,14 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
-	"github.com/datawire/apro/util"
-	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/gobwas/glob"
+	ms "github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 
-	ms "github.com/mitchellh/mapstructure"
+	"github.com/datawire/teleproxy/pkg/k8s"
+
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/lib/util"
 )
 
 // Controller is monitors changes in app configuration and policy custom resources.

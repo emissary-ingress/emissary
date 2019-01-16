@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
+
 	"github.com/datawire/apro/cmd/ambassador-oauth/client"
 	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
 	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
-	"github.com/datawire/apro/util"
-
-	"github.com/dgrijalva/jwt-go"
-
-	"github.com/sirupsen/logrus"
+	"github.com/datawire/apro/lib/util"
 )
 
 const (

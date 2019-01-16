@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
-	"github.com/datawire/apro/util"
 	"github.com/sirupsen/logrus"
+
+	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/lib/util"
 )
 
 // DomainCheck verifies that a given request has a correspondent application. Applications are

@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/datawire/apro/cmd/ambassador-oauth/app"
-	"github.com/datawire/apro/testutil"
+	"github.com/datawire/apro/lib/testutil"
 )
 
 var appUT *app.App
