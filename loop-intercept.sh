@@ -4,7 +4,7 @@ set -e
 
 cd "${BASH_SOURCE%/*}/" || exit 1  # Good enough for debugging, right?
 
-APICTL=../bin_$(go env GOOS)_$(go env GOARCH)/apictl
+APICTL=./bin_$(go env GOOS)_$(go env GOARCH)/apictl
 REMOTE_SVC=echo
 NUM_LOOPS=2
 
@@ -40,7 +40,7 @@ if ! do_curl; then
     echo "Is kubectl configured correctly?"
     echo "  make shell"
     echo "Is telepresence outbound running?"
-    echo "  telepresence outbound"
+    echo "  make proxy"
     echo "Is the example application ($REMOTE_SVC) running in the cluster?"
     echo "  make deploy"
     exit 1
