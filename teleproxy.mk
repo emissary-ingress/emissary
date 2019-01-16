@@ -44,7 +44,7 @@ proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
 .PHONY: proxy
 
 unproxy: ## (Teleproxy) Shut down 'proxy'
-	curl -s 127.254.254.254/api/shutdown || true
+	curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
 	@sleep 1
 .PHONY: unproxy
 
