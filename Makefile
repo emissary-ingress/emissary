@@ -91,10 +91,8 @@ e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock
 	@touch $@
 
 check-e2e: ## Check: e2e tests
-check-e2e: e2e-oauth/node_modules deploy
-	$(MAKE) proxy
+check-e2e: e2e-oauth/node_modules deploy proxy
 	cd e2e-oauth && npm test
-	$(MAKE) unproxy
 .PHONY: check-e2e
 
 ifneq ($(shell which docker 2>/dev/null),)
