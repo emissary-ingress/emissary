@@ -109,6 +109,26 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
+## [0.50.0-rc5] January 9, 2019
+[0.50.0-rc5]: https://github.com/datawire/ambassador/compare/0.50.0-rc4...0.50.0-rc5
+
+**Ambassador 0.50.0-rc5 is a release candidate**.
+
+### Changes since 0.50.0-rc3
+
+- Websocket connections will now be authenticated if an AuthService is configured [#1026]
+- Client certificate authentication should function whether configured from a TLSContext resource or from the the old-style TLS module (this is the full fix for [#993])
+- Ambassador can now switch listening ports without a restart (e.g. switching from cleartext to TLS) [#1100]
+- TLS origination certificates (including Istio mTLS) should now function [#1071]  
+- The diagnostics service should function in all cases. [#1096]
+- The Ambassador image is significantly (~500MB) smaller than RC4.
+
+[#933]: https://github.com/datawire/ambassador/issues/993
+[#1026]: https://github.com/datawire/ambassador/issues/1026
+[#1071]: https://github.com/datawire/ambassador/issues/1071
+[#1096]: https://github.com/datawire/ambassador/issues/1096
+[#1100]: https://github.com/datawire/ambassador/issues/1100
+
 ## [0.50.0-rc4] January 9, 2019
 [0.50.0-rc4]: https://github.com/datawire/ambassador/compare/0.50.0-rc3...0.50.0-rc4
 
