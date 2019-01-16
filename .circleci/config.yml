@@ -1,0 +1,114 @@
+version: 2.1
+
+# Secure environement variables set from the Web UI:
+# - DEPLOY_KEY_ID (AWS S3)
+# - DEPLOY_KEY (AWS S3)
+# - DOCKER_TOKEN (Quay)
+# - KUBERNAUT_TOKEN (Kubernaut)
+
+commands:
+  aws-install:
+    steps:
+      - run: |
+          sudo pip install awscli
+
+  node-install:
+    steps:
+      - run: |
+          echo 'export NVM_DIR=/opt/circleci/.nvm' >> ${BASH_ENV}
+          echo 'source $NVM_DIR/nvm.sh' >> ${BASH_ENV}
+      - run: |
+          nvm install 8
+          nvm alias default 8
+
+  golang-install:
+    parameters:
+      os:
+        type: string
+    steps:
+      # Golang install
+
+      # For some reason it is faster to curl into a file than to just
+      # pipe the curl straight to tar.
+      - run: |
+          sudo rm -rf /usr/local/go
+          curl https://dl.google.com/go/go1.11.4.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz
+          sudo tar -C /usr/local -xzf /tmp/go.tgz
+
+      # Golang paths
+      - run: |
+          echo 'export PATH=${HOME}/go/bin:${PATH}:/usr/local/go/bin' >> ${BASH_ENV}
+          echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV}
+          echo 'export GOBIN=${HOME}/go/bin' >> ${BASH_ENV}
+
+      - run: mkdir -p ${GOPATH} ${GOBIN}
+
+  kubectl-install:
+    steps:
+      - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/$(go env GOOS)/$(go env GOARCH)/kubectl
+      - run: chmod a+x ./kubectl
+      - run: sudo mv kubectl /usr/local/bin
+
+  main:
+    steps:
+      - checkout
+      - run: make build
+      - run: make check
+      - run:
+          command: make unclaim
+          when: always
+
+  release:
+    steps:
+      - run: |
+          if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+              export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+              export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+              if test -n "$(which docker 2>/dev/null)"; then
+                  docker login -u="datawire+releasebot" -p="${DOCKER_TOKEN}" quay.io
+                  make release
+              else
+                  make release-bin
+              fi
+          fi
+
+jobs:
+
+  macos-build:
+    macos:
+      xcode: "9.0"
+    working_directory: ~/repo
+    steps:
+      - aws-install
+      - golang-install:
+          os: darwin
+      - kubectl-install
+      - main
+      - release
+
+  machine-build:
+    machine: true
+    working_directory: ~/repo
+    steps:
+      - aws-install
+      - golang-install:
+          os: linux
+      - kubectl-install
+      - node-install
+      - main
+      - release
+
+
+workflows:
+  version: 2.1
+
+  multibuild:
+    jobs:
+      - machine-build:
+          filters:
+            tags:
+              only: /.*/
+      - macos-build:
+          filters:
+            tags:
+              only: /.*/

@@ -1,66 +1,109 @@
-# Datawire build-aux
+# Ambassador Pro
 
-This is a collection of Makefile snippets (and associated utilities)
-for use in Datawire projects.
+This is the proprietary Ambassador Pro source-code.  The public
+user-facing documentation and issue tracking lives at
+<https://github.com/datawire/ambassador-pro>.
 
-## How to use
+## CI/CD and manual release
 
-Add `build-aux.git` as `build-aux/` in the git repository of the
-project that you want to use this from.  I recommend that you do this
-using `git subtree`, but `git submodule` is fine too.
+### Continuous Integration
 
-Then, in your Makefile, write `include build-aux/FOO.mk` for each
-common bit of functionality that you want to make use of.
+On every Git branch, tag, and pull request, CircleCI runs:
+ - the `go test` unit tests on Ubuntu and macOS
+ - the e2e tests on Ubuntu+Kubernaut+`ambassador-oauth-e2e.auth0.com`
 
-### Using `git-subtree` to manage `./build-aux/`
+It does NOT push Docker images to any persistent registry for normal
+CI runs (it pushes the test images to an ephemeral registry inside of
+the Kubernaut cluster).
 
- - Start using build-aux:
+### Continuous Deployment
 
-       $ git subtree add --squash --prefix=build-aux git@github.com:datawire/build-aux.git master
+On Git tags matching `vX.Y.Z[-PRE]` (for integers X, Y, Z, and
+arbitrary string PRE), CircleCI does the the above, and (assuming the
+tests pass), proceeds to:
+ - push `apictl` and `apictl-key` for Linux and Darwin to AWS S3
+ - push all 4 Docker images to
+   [`quay.io/datawire/ambassador-pro`](https://quay.io/repository/datawire/ambassador-pro?tab=tags)
 
- - Update to latest build-aux:
+### Manual release
 
-       $ ./build-aux/build-aux-pull
+If you would like to push a development version without tagging a
+release or pre-release, you may run
 
- - Push "vendored" changes upstream to build-aux.git:
+    $ make release
 
-       $ ./build-aux/build-aux-push
+which will build and push a release with the pseudo-version generated
+by `git describe --tags`.  You will need the appropriate Quay and AWS
+credentials.
 
-## Go
+## Local development
 
-Currently, there are 2 options for Go projects:
+### Building
 
- - `go-workspace.mk`: For GOPATH workspaces
- - `go-mod.mk`: For Go 1.11 modules
+    $ make build
 
-### Initializing a `go-workspace.mk` project
+This will build
+ - all executable programs, which it will put in
+   `./bin_$(go env GOOS)_$(go env GOARCH)/`
+ - all Docker images, which it will tag as
+   `localhost:31000/$(IMAGE_NAME):$(VERSION)` (or
+   `host.docker.internal:31000` on macOS).
 
-	$ MODULE=EXAMPLE.COM/YOU/GITREPO
+### Testing
 
-	$ echo 'include build-aux/go-workspace.mk' >> Makefile
-	$ echo /.go-workpsace >> .gitignore
-	$ echo "!/.go-workspace/src/${MODULE}" >> .gitignore
-	$ mkdir -p $(dirname .go-workspace/src/${MODULE})
-	$ ln -s $(dirname .go-workspace/src/${MODULE} | sed -E 's,[^/]+,..,g') .go-workspace/src/${MODULE}
+    $ # if on macOS, first you must configure dockerd, see below
+    $ export KUBERNAUT_TOKEN=...
+    $ make check
 
-What's that big expression in the `ln -s` command!?  It's the same as
+This will run both unit tests and e2e tests.
 
-	$ ln -sr . .go-workspace/src/${MODULE}
+ > *NOTE:* This will talk to the Auth0 account configured in
+ > `./e2e-oauth/env.sh`.  The login credentials for that Auth0 can be
+ > found in Keybase under
+ > `/datawireio/global/ambassador-oauth-ci.txt`.
 
-but for lame operating systems that ship an `ln` that doesn't
-understand the `-r` flag.
+On macOS, you will first need to add `host.docker.internal:31000` to
+Docker's list of "Insecure registries":
 
-### Initializing a `go-mod.mk` project
+![Docker for Mac "Preferences…" dialog to set the list of "Insecure registries"](README-macos-insecure-registries.png)
 
-	$ go mod init EXAMPLE.COM/YOU/GITREPO
+### Deploying
 
-	$ echo 'include build-aux/go-mod.mk' >> Makefile
+## Cutting a release
 
-### Migrating from `go-workspace.mk` to `go-mod.mk`
+When you've identified a commit that you believe should be a release
+(preferably on `master` that CI has already identified as passing),
+simply create a Git tag, and push that Git tag.  e.g.:
 
-	$ go mod init EXAMPLE.COM/YOU/GITREPO
+    $ git tag v0.1.2-rc3
+	$ git push origin v0.1.2-rc3
 
-	$ make clobber
-	$ rm -rf -- .go-workspace vendor glide.* Gopkg.*
-	$ sed -E 's,/go-workspace\.mk,/go-mod.mk,' Makefile
-	$ sed -e '/\.go-workspace/d' .gitignore
+See [#Continuous Deployment][] above for information on what this
+does, and on the format of the tag names.
+
+## How users get this
+
+The installation instructions have users create a secret with
+credentials for a Quay account named `datawire+ambassador_pro` that
+has read permissions in the `quay.io/datawire/ambassador_pro`
+registry.  This secret is then used to authorize the image pull in the
+deployment (see below).  These deployments can currently be found in
+the `/templates/ambassador` directory on the `Ambassador` repo in the
+`nkrause/AmPro/auth-docs` branch.
+
+## TODO:
+
+ - The `quay.io/datawire/ambassador-pro` repo that CD pushes to is
+   public.  `quay.io/datawire/ambassador_pro` is private, and is where
+   we send new customers to.  When we push a release to the public
+   repo, it goes to RHS/Noah for testing, and if they accept it, they
+   push the tag to the private repo. Problems with this:
+    * What's the point in having a private repo if it's a subset of
+      what's in the private repo? (this isn't as big of a concern as
+      we roll out license keys)
+    * Does that mean that we should only ever tag `-rc` releases, and
+      leave RHS/Noah to tag stable releases from them?
+    * There's a concern that switching the
+      `quay.io/datawire/ambassador-pro` repo to private would disrupt
+      some current users like DFS.
+ - Unify `./example/` and `./e2e-oauth/k8s/`

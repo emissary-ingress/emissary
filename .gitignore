@@ -1,14 +1,21 @@
-# teleproxy.mk
-/teleproxy
-/teleproxy.log
+/bin_*/
+/vendor/
 
-# kubeapply.mk
-/kubeapply
-
-# kubernaut.mk
+*.docker
+*.docker.knaut-push
 *.knaut
 *.knaut.claim
 
-# docker.mk
-/docker-port-forward.lock
-/docker-port-forward.log
+*.pem
+node_modules/
+
+*.log
+.tmp*
+*.tmp
+
+# --- IDE/text editor stuff ---
+.idea
+.vscode/
+#*#
+.#*
+*~

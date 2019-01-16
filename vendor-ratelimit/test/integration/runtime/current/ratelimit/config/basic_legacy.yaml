@@ -1,0 +1,6 @@
+domain: basic_legacy
+descriptors:
+  - key: key1
+    rate_limit:
+      unit: second
+      requests_per_unit: 50

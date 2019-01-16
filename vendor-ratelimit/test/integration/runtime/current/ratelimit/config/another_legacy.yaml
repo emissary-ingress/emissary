@@ -1,0 +1,11 @@
+domain: another_legacy
+descriptors:
+  - key: key2
+    rate_limit:
+      unit: minute
+      requests_per_unit: 20
+
+  - key: key3
+    rate_limit:
+      unit: hour
+      requests_per_unit: 10

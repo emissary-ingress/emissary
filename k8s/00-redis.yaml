@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratelimit-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: ratelimit-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimit-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratelimit-redis
+  template:
+    metadata:
+      labels:
+        app: ratelimit-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
