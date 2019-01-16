@@ -21,6 +21,7 @@ NAME ?= $(notdir $(go.module))
 
 go.DISABLE_GO_TEST ?=
 go.LDFLAGS ?=
+go.PLATFORMS ?= $(GOOS)_$(GOARCH)
 
 # It would be simpler to create this list if we could use Go modules:
 #
@@ -55,7 +56,7 @@ bin_%/$(notdir $(go.bin)): bin_%/.tmp.$(notdir $(go.bin)).tmp
 endef
 $(foreach go.bin,$(go.bins),$(eval $(_go.bin.rule)))
 
-go-build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(notdir $(go.bins)))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)/,$(notdir $(go.bins))))
 .PHONY: go-build
 
 check-go-fmt: ## (Go) Check whether the code conforms to `gofmt`
