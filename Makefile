@@ -2,7 +2,7 @@ NAME            = ambassador-pro
 # For docker.mk
 DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
-K8S_IMAGES      = docker/ambassador-oauth docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
+K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
 K8S_DIRS        = k8s e2e-oauth/k8s
 K8S_ENVS        = k8s/env.sh e2e-oauth/env.sh
 
