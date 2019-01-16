@@ -11,9 +11,14 @@ require (
 	github.com/google/uuid v1.1.0
 	github.com/gophercloud/gophercloud v0.0.0-20190115030418-a9f90060ebd9 // indirect
 	github.com/gorilla/mux v1.6.2
+	github.com/hashicorp/consul v1.4.0
+	github.com/hashicorp/go-cleanhttp v0.5.0 // indirect
+	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90 // indirect
+	github.com/hashicorp/serf v0.8.1 // indirect
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lyft/ratelimit v1.3.0
+	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/satori/go.uuid v1.2.0
