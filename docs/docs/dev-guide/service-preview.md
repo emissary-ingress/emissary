@@ -95,10 +95,10 @@ In this quick start, we're going to preview a change we make to the QOTM service
     apictl traffic initialize
     ```
 
-6. We need to create an `intercept` rule that tells Ambassador where to route specific requests. Enter the following:
+6. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `qotm` deployment where the `path` matches `/qotm/dev` to go to port 5000 on localhost:
 
     ```
-    apictl traffic intercept qotm -n :path -m /dev -t 5000
+    apictl traffic intercept qotm -n :path -m /qotm/dev -t 5000
     ```
 
 7. Requests to `/dev` will now get routed locally:
@@ -108,7 +108,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
     curl $AMBASSADOR_IP/qotm/ # will go to production instance
     ```
 
-7. Make a change to the QOTM source code. In `qotm/qotm.py`, uncomment out line 149, and comment out line 148, so it reads like so:
+8. Make a change to the QOTM source code. In `qotm/qotm.py`, uncomment out line 149, and comment out line 148, so it reads like so:
 
     ```
     return RichStatus.OK(quote="Telepresence rocks!")
@@ -117,7 +117,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
     This will insure that the QOTM service will return a quote of "Telepresence rocks" every time.
 
-8. Re-run the `curl` above, which will now route to your (modified) local copy of the QOTM service:
+9. Re-run the `curl` above, which will now route to your (modified) local copy of the QOTM service:
 
    ```
    curl $AMBASSADOR_IP/dev` # will go to local Docker instance
@@ -125,3 +125,14 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
    To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
 
+## Using Service Preview
+
+
+Service Preview will match HTTP headers based on the headers that are seen by the *sidecar*, and not the edge gateway. For example, if you issue a request to `example.com/qotm/dev`, the following values are seen by the sidecar (and thus Service Preview):
+
+* The `:authority` header is `example.com`
+* The `:path` header is `/qotm/dev`
+
+Matches are made on the whole header, e.g., a match rule of `dev` will not match in the example above, while `/qotm/dev` will match.
+
+In practice, path-based route rules can be difficult to debug due to rewrite rules, relative URLs, and such. For general usage, host-based routing is preferred. This way, you can curl to `http://dev.example.com/foo` and `http://staging.example.com/foo`. Another approach is to match on the `Authorization` HTTP header (or equivalent), and route on identity.
