@@ -4,11 +4,23 @@ set -e
 
 cd "${BASH_SOURCE%/*}/" || exit 1  # Good enough for debugging, right?
 
+# Launch and check local container
+
+container=intercept-local-$$
+docker run --name=$container --rm -d -h container_on_laptop -p 8080 jmalloc/echo-server
+local_port=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' $container)
+
+if ! curl -s "localhost:$local_port" | grep "Request served by" | tee /dev/stderr | grep -q -e 'Request served by container_on_laptop'; then
+    echo "curl of the local container failed or yielded the wrong output."
+    echo "This script attempted to launch the container but failed somehow."
+    exit 1
+fi
+
 APICTL=./bin_$(go env GOOS)_$(go env GOARCH)/apictl
 REMOTE_SVC=echo
 NUM_LOOPS=2
 
-APICTL_COMMAND="$APICTL traffic intercept -n :path -m /$$ -t localhost:8080 $REMOTE_SVC"
+APICTL_COMMAND="$APICTL traffic intercept -n :path -m /$$ -t localhost:$local_port $REMOTE_SVC"
 CURL_COMMAND="curl -s $REMOTE_SVC/$$"
 
 do_curl() {
@@ -25,15 +37,7 @@ test_curl_was_intercepted() {
     do_curl | tee /dev/stderr | grep -q -e 'Request served by container_on_laptop'
 }
 
-# Check environment
-
-if ! curl -s localhost:8080 | grep "Request served by" | tee /dev/stderr | grep -q -e 'Request served by container_on_laptop'; then
-    echo "curl of the local container failed or yielded the wrong output."
-    echo "You must run the container on your machine so the intercepted"
-    echo "traffic has somewhere to go."
-    echo "  docker run --rm -d -h container_on_laptop -p 8080:8080 jmalloc/echo-server"
-    exit 1
-fi
+# Check cluster environment
 
 if ! do_curl; then
     echo "curl of the remote service ($REMOTE_SVC) failed."
@@ -46,9 +50,16 @@ if ! do_curl; then
     exit 1
 fi
 
-# Do the test
+# Set up for cleanup
 
-trap 'kill $pid' INT  # Perform kill if the script is interrupted
+cleanup() {
+    kill $pid || true
+    docker kill $container || true
+}
+
+trap 'cleanup' INT EXIT
+
+# Do the test
 
 for idx in $(seq $NUM_LOOPS); do
     echo
