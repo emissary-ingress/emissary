@@ -1,7 +1,0 @@
-sudo:     required
-language: go
-go:       "1.11"
-services: redis-server
-install: make bootstrap
-before_script: redis-server --port 6380 &
-script:  make check_format tests
