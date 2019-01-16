@@ -20,6 +20,17 @@ export LANG=C.UTF-8
 AMBASSADOR_ROOT="/ambassador"
 AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
+
+# If AMBASSADOR_NO_KUBEWATCH is set, it means that we're not supposed to try
+# to watch for Kubernetes stuff at all. If it's NOT set - so we _are_ allowed
+# to watch, which is the default - then we'll use the kube-sync directory to
+# hold the configurations we find when we watch.
+#
+# The user can override AMBASSADOR_SYNC_DIR, too.
+if [ -z "${AMBASSADOR_SYNC_DIR}" ]; then
+    AMBASSADOR_SYNC_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/kube-sync"
+fi
+
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
 
@@ -44,10 +55,18 @@ DIAGD_DEBUG=$(check_debug "diagd")
 KUBEWATCH_DEBUG=$(check_debug "kubewatch")
 ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
 
+DIAGD_K8S=--k8s
+DEMO_MODE=
+
 if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
+
+    # Demo mode doesn't watch for Kubernetes changes.
+    DIAGD_K8S=
+    AMBASSADOR_NO_KUBERNETES=no_kubernetes
+    AMBASSADOR_SYNC_DIR=
 fi
 
 mkdir -p "${CONFIG_DIR}"
@@ -138,11 +157,9 @@ trap "handle_int" INT
 
 KUBEWATCH_DEBUG="--debug"
 
-# We use an empty config dir for the sync pass, just to have something to point Ambex to and to get the
+# Start by reading config from ${CONFIG_DIR} itself, to bootstrap the world and get our
 # cluster ID.
-EMPTY="${AMBASSADOR_CONFIG_BASE_DIR}/empty-sync-dir"
-mkdir "$EMPTY"
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "$EMPTY" "$ENVOY_CONFIG_FILE")
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
 
 STATUS=$?
 
@@ -157,7 +174,7 @@ export AMBASSADOR_CLUSTER_ID
 echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 
 echo "AMBASSADOR: starting diagd"
-diagd "${CONFIG_DIR}" $DIAGD_DEBUG --k8s --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+diagd "${CONFIG_DIR}" $DIAGD_DEBUG $DIAGD_K8S --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 echo "AMBASSADOR: starting ads"
@@ -169,12 +186,14 @@ echo "AMBASSADOR: starting Envoy"
 envoy $ENVOY_DEBUG -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
 pids="${pids:+${pids} }$!:envoy"
 
-#/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${AMBEX_PID}" --delay "${DELAY}" &
-KUBEWATCH_SYNC_CMD="ambassador splitconfig --debug --k8s --bootstrap-path=${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY_CONFIG_FILE} --ambex-pid=${AMBEX_PID}"
+if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
+    KUBEWATCH_SYNC_CMD="ambassador splitconfig --debug --k8s --bootstrap-path=${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY_CONFIG_FILE} --ambex-pid=${AMBEX_PID}"
 
-set -x
-"$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
-pids="${pids:+${pids} }$!:kubewatch"
+    set -x
+    "$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    set +x
+    pids="${pids:+${pids} }$!:kubewatch"
+fi
 
 echo "AMBASSADOR: waiting"
 echo "PIDS: $pids"
