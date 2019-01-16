@@ -40,7 +40,7 @@ define lyft.bin.rule
 bin_%/.tmp.$(word 1,$(subst :, ,$(lyft.bin))).tmp: go-get FORCE
 	go build -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
 bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.tmp.$(word 1,$(subst :, ,$(lyft.bin))).tmp
-	if cmp -s $$< $$@; then rm -f $$< || true; else mv -f $$< $$@; fi
+	if cmp -s $$< $$@; then rm -f $$< || true; else $(if $(CI),test ! -e $$@ && )mv -f $$< $$@; fi
 endef
 $(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
 build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
