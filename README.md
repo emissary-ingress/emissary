@@ -1,4 +1,4 @@
-# Ambassador Pro
+# Ambassador Pro [![CircleCI](https://circleci.com/gh/datawire/apro.svg?style=svg&circle-token=81544a8dc30c28df7705975ad2dd4bfee63b653b)](https://circleci.com/gh/datawire/apro)
 
 This is the proprietary Ambassador Pro source-code.  The public
 user-facing documentation and issue-tracking lives at
