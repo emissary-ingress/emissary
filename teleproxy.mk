@@ -40,7 +40,7 @@ proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
 		fi; \
 		sleep 1; \
 	done; echo "ERROR: proxy did not come up"; exit 1
-	@printf '\n\nProxy UP!'
+	@printf '\n\nProxy UP!\n'
 .PHONY: proxy
 
 unproxy: ## (Teleproxy) Shut down 'proxy'
