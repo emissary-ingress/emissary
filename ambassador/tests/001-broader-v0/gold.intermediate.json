@@ -953,15 +953,6 @@
                 "version": "sanitized"
             }
         ],
-        "auth.yaml.1": [
-            {
-                "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
-                "hostname": "sanitized",
-                "ok": false,
-                "resolvedname": "sanitized",
-                "version": "sanitized"
-            }
-        ],
         "mapping-qotm.yaml.1": [
             {
                 "error": "circuit_breaker and outlier_detection are not supported",
@@ -1104,15 +1095,6 @@
         },
         "auth.yaml.1": {
             "_source": "auth.yaml",
-            "errors": [
-                {
-                    "error": "AuthService cannot support multiple auth_service values; using http://canary-auth:3000",
-                    "hostname": "sanitized",
-                    "ok": false,
-                    "resolvedname": "sanitized",
-                    "version": "sanitized"
-                }
-            ],
             "filename": "auth.yaml",
             "index": 1,
             "kind": "AuthService",

@@ -130,15 +130,17 @@ class AuthenticationTestV1(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-        self.auth = AHTTP(name="auth")
+        self.auth1 = AHTTP(name="auth1")
+        self.auth2 = AHTTP(name="auth2")
+        self.backend_counts = {}
 
     def config(self):
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind: AuthService
-name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+name:  {self.auth1.path.k8s}
+auth_service: "{self.auth1.path.k8s}"
 proto: http
 path_prefix: "/extauth"
 timeout_ms: 5000
@@ -154,6 +156,25 @@ allowed_authorization_headers:
 - X-Foo
 - Extauth
 
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth2.path.k8s}
+auth_service: "{self.auth2.path.k8s}"
+proto: http
+path_prefix: "/extauth"
+timeout_ms: 5000
+
+allowed_request_headers:
+- X-Foo
+- X-Bar
+- Requested-Status
+- Requested-Header
+- Location
+
+allowed_authorization_headers:
+- X-Foo
+- Extauth
 """)
         yield self, self.format("""
 ---
@@ -189,9 +210,17 @@ service: {self.target.path.k8s}
         # [5]
         yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
+    def check_backend_name(self, result) -> bool:
+        backend_name = result.backend.name
+
+        self.backend_counts.setdefault(backend_name, 0)
+        self.backend_counts[backend_name] += 1
+
+        return (backend_name == self.auth1.path.k8s) or (backend_name == self.auth2.path.k8s)
+
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
-        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.check_backend_name(self.results[0])
         assert self.results[0].backend.request.url.path == "/extauth/target/"
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert self.results[0].backend.request.headers["content-length"]== ["0"]
@@ -202,7 +231,7 @@ service: {self.target.path.k8s}
         assert self.results[0].headers["Server"] == ["envoy"]
 
         # [1] Verifies that Location header is returned from Envoy.
-        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.check_backend_name(self.results[1])
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
@@ -211,7 +240,7 @@ service: {self.target.path.k8s}
         assert self.results[1].headers["Location"] == ["foo"]
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
-        assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.check_backend_name(self.results[2])
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
         assert self.results[2].backend.request.headers["requested-header"] == ["X-Foo"]
         assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
@@ -220,7 +249,7 @@ service: {self.target.path.k8s}
         assert self.results[2].headers["X-Foo"] == ["foo"]
 
         # [3] Verifies that envoy does not return not whitelisted headers.
-        assert self.results[3].backend.name == self.auth.path.k8s
+        assert self.check_backend_name(self.results[3])
         assert self.results[3].backend.request.headers["requested-status"] == ["401"]
         assert self.results[3].backend.request.headers["requested-header"] == ["X-Bar"]
         assert self.results[3].backend.request.headers["x-bar"] == ["bar"]
@@ -229,6 +258,7 @@ service: {self.target.path.k8s}
         assert "X-Bar" not in self.results[3].headers
 
         # [4] Verifies default whitelisted Authorization request header.
+        assert self.results[4].backend.name == self.target.path.k8s      # this response is from an auth success
         assert self.results[4].backend.request.headers["requested-status"] == ["200"]
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
@@ -242,6 +272,7 @@ service: {self.target.path.k8s}
         # the extauth service (on success) won't actually alter other things going upstream.
         r5 = self.results[5]
         assert r5
+        assert r5.backend.name == self.target.path.k8s      # this response is from an auth success
 
         assert r5.status == 200
         assert r5.headers["Server"] == ["envoy"]
@@ -258,6 +289,9 @@ service: {self.target.path.k8s}
                 assert eainfo['request']['headers']['x-forwarded-proto'] == [ 'http' ]
         except ValueError as e:
             assert False, "could not parse Extauth header '%s': %s" % (eahdr, e)
+
+        assert self.backend_counts.get(self.auth1.path.k8s, 0) > 0, "auth1 got no requests"
+        assert self.backend_counts.get(self.auth2.path.k8s, 0) > 0, "auth2 got no requests"
 
         # TODO(gsagula): Write tests for all UCs which request header headers
         # are overridden, e.g. Authorization.

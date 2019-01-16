@@ -93,7 +93,7 @@ class IRAuth (IRFilter):
         if self.location == '--internal--':
             self.sourced_by(module)
 
-        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'auth_service', 'allow_request_body', 'proto' ]:
+        for key in [ 'path_prefix', 'timeout_ms', 'cluster', 'allow_request_body', 'proto' ]:
             value = module.get(key, None)
 
             if value:
@@ -126,7 +126,6 @@ class IRAuth (IRFilter):
 
         if self["api_version"] == "ambassador/v1" and self["proto"] == None:
             self.post_error(RichStatus.fromError("AuthService v1 config requires proto field."))
-
 
         auth_service = module.get("auth_service", None)
         weight = 100    # Can't support arbitrary weights right now.
