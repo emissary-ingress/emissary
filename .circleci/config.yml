@@ -64,12 +64,8 @@ commands:
           if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
               export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
               export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-              if test -n "$(which docker 2>/dev/null)"; then
-                  docker login -u="datawire+releasebot" -p="${DOCKER_TOKEN}" quay.io
-                  make release
-              else
-                  make release-bin
-              fi
+              docker login -u="datawire+releasebot" -p="${DOCKER_TOKEN}" quay.io
+              make release
           fi
 
 jobs:
@@ -84,7 +80,6 @@ jobs:
           os: darwin
       - kubectl-install
       - main
-      - release
 
   machine-build:
     machine: true

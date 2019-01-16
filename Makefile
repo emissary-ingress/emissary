@@ -2,9 +2,11 @@ NAME            = ambassador-pro
 # For docker.mk
 DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
 # For k8s.mk
-K8S_IMAGES      = docker/ambassador-oauth docker/ambassador-ratelimit docker/traffic-proxy docker/traffic-sidecar
+K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
 K8S_DIRS        = k8s e2e-oauth/k8s
 K8S_ENVS        = k8s/env.sh e2e-oauth/env.sh
+# For go.mk
+go.PLATFORMS    = linux_amd64 darwin_amd64
 
 export CGO_ENABLED = 0
 
@@ -126,13 +128,15 @@ clobber:
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
 release: release-bin release-docker
 release-bin: ## Upload binaries to S3
-release-bin: release-apictl
-release-bin: release-apictl-key
+release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl     )
+release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key )
 release-docker: ## Upload Docker images to Quay
 release-docker: docker/ambassador-ratelimit.docker.push
 release-docker: docker/traffic-proxy.docker.push
 release-docker: docker/traffic-sidecar.docker.push
 release-docker: docker/ambassador-oauth.docker.push
 
-release-apictl release-apictl-key: release-%: bin_$(GOOS)_$(GOARCH)/%
-	aws s3 cp --acl public-read $< 's3://datawire-static-files/$*/$(VERSION)/$(GOOS)/$(GOARCH)/$*'
+_release_os   = $(word 2,$(subst _, ,$(@D)))
+_release_arch = $(word 3,$(subst _, ,$(@D)))
+release/%: %
+	aws s3 cp --acl public-read $< 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
