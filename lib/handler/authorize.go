@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
-	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
-	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
-	"github.com/datawire/apro/util"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
+
+	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/lib/util"
 )
 
 const (

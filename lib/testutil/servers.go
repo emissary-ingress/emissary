@@ -17,7 +17,7 @@ import (
 	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/apro/cmd/ambassador-oauth/logger"
 	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
-	"github.com/datawire/apro/util"
+	"github.com/datawire/apro/lib/util"
 )
 
 // NewIDP returns an instance of the identity provider server.

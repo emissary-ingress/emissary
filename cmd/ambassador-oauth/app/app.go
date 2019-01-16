@@ -3,17 +3,17 @@ package app
 import (
 	"net/http"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/client"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/negroni"
 
+	"github.com/datawire/apro/cmd/ambassador-oauth/client"
 	"github.com/datawire/apro/cmd/ambassador-oauth/config"
 	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
 	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
-	"github.com/datawire/apro/handler"
-	"github.com/datawire/apro/middleware"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/negroni"
+	"github.com/datawire/apro/lib/handler"
+	"github.com/datawire/apro/lib/middleware"
 )
 
 // App is used to wire up all the cmd application components.

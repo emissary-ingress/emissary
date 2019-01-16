@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/datawire/apro/pkg/longpoll"
+	"github.com/datawire/apro/lib/longpoll"
 )
 
 // PatternInfo represents one Envoy header regex_match
