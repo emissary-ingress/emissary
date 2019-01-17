@@ -22,9 +22,9 @@ var LICENSE_PAUSE = map[*cobra.Command]bool{
 }
 
 func init() {
-	keycheck := licensekeys.InitializeCommandFlags(apictl, Version)
+	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), Version)
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		err := keycheck(cmd, args)
+		err := keycheck(cmd.PersistentFlags())
 		if err == nil {
 			return
 		}

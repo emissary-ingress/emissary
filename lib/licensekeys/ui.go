@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 )
 
 // userConfigDir returns the default directory to use for
@@ -81,11 +81,11 @@ type cmdContext struct {
 	version string
 }
 
-func (ctx *cmdContext) KeyCheck(cmd *cobra.Command, args []string) error {
+func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
 	var keysource string
 
 	if ctx.key == "" {
-		if !cmd.Flag("license-file").Changed && ctx.defaultKeyfileErr != nil {
+		if !flags.Changed("license-file") && ctx.defaultKeyfileErr != nil {
 			return errors.Wrap(ctx.defaultKeyfileErr, "error determining license key file")
 		}
 		if ctx.keyfile == "" {
@@ -98,7 +98,7 @@ func (ctx *cmdContext) KeyCheck(cmd *cobra.Command, args []string) error {
 		ctx.key = strings.TrimSpace(string(key))
 		keysource = "key from file " + ctx.keyfile
 	} else {
-		if cmd.Flag("license-key").Changed {
+		if flags.Changed("license-key") {
 			keysource = "key from command line"
 		} else {
 			keysource = "key from environment"
@@ -127,14 +127,14 @@ func (ctx *cmdContext) KeyCheck(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func InitializeCommandFlags(cmd *cobra.Command, version string) func(*cobra.Command, []string) error {
+func InitializeCommandFlags(flags *flag.FlagSet, version string) func(*flag.FlagSet) error {
 	ctx := &cmdContext{
 		version: version,
 	}
 	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
 
-	cmd.PersistentFlags().StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
-	cmd.PersistentFlags().StringVar(&ctx.keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
+	flags.StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
+	flags.StringVar(&ctx.keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
 
 	return ctx.KeyCheck
 }
