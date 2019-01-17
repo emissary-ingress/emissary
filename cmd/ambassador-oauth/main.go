@@ -1,20 +1,50 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"time"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/client"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/cmd/ambassador-oauth/app"
+	"github.com/datawire/apro/cmd/ambassador-oauth/client"
 	"github.com/datawire/apro/cmd/ambassador-oauth/config"
 	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
 	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
 	"github.com/datawire/apro/cmd/ambassador-oauth/logger"
 	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
+// Version is inserted at build using --ldflags -X
+var Version = "(unknown version)"
+
 func main() {
+	argparser := &cobra.Command{
+		Use:     os.Args[0],
+		Version: Version,
+		Run:     Main,
+	}
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), Version)
+	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		err := keycheck(cmd.PersistentFlags())
+		if err == nil {
+			return
+		}
+		fmt.Fprintln(os.Stderr, err)
+		time.Sleep(5 * 60 * time.Second)
+		os.Exit(1)
+	}
+	err := argparser.Execute()
+	if err != nil {
+		os.Exit(2)
+	}
+}
+
+func Main(flags *cobra.Command, args []string) {
 	c := config.New()
 	l := logger.New(c)
 	s := secret.New(c, l)
