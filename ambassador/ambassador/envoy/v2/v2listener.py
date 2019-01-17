@@ -429,6 +429,9 @@ class V2Listener(dict):
             })
 
         for name, hosts, ctx in envoy_contexts:
+            if not ctx:
+                continue
+
             config.ir.logger.info("V2Listener: SNI route check %s, %s, %s" %
                                   (name, hosts, json.dumps(ctx, indent=4, sort_keys=True)))
 

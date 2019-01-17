@@ -107,7 +107,7 @@ class IRTLSContext(IRResource):
                 self.post_error(RichStatus.fromError(err_msg, module=config))
                 errors += 1
 
-        if spec_count != 1:
+        if spec_count == 2:
             err_msg = "TLSContext %s: exactly one of 'secret' and 'cert_chain_file' must be present" % config.name
 
             self.post_error(RichStatus.fromError(err_msg, module=config))
@@ -130,17 +130,23 @@ class IRTLSContext(IRResource):
         return sr(self, secret_name, namespace, self.ir.secret_root)
 
     def resolve(self) -> bool:
-        # context = self, namespace = ir.ambassador_namespace, secret_reader = ir.secret_reader
+        # is_valid determines if the TLS context is valid
+        is_valid = False
 
-        # If we don't have secret info, something is horribly wrong.
+        # If redirect_cleartext_from or alpn_protocols is specified, the TLS Context is
+        # valid anyway, even if secret config is invalid
+        if self.get('redirect_cleartext_from', False) or self.get('alpn_protocols', False):
+            is_valid = True
+
+        # If we don't have secret info, it's worth logging.
         if not self.secret_info:
-            self.post_error("TLSContext %s has no certificate information at all?" % self.name)
-            return False
+            self.logger.info("TLSContext %s has no certificate information at all?" % self.name)
 
         self.ir.logger.info("resolve_secrets working on: %s" % self.as_json())
 
         # OK. Do we have a secret name?
         secret_name = self.secret_info.get('secret')
+        secret_valid = True
 
         if secret_name:
             # Yes. Try loading it.
@@ -152,27 +158,22 @@ class IRTLSContext(IRResource):
 
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
-                # give up.
-                self.post_error("TLSContext %s found no certificate in %s" % (self.name, ss.name))
-                return False
+                # post an error.
+                self.post_error("TLSContext %s found no certificate in %s, ignoring..." % (self.name, ss.name))
+                self.secret_info.pop('secret')
+                secret_valid = False
+            else:
+                # If they only gave a public key, that's an error
+                if not ss.key_path:
+                    self.post_error("TLSContext %s found no private key in %s" % (self.name, ss.name))
+                    return False
 
-            # If they only gave a public key, that's an error too.
-            if not ss.key_path:
-                self.post_error("TLSContext %s found no private key in %s" % (self.name, ss.name))
-                return False
+                # So far, so good.
+                self.ir.logger.debug("TLSContext %s saved secret %s" % (self.name, ss.name))
 
-            # So far, so good.
-            self.ir.logger.debug("TLSContext %s saved secret %s" % (self.name, ss.name))
-
-            # Update paths for this cert.
-            self.secret_info['cert_chain_file'] = ss.cert_path
-            self.secret_info['private_key_file'] = ss.key_path
-        else:
-            # No secret is named. Did they provide file locations?
-            if not self.secret_info.get('cert_chain_file') or not self.secret_info.get('private_key_file'):
-                # Something is missing (which should've already been caught, honestly).
-                self.post_error("TLSContext %s was given no certificate" % self.name)
-                return False
+                # Update paths for this cert.
+                self.secret_info['cert_chain_file'] = ss.cert_path
+                self.secret_info['private_key_file'] = ss.key_path
 
         # OK. Repeat for the ca_secret_name.
         ca_secret_name = self.secret_info.get('ca_secret')
@@ -192,22 +193,22 @@ class IRTLSContext(IRResource):
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
                 # give up.
                 self.post_error("TLSContext %s found no validation certificate in %s" % (self.name, ss.name))
-                return False
+                secret_valid = False
+            else:
+                # Validation certs don't need the private key, but it's not an error if they gave
+                # one. We're good to go here.
+                self.ir.logger.debug("TLSContext %s saved CA secret %s" % (self.name, ss.name))
+                self.secret_info['cacert_chain_file'] = ss.cert_path
 
-            # Validation certs don't need the private key, but it's not an error if they gave
-            # one. We're good to go here.
-            self.ir.logger.debug("TLSContext %s saved CA secret %s" % (self.name, ss.name))
-            self.secret_info['cacert_chain_file'] = ss.cert_path
+                # While we're here, did they set cert_required _in the secret_?
+                if ss.cert_data:
+                    cert_required = ss.cert_data.get('cert_required')
 
-            # While we're here, did they set cert_required _in the secret_?
-            if ss.cert_data:
-                cert_required = ss.cert_data.get('cert_required')
+                    if cert_required is not None:
+                        decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
 
-                if cert_required is not None:
-                    decoded = base64.b64decode(cert_required).decode('utf-8').lower() == 'true'
-
-                    # cert_required is at toplevel, _not_ in secret_info!
-                    self['cert_required'] = decoded
+                        # cert_required is at toplevel, _not_ in secret_info!
+                        self['cert_required'] = decoded
         else:
             # No secret is named; did they provide a file location instead?
             if self.secret_info.get('cacert_chain_file') and not self.secret_info.get('cert_chain_file'):
@@ -216,6 +217,11 @@ class IRTLSContext(IRResource):
                 self.post_error("TLSContext %s cannot validate client certs without TLS termination" %
                                 self.name)
                 return False
+
+        # If the secret has been invalidated above, then we do not need to check for paths down under.
+        # We can return whether the TLS Context is valid or not.
+        if not secret_valid:
+            return is_valid
 
         # OK. Check paths.
         errors = 0
@@ -234,7 +240,7 @@ class IRTLSContext(IRResource):
                 self.post_error("TLSContext %s is missing %s" % (self.name, key))
                 errors += 1
 
-        if errors:
+        if errors > 0:
             return False
 
         return True
