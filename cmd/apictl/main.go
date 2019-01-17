@@ -1,21 +1,18 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var apictl = &cobra.Command{
@@ -129,29 +126,10 @@ func keyCheck(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	var claims jwt.MapClaims
+	claims, token, err := licensekeys.ParseKey(LICENSE_KEY)
 
-	token, err := jwt.ParseWithClaims(LICENSE_KEY, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("1234"), nil
-	})
-
-	id := fmt.Sprintf("%v", claims["id"])
 	go func() {
-		space, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
-		if err != nil {
-			panic(err)
-		}
-		install_id := uuid.NewSHA1(space, []byte(id))
-		data := make(map[string]interface{})
-		data["application"] = "apictl"
-		data["install_id"] = install_id.String()
-		data["version"] = Version
-		data["metadata"] = map[string]string{"id": id}
-		body, err := json.MarshalIndent(data, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		_, err = http.Post("https://metriton.datawire.io/scout", "application/json", bytes.NewBuffer(body))
+		err := licensekeys.PhoneHome(claims, Version)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "metriton error:", err)
 		}
