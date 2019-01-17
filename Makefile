@@ -3,8 +3,8 @@ NAME            = ambassador-pro
 DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
-K8S_DIRS        = k8s e2e-oauth/k8s
-K8S_ENVS        = k8s/env.sh e2e-oauth/env.sh
+K8S_DIRS        = k8s tests/oauth-e2e/k8s
+K8S_ENVS        = k8s/env.sh tests/oauth-e2e/env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
@@ -81,13 +81,13 @@ docker_tests =
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
-e2e-oauth/k8s/02-ambassador-certs.yaml: e2e-oauth/k8s/cert.pem e2e-oauth/k8s/key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert e2e-oauth/k8s/cert.pem --key e2e-oauth/k8s/key.pem > $@
+tests/oauth-e2e/k8s/02-ambassador-certs.yaml: tests/oauth-e2e/k8s/cert.pem tests/oauth-e2e/k8s/key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert tests/oauth-e2e/k8s/cert.pem --key tests/oauth-e2e/k8s/key.pem > $@
 
-deploy: e2e-oauth/k8s/02-ambassador-certs.yaml
-apply: e2e-oauth/k8s/02-ambassador-certs.yaml
+deploy: tests/oauth-e2e/k8s/02-ambassador-certs.yaml
+apply: tests/oauth-e2e/k8s/02-ambassador-certs.yaml
 
-e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock.json)
+tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
 	@touch $@
@@ -98,8 +98,8 @@ check-intercept: deploy proxy
 docker_tests += check-intercept
 
 check-e2e: ## Check: oauth e2e tests
-check-e2e: e2e-oauth/node_modules deploy proxy
-	cd e2e-oauth && npm test
+check-e2e: tests/oauth-e2e/node_modules deploy proxy
+	cd tests/oauth-e2e && npm test
 docker_tests += check-e2e
 
 .PHONY: $(docker_tests)
@@ -121,10 +121,10 @@ clean:
 	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
 	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
 	rm -f docker/amb-sidecar-oauth/ambassador-oauth
-	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
+	rm -f tests/oauth-e2e/k8s/??-ambassador-certs.yaml tests/oauth-e2e/k8s/*.pem
 clobber:
 	rm -f docker/app-sidecar/ambex
-	rm -rf e2e-oauth/node_modules
+	rm -rf tests/oauth-e2e/node_modules
 
 #
 # Release
