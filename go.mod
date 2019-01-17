@@ -21,6 +21,7 @@ require (
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
+	github.com/pkg/errors v0.8.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
