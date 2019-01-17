@@ -3,8 +3,8 @@ NAME            = ambassador-pro
 DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
-K8S_DIRS        = k8s tests/oauth-e2e/k8s
-K8S_ENVS        = k8s/env.sh tests/oauth-e2e/env.sh
+K8S_DIRS        = k8s-sidecar k8s-standalone
+K8S_ENVS        = k8s-sidecar/env.sh tests/oauth-e2e/env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
@@ -81,11 +81,11 @@ docker_tests =
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
-tests/oauth-e2e/k8s/02-ambassador-certs.yaml: tests/oauth-e2e/k8s/cert.pem tests/oauth-e2e/k8s/key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert tests/oauth-e2e/k8s/cert.pem --key tests/oauth-e2e/k8s/key.pem > $@
+k8s-standalone/02-ambassador-certs.yaml: k8s-standalone/cert.pem k8s-standalone/key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
 
-deploy: tests/oauth-e2e/k8s/02-ambassador-certs.yaml
-apply: tests/oauth-e2e/k8s/02-ambassador-certs.yaml
+deploy: k8s-standalone/02-ambassador-certs.yaml
+apply: k8s-standalone/02-ambassador-certs.yaml
 
 tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
@@ -121,7 +121,7 @@ clean:
 	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
 	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
 	rm -f docker/amb-sidecar-oauth/ambassador-oauth
-	rm -f tests/oauth-e2e/k8s/??-ambassador-certs.yaml tests/oauth-e2e/k8s/*.pem
+	rm -f k8s-standalone/??-ambassador-certs.yaml k8s-standalone/*.pem
 clobber:
 	rm -f docker/app-sidecar/ambex
 	rm -rf tests/oauth-e2e/node_modules

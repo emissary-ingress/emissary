@@ -106,4 +106,7 @@ here?).
     * There's a concern that switching the
       `quay.io/datawire/ambassador-pro` repo to private would disrupt
       some current users like DFS.
- - Unify `./example/` and `./tests/oauth-e2e/k8s/`
+ - Merge `./k8s-*/` in to just `./k8s-sidecar/` and
+   `./k8s-standalone/`.
+ - Each `./k8s-*/` directory should deploy in to a different
+   namespace.
