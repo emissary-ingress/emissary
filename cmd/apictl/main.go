@@ -94,10 +94,9 @@ func defaultLicenseFile() (string, error) {
 }
 
 func init() {
-	apictl.PersistentFlags().StringVarP(&LICENSE_KEY, "license-key", "", os.Getenv("AMBASSADOR_LICENSE_KEY"),
-		"ambassador license key")
+	apictl.PersistentFlags().StringVar(&LICENSE_KEY, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
 	keyfile, _ := defaultLicenseFile()
-	apictl.PersistentFlags().StringVarP(&LICENSE_FILE, "license-file", "", keyfile, "ambassador license file")
+	apictl.PersistentFlags().StringVar(&LICENSE_FILE, "license-file", keyfile, "ambassador license file")
 }
 
 func keyCheck(cmd *cobra.Command, args []string) {
