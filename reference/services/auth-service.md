@@ -2,7 +2,7 @@
 
 Ambassador supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
-There are currently two supported versions of the `AuthService` manifest: 
+There are currently two supported versions of the `AuthService` manifest:
 
 ### V1 (Ambassador 0.50.0 and higher):
 
@@ -95,7 +95,7 @@ For every incoming request, the HTTP `method` and headers are forwarded to the a
 1. The `Content-Length` header is overwritten with `0`.
 2. The body is removed.
 
-So, for example, if the incoming request is 
+So, for example, if the incoming request is
 
 ```
 PUT /path/to/service HTTP/1.1
@@ -138,6 +138,10 @@ Giving the external auth service control over the response on failure allows man
 - The external auth service can issue a 301 `Redirect` to divert the client into an OAuth or OIDC authentication sequence.
 
 Finally, if Ambassador cannot reach the auth service at all, it will return a HTTP 503 status code to the client.
+
+## Configuring Public Mappings
+
+Authentication can be disabled for a mapping by setting `bypass_auth` to `true`. This will tell Ambassador to allow all requests for that mapping through without interacting with the external auth service.
 
 ## Example
 
