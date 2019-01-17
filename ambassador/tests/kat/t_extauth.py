@@ -428,3 +428,99 @@ service: {self.target.path.k8s}
 
         # TODO(gsagula): Write tests for all UCs which request header headers
         # are overridden, e.g. Authorization.
+
+class AuthenticationWebsocketTest(AmbassadorTest):
+
+    auth: ServiceType
+
+    def init(self):
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+path_prefix: "/extauth"
+timeout_ms: 10000
+allowed_request_headers:
+- Requested-Status
+allow_request_body: true
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name: {self.name}
+prefix: /{self.name}/
+service: http://echo.websocket.org
+host_rewrite: echo.websocket.org
+use_websocket: true
+""")
+
+   
+    def queries(self):
+        yield Query(self.url(self.name + "/"), expected=404)
+
+        yield Query(self.url(self.name + "/"), expected=101, headers={
+            "Requested-Status": "200",
+            "Connection": "Upgrade",
+            "Upgrade": "websocket",
+            "sec-websocket-key": "DcndnpZl13bMQDh7HOcz0g==",
+            "sec-websocket-version": "13"
+        })
+
+        yield Query(self.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"]) 
+
+    def check(self):
+        assert self.results[-1].messages == ["one", "two", "three"]
+
+# TODO(gsagula): This test should fail when Ambassador gets upgraded to the
+# latest Envoy upstream.
+class AuthenticationWebsocketTimeoutTest(AmbassadorTest):
+
+    auth: ServiceType
+
+    def init(self):
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  buffer:  
+    max_request_bytes: 16384
+    max_request_time: 5000
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+path_prefix: "/extauth"
+timeout_ms: 10000
+allowed_request_headers:
+- Requested-Status
+allow_request_body: true
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name: {self.name}
+prefix: /{self.name}/
+service: http://echo.websocket.org
+host_rewrite: echo.websocket.org
+use_websocket: true
+""")
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"), expected=404)
+
+        yield Query(self.url(self.name + "/"), expected=408, headers={
+            "Requested-Status": "200",
+            "Connection": "Upgrade",
+            "Upgrade": "websocket",
+            "sec-websocket-key": "DcndnpZl13bMQDh7HOcz0g==",
+            "sec-websocket-version": "13"
+        })
