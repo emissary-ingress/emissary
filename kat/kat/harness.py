@@ -734,7 +734,9 @@ class Runner:
         kinds = ["pod", "url"]
         delay = 0.5
         start = time.time()
-        limit = 10*60
+        limit = 5*60
+
+        holdouts = {}
 
         while time.time() - start < limit:
             for kind in kinds:
@@ -747,7 +749,10 @@ class Runner:
 
                 sys.stdout.flush()
 
-                if not self._ready(kind, reqs):
+                is_ready, _holdouts = self._ready(kind, reqs)
+
+                if not is_ready:
+                    holdouts[kind] = _holdouts
                     delay = int(min(delay*2, 10))
                     print("sleeping %ss..." % delay)
                     sys.stdout.flush()
@@ -760,6 +765,14 @@ class Runner:
                 break
             else:
                 return
+
+        print("requirements not satisfied in %s seconds:" % limit)
+
+        for kind in kinds:
+            _holdouts = holdouts.get(kind, [])
+
+            if _holdouts:
+                print("  %s:\n    %s" % (kind, "\n    ".join(_holdouts)))
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
@@ -778,9 +791,9 @@ class Runner:
 
         if not_ready:
             print("%d not ready (%s), " % (len(not_ready), name), end="")
-            return False
+            return (False, not_ready)
 
-        return True
+        return (True, None)
 
     @_ready.when("url")
     def _ready(self, _, requirements):
@@ -797,9 +810,9 @@ class Runner:
         if not_ready:
             first = not_ready[0]
             print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
-            return False
+            return (False, [ "%s -- %s" % (x.query.url, x.status or x.error) for x in not_ready ])
         else:
-            return True
+            return (True, None)
 
     def _pods(self):
         fname = "/tmp/pods-%s.json" % self.scope
