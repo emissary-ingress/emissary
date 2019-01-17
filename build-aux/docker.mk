@@ -50,6 +50,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 			mv -f $(@D)/.tmp.$(@F).tmp $@; \
 		fi; \
 	}
+	$(if $(VERSION),docker tag '$(docker.LOCALHOST):31000/$(notdir $*):$(VERSION)' '$(docker.LOCALHOST):31000/$(notdir $*):latest')
 
 %.docker.clean:
 	if [ -e $*.docker ]; then docker image rm $$(head -1 $*.docker); fi
