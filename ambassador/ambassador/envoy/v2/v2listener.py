@@ -82,8 +82,16 @@ ExtAuthRequestHeaders = {
 
 @multi
 def v2filter(irfilter: IRFilter):
-    return irfilter.kind
-
+    if irfilter.kind == 'IRAuth':
+        if irfilter.api_version == 'ambassador/v1':
+            return 'IRAuth_v1'
+        elif irfilter.api_version == 'ambassador/v0':
+            return 'IRAuth_v0'
+        else:
+            irfilter.post_error('AuthService version %s unknown, treating as v1' % irfilter.api_version)
+            return 'IRAuth_v1'
+    else:
+        return irfilter.kind
 
 @v2filter.when("IRBuffer")
 def v2filter_buffer(buffer: IRBuffer):
@@ -96,35 +104,82 @@ def v2filter_buffer(buffer: IRBuffer):
     }
 
 
-@v2filter.when("IRAuth")
+def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
+    cluster_context = cluster.get('tls_context')
+    scheme = 'https' if cluster_context else 'http'
+
+    prefix = auth.get("path_prefix") or ""
+
+    if prefix.startswith("/"):
+        prefix = prefix[1:]
+
+    server_uri = "%s://%s" % (scheme, prefix)
+
+    auth.ir.logger.info("%s: server_uri %s" % (auth.name, server_uri))
+
+    return server_uri
+
+@v2filter.when("IRAuth_v0")
 def v2filter_auth(auth: IRAuth):
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
     
-    assert auth.api_version
-    if auth.api_version == "ambassador/v0":
-        # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
-        request_headers = dict(ExtAuthRequestHeaders)
+    assert auth.api_version == "ambassador/v0"
 
-        for hdr in auth.allowed_headers:
-            request_headers[hdr] = True
+    # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
+    request_headers = dict(ExtAuthRequestHeaders)
 
-        # Always allow the default set, above. This may be a slight behavior change from the
-        # v0 config, but it seems to aid usability.
+    for hdr in auth.allowed_headers:
+        request_headers[hdr] = True
 
-        hdrs = set(auth.allowed_headers or [])      # turn list into a set
-        hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
+    # Always allow the default set, above. This may be a slight behavior change from the
+    # v0 config, but it seems to aid usability.
 
-        allowed_authorization_headers = sorted(hdrs)    # sorted() turns the set back into a list
+    hdrs = set(auth.allowed_headers or [])      # turn list into a set
+    hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
 
-        allowed_request_headers = sorted(request_headers.keys())
+    allowed_authorization_headers = sorted(hdrs)    # sorted() turns the set back into a list
+
+    allowed_request_headers = sorted(request_headers.keys())
+
+    return {
+        'name': 'envoy.ext_authz',
+        'config': {
+            'http_service': {
+                'server_uri': {
+                    'uri': auth_cluster_uri(auth, cluster),
+                    'cluster': cluster.name,
+                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+                },
+                'path_prefix': auth.path_prefix,
+                'allowed_authorization_headers': allowed_authorization_headers,
+                'allowed_request_headers': allowed_request_headers,
+            },
+            'send_request_data': auth.allow_request_body
+        }
+    }
+
+
+@v2filter.when("IRAuth_v1")
+def v2filter_auth(auth: IRAuth):
+    assert auth.cluster
+    cluster = typecast(IRCluster, auth.cluster)
+
+    if auth.api_version != "ambassador/v1":
+        auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
+
+    assert auth.proto
+
+    if auth.proto == "http":
+        allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
+        allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
 
         return {
             'name': 'envoy.ext_authz',
             'config': {
                 'http_service': {
                     'server_uri': {
-                        'uri': 'http://%s' % auth.auth_service,
+                        'uri': auth_cluster_uri(auth, cluster),
                         'cluster': cluster.name,
                         'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                     },
@@ -133,45 +188,26 @@ def v2filter_auth(auth: IRAuth):
                     'allowed_request_headers': allowed_request_headers,
                 },
                 'send_request_data': auth.allow_request_body
-            }        
+            }
         }
-    
-    if auth.api_version == "ambassador/v1":
-        assert auth.proto
-        if auth.proto == "http":
-            allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
-            allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
 
-            return {
-                'name': 'envoy.ext_authz',
-                'config': {
-                    'http_service': {
-                        'server_uri': {
-                            'uri': 'http://%s' % auth.auth_service,
-                            'cluster': cluster.name,
-                            'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                        },
-                        'path_prefix': auth.path_prefix,
-                        'allowed_authorization_headers': allowed_authorization_headers,
-                        'allowed_request_headers': allowed_request_headers,
+    if auth.proto == "grpc":
+        return {
+            'name': 'envoy.ext_authz',
+            'config': {
+                'grpc_service': {
+                    'envoy_grpc': {
+                        'cluster_name': cluster.name
                     },
-                    'send_request_data': auth.allow_request_body
-                }        
+                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+                },
+                'send_request_data': auth.allow_request_body
             }
+        }
 
-        if auth.proto == "grpc":
-            return {
-                'name': 'envoy.ext_authz',
-                'config': {
-                    'grpc_service': {
-                        'envoy_grpc': {
-                            'cluster_name': cluster.name
-                        },
-                        'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                    },
-                    'send_request_data': auth.allow_request_body
-                }        
-            }
+    # If here, something's gone horribly wrong.
+    auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
+    return None
 
 
 @v2filter.when("IRRateLimit")
