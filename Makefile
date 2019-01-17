@@ -91,10 +91,8 @@ e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock
 	@touch $@
 
 check-e2e: ## Check: e2e tests
-check-e2e: e2e-oauth/node_modules deploy
-	$(MAKE) proxy
+check-e2e: e2e-oauth/node_modules deploy proxy
 	cd e2e-oauth && npm test
-	$(MAKE) unproxy
 .PHONY: check-e2e
 
 ifneq ($(shell which docker 2>/dev/null),)
@@ -131,10 +129,7 @@ release-bin: ## Upload binaries to S3
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl     )
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key )
 release-docker: ## Upload Docker images to Quay
-release-docker: docker/ambassador-ratelimit.docker.push
-release-docker: docker/traffic-proxy.docker.push
-release-docker: docker/traffic-sidecar.docker.push
-release-docker: docker/ambassador-oauth.docker.push
+release-docker: $(addsuffix .docker.push,$(K8S_IMAGES))
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))

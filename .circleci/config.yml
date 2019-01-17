@@ -53,10 +53,10 @@ commands:
     steps:
       - checkout
       - run: make build
-      - run: make check
-      - run:
-          command: make unclaim
-          when: always
+      - run: |
+          trap 'make unclaim' EXIT
+          set -x
+          make check
 
   release:
     steps:
