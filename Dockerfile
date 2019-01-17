@@ -40,9 +40,6 @@ FROM BASE as builder
 ENV AMBASSADOR_ROOT=/ambassador
 
 # Compilers and pip and all that good stuff go here.
-RUN echo "https://mirror.math.princeton.edu/pub/alpinelinux/v3.8/main" > /etc/apk/repositories && \
-    echo "https://mirror.math.princeton.edu/pub/alpinelinux/v3.8/community" >> /etc/apk/repositories
-
 RUN apk --no-cache add go build-base libffi-dev openssl-dev python3-dev
 RUN pip3 install -U pip
 
