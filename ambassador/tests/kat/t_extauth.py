@@ -21,7 +21,7 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config:
-  buffer:  
+  buffer:
     max_request_bytes: 16384
     max_request_time: 5000
 ---
@@ -183,6 +183,13 @@ kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.k8s}
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}-unauthed
+prefix: /target/unauthed/
+service: {self.target.path.k8s}
+bypass_auth: true
 """)
 
     def queries(self):
@@ -281,6 +288,11 @@ service: {self.target.path.k8s}
         assert eahdr, "no extauth header was returned?"
         assert eahdr[0], "an empty extauth header element was returned?"
 
+        # [6] Verifies that Envoy bypasses external auth when disabled for a mapping.
+        assert self.results[6].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[6].status == 200
+        assert self.results[6].headers["Server"] == ["envoy"]
+
         try:
             eainfo = json.loads(eahdr[0])
 
@@ -356,6 +368,9 @@ service: {self.target.path.k8s}
                                                   "Requested-Header": "Authorization"}, expected=200)
         # [5]
         yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
+
+        # [6]
+        yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
