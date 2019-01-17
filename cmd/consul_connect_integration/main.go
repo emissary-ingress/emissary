@@ -13,17 +13,53 @@ import (
 	consulapi "github.com/hashicorp/consul/api"
 )
 
-var err error
-var consul *consulapi.Client
-
-type rootCert struct {
-	CertPEM              string
-	IntermediateCertsPEM []string
+type ConsulRootCert struct {
+	Certificate              string
+	IntermediateCertificates []string
 }
 
-type leafCert struct {
-	CertPEM       string
-	PrivateKeyPEM string
+type ConsulLeafCert struct {
+	Certificate string
+	PrivateKey  string
+}
+
+type Agent struct {
+	// AmbassadorID is the ID of the Ambassador instance.
+	AmbassadorID string
+
+	// The Agent registers a Consul Service when it starts and then fetches the leaf TLS certificate from the Consul
+	// HTTP API with this name.
+	ConsulServiceName string
+
+	// SecretNamespace is the Namespace where the TLS secret is managed.
+	SecretNamespace string
+
+	// SecretName is the Name of the TLS secret managed by this agent.
+	SecretName string
+
+	// consulAPI is the client used to communicate with the Consul HTTP API server.
+	consul *consulapi.Client
+
+	ConsulRootCert *ConsulRootCert
+	ConsulLeafCert *ConsulLeafCert
+
+	RootCertChange chan ConsulRootCert
+	LeafCertChange chan ConsulLeafCert
+}
+
+func NewAgent(ambassadorID string, secretNamespace string, secretName string, consul *consulapi.Client) *Agent {
+	consulServiceName := "ambassador"
+	if ambassadorID != "" {
+		consulServiceName += "-" + ambassadorID
+	}
+
+	return &Agent{
+		AmbassadorID:      ambassadorID,
+		SecretNamespace:   secretNamespace,
+		SecretName:        secretName,
+		ConsulServiceName: consulServiceName,
+		consul:            consul,
+	}
 }
 
 const (
@@ -63,64 +99,137 @@ func init() {
 }
 
 func main() {
-	log.Info("Ambassador Consul Connect integration is starting...")
-
 	consulAPIHost := getEnvOrFallback(EnvConsulAPIHost, "127.0.0.1")
 	consulAPIPort := getEnvOrFallback(EnvConsulAPIPort, "8500")
-
 	consulAddress := fmt.Sprintf("%s:%s", consulAPIHost, consulAPIPort)
+
+	// TODO: This really should log the integration version as well. But how?
+	log.WithFields(log.Fields{
+		"consul_host": consulAPIHost,
+		"consul_port": consulAPIPort,
+	}).Info("Starting Consul Connect Integration")
 
 	config := consulapi.DefaultConfig()
 	config.Address = consulAddress
-	log.WithFields(log.Fields{"address": consulAddress}).Info("Set Consul HTTP API Address")
 
-	consul, err = consulapi.NewClient(config)
+	consul, err := consulapi.NewClient(config)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	rootCertChannel := make(chan rootCert)
-	leafCertChannel := make(chan leafCert)
+	agent := NewAgent(os.Getenv(EnvAmbassadorID), os.Getenv(EnvSecretNamespace), os.Getenv(EnvSecretName), consul)
+	agent.RootCertChange = make(chan ConsulRootCert)
+	agent.LeafCertChange = make(chan ConsulLeafCert)
 
-	ambassadorID := os.Getenv(EnvAmbassadorID)
-	if ambassadorID != "" {
-		log.WithFields(log.Fields{EnvAmbassadorID: ambassadorID}).Info("Set Ambassador ID")
+	go agent.WatchConsulRootCertificateChanges()
+	go agent.WatchConsulLeafCertificateChanges()
+
+	agent.Run()
+}
+
+func (a *Agent) Run() {
+	for {
+		select {
+		case cert := <-a.RootCertChange:
+			a.ConsulRootCert = &cert
+		case cert := <-a.LeafCertChange:
+			a.ConsulLeafCert = &cert
+		}
+
+		if a.ConsulRootCert != nil && a.ConsulLeafCert != nil {
+			log.WithFields(log.Fields{
+				"namespace": a.SecretNamespace,
+				"secret":    a.SecretName,
+			}).Info("Updating TLS certificate secret")
+
+			chain := createCertificateChain(
+				a.ConsulRootCert.Certificate,
+				a.ConsulLeafCert.Certificate,
+				a.ConsulRootCert.IntermediateCertificates)
+
+			secret := formatKubernetesSecretYAML(a.SecretName, chain, a.ConsulLeafCert.PrivateKey)
+			err := applySecret(a.SecretNamespace, secret)
+			if err != nil {
+				log.Error(err)
+			} else {
+				log.WithFields(log.Fields{
+					"namespace": a.SecretNamespace,
+					"secret":    a.SecretName,
+				}).Info("Updating TLS certificate secret")
+			}
+		}
 	}
+}
 
-	consulServiceName := createAmbassadorConsulServiceName(ambassadorID)
-	if err := registerAmbassadorAsConsulService(consulServiceName, consul.Agent()); err != nil {
-		log.Fatalln(err)
+func (a *Agent) WatchConsulRootCertificateChanges() {
+	currentIndex := uint64(0)
+
+	for {
+		log.WithFields(log.Fields{"current-index": currentIndex}).Info("Waiting for Root CA certificate to change")
+		res, meta, err := a.consul.Agent().ConnectCARoots(&consulapi.QueryOptions{
+			WaitIndex: currentIndex,
+		})
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if res == nil || meta == nil {
+			time.Sleep(1 * time.Second)
+		} else {
+			for _, root := range res.Roots {
+
+				// NOTE: Philip Lombardi - 2019-01
+				// ===============================
+				//
+				// The Consul CA HTTP API docs say there should be intermediate certificates. The Go API does not seem
+				// to expose the intermediate certificates at all however.
+				//
+				// API Docs: https://www.consul.io/docs/connect/ca.html
+				//
+				if root.Active {
+					a.RootCertChange <- ConsulRootCert{
+						Certificate:              root.RootCertPEM,
+						IntermediateCertificates: []string{},
+					}
+
+					break
+				}
+			}
+
+			currentIndex = meta.LastIndex
+		}
 	}
+}
 
-	log.WithFields(log.Fields{"name": consulServiceName}).Info("Registered Consul service for Ambassador")
+func (a *Agent) WatchConsulLeafCertificateChanges() {
+	currentIndex := uint64(0)
 
-	kubeTLSSecretName := os.Getenv(EnvSecretName)
-	if kubeTLSSecretName == "" {
-		kubeTLSSecretName = fmt.Sprintf("%s-consul-connect", consulServiceName)
-		log.WithFields(log.Fields{"name": kubeTLSSecretName}).Info("Computed secret name for Ambassador TLS certificate")
-	} else {
-		log.WithFields(log.Fields{"name": kubeTLSSecretName}).Info("Set secret name for Ambassador TLS certificate")
+	for {
+		log.WithFields(log.Fields{
+			"service":       a.ConsulServiceName,
+			"current-index": currentIndex,
+		}).Info("Fetching Leaf ")
+
+		res, meta, err := a.consul.Agent().ConnectCALeaf(a.ConsulServiceName, &consulapi.QueryOptions{
+			WaitIndex: currentIndex,
+		})
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if res == nil || meta == nil {
+			time.Sleep(1 * time.Second)
+		} else {
+			a.LeafCertChange <- ConsulLeafCert{
+				Certificate: res.CertPEM,
+				PrivateKey:  res.PrivateKeyPEM,
+			}
+
+			currentIndex = meta.LastIndex
+		}
 	}
-
-	kubeTLSSecretNamespace := getEnvOrFallback(EnvSecretNamespace, "")
-
-	if kubeTLSSecretNamespace != "" {
-		log.WithFields(log.Fields{"namespace": kubeTLSSecretNamespace}).Info("Ambassador TLS secret will be in specified namespace")
-	} else {
-		log.Info("Ambassador TLS secret will be in same namespace as this Pod")
-	}
-
-	go subscribeToRootCertificateChanges(rootCertChannel, consul.Agent())
-	go subscribeToServiceCertificateChanges(leafCertChannel, consulServiceName, consul.Agent())
-
-	createOrUpdateKubernetesTLSCertificateForConsulConnect(
-		kubeTLSSecretName,
-		kubeTLSSecretNamespace,
-		rootCertChannel,
-		leafCertChannel)
-
-	log.Info("Ambassador Consul Connect Integration has started!")
-	select {}
 }
 
 func getEnvOrFallback(name string, fallback string) string {
@@ -131,49 +240,6 @@ func getEnvOrFallback(name string, fallback string) string {
 	}
 }
 
-func createAmbassadorConsulServiceName(ambassadorID string) string {
-	base := "ambassador"
-	if ambassadorID != "" {
-		base += "-" + ambassadorID
-	}
-
-	return base
-}
-
-func registerAmbassadorAsConsulService(serviceName string, agent *consulapi.Agent) error {
-	svc := consulapi.AgentServiceRegistration{
-		Name:    serviceName,
-		Port:    80,
-		Address: "localhost",
-	}
-
-	return agent.ServiceRegister(&svc)
-}
-
-func createOrUpdateKubernetesTLSCertificateForConsulConnect(secretName string, secretNamespace string, rootCertChan chan rootCert, leafCertChan chan leafCert) {
-	var rootCertificate *rootCert
-	var leafCertificate *leafCert
-
-	for {
-		select {
-		case cert := <-rootCertChan:
-			rootCertificate = &cert
-		case cert := <-leafCertChan:
-			leafCertificate = &cert
-		}
-
-		if rootCertificate != nil && leafCertificate != nil {
-			log.Info("Received root and leaf certificates!")
-			chain := createCertificateChain(rootCertificate.CertPEM, leafCertificate.CertPEM, rootCertificate.IntermediateCertsPEM)
-			secret := createSecretYAMLDocument(secretName, chain, leafCertificate.PrivateKeyPEM)
-			err := applySecret(secretNamespace, secret)
-			if err != nil {
-				log.Println(err)
-			}
-		}
-	}
-}
-
 func createCertificateChain(root string, leaf string, intermediaries []string) string {
 	result := intermediaries
 	result = append(intermediaries, root)
@@ -181,7 +247,7 @@ func createCertificateChain(root string, leaf string, intermediaries []string) s
 	return strings.Join(result, "")
 }
 
-func createSecretYAMLDocument(name string, chain string, key string) string {
+func formatKubernetesSecretYAML(name string, chain string, key string) string {
 	chain64 := base64.StdEncoding.EncodeToString([]byte(chain))
 	key64 := base64.StdEncoding.EncodeToString([]byte(key))
 
@@ -216,60 +282,4 @@ func applySecret(namespace string, yaml string) error {
 	fmt.Println(errBuffer.String())
 
 	return err
-}
-
-func subscribeToRootCertificateChanges(ch chan rootCert, agent *consulapi.Agent) {
-	currentIndex := uint64(0)
-
-	for {
-		log.WithFields(log.Fields{"current-index": currentIndex}).Info("Waiting for Root CA certificate")
-		res, meta, err := agent.ConnectCARoots(&consulapi.QueryOptions{
-			WaitIndex: currentIndex,
-		})
-
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		if res == nil || meta == nil {
-			time.Sleep(1 * time.Second)
-		} else {
-			for _, root := range res.Roots {
-				if root.Active {
-					ch <- rootCert{
-						CertPEM:              root.RootCertPEM,
-						IntermediateCertsPEM: []string{},
-					}
-					break
-				}
-			}
-
-			currentIndex = meta.LastIndex
-		}
-	}
-}
-
-func subscribeToServiceCertificateChanges(ch chan leafCert, service string, agent *consulapi.Agent) {
-	currentIndex := uint64(0)
-
-	for {
-		log.WithFields(log.Fields{"service": service, "current-index": currentIndex}).Info("Waiting for leaf certificate")
-		res, meta, err := agent.ConnectCALeaf(service, &consulapi.QueryOptions{
-			WaitIndex: currentIndex,
-		})
-
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		if res == nil || meta == nil {
-			time.Sleep(1 * time.Second)
-		} else {
-			ch <- leafCert{
-				CertPEM:       res.CertPEM,
-				PrivateKeyPEM: res.PrivateKeyPEM,
-			}
-			currentIndex = meta.LastIndex
-		}
-	}
 }
