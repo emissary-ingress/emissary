@@ -16,7 +16,7 @@ _version.dirty_hash = $(if $(CI),$(_version.ci_error))$(shell GO111MODULE=off go
 define _version.ci_error
 $(warning Build is dirty:)
 $(shell git status -s >&2)
-$(error This should not happen in CI, the build should not be dirty)
+$(error This should not happen in CI: the build should not be dirty)
 endef
 
 endif
