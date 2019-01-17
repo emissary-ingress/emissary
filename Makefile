@@ -50,6 +50,10 @@ build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word
 #
 # Docker images
 
+docker/consul_connect_integration.docker: docker/consul_connect_integration/consul_connect_integration
+docker/consul_connect_integration/%: bin_linux_amd64/%
+	cp $< $@
+
 docker/traffic-proxy.docker: docker/traffic-proxy/proxy
 docker/traffic-proxy/%: bin_linux_amd64/%
 	cp $< $@
