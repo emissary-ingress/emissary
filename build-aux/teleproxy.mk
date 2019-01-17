@@ -30,9 +30,11 @@ $(TELEPROXY): $(_teleproxy.mk)
 	sudo chmod go-w,a+sx $@
 
 proxy: ## (Teleproxy) Launch teleproxy in the background
-proxy: $(KUBECONFIG) $(TELEPROXY) unproxy
+proxy: $(KUBECONFIG) $(TELEPROXY)
 # NB: we say KUBECONFIG=$(KUBECONFIG) here because it might not be exported
-	KUBECONFIG=$(KUBECONFIG) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 &
+	if ! curl -sk $(KUBE_URL); then \
+		KUBECONFIG=$(KUBECONFIG) $(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 & \
+	fi
 	@for i in $$(seq 127); do \
 		echo "Checking proxy ($$i): $(KUBE_URL)"; \
 		if curl -sk $(KUBE_URL); then \
