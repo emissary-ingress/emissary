@@ -38,15 +38,21 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 
 %.docker: %/Dockerfile
 	docker build -t $(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest) $*
-ifneq ($(CI),)
-	docker image inspect $(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest) --format='{{.Id}}' > $(@D)/.tmp.$(@F).tmp
-	if test -e $@; then cmp -s $(@D)/.tmp.$(@F).tmp $@; fi
-	rm -f $(@D)/.tmp.$(@F).tmp
-endif
-	docker image inspect $(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest) --format='{{.Id}}' > $@
+	{ printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest)' && docker image inspect $(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest) --format='${{.Id}}'; } > $(@D)/.tmp.$(@F).tmp
+	@{ \
+		PS4=''; set -x; \
+		if cmp -s $(@D)/.tmp.$(@F).tmp $@; then \
+			rm -f $$@ || true; \
+		else \
+			if test -e $@; then \
+				$(if $(CI),false This should not happen in CI: $@ should not change,docker image rm $$(head -1 $@) || true); \
+			fi && \
+			mv -f $(@D)/.tmp.$(@F).tmp $@; \
+		fi; \
+	}
 
 %.docker.clean:
-	if [ -e $*.docker ]; then docker image rm $$(cat $*.docker); fi
+	if [ -e $*.docker ]; then docker image rm $$(head -1 $*.docker); fi
 	rm -f $*.docker
 .PHONY: %.docker.clean
 
@@ -61,7 +67,7 @@ endif
 	echo localhost:31000/$(notdir $*):$(VERSION) > $@
 
 %.docker.push: %.docker
-	docker tag $$(cat $<) $(DOCKER_IMAGE)
+	docker tag $$(tail -1 $<) $(DOCKER_IMAGE)
 	docker push $(DOCKER_IMAGE)
 .PHONY: %.docker.push
 
