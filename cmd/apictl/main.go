@@ -93,27 +93,34 @@ func defaultLicenseFile() (string, error) {
 	return filename, nil
 }
 
+var defaultKeyfile string
+var defaultKeyfileErr error
+
 func init() {
 	apictl.PersistentFlags().StringVar(&LICENSE_KEY, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
-	keyfile, _ := defaultLicenseFile()
-	apictl.PersistentFlags().StringVar(&LICENSE_FILE, "license-file", keyfile, "ambassador license file")
+	defaultKeyfile, defaultKeyfileErr = defaultLicenseFile()
+	apictl.PersistentFlags().StringVar(&LICENSE_FILE, "license-file", defaultKeyfile, "ambassador license file")
 }
 
 func keyCheck(cmd *cobra.Command, args []string) {
 	var keysource string
 
 	if LICENSE_KEY == "" {
+		if !cmd.Flag("license-file").Changed && defaultKeyfileErr != nil {
+			fmt.Fprintln(os.Stderr, "error determining license key file:", defaultKeyfileErr)
+			os.Exit(1)
+		}
 		if LICENSE_FILE == "" {
-			fmt.Printf("no license key or license key file specified")
+			fmt.Fprintln(os.Stderr, "no license key or license key file specified")
 			os.Exit(1)
 		}
 		key, err := ioutil.ReadFile(LICENSE_FILE)
 		if err != nil {
-			fmt.Printf("error reading license key from %s: %v\n", LICENSE_FILE, err)
+			fmt.Fprintln(os.Stderr, "error reading license key:", err)
 			os.Exit(1)
 		}
 		LICENSE_KEY = strings.TrimSpace(string(key))
-		keysource = LICENSE_FILE
+		keysource = "key from file " + LICENSE_FILE
 	} else {
 		if cmd.Flag("license-key").Changed {
 			keysource = "key from command line"
@@ -146,12 +153,12 @@ func keyCheck(cmd *cobra.Command, args []string) {
 		}
 		_, err = http.Post("https://metriton.datawire.io/scout", "application/json", bytes.NewBuffer(body))
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, "metriton error:", err)
 		}
 	}()
 
 	if !token.Valid || err != nil {
-		fmt.Printf("error validating %s: %v\n", keysource, err)
+		fmt.Fprintf(os.Stderr, "error validating %s: %v\n", keysource, err)
 		pause, ok := LICENSE_PAUSE[cmd]
 		if !ok {
 			pause = false
