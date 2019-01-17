@@ -1,6 +1,6 @@
 NAME            = ambassador-pro
 # For docker.mk
-DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
+DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
 K8S_DIRS        = k8s e2e-oauth/k8s
@@ -54,23 +54,23 @@ docker/traffic-proxy.docker: docker/traffic-proxy/proxy
 docker/traffic-proxy/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/traffic-sidecar.docker: docker/traffic-sidecar/ambex
-docker/traffic-sidecar.docker: docker/traffic-sidecar/sidecar
-docker/traffic-sidecar/ambex:
+docker/app-sidecar.docker: docker/app-sidecar/ambex
+docker/app-sidecar.docker: docker/app-sidecar/sidecar
+docker/app-sidecar/ambex:
 	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
-docker/traffic-sidecar/%: bin_linux_amd64/%
+docker/app-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/apictl
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_check
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_client
-docker/ambassador-ratelimit/%: bin_linux_amd64/%
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/apictl
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_check
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_client
+docker/amb-sidecar-ratelimit/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/ambassador-oauth.docker: docker/ambassador-oauth/ambassador-oauth
-docker/ambassador-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+docker/amb-sidecar-oauth.docker: docker/amb-sidecar-oauth/ambassador-oauth
+docker/amb-sidecar-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
 	cp $< $@
 
 #
@@ -115,15 +115,15 @@ endif
 
 clean:
 	rm -f docker/traffic-proxy/proxy
-	rm -f docker/traffic-sidecar/sidecar
-	rm -f docker/ambassador-ratelimit/apictl
-	rm -f docker/ambassador-ratelimit/ratelimit
-	rm -f docker/ambassador-ratelimit/ratelimit_check
-	rm -f docker/ambassador-ratelimit/ratelimit_client
-	rm -f docker/ambassador-oauth/ambassador-oauth
+	rm -f docker/app-sidecar/sidecar
+	rm -f docker/amb-sidecar-ratelimit/apictl
+	rm -f docker/amb-sidecar-ratelimit/ratelimit
+	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
+	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
+	rm -f docker/amb-sidecar-oauth/ambassador-oauth
 	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
 clobber:
-	rm -f docker/traffic-sidecar/ambex
+	rm -f docker/app-sidecar/ambex
 	rm -rf e2e-oauth/node_modules
 
 #
