@@ -34,6 +34,7 @@ func init() {
 		}
 		os.Exit(1)
 	}
+	apictl.Version = Version
 }
 
 func main() {
