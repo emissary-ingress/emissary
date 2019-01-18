@@ -60,7 +60,7 @@ serviceAccount:
   create: true
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: 
+  name:
 
 volumes: {}
 
@@ -83,6 +83,7 @@ tolerations: []
 affinity: {}
 
 exporter:
+  enabled: true
   image: prom/statsd-exporter:v0.6.0
   # You can configure the statsd exporter to modify the behavior of mappings and other features.
   # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration
