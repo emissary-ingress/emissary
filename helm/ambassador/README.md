@@ -71,6 +71,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `service.loadBalancerSourceRanges` | Passed to cloud provider load balancer if created (e.g: AWS ELB) | none
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`
 | `adminService.type` | Ambassador's admin service type to be used | `ClusterIP`
+| `exporter.enabled` | Exporter side-car enabled | `true`
 | `exporter.image` | Prometheus exporter image | `prom/statsd-exporter:v0.6.0`
 | `timing.restart` | The minimum number of seconds between Envoy restarts | none
 | `timing.drain` | The number of seconds that the Envoy will wait for open connections to drain on a restart | none
