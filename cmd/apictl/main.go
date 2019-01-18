@@ -37,7 +37,16 @@ func init() {
 	apictl.Version = Version
 }
 
+func recoverFromCrash() {
+	if r := recover(); r != nil {
+		fmt.Println("---")
+		fmt.Println("\nThe apictl command has crashed. Sorry about that!")
+		fmt.Println(r)
+	}
+}
+
 func main() {
+	defer recoverFromCrash()
 	apictl.Execute()
 }
 
@@ -48,6 +57,6 @@ func die(err error, args ...interface{}) {
 		} else {
 			fmt.Println(err)
 		}
-		os.Exit(1)
+		panic(err)
 	}
 }

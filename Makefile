@@ -90,16 +90,20 @@ e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock
 	@test -d $@
 	@touch $@
 
+check-intercept: ## Check: apictl traffic intercept
+	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
+
 check-e2e: ## Check: e2e tests
 check-e2e: e2e-oauth/node_modules deploy proxy
 	cd e2e-oauth && npm test
+	$(MAKE) check-intercept
 .PHONY: check-e2e
 
 ifneq ($(shell which docker 2>/dev/null),)
 check: check-e2e
 else
 check:
-	@echo 'SKIPPING OAUTH E2E TESTS'
+	@echo 'SKIPPING E2E TESTS'
 endif
 
 #

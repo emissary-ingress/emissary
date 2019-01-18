@@ -288,9 +288,10 @@ func doIntercept(cmd *cobra.Command, args []string) {
 				"port": iremote_port,
 			})
 			if err != nil {
+				// FIXME: Crash leaks subprocesses. Note that replacing Fatalf
+				// with Panicf does not fix this, as a panic in this goroutine
+				// will not fire deferred functions in other goroutines.
 				log.Fatalf("ICP: unable to renew port %s: %v", remote_port, err)
-			} else {
-				log.Printf("ICP: renewed port %s", remote_port)
 			}
 		}
 	}()
@@ -307,6 +308,8 @@ func doIntercept(cmd *cobra.Command, args []string) {
 
 	signalChan := make(chan os.Signal)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	fmt.Println("Intercept is running. Press Ctrl-C/Ctrl-Break to quit.")
 
 	log.Printf("ICP: %v", <-signalChan)
 }
