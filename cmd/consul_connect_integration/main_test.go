@@ -24,6 +24,25 @@ func TestNewAgent_AmbassadorIDToConsulServiceName(t *testing.T) {
 	}
 }
 
+func TestNewAgent_SecretName(t *testing.T) {
+	assert := testutil.Assert{T: t}
+
+	tables := []struct {
+		ambassadorID string
+		secretName   string
+		expected     string
+	}{
+		{"", "", "ambassador-consul-connect"},
+		{"foobar", "", "ambassador-foobar-consul-connect"},
+		{"foobar", "bazbot", "bazbot"},
+	}
+
+	for _, table := range tables {
+		a := NewAgent(table.ambassadorID, "NAMESPACE", table.secretName, nil)
+		assert.StrEQ(table.expected, a.SecretName)
+	}
+}
+
 func TestFormatKubernetesSecretYAML(t *testing.T) {
 	assert := testutil.Assert{T: t}
 
