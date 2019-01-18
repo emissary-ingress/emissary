@@ -14,7 +14,8 @@
             ]
         },
         
-        "service": { "type": "string" }
+        "service": { "type": "string" },
+        "timeout_ms": { "type": "integer" }
     },
     "required": [ "apiVersion", "kind", "name", "service" ],
     "additionalProperties": false

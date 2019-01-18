@@ -57,8 +57,8 @@ There are a number of breaking changes in Ambassador 0.50.0:
 
 ### Microsoft Azure
 
-There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
-updates after running for a short time. This will be fixed in 0.50.0-GA.
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador prior to 0.50.0-rc4
+will stop receiving service updates after running for a short time. This is fixed in 0.50.0-rc4.
 
 ### AMBASSADOR 0.36.0
 
@@ -108,6 +108,39 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.0-rc5] January 9, 2019
+[0.50.0-rc5]: https://github.com/datawire/ambassador/compare/0.50.0-rc4...0.50.0-rc5
+
+**Ambassador 0.50.0-rc5 is a release candidate**.
+
+### Changes since 0.50.0-rc3
+
+- Websocket connections will now be authenticated if an AuthService is configured [#1026]
+- Client certificate authentication should function whether configured from a TLSContext resource or from the the old-style TLS module (this is the full fix for [#993])
+- Ambassador can now switch listening ports without a restart (e.g. switching from cleartext to TLS) [#1100]
+- TLS origination certificates (including Istio mTLS) should now function [#1071]  
+- The diagnostics service should function in all cases. [#1096]
+- The Ambassador image is significantly (~500MB) smaller than RC4.
+
+[#933]: https://github.com/datawire/ambassador/issues/993
+[#1026]: https://github.com/datawire/ambassador/issues/1026
+[#1071]: https://github.com/datawire/ambassador/issues/1071
+[#1096]: https://github.com/datawire/ambassador/issues/1096
+[#1100]: https://github.com/datawire/ambassador/issues/1100
+
+## [0.50.0-rc4] January 9, 2019
+[0.50.0-rc4]: https://github.com/datawire/ambassador/compare/0.50.0-rc3...0.50.0-rc4
+
+**Ambassador 0.50.0-rc4 is a release candidate**, and fully supports running under Microsoft Azure.
+
+### Changes since 0.50.0-rc3
+
+- Ambassador fully supports running under Azure [#1039]
+- The `proto` attribute of a v1 `AuthService` is now optional, and defaults to `http`
+- Ambassador will warn about the use of v0 configuration resources.
+
+[#1039]: https://github.com/datawire/ambassador/issues/1039
 
 ## [0.50.0-rc3] January 3, 2019
 [0.50.0-rc3]: https://github.com/datawire/ambassador/compare/0.50.0-rc2...0.50.0-rc3

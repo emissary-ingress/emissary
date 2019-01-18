@@ -2,17 +2,17 @@
     "envoy_config": {
         "admin": [
             {
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "admin_port": 8001
             }
         ],
         "clusters": [
             {
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
                 "_service": "127.0.0.1:8877",
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -22,23 +22,10 @@
             },
             {
                 "_referenced_by": [
-                    "rate-limit-service.yaml.1"
-                ],
-                "_service": "extratelimit",
-                "_source": "rate-limit-service.yaml.1",
-                "features": "http2",
-                "lb_type": "round_robin",
-                "name": "cluster_ext_ratelimit",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://example-rate-limit:5000"
-                ]
-            },
-            {
-                "_referenced_by": [
                     "mapping-qotm.yaml.1",
                     "mapping-qotm.yaml.2",
-                    "mapping-qotm.yaml.3"
+                    "mapping-qotm.yaml.3",
+                    "mapping-qotm.yaml.4"
                 ],
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.1",
@@ -47,6 +34,20 @@
                 "type": "strict_dns",
                 "urls": [
                     "tcp://qotm:80"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "rate-limit-service.yaml.1"
+                ],
+                "_service": "example-rate-limit:5000",
+                "_source": "rate-limit-service.yaml.1",
+                "grpc": true,
+                "lb_type": "round_robin",
+                "name": "cluster_example_rate_limit_5000",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://example-rate-limit:5000"
                 ]
             }
         ],
@@ -57,6 +58,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "rate-limit-service.yaml.1"
+                ],
                 "_source": "rate-limit-service.yaml.1",
                 "config": {
                     "domain": "ambassador",
@@ -75,17 +79,19 @@
         ],
         "grpc_services": [
             {
-                "_source": "--internal--",
-                "cluster_name": "cluster_ext_ratelimit",
+                "_source": "rate-limit-service.yaml.1",
+                "cluster_name": "cluster_example_rate_limit_5000",
                 "name": "rate_limit_service"
             }
         ],
         "listeners": [
             {
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
+                "redirect_listener": false,
                 "require_tls": false,
                 "service_port": 80,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [
@@ -101,17 +107,31 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
                         "weight": 100.0
                     }
                 ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "defaults": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default"
+                            ]
+                        }
+                    ]
+                },
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -134,45 +154,35 @@
                         "weight": 100.0
                     }
                 ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "v0_ratelimit_01": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address"
+                            ]
+                        },
+                        {
+                            "v0_ratelimit_02": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                {
+                                    "generic_key": "custom-label"
+                                },
+                                {
+                                    ":authority": {
+                                        "header": ":authority",
+                                        "omit_if_not_present": true
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
                 "prefix": "/qotm-rate-custom/",
-                "prefix_rewrite": "/",
-                "rate_limits": [
-                    {
-                        "actions": [
-                            {
-                                "type": "source_cluster"
-                            },
-                            {
-                                "type": "destination_cluster"
-                            },
-                            {
-                                "type": "remote_address"
-                            }
-                        ]
-                    },
-                    {
-                        "actions": [
-                            {
-                                "type": "source_cluster"
-                            },
-                            {
-                                "type": "destination_cluster"
-                            },
-                            {
-                                "type": "remote_address"
-                            },
-                            {
-                                "descriptor_value": "custom-label",
-                                "type": "generic_key"
-                            },
-                            {
-                                "descriptor_key": ":authority",
-                                "header_name": ":authority",
-                                "type": "request_headers"
-                            }
-                        ]
-                    }
-                ]
+                "prefix_rewrite": "/"
             },
             {
                 "__saved": [
@@ -186,17 +196,109 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
                         "weight": 100.0
                     }
                 ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "defaults": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default"
+                            ]
+                        }
+                    ]
+                },
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
+            },
+            {
+                "__saved": [
+                    0,
+                    20,
+                    0,
+                    "/qotm-labels-custom/",
+                    "GET"
+                ],
+                "_group_id": "70bfcaa72fd355b7731def1cb4aa151d9c264749",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-qotm.yaml.4"
+                ],
+                "_source": "mapping-qotm.yaml.4",
+                "clusters": [
+                    {
+                        "name": "cluster_qotm",
+                        "weight": 100.0
+                    }
+                ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "defaults": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default"
+                            ]
+                        },
+                        {
+                            "host_and_user": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default",
+                                {
+                                    "custom-label": {
+                                        "header": ":authority",
+                                        "omit_if_not_present": true
+                                    }
+                                },
+                                {
+                                    "user": {
+                                        "header": "x-user",
+                                        "omit_if_not_present": true
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "omg_header": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default",
+                                {
+                                    "custom-label": {
+                                        "default": "OMFG!",
+                                        "header": "x-omg"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "nodefaults": [
+                        {
+                            "test": [
+                                "remote_address",
+                                "test"
+                            ]
+                        }
+                    ]
+                },
+                "prefix": "/qotm-labels-custom/",
+                "prefix_rewrite": "/"
             },
             {
                 "__saved": [
@@ -219,23 +321,19 @@
                         "weight": 100.0
                     }
                 ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "v0_ratelimit_01": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address"
+                            ]
+                        }
+                    ]
+                },
                 "prefix": "/qotm-rate/",
-                "prefix_rewrite": "/",
-                "rate_limits": [
-                    {
-                        "actions": [
-                            {
-                                "type": "source_cluster"
-                            },
-                            {
-                                "type": "destination_cluster"
-                            },
-                            {
-                                "type": "remote_address"
-                            }
-                        ]
-                    }
-                ]
+                "prefix_rewrite": "/"
             },
             {
                 "__saved": [
@@ -258,6 +356,18 @@
                         "weight": 100.0
                     }
                 ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "defaults": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default"
+                            ]
+                        }
+                    ]
+                },
                 "prefix": "/qotm/",
                 "prefix_rewrite": "/"
             },
@@ -273,29 +383,45 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
                         "weight": 100.0
                     }
                 ],
+                "labels": {
+                    "ambassador": [
+                        {
+                            "defaults": [
+                                "source_cluster",
+                                "destination_cluster",
+                                "remote_address",
+                                "default"
+                            ]
+                        }
+                    ]
+                },
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            }
-        ]
+                "prefix_rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+            }        ]
     },
     "errors": {},
     "source_map": {
         "--internal--": {
             "--internal--": true
         },
+        "ambassador.yaml": {
+            "ambassador.yaml.1": true
+        },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true,
             "mapping-qotm.yaml.2": true,
-            "mapping-qotm.yaml.3": true
+            "mapping-qotm.yaml.3": true,
+            "mapping-qotm.yaml.4": true
         },
         "rate-limit-service.yaml": {
             "rate-limit-service.yaml.1": true
@@ -319,6 +445,15 @@
             "kind": "Internal",
             "name": "Ambassador Internals",
             "version": "v0"
+        },
+        "ambassador.yaml.1": {
+            "_source": "ambassador.yaml",
+            "filename": "ambassador.yaml",
+            "index": 1,
+            "kind": "Module",
+            "name": "ambassador",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  default_label_domain: ambassador\n  default_labels:\n    ambassador:\n      defaults:\n      - source_cluster\n      - destination_cluster\n      - remote_address\n      - default\n    nodefaults: {}\n    using_defaults:\n      defaults:\n      - hiho\n      - hiho\n      - off to work we go\n      label_prefix:\n      - source_cluster\n      - destination_cluster\n      - remote_address\nkind: Module\nname: ambassador\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
@@ -347,14 +482,23 @@
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm_rate_limit_config_mapping\nprefix: /qotm-rate-custom/\nrate_limits:\n- {}\n- descriptor: custom-label\n  headers:\n  - :authority\nservice: qotm\n"
         },
+        "mapping-qotm.yaml.4": {
+            "_source": "mapping-qotm.yaml",
+            "filename": "mapping-qotm.yaml",
+            "index": 4,
+            "kind": "Mapping",
+            "name": "qotm_labels_config_mapping",
+            "version": "ambassador/v1",
+            "yaml": "apiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - defaults: []\n  - host_and_user:\n    - custom-label:\n        header: :authority\n        omit_if_not_present: true\n    - user:\n        header: x-user\n        omit_if_not_present: true\n  - omg_header:\n    - custom-label:\n        default: OMFG!\n        header: x-omg\n  nodefaults:\n  - test:\n    - remote_address\n    - test\nname: qotm_labels_config_mapping\nprefix: /qotm-labels-custom/\nservice: qotm\n"
+        },
         "rate-limit-service.yaml.1": {
             "_source": "rate-limit-service.yaml",
             "filename": "rate-limit-service.yaml",
             "index": 1,
             "kind": "RateLimitService",
             "name": "ratelimit",
-            "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nkind: RateLimitService\nname: ratelimit\nservice: example-rate-limit:5000\n"
+            "version": "ambassador/v1",
+            "yaml": "apiVersion: ambassador/v1\ndomain: ambassador\nkind: RateLimitService\nname: ratelimit\nservice: example-rate-limit:5000\n"
         }
     }
 }

@@ -126,6 +126,8 @@
               link: /reference/redirects
             - title: Request Headers
               link: /reference/add_request_headers
+            - title: Response Headers
+              link: /reference/add_response_headers
             - title: Rewrites
               link: /reference/rewrites
             - title: Traffic Shadowing

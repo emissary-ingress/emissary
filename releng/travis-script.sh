@@ -42,7 +42,7 @@ printf "== Begin: travis-script.sh ==\n"
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
     make docker-push
-    # make test
+    make test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
@@ -69,20 +69,13 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         make website
     fi        
 
-    #### RUN END-TO-END TESTS ONLY ON RC BUILDS
-    ####
-    #### The end-to-end tests, running sequentially, take around half an hour 
-    #### to run. Allowing them to run while collecting things for release is
-    #### just shredding velocity right now.
-    ####
-    #### Work is underway to parallelize the end-to-end tests (or to more
-    #### majorly refactor around needing them) but for now, we're only going to
-    #### run them on RC builds -- which is to say, do all the testing you can
-    #### in development, collect things for a release, and the RC build will run
-    #### the final E2E pass.
-    
-    SKIP_E2E=
+    # XXX FOR RIGHT NOW DO NOT EVER RUN OLD E2E TESTS.
+    # XXX This is wrong in general, since the E2E tests still provide coverage
+    # XXX that KAT lacks. We'll reenable them once a bit more of the machinery
+    # XXX has been more-or-less vetted.
+    SKIP_E2E=yes
 
+    # We'll allow EA builds to skip E2E for right now.
     if [[ ${COMMIT_TYPE} != "RC" ]]; then
         SKIP_E2E=yes
     fi
@@ -104,9 +97,12 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         make e2e
     fi
 
-    # For RC builds, update AWS test keys.
     if [[ ${COMMIT_TYPE} == "RC" ]]; then
+        # For RC builds, update AWS test keys.
 		make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
+    elif [[ ${COMMIT_TYPE} == "EA" ]]; then
+        # For RC builds, update AWS EA keys.
+		make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
     fi
 else
     echo "GA commit, will retag in deployment"

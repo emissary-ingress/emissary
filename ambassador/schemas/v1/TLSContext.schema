@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "https://getambassador.io/schemas/tlscontext.json",
+
+    "type": "object",
+    "properties": {
+        "apiVersion": { "enum": ["ambassador/v1"] },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+
+        "hosts": { "type": "array", "items": { "type": "string" } },
+        "secret": { "type": "string" },
+        "cert_chain_file": { "type": "string" },
+        "private_key_file": { "type": "string" },
+        "ca_secret": { "type": "string" },
+        "cacert_chain_file": { "type": "string" },
+        "alpn_protocols": { "type": "string" },
+        "cert_required": { "type": "boolean" }
+    },
+    "required": [ "apiVersion", "kind", "name" ],
+    "additionalProperties": false
+}

@@ -4,14 +4,14 @@
     {
       "address": "tcp://0.0.0.0:443",
 
-      "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-          "private_key_file": "/etc/ambassador-config/certs/tls.key"
+      "ssl_context": {"cert_chain_file": "/etc/ambassador-config/certs/tls.crt","private_key_file": "/etc/ambassador-config/certs/tls.key"
       },"filters": [
         {
           "type": "read",
           "name": "http_connection_manager",
           "config": {"codec_type": "auto",
             "stat_prefix": "ingress_http",
+            "use_remote_address": true,
             "access_log": [
               {
                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -25,7 +25,7 @@
                   "domains": ["*"],"routes": [
 
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
                       "weighted_clusters": {
                           "clusters": [
 
@@ -38,11 +38,37 @@
                     ,
 
                     {
-                      "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                      "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
                       "weighted_clusters": {
                           "clusters": [
 
                                  { "name": "cluster_127_0_0_1_8877", "weight": 100.0 }
+
+                          ]
+                      }
+
+                    }
+                    ,
+
+                    {
+                      "timeout_ms": 3000,"prefix": "/qotm2/","prefix_rewrite": "/",
+                      "weighted_clusters": {
+                          "clusters": [
+
+                                 { "name": "cluster_https___qotm2__otls", "weight": 100.0 }
+
+                          ]
+                      }
+
+                    }
+                    ,
+
+                    {
+                      "timeout_ms": 3000,"prefix": "/qotm1/","prefix_rewrite": "/",
+                      "weighted_clusters": {
+                          "clusters": [
+
+                                 { "name": "cluster_qotm1_otls_no_cert_upstream", "weight": 100.0 }
 
                           ]
                       }
@@ -70,7 +96,7 @@
             "filters": [
               {"type": "decoder",
                 "name": "extauth",
-                "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_ext_auth_otls_upstream", "path_prefix": "/extauth", "timeout_ms": 5000}
+                "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_extauth_https___example_auth_3000_otls", "path_prefix": "/extauth", "timeout_ms": 5000}
               },{
                 "name": "cors",
                 "config": {}
@@ -102,7 +128,7 @@
 
         ]},
       {
-        "name": "cluster_ext_auth_otls_upstream",
+        "name": "cluster_extauth_https___example_auth_3000_otls",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
         "lb_type": "round_robin",
@@ -115,10 +141,33 @@
         "ssl_context": {
 
           "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
-
           "private_key_file": "/etc/ambassador-config/certs/outbound.key"
 
 	}},
+      {
+        "name": "cluster_https___qotm2__otls",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://qotm2:443"
+          }
+        ],
+        "ssl_context": {}
+      },
+      {
+        "name": "cluster_qotm1_otls_no_cert_upstream",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://qotm1:443"
+          }
+        ],
+        "ssl_context": {}
+      },
       {
         "name": "cluster_qotm_otls_upstream",
         "connect_timeout_ms": 3000,
@@ -133,13 +182,10 @@
         "ssl_context": {
 
           "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
-
           "private_key_file": "/etc/ambassador-config/certs/outbound.key"
 
         }}
 
     ]
-  },
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }

@@ -1,0 +1,14 @@
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm1_mapping
+prefix: /qotm1/
+tls: true
+service: qotm1
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  qotm2_mapping
+prefix: /qotm2/
+service: https://qotm2/
+

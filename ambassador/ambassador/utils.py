@@ -14,17 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import Dict, Optional, TYPE_CHECKING
+
 import binascii
 import socket
 import threading
 import time
 import os
 import logging
+import yaml
 
 from kubernetes import client, config
 from enum import Enum
 
 from .VERSION import Version
+
+if TYPE_CHECKING:
+    from .ir.irtlscontext import IRTLSContext
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
@@ -45,8 +51,14 @@ class TLSPaths(Enum):
     client_cert_dir = "/ambassador/cacert"
     client_tls_crt = os.path.join(client_cert_dir, "tls.crt")
 
+    @staticmethod
+    def generate(directory):
+        return {
+            'crt': os.path.join(directory, 'tls.crt'),
+            'key': os.path.join(directory, 'tls.key')
+        }
 
-class SystemInfo (object):
+class SystemInfo:
     MyHostName = 'localhost'
     MyResolvedName = '127.0.0.1'
 
@@ -56,7 +68,7 @@ class SystemInfo (object):
     except:
         pass
 
-class RichStatus (object):
+class RichStatus:
     def __init__(self, ok, **kwargs):
         self.ok = ok
         self.info = kwargs
@@ -87,7 +99,7 @@ class RichStatus (object):
 
         return "<RichStatus %s%s>" % ("OK" if self else "BAD", astr)
 
-    def toDict(self):
+    def as_dict(self):
         d = { 'ok': self.ok }
 
         for key in self.info.keys():
@@ -115,7 +127,7 @@ class SourcedDict (dict):
 
         # self['_referenced_by'] = []
 
-    def _mark_referenced_by(self, source):
+    def referenced_by(self, source):
         refby = self.setdefault('_referenced_by', [])
 
         if source not in refby:
@@ -176,44 +188,185 @@ class PeriodicTrigger(threading.Thread):
             self.onfired()
 
 
-def read_cert_secret(k8s_api, secret_name, namespace):
-    cert_data = None
-    cert = None
-    key = None
+class SavedSecret:
+    def __init__(self, secret_name: str, namespace: str,
+                 cert_path: Optional[str], key_path: Optional[str], cert_data: Optional[Dict]) -> None:
+        self.secret_name = secret_name
+        self.namespace = namespace
+        self.cert_path = cert_path
+        self.key_path = key_path
+        self.cert_data = cert_data
 
-    try:
-        cert_data = k8s_api.read_namespaced_secret(secret_name, namespace)
-    except client.rest.ApiException as e:
-        if e.reason == "Not Found":
-            pass
-        else:
-            logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
+    @property
+    def name(self) -> str:
+        return "secret %s in namespace %s" % (self.secret_name, self.namespace)
 
-    if cert_data and cert_data.data:
-        cert_data = cert_data.data
-        cert = cert_data.get('tls.crt', None)
+    def __bool__(self) -> bool:
+        return bool(bool(self.cert_path) and (self.cert_data is not None))
+
+    def __str__(self) -> str:
+        return "<SavedSecret %s.%s -- cert_path %s, key_path %s, cert_data %s>" % (
+                  self.secret_name, self.namespace, self.cert_path, self.key_path,
+                  "present" if self.cert_data else "absent"
+                )
+
+
+class KubeSecretReader:
+    def __init__(self) -> None:
+        self.v1 = None
+        self.__name__ = 'KubeSecretReader'
+
+    def __call__(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
+        # Make sure we have a Kube connection.
+        if not self.v1:
+            self.v1 = kube_v1()
+
+        cert_data = None
+        cert = None
+        key = None
+
+        if self.v1:
+            try:
+                cert_data = self.v1.read_namespaced_secret(secret_name, namespace)
+            except client.rest.ApiException as e:
+                if e.reason == "Not Found":
+                    logger.info("secret {} not found".format(secret_name))
+                else:
+                    logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
+
+        if cert_data and cert_data.data:
+            cert_data = cert_data.data
+            cert = cert_data.get('tls.crt', None)
+
+            if cert:
+                cert = binascii.a2b_base64(cert)
+
+            key = cert_data.get('tls.key', None)
+
+            if key:
+                key = binascii.a2b_base64(key)
+
+        secret_dir = os.path.join(secret_root, namespace, "secrets", secret_name)
+
+        cert_path = None
+        key_path = None
 
         if cert:
-            cert = binascii.a2b_base64(cert)
+            try:
+                os.makedirs(secret_dir)
+            except FileExistsError:
+                pass
 
-        key = cert_data.get('tls.key', None)
+            cert_path = os.path.join(secret_dir, "tls.crt")
+            open(cert_path, "w").write(cert.decode("utf-8"))
 
-        if key:
-            key = binascii.a2b_base64(key)
+            if key:
+                key_path = os.path.join(secret_dir, "tls.key")
+                open(key_path, "w").write(key.decode("utf-8"))
 
-    return (cert, key, cert_data)
+        return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
 
 
-def save_cert(cert, key, dir):
-    try:
-        os.makedirs(dir)
-    except FileExistsError:
-        pass
+class SplitConfigChecker:
+    def __init__(self, logger, root_path: str) -> None:
+        self.logger = logger
+        self.root = root_path
 
-    open(os.path.join(dir, "tls.crt"), "w").write(cert.decode("utf-8"))
+    def secret_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
+        yaml_path = os.path.join(self.root, namespace, "secrets", "%s.yaml" % secret_name)
 
-    if key:
-        open(os.path.join(dir, "tls.key"), "w").write(key.decode("utf-8"))
+        serialization = None
+        objects = []
+        cert_data = None
+        cert = None
+        key = None
+        cert_path = None
+        key_path = None
+
+        try:
+            serialization = open(yaml_path, "r").read()
+        except IOError as e:
+            self.logger.error("TLSContext %s: SCC.secret_reader could not open %s" % (context.name, yaml_path))
+
+        if serialization:
+            try:
+                objects.extend(list(yaml.safe_load_all(serialization)))
+            except yaml.error.YAMLError as e:
+                self.logger.error("TLSContext %s: SCC.secret_reader could not parse %s: %s" %
+                                  (context.name, yaml_path, e))
+
+        ocount = 0
+        errors = 0
+
+        for obj in objects:
+            ocount += 1
+            kind = obj.get('kind', None)
+
+            if kind != "Secret":
+                self.logger.error("TLSContext %s: SCC.secret_reader found K8s %s at %s.%d?" %
+                                  (context.name, kind, yaml_path, ocount))
+                errors += 1
+                continue
+
+            metadata = obj.get('metadata', None)
+
+            if not metadata:
+                self.logger.error("TLSContext %s: SCC.secret_reader found K8s Secret with no metadata at %s.%d?" %
+                                  (context.name, yaml_path, ocount))
+                errors += 1
+                continue
+
+            if 'data' in obj:
+                if cert_data:
+                    self.logger.error("TLSContext %s: SCC.secret_reader found multiple Secrets in %s?" %
+                                      (context.name, yaml_path))
+                    errors += 1
+                    continue
+
+                cert_data = obj['data']
+
+        # if errors:
+        #     return None
+        #
+        # if not cert_data:
+        #     self.logger.error("TLSContext %s: SCC.secret_reader found no certificate in %s?" %
+        #                       (context.name, yaml_path))
+        #     return None
+
+        # OK, we have something to work with. Hopefully.
+        if not errors and cert_data:
+            cert = cert_data.get('tls.crt', None)
+
+            if cert:
+                cert = binascii.a2b_base64(cert)
+
+            key = cert_data.get('tls.key', None)
+
+            if key:
+                key = binascii.a2b_base64(key)
+
+        # if not cert:
+        #     # This is an error. Having a cert but no key might be OK, we'll let our caller decide.
+        #     self.logger.error("TLSContext %s: SCC.secret_reader found data but no cert in %s?" %
+        #                       (context.name, yaml_path))
+        #     return None
+
+        if cert:
+            secret_dir = os.path.join(self.root, namespace, "secrets-decoded", secret_name)
+
+            try:
+                os.makedirs(secret_dir)
+            except FileExistsError:
+                pass
+
+            cert_path = os.path.join(secret_dir, "tls.crt")
+            open(cert_path, "w").write(cert.decode("utf-8"))
+
+            if key:
+                key_path = os.path.join(secret_dir, "tls.key")
+                open(key_path, "w").write(key.decode("utf-8"))
+
+        return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
 
 
 def kube_v1():

@@ -87,6 +87,28 @@ If you change networks and your dns configuration changes, you will
 need to restart teleproxy. You can do this with the `make
 teleproxy-restart` target.
 
+Type Hinting
+------------
+
+Ambassador uses Python 3 type hinting to help find bugs before runtime. We will not
+accept changes that aren't hinted -- if you haven't worked with hinting before, a good
+place to start is [the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
+
+We **strongly** recommend that you use an editor that supports realtime type checking:
+we at Datawire tend to use PyCharm and VSCode a lot, but many many editors can do this 
+now. We also **strongly** recommend that you run `mypy` itself over your code before 
+opening a PR. The easy way to do that is simply
+
+```make mypy```
+
+after you've done `make shell`. This will start the [mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html)
+and then do a check of all the Ambassador code. There _should_ be no errors and no warnings
+reported: that will probably be a requirement for all GA releases.
+ 
+**Note well** that at present, `make mypy` will ignore missing imports. We're still sorting
+out how to best wrangle the various third-party libraries we use, so this seems to make sense
+for right now -- suggestions welcome on this front!   
+
 Unit Tests
 ----------
 

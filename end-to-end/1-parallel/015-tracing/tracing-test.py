@@ -48,11 +48,14 @@ class ZipkinServices(object):
     def getServices(self):
         return self.decipher(requests.get("%s/services" % self.url))
 
-    def getSpans(self):
-        return self.decipher(requests.get("%s/spans" % self.url))
+    def getTraces(self):
+        return self.decipher(requests.get("%s/traces" % self.url))
+
+    def getSpans(self, serviceName):
+        return self.decipher(requests.get("%s/spans?serviceName=%s" % (self.url, serviceName)))
 
 
-def test_qotm_tracing(base, zipkin, test_list, iterations=100):
+def test_qotm_tracing(base, zipkin, test_list, iterations=5):
     q = QotM(base)
     z = ZipkinServices(zipkin)
 
@@ -65,13 +68,19 @@ def test_qotm_tracing(base, zipkin, test_list, iterations=100):
     _, zipkinServices = z.getServices()
     print("Zipkin Services %s" % zipkinServices)
 
-    _, zipkinSpans = z.getSpans()
-    print("Zipkin Spans len %d" % len(zipkinSpans))
+    _, zipkinTraces = z.getTraces()
+    print("Zipkin Traces len %d" % len(zipkinTraces))
+    print("Zipkin TraceId %s" % zipkinTraces[0][0]['traceId'])
+
+    _, zipkinSpans = z.getSpans(zipkinServices[0])
+    print("Zipkin Spans %s" % zipkinSpans)
 
     return 0 if (
             len(zipkinServices) == 1 and
             zipkinServices[0] == '015-tracing-015-tracing' and
-            len(zipkinSpans) >= 5  # This is a bit flaky, requests are sampled so will be lower than the number of iterations
+            len(zipkinTraces) >= 5 and  # each iteration should generate a trace
+            len(zipkinTraces[0][0]['traceId']) >= 32 and  # traceId is 128bit
+            len(zipkinSpans) >= 3
     ) else 1
 
 
