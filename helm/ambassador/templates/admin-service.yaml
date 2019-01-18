@@ -15,6 +15,9 @@ spec:
       targetPort: admin
       protocol: TCP
       name: admin
+      {{- if (and (eq .Values.adminService.type "NodePort") (not (empty .Values.adminService.nodePort))) }}
+      nodePort: {{ .Values.adminService.nodePort }}
+      {{- end }}
   selector:
     app: {{ template "ambassador.name" . }}
     release: {{ .Release.Name }}
