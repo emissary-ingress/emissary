@@ -104,10 +104,16 @@ spec:
     spec:
       containers:
       - name: qotm
-        image: nkrause/qotm:notls
+        image: datawire/qotm:1.2
         ports:
         - name: http-api
           containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 3
         resources:
           limits:
             cpu: "0.1"
