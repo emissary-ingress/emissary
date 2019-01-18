@@ -155,7 +155,7 @@ wait_for_ready() {
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-KUBEWATCH_DEBUG="--debug"
+#KUBEWATCH_DEBUG="--debug"
 
 # Start by reading config from ${CONFIG_DIR} itself, to bootstrap the world and get our
 # cluster ID.
