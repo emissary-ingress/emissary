@@ -144,3 +144,6 @@ spec:
           value: {{env "AUTH_PROVIDER_URL"}}
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
