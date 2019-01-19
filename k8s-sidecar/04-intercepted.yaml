@@ -43,12 +43,12 @@ spec:
         image: kennethreitz/httpbin
         ports:
         - containerPort: 80
-      - env:
+      - name: traffic-sidecar
+        image: {{env "SIDECAR_IMAGE"}}
+        env:
         - name: APPNAME
           value: intercepted
         - name: APPPORT
           value: "80"
-        image: {{env "SIDECAR_IMAGE"}}
-        name: traffic-sidecar
         ports:
         - containerPort: 9900
