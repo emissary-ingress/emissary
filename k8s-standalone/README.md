@@ -48,7 +48,7 @@
 
         ambassador         LoadBalancer   10.31.248.239   35.230.19.92   80:30664/TCP     16m
         ambassador-admin   NodePort       10.31.240.190   <none>         8877:30532/TCP   16m
-        auth0-service      ClusterIP      10.31.254.65    <none>         80/TCP           12m
+        ambassador-pro     ClusterIP      10.31.254.65    <none>         80/TCP           12m
         httpbin            NodePort       10.31.245.125   <none>         80:30641/TCP     13m
 
 ## From any browser:

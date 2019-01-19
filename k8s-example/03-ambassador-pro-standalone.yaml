@@ -1,12 +1,12 @@
 ######################################################################
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador-pro-oauth that has access to the CRDs that we will
-# create for it below
+# ambassador-pro that has access to the CRDs that we will create for
+# it below
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro
 rules:
 - apiGroups: ["getambassador.io"]
   # Custom resources. See custom definitions below for more details.
@@ -18,24 +18,24 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-pro-oauth
+  name: ambassador-pro
 subjects:
 - kind: ServiceAccount
-  name: ambassador-pro-oauth
+  name: ambassador-pro
   namespace: default
 
 
 ######################################################################
-# Create a CRDs used to configure ambassador-pro-oauth
+# Create a CRDs used to configure ambassador-pro
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -77,19 +77,19 @@ spec:
 
 
 ######################################################################
-# Create the ambassador-pro-oauth Service+Deployment
+# Create the ambassador-pro Service+Deployment
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: AuthService
       name: authentication
-      auth_service: ambassador-pro-oauth
+      auth_service: ambassador-pro
       allowed_headers:
       - "Authorization"
       - "Client-Id"
@@ -97,7 +97,7 @@ metadata:
       - "X-Forwarded-Proto"
 spec:
   selector:
-    service: ambassador-pro-oauth
+    service: ambassador-pro
   ports:
   - protocol: TCP
     port: 80
@@ -107,20 +107,20 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: ambassador-pro-oauth
+      service: ambassador-pro
   template:
     metadata:
       labels:
-        service: ambassador-pro-oauth
+        service: ambassador-pro
     spec:
-      serviceAccountName: ambassador-pro-oauth
+      serviceAccountName: ambassador-pro
       containers:
-      - name: ambassador-pro-oauth
+      - name: auth
         image: quay.io/gsagula/auth-service:multi
         ports:
         - containerPort: 8080
