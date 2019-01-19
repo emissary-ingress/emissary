@@ -1,5 +1,5 @@
 # HTTPBIN Policy
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: httpbin-policy

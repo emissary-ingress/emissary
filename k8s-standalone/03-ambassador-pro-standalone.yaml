@@ -12,7 +12,7 @@ kind: ClusterRole
 metadata:
   name: ambassador-pro-standalone
 rules:
-- apiGroups: ["stable.datawire.io"]
+- apiGroups: ["getambassador.io"]
   resources:
   - policies
   - tenants
@@ -46,10 +46,10 @@ kind: CustomResourceDefinition
 metadata:
   # name must match the spec fields below, and be in the form: <plural>.<group>
   # XXX: what is group name supposed to mean???
-  name: policies.stable.datawire.io
+  name: policies.getambassador.io
 spec:
   # group name to use for REST API: /apis/<group>/<version>
-  group: stable.datawire.io
+  group: getambassador.io
   # list of versions supported by this CustomResourceDefinition
   version: v1beta1
   versions:
@@ -76,10 +76,10 @@ kind: CustomResourceDefinition
 metadata:
   # name must match the spec fields below, and be in the form: <plural>.<group>
   # XXX: what is group name supposed to mean???
-  name: tenants.stable.datawire.io
+  name: tenants.getambassador.io
 spec:
   # group name to use for REST API: /apis/<group>/<version>
-  group: stable.datawire.io
+  group: getambassador.io
   # list of versions supported by this CustomResourceDefinition
   version: v1beta1
   versions:
