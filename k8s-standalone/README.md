@@ -41,7 +41,7 @@
         $ kubectl apply -f scripts/httpbin-policy.yaml
         $ kubectl apply -f scripts/authorization-srv.yaml
 
- 11. By running `$ kubectl get services -n datawire`, you should see
+ 11. By running `$ kubectl get services -n standalone`, you should see
      something like these:
 
         ambassador         LoadBalancer   10.31.248.239   35.230.19.92   80:30664/TCP     16m

@@ -1,7 +1,7 @@
 #!/hint/sh
 
 # acceptance_test.js
-EXTERNAL_IP=ambassador.datawire.svc.cluster.local
+EXTERNAL_IP=ambassador.standalone.svc.cluster.local
 TESTUSER_EMAIL=testuser@datawire.com
 TESTUSER_PASSWORD=TestUser321
 

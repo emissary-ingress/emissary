@@ -80,9 +80,9 @@ docker_tests =
 
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
-	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
+	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.standalone.svc.cluster.local"
 k8s-standalone/02-ambassador-certs.yaml: k8s-standalone/cert.pem k8s-standalone/key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
+	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
 
 deploy: k8s-standalone/02-ambassador-certs.yaml
 apply: k8s-standalone/02-ambassador-certs.yaml
