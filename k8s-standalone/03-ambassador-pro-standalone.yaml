@@ -110,7 +110,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    name: ambassador-pro
+    service: ambassador-pro
   ports:
   - protocol: TCP
     port: 80
@@ -127,11 +127,11 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      name: ambassador-pro
+      service: ambassador-pro
   template:
     metadata:
       labels:
-        name: ambassador-pro
+        service: ambassador-pro
     spec:
       serviceAccountName: ambassador-pro
       containers:
