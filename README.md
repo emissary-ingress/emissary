@@ -59,8 +59,8 @@ This will build
 This will run both unit tests and e2e tests.
 
  > *NOTE:* This will talk to the Auth0 account configured in
- > `./e2e-oauth/env.sh`.  The login credentials for that Auth0 can be
- > found in Keybase under
+ > `./tests/oauth-e2e/env.sh`.  The login credentials for that Auth0
+ > can be found in Keybase under
  > `/datawireio/global/ambassador-oauth-ci.txt`.
 
 On macOS, you will first need to add `host.docker.internal:31000` to
@@ -106,4 +106,7 @@ here?).
     * There's a concern that switching the
       `quay.io/datawire/ambassador-pro` repo to private would disrupt
       some current users like DFS.
- - Unify `./example/` and `./e2e-oauth/k8s/`
+ - Merge `./k8s-*/` in to just `./k8s-sidecar/` and
+   `./k8s-standalone/`.
+ - Each `./k8s-*/` directory should deploy in to a different
+   namespace.

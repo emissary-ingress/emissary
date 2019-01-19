@@ -16,7 +16,7 @@ _Auth0_Client_Secret=MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkr
 #  - The TESTUSER_EMAIL/TESTUSER_PASSWORD account is set up
 
 # 03-ambassador-pro-oauth.yaml
-IMAGE=$(cat docker/ambassador-oauth.docker.knaut-push)
+IMAGE=$(cat docker/amb-sidecar-oauth.docker.knaut-push)
 AUTH_PROVIDER_URL=https://${_Auth0_Domain}
 
 # 04-tenants.yaml

@@ -1,10 +1,10 @@
 NAME            = ambassador-pro
 # For docker.mk
-DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(word 2,$(subst -, ,$(notdir $*)))-$(VERSION)
+DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
-K8S_DIRS        = k8s e2e-oauth/k8s
-K8S_ENVS        = k8s/env.sh e2e-oauth/env.sh
+K8S_DIRS        = k8s-sidecar k8s-standalone
+K8S_ENVS        = k8s-sidecar/env.sh tests/oauth-e2e/env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
@@ -54,56 +54,60 @@ docker/traffic-proxy.docker: docker/traffic-proxy/proxy
 docker/traffic-proxy/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/traffic-sidecar.docker: docker/traffic-sidecar/ambex
-docker/traffic-sidecar.docker: docker/traffic-sidecar/sidecar
-docker/traffic-sidecar/ambex:
+docker/app-sidecar.docker: docker/app-sidecar/ambex
+docker/app-sidecar.docker: docker/app-sidecar/sidecar
+docker/app-sidecar/ambex:
 	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
-docker/traffic-sidecar/%: bin_linux_amd64/%
+docker/app-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/apictl
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_check
-docker/ambassador-ratelimit.docker: docker/ambassador-ratelimit/ratelimit_client
-docker/ambassador-ratelimit/%: bin_linux_amd64/%
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/apictl
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_check
+docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_client
+docker/amb-sidecar-ratelimit/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/ambassador-oauth.docker: docker/ambassador-oauth/ambassador-oauth
-docker/ambassador-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+docker/amb-sidecar-oauth.docker: docker/amb-sidecar-oauth/ambassador-oauth
+docker/amb-sidecar-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
 	cp $< $@
 
 #
 # Check
 
+docker_tests =
+
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
-e2e-oauth/k8s/02-ambassador-certs.yaml: e2e-oauth/k8s/cert.pem e2e-oauth/k8s/key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert e2e-oauth/k8s/cert.pem --key e2e-oauth/k8s/key.pem > $@
+k8s-standalone/02-ambassador-certs.yaml: k8s-standalone/cert.pem k8s-standalone/key.pem
+	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
 
-deploy: e2e-oauth/k8s/02-ambassador-certs.yaml
-apply: e2e-oauth/k8s/02-ambassador-certs.yaml
+deploy: k8s-standalone/02-ambassador-certs.yaml
+apply: k8s-standalone/02-ambassador-certs.yaml
 
-e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock.json)
+tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
 	@touch $@
 
 check-intercept: ## Check: apictl traffic intercept
+check-intercept: deploy proxy
 	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
+docker_tests += check-intercept
 
-check-e2e: ## Check: e2e tests
-check-e2e: e2e-oauth/node_modules deploy proxy
-	cd e2e-oauth && npm test
-	$(MAKE) check-intercept
-.PHONY: check-e2e
+check-e2e: ## Check: oauth e2e tests
+check-e2e: tests/oauth-e2e/node_modules deploy proxy
+	cd tests/oauth-e2e && npm test
+docker_tests += check-e2e
 
+.PHONY: $(docker_tests)
 ifneq ($(shell which docker 2>/dev/null),)
-check: check-e2e
+check: $(docker_tests)
 else
 check:
-	@echo 'SKIPPING E2E TESTS'
+	@echo 'SKIPPING TESTS THAT REQUIRE DOCKER'
 endif
 
 #
@@ -111,16 +115,16 @@ endif
 
 clean:
 	rm -f docker/traffic-proxy/proxy
-	rm -f docker/traffic-sidecar/sidecar
-	rm -f docker/ambassador-ratelimit/apictl
-	rm -f docker/ambassador-ratelimit/ratelimit
-	rm -f docker/ambassador-ratelimit/ratelimit_check
-	rm -f docker/ambassador-ratelimit/ratelimit_client
-	rm -f docker/ambassador-oauth/ambassador-oauth
-	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
+	rm -f docker/app-sidecar/sidecar
+	rm -f docker/amb-sidecar-ratelimit/apictl
+	rm -f docker/amb-sidecar-ratelimit/ratelimit
+	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
+	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
+	rm -f docker/amb-sidecar-oauth/ambassador-oauth
+	rm -f k8s-standalone/??-ambassador-certs.yaml k8s-standalone/*.pem
 clobber:
-	rm -f docker/traffic-sidecar/ambex
-	rm -rf e2e-oauth/node_modules
+	rm -f docker/app-sidecar/ambex
+	rm -rf tests/oauth-e2e/node_modules
 
 #
 # Release
