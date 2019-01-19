@@ -1,4 +1,66 @@
 # @TEMPLATE@
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  # name must match the spec fields below, and be in the form: <plural>.<group>
+  # XXX: what is group name supposed to mean???
+  name: ratelimits.getambassador.io
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: getambassador.io
+  # list of versions supported by this CustomResourceDefinition
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      # Each version can be enabled/disabled by Served flag.
+      served: true
+      # One and only one version must be marked as the storage version.
+      storage: true
+  # either Namespaced or Cluster
+  scope: Namespaced
+  names:
+    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
+    plural: ratelimits
+    # singular name to be used as an alias on the CLI and for display
+    singular: ratelimit
+    # kind is normally the CamelCased singular type. Your resource manifests use this.
+    kind: RateLimit
+    # shortNames allow shorter string to match your resource on the CLI
+    shortNames:
+    - rl
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ratelimit-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: ratelimit-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratelimit-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratelimit-redis
+  template:
+    metadata:
+      labels:
+        app: ratelimit-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
+
 
 ######################################################################
 # Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
@@ -142,3 +204,48 @@ spec:
         - name: AMBASSADOR_LICENSE_KEY
           value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
       restartPolicy: Always
+
+
+######################################################################
+# Does this *need* to be a standalone service, or could it be a
+# sidecar?  IDK.  --lukeshu
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telepresence-proxy
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: telepresence-proxy
+  ports:
+  - name: sshd
+    protocol: TCP
+    port: 8022
+  - name: api
+    protocol: TCP
+    port: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telepresence-proxy
+  labels:
+    app: telepresence-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telepresence-proxy
+  template:
+    metadata:
+      labels:
+        app: telepresence-proxy
+    spec:
+      containers:
+      - name: telepresence-proxy
+        image: {{env "PROXY_IMAGE"}}
+        ports:
+        - name: sshd
+          containerPort: 8022
