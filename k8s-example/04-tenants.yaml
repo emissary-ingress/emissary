@@ -2,7 +2,7 @@
 apiVersion: getambassador.io/v1beta1
 kind: Tenant
 metadata:
-  name: tenant
+  name: tenants
   namespace: standalone
 spec:
   # List of app configured in your auth provider.

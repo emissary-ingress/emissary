@@ -1,4 +1,4 @@
-# HTTPBIN Policy
+---
 apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:

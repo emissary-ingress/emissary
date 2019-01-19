@@ -2,7 +2,7 @@
 apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
-  name: policy
+  name: httpbin-policy
   namespace: standalone
 spec:
   # everything defaults to private; you can create rules to make stuff

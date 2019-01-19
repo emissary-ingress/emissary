@@ -6,7 +6,12 @@ metadata:
   name: tenants
   namespace: standalone
 spec:
-  # List of tenant apps that are registered in the auth provider service.
+  # List of app configured in your auth provider.
+  # Fields:
+  #   tenantUrl: an absolute URL must be supplied.
+  #   audience: audience information.
+  #   clientId: application's client id.
+  #   secret: application's secret token. NOTE: this is now a required field for Auth0 code exchange flow.
   tenants:
   - tenantUrl: {{env "AUTH_TENANT_URL"}}
     audience: {{env "AUTH_AUDIENCE"}}

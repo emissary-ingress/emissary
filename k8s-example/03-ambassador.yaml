@@ -69,7 +69,9 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 80
+  - name: http
+    port: 80
+    targetPort: 80
   selector:
     service: ambassador
 ---
