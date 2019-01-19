@@ -8,6 +8,7 @@
 #  - Symlink: ./.go-workspace/src/EXAMPLE.COM/YOU/YOURREPO -> (git topdir)
 #  - Variable: go.DISABLE_GO_TEST ?=
 #  - Variable: go.LDFLAGS ?=
+#  - Variable: go.PLATFORMS ?= $(GOOS)_$(GOARCH)
 ## Outputs ##
 #  - Variable: go.module = EXAMPLE.COM/YOU/YOURREPO
 #  - Variable: go.bins = List of "main" Go packages
@@ -25,6 +26,10 @@
 #  - check
 #  - format
 #  - clobber
+#
+# `go.PLATFORMS` is a list of OS_ARCH pairs that specifies which
+# platforms `make build` should compile for.  Unlike most variables,
+# it must be specified *before* including go-workspace.mk.
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 ifneq ($(go.module),)
 $(error Only include one of go-mod.mk or go-workspace.mk)
