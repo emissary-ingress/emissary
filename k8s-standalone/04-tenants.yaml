@@ -4,6 +4,7 @@ apiVersion: stable.datawire.io/v1beta1
 kind: Tenant
 metadata:
   name: tenants
+  namespace: standalone
 spec:
   # List of tenant apps that are registered in the auth provider service.
   tenants:
