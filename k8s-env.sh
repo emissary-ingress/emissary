@@ -1,5 +1,10 @@
 #!/hint/sh
 
+RATELIMIT_IMAGE=$(cat docker/amb-sidecar-ratelimit.docker.knaut-push)
+PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
+SIDECAR_IMAGE=$(cat docker/app-sidecar.docker.knaut-push)
+IMAGE=$(cat docker/amb-sidecar-oauth.docker.knaut-push)
+
 # acceptance_test.js
 EXTERNAL_IP=ambassador.standalone.svc.cluster.local
 TESTUSER_EMAIL=testuser@datawire.com
@@ -15,8 +20,7 @@ _Auth0_Client_Secret=MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkr
 #  - "https://${EXTERNAL_IP}" is in the "Allowed Web Origins" textbox
 #  - The TESTUSER_EMAIL/TESTUSER_PASSWORD account is set up
 
-# 03-ambassador-pro-oauth.yaml
-IMAGE=$(cat docker/amb-sidecar-oauth.docker.knaut-push)
+# 03-ambassador-pro-*.yaml
 AUTH_PROVIDER_URL=https://${_Auth0_Domain}
 
 # 04-tenants.yaml

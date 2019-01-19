@@ -4,7 +4,7 @@ DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
 K8S_DIRS        = k8s-sidecar k8s-standalone
-K8S_ENVS        = k8s-sidecar/env.sh tests/oauth-e2e/env.sh
+K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
@@ -98,8 +98,8 @@ check-intercept: deploy proxy
 docker_tests += check-intercept
 
 check-e2e: ## Check: oauth e2e tests
-check-e2e: tests/oauth-e2e/node_modules deploy proxy
-	cd tests/oauth-e2e && npm test
+check-e2e: tests/oauth-e2e/node_modules k8s-env.sh deploy proxy
+	set -a && . $(abspath k8s-env.sh) && cd tests/oauth-e2e && npm test
 docker_tests += check-e2e
 
 .PHONY: $(docker_tests)

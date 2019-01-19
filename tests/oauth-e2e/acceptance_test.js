@@ -1,13 +1,7 @@
-const dotenv = require('dotenv')
 const puppeteer = require('puppeteer');
 const { expect } = require('chai');
 
-const result = dotenv.config({path: __dirname + "/env.sh"})
-if (result.error) {
-  throw result.error
-}
-
-const env = result.parsed
+const env = process.env
 
 beforeEach (async function () {
   process.on("unhandledRejection", (reason, p) => {
