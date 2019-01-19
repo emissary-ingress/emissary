@@ -8,12 +8,14 @@
 
  3. Deploy Ambassador
 
-        $ kubectl apply -f scripts/ambassador.yaml
+        $ kubectl apply -f k8s-standalone/01-*.yaml
+        $ kubectl apply -f k8s-standalone/02-*.yaml
+        $ kubectl apply -f k8s-standalone/03-ambassador.yaml
 
  4. Get Ambassador's external address
 
- 5. Edit `scripts/authorization-srv.yaml` by changing
-    `AUTH_CALLBACK_URL` to point to the external address.
+ 5. Edit `k8s-standalone/03-ambassador-pro-standalone.yaml` by
+    changing `AUTH_CALLBACK_URL` to point to the external address.
 
         e.g. http://{EXTERNAL IP}/callback
 
@@ -21,25 +23,25 @@
     `http://{EXTERNAL IP}/callback`. In the app `Connections`, make
     sure that `google-oauth2` is enabled.
 
- 7. Edit `scripts/authorization-srv.yaml` by changing `AUTH_DOMAIN` to
-    your Auth0 app domain.
+ 7. Edit `k8s-standalone/03-ambassador-pro-standalone.yaml` by
+    changing `AUTH_DOMAIN` to your Auth0 app domain.
 
         e.g.  {USERNAME}.auth0.com
 
- 8. Edit `scripts/authorization-srv.yaml` by changing `AUTH_AUDIENCE`
-     to your Auth0 app audience.
+ 8. Edit `k8s-standalone/03-ambassador-pro-standalone.yaml` by
+     changing `AUTH_AUDIENCE` to your Auth0 app audience.
 
         e.g.  https://{USERNAME}.auth0.com/api/v2/
 
- 9. Edit `scripts/authorization-srv.yaml` by changing `AUTH_CLIENT_ID`
-    to your Auth0 app client-id.
+ 9. Edit `k8s-standalone/03-ambassador-pro-standalone.yaml` by
+    changing `AUTH_CLIENT_ID` to your Auth0 app client-id.
 
  10. Run these commands:
 
-        $ kubectl apply -f scripts/httpbin.yaml
-        $ kubectl apply -f scripts/policy-crd.yaml
-        $ kubectl apply -f scripts/httpbin-policy.yaml
-        $ kubectl apply -f scripts/authorization-srv.yaml
+        $ kubectl apply -f k8s-standalone/03-ambassador-pro-standalone.yaml
+        $ kubectl apply -f k8s-standalone/04-httpbin.yaml
+        $ kubectl apply -f k8s-standalone/04-httpbin-policy.yaml
+        $ kubectl apply -f k8s-standalone/04-tenants.yaml
 
  11. By running `$ kubectl get services -n standalone`, you should see
      something like these:
