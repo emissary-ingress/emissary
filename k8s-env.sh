@@ -22,6 +22,7 @@ _Auth0_Client_Secret=MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkr
 
 # 03-ambassador-pro-*.yaml
 AUTH_PROVIDER_URL=https://${_Auth0_Domain}
+AMBASSADOR_LICENSE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
 
 # 04-tenants.yaml
 AUTH_TENANT_URL=https://${EXTERNAL_IP}
