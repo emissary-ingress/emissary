@@ -7,7 +7,7 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador
+  name: ambassador-standalone
 rules:
 - apiGroups: [""]
   resources:
@@ -26,19 +26,20 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador
+  namespace: standalone
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador
+  name: ambassador-standalone
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador
+  name: ambassador-standalone
 subjects:
 - kind: ServiceAccount
   name: ambassador
-  namespace: default
+  namespace: standalone
 
 
 ######################################################################
@@ -50,6 +51,7 @@ metadata:
   labels:
     service: ambassador-admin
   name: ambassador-admin
+  namespace: standalone
 spec:
   type: NodePort
   ports:
@@ -63,6 +65,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador
+  namespace: standalone
 spec:
   type: LoadBalancer
   ports:
@@ -74,6 +77,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ambassador
+  namespace: standalone
 spec:
   replicas: 3
   template:

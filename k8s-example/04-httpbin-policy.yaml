@@ -3,6 +3,7 @@ apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: policy
+  namespace: standalone
 spec:
   # everything defaults to private; you can create rules to make stuff
   # public, and you can create rules to require additional scopes
