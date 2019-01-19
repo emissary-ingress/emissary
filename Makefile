@@ -76,6 +76,8 @@ docker/ambassador-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
 #
 # Check
 
+docker_tests =
+
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
@@ -91,19 +93,21 @@ e2e-oauth/node_modules: e2e-oauth/package.json $(wildcard e2e-oauth/package-lock
 	@touch $@
 
 check-intercept: ## Check: apictl traffic intercept
+check-intercept: deploy proxy
 	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
+docker_tests += check-intercept
 
-check-e2e: ## Check: e2e tests
+check-e2e: ## Check: oauth e2e tests
 check-e2e: e2e-oauth/node_modules deploy proxy
 	cd e2e-oauth && npm test
-	$(MAKE) check-intercept
-.PHONY: check-e2e
+docker_tests += check-e2e
 
+.PHONY: $(docker_tests)
 ifneq ($(shell which docker 2>/dev/null),)
-check: check-e2e
+check: $(docker_tests)
 else
 check:
-	@echo 'SKIPPING E2E TESTS'
+	@echo 'SKIPPING TESTS THAT REQUIRE DOCKER'
 endif
 
 #
