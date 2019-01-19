@@ -7,11 +7,11 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-        apiVersion: ambassador/v1
-        kind:  Mapping
-        name:  mapping_for_echo
-        prefix: /echo/
-        service: echo
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: mapping_for_echo
+      prefix: /echo/
+      service: echo
 spec:
   type: ClusterIP
   selector:

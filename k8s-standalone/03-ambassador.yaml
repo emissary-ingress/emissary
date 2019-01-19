@@ -70,8 +70,8 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  Module
-      name:  tls
+      kind: Module
+      name: tls
       config:
         server:
           enabled: True

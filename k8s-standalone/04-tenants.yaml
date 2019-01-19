@@ -8,7 +8,7 @@ metadata:
 spec:
   # List of tenant apps that are registered in the auth provider service.
   tenants:
-    - tenantUrl: {{env "AUTH_TENANT_URL"}}
-      audience: {{env "AUTH_AUDIENCE"}}
-      clientId: {{env "AUTH_CLIENT_ID"}}
-      secret: {{env "AUTH_CLIENT_SECRET"}}
+  - tenantUrl: {{env "AUTH_TENANT_URL"}}
+    audience: {{env "AUTH_AUDIENCE"}}
+    clientId: {{env "AUTH_CLIENT_ID"}}
+    secret: {{env "AUTH_CLIENT_SECRET"}}

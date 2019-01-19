@@ -6,9 +6,9 @@ metadata:
 spec:
   domain: ambassador
   limits:
-   - pattern: [{source_cluster: "*"}, {destination_cluster: "*"}, {remote_address: "*"}, {generic_key: rldesc}]
-     rate: 3
-     unit: minute
+  - pattern: [{source_cluster: "*"}, {destination_cluster: "*"}, {remote_address: "*"}, {generic_key: rldesc}]
+    rate: 3
+    unit: minute
 ---
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
@@ -17,15 +17,15 @@ metadata:
 spec:
   domain: blah
   limits:
-   - pattern: [{foo: bar}, {bazz: "*", zoo: asdf}, {moo: blah}]
-     unit: day
-     rate: 5
-   - pattern: [{foo: bar}, {qux: mooo}]
-     unit: second
-     rate: 10
-   - pattern: [{bar: "*"}, {baz: moo, blutz: arf}, {bleh: "*"}]
-     unit: day
-     rate: 5
+  - pattern: [{foo: bar}, {bazz: "*", zoo: asdf}, {moo: blah}]
+    unit: day
+    rate: 5
+  - pattern: [{foo: bar}, {qux: mooo}]
+    unit: second
+    rate: 10
+  - pattern: [{bar: "*"}, {baz: moo, blutz: arf}, {bleh: "*"}]
+    unit: day
+    rate: 5
 ---
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
@@ -34,15 +34,15 @@ metadata:
 spec:
   domain: blah
   limits:
-   - pattern: [{foo: bar}, {baz: "*"}, {moo: blah}]
-     unit: day
-     rate: 5
-   - pattern: [{foo: bar}, {qux: moo}]
-     unit: second
-     rate: 10
-   - pattern: [{baz: "*"}, {baz: moo}, {bleh: "*"}]
-     unit: day
-     rate: 5
+  - pattern: [{foo: bar}, {baz: "*"}, {moo: blah}]
+    unit: day
+    rate: 5
+  - pattern: [{foo: bar}, {qux: moo}]
+    unit: second
+    rate: 10
+  - pattern: [{baz: "*"}, {baz: moo}, {bleh: "*"}]
+    unit: day
+    rate: 5
 ---
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
@@ -51,15 +51,15 @@ metadata:
 spec:
   domain: bleh
   limits:
-   - pattern: [{foo: bar}, {baz: "*"}, {moo: blah}]
-     unit: day
-     rate: 5
-   - pattern: [{foo: bar}, {qux: moo}]
-     unit: second
-     rate: 10
-   - pattern: [{baz: "*"}, {baz: moo}, {bleh: "*"}]
-     unit: day
-     rate: 5
+  - pattern: [{foo: bar}, {baz: "*"}, {moo: blah}]
+    unit: day
+    rate: 5
+  - pattern: [{foo: bar}, {qux: moo}]
+    unit: second
+    rate: 10
+  - pattern: [{baz: "*"}, {baz: moo}, {bleh: "*"}]
+    unit: day
+    rate: 5
 ---
 apiVersion: getambassador.io/v1beta1
 kind: RateLimit
@@ -68,9 +68,9 @@ metadata:
 spec:
   domain: test
   limits:
-   - pattern: [{a: b}]
-     rate: 5
-     unit: day
-   - pattern: [{a: c}]
-     rate: 5
-     unit: second
+  - pattern: [{a: b}]
+    rate: 5
+    unit: day
+  - pattern: [{a: c}]
+    rate: 5
+    unit: second

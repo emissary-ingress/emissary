@@ -53,11 +53,11 @@ spec:
   # list of versions supported by this CustomResourceDefinition
   version: v1beta1
   versions:
-    - name: v1beta1
-      # Each version can be enabled/disabled by Served flag.
-      served: true
-      # One and only one version must be marked as the storage version.
-      storage: true
+  - name: v1beta1
+    # Each version can be enabled/disabled by Served flag.
+    served: true
+    # One and only one version must be marked as the storage version.
+    storage: true
   # either Namespaced or Cluster
   scope: Namespaced
   names:
@@ -83,11 +83,11 @@ spec:
   # list of versions supported by this CustomResourceDefinition
   version: v1beta1
   versions:
-    - name: v1beta1
-      # Each version can be enabled/disabled by Served flag.
-      served: true
-      # One and only one version must be marked as the storage version.
-      storage: true
+  - name: v1beta1
+    # Each version can be enabled/disabled by Served flag.
+    served: true
+    # One and only one version must be marked as the storage version.
+    storage: true
   # either Namespaced or Cluster
   scope: Namespaced
   names:
@@ -114,18 +114,18 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
+      kind: AuthService
+      name: authentication
       auth_service: ambassador-pro-oauth
       allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-       - "X-Forwarded-Proto"
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      - "X-Forwarded-Proto"
       ---
       apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  callback_mapping
+      kind: Mapping
+      name: callback_mapping
       prefix: /callback
       service: ambassador-pro-oauth
       timeout_ms: 5000
@@ -134,7 +134,7 @@ spec:
   selector:
     name: ambassador-pro-oauth
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 80
     targetPort: 8080
 ---
@@ -162,7 +162,7 @@ spec:
         ports:
         - containerPort: 8080
         env:
-          - name: AUTH_PROVIDER_URL
-            value: {{env "AUTH_PROVIDER_URL"}}
-          - name: AMBASSADOR_LICENSE_KEY
-            value: {{env "AMBASSADOR_LICENSE_KEY"}}
+        - name: AUTH_PROVIDER_URL
+          value: {{env "AUTH_PROVIDER_URL"}}
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}

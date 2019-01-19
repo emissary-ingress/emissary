@@ -45,9 +45,9 @@ spec:
   group: getambassador.io
   version: v1beta1
   versions:
-    - name: v1beta1
-      served: true
-      storage: true
+  - name: v1beta1
+    served: true
+    storage: true
   scope: Namespaced
   names:
     plural: policies
@@ -64,9 +64,9 @@ spec:
   group: getambassador.io
   version: v1beta1
   versions:
-    - name: v1beta1
-      served: true
-      storage: true
+  - name: v1beta1
+    served: true
+    storage: true
   scope: Namespaced
   names:
     plural: tenants
@@ -87,14 +87,14 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
+      kind: AuthService
+      name: authentication
       auth_service: ambassador-pro-oauth
       allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-       - "X-Forwarded-Proto"
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      - "X-Forwarded-Proto"
 spec:
   selector:
     service: ambassador-pro-oauth
@@ -125,8 +125,8 @@ spec:
         ports:
         - containerPort: 8080
         env:
-          # Auth provider's abolute url: {scheme}://{host}
-          - name: AUTH_PROVIDER_URL
-            value: https://example.auth0.com
+        # Auth provider's abolute url: {scheme}://{host}
+        - name: AUTH_PROVIDER_URL
+          value: https://example.auth0.com
       imagePullSecrets:
       - name: ambassador-pro-registry-credentials
