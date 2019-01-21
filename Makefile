@@ -93,8 +93,8 @@ tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oaut
 	@touch $@
 
 check-intercept: ## Check: apictl traffic intercept
-check-intercept: deploy proxy
-	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
+check-intercept: k8s-env.sh deploy proxy
+	set -a && . $(abspath k8s-env.sh) && ./loop-intercept.sh
 docker_tests += check-intercept
 
 check-e2e: ## Check: oauth e2e tests
