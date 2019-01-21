@@ -140,6 +140,7 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        # Auth provider's abolute url: {scheme}://{host}
         - name: AUTH_PROVIDER_URL
           value: {{env "AUTH_PROVIDER_URL"}}
         - name: AMBASSADOR_LICENSE_KEY

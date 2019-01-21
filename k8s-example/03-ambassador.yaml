@@ -66,12 +66,25 @@ kind: Service
 metadata:
   name: ambassador
   namespace: standalone
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
 spec:
   type: NodePort # XXX: Kubernaut
   ports:
   - name: http
     port: 80
     targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
   selector:
     service: ambassador
 ---

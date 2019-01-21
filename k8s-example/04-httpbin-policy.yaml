@@ -12,12 +12,9 @@ spec:
   - host: "*"
     path: /httpbin/ip
     public: true
-    scope: offline_access email
   - host: "*"
     path: /httpbin/user-agent
     public: false
-    scope: offline_access brogramemrs
   - host: "*"
-    path: /qotm
-    public: true
-    scope: offline_access dogs
+    path: /httpbin/headers
+    public: false

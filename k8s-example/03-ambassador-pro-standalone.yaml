@@ -100,6 +100,13 @@ metadata:
       - "Client-Id"
       - "Client-Secret"
       - "X-Forwarded-Proto"
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: ambassador-pro
+      timeout_ms: 5000
 spec:
   type: ClusterIP
   selector:
@@ -116,6 +123,8 @@ metadata:
   namespace: standalone
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       service: ambassador-pro
