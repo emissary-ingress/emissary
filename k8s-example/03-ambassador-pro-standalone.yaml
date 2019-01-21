@@ -1,3 +1,5 @@
+# @TEMPLATE@
+
 ######################################################################
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
 # ambassador-pro that has access to the CRDs that we will create for
@@ -125,13 +127,13 @@ spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: auth
-        image: quay.io/gsagula/auth-service:multi
+        image: {{env "IMAGE"}}
         ports:
         - containerPort: 8080
         env:
         # Auth provider's abolute url: {scheme}://{host}
         - name: AUTH_PROVIDER_URL
-          value: https://example.auth0.com
+          value: {{env "AUTH_PROVIDER_URL"}}
 # XXX: Kubernaut
 #      imagePullSecrets:
 #      - name: ambassador-pro-registry-credentials

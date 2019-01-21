@@ -1,4 +1,5 @@
 ---
+# @TEMPLATE@
 apiVersion: getambassador.io/v1beta1
 kind: Tenant
 metadata:
@@ -14,10 +15,10 @@ spec:
   tenants:
 
   # app 1
-  - tenantUrl: https://example.com
-    audience: users
-    clientId: QbkhsuNAw0cpfiK55qkSAtjQcmC6rstT
-    secret: BkFwA2NUKcqXKyIHdkqT3nQB0jmV7GyGLZ_2PbbYquloUGO3_OUG7T8ZWA51iJbI
+  - tenantUrl: {{env "AUTH_TENANT_URL"}}
+    audience: {{env "AUTH_AUDIENCE"}}
+    clientId: {{env "AUTH_CLIENT_ID"}}
+    secret: {{env "AUTH_CLIENT_SECRET"}}
 
   # app 2
   # - tenantUrl: http://130.211.216.124
