@@ -263,7 +263,7 @@ func GetFreePort() (int, error) {
 			return operr
 		},
 	}
-	l, err := lc.Listen(context.Background(), "tcp", "localhost:0")
+	l, err := lc.Listen(context.Background(), "tcp", ":0")
 	if err != nil {
 		return 0, err
 	}
