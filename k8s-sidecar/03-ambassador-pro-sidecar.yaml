@@ -11,13 +11,10 @@ kind: ClusterRole
 metadata:
   name: ambassador-sidecar
 rules:
+# Regular Ambassador access requirements
 - apiGroups: [""]
   resources:
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["getambassador.io"]
-  resources:
-  - ratelimits
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
@@ -26,6 +23,12 @@ rules:
 - apiGroups: [""]
   resources:
   - secrets
+  verbs: ["get", "list", "watch"]
+# Ambassador Pro access requiremtns... we will create these CRDs
+# below.
+- apiGroups: ["getambassador.io"]
+  resources:
+  - ratelimits
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
