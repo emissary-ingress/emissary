@@ -52,10 +52,14 @@ spec:
           image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
+            {{- if .Values.service.enableHttp }}
             - name: http
               containerPort: {{ .Values.service.targetPorts.http }}
+            {{- end }}
+            {{- if .Values.service.enableHttps }}
             - name: https
               containerPort: {{ .Values.service.targetPorts.https }}
+            {{- end }}
             - name: admin
               containerPort: 8877
           env:
