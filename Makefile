@@ -62,15 +62,10 @@ docker/app-sidecar/ambex:
 docker/app-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/apictl
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_check
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_client
-docker/amb-sidecar-ratelimit/%: bin_linux_amd64/%
-	cp $< $@
-
-docker/amb-sidecar-oauth.docker: docker/amb-sidecar-oauth/ambassador-oauth
-docker/amb-sidecar-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+docker/amb-sidecar.docker: docker/amb-sidecar/ambassador-oauth
+docker/amb-sidecar.docker: docker/amb-sidecar/apictl
+docker/amb-sidecar.docker: docker/amb-sidecar/ratelimit
+docker/amb-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
 #
@@ -116,11 +111,9 @@ endif
 clean:
 	rm -f docker/traffic-proxy/proxy
 	rm -f docker/app-sidecar/sidecar
-	rm -f docker/amb-sidecar-ratelimit/apictl
-	rm -f docker/amb-sidecar-ratelimit/ratelimit
-	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
-	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
-	rm -f docker/amb-sidecar-oauth/ambassador-oauth
+	rm -f docker/amb-sidecar/ambassador-oauth
+	rm -f docker/amb-sidecar/apictl
+	rm -f docker/amb-sidecar/ratelimit
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 clobber:
 	rm -f docker/app-sidecar/ambex
