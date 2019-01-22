@@ -107,21 +107,19 @@ data:
 
 If you don't already have a Prometheus setup, the [Prometheus operator](https://github.com/coreos/prometheus-operator) is a powerful way to create and deploy Prometheus instances. Use the following YAML to quickly configure the Prometheus Operator with Ambassador:
 
-- [`prom-statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/statsd-sink-svc.yaml) Creates the statsd-sink service that collects stats date from Ambassador and translates it to Prometheus metrics. 
-- ['ambassador-monitor`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/ambassador-monitor.yaml) Creates a `ServiceMonitor` that adds `statsd-sink` as a Prometheus target.
-- [`prometheus-operator.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prometheus-operator.yaml) Deploys the Prometheus Operator and creates a `Prometheus` object that collects data from the location defined by the `ServiceMonitor`. 
+- [`statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/statsd-sink-svc.yaml) Creates the statsd-sink service that collects stats date from Ambassador and translates it to Prometheus metrics. It also creates a `ServiceMonitor` that adds `statsd-sink` as a Prometheus target.
+- [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prometheus.yaml) Deploys the Prometheus Operator and creates a `Prometheus` object that collects data from the location defined by the `ServiceMonitor`. 
 
 Make sure that the `ServiceMonitor` is in the same namespace as Ambassador. A walk-through of the basics of configuring the Prometheus operator with Ambassador and Envoy is available [here](http://www.datawire.io/faster/ambassador-prometheus/).
 
 Ensure `STATSD_ENABLED` is set to `"true"` and apply the yaml with kubectl.
 
 ```
-kubectl apply -f prom-statsd-sink.yaml
-kubectl apply -f ambassador-monitor.yaml
-kubectl apply -f prometheus-operator.yaml
+kubectl apply -f statsd-sink.yaml
+kubectl apply -f prometheus.yaml
 ```
 
-Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the Prometheus pod and going to http://localhost:9090/ on a web-browser.
+Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the prometheus pod and going to http://localhost:9090/ on a web-browser.
 
 ```
 kubectl port-forward prometheus-prometheus-0 9090
