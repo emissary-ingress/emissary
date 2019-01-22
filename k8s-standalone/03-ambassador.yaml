@@ -1,3 +1,12 @@
+# This file is roughly:
+# cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml)
+# but:
+#  - split in to sections, for readability
+#  - modified to work with Kubernaut
+#  - in the "standalone" namespace
+#  - with TLS enabled
+
 ######################################################################
 # Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
 # ambassador
@@ -78,6 +87,7 @@ metadata:
           redirect_cleartext_from: 80
 spec:
   type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
   ports:
   - name: http
     port: 80
@@ -99,6 +109,7 @@ spec:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
     spec:
