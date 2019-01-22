@@ -250,7 +250,7 @@ class V2Listener(dict):
         self.name = "redirect_listener"
         self.access_log: Optional[List[dict]] = None
         self.require_tls: Optional[str] = 'ALL'
-        self.use_proxy_proto: Optional[bool] = None
+        self.use_proxy_proto = listener.get('use_proxy_proto')
 
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
@@ -295,9 +295,6 @@ class V2Listener(dict):
 
             # Don't require TLS.
             self.require_tls = None
-
-            # Use the actual get_proxy_proto setting
-            self.use_proxy_proto = listener.get('use_proxy_proto')
 
             # Save upgrade configs.
             for group in config.ir.ordered_groups():
