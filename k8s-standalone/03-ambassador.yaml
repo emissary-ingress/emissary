@@ -8,7 +8,7 @@
 #  - with TLS enabled
 
 ######################################################################
-# Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
 # ambassador
 #
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced

@@ -121,7 +121,7 @@ spec:
   - port: 6379
     targetPort: 6379
   selector:
-    app: ambassador-pro-redis
+    service: ambassador-pro-redis
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -132,11 +132,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ambassador-pro-redis
+      service: ambassador-pro-redis
   template:
     metadata:
       labels:
-        app: ambassador-pro-redis
+        service: ambassador-pro-redis
     spec:
       containers:
       - name: redis
@@ -229,7 +229,7 @@ spec:
         - name: REDIS_URL
           value: ambassador-pro-redis:6379
         - name: PORT
-          value: "7000"
+          value: "7000" # This is important only because the default PORT is 8080, which would clash with auth
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
 # XXX: Kubernaut
