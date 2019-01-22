@@ -24,6 +24,7 @@ var LICENSE_PAUSE = map[*cobra.Command]bool{
 func init() {
 	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), Version)
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 		err := keycheck(cmd.PersistentFlags())
 		if err == nil {
 			return
@@ -47,7 +48,10 @@ func recoverFromCrash() {
 
 func main() {
 	defer recoverFromCrash()
-	apictl.Execute()
+	err := apictl.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 func die(err error, args ...interface{}) {
