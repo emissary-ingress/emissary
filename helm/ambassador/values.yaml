@@ -84,6 +84,13 @@ tolerations: []
 
 affinity: {}
 
+## Additional container environment variable
+## For instance to add a http_proxy
+##
+env: {}
+  # Exposing statistics via StatsD
+  # STATSD_ENABLED: true
+
 exporter:
   enabled: true
   image: prom/statsd-exporter:v0.6.0

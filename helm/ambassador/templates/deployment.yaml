@@ -91,6 +91,10 @@ spec:
             value: {{ .Values.timing.shutdown | quote }}
           {{- end -}}
           {{- end }}
+          {{- range $name, $value := .Values.env }}
+          - name: {{ $name }}
+            value: {{ $value | quote }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /ambassador/v0/check_alive

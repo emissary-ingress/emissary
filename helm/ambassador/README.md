@@ -51,6 +51,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `image.imagePullSecrets` | Image pull secrets | None
 | `daemonSet` | If `true `, Create a daemonSet. By default Deployment controller will be created | `false`
 | `replicaCount` | Number of Ambassador replicas  | `1`
+| `env` | Additional environment variables for ambassador | None
 | `volumes` | Volumes for the ambassador service | None
 | `volumeMounts` | Volume mounts for the ambassador service | None
 | `resources` | CPU/memory resource requests/limits | None
