@@ -3,19 +3,19 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: intercepted
+  name: echo
   annotations:
     getambassador.io/config: |
       ---
-        apiVersion: ambassador/v1
-        kind:  Mapping
-        name:  mapping_for_intercepted
-        prefix: /intercepted/
-        service: intercepted
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: mapping_for_echo
+      prefix: /echo/
+      service: echo
 spec:
   type: ClusterIP
   selector:
-    service: intercepted
+    service: echo
   ports:
   - name: proxied
     protocol: TCP
@@ -25,29 +25,29 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: intercepted
+  name: echo
   labels:
-    service: intercepted
+    service: echo
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      service: intercepted
+      service: echo
   template:
     metadata:
       labels:
-        service: intercepted
+        service: echo
     spec:
       containers:
-      - name: intercepted
-        image: kennethreitz/httpbin
+      - name: echo
+        image: jmalloc/echo-server
         ports:
-        - containerPort: 80
+        - containerPort: 8080
       - env:
         - name: APPNAME
-          value: intercepted
+          value: echo
         - name: APPPORT
-          value: "80"
+          value: "8080"
         image: {{env "SIDECAR_IMAGE"}}
         name: traffic-sidecar
         ports:

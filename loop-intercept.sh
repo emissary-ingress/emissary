@@ -51,9 +51,6 @@ if ! do_curl; then
 fi
 
 # Make sure apictl is okay
-if [ ! -f ~/.ambassador.key ]; then
-    echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8" > ~/.ambassador.key
-fi
 $APICTL help > /dev/null
 echo "+ $APICTL version"
 $APICTL version

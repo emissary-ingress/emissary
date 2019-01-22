@@ -59,9 +59,8 @@ This will build
 This will run both unit tests and e2e tests.
 
  > *NOTE:* This will talk to the Auth0 account configured in
- > `./tests/oauth-e2e/env.sh`.  The login credentials for that Auth0
- > can be found in Keybase under
- > `/datawireio/global/ambassador-oauth-ci.txt`.
+ > `./k8s-env.sh`.  The login credentials for that Auth0 can be found
+ > in Keybase under `/datawireio/global/ambassador-oauth-ci.txt`.
 
 On macOS, you will first need to add `host.docker.internal:31000` to
 Docker's list of "Insecure registries":
