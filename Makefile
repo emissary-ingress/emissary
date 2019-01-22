@@ -96,8 +96,8 @@ tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oaut
 	@test -d $@
 	@touch $@
 
-check-consul-connect-integration:
-	KUBECONFIG=$(KUBECONFIG) go run e2e-consul/main.go
+check-consul-connect-integration: k8s-env.sh deploy proxy
+	set -a && . $(abspath k8s-env.sh) && go run e2e-consul/main.go
 
 check-intercept: ## Check: apictl traffic intercept
 check-intercept: k8s-env.sh deploy proxy
