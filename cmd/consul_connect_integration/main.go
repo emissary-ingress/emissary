@@ -53,8 +53,12 @@ func NewAgent(ambassadorID string, secretNamespace string, secretName string, co
 		consulServiceName += "-" + ambassadorID
 	}
 
+	if secretName == "" {
+		secretName = consulServiceName + "-consul-connect"
+	}
+
 	return &Agent{
-		AmbassadorID:      ambassadorID,
+		AmbassadorID:      consulServiceName,
 		SecretNamespace:   secretNamespace,
 		SecretName:        secretName,
 		ConsulServiceName: consulServiceName,
@@ -65,21 +69,21 @@ func NewAgent(ambassadorID string, secretNamespace string, secretName string, co
 const (
 	// EnvAmbassadorID creates a secret for a specific instance of an Ambassador API Gateway. The TLS secret name will
 	// be formatted as "$AMBASSADOR_ID-consul-connect."
-	EnvAmbassadorID = "AMBASSADOR_ID"
+	EnvAmbassadorID = "_AMBASSADOR_ID"
 
 	// EnvConsulAPIHost is the IP address or DNS name of the Consul Agent's HTTP API server.
-	EnvConsulAPIHost = "CONSUL_HOST"
+	EnvConsulAPIHost = "_CONSUL_HOST"
 
 	// EnvConsulAPIPort is the Port number of the Consul Agent's HTTP API server.
-	EnvConsulAPIPort = "CONSUL_PORT"
+	EnvConsulAPIPort = "_CONSUL_PORT"
 
 	// EnvAmbassadorTLSSecretName is the full name of the Kubernetes Secret that contains the TLS certificate provided
 	// by Consul. If this value is set then the value of AMBASSADOR_ID is ignored when the name of the TLS secret is
 	// computed.
-	EnvSecretName = "AMBASSADOR_TLS_SECRET_NAME"
+	EnvSecretName = "_AMBASSADOR_TLS_SECRET_NAME"
 
 	// EnvSecretNamespace sets the namespace where the TLS secret is created.
-	EnvSecretNamespace = "AMBASSADOR_TLS_SECRET_NAMESPACE"
+	EnvSecretNamespace = "_AMBASSADOR_TLS_SECRET_NAMESPACE"
 )
 
 var secretTemplate = `---
