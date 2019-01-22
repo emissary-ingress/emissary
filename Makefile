@@ -359,7 +359,7 @@ clean-test:
 
 test: setup-develop cluster.yaml
 	cd ambassador && \
-	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	sh ../releng/run-tests.sh
