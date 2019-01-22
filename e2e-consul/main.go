@@ -44,7 +44,7 @@ func kubectlGetSecret(namespace string, name string) (string, error) {
 
 	namespaceArg := make([]string, 0)
 	if namespace == "" {
-		namespaceArg = append(namespaceArg, "--namespace=" + namespace)
+		namespaceArg = append(namespaceArg, "--namespace="+namespace)
 	}
 
 	args := []string{"get", "secret", name, "--output=json", "--ignore-not-found"}
