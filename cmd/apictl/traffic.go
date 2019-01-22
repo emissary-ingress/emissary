@@ -282,15 +282,15 @@ func doIntercept(cmd *cobra.Command, args []string) error {
 	var err error
 	apiPort, err = GetFreePort()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get free port for API")
 	}
 	inboundPort, err = GetFreePort()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "get free port for inbound")
 	}
 	info, err := k8s.NewKubeInfo("", "", "")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "load kubeconfig")
 	}
 	kargs := fmt.Sprintf("port-forward service/telepresence-proxy %d:8022 %d:8081", inboundPort, apiPort)
 	pf := tpu.NewKeeper("KPF", "kubectl "+info.GetKubectl(kargs))
@@ -302,7 +302,7 @@ func doIntercept(cmd *cobra.Command, args []string) error {
 
 	remote_port, err := icept(args[0], name, match)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "launch interceptor")
 	}
 	log.Printf("ICP: remote port %s", remote_port)
 	defer func() {
@@ -311,7 +311,7 @@ func doIntercept(cmd *cobra.Command, args []string) error {
 
 	iremote_port, err := strconv.Atoi(remote_port)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "parse number from interceptor: %s", remote_port)
 	}
 	go func() {
 		for {
