@@ -4,14 +4,17 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
 	consulapi "github.com/hashicorp/consul/api"
+	log "github.com/sirupsen/logrus"
 )
+
+// Version is inserted at build using --ldflags -X
+var Version = "(unknown version)"
 
 type ConsulRootCert struct {
 	Certificate              string
@@ -111,6 +114,7 @@ func main() {
 	log.WithFields(log.Fields{
 		"consul_host": consulAPIHost,
 		"consul_port": consulAPIPort,
+		"version":     Version,
 	}).Info("Starting Consul Connect Integration")
 
 	config := consulapi.DefaultConfig()
@@ -259,30 +263,21 @@ func formatKubernetesSecretYAML(name string, chain string, key string) string {
 }
 
 func applySecret(namespace string, yaml string) error {
-	kubectl, err := exec.LookPath("kubectl")
-	if err != nil {
-		panic(err)
-	}
-
 	args := []string{"apply", "-f", "-"}
 
 	if namespace != "" {
 		args = append(args, "--namespace", namespace)
 	}
 
-	log.WithFields(log.Fields{
-		"kubectl": kubectl,
-		"args":    args,
-	}).Debug("Computed kubectl command and arguments")
-
-	cmd := exec.Command(kubectl, args...)
+	cmd := exec.Command("kubectl", args...)
+	log.WithFields(log.Fields{"args": cmd.Args}).Debug("Computed kubectl command and arguments")
 
 	var errBuffer bytes.Buffer
 	cmd.Stderr = &errBuffer
 
 	cmd.Stdin = bytes.NewBuffer([]byte(yaml))
 
-	_, err = cmd.Output()
+	_, err := cmd.Output()
 	fmt.Println(errBuffer.String())
 
 	return err
