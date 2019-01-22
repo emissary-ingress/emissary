@@ -52,3 +52,4 @@ ambassador-deployment-*.yaml
 ambassador-secrets-deployment.yaml
 *failures.txt
 kubernaut-claim.txt
+*.swp
