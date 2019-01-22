@@ -6,6 +6,7 @@
 #  - split in to sections, for readability
 #  - modified to work with Kubernaut
 #  - in the "standalone" namespace
+#  - with the "telepresence-proxy" Service+Deployment added
 
 ######################################################################
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
@@ -232,6 +233,58 @@ spec:
           value: "7000" # This is important only because the default PORT is 8080, which would clash with auth
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
+
+
+######################################################################
+# Create the traffic-proxy Service+Deployment
+#
+# Does this *need* to be a standalone service, or can it be part of
+# the main ambassador-pro deployment?  IDK.  --lukeshu
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telepresence-proxy
+  namespace: standalone
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: telepresence-proxy
+  ports:
+  - name: sshd
+    protocol: TCP
+    port: 8022
+  - name: api
+    protocol: TCP
+    port: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telepresence-proxy
+  namespace: standalone
+  labels:
+    app: telepresence-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telepresence-proxy
+  template:
+    metadata:
+      labels:
+        app: telepresence-proxy
+    spec:
+      containers:
+      - name: telepresence-proxy
+        image: {{env "PROXY_IMAGE"}}
+        ports:
+        - name: sshd
+          containerPort: 8022
 # XXX: Kubernaut
 #      imagePullSecrets:
 #      - name: ambassador-pro-registry-credentials
