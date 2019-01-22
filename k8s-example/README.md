@@ -1,19 +1,29 @@
 ### Example files:
 
-* ambassador.yaml - Load-balancer deployment and service.
-* ambassador-pro.yaml - Authorization deployment and service.
-* httpbin.yaml - Service example that will seat behind the load balancer.
-* policy.yaml - Tells which resources the Ambassador-Pro service should protect.
-* tenants.yaml - Tells which applications should Ambassador-Pro protects.
+* `01-*.yaml` - Set up the namespace and other very-early tasks
+  - `01-namespace.yaml` - Set up the namespace
+* `02-*.yaml` - Things that must happen *before* Ambassador starts
+* `03-*.yaml` - Ambassador
+  - `03-ambassador.yaml` - Load-balancer deployment and service.
+  - `03-ambassador-pro-standalone.yaml` - Authorization deployment and
+    service.
+* `04-*.yaml` - Example applications
+  - `04-httpbin.yaml` - Service example that will seat behind the load
+    balancer.
+  - `04-httpbin-policy.yaml` - Tells which resources the
+    Ambassador-Pro service should protect.
+  - `04-tenants.yaml` - Tells which applications should Ambassador-Pro
+    protects.
 
 ### Configuration:
 
-1. In ambassador-pro.yaml, search for `AUTH_PROVIDER_URL`. This is the
-   absolute URL that allows Ambassador-Pro communicating with the auth
-   provider. In this case, Auth0.com.
-2. In tenants.yaml, at least on app configuration needs to be supplied
-   to `tenants` list. Follow the instructions in the manifest on how
-   to configure an application.
+1. In `03-ambassador-pro-standalone.yaml`, search for
+   `AUTH_PROVIDER_URL`. This is the absolute URL that allows
+   Ambassador-Pro communicating with the auth provider. In this case,
+   Auth0.com.
+2. In `04-tenants.yaml`, at least on app configuration needs to be
+   supplied to `tenants` list. Follow the instructions in the manifest
+   on how to configure an application.
 
 Verifying Ambassador-Pro deployment
 

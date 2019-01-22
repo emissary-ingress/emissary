@@ -2,6 +2,6 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: datawire
+  name: standalone
   labels:
-    name: datawire
+    name: standalone

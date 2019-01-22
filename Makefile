@@ -4,7 +4,7 @@ DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
 K8S_DIRS        = k8s-sidecar k8s-standalone
-K8S_ENVS        = k8s-sidecar/env.sh tests/oauth-e2e/env.sh
+K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
@@ -80,9 +80,9 @@ docker_tests =
 
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
-	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.datawire.svc.cluster.local"
+	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.standalone.svc.cluster.local"
 k8s-standalone/02-ambassador-certs.yaml: k8s-standalone/cert.pem k8s-standalone/key.pem
-	kubectl --namespace=datawire create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
+	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
 
 deploy: k8s-standalone/02-ambassador-certs.yaml
 apply: k8s-standalone/02-ambassador-certs.yaml
@@ -93,13 +93,13 @@ tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oaut
 	@touch $@
 
 check-intercept: ## Check: apictl traffic intercept
-check-intercept: deploy proxy
-	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
+check-intercept: k8s-env.sh deploy proxy
+	set -a && . $(abspath k8s-env.sh) && ./loop-intercept.sh
 docker_tests += check-intercept
 
 check-e2e: ## Check: oauth e2e tests
-check-e2e: tests/oauth-e2e/node_modules deploy proxy
-	cd tests/oauth-e2e && npm test
+check-e2e: tests/oauth-e2e/node_modules k8s-env.sh deploy proxy
+	set -a && . $(abspath k8s-env.sh) && cd tests/oauth-e2e && npm test
 docker_tests += check-e2e
 
 .PHONY: $(docker_tests)

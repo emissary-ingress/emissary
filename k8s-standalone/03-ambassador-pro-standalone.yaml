@@ -4,11 +4,13 @@
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
 # ambassador-pro-oauth that has access to the CRDs that we will
 # create for it below
+#
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro-standalone
 rules:
 - apiGroups: ["stable.datawire.io"]
   resources:
@@ -20,20 +22,20 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador-pro-oauth
-  namespace: datawire
+  namespace: standalone
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-pro-oauth
+  name: ambassador-pro-standalone
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-pro-oauth
+  name: ambassador-pro-standalone
 subjects:
 - kind: ServiceAccount
   name: ambassador-pro-oauth
-  namespace: datawire
+  namespace: standalone
 
 
 ######################################################################
@@ -51,11 +53,11 @@ spec:
   # list of versions supported by this CustomResourceDefinition
   version: v1beta1
   versions:
-    - name: v1beta1
-      # Each version can be enabled/disabled by Served flag.
-      served: true
-      # One and only one version must be marked as the storage version.
-      storage: true
+  - name: v1beta1
+    # Each version can be enabled/disabled by Served flag.
+    served: true
+    # One and only one version must be marked as the storage version.
+    storage: true
   # either Namespaced or Cluster
   scope: Namespaced
   names:
@@ -81,11 +83,11 @@ spec:
   # list of versions supported by this CustomResourceDefinition
   version: v1beta1
   versions:
-    - name: v1beta1
-      # Each version can be enabled/disabled by Served flag.
-      served: true
-      # One and only one version must be marked as the storage version.
-      storage: true
+  - name: v1beta1
+    # Each version can be enabled/disabled by Served flag.
+    served: true
+    # One and only one version must be marked as the storage version.
+    storage: true
   # either Namespaced or Cluster
   scope: Namespaced
   names:
@@ -107,23 +109,23 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador-pro-oauth
-  namespace: datawire
+  namespace: standalone
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
-      kind:  AuthService
-      name:  authentication
+      kind: AuthService
+      name: authentication
       auth_service: ambassador-pro-oauth
       allowed_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-       - "X-Forwarded-Proto"
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      - "X-Forwarded-Proto"
       ---
       apiVersion: ambassador/v0
-      kind:  Mapping
-      name:  callback_mapping
+      kind: Mapping
+      name: callback_mapping
       prefix: /callback
       service: ambassador-pro-oauth
       timeout_ms: 5000
@@ -132,7 +134,7 @@ spec:
   selector:
     name: ambassador-pro-oauth
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 80
     targetPort: 8080
 ---
@@ -140,7 +142,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ambassador-pro-oauth
-  namespace: datawire
+  namespace: standalone
 spec:
   replicas: 1
   strategy:
@@ -160,7 +162,7 @@ spec:
         ports:
         - containerPort: 8080
         env:
-          - name: AUTH_PROVIDER_URL
-            value: {{env "AUTH_PROVIDER_URL"}}
-          - name: AMBASSADOR_LICENSE_KEY
-            value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
+        - name: AUTH_PROVIDER_URL
+          value: {{env "AUTH_PROVIDER_URL"}}
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
