@@ -1,7 +1,20 @@
 # @TEMPLATE@
+#
+# This file is roughly:
+# cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml)
+# but:
+#  - split in to sections, for readability
+#  - modified to work with Kubernaut
+#  - with TLS enabled
+#  - with the ambassador-pro.yaml bit modified to be a sidecar of the
+#    main ambassador deployment
+#  - with the "telepresence-proxy" Service+Deployment added
+#  - with the Auth stuff removed (for now)
 
 ######################################################################
-# Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
 # ambassador
 #
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced
@@ -24,7 +37,7 @@ rules:
   resources:
   - secrets
   verbs: ["get", "list", "watch"]
-# Ambassador Pro access requiremtns... we will create these CRDs
+# Ambassador Pro access requirements... we will create these CRDs
 # below.
 - apiGroups: ["getambassador.io"]
   resources:
@@ -79,28 +92,28 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ratelimit-redis
+  name: ambassador-pro-redis
 spec:
   type: ClusterIP
   ports:
   - port: 6379
     targetPort: 6379
   selector:
-    app: ratelimit-redis
+    service: ambassador-pro-redis
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ratelimit-redis
+  name: ambassador-pro-redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ratelimit-redis
+      service: ambassador-pro-redis
   template:
     metadata:
       labels:
-        app: ratelimit-redis
+        service: ambassador-pro-redis
     spec:
       containers:
       - name: redis
@@ -109,39 +122,37 @@ spec:
 
 
 ######################################################################
-# Ambassador Pro services--these are all backed by the same deployment
-# as 'ambassador' and 'ambassador-admin'
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services, and the Deployment that backs them all.
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  name: ambassador-pro
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: RateLimitService
-      name: ratelimit
-      service: "127.0.0.1:8081"
-  name: ratelimit
+      name: ambassador-pro
+      service: "ambassador-pro:8081"
 spec:
   type: ClusterIP
-  ports:
-  - name: ratelimit-grpc
-    port: 81
-    targetPort: 8081
-  - name: ratelimit-debug
-    port: 80
-    targetPort: 6070
   selector:
     service: ambassador
-
-
-######################################################################
-# Create the ambassador Service+Service+Deployment
+  ports:
+  - name: ratelimit-grpc
+    port: 8081
+    targetPort: 8081
+  - name: ratelimit-debug
+    port: 6070
+    targetPort: 6070
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    service: ambassador-admin
   name: ambassador-admin
 spec:
   type: NodePort
@@ -156,12 +167,26 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
 spec:
   type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
   ports:
   - name: http
     port: 80
     targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
   selector:
     service: ambassador
 ---
@@ -170,11 +195,15 @@ kind: Deployment
 metadata:
   name: ambassador
 spec:
-  replicas: 1
+  replicas: 1 # XXX: Kubernaut
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
     spec:
@@ -182,21 +211,54 @@ spec:
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:0.50.0-rc3
+# XXX: Kubernaut
+#        resources:
+#          limits:
+#            cpu: 1
+#            memory: 400Mi
+#          requests:
+#            cpu: 200m
+#            memory: 100Mi
         env:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+# XXX: Kubernaut
+#        livenessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_alive
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+#        readinessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_ready
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
       - name: ratelimit
         image: {{env "RATELIMIT_IMAGE"}}
         env:
         - name: REDIS_SOCKET_TYPE
           value: tcp
         - name: REDIS_URL
-          value: ratelimit-redis:6379
+          value: ambassador-pro-redis:6379
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
 
 
 ######################################################################
@@ -244,3 +306,6 @@ spec:
         ports:
         - name: sshd
           containerPort: 8022
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
