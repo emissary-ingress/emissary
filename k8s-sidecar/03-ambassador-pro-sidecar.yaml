@@ -1,6 +1,53 @@
 # @TEMPLATE@
 
 ######################################################################
+# Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador
+#
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-sidecar
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["getambassador.io"]
+  resources:
+  - ratelimits
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-sidecar
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-sidecar
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: default
+
+
+######################################################################
 # Create a CRDs used to configure ambassador-pro
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
@@ -56,53 +103,6 @@ spec:
       - name: redis
         image: redis:5.0.1
       restartPolicy: Always
-
-
-######################################################################
-# Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador
-#
-# NB: ClusterRoles and ClusterRoleBindings are not namespaced
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: ambassador-sidecar
-rules:
-- apiGroups: [""]
-  resources:
-  - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["getambassador.io"]
-  resources:
-  - ratelimits
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador-sidecar
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador-sidecar
-subjects:
-- kind: ServiceAccount
-  name: ambassador
-  namespace: default
 
 
 ######################################################################
