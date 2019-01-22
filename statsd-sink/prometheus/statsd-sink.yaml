@@ -1,0 +1,70 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: statsd-sink
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: statsd-sink
+    spec:
+      containers:
+      - name: statsd-sink
+        image: prom/statsd-exporter:v0.7.0
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: statsd-sink
+  name: statsd-sink
+spec:
+  ports:
+  - protocol: UDP
+    port: 8125
+    targetPort: 9125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 9102
+    name: prometheus-metrics
+  selector:
+    service: statsd-sink
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-monitor
+  labels:
+    service: ambassador-monitor
+spec:
+  selector:
+    service: statsd-sink
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: prometheus-metrics
+    port: 9102
+    targetPort: 9102
+    protocol: TCP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ambassador-monitor
+  labels:
+    ambassador: monitoring
+spec:
+  selector:
+    matchLabels:
+      service: ambassador-monitor
+  endpoints:
+  - port: prometheus-metrics
