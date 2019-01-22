@@ -6,7 +6,6 @@
 #  - split in to sections, for readability
 #  - modified to work with Kubernaut
 #  - in the "standalone" namespace
-#  - with ratelimit stuff removed (for now)
 
 ######################################################################
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
@@ -23,6 +22,7 @@ rules:
 - apiGroups: ["getambassador.io"]
   resources:
   - policies
+  - ratelimits
   - tenants
   verbs: ["get", "list", "watch"]
 ---
@@ -86,6 +86,62 @@ spec:
     kind: Tenant
     shortNames:
     - ten
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimits.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimits
+    singular: ratelimit
+    kind: RateLimit
+    shortNames:
+    - rl
+
+
+######################################################################
+# Redis for Ambassador Pro ratelimit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-redis
+  namespace: standalone
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: ambassador-pro-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-pro-redis
+  namespace: standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ambassador-pro-redis
+  template:
+    metadata:
+      labels:
+        app: ambassador-pro-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
 
 
 ######################################################################
@@ -98,6 +154,11 @@ metadata:
   namespace: standalone
   annotations:
     getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: RateLimitService
+      name: ambassador-pro
+      service: "ambassador-pro:8081"
       ---
       apiVersion: ambassador/v1
       kind: AuthService
@@ -122,6 +183,12 @@ spec:
   selector:
     service: ambassador-pro
   ports:
+  - name: ratelimit-grpc
+    port: 8081
+    targetPort: 8081
+  - name: ratelimit-debug
+    port: 6070
+    targetPort: 6070
   - name: auth-http
     port: 80
     targetPort: 8080
@@ -152,6 +219,17 @@ spec:
         # This is required for the container to start
         - name: AUTH_PROVIDER_URL
           value: {{env "AUTH_PROVIDER_URL"}}
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+      - name: ratelimit
+        image: {{env "RATELIMIT_IMAGE"}}
+        env:
+        - name: REDIS_SOCKET_TYPE
+          value: tcp
+        - name: REDIS_URL
+          value: ambassador-pro-redis:6379
+        - name: PORT
+          value: "7000"
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
 # XXX: Kubernaut
