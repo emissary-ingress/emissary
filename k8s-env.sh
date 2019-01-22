@@ -4,7 +4,7 @@ RATELIMIT_IMAGE=$(cat docker/amb-sidecar-ratelimit.docker.knaut-push)
 PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
 SIDECAR_IMAGE=$(cat docker/app-sidecar.docker.knaut-push)
 IMAGE=$(cat docker/amb-sidecar-oauth.docker.knaut-push)
-CONSUL_CONNECT_INTEGRATION_IMAGe=$(cat docker/consul_connect_integration.docker.knaut-push)
+CONSUL_CONNECT_INTEGRATION_IMAGE=$(cat docker/consul_connect_integration.docker.knaut-push)
 
 # acceptance_test.js
 EXTERNAL_IP=ambassador.standalone.svc.cluster.local
