@@ -201,16 +201,15 @@ func (state *ProxyState) stopIntercept(deployment string, port int) error {
 
 // Handle list, create, and delete of an intercept for a deployment
 func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request) {
+	deployment := strings.TrimRight(r.URL.Path, "/")
+	if deployment == "" {
+		http.Error(w, "403 index listing disabled", http.StatusForbidden)
+		return
+	}
+
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	path := r.URL.Path
-	comps := strings.Split(path, "/")
-	if len(comps) != 3 {
-		http.NotFound(w, r)
-		return
-	}
-	deployment := comps[len(comps)-1]
 	dInfo := state.Deployments[deployment]
 	if dInfo == nil {
 		http.NotFound(w, r)
@@ -331,7 +330,14 @@ func main() {
 
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
-	http.HandleFunc("/intercept/", state.handleIntercept)
+	http.Handle("/intercept/", http.StripPrefix("/intercept/", http.HandlerFunc(state.handleIntercept)))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, "403 index listing disabled", http.StatusForbidden)
+	})
 
 	fmt.Println("Starting server...")
 	http.ListenAndServe("0.0.0.0:8081", nil)
