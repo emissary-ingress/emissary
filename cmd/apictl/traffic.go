@@ -16,9 +16,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/datawire/teleproxy/pkg/tpu"
-	"github.com/spf13/cobra"
 )
 
 var traffic = &cobra.Command{
@@ -33,7 +35,7 @@ func init() {
 var initialize = &cobra.Command{
 	Use:   "initialize",
 	Short: "Initialize the traffic management subsystem",
-	Run:   doInitialize,
+	RunE:  doInitialize,
 }
 
 func init() {
@@ -85,9 +87,11 @@ spec:
 `
 )
 
-func doInitialize(cmd *cobra.Command, args []string) {
+func doInitialize(cmd *cobra.Command, args []string) error {
 	info, err := k8s.NewKubeInfo("", "", "")
-	die(err)
+	if err != nil {
+		return err
+	}
 
 	apply := tpu.NewKeeper("KAP", "kubectl "+info.GetKubectl("apply -f -"))
 	apply.Input = TRAFFIC_MANAGER
@@ -97,12 +101,17 @@ func doInitialize(cmd *cobra.Command, args []string) {
 
 	w := k8s.NewWaiter(k8s.NewClient(info).Watcher())
 	err = w.Add("service/telepresence-proxy")
-	die(err)
-	err = w.Add("deployment/telepresence-proxy")
-	die(err)
-	if !w.Wait(30) {
-		os.Exit(1)
+	if err != nil {
+		return err
 	}
+	err = w.Add("deployment/telepresence-proxy")
+	if err != nil {
+		return err
+	}
+	if !w.Wait(30) {
+		return errors.New("FIXME: There should be a good error message here")
+	}
+	return nil
 }
 
 var inject = &cobra.Command{
@@ -110,7 +119,7 @@ var inject = &cobra.Command{
 	Short:   "Inject the traffic sidecar into a deployment",
 	Args:    cobra.MinimumNArgs(1),
 	Example: "apictl traffic inject -d example-dep -s example-svc -p 9000 k8s/example.yaml > injected-example.yaml",
-	Run:     doInject,
+	RunE:    doInject,
 }
 
 func init() {
@@ -126,25 +135,36 @@ var deployment string
 var service string
 var port int
 
-func doInject(cmd *cobra.Command, args []string) {
+func doInject(cmd *cobra.Command, args []string) error {
 	for _, arg := range args {
 		resources, err := k8s.LoadResources(arg)
-		die(err)
+		if err != nil {
+			return err
+		}
 		for _, res := range resources {
 			if strings.ToLower(res.Kind()) == "deployment" && res.Name() == deployment {
-				munge(res)
+				err = munge(res)
+				if err != nil {
+					return err
+				}
 			}
 			if strings.ToLower(res.Kind()) == "service" && res.Name() == service {
-				mungeService(res)
+				err = mungeService(res)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		bytes, err := k8s.MarshalResources(resources)
-		die(err)
+		if err != nil {
+			return err
+		}
 		fmt.Print(string(bytes))
 	}
+	return nil
 }
 
-func munge(res k8s.Resource) {
+func munge(res k8s.Resource) error {
 	spec := res.Spec()
 	podSpec := spec["template"].(map[string]interface{})["spec"].(map[string]interface{})
 	containers := podSpec["containers"].([]interface{})
@@ -169,8 +189,8 @@ func munge(res k8s.Resource) {
 		}
 
 		if len(ports) != 1 {
-			die(fmt.Errorf("found %d ports, cannot infer application port, please specify on the command line",
-				len(ports)))
+			return errors.Errorf("found %d ports, cannot infer application port, please specify on the command line",
+				len(ports))
 		} else {
 			app_port = ports[0]
 		}
@@ -191,13 +211,14 @@ func munge(res k8s.Resource) {
 
 	containers = append(containers, blah)
 	podSpec["containers"] = containers
+	return nil
 }
 
-func mungeService(res k8s.Resource) {
+func mungeService(res k8s.Resource) error {
 	spec := res.Spec()
 	iportSpecs, ok := spec["ports"]
 	if !ok {
-		die(fmt.Errorf("No ports found for service: %s", service))
+		return errors.Errorf("No ports found for service: %s", service)
 	}
 	portSpecs := iportSpecs.([]interface{})
 	for _, iportSpec := range portSpecs {
@@ -205,18 +226,18 @@ func mungeService(res k8s.Resource) {
 		targetPort := portSpec["targetPort"]
 		if targetPort == port {
 			portSpec["targetPort"] = 9900
-			return
+			return nil
 		}
 	}
 
-	die(fmt.Errorf("service %s has no targetPort of %d", service, port))
+	return errors.Errorf("service %s has no targetPort of %d", service, port)
 }
 
 var intercept = &cobra.Command{
 	Use:   "intercept",
 	Short: "Intercept the traffic for a given deployment",
 	Args:  cobra.MinimumNArgs(1),
-	Run:   doIntercept,
+	RunE:  doIntercept,
 }
 
 func init() {
@@ -257,14 +278,20 @@ var name string
 var match string
 var target string
 
-func doIntercept(cmd *cobra.Command, args []string) {
+func doIntercept(cmd *cobra.Command, args []string) error {
 	var err error
 	apiPort, err = GetFreePort()
-	die(err)
+	if err != nil {
+		return err
+	}
 	inboundPort, err = GetFreePort()
-	die(err)
+	if err != nil {
+		return err
+	}
 	info, err := k8s.NewKubeInfo("", "", "")
-	die(err)
+	if err != nil {
+		return err
+	}
 	kargs := fmt.Sprintf("port-forward service/telepresence-proxy %d:8022 %d:8081", inboundPort, apiPort)
 	pf := tpu.NewKeeper("KPF", "kubectl "+info.GetKubectl(kargs))
 	pf.Inspect = "kubectl " + info.GetKubectl("describe service/telepresence-proxy deployment/telepresence-proxy")
@@ -273,14 +300,19 @@ func doIntercept(cmd *cobra.Command, args []string) {
 
 	time.Sleep(500 * time.Millisecond)
 
-	remote_port := icept(args[0], name, match)
+	remote_port, err := icept(args[0], name, match)
+	if err != nil {
+		return err
+	}
 	log.Printf("ICP: remote port %s", remote_port)
 	defer func() {
 		log.Printf("ICP: %s", cleanup(args[0], remote_port))
 	}()
 
 	iremote_port, err := strconv.Atoi(remote_port)
-	die(err)
+	if err != nil {
+		return err
+	}
 	go func() {
 		for {
 			time.Sleep(5 * time.Second)
@@ -312,9 +344,10 @@ func doIntercept(cmd *cobra.Command, args []string) {
 	fmt.Println("Intercept is running. Press Ctrl-C/Ctrl-Break to quit.")
 
 	log.Printf("ICP: %v", <-signalChan)
+	return nil
 }
 
-func icept(name, header, regex string) string {
+func icept(name, header, regex string) (string, error) {
 	for {
 		result, err := json_request(name, "POST", map[string]interface{}{
 			"name": name,
@@ -323,16 +356,15 @@ func icept(name, header, regex string) string {
 			},
 		})
 		if err != nil {
-			f, ok := err.(*FatalError)
-			if ok {
-				die(f)
+			if _, is_fatal := err.(*FatalError); is_fatal {
+				return "", err
 			} else {
 				log.Printf("ICP: %v", err)
 				time.Sleep(1 * time.Second)
 				continue
 			}
 		}
-		return result
+		return result, nil
 	}
 }
 
