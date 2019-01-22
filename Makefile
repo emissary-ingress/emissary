@@ -99,11 +99,6 @@ tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oaut
 check-consul-connect-integration:
 	KUBECONFIG=$(KUBECONFIG) go run e2e-consul/main.go
 
-check-e2e: ## Check: e2e tests
-check-e2e: e2e-oauth/node_modules deploy proxy
-	cd e2e-oauth && npm test
-	$(MAKE) check-consul-connect-integration
-.PHONY: check-e2e
 check-intercept: ## Check: apictl traffic intercept
 check-intercept: deploy proxy
 	KUBECONFIG=$(KUBECONFIG) ./loop-intercept.sh
