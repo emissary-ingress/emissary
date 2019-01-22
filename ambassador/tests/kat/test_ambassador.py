@@ -468,6 +468,28 @@ service: {self.target.path.k8s}
     def queries(self):
         yield Query(self.url("tls-target/"), expected=301)
 
+
+class RedirectTestsWithProxyProto(RedirectTests):
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  use_proxy_proto: true
+""")
+
+    def queries(self):
+        # TODO (concaf): FWIW, this query only covers one side of the story. This tests that this is the correct
+        #  deviation from the normal behavior (301 response), but does not test a 301 when proxy proto is actually sent.
+        #  This is because net/http does not yet support adding proxy proto to HTTP requests, and hence it's difficult
+        #  to test with kat. We will need to open a raw TCP connection (e.g. telnet/nc) and send the entire HTTP Request in
+        #  plaintext to test this behavior (or use curl with --haproxy-protocol).
+        yield Query(self.url("tls-target/"), error="EOF")
+
+
 class RedirectTestsInvalidSecret(RedirectTests):
     """
     This test tests that even if the specified secret is invalid, the rest of TLS Context should
