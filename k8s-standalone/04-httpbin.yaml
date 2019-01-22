@@ -15,7 +15,7 @@ metadata:
       host_rewrite: httpbin.org
       timeout_ms: 5000
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: httpbin
     port: 80

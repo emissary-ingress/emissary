@@ -1,5 +1,5 @@
-# HTTPBIN Policy
-apiVersion: stable.datawire.io/v1beta1
+---
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: httpbin-policy
@@ -10,14 +10,11 @@ spec:
   # which will be automatically checked
   rules:
   - host: "*"
-    path: /callback
-    public: true
-  - host: "*"
     path: /httpbin/ip
     public: true
   - host: "*"
-    path: /httpbin/user-agent/*
+    path: /httpbin/user-agent
     public: false
   - host: "*"
-    path: /httpbin/headers/*
-    scope: "openid"
+    path: /httpbin/headers
+    public: false
