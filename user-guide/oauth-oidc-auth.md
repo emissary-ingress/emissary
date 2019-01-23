@@ -38,7 +38,7 @@ To configure your tenant, create the following YAML and put it in a file called 
 
 ```
 ---
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Tenant
 metadata:
   name: domain1-tenant
@@ -77,7 +77,7 @@ Example:
 
 ```
 ---
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Tenant
 metadata:
   name: domain1-tenant
@@ -92,7 +92,7 @@ spec:
 
 ```
 ---
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Tenant
 metadata:
   name: domain2-tenant
@@ -134,7 +134,7 @@ This is an example policy for the `httpbin` service defined in the [YAML install
 
 ```
 ---
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: policy
