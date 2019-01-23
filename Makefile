@@ -95,7 +95,7 @@ check-consul-connect-integration: k8s-env.sh deploy proxy
 docker_tests += check-consul-connect-integration
 
 check-intercept: ## Check: apictl traffic intercept
-check-intercept: k8s-env.sh deploy proxy
+check-intercept: k8s-env.sh bin_$(GOOS)_$(GOARCH)/apictl deploy proxy
 	set -a && . $(abspath k8s-env.sh) && ./loop-intercept.sh
 docker_tests += check-intercept
 
