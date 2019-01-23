@@ -1,11 +1,10 @@
 FROM envoyproxy/envoy:28d5f4118d60f828b1453cd8ad25033f2c8e38ab
 
 # Files that do NOT have the version number embedded
-COPY ./entrypoint.sh ./ambex ./bootstrap-ads.yaml /application/
-COPY ./data/* /application/data/
+COPY ./run.sh ./ambex ./bootstrap-ads.yaml /opt/ambassador-pro/
+COPY ./data/* /opt/ambassador-pro/data/
 
 # Files that DO have the version number embedded
-COPY ./app-sidecar /application/
+COPY ./app-sidecar /opt/ambassador-pro/
 
-WORKDIR /application
-CMD [ "/application/entrypoint.sh" ]
+CMD [ "/opt/ambassador-pro/run.sh" ]
