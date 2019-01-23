@@ -141,7 +141,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {self.path.k8s}
-  namespace: default
+  namespace: {self.namespace}
 ---
 apiVersion: v1
 kind: Pod
@@ -157,7 +157,10 @@ spec:
   - name: ambassador
     image: {image}
     env:
-    {envs}
+    {% if self.single_namespace -%}
+    - name: AMBASSADOR_SINGLE_NAMESPACE
+      value: yes
+    {%- endif %}
     - name: AMBASSADOR_NAMESPACE
       valueFrom:
         fieldRef:

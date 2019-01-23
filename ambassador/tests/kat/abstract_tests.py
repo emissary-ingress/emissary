@@ -80,7 +80,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {self.path.k8s}
-  namespace: default
+  namespace: {self.namespace}
 ---
 apiVersion: v1
 kind: Secret
@@ -114,9 +114,12 @@ class AmbassadorTest(Test):
 
     _index: Optional[int] = None
     _ambassador_id: Optional[str] = None
-    env = []
+    single_namespace: bool = False
     name: Name
     path: Name
+
+    namespace = "default"
+    env = []
 
     def manifests(self) -> str:
         if DEV:
@@ -172,7 +175,9 @@ class AmbassadorTest(Test):
             with open(fname) as fd:
                 content = fd.read()
         else:
-            result = run("kubectl", "get", "-o", "yaml", "secret", self.path.k8s)
+            nsp = getattr(self, 'namespace', None) or 'default'
+
+            result = run("kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
             result.check_returncode()
             with open(fname, "wb") as fd:
                 fd.write(result.stdout)
@@ -193,6 +198,13 @@ class AmbassadorTest(Test):
 
         envs = ["KUBERNETES_SERVICE_HOST=kubernetes", "KUBERNETES_SERVICE_PORT=443",
                 "AMBASSADOR_ID=%s" % self.ambassador_id]
+
+        if self.namespace:
+            envs.append("AMBASSADOR_NAMESPACE=%s" % self.namespace)
+
+        if self.single_namespace:
+            envs.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
+
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]
 

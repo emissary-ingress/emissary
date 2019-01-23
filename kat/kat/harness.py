@@ -638,7 +638,27 @@ class Runner:
         for n in self.nodes:
             yaml = n.manifests()
             if yaml is not None:
-                manifests[n] = load(n.path, yaml, Tag.MAPPING)
+                manifest = load(n.path, yaml, Tag.MAPPING)
+
+                nsp = None
+                cur = n
+
+                while cur:
+                    nsp = getattr(cur, 'namespace', None)
+
+                    if nsp:
+                        break
+                    else:
+                      cur = cur.parent
+
+                if nsp:
+                    for m in manifest:
+                        if 'metadata' not in m:
+                            m['metadata'] = {}
+
+                        m['metadata']['namespace'] = nsp
+
+                manifests[n] = manifest
 
         configs = OrderedDict()
         for n in self.nodes:
