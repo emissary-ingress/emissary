@@ -92,7 +92,5 @@ here?).
 
 ## TODO:
 
- - Merge `./k8s-*/` in to just `./k8s-sidecar/` and
-   `./k8s-standalone/`.
  - Each `./k8s-*/` directory should deploy in to a different
    namespace.
