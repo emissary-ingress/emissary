@@ -57,6 +57,8 @@ commands:
           trap 'make unclaim' EXIT
           set -x
           make check
+      # Verify that the build is still not dirty
+      - run: make help
 
   release:
     steps:
