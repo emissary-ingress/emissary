@@ -1,3 +1,5 @@
+// +build ignore
+
 package main
 
 import (
@@ -50,7 +52,6 @@ func kubectlGetSecret(namespace string, name string) (string, error) {
 	args := []string{"get", "secret", name, "--output=json", "--ignore-not-found"}
 	args = append(args, namespaceArg...)
 	cmd := exec.Command(kubectl, args...)
-	cmd.Env = []string{fmt.Sprintf("KUBECONFIG=%s", os.Getenv("KUBECONFIG"))}
 
 	out, err := cmd.Output()
 	return string(out), err
