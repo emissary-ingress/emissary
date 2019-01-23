@@ -1,69 +1,19 @@
 # @TEMPLATE@
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  # name must match the spec fields below, and be in the form: <plural>.<group>
-  # XXX: what is group name supposed to mean???
-  name: ratelimits.getambassador.io
-spec:
-  # group name to use for REST API: /apis/<group>/<version>
-  group: getambassador.io
-  # list of versions supported by this CustomResourceDefinition
-  version: v1beta1
-  versions:
-    - name: v1beta1
-      # Each version can be enabled/disabled by Served flag.
-      served: true
-      # One and only one version must be marked as the storage version.
-      storage: true
-  # either Namespaced or Cluster
-  scope: Namespaced
-  names:
-    # plural name to be used in the URL: /apis/<group>/<version>/<plural>
-    plural: ratelimits
-    # singular name to be used as an alias on the CLI and for display
-    singular: ratelimit
-    # kind is normally the CamelCased singular type. Your resource manifests use this.
-    kind: RateLimit
-    # shortNames allow shorter string to match your resource on the CLI
-    shortNames:
-    - rl
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ratelimit-redis
-spec:
-  type: ClusterIP
-  ports:
-  - port: 6379
-    targetPort: 6379
-  selector:
-    app: ratelimit-redis
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ratelimit-redis
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ratelimit-redis
-  template:
-    metadata:
-      labels:
-        app: ratelimit-redis
-    spec:
-      containers:
-      - name: redis
-        image: redis:5.0.1
-      restartPolicy: Always
-
+#
+# This file is roughly:
+# cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml)
+# but:
+#  - split in to sections, for readability
+#  - modified to work with Kubernaut
+#  - with TLS enabled
+#  - with the ambassador-pro.yaml bit modified to be a sidecar of the
+#    main ambassador deployment
+#  - with the "telepresence-proxy" Service+Deployment added
 
 ######################################################################
-# Create the ClusterRole+ClusterRoleBinding+ServiceAccount for
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
 # ambassador
 #
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced
@@ -73,13 +23,10 @@ kind: ClusterRole
 metadata:
   name: ambassador-sidecar
 rules:
+# Regular Ambassador access requirements
 - apiGroups: [""]
   resources:
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["getambassador.io"]
-  resources:
-  - ratelimits
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
@@ -88,6 +35,14 @@ rules:
 - apiGroups: [""]
   resources:
   - secrets
+  verbs: ["get", "list", "watch"]
+# Ambassador Pro access requirements... we will create these CRDs
+# below.
+- apiGroups: ["getambassador.io"]
+  resources:
+  - policies
+  - ratelimits
+  - tenants
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -110,45 +65,155 @@ subjects:
 
 
 ######################################################################
+# Create a CRDs used to configure ambassador-pro
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
 metadata:
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v0
-      kind: RateLimitService
-      name: ratelimit
-      service: "127.0.0.1:8081"
-      ---
-      apiVersion: ambassador/v0
-      kind: Mapping
-      name: rl-test
-      prefix: /rl/
-      service: httpbin.org
-      rate_limits:
-      - descriptor: rldesc
-  name: ratelimit
+  name: policies.getambassador.io
 spec:
-  type: ClusterIP
-  ports:
-  - name: ratelimit-grpc
-    port: 81
-    targetPort: 8081
-  - name: ratelimit-debug
-    port: 80
-    targetPort: 6070
-  selector:
-    service: ambassador
+  group: getambassador.io
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: policies
+    singular: policy
+    kind: Policy
+    shortNames:
+    - pol
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tenants.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tenants
+    singular: tenant
+    kind: Tenant
+    shortNames:
+    - ten
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimits.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta1
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimits
+    singular: ratelimit
+    kind: RateLimit
+    shortNames:
+    - rl
 
 
 ######################################################################
-# Create the ambassador Service+Service+Deployment
+# Redis for Ambassador Pro ratelimit
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  name: ambassador-pro-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    service: ambassador-pro-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-pro-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ambassador-pro-redis
+  template:
+    metadata:
+      labels:
+        service: ambassador-pro-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
+
+
+######################################################################
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services, and the Deployment that backs them all.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: RateLimitService
+      name: ambassador-pro
+      service: "ambassador-pro:8081"
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      name: authentication
+      proto: http
+      auth_service: ambassador-pro
+      allowed_request_headers:
+      - "Client-Id"
+      - "Client-Secret"
+      allowed_authorization_headers:
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: ambassador-pro
+spec:
+  type: ClusterIP
+  selector:
+    service: ambassador
+  ports:
+  - name: ratelimit-grpc
+    port: 8081
+    targetPort: 8081
+  - name: ratelimit-debug
+    port: 6070
+    targetPort: 6070
+  - name: auth-http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
   name: ambassador-admin
 spec:
   type: NodePort
@@ -163,12 +228,26 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
 spec:
   type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
   ports:
   - name: http
     port: 80
     targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
   selector:
     service: ambassador
 ---
@@ -177,11 +256,15 @@ kind: Deployment
 metadata:
   name: ambassador
 spec:
-  replicas: 1
+  replicas: 1 # XXX: Kubernaut
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
     spec:
@@ -189,24 +272,72 @@ spec:
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:0.50.0-rc3
+# XXX: Kubernaut
+#        resources:
+#          limits:
+#            cpu: 1
+#            memory: 400Mi
+#          requests:
+#            cpu: 200m
+#            memory: 100Mi
         env:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+# XXX: Kubernaut
+#        livenessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_alive
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+#        readinessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_ready
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+      - name: auth
+        image: {{env "IMAGE"}}
+        ports:
+        - containerPort: 8080
+        env:
+        # Auth provider's absolute url: {scheme}://{host}
+        # This is required for the container to start
+        - name: AUTH_PROVIDER_URL
+          value: {{env "AUTH_PROVIDER_URL"}}
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
       - name: ratelimit
         image: {{env "RATELIMIT_IMAGE"}}
         env:
         - name: REDIS_SOCKET_TYPE
           value: tcp
         - name: REDIS_URL
-          value: ratelimit-redis:6379
+          value: ambassador-pro-redis:6379
+        - name: PORT
+          value: "7000" # This is important only because the default PORT is 8080, which would clash with auth
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
 
 
 ######################################################################
+# Create the traffic-proxy Service+Deployment
+#
 # Does this *need* to be a standalone service, or could it be a
 # sidecar?  IDK.  --lukeshu
 ---
@@ -249,3 +380,6 @@ spec:
         ports:
         - name: sshd
           containerPort: 8022
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials

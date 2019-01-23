@@ -81,11 +81,11 @@ docker_tests =
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.standalone.svc.cluster.local"
-k8s-standalone/02-ambassador-certs.yaml: k8s-standalone/cert.pem k8s-standalone/key.pem
-	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
+%/02-ambassador-certs.yaml: %/cert.pem %/key.pem
+	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: k8s-standalone/02-ambassador-certs.yaml
-apply: k8s-standalone/02-ambassador-certs.yaml
+deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
+apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
 
 tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
@@ -121,7 +121,7 @@ clean:
 	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
 	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
 	rm -f docker/amb-sidecar-oauth/ambassador-oauth
-	rm -f k8s-standalone/??-ambassador-certs.yaml k8s-standalone/*.pem
+	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 clobber:
 	rm -f docker/app-sidecar/ambex
 	rm -rf tests/oauth-e2e/node_modules
