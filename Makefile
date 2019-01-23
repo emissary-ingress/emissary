@@ -60,7 +60,7 @@ docker/traffic-proxy/%: bin_linux_amd64/%
 	cp $< $@
 
 docker/app-sidecar.docker: docker/app-sidecar/ambex
-docker/app-sidecar.docker: docker/app-sidecar/sidecar
+docker/app-sidecar.docker: docker/app-sidecar/app-sidecar
 docker/app-sidecar/ambex:
 	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
@@ -117,12 +117,14 @@ endif
 
 clean:
 	rm -f docker/traffic-proxy/proxy
-	rm -f docker/app-sidecar/sidecar
+	rm -f docker/app-sidecar/app-sidecar
 	rm -f docker/amb-sidecar/amb-sidecar
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-01-23
+	rm -f docker/app-sidecar/sidecar
 # 2019-01-23 386e530eca29f38a0bbf4dd1b4ccf97f4e577230
 	rm -f docker/amb-sidecar/oauth
 	rm -f docker/amb-sidecar/apictl
