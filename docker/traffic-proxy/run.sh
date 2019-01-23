@@ -1,4 +1,4 @@
 #!/bin/sh
 
 /usr/sbin/sshd -e
-exec /app/proxy
+exec /app/traffic-proxy
