@@ -307,27 +307,23 @@ spec:
 #            port: 8877
 #          initialDelaySeconds: 30
 #          periodSeconds: 3
-      - name: auth
-        image: {{env "IMAGE"}}
+      - name: ambassador-pro
+        image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-        - containerPort: 8080
+        - name: ratelimit-grpc
+          containerPort: 8081
+        - name: ratelimit-debug
+          containerPort: 6070
+        - name: auth-http
+          containerPort: 8080
         env:
-        # Auth provider's absolute url: {scheme}://{host}
-        # This is required for the container to start
-        - name: AUTH_PROVIDER_URL
+        - name: AUTH_PROVIDER_URL # For auth: Auth provider's absolute url: {scheme}://{host}
           value: {{env "AUTH_PROVIDER_URL"}}
-        - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
-      - name: ratelimit
-        image: {{env "RATELIMIT_IMAGE"}}
-        env:
-        - name: REDIS_SOCKET_TYPE
+        - name: REDIS_SOCKET_TYPE # For ratelimit
           value: tcp
-        - name: REDIS_URL
+        - name: REDIS_URL # For ratelimit
           value: ambassador-pro-redis:6379
-        - name: PORT
-          value: "7000" # This is important only because the default PORT is 8080, which would clash with auth
-        - name: AMBASSADOR_LICENSE_KEY
+        - name: AMBASSADOR_LICENSE_KEY # For everything
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
 # XXX: Kubernaut
