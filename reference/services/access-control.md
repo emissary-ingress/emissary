@@ -17,7 +17,7 @@ A `rule` for the `Policy` CRD is a set of hosts, paths, and permission settings 
 The following policy is shown in the [OAuth/OIDC Authentication](/user-guide/oauth-oidc-auth#test-the-auth0-application) guide and is used to secure the example `httpbin` service. 
 
 ```
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: httpbin-policy
@@ -38,7 +38,7 @@ spec:
 The `Policy` defines rules based on matching the `host` and `path` to a request and refers to the `public` attribute to decide whether or not it needs to be authenticated. Since both `host` and `path` support wildcards, it is easy to configure an entire mapping to need to be authenticated or not. 
 
 ```
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: mappings-policy
@@ -63,7 +63,7 @@ The above `policy` configures Ambassador Pro authentication to
 #### Mutliple Domains
 
 ```
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: multi-domain-policy
@@ -81,7 +81,7 @@ Imagine you have multiple domains behind Ambassador Pro. A domain `foo.bar.com` 
 #### Pass-Through by Default
 ```
 ---
-apiVersion: stable.datawire.io/v1beta1
+apiVersion: getambassador.io/v1beta1
 kind: Policy
 metadata:
   name: default-policy
