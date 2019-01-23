@@ -122,7 +122,15 @@ class AmbassadorTest(Test):
         if DEV:
             return self.format(AMBASSADOR_LOCAL)
         else:
-            return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs="")
+            envs = ""
+
+            if self.single_namespace:
+                envs = """
+    - name: AMBASSADOR_SINGLE_NAMESPACE
+      value: "yes"
+"""
+
+            return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs)
 
     # Will tear this out of the harness shortly
     @property

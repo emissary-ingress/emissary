@@ -152,10 +152,7 @@ spec:
   - name: ambassador
     image: {image}
     env:
-    {% if self.single_namespace -%}
-    - name: AMBASSADOR_SINGLE_NAMESPACE
-      value: yes
-    {%- endif %}
+    {envs}
     - name: AMBASSADOR_NAMESPACE
       valueFrom:
         fieldRef:
