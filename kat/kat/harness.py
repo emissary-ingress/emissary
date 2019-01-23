@@ -754,7 +754,7 @@ class Runner:
             homogenous[kind].append((node, name))
 
         kinds = ["pod", "url"]
-        delay = 0.5
+        delay = 5
         start = time.time()
         limit = 5*60
 
