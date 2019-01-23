@@ -35,8 +35,7 @@ go-get-lyft:
 	cd vendor-ratelimit && go mod download
 .PHONY: go-get-lyft
 
-lyft.bins  = ratelimit:github.com/lyft/ratelimit/src/service_cmd
-lyft.bins += ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
+lyft.bins  = ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
 lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 
 # This mimics _go-common.mk
@@ -68,9 +67,7 @@ docker/app-sidecar/ambex:
 docker/app-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/amb-sidecar.docker: docker/amb-sidecar/ambassador-oauth
-docker/amb-sidecar.docker: docker/amb-sidecar/apictl
-docker/amb-sidecar.docker: docker/amb-sidecar/ratelimit
+docker/amb-sidecar.docker: docker/amb-sidecar/amb-sidecar
 docker/amb-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
@@ -121,9 +118,7 @@ endif
 clean:
 	rm -f docker/traffic-proxy/proxy
 	rm -f docker/app-sidecar/sidecar
-	rm -f docker/amb-sidecar/ambassador-oauth
-	rm -f docker/amb-sidecar/apictl
-	rm -f docker/amb-sidecar/ratelimit
+	rm -f docker/amb-sidecar/amb-sidecar
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 clobber:
 	rm -f docker/app-sidecar/ambex

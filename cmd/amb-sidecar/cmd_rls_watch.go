@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	ms "github.com/mitchellh/mapstructure"
@@ -14,86 +17,92 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 )
 
-var rls = &cobra.Command{
-	Use:   "rls [subcommand]",
-	Short: "Work with Rate Limits",
-}
-
-func init() {
-	apictl.AddCommand(rls)
-}
-
-var validate = &cobra.Command{
-	Use:   "Validate [files]",
-	Short: "Validate RateLimit CRD files",
-	Run:   doValidate,
-}
-
-func init() {
-	rls.AddCommand(validate)
-	validate.Flags().BoolVar(&offline, "offline", false, "perform offline validation only")
-}
-
-var offline bool
-
-func doValidate(cmd *cobra.Command, args []string) {
-	var err error
-	var local_resources []k8s.Resource
-	var remote_resources []k8s.Resource
-
-	for _, arg := range args {
-		local_resources = append(local_resources, load(arg)...)
-	}
-
-	fmt.Printf("Found %d local resources.\n", len(local_resources))
-
-	if !offline {
-		c := k8s.NewClient(nil)
-		remote_resources, err = c.List("ratelimits")
-		die(err)
-
-		fmt.Printf("Found %d remote resources in cluster.\n", len(remote_resources))
-	}
-
-	fmt.Printf("Validating...\n")
-
-	resources := make(map[string]k8s.Resource)
-
-	for _, r := range remote_resources {
-		resources[r.QName()] = r
-	}
-
-	for _, r := range local_resources {
-		resources[r.QName()] = r
-	}
-
-	config := &Config{Domains: make(map[string]*Domain)}
-
-	errs := &Errors{make(map[string][]string)}
-
-	for _, r := range resources {
-		spec, err := decode(r.QName(), r.Spec())
-		if err != nil {
-			log.Printf("%s: %v", r.QName(), err)
+func die(err error, args ...interface{}) {
+	if err != nil {
+		if args != nil {
+			fmt.Printf("%v: %v\n", err, args)
 		} else {
-			spec.validate(errs)
-			config.add(spec)
+			fmt.Println(err)
+		}
+		panic(err)
+	}
+}
+
+var watch = &cobra.Command{
+	Use:   "rls-watch",
+	Short: "Watch RateLimit CRD files",
+	Run:   doWatch,
+}
+
+func init() {
+	argparser.AddCommand(watch)
+	watch.Flags().StringVarP(&output, "output", "o", "", "output directory")
+	watch.MarkFlagRequired("output")
+}
+
+var output string
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func doWatch(cmd *cobra.Command, args []string) {
+	w := k8s.NewClient(nil).Watcher()
+	count := 0
+
+	matches, err := filepath.Glob(fmt.Sprintf("%s-*", output))
+	if err != nil {
+		log.Printf("warning: %v", err)
+	} else {
+		for _, m := range matches {
+			parts := strings.Split(m, "-")
+			end := parts[len(parts)-1]
+			n, err := strconv.Atoi(end)
+			if err == nil {
+				count = max(count, n)
+			}
 		}
 	}
 
-	count := 0
-	for k, v := range errs.errors {
-		fmt.Printf("%s: %s\n", k, strings.Join(v, "\n  "+strings.Repeat(" ", len(k))))
+	log.Printf("initial count %d", count)
+
+	w.Watch("ratelimits", func(w *k8s.Watcher) {
+		config := &Config{Domains: make(map[string]*Domain)}
+
+		for _, r := range w.List("ratelimits") {
+			spec, err := decode(r.QName(), r.Spec())
+			if err != nil {
+				log.Printf("%s: %v", r.QName(), err)
+			} else {
+				config.add(spec)
+			}
+		}
+
 		count += 1
-	}
+		realout := fmt.Sprintf("%s-%d/config", output, count)
+		err = os.MkdirAll(realout, 0775)
+		die(err)
 
-	fmt.Printf("Found %d errors.\n", count)
+		for _, domain := range config.Domains {
+			bytes, err := yaml.Marshal(domain)
+			die(err)
+			fname := filepath.Join(realout, fmt.Sprintf("config.%s.yaml", domain.Name))
+			err = ioutil.WriteFile(fname, bytes, 0644)
+			die(err)
+		}
 
-	if count > 0 {
-		os.Exit(1)
-	} else {
-		os.Exit(0)
-	}
+		err = os.Remove(output)
+		if err != nil {
+			log.Println(err)
+		}
+		err = os.Symlink(filepath.Dir(realout), output)
+		die(err)
+	})
+	w.Wait()
 }
 
 type Errors struct {

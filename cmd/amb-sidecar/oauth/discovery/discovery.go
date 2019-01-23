@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
 )
 
 const (

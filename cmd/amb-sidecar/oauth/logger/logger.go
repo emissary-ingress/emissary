@@ -3,7 +3,7 @@ package logger
 import (
 	"log"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
 	"github.com/sirupsen/logrus"
 )
 

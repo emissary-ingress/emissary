@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/sirupsen/logrus"
 )
 
