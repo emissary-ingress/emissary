@@ -115,14 +115,9 @@ rules:
 - apiGroups: [""]
   resources:
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
   - secrets
+  - namespaces
+  - configmaps
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
