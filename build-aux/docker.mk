@@ -37,7 +37,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 
 # %.docker file contents:
 #
-#  line 1: tag name
+#  line 1: local tag name
 #  line 2: image hash
 %.docker: %/Dockerfile
 	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest)' > $(@D)/.tmp.$(@F).tmp
@@ -63,7 +63,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 
 # %.docker.knaut-push file contents:
 #
-#  line 1: tag name
+#  line 1: in-cluster tag name
 %.docker.knaut-push: %.docker $(KUBEAPPLY) $(KUBECONFIG)
 	$(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
 	{ \
@@ -71,7 +71,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push "$$(head -n1 $<)"; \
 	}
-	head -n1 $< > $@
+	sed '1{ s/^host\.docker\.internal:/localhost:/; q; }' $< > $@
 
 %.docker.push: %.docker
 	docker tag "$$(tail -n1 $<)" '$(DOCKER_IMAGE)'
