@@ -14,7 +14,7 @@ import (
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
 	"github.com/datawire/apro/lib/util"
 )
 

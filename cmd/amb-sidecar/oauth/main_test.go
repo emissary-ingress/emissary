@@ -17,7 +17,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/app"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/lib/testutil"
 )
 

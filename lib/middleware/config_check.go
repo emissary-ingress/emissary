@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
 )
 
 // CheckConfig verifies that configuration is set and display a friendly error

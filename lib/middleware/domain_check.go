@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/lib/util"
 )
 

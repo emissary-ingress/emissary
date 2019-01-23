@@ -9,9 +9,9 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/client"
-	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
-	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 	"github.com/datawire/apro/lib/util"
 )
 

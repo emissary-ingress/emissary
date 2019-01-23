@@ -64,7 +64,7 @@ docker/app-sidecar/ambex:
 docker/app-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/amb-sidecar.docker: docker/amb-sidecar/ambassador-oauth
+docker/amb-sidecar.docker: docker/amb-sidecar/oauth
 docker/amb-sidecar.docker: docker/amb-sidecar/apictl
 docker/amb-sidecar.docker: docker/amb-sidecar/ratelimit
 docker/amb-sidecar/%: bin_linux_amd64/%
@@ -113,7 +113,7 @@ endif
 clean:
 	rm -f docker/traffic-proxy/proxy
 	rm -f docker/app-sidecar/sidecar
-	rm -f docker/amb-sidecar/ambassador-oauth
+	rm -f docker/amb-sidecar/oauth
 	rm -f docker/amb-sidecar/apictl
 	rm -f docker/amb-sidecar/ratelimit
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem

@@ -17,7 +17,7 @@ fi
 if test -z "$AUTH_PROVIDER_URL"; then
 	echo 'Warning: ${AUTH_PROVIDER_URL} is not set; not starting auth service'
 else
-	"$dir/ambassador-oauth" &
+	"$dir/oauth" &
 fi
 
 # Wait for one of them to quit, then kill the others

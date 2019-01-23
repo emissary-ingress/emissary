@@ -7,11 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 
-	"github.com/datawire/apro/cmd/ambassador-oauth/client"
-	"github.com/datawire/apro/cmd/ambassador-oauth/config"
-	"github.com/datawire/apro/cmd/ambassador-oauth/controller"
-	"github.com/datawire/apro/cmd/ambassador-oauth/discovery"
-	"github.com/datawire/apro/cmd/ambassador-oauth/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 	"github.com/datawire/apro/lib/handler"
 	"github.com/datawire/apro/lib/middleware"
 )
