@@ -8,8 +8,8 @@ How do you verify that the code you've written actually works? Ambassador Pro's 
 
 Download the latest version of the client:
 
-[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.0.8/darwin/amd64/apictl)
-[Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.0.8/linux/amd64/apictl)
+[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1-cdtest/darwin/amd64/apictl)
+[Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1-cdtest/linux/amd64/apictl)
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in your HOME directory in a file called `.ambassador.key`.
 
@@ -70,7 +70,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
             value: qotm
           - name: APPPORT
             value: "5000"
-          image: quay.io/datawire/ambassador-ratelimit:sidecar-0.0.5
+          image: quay.io/datawire/ambassador-pro:app-sidecar-0.1.1-rc1
           name: traffic-sidecar
           ports:
           - containerPort: 9900
@@ -95,16 +95,16 @@ In this quick start, we're going to preview a change we make to the QOTM service
     apictl traffic initialize
     ```
 
-6. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `qotm` deployment where the `path` matches `/qotm/dev` to go to port 5000 on localhost:
+6. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `qotm` deployment where the header `x-service-preview` is `dev` to go to port 5000 on localhost:
 
     ```
-    apictl traffic intercept qotm -n :path -m /qotm/dev -t 5000
+    apictl traffic intercept qotm -n x-service-preview -m dev -t 5000
     ```
 
-7. Requests to `/dev` will now get routed locally:
+7. Requests with the header `x-service-preview: dev` will now get routed locally:
 
     ```
-    curl $AMBASSADOR_IP/qotm/dev` # will go to local Docker instance
+    curl -H "x-service-preview: dev" $AMBASSADOR_IP/qotm/` # will go to local Docker instance
     curl $AMBASSADOR_IP/qotm/ # will go to production instance
     ```
 
