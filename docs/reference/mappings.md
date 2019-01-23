@@ -121,7 +121,7 @@ If absolutely necessary, you can manually set a `precedence` on the mapping (see
 
 Ambassador will respond with a `404 Not Found` to any request for which no mapping exists. If desired, you can define a fallback "catch-all" mapping so all unmatched requests will be sent to an upstream service.
 
-For example, defining a mapping with only a `/` prefix will catch all requests previously unhandled and forward them to an external service, bypassing authentication (if configured):
+For example, defining a mapping with only a `/` prefix will catch all requests previously unhandled and forward them to an external service:
 
 ```yaml
 ---
