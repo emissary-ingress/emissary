@@ -1,5 +1,7 @@
 NAME            = ambassador-pro
 # For docker.mk
+# If you change DOCKER_IMAGE, you'll also need to change the image
+# names in `cmd/apictl/traffic.go`.
 DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
@@ -66,15 +68,10 @@ docker/app-sidecar/ambex:
 docker/app-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/apictl
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_check
-docker/amb-sidecar-ratelimit.docker: docker/amb-sidecar-ratelimit/ratelimit_client
-docker/amb-sidecar-ratelimit/%: bin_linux_amd64/%
-	cp $< $@
-
-docker/amb-sidecar-oauth.docker: docker/amb-sidecar-oauth/ambassador-oauth
-docker/amb-sidecar-oauth/ambassador-oauth: bin_linux_amd64/ambassador-oauth
+docker/amb-sidecar.docker: docker/amb-sidecar/ambassador-oauth
+docker/amb-sidecar.docker: docker/amb-sidecar/apictl
+docker/amb-sidecar.docker: docker/amb-sidecar/ratelimit
+docker/amb-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
 #
@@ -85,11 +82,11 @@ docker_tests =
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.standalone.svc.cluster.local"
-k8s-standalone/02-ambassador-certs.yaml: k8s-standalone/cert.pem k8s-standalone/key.pem
-	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert k8s-standalone/cert.pem --key k8s-standalone/key.pem > $@
+%/02-ambassador-certs.yaml: %/cert.pem %/key.pem
+	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: k8s-standalone/02-ambassador-certs.yaml
-apply: k8s-standalone/02-ambassador-certs.yaml
+deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
+apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
 
 tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
@@ -124,12 +121,10 @@ endif
 clean:
 	rm -f docker/traffic-proxy/proxy
 	rm -f docker/app-sidecar/sidecar
-	rm -f docker/amb-sidecar-ratelimit/apictl
-	rm -f docker/amb-sidecar-ratelimit/ratelimit
-	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
-	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
-	rm -f docker/amb-sidecar-oauth/ambassador-oauth
-	rm -f k8s-standalone/??-ambassador-certs.yaml k8s-standalone/*.pem
+	rm -f docker/amb-sidecar/ambassador-oauth
+	rm -f docker/amb-sidecar/apictl
+	rm -f docker/amb-sidecar/ratelimit
+	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 clobber:
 	rm -f docker/app-sidecar/ambex
 	rm -rf tests/oauth-e2e/node_modules

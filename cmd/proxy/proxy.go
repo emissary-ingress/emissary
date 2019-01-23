@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -204,13 +205,23 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 
-	path := r.URL.Path
-	comps := strings.Split(path, "/")
-	if len(comps) != 3 {
-		http.NotFound(w, r)
+	deployment := strings.TrimRight(r.URL.Path, "/")
+	if deployment == "" {
+		deployments := make([]string, len(state.Deployments))
+		i := 0
+		for deployment := range state.Deployments {
+			deployments[i] = deployment
+			i++
+		}
+		sort.Strings(deployments)
+		result, err := json.Marshal(map[string]interface{}{"paths": deployments})
+		if err != nil {
+			panic(err)
+		}
+		w.Write([]byte(result))
 		return
 	}
-	deployment := comps[len(comps)-1]
+
 	dInfo := state.Deployments[deployment]
 	if dInfo == nil {
 		http.NotFound(w, r)
@@ -331,7 +342,22 @@ func main() {
 
 	http.HandleFunc("/state", state.handleState)
 	http.HandleFunc("/routes", state.handleRoutes)
-	http.HandleFunc("/intercept/", state.handleIntercept)
+	http.Handle("/intercept/", http.StripPrefix("/intercept/", http.HandlerFunc(state.handleIntercept)))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
+			return
+		}
+		result, err := json.Marshal(map[string]interface{}{"paths": []string{
+			"/state",
+			"/routes",
+			"/intercept/",
+		}})
+		if err != nil {
+			panic(err)
+		}
+		w.Write([]byte(result))
+	})
 
 	fmt.Println("Starting server...")
 	http.ListenAndServe("0.0.0.0:8081", nil)
