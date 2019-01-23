@@ -756,7 +756,9 @@ class Runner:
         kinds = ["pod", "url"]
         delay = 5
         start = time.time()
-        limit = 5*60
+        limit = int(os.environ.get("KAT_REQ_LIMIT", "300"))
+
+        print("Starting requirements check (limit %ds)... " % limit)
 
         holdouts = {}
 
