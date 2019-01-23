@@ -42,7 +42,15 @@ func init() {
 	traffic.AddCommand(initialize)
 }
 
-const (
+func getenvDefault(varname, def string) string {
+	ret := os.Getenv(varname)
+	if ret == "" {
+		ret = def
+	}
+	return ret
+}
+
+var (
 	TRAFFIC_MANAGER = `
 ---
 apiVersion: v1
@@ -80,7 +88,7 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: quay.io/datawire/ambassador-ratelimit:proxy-0.0.5
+        image: ` + getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador-pro:proxy-"+Version) + `
         ports:
         - name: sshd
           containerPort: 8022
@@ -200,7 +208,7 @@ func munge(res k8s.Resource) error {
 
 	blah := make(map[string]interface{})
 	blah["name"] = "traffic-sidecar"
-	blah["image"] = "quay.io/datawire/ambassador-ratelimit:sidecar-0.0.5"
+	blah["image"] = getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador-pro:sidecar-"+Version)
 	blah["env"] = []map[string]string{
 		{"name": "APPNAME", "value": res.QName()},
 		{"name": "APPPORT", "value": app_port},
