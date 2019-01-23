@@ -539,20 +539,25 @@ kind: Namespace
 metadata:
   name: plain-namespace
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: evil-namespace
+---
 kind: Service
 apiVersion: v1
 metadata:
   name: plain-simplemapping-http-all-http
   namespace: evil-namespace
   annotations:
-    getambassador.io/config: '---
+    getambassador.io/config: |
+      ---
       apiVersion: ambassador/v1
       kind: Mapping
       name: SimpleMapping-HTTP-all
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
       ambassador_id: plain
-      '
   labels:
     scope: AmbassadorTest
 spec:
@@ -582,8 +587,8 @@ config: {}
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), debug=True, phase=2)
 
     def check(self):
-        errors = self.results[0].backend.response
-
+        # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json
         assert(len(errors) == 0)
 
 
@@ -790,6 +795,12 @@ service: https://{self.target.path.k8s}
         return "Get {}: EOF".format(url)
 
     def queries(self):
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"),
+                    headers={"Host": "tls-context-host-2"},
+                    insecure=True,
+                    sni=True,
+                    debug=True)
+
         # Correct host
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
@@ -841,6 +852,10 @@ service: https://{self.target.path.k8s}
                     sni=True)
 
     def check(self):
+        # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json
+        assert (len(errors) == 0)
+
         for result in self.results:
             if result.status == 200:
                 host_header = result.query.headers['Host']

@@ -656,7 +656,8 @@ class Runner:
                         if 'metadata' not in m:
                             m['metadata'] = {}
 
-                        m['metadata']['namespace'] = nsp
+                        if 'namespace' not in m['metadata']:
+                            m['metadata']['namespace'] = nsp
 
                 manifests[n] = manifest
 
