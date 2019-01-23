@@ -128,7 +128,6 @@ For example, defining a mapping with only a `/` prefix will catch all requests p
 apiVersion: ambassador/v0
 kind: Mapping
 name: catch-all
-bypass_auth: true
 prefix: /
 service: https://www.getambassador.io
 ```
