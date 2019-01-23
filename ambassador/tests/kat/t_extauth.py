@@ -217,6 +217,10 @@ bypass_auth: true
         # [5]
         yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
+        # [6]
+        yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
+
+
     def check_backend_name(self, result) -> bool:
         backend_name = result.backend.name
 
@@ -289,6 +293,8 @@ bypass_auth: true
         assert eahdr[0], "an empty extauth header element was returned?"
 
         # [6] Verifies that Envoy bypasses external auth when disabled for a mapping.
+        assert self.results[6].backend.name == self.target.path.k8s      # ensure the request made it to the backend
+        assert not self.check_backend_name(self.results[6])      # ensure the request did not go to the auth service
         assert self.results[6].backend.request.headers["requested-status"] == ["200"]
         assert self.results[6].status == 200
         assert self.results[6].headers["Server"] == ["envoy"]
@@ -368,9 +374,6 @@ service: {self.target.path.k8s}
                                                   "Requested-Header": "Authorization"}, expected=200)
         # [5]
         yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
-
-        # [6]
-        yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -473,7 +476,7 @@ host_rewrite: echo.websocket.org
 use_websocket: true
 """)
 
-   
+
     def queries(self):
         yield Query(self.url(self.name + "/"), expected=404)
 
@@ -485,7 +488,7 @@ use_websocket: true
             "sec-websocket-version": "13"
         })
 
-        yield Query(self.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"]) 
+        yield Query(self.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
 
     def check(self):
         assert self.results[-1].messages == ["one", "two", "three"]
@@ -506,7 +509,7 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config:
-  buffer:  
+  buffer:
     max_request_bytes: 16384
     max_request_time: 5000
 ---
