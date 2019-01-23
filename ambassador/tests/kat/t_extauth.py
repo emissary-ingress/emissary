@@ -220,7 +220,6 @@ bypass_auth: true
         # [6]
         yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
 
-
     def check_backend_name(self, result) -> bool:
         backend_name = result.backend.name
 
