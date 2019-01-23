@@ -33,14 +33,14 @@ Note: SNI is only available in the [0.50 early access release](/user-guide/early
 
 SNI is designed to be configured on a per-mapping basis. This enables application developers or service owners to individually manage how their service gets exposed over TLS. To use SNI, specify your SNI host in the `mapping` resource, e.g.,
 
-    ```yaml
-    apiVersion: ambassador/v0
-    kind:  Mapping
-    name:  example-mapping
-    prefix: /example/
-    service: example.com:80
-    host: <SNI host>
-    ```
+```yaml
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  example-mapping
+prefix: /example/
+service: example.com:80
+host: <SNI host>
+```
 Ambassador will check if any of the `TLSContext` resources have a matching host, and if it finds one, SNI configuration will be applied to that mapping.
 
 Note that if the mapping does not have the `host` field, all valid SNI configurations will be applied to the given mapping.
