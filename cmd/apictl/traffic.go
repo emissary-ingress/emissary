@@ -88,7 +88,7 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: ` + getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador-pro:proxy-"+Version) + `
+        image: ` + getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador_pro:proxy-"+Version) + `
         ports:
         - name: sshd
           containerPort: 8022
@@ -208,7 +208,7 @@ func munge(res k8s.Resource) error {
 
 	blah := make(map[string]interface{})
 	blah["name"] = "traffic-sidecar"
-	blah["image"] = getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador-pro:sidecar-"+Version)
+	blah["image"] = getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador_pro:sidecar-"+Version)
 	blah["env"] = []map[string]string{
 		{"name": "APPNAME", "value": res.QName()},
 		{"name": "APPPORT", "value": app_port},

@@ -24,7 +24,7 @@ arbitrary string `PRE`), CircleCI does the the
 proceeds to:
  - push `apictl` and `apictl-key` for Linux and Darwin to AWS S3
  - push all 4 Docker images to
-   [`quay.io/datawire/ambassador-pro`](https://quay.io/repository/datawire/ambassador-pro?tab=tags)
+   [`quay.io/datawire/ambassador_pro`](https://quay.io/repository/datawire/ambassador_pro?tab=tags)
 
 ### Manual release
 
@@ -92,19 +92,6 @@ here?).
 
 ## TODO:
 
- - The `quay.io/datawire/ambassador-pro` repo that CD pushes to is
-   public.  `quay.io/datawire/ambassador_pro` is private, and is where
-   we send new customers to.  When we push a release to the public
-   repo, it goes to RHS/Noah for testing, and if they accept it, they
-   push the tag to the private repo (using `./release.sh`?). Problems
-   with this:
-    * What's the point in having a private repo if it's a subset of
-      what's in the public repo?
-    * Does that mean that we should only ever tag `-rc` releases, and
-      leave RHS/Noah to tag stable releases from them?
-    * There's a concern that switching the
-      `quay.io/datawire/ambassador-pro` repo to private would disrupt
-      some current users like DFS.
  - Merge `./k8s-*/` in to just `./k8s-sidecar/` and
    `./k8s-standalone/`.
  - Each `./k8s-*/` directory should deploy in to a different

@@ -2,7 +2,7 @@ NAME            = ambassador-pro
 # For docker.mk
 # If you change DOCKER_IMAGE, you'll also need to change the image
 # names in `cmd/apictl/traffic.go`.
-DOCKER_IMAGE    = quay.io/datawire/$(NAME):$(notdir $*)-$(VERSION)
+DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
 K8S_DIRS        = k8s-sidecar k8s-standalone
