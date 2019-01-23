@@ -120,6 +120,34 @@ clean:
 	rm -f docker/app-sidecar/sidecar
 	rm -f docker/amb-sidecar/amb-sidecar
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
+# Files made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2019-01-23 386e530eca29f38a0bbf4dd1b4ccf97f4e577230
+	rm -f docker/amb-sidecar/oauth
+	rm -f docker/amb-sidecar/apictl
+	rm -f docker/amb-sidecar/ratelimit
+# 2019-01-23 5962fe6f1fd0ed7969b63a0a90e062c2f648a6ed
+	rm -f docker/amb-sidecar/ambassador-oauth
+# 2019-01-22 978512decab17696b82ad962a04de6770e7f1458
+	rm -f docker/amb-sidecar-ratelimit/apictl
+	rm -f docker/amb-sidecar-ratelimit/ratelimit
+	rm -f docker/amb-sidecar-ratelimit/ratelimit_check
+	rm -f docker/amb-sidecar-ratelimit/ratelimit_client
+	rm -f docker/amb-sidecar-oauth/ambassador-oauth
+# 2019-01-18 0abb1c9e4bdc8ce04034c16d796bf3b67cce68f5
+	rm -f tests/oauth-e2e/k8s/??-ambassador-certs.yaml tests/oauth-e2e/k8s/*.pem
+# 2019-01-18 f9210ead4d2e67c51ebdcde48372658a862d3612
+	rm -f e2e-oauth/k8s/??-ambassador-certs.yaml e2e-oauth/k8s/*.pem
+	rm -rf e2e-oauth/node_modules
+# 2019-01-18 d33436c1bfeaa187f649a21917443c5eb9ec3617
+	rm -f docker/traffic-sidecar/sidecar
+	rm -f docker/ambassador-ratelimit/apictl
+	rm -f docker/ambassador-ratelimit/ratelimit
+	rm -f docker/ambassador-ratelimit/ratelimit_check
+	rm -f docker/ambassador-ratelimit/ratelimit_client
+	rm -f docker/ambassador-oauth/ambassador-oauth
+	rm -f docker/traffic-sidecar/ambex
 clobber:
 	rm -f docker/app-sidecar/ambex
 	rm -rf tests/oauth-e2e/node_modules
