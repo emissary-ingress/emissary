@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: shadow
-        image: dwflynn/shadow:0.0.1
+        image: dwflynn/shadow:0.0.2
         imagePullPolicy: Always
         ports:
         - name: http
@@ -87,7 +87,7 @@ service: shadow
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", Query("http://shadow/check/"))
+        yield ("url", Query("http://shadow/clear/"))
 
     def queries(self):
         for i in range(100):

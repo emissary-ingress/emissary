@@ -115,14 +115,9 @@ rules:
 - apiGroups: [""]
   resources:
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
   - secrets
+  - namespaces
+  - configmaps
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -141,7 +136,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {self.path.k8s}
-  namespace: default
+  namespace: {self.namespace}
 ---
 apiVersion: v1
 kind: Pod
@@ -168,13 +163,13 @@ spec:
       httpGet:
         path: /ambassador/v0/check_alive
         port: 8877
-      initialDelaySeconds: 60
+      initialDelaySeconds: 120
       periodSeconds: 3
     readinessProbe:
       httpGet:
         path: /ambassador/v0/check_ready
         port: 8877
-      initialDelaySeconds: 60
+      initialDelaySeconds: 120
       periodSeconds: 3
   restartPolicy: Always
 """

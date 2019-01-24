@@ -52,7 +52,7 @@ COPY shadow.py shadowsvc.crt shadowsvc.key ./
 COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh
 
-ARG VERSION="0.0.1"
+ARG VERSION="0.0.2"
 ENV VERSION=${VERSION}
 
 ARG TLS=""
