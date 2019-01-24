@@ -17,7 +17,7 @@ var apictl = &cobra.Command{
 var Version = "(unknown version)"
 
 func init() {
-	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), Version)
+	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), "apictl", Version)
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 		err := keycheck(cmd.PersistentFlags())
