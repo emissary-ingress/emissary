@@ -8,8 +8,8 @@ How do you verify that the code you've written actually works? Ambassador Pro's 
 
 Download the latest version of the client:
 
-[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/darwin/amd64/apictl) | 
-[Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/linux/amd64/apictl)
+<a class="apictl-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/darwin/amd64/apictl">Mac 64-bit</a> |
+<a class="apictl-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/linux/amd64/apictl">Linux 64-bit</a>
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.ambassador.key`.
 
@@ -32,46 +32,46 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
 2. Now, in another terminal window, redeploy the QOTM service with the Preview sidecar. The sidecar is special process which will route requests to your local machine or to the production cluster. The `apictl traffic inject` command will automatically create the appropriate YAML to inject the sidecar. In the `qotm` directory, pass the file name of the QOTM deployment:
 
-  ```
-  apictl traffic inject kubernetes/qotm-deployment.yaml -d qotm -p 5000 > qotm-sidecar.yaml
-  ```
+   ```
+   apictl traffic inject kubernetes/qotm-deployment.yaml -d qotm -p 5000 > qotm-sidecar.yaml
+   ```
 
-  This will create a YAML file called `qotm-sidecar.yaml`. The file will look like the following:
+   This will create a YAML file called `qotm-sidecar.yaml`. The file will look like the following:
 
-  ```
-  apiVersion: extensions/v1beta1
-  kind: Deployment
-  metadata:
-    name: qotm
-  spec:
-    replicas: 1
-    strategy:
-      type: RollingUpdate
-    template:
-      metadata:
-       labels:
-          app: qotm
-      spec:
-        containers:
-        - name: qotm
-          image: datawire/qotm:1.1
-          ports:
-          - name: http-api
-            containerPort: 5000
-          resources:
-            limits:
-              cpu: "0.1"
-              memory: 100Mi
-        - env:
-          - name: APPNAME
-            value: qotm
-          - name: APPPORT
-            value: "5000"
-          image: quay.io/datawire/ambassador-pro:app-sidecar-0.1.1
-          name: traffic-sidecar
-          ports:
-          - containerPort: 9900
-  ```
+   ```
+   apiVersion: extensions/v1beta1
+   kind: Deployment
+   metadata:
+     name: qotm
+   spec:
+     replicas: 1
+     strategy:
+       type: RollingUpdate
+     template:
+       metadata:
+        labels:
+           app: qotm
+       spec:
+         containers:
+         - name: qotm
+           image: datawire/qotm:1.1
+           ports:
+           - name: http-api
+             containerPort: 5000
+           resources:
+             limits:
+               cpu: "0.1"
+               memory: 100Mi
+         - env:
+           - name: APPNAME
+             value: qotm
+           - name: APPPORT
+             value: "5000"
+           image: quay.io/datawire/ambassador-pro:app-sidecar-0.1.1
+           name: traffic-sidecar
+           ports:
+           - containerPort: 9900
+   ```
 
 3. Update the QOTM service YAML to point to the sidecar on port 9900, instead of the QOTM service directly on port 5000.
 
