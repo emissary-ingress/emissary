@@ -8,10 +8,10 @@ How do you verify that the code you've written actually works? Ambassador Pro's 
 
 Download the latest version of the client:
 
-[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1-cdtest/darwin/amd64/apictl)
-[Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1-cdtest/linux/amd64/apictl)
+[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/darwin/amd64/apictl)
+[Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/linux/amd64/apictl)
 
-Make sure the client is somewhere on your PATH. In addition, place your license key in your HOME directory in a file called `.ambassador.key`.
+Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.config/ambassador/license-key`.
 
 ## Getting started
 
@@ -70,7 +70,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
             value: qotm
           - name: APPPORT
             value: "5000"
-          image: quay.io/datawire/ambassador-pro:app-sidecar-0.1.1-rc1
+          image: quay.io/datawire/ambassador-pro:app-sidecar-0.1.1
           name: traffic-sidecar
           ports:
           - containerPort: 9900
@@ -120,19 +120,13 @@ In this quick start, we're going to preview a change we make to the QOTM service
 9. Re-run the `curl` above, which will now route to your (modified) local copy of the QOTM service:
 
    ```
-   curl $AMBASSADOR_IP/dev` # will go to local Docker instance
+   curl -H "x-service-preview: dev" $AMBASSADOR_IP/qotm/` # will go to local Docker instance
    ```
 
    To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
 
 ## Using Service Preview
 
+Service Preview will match HTTP headers based on the headers that are seen by the *sidecar*, and not the edge gateway. Matches are made on the whole header, e.g., a match rule of `dev` will not match in the example above, while `/qotm/dev` will match.
 
-Service Preview will match HTTP headers based on the headers that are seen by the *sidecar*, and not the edge gateway. For example, if you issue a request to `example.com/qotm/dev`, the following values are seen by the sidecar (and thus Service Preview):
-
-* The `:authority` header is `example.com`
-* The `:path` header is `/qotm/dev`
-
-Matches are made on the whole header, e.g., a match rule of `dev` will not match in the example above, while `/qotm/dev` will match.
-
-In practice, path-based route rules can be difficult to debug due to rewrite rules, relative URLs, and such. For general usage, host-based routing is preferred. This way, you can curl to `http://dev.example.com/foo` and `http://staging.example.com/foo`. Another approach is to match on the `Authorization` HTTP header (or equivalent), and route on identity.
+While any HTTP header will match, in practice, using host-based routing (i.e., the `:authority` header), a custom HTTP header (e.g., the `x-service-preview` header used above), or an authentication header is recommended.
