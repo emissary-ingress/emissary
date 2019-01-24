@@ -24,7 +24,7 @@
 #
 # The base image (for everything) is defined here.
 
-FROM quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14e2c65bb as BASE
+FROM quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g523a9e31d as BASE
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
