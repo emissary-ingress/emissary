@@ -63,7 +63,7 @@ RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
 
 # Grab kubewatch
-RUN wget -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.9/$(go env GOOS)/$(go env GOARCH)/kubewatch
+RUN wget -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.13/$(go env GOOS)/$(go env GOARCH)/kubewatch
 RUN chmod +x kubewatch
 
 # Clean up no-longer-needed dev stuff.

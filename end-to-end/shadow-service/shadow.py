@@ -34,6 +34,15 @@ def before():
     for header in sorted(request.headers.keys()):
         logging.debug("=>>   %s: %s" % (header, request.headers[header]))
 
+@app.route('/clear/')
+def clear():
+    global counts
+    counts = {}
+
+    resp = Response("CLEARED")
+
+    return resp
+
 @app.route('/mark/<count>')
 def mark(count):
     c = counts.setdefault(count, 0)

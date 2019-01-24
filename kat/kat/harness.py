@@ -326,20 +326,21 @@ class Result:
             pytest.xfail(self.query.xfail)
 
         if self.query.error is not None:
+            found = False
             errors = self.query.error
 
             if isinstance(self.query.error, str):
                 errors = [ self.query.error ]
 
-            found = False
+            if self.error is not None:
+                for error in errors:
+                    if error in self.error:
+                        found = True
+                        break
 
-            for error in errors:
-                if error in self.error:
-                    found = True
-                    break
-
-            assert found, "{}: expected error to contain any of {}; got '{}' instead".format(
-                self.query.url, ", ".join([ "'%s'" % x for x in errors ]), self.error
+            assert found, "{}: expected error to contain any of {}; got {} instead".format(
+                self.query.url, ", ".join([ "'%s'" % x for x in errors ]),
+                ("'%s'" % self.error) if self.error else "no error"
             )
         else:
             assert self.query.expected == self.status, \
@@ -638,7 +639,28 @@ class Runner:
         for n in self.nodes:
             yaml = n.manifests()
             if yaml is not None:
-                manifests[n] = load(n.path, yaml, Tag.MAPPING)
+                manifest = load(n.path, yaml, Tag.MAPPING)
+
+                nsp = None
+                cur = n
+
+                while cur:
+                    nsp = getattr(cur, 'namespace', None)
+
+                    if nsp:
+                        break
+                    else:
+                      cur = cur.parent
+
+                if nsp:
+                    for m in manifest:
+                        if 'metadata' not in m:
+                            m['metadata'] = {}
+
+                        if 'namespace' not in m['metadata']:
+                            m['metadata']['namespace'] = nsp
+
+                manifests[n] = manifest
 
         configs = OrderedDict()
         for n in self.nodes:
@@ -732,9 +754,11 @@ class Runner:
             homogenous[kind].append((node, name))
 
         kinds = ["pod", "url"]
-        delay = 0.5
+        delay = 5
         start = time.time()
-        limit = 5*60
+        limit = int(os.environ.get("KAT_REQ_LIMIT", "300"))
+
+        print("Starting requirements check (limit %ds)... " % limit)
 
         holdouts = {}
 

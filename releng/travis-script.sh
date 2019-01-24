@@ -42,7 +42,7 @@ printf "== Begin: travis-script.sh ==\n"
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
     make docker-push
-    make test
+    make KAT_REQ_LIMIT=900 test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
