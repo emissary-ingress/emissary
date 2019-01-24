@@ -16,7 +16,7 @@ var Version = "(unknown version)"
 var argparser = &cobra.Command{}
 
 func main() {
-	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), Version)
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", Version)
 
 	argparser.Use = os.Args[0]
 	argparser.Version = Version

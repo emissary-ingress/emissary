@@ -18,7 +18,7 @@ func ParseKey(licenseKey string) (jwt.MapClaims, *jwt.Token, error) {
 	return claims, token, err
 }
 
-func PhoneHome(claims jwt.MapClaims, version string) error {
+func PhoneHome(claims jwt.MapClaims, component, version string) error {
 	id := fmt.Sprintf("%v", claims["id"])
 	space, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
 	if err != nil {
@@ -26,15 +26,18 @@ func PhoneHome(claims jwt.MapClaims, version string) error {
 	}
 	install_id := uuid.NewSHA1(space, []byte(id))
 	data := make(map[string]interface{})
-	data["application"] = "apictl"
+	data["application"] = "ambassador-pro"
 	data["install_id"] = install_id.String()
 	data["version"] = version
-	data["metadata"] = map[string]string{"id": id}
+	data["metadata"] = map[string]string{
+		"id":        id,
+		"component": component,
+	}
 	body, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	_, err = http.Post("https://metriton.datawire.io/scout", "application/json", bytes.NewBuffer(body))
+	_, err = http.Post("https://kubernaut.io/scout", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}

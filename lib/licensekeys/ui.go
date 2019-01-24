@@ -89,7 +89,8 @@ type cmdContext struct {
 	keyfile string
 	key     string
 
-	version string
+	application string
+	version     string
 }
 
 func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
@@ -119,7 +120,7 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
 	claims, token, err := ParseKey(ctx.key)
 
 	go func() {
-		err := PhoneHome(claims, ctx.version)
+		err := PhoneHome(claims, ctx.application, ctx.version)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "metriton error:", err)
 		}
@@ -138,9 +139,10 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
 	return nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet, version string) func(*flag.FlagSet) error {
+func InitializeCommandFlags(flags *flag.FlagSet, application, version string) func(*flag.FlagSet) error {
 	ctx := &cmdContext{
-		version: version,
+		application: application,
+		version:     version,
 	}
 	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
 

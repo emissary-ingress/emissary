@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/jcuga/golongpoll"
+	"github.com/spf13/cobra"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 // PatternInfo represents one Envoy header regex_match
@@ -321,6 +325,29 @@ var Version = "(unknown version)"
 
 func main() {
 	log.Printf("Proxy version %s", Version)
+
+	argparser := &cobra.Command{
+		Use:     os.Args[0],
+		Version: Version,
+		Run:     Main,
+	}
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "traffic-proxy", Version)
+	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		err := keycheck(cmd.PersistentFlags())
+		if err == nil {
+			return
+		}
+		fmt.Fprintln(os.Stderr, err)
+		time.Sleep(5 * 60 * time.Second)
+		os.Exit(1)
+	}
+	err := argparser.Execute()
+	if err != nil {
+		os.Exit(2)
+	}
+}
+
+func Main(flags *cobra.Command, args []string) {
 	manager, err := golongpoll.StartLongpoll(golongpoll.Options{
 		LoggingEnabled:                 true,
 		MaxLongpollTimeoutSeconds:      120,

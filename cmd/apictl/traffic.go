@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/pkg/errors"
@@ -50,8 +51,7 @@ func getenvDefault(varname, def string) string {
 	return ret
 }
 
-var (
-	TRAFFIC_MANAGER = `
+var TRAFFIC_MANAGER = template.Must(template.New("TRAFFIC_MANAGER").Parse(`
 ---
 apiVersion: v1
 kind: Service
@@ -88,14 +88,16 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: ` + getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador_pro:traffic-proxy-"+Version) + `
+        image: {{.PROXY_IMAGE}}
         ports:
         - name: sshd
           containerPort: 8022
+        env:
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{.AMBASSADOR_LICENSE_KEY}}
       imagePullSecrets:
       - name: ambassador-pro-registry-credentials
-`
-)
+`))
 
 func doInitialize(cmd *cobra.Command, args []string) error {
 	info, err := k8s.NewKubeInfo("", "", "")
@@ -103,8 +105,19 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	license_key, _ := cmd.Flags().GetString("license-key")
+
+	input := &strings.Builder{}
+	err = TRAFFIC_MANAGER.Execute(input, map[string]string{
+		"PROXY_IMAGE":            getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador_pro:traffic-proxy-"+Version),
+		"AMBASSADOR_LICENSE_KEY": license_key,
+	})
+	if err != nil {
+		return err
+	}
+
 	apply := tpu.NewKeeper("KAP", "kubectl "+info.GetKubectl("apply -f -"))
-	apply.Input = TRAFFIC_MANAGER
+	apply.Input = input.String()
 	apply.Limit = 1
 	apply.Start()
 	apply.Wait()
@@ -208,12 +221,15 @@ func munge(res k8s.Resource) error {
 		app_port = fmt.Sprintf("%v", port)
 	}
 
+	license_key, _ := apictl.Flags().GetString("license-key")
+
 	blah := make(map[string]interface{})
 	blah["name"] = "traffic-sidecar"
 	blah["image"] = getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador_pro:app-sidecar-"+Version)
 	blah["env"] = []map[string]string{
 		{"name": "APPNAME", "value": res.QName()},
 		{"name": "APPPORT", "value": app_port},
+		{"name": "AMBASSADOR_LICENSE_KEY", "value": license_key},
 	}
 	blah["ports"] = []map[string]interface{}{
 		{"containerPort": 9900},

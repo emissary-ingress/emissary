@@ -48,6 +48,8 @@ spec:
           value: echo
         - name: APPPORT
           value: "8080"
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
         image: {{env "SIDECAR_IMAGE"}}
         name: traffic-sidecar
         ports:
