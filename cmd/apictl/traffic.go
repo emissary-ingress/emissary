@@ -92,8 +92,8 @@ spec:
         ports:
         - name: sshd
           containerPort: 8022
-        imagePullSecrets:
-        - name: ambassador-pro-registry-credentials
+      imagePullSecrets:
+      - name: ambassador-pro-registry-credentials
 `
 )
 
@@ -218,12 +218,12 @@ func munge(res k8s.Resource) error {
 	blah["ports"] = []map[string]interface{}{
 		{"containerPort": 9900},
 	}
-	blah["imagePullSecrets"] = []map[string]string{
-		{"name": "ambassador-pro-registry-credentials"},
-	}
 
 	containers = append(containers, blah)
 	podSpec["containers"] = containers
+	podSpec["imagePullSecrets"] = []map[string]string{
+		{"name": "ambassador-pro-registry-credentials"},
+	}
 	return nil
 }
 
