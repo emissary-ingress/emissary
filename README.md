@@ -43,16 +43,16 @@ You'll need the Go toolchain and [Glide](https://glide.sh/).
 Linux
 -----
 
-Run `make` to build the ambex binary. Then in one window run
+Run `make build` to build the ambex binary. Then in one window run
 
 ```shell
-./ambex example
+./bin_$(go env GOOS)_$(go env GOARCH)/ambex bootstrap_image/example
 ```
 
 or
 
 ```shell
-./ambex -watch example
+./bin_$(go env GOOS)_$(go env GOARCH)/ambex -watch bootstrap_image/example
 ```
 
 to start the ADS server.
@@ -144,7 +144,7 @@ You can also edit on the host machine and then copy:
 $ curl localhost:8080/hello
 Hello ADS World!!!
 
-$ docker cp example ambex-envoy:/application/
+$ docker cp bootstrap_image/example ambex-envoy:/application/
 
 $ curl localhost:8080/hello
 Hello ADS!!!
