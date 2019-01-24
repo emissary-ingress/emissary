@@ -14,10 +14,10 @@ import (
 
 // userConfigDir returns the default directory to use for
 // user-specific config data.  It is similar to os.UserCacheDir().
-func userConfigDir() (string, error) {
+func userConfigDir(goos string) (string, error) {
 	var dir string
 
-	switch runtime.GOOS {
+	switch goos {
 	case "darwin":
 		// https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html
 		dir = os.Getenv("HOME")
@@ -54,11 +54,22 @@ func defaultLicenseFile() (string, error) {
 	if filename != "" {
 		return filename, nil
 	}
-	cfgDir, err := userConfigDir()
+	cfgDir, err := userConfigDir(runtime.GOOS)
 	if err != nil {
 		return "", err
 	}
 	filename = filepath.Join(cfgDir, "ambassador", "license-key")
+	if runtime.GOOS == "darwin" && !fileExists(filename) {
+		// Some macOS users expect XDG file paths to work,
+		// because other cross-platform applications (like
+		// gcloud & pgcli) use them.
+		if xdgDir, err := userConfigDir("linux"); err == nil {
+			xdgFile := filepath.Join(xdgDir, "ambassador", "license-key")
+			if fileExists(xdgFile) {
+				filename = xdgFile
+			}
+		}
+	}
 	if !fileExists(filename) {
 		// for compatibility with < 0.1.1
 		if home := os.Getenv("HOME"); home != "" {
