@@ -54,7 +54,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
        spec:
          containers:
          - name: qotm
-           image: datawire/qotm:1.1
+           image: datawire/qotm:1.2
            ports:
            - name: http-api
              containerPort: 5000
@@ -71,6 +71,8 @@ In this quick start, we're going to preview a change we make to the QOTM service
            name: traffic-sidecar
            ports:
            - containerPort: 9900
+         imagePullSecrets:
+          - name: ambassador-pro-registry-credentials
    ```
 
 3. Update the QOTM service YAML to point to the sidecar on port 9900, instead of the QOTM service directly on port 5000.
@@ -142,11 +144,11 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
 10. Re-run the `curl` above, which will now route to your (modified) local copy of the QOTM service:
 
-   ```
-   curl -H "x-service-preview: dev" $AMBASSADOR_IP/qotm/` # will go to local Docker instance
-   ```
+    ```
+    curl -H "x-service-preview: dev" $AMBASSADOR_IP/qotm/` # will go to local Docker instance
+    ```
 
-   To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
+    To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
 
 ## Using Service Preview
 
