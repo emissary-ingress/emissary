@@ -26,7 +26,7 @@ func PhoneHome(claims jwt.MapClaims, version string) error {
 	}
 	install_id := uuid.NewSHA1(space, []byte(id))
 	data := make(map[string]interface{})
-	data["application"] = "apictl"
+	data["application"] = "ambassador-pro"
 	data["install_id"] = install_id.String()
 	data["version"] = version
 	data["metadata"] = map[string]string{"id": id}
