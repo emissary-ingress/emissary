@@ -8,7 +8,7 @@ How do you verify that the code you've written actually works? Ambassador Pro's 
 
 Download the latest version of the client:
 
-[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/darwin/amd64/apictl)
+[Mac 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/darwin/amd64/apictl) | 
 [Linux 64-bit](https://s3.amazonaws.com/datawire-static-files/apictl/0.1.1/linux/amd64/apictl)
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.config/ambassador/license-key`.
