@@ -3,13 +3,6 @@ language: go
 go:
 - 1.11.x
 
-addons:
-  apt:
-    sources:
-    - sourceline: ppa:masterminds/glide
-    packages:
-    - glide
-
 script:
 - make build image
 - "./smoketest.sh"
