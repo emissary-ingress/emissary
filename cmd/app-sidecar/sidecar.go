@@ -10,6 +10,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/spf13/cobra"
+
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/longpoll"
 )
 
@@ -85,6 +88,28 @@ func main() {
 	log.SetPrefix("SIDECAR: ")
 	log.Printf("Sidecar version %s", Version)
 
+	argparser := &cobra.Command{
+		Use:     os.Args[0],
+		Version: Version,
+		Run:     Main,
+	}
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "application-sidecar", Version)
+	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		err := keycheck(cmd.PersistentFlags())
+		if err == nil {
+			return
+		}
+		fmt.Fprintln(os.Stderr, err)
+		time.Sleep(5 * 60 * time.Second)
+		os.Exit(1)
+	}
+	err := argparser.Execute()
+	if err != nil {
+		os.Exit(2)
+	}
+}
+
+func Main(flags *cobra.Command, args []string) {
 	os.Mkdir("temp", 0775)
 
 	empty := make([]InterceptInfo, 0)

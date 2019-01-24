@@ -50,5 +50,7 @@ spec:
           value: intercepted
         - name: APPPORT
           value: "80"
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
         - containerPort: 9900

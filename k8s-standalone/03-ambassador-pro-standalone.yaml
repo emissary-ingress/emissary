@@ -281,6 +281,9 @@ spec:
         ports:
         - name: sshd
           containerPort: 8022
+        env:
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
 # XXX: Kubernaut
 #      imagePullSecrets:
 #      - name: ambassador-pro-registry-credentials

@@ -57,3 +57,5 @@ spec:
       # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
       - name: _CONSUL_HOST
         value: consul
+      - name: AMBASSADOR_LICENSE_KEY
+        value: {{env "AMBASSADOR_LICENSE_KEY"}}
