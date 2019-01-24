@@ -163,13 +163,13 @@ spec:
       httpGet:
         path: /ambassador/v0/check_alive
         port: 8877
-      initialDelaySeconds: 60
+      initialDelaySeconds: 120
       periodSeconds: 3
     readinessProbe:
       httpGet:
         path: /ambassador/v0/check_ready
         port: 8877
-      initialDelaySeconds: 60
+      initialDelaySeconds: 120
       periodSeconds: 3
   restartPolicy: Always
 """
