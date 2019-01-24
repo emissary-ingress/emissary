@@ -17,6 +17,10 @@
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
+if [ -z "$AMBASSADOR_NAMESPACE" ]; then
+    AMBASSADOR_NAMESPACE=default
+fi
+
 AMBASSADOR_ROOT="/ambassador"
 AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
@@ -189,8 +193,14 @@ pids="${pids:+${pids} }$!:envoy"
 if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
     KUBEWATCH_SYNC_CMD="ambassador splitconfig --debug --k8s --bootstrap-path=${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY_CONFIG_FILE} --ambex-pid=${AMBEX_PID}"
 
+    KUBEWATCH_NAMESPACE_ARG=""
+
+    if [ -n "$AMBASSADOR_SINGLE_NAMESPACE" ]; then
+        KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
+    fi
+
     set -x
-    "$APPDIR/kubewatch" --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    "$APPDIR/kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi
