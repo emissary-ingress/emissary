@@ -187,6 +187,13 @@ func doInject(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func typecastList(in interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	return in.([]interface{})
+}
+
 func munge(res k8s.Resource) error {
 	podSpec := res.Spec()["template"].(map[string]interface{})["spec"].(map[string]interface{})
 
@@ -194,13 +201,13 @@ func munge(res k8s.Resource) error {
 	if port == 0 {
 		// inspect the current list of containers to infer the app_port
 		var ports []string
-		for _, c := range podSpec["containers"].([]interface{}) {
+		for _, c := range typecastList(podSpec["containers"]) {
 			iportSpecs, ok := c.(map[string]interface{})["ports"]
 			if !ok {
 				continue
 			}
 
-			portSpecs := iportSpecs.([]interface{})
+			portSpecs := typecastList(iportSpecs)
 
 			for _, portSpec := range portSpecs {
 				p, ok := portSpec.(map[string]interface{})["containerPort"]
@@ -223,7 +230,7 @@ func munge(res k8s.Resource) error {
 	license_key, _ := apictl.Flags().GetString("license-key")
 
 	// inject the sidecar container
-	podSpec["containers"] = append(podSpec["containers"].([]interface{}), map[string]interface{}{
+	podSpec["containers"] = append(typecastList(podSpec["containers"]), map[string]interface{}{
 		"name":  "traffic-sidecar",
 		"image": getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador_pro:app-sidecar-"+Version),
 		"env": []map[string]string{
@@ -235,9 +242,9 @@ func munge(res k8s.Resource) error {
 			{"containerPort": 9900},
 		},
 	})
-	podSpec["imagePullSecrets"] = []map[string]string{
-		{"name": "ambassador-pro-registry-credentials"},
-	}
+	podSpec["imagePullSecrets"] = append(typecastList(podSpec["imagePullSecrets"]),
+		map[string]string{"name": "ambassador-pro-registry-credentials"},
+	)
 
 	return nil
 }
