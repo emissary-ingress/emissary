@@ -9,5 +9,5 @@ RUN apk add --no-cache openssh && \
 USER 1000:0
 WORKDIR /app
 COPY run.sh .
-COPY proxy .
+COPY traffic-proxy .
 CMD ["/app/run.sh"]

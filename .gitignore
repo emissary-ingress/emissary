@@ -24,6 +24,10 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-01-23
+/docker/traffic-proxy/proxy
+# 2019-01-23
+/docker/app-sidecar/sidecar
 # 2019-01-23 386e530eca29f38a0bbf4dd1b4ccf97f4e577230
 /docker/amb-sidecar/oauth
 /docker/amb-sidecar/apictl

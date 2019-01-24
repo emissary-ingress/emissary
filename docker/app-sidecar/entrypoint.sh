@@ -24,5 +24,5 @@ cat >> bootstrap-ads.yaml <<EOF
 EOF
 
 ./ambex -watch data > /dev/null 2>&1 &
-./sidecar &
+./app-sidecar &
 envoy -l debug -c bootstrap-ads.yaml
