@@ -37,7 +37,7 @@ func PhoneHome(claims jwt.MapClaims, component, version string) error {
 	if err != nil {
 		panic(err)
 	}
-	_, err = http.Post("https://metriton.datawire.io/scout", "application/json", bytes.NewBuffer(body))
+	_, err = http.Post("https://kubernaut.io/scout", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
