@@ -57,6 +57,8 @@
           link: /user-guide/grpc
         - title: Use WebSockets with Ambassador
           link: /user-guide/websockets-ambassador
+    - title: Integration Testing with Service Preview
+      link: /docs/dev-guide/service-preview
 
 - title: Operator Guide
   link: /user-guide/operators
