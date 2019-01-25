@@ -2,6 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+replicaCount: 1
+daemonSet: false
+
 ambassador:
   id: default
 
@@ -9,38 +12,44 @@ namespace:
   single: false
   # name: default
 
-replicaCount: 1
-# If ambassador is needed as daemonSet then set create to true
-daemonSet: false
-
+# Additional container environment variable
+env: {}
+  # Exposing statistics via StatsD
+  # STATSD_ENABLED: true
+  # STATSD_HOST: statsd-sink
 
 image:
   repository: quay.io/datawire/ambassador
+  # tag:
   pullPolicy: IfNotPresent
-  #imagePullSecrets: sample
+  # imagePullSecrets:
 
+nameOverride: ""
+fullnameOverride: ""
 
 service:
-  enableHttp: true
-  enableHttps: true
-
-  targetPorts:
-    http: 80
-    https: 443
-
-
   type: LoadBalancer
-  httpPort: 80
-  httpsPort: 443
-  #Nodeport to use  if type is selected as Nodeport otherwise it will be ignored
-  #httpNodePort : 30080
-  #httpsNodePort : 30443
+
+  # Note that target http ports need to match your ambassador configurations service_port
+  # https://www.getambassador.io/reference/modules/#the-ambassador-module
+  http:
+    enabled: true
+    port: 80
+    targetPort: 80
+    # nodePort: 30080
+
+  https:
+    enabled: true
+    port: 443
+    targetPort: 443
+    # nodePort: 30443
+
   # annotations:
   #   getambassador.io/config: |
   #     ---
-  #     apiVersion: ambassador/v0
+  #     apiVersion: ambassador/v1
   #     kind: Module
-  #     name:  ambassador
+  #     name: ambassador
   #     config:
   #       diagnostics:
   #         enabled: false
@@ -50,8 +59,9 @@ service:
 adminService:
   create: true
   type: ClusterIP
+  port: 8877
   # NodePort used if type is NodePort
-  #nodePort: 38877
+  # nodePort: 38877
 
 rbac:
   # Specifies whether RBAC resources should be created
@@ -92,11 +102,13 @@ tolerations: []
 
 affinity: {}
 
-exporter:
-  enabled: true
-  image: prom/statsd-exporter:v0.6.0
+# Enabling the prometheus exporter creates a sidecar and configures ambassador to use it
+prometheusExporter:
+  enabled: false
+  repository: prom/statsd-exporter
+  tag: v0.8.1
   # You can configure the statsd exporter to modify the behavior of mappings and other features.
-  # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration
+  # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.8.1#metric-mapping-and-configuration
   # Uncomment the following line if you wish to specify a custom configuration:
   # configuration: |
   #   ---

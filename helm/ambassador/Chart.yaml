@@ -1,11 +1,10 @@
 apiVersion: v1
-appVersion: "0.40.2"
+appVersion: "0.50.0"
 description: A Helm chart for Datawire Ambassador
 name: ambassador
-version: 0.40.2
+version: 0.50.0
 sources:
 - https://github.com/datawire/ambassador
 maintainers:
   - name: Flynn
     email: flynn@datawire.io
-engine: gotpl

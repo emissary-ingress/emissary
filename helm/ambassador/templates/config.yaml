@@ -1,12 +1,17 @@
-{{- if .Values.exporter.enabled }}
+{{- if .Values.prometheusExporter.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: '{{ template "ambassador.fullname" . }}-config'
+  name: '{{ include "ambassador.fullname" . }}-config'
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
   exporterConfiguration:
-{{- if .Values.exporter.configuration }} |
-{{ .Values.exporter.configuration | indent 4 }}
+{{- if .Values.prometheusExporter.configuration }} |
+    {{- .Values.prometheusExporter.configuration | nindent 4 }}
 {{- else }} ''
 {{- end }}
 {{- end }}
