@@ -13,12 +13,14 @@ replicaCount: 1
 # If ambassador is needed as daemonSet then set create to true
 daemonSet: false
 
-
 image:
   repository: quay.io/datawire/ambassador
+  # tag:
   pullPolicy: IfNotPresent
-  #imagePullSecrets: sample
+  # imagePullSecrets:
 
+nameOverride: ""
+fullnameOverride: ""
 
 service:
   enableHttp: true
@@ -28,19 +30,19 @@ service:
     http: 80
     https: 443
 
-
   type: LoadBalancer
   httpPort: 80
   httpsPort: 443
-  #Nodeport to use  if type is selected as Nodeport otherwise it will be ignored
-  #httpNodePort : 30080
-  #httpsNodePort : 30443
+  # NodePort used if type is NodePort
+  # httpNodePort: 30080
+  # httpsNodePort: 30443
+
   # annotations:
   #   getambassador.io/config: |
   #     ---
-  #     apiVersion: ambassador/v0
+  #     apiVersion: ambassador/v1
   #     kind: Module
-  #     name:  ambassador
+  #     name: ambassador
   #     config:
   #       diagnostics:
   #         enabled: false
@@ -50,8 +52,9 @@ service:
 adminService:
   create: true
   type: ClusterIP
+  port: 8877
   # NodePort used if type is NodePort
-  #nodePort: 38877
+  # nodePort: 38877
 
 rbac:
   # Specifies whether RBAC resources should be created
@@ -72,9 +75,11 @@ podAnnotations:
   prometheus.io/scrape: "true"
   prometheus.io/port: "9102"
 
+# Additional container environment variable
 env: {}
-  # Specify any additional environment variables in format 
-  # FOO: bar
+  # Exposing statistics via StatsD
+  # STATSD_ENABLED: true
+  # STATSD_HOST: statsd-sink
 
 resources: {}
   # If you do want to specify resources, uncomment the following

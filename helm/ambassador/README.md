@@ -46,11 +46,11 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | Parameter                       | Description                                | Default                                                    |
 | ------------------------------- | ------------------------------------------ | ---------------------------------------------------------- |
 | `image.repository` | Image | `quay.io/datawire/ambassador`
-| `image.tag` | Image tag | `0.40.2`
+| `image.tag` | Image tag | `0.50.0`
 | `image.pullPolicy` | Image pull policy | `IfNotPresent`
 | `image.imagePullSecrets` | Image pull secrets | None
 | `daemonSet` | If `true `, Create a daemonSet. By default Deployment controller will be created | `false`
-| `env`  | Any additional environment variables for ambassador pods | `{}` 
+| `env` | Any additional environment variables for ambassador pods | `{}`
 | `replicaCount` | Number of Ambassador replicas  | `1`
 | `volumes` | Volumes for the ambassador service | None
 | `volumeMounts` | Volume mounts for the ambassador service | None
@@ -60,7 +60,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `serviceAccount.name` | Service account to be used | `ambassador`
 | `namespace.single` | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable | `false`
 | `namespace.name` | Set the `AMBASSADOR_NAMESPACE` environment variable | `metadata.namespace`
-| `podAnnotations` | Additional annotations for ambassador pods |  `{"prometheus.io/scrape": "true", "prometheus.io/port": "9102"}` 
+| `podAnnotations` | Additional annotations for ambassador pods |  `{"prometheus.io/scrape": "true", "prometheus.io/port": "9102"}`
 | `ambassador.id` | Set the identifier of the Ambassador instance | none
 | `service.enableHttp` | if port 80 should be opened for service | `true`
 | `service.enableHttps` | if port 443 should be opened for service | `true`
