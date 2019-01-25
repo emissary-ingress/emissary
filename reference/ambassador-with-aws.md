@@ -58,11 +58,11 @@ In Kubernetes, when using the AWS integration and a service of type `LoadBalance
 
 ## TLS Termination
 
-As will any Kubernetes environment, Ambassador can be configured to perform SSL offload by configuring a tls [`Module`](/reference/core/tls) or [`TLSContext`](/user-guide/sni). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information. 
+As with any Kubernetes environment, Ambassador can be configured to perform SSL offload by configuring a tls [`Module`](/reference/core/tls) or [`TLSContext`](/user-guide/sni). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information. 
 
-In AWS, you can also perform SSL offload with an ELB or ALb. If you choose to terminate TLS at the LB, Ambassador should be configured to listen for cleartext traffic on the default port 80. An example of this using an L4 ELB is shown at the top of this document. 
+In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador should be configured to listen for cleartext traffic on the default port 80. An example of this using an L4 ELB is shown at the top of this document. 
 
-The way you enable HTTP -> HTTPS redirection will depend on if your load balancer is running in L4 or L7 mode.
+Enabling HTTP -> HTTPS redirection will depend on if your load balancer is running in L4 or L7 mode.
 
 ### L4 Load Balancer
 
