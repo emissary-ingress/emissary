@@ -187,21 +187,27 @@ func doInject(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func typecastList(in interface{}) []interface{} {
+	if in == nil {
+		return nil
+	}
+	return in.([]interface{})
+}
+
 func munge(res k8s.Resource) error {
-	spec := res.Spec()
-	podSpec := spec["template"].(map[string]interface{})["spec"].(map[string]interface{})
-	containers := podSpec["containers"].([]interface{})
+	podSpec := res.Spec()["template"].(map[string]interface{})["spec"].(map[string]interface{})
 
 	var app_port string
 	if port == 0 {
+		// inspect the current list of containers to infer the app_port
 		var ports []string
-		for _, c := range containers {
+		for _, c := range typecastList(podSpec["containers"]) {
 			iportSpecs, ok := c.(map[string]interface{})["ports"]
 			if !ok {
 				continue
 			}
 
-			portSpecs := iportSpecs.([]interface{})
+			portSpecs := typecastList(iportSpecs)
 
 			for _, portSpec := range portSpecs {
 				p, ok := portSpec.(map[string]interface{})["containerPort"]
@@ -223,23 +229,23 @@ func munge(res k8s.Resource) error {
 
 	license_key, _ := apictl.Flags().GetString("license-key")
 
-	blah := make(map[string]interface{})
-	blah["name"] = "traffic-sidecar"
-	blah["image"] = getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador_pro:app-sidecar-"+Version)
-	blah["env"] = []map[string]string{
-		{"name": "APPNAME", "value": res.QName()},
-		{"name": "APPPORT", "value": app_port},
-		{"name": "AMBASSADOR_LICENSE_KEY", "value": license_key},
-	}
-	blah["ports"] = []map[string]interface{}{
-		{"containerPort": 9900},
-	}
+	// inject the sidecar container
+	podSpec["containers"] = append(typecastList(podSpec["containers"]), map[string]interface{}{
+		"name":  "traffic-sidecar",
+		"image": getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador_pro:app-sidecar-"+Version),
+		"env": []map[string]string{
+			{"name": "APPNAME", "value": res.QName()},
+			{"name": "APPPORT", "value": app_port},
+			{"name": "AMBASSADOR_LICENSE_KEY", "value": license_key},
+		},
+		"ports": []map[string]interface{}{
+			{"containerPort": 9900},
+		},
+	})
+	podSpec["imagePullSecrets"] = append(typecastList(podSpec["imagePullSecrets"]),
+		map[string]string{"name": "ambassador-pro-registry-credentials"},
+	)
 
-	containers = append(containers, blah)
-	podSpec["containers"] = containers
-	podSpec["imagePullSecrets"] = []map[string]string{
-		{"name": "ambassador-pro-registry-credentials"},
-	}
 	return nil
 }
 
