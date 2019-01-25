@@ -44,8 +44,8 @@ type envoyRouteBlob struct {
 }
 
 var defaultRoute = map[string]map[string]string{
-	"match": map[string]string{"prefix": "/"},
-	"route": map[string]string{"cluster": "app"}}
+	"match": {"prefix": "/"},
+	"route": {"cluster": "app"}}
 
 func processIntercepts(intercepts []InterceptInfo) {
 	routes := make([]interface{}, 0, len(intercepts)+1)

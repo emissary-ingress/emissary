@@ -125,7 +125,7 @@ type Spec struct {
 
 func (s *Spec) SetSource(source string) {
 	s.source = source
-	for i, _ := range s.Limits {
+	for i := range s.Limits {
 		s.Limits[i].source = source
 	}
 }
