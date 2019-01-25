@@ -4,4 +4,4 @@ RUN apk add --no-cache ca-certificates bash
 COPY ./run.sh ./amb-sidecar /opt/ambassador-pro/
 
 CMD [ "/opt/ambassador-pro/run.sh" ]
-EXPOSE 8080
+EXPOSE 6070 8080 8081

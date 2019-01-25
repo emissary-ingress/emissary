@@ -8,7 +8,11 @@ if [ -z "${APPPORT}" ]; then
     exit 1
 fi
 
-cat >> bootstrap-ads.yaml <<EOF
+dir="${BASH_SOURCE[0]%/*}"
+mkdir /run/amb
+cd /run/amb
+
+cat > bootstrap-ads.yaml "$dir"/bootstrap-ads.yaml - <<EOF
   - name: app
     connect_timeout: 1s
     type: STATIC
@@ -22,6 +26,7 @@ cat >> bootstrap-ads.yaml <<EOF
                 address: 127.0.0.1
                 port_value: ${APPPORT}
 EOF
+cp -a "$dir"/data .
 
 # Initialize job management
 trap 'jobs -p | xargs -r kill --' INT
@@ -33,8 +38,8 @@ launch() {
 }
 
 # Launch each of the worker processes
-launch sh -c 'exec ./ambex -watch data >/dev/null 2>&1'
-launch ./app-sidecar
+launch sh -c "exec ${dir}/ambex -watch data >/dev/null 2>&1"
+launch "$dir"/app-sidecar
 launch envoy -l debug -c bootstrap-ads.yaml
 
 # Wait for one of them to quit, then kill the others
