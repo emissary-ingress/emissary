@@ -70,6 +70,12 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `service.loadBalancerIP` | IP address to assign (if cloud provider supports it) | `""`
 | `service.annotations` | Annotations to apply to Ambassador service | none
 | `service.loadBalancerSourceRanges` | Passed to cloud provider load balancer if created (e.g: AWS ELB) | none
+| `ingress.enabled` | If an ingress resource should be created | `false`
+| `ingress.port` | Which port on the service should be targeted | `http`
+| `ingress.annotations | Annotations to apply to the ingress resource | `{}`
+| `ingress.path` | What path the ingress should match | `/`
+| `ingress.hosts` | What host names the ingress should match | `- chart-example.local`
+| `ingress.tls` | Ingress TLS configuration (Should be used if terminating TLS at the ingress controller) | `[]`
 | `adminService.create` | If `true`, create a service for Ambassador's admin UI | `true`
 | `adminService.nodePort` | If explicit NodePort for admin service is required  | `true`
 | `adminService.type` | Ambassador's admin service type to be used | `ClusterIP`
@@ -112,4 +118,10 @@ Alternatively, a YAML file that specifies the values for the above parameters ca
 
 ```console
 $ helm upgrade --install --wait my-release -f values.yaml datawire/ambassador
+```
+
+If using ingress to route to ambassador set the following:
+```
+ingress.enabled: true
+service.type: ClusterIP
 ```
