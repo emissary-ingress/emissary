@@ -65,7 +65,9 @@ This will run both unit tests and e2e tests.
 On macOS, you will first need to add `host.docker.internal:31000` to
 Docker's list of "Insecure registries":
 
-![Docker for Mac "Preferences…" dialog to set the list of "Insecure registries"](README-macos-insecure-registries.png)
+<p align="center">
+  <img src="README-macos-insecure-registries.png" alt="Docker for Mac &quot;Preferences…&quot; dialog to set the list of &quot;Insecure registries&quot;"/>
+</p>
 
 ## Cutting a release
 
