@@ -87,8 +87,8 @@ The installation instructions have users create a secret with
 credentials for a Quay account named `datawire+ambassador_pro` that
 has read permissions in the `quay.io/datawire/ambassador_pro`
 registry.  This secret is then used to authorize the image pull in the
-deployment (see below).  These deployments can currently be found in
-the `/templates/ambassador` directory on the `Ambassador` repo in the
+deployment.  These deployments can currently be found in the
+`/templates/ambassador` directory on the `Ambassador` repo in the
 `nkrause/AmPro/auth-docs` branch (TODO: Can we get a hyperlink in
 here?).
 
