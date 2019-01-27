@@ -27,7 +27,6 @@ import requests
 import yaml
 
 from kubernetes import client, config
-from enum import Enum
 
 from .VERSION import Version
 
@@ -72,29 +71,6 @@ def load_url_contents(logger: logging.Logger, url: str) -> Optional[str]:
         return stream.getvalue()
     else:
         return None
-
-
-class TLSPaths(Enum):
-    mount_cert_dir = "/etc/certs"
-    mount_tls_crt = os.path.join(mount_cert_dir, "tls.crt")
-    mount_tls_key = os.path.join(mount_cert_dir, "tls.key")
-
-    client_mount_dir = "/etc/cacert"
-    client_mount_crt = os.path.join(client_mount_dir, "tls.crt")
-
-    cert_dir = "/ambassador/certs"
-    tls_crt = os.path.join(cert_dir, "tls.crt")
-    tls_key = os.path.join(cert_dir, "tls.key")
-
-    client_cert_dir = "/ambassador/cacert"
-    client_tls_crt = os.path.join(client_cert_dir, "tls.crt")
-
-    @staticmethod
-    def generate(directory):
-        return {
-            'crt': os.path.join(directory, 'tls.crt'),
-            'key': os.path.join(directory, 'tls.key')
-        }
 
 
 class SystemInfo:
@@ -154,24 +130,6 @@ class RichStatus:
     @classmethod
     def OK(self, **kwargs):
         return RichStatus(True, **kwargs)
-
-class SourcedDict (dict):
-    def __init__(self, _source="--internal--", _from=None, **kwargs):
-        super().__init__(self, **kwargs)
-
-        if _from and ('_source' in _from):
-            self['_source'] = _from['_source']
-        else:
-            self['_source'] = _source
-
-        # self['_referenced_by'] = []
-
-    def referenced_by(self, source):
-        refby = self.setdefault('_referenced_by', [])
-
-        if source not in refby:
-            refby.append(source)
-
 
 class DelayTrigger (threading.Thread):
     def __init__(self, onfired, timeout=5, name=None):
@@ -458,19 +416,3 @@ def kube_v1():
             pass
 
     return k8s_api
-
-
-def check_cert_file(path):
-    readable = False
-
-    try:
-        data = open(path, "r").read()
-
-        if data and (len(data) > 0):
-            readable = True
-    except OSError:
-        pass
-    except IOError:
-        pass
-
-    return readable

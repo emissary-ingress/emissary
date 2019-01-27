@@ -140,23 +140,6 @@ handle_int() {
     echo "Exiting due to Control-C"
 }
 
-wait_for_ready() {
-    host=$1
-    is_ready=1
-    sleep_for_seconds=4
-    while true; do
-        sleep ${sleep_for_seconds}
-        if getent hosts ${host}; then
-            echo "$host exists"
-            is_ready=0
-            break
-        else
-            echo "$host is not reachable, trying again in ${sleep_for_seconds} seconds ..."
-        fi
-    done
-    return ${is_ready}
-}
-
 # set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
