@@ -57,7 +57,7 @@ class V2Config (EnvoyConfig):
         V2StaticResources.generate(self)
         V2Bootstrap.generate(self)
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         d = {
             'bootstrap': self.bootstrap,
             'static_resources': self.static_resources
@@ -65,10 +65,7 @@ class V2Config (EnvoyConfig):
 
         return d
 
-    def as_json(self):
-        return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
-
-    def split_config(self) -> tuple:
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         ads_config = {
             '@type': '/envoy.config.bootstrap.v2.Bootstrap',
             'static_resources': self.static_resources

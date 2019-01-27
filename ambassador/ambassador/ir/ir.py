@@ -74,11 +74,9 @@ class IR:
         self.logger = logging.getLogger("ambassador.ir")
 
         # We're using setattr since since mypy complains about assigning directly to a method.
-        setattr(self, 'secret_reader', secret_reader or KubeSecretReader())
+        secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
+        setattr(self, 'secret_reader', secret_reader or KubeSecretReader(secret_root))
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
-
-        # OK. Remember the root of the secret store...
-        self.secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
 
         self.logger.debug("IR __init__:")
         self.logger.debug("IR: Version         %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))

@@ -141,6 +141,8 @@ class EnvoyStats (object):
         return cstat
 
     def update_log_levels(self, last_attempt, level=None):
+        # logging.info("updating levels")
+
         try:
             url = "http://127.0.0.1:8001/logging"
 
@@ -182,6 +184,8 @@ class EnvoyStats (object):
         return True
         
     def update_envoy_stats(self, last_attempt):
+        # logging.info("updating stats")
+
         try:
             r = requests.get("http://127.0.0.1:8001/stats")
         except OSError as e:
@@ -296,6 +300,8 @@ class EnvoyStats (object):
             "clusters": active_clusters,
             "envoy": envoy_stats
         })
+
+        # logging.info("stats updated")
 
     # def update(self, active_mapping_names):
     def update(self):

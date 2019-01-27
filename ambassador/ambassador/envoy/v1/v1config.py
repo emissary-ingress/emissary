@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
-
-import json
-import logging
+from typing import Any, Dict, List, Optional, Tuple
 
 from ...ir import IR
 from ..common import EnvoyConfig
@@ -55,7 +52,7 @@ class V1Config (EnvoyConfig):
         V1Tracing.generate(self)
         V1GRPCService.generate(self)
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         d = {
             'admin': self.admin,
             'listeners': self.listeners,
@@ -74,5 +71,5 @@ class V1Config (EnvoyConfig):
 
         return d
 
-    def as_json(self):
-        return json.dumps(self.as_dict(), sort_keys=True, indent=4)
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        raise NotImplementedError

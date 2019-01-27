@@ -22,6 +22,9 @@ import json
 import logging
 import multiprocessing
 import os
+import queue
+import signal
+import threading
 import time
 import uuid
 
@@ -34,7 +37,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SplitConfigChecker
+from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, save_url_contents
 
 from ambassador.diagnostics import EnvoyStats
 
@@ -60,10 +63,10 @@ ambassador_targets = {
     'module': 'https://www.getambassador.io/reference/configuration#modules',
 }
 
-envoy_targets = {
-    'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
-    'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
-}
+# envoy_targets = {
+#     'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
+#     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
+# }
 
 
 def number_of_workers():
@@ -71,20 +74,28 @@ def number_of_workers():
 
 
 class DiagApp (Flask):
+    ambex_pid: int
     estats: EnvoyStats
     config_dir_prefix: str
+    bootstrap_path: str
+    ads_path: str
     health_checks: bool
     debugging: bool
     verbose: bool
     k8s: bool
     notice_path: str
     logger: logging.Logger
-    scc: SplitConfigChecker
+    # scc: SecretSaver
     aconf: Config
+    ir: IR
+    econf: EnvoyConfig
+    diag: Diagnostics
     notices: 'Notices'
     scout: Scout
     scout_args: Dict[str, Any]
     scout_result: Dict[str, Any]
+    watcher: 'AmbassadorEventWatcher'
+
 
 # Get the Flask app defined early.
 app = DiagApp(__name__,
@@ -173,35 +184,6 @@ class Notices:
             self.post(notice)
 
 
-def get_aconf(app) -> Config:
-    # We need to find the sync-# directory with the highest number...
-    sync_dirs = []
-    latest = app.config_dir_prefix
-
-    for subdir in os.listdir(app.config_dir_prefix):
-        if subdir.startswith("sync-"):
-            try:
-                sync_dirs.append(int(subdir.replace("sync-", "")))
-            except ValueError:
-                pass
-
-    if sync_dirs:
-        latest_generation = sorted(sync_dirs, reverse=True)[0]
-        latest = os.path.join(app.config_dir_prefix, "sync-%d" % latest_generation)
-
-    app.logger.debug("Fetching resources from %s" % latest)
-
-    app.scc = SplitConfigChecker(app.logger, latest)
-
-    aconf = Config()
-    aconf.load_from_directory(latest, k8s=app.k8s, recurse=True)
-
-    app.notices = Notices(app.notice_path)
-    app.notices.reset()
-
-    return aconf
-
-
 def check_scout(app, what: str, ir: Optional[IR]=None) -> None:
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)
@@ -283,6 +265,25 @@ def envoy_status(estats):
     }
 
 
+@app.route('/_internal/v0/ping', methods=[ 'GET' ])
+def handle_ping():
+    return "ACK", 200
+
+
+@app.route('/_internal/v0/update', methods=[ 'POST' ])
+def handle_update():
+    url = request.args.get('url', None)
+
+    if not url:
+        app.logger.error("error: update requested with no URL")
+        return "error: update requested with no URL", 400
+
+    app.logger.info("Update requested from %s" % url)
+    app.watcher.post('CONFIG', url)
+
+    return "update requested", 200
+
+
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
 def favicon():
     template_path = resource_filename(Requirement.parse("ambassador"), "templates")
@@ -315,12 +316,10 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    aconf = get_aconf(app)
-    ir = IR(aconf, secret_reader=app.scc.secret_reader)
-    check_scout(app, "overview", ir)
+    ir = app.ir
+    diag = app.diag
 
-    econf = EnvoyConfig.generate(ir, "V2")
-    diag = Diagnostics(ir, econf)
+    check_scout(app, "overview", ir)
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -404,12 +403,10 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    aconf = get_aconf(app)
-    ir = IR(aconf, secret_reader=app.scc.secret_reader)
-    check_scout(app, "detail: %s" % source, ir)
+    ir = app.ir
+    diag = app.diag
 
-    econf = EnvoyConfig.generate(ir, "V2")
-    diag = Diagnostics(ir, econf)
+    check_scout(app, "detail: %s" % source, ir)
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
@@ -474,13 +471,17 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
-def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
+def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
+                    do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
     app.estats = EnvoyStats()
     app.health_checks = False
     app.debugging = reload
     app.verbose = verbose
     app.k8s = k8s
     app.notice_path = notices
+
+    # This will raise an exception and crash if you pass it a string. That's intentional.
+    app.ambex_pid = int(ambex_pid)
 
     # This feels like overkill.
     app.logger = logging.getLogger("ambassador.diagd")
@@ -494,8 +495,97 @@ def create_diag_app(config_dir_path, do_checks=False, reload=False, debug=False,
         app.health_checks = True
 
     app.config_dir_prefix = config_dir_path
+    app.bootstrap_path = bootstrap_path
+    app.ads_path = ads_path
+
+    app.events = queue.Queue()
+    # app.scc = SecretSaver(app.logger, app.config_dir_prefix, app.config_dir_prefix)
 
     return app
+
+
+class AmbassadorEventWatcher(threading.Thread):
+    def __init__(self, app: DiagApp) -> None:
+        super().__init__(name="AmbassadorEventWatcher", daemon=True)
+        self.app = app
+        self.logger = self.app.logger
+        self.events: queue.Queue = queue.Queue()
+
+    def post(self, cmd: str, arg: str) -> None:
+        self.events.put((cmd, arg))
+
+    def update_estats(self) -> None:
+        self.post('ESTATS', '')
+
+    def run(self):
+        self.logger.info("starting event watcher")
+
+        while True:
+            cmd, arg = self.events.get()
+
+            if cmd == 'ESTATS':
+                # self.logger.info("updating estats")
+                try:
+                    self.app.estats.update()
+                except Exception as e:
+                    self.logger.error("could not update estats: %s" % e)
+                    self.logger.exception(e)
+            elif cmd == 'CONFIG':
+                try:
+                    self.load_config(arg)
+                except Exception as e:
+                    self.logger.error("could not reconfigure: %s" % e)
+                    self.logger.exception(e)
+            else:
+                self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
+
+    def load_config(self, url):
+        snapshot = url.split('/')[-1]
+        aconf_path = os.path.join(app.config_dir_prefix, "snapshot-%s.yaml" % snapshot)
+        ir_path = os.path.join(app.config_dir_prefix, "ir-%s.json" % snapshot)
+
+        self.logger.info("copying configuration from %s to %s" % (url, aconf_path))
+
+        saved = save_url_contents(self.logger, "%s/services" % url, aconf_path)
+
+        if saved:
+            scc = SecretSaver(app.logger, url, app.config_dir_prefix)
+
+            aconf = Config()
+            # Yeah yeah yeah. It's not really a directory. Whatever.
+            aconf.load_from_directory(aconf_path, k8s=app.k8s, recurse=True)
+
+            app.notices = Notices(app.notice_path)
+            app.notices.reset()
+
+            ir = IR(aconf, secret_reader=scc.url_reader)
+            open(ir_path, "w").write(ir.as_json())
+
+            check_scout(app, "update", ir)
+
+            econf = EnvoyConfig.generate(ir, "V2")
+            diag = Diagnostics(ir, econf)
+
+            bootstrap_config, ads_config = econf.split_config()
+
+            self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
+
+            with open(app.bootstrap_path, "w") as output:
+                output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+
+            with open(app.ads_path, "w") as output:
+                output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+
+            app.aconf = aconf
+            app.ir = ir
+            app.econf = econf
+            app.diag = diag
+
+            if app.ambex_pid != 0:
+                self.logger.info("notifying PID %d ambex" % app.ambex_pid)
+                os.kill(app.ambex_pid, signal.SIGHUP)
+
+            self.logger.info("configuration updated")
 
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
@@ -511,19 +601,28 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
             self.cfg.set(key.lower(), value)
 
     def load(self):
+        # This is a little weird, but whatever.
+        self.application.watcher = AmbassadorEventWatcher(self.application)
+        self.application.watcher.start()
+
         if self.application.health_checks:
             self.application.logger.info("Starting periodic updates")
-            self.application.stats_updater = PeriodicTrigger(self.application.estats.update, period=5)
+            self.application.stats_updater = PeriodicTrigger(self.application.watcher.update_estats, period=5)
 
         return self.application
 
 
-def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, reload=False, debug=False, verbose=False,
+def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
+          ambex_pid: Parameter.REQUIRED, *,
+          no_checks=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', k8s=False, notices=None):
     """
     Run the diagnostic daemon.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param bootstrap_path: Path to which to write bootstrap Envoy configuration
+    :param ads_path: Path to which to write ADS Envoy configuration
+    :param ambex_pid: PID to signal with HUP after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
     :param reload: If True, run Flask in debug mode for live reloading
     :param debug: If True, do debug logging
@@ -533,9 +632,10 @@ def _main(config_dir_path: Parameter.REQUIRED, *, no_checks=False, reload=False,
     :param port: Port on which to listen (default 8877)
     :param notices: Optional file to read for local notices
     """
-    
+
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, reload, debug, k8s, verbose, notices)
+    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
+                                not no_checks, reload, debug, k8s, verbose, notices)
 
     if not workers:
         workers = number_of_workers()

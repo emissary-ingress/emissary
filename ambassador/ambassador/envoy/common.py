@@ -12,12 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
+
+import json
 
 from abc import abstractmethod
 
 from ..ir import IR, IRResource
 from ..ir.irmapping import IRMappingGroup
+
+def sanitize_pre_json(input):
+    # Removes all potential null values
+    if isinstance(input, dict):
+        for key, value in list(input.items()):
+            if value is None:
+                del input[key]
+            else:
+                sanitize_pre_json(value)
+    elif isinstance(input, list):
+        for item in input:
+            sanitize_pre_json(item)
+    return input
 
 class EnvoyConfig:
     """
@@ -49,6 +64,17 @@ class EnvoyConfig:
         self.add_element(kind, resource.location, obj)
         return obj
 
+    @abstractmethod
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        pass
+
+    @abstractmethod
+    def as_dict(self) -> Dict[str, Any]:
+        pass
+
+    def as_json(self):
+        return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
+
     @classmethod
     def generate(cls, ir: IR, version: str="V2") -> 'EnvoyConfig':
         if version == "V1":
@@ -70,17 +96,3 @@ class EnvoyRoute:
             return self.regex
         else:
             return self.prefix
-
-
-def sanitize_pre_json(input):
-    # Removes all potential null values
-    if isinstance(input, dict):
-        for key, value in list(input.items()):
-            if value is None:
-                del input[key]
-            else:
-                sanitize_pre_json(value)
-    elif isinstance(input, list):
-        for item in input:
-            sanitize_pre_json(item)
-    return input

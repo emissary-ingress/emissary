@@ -30,7 +30,7 @@ from typing import Optional, Dict, Union
 from kubernetes import watch
 from kubernetes.client.rest import ApiException
 from ambassador import Config, Scout
-from ambassador.utils import kube_v1
+from ambassador.utils import kube_v1, KubeSecretReader
 from ambassador.ir import IR
 from ambassador.ir.irtlscontext import IRTLSContext
 from ambassador.envoy import V2Config
@@ -39,6 +39,7 @@ from ambassador.VERSION import Version
 
 __version__ = Version
 ambassador_id = os.getenv("AMBASSADOR_ID", "default")
+secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
 
 logging.basicConfig(
     level=logging.INFO,  # if appDebug else logging.INFO,
@@ -221,7 +222,7 @@ class Restarter(threading.Thread):
 
         aconf = Config()
         aconf.load_from_directory(output)
-        ir = IR(aconf)
+        ir = IR(aconf, secret_reader=KubeSecretReader(secret_root))
         envoy_config = V2Config(ir)
 
         bootstrap_config, ads_config = envoy_config.split_config()

@@ -127,7 +127,7 @@ class IRTLSContext(IRResource):
             secret_name, namespace = secret_name.split('.', 1)
 
         sr = getattr(self.ir, 'secret_reader')
-        return sr(self, secret_name, namespace, self.ir.secret_root)
+        return sr(self, secret_name, namespace)
 
     def resolve(self) -> bool:
         # is_valid determines if the TLS context is valid
