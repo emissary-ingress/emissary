@@ -22,7 +22,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | :------------------------ | :------------------------ |
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
-| [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping | 
+| [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](/reference/headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | [`host`](/reference/host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
@@ -55,6 +55,7 @@ These attributes are less commonly used, but can be used to override Ambassador'
 | [`host_redirect`](/reference/redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
 | [`path_redirect`](/reference/redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
 | [`precedence`](#a-nameprecedencea-using-precedence)           | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
+| `bypass_auth`             | if true, tells Ambassador that this service should bypass `ExtAuth` (if configured) |
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 

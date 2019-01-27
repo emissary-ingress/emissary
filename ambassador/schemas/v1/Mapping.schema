@@ -13,7 +13,7 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        
+
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },
@@ -69,6 +69,7 @@
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
         "weight": { "type": "integer" },
+        "bypass_auth": { "type": "boolean" },
 
         "modules": {
             "type": "array",

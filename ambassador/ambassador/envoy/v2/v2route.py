@@ -42,6 +42,15 @@ class V2Route(dict):
 
         self['match'] = match
 
+        # `per_filter_config` is used for customization of an Envoy filter
+        per_filter_config = {}
+
+        if group.get('bypass_auth', False):
+            per_filter_config['envoy.ext_authz'] = {'disabled': True}
+
+        if per_filter_config:
+            self['per_filter_config'] = per_filter_config
+
         request_headers_to_add = group.get('add_request_headers', None)
 
         if request_headers_to_add:

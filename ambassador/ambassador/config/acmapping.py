@@ -23,7 +23,7 @@ from .acresource import ACResource
 ## Each Mapping object has a group_id that reflects the group of Mappings
 ## that it is a part of. By definition, two Mappings with the same group_id
 ## are reflecting a single mapped resource that's going to multiple services.
-## This implies that Mapping.group_id() is a very, very, very important 
+## This implies that Mapping.group_id() is a very, very, very important
 ## thing that can have dramatic customer impact if changed! (At some point,
 ## we should probably allow the human writing the Mapping to override the
 ## grouping, in much the same way we allow overriding precedence.)
@@ -55,6 +55,7 @@ class ACMapping (ACResource):
                  rewrite: Optional[str]="/",
                  case_sensitive: bool=False,
                  grpc: bool=False,
+                 bypass_auth: bool=False,
 
                  # We don't list "method" or "method_regex" above because if they're
                  # not present, we want them to be _not present_. Having them be always
@@ -81,4 +82,5 @@ class ACMapping (ACResource):
                          rewrite=rewrite,
                          case_sensitive=case_sensitive,
                          grpc=grpc,
+                         bypass_auth=bypass_auth,
                          **kwargs)

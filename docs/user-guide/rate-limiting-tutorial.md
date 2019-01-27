@@ -73,9 +73,46 @@ Ambassador will see the annotations and reconfigure itself within a few seconds.
 
 ## 2. Configure Ambassador Mappings
 
-Ambassador only validates requests on Mappings which define a `rate_limits` attribute. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
+Ambassador only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-We already have the `qotm` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `qotm` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply. Here's the new YAML:
+We already have the `qotm` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `qotm` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
+
+### v1 API
+Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#request-labels) for more information.
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotm
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      service: qotm
+      labels:
+        ambassador:
+          - request_label_group:
+            - x-ambassador-test-allow:
+                header: "x-ambassador-test-allow"
+                omit_if_not_present: true
+spec:
+  type: ClusterIP
+  selector:
+    app: qotm
+  ports:
+  - port: 80
+    name: http-qotm
+    targetPort: http-api
+```
+
+### v0 API
+Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#the-rate_limits-attribute) for more information.
+
 
 ```yaml
 ---
