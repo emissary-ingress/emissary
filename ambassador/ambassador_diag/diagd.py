@@ -303,6 +303,9 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
+    if not app.ir:
+        return "ambassador waiting for config", 503
+
     status = envoy_status(app.estats)
 
     if status['ready']:
