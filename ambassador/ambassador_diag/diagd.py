@@ -172,12 +172,17 @@ class Notices:
             local_notices.append({ 'level': 'ERROR', 'message': 'bad local notices: %s' % local_data })
 
         self.notices = local_notices
+        # app.logger.info("Notices: after RESET: %s" % json.dumps(self.notices))
 
     def post(self, notice):
+        # app.logger.debug("Notices: POST %s" % notice)
         self.notices.append(notice)
+        # app.logger.info("Notices: after POST: %s" % json.dumps(self.notices))
 
     def prepend(self, notice):
+        # app.logger.debug("Notices: PREPEND %s" % notice)
         self.notices.insert(0, notice)
+        # app.logger.info("Notices: after PREPEND: %s" % json.dumps(self.notices))
 
     def extend(self, notices):
         for notice in notices:
@@ -187,6 +192,8 @@ class Notices:
 def check_scout(app, what: str, ir: Optional[IR]=None) -> None:
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)
+
+    app.notices.reset()
 
     app.scout = Scout()
     app.scout_args = {
@@ -198,10 +205,12 @@ def check_scout(app, what: str, ir: Optional[IR]=None) -> None:
         app.scout_args["features"] = ir.features()
 
     app.scout_result = app.scout.report(mode="diagd", action=what, **app.scout_args)
-    app.notices.extend(app.scout_result.pop('notices', []))
+    scout_notices = app.scout_result.pop('notices', [])
+    app.notices.extend(scout_notices)
 
     app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
-    app.logger.info("Scout notices: %s" % json.dumps(app.notices.notices))
+    app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
+    app.logger.info("App notices after scout: %s" % json.dumps(app.notices.notices))
 
 
 def td_format(td_object):
@@ -393,7 +402,6 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     for notice_key, notice_list in dnotices.items():
         for notice in notice_list:
-            app.logger.debug("POSTING NOTICE %s %s" % (notice_key, notice))
             app.notices.post({'level': 'NOTICE', 'message': "%s: %s" % (notice_key, notice)})
 
     ddict['errors'] = errors
@@ -482,6 +490,8 @@ def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
     app.verbose = verbose
     app.k8s = k8s
     app.notice_path = notices
+    app.notices = Notices(app.notice_path)
+    app.notices.reset()
 
     # This will raise an exception and crash if you pass it a string. That's intentional.
     app.ambex_pid = int(ambex_pid)
@@ -557,9 +567,6 @@ class AmbassadorEventWatcher(threading.Thread):
             aconf = Config()
             # Yeah yeah yeah. It's not really a directory. Whatever.
             aconf.load_from_directory(aconf_path, k8s=app.k8s, recurse=True)
-
-            app.notices = Notices(app.notice_path)
-            app.notices.reset()
 
             ir = IR(aconf, secret_reader=scc.url_reader)
             open(ir_path, "w").write(ir.as_json())
