@@ -65,7 +65,9 @@ This will run both unit tests and e2e tests.
 On macOS, you will first need to add `host.docker.internal:31000` to
 Docker's list of "Insecure registries":
 
-![Docker for Mac "Preferences…" dialog to set the list of "Insecure registries"](README-macos-insecure-registries.png)
+<p align="center">
+  <img src="README-macos-insecure-registries.png" alt="Docker for Mac &quot;Preferences…&quot; dialog to set the list of &quot;Insecure registries&quot;"/>
+</p>
 
 ## Cutting a release
 
@@ -85,8 +87,8 @@ The installation instructions have users create a secret with
 credentials for a Quay account named `datawire+ambassador_pro` that
 has read permissions in the `quay.io/datawire/ambassador_pro`
 registry.  This secret is then used to authorize the image pull in the
-deployment (see below).  These deployments can currently be found in
-the `/templates/ambassador` directory on the `Ambassador` repo in the
+deployment.  These deployments can currently be found in the
+`/templates/ambassador` directory on the `Ambassador` repo in the
 `nkrause/AmPro/auth-docs` branch (TODO: Can we get a hyperlink in
 here?).
 
