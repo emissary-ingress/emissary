@@ -63,9 +63,9 @@ You will need to tell Ambassador to use the certificate issued by Consul for `mT
   ---
   apiVersion: ambassador/v1
   kind: TLSContext
-  name: ambassador-consul
+  name: ambassador-consul-connect
   hosts: []
-  secret: ambassador-consul
+  secret: ambassador-consul-connect
   ```
   
 ### Configure Ambassador Mappings to use the TLSContext
@@ -139,7 +139,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  qotm_mapping
       prefix: /qotm/
