@@ -125,19 +125,23 @@ Format:
 - `redirect_cleartext_from` works with the `PROXY` protocol ([#1115])
 - Multiple `AuthService` resources (for canary deployments) work again ([#1106])
 - `AuthService` with `allow_request_body` works correctly with an empty body and no `Content-Length` header ([#1140])
+- `Mapping` supports the `bypass_auth` attribute to bypass authentication (thanks, @patricksanders! [#174])
 - The diagnostic service no longer needs to re-parse the configuration on every page load ([#483])
 - Startup is now faster and more stable
+- The Makefile should do the right thing if your PATH has spaces in it (thanks, @er1c!)
+- Lots of Helm chart, statsd, and doc improvements (thanks, @Flydiverny, @alexgervais, @bartlett, @victortv7, and @zencircle!)
 
+[#174]: https://github.com/datawire/ambassador/issues/174
 [#474]: https://github.com/datawire/ambassador/issues/474
+[#483]: https://github.com/datawire/ambassador/issues/483
 [#1093]: https://github.com/datawire/ambassador/issues/1093
 [#1098]: https://github.com/datawire/ambassador/issues/1098
-[#1118]: https://github.com/datawire/ambassador/issues/1118
-[#1148]: https://github.com/datawire/ambassador/issues/1148
 [#1104]: https://github.com/datawire/ambassador/issues/1104
-[#1115]: https://github.com/datawire/ambassador/issues/1115
 [#1106]: https://github.com/datawire/ambassador/issues/1106
+[#1115]: https://github.com/datawire/ambassador/issues/1115
+[#1118]: https://github.com/datawire/ambassador/issues/1118
 [#1140]: https://github.com/datawire/ambassador/issues/1140
-[#483]: https://github.com/datawire/ambassador/issues/483
+[#1148]: https://github.com/datawire/ambassador/issues/1148
 
 ## [0.50.0-rc5] January 14, 2019
 [0.50.0-rc5]: https://github.com/datawire/ambassador/compare/0.50.0-rc4...0.50.0-rc5
