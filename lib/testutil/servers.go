@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/spf13/pflag"
+
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
@@ -56,7 +58,11 @@ func NewIDP() *httptest.Server {
 func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 
-	c := config.New()
+	flags := pflag.NewFlagSet("newapp", pflag.PanicOnError)
+	afterParse := config.InitializeFlags(flags)
+	_ = flags.Parse([]string{})
+
+	c := afterParse()
 	l := logger.New(c)
 	s := secret.New(c, l)
 	d := discovery.New(c)
