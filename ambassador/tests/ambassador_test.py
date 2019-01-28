@@ -666,7 +666,7 @@ def file_always_exists(filename):
     return True
 
 
-def atest_secret_reader(context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str) -> SavedSecret:
+def atest_secret_reader(context: 'IRTLSContext', secret_name: str, namespace: str) -> SavedSecret:
     # In the Real World, the secret reader should, y'know, read secrets..
     # Here we're just gonna fake it.
 

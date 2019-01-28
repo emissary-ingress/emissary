@@ -14,18 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, Optional, TextIO, TYPE_CHECKING
 
 import binascii
+import io
 import socket
 import threading
 import time
 import os
 import logging
+import requests
 import yaml
 
 from kubernetes import client, config
-from enum import Enum
 
 from .VERSION import Version
 
@@ -36,27 +37,41 @@ logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
 
 
-class TLSPaths(Enum):
-    mount_cert_dir = "/etc/certs"
-    mount_tls_crt = os.path.join(mount_cert_dir, "tls.crt")
-    mount_tls_key = os.path.join(mount_cert_dir, "tls.key")
+def _load_url_contents(logger: logging.Logger, url: str, stream: TextIO) -> bool:
+    saved = False
 
-    client_mount_dir = "/etc/cacert"
-    client_mount_crt = os.path.join(client_mount_dir, "tls.crt")
+    try:
+        with requests.get(url, stream=True) as r:
+            if r.status_code == 200:
 
-    cert_dir = "/ambassador/certs"
-    tls_crt = os.path.join(cert_dir, "tls.crt")
-    tls_key = os.path.join(cert_dir, "tls.key")
+                # All's well, pull the config down.
+                try:
+                    for chunk in r.iter_content(chunk_size=65536, decode_unicode=True):
+                        stream.write(chunk)
+                        saved = True
+                except IOError as e:
+                    logger.error("couldn't save Kubernetes service resources: %s" % e)
+                except Exception as e:
+                    logger.error("couldn't read Kubernetes service resources: %s" % e)
+    except requests.exceptions.RequestException as e:
+        logger.error("could not load new snapshot: %s" % e)
 
-    client_cert_dir = "/ambassador/cacert"
-    client_tls_crt = os.path.join(client_cert_dir, "tls.crt")
+    return saved
 
-    @staticmethod
-    def generate(directory):
-        return {
-            'crt': os.path.join(directory, 'tls.crt'),
-            'key': os.path.join(directory, 'tls.key')
-        }
+def save_url_contents(logger: logging.Logger, url: str, path: str) -> bool:
+    with open(path, 'w', encoding='utf-8') as stream:
+        return _load_url_contents(logger, url, stream)
+
+def load_url_contents(logger: logging.Logger, url: str) -> Optional[str]:
+    stream = io.StringIO()
+
+    saved = _load_url_contents(logger, url, stream)
+
+    if saved:
+        return stream.getvalue()
+    else:
+        return None
+
 
 class SystemInfo:
     MyHostName = 'localhost'
@@ -115,23 +130,6 @@ class RichStatus:
     @classmethod
     def OK(self, **kwargs):
         return RichStatus(True, **kwargs)
-
-class SourcedDict (dict):
-    def __init__(self, _source="--internal--", _from=None, **kwargs):
-        super().__init__(self, **kwargs)
-
-        if _from and ('_source' in _from):
-            self['_source'] = _from['_source']
-        else:
-            self['_source'] = _source
-
-        # self['_referenced_by'] = []
-
-    def referenced_by(self, source):
-        refby = self.setdefault('_referenced_by', [])
-
-        if source not in refby:
-            refby.append(source)
 
 class DelayTrigger (threading.Thread):
     def __init__(self, onfired, timeout=5, name=None):
@@ -212,11 +210,12 @@ class SavedSecret:
 
 
 class KubeSecretReader:
-    def __init__(self) -> None:
+    def __init__(self, secret_root: str) -> None:
         self.v1 = None
         self.__name__ = 'KubeSecretReader'
+        self.secret_root = secret_root
 
-    def __call__(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
+    def __call__(self, context: 'IRTLSContext', secret_name: str, namespace: str):
         # Make sure we have a Kube connection.
         if not self.v1:
             self.v1 = kube_v1()
@@ -246,7 +245,7 @@ class KubeSecretReader:
             if key:
                 key = binascii.a2b_base64(key)
 
-        secret_dir = os.path.join(secret_root, namespace, "secrets", secret_name)
+        secret_dir = os.path.join(self.secret_root, namespace, "secrets", secret_name)
 
         cert_path = None
         key_path = None
@@ -267,36 +266,57 @@ class KubeSecretReader:
         return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
 
 
-class SplitConfigChecker:
-    def __init__(self, logger, root_path: str) -> None:
+class SecretSaver:
+    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str) -> None:
         self.logger = logger
-        self.root = root_path
+        self.source_root = source_root
+        self.cache_dir = cache_dir
 
-    def secret_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str, secret_root: str):
-        yaml_path = os.path.join(self.root, namespace, "secrets", "%s.yaml" % secret_name)
+    def file_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str):
+        self.context = context
+        self.secret_name = secret_name
+        self.namespace = namespace
 
-        serialization = None
+        self.source = os.path.join(self.source_root, namespace, "secrets", "%s.yaml" % secret_name)
+
+        self.serialization = None
+
+        try:
+            self.serialization = open(self.source, "r").read()
+        except IOError as e:
+            self.logger.error("TLSContext %s: SCC.file_reader could not open %s" % (context.name, self.source))
+
+        return self.secret_parser()
+
+    def url_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str):
+        self.context = context
+        self.secret_name = secret_name
+        self.namespace = namespace
+
+        self.source = "%s/secrets/%s/%s" % (self.source_root, namespace, secret_name)
+        self.serialization = load_url_contents(self.logger, self.source)
+
+        if not self.serialization:
+            self.logger.error("TLSContext %s: SCC.url_reader could not load %s" % (context.name, self.source))
+
+        return self.secret_parser()
+
+    def secret_parser(self) -> SavedSecret:
         objects = []
         cert_data = None
         cert = None
         key = None
         cert_path = None
         key_path = None
-
-        try:
-            serialization = open(yaml_path, "r").read()
-        except IOError as e:
-            self.logger.error("TLSContext %s: SCC.secret_reader could not open %s" % (context.name, yaml_path))
-
-        if serialization:
-            try:
-                objects.extend(list(yaml.safe_load_all(serialization)))
-            except yaml.error.YAMLError as e:
-                self.logger.error("TLSContext %s: SCC.secret_reader could not parse %s: %s" %
-                                  (context.name, yaml_path, e))
-
         ocount = 0
         errors = 0
+
+        if self.serialization:
+            try:
+                objects.extend(list(yaml.safe_load_all(self.serialization)))
+            except yaml.error.YAMLError as e:
+                self.logger.error("TLSContext %s: SCC.secret_reader could not parse %s: %s" %
+                                  (self.context.name, self.source, e))
 
         for obj in objects:
             ocount += 1
@@ -304,7 +324,7 @@ class SplitConfigChecker:
 
             if kind != "Secret":
                 self.logger.error("TLSContext %s: SCC.secret_reader found K8s %s at %s.%d?" %
-                                  (context.name, kind, yaml_path, ocount))
+                                  (self.context.name, kind, self.source, ocount))
                 errors += 1
                 continue
 
@@ -312,14 +332,14 @@ class SplitConfigChecker:
 
             if not metadata:
                 self.logger.error("TLSContext %s: SCC.secret_reader found K8s Secret with no metadata at %s.%d?" %
-                                  (context.name, yaml_path, ocount))
+                                  (self.context.name, self.source, ocount))
                 errors += 1
                 continue
 
             if 'data' in obj:
                 if cert_data:
                     self.logger.error("TLSContext %s: SCC.secret_reader found multiple Secrets in %s?" %
-                                      (context.name, yaml_path))
+                                      (self.context.name, self.source))
                     errors += 1
                     continue
 
@@ -330,7 +350,7 @@ class SplitConfigChecker:
         #
         # if not cert_data:
         #     self.logger.error("TLSContext %s: SCC.secret_reader found no certificate in %s?" %
-        #                       (context.name, yaml_path))
+        #                       (self.context.name, self.source))
         #     return None
 
         # OK, we have something to work with. Hopefully.
@@ -348,11 +368,11 @@ class SplitConfigChecker:
         # if not cert:
         #     # This is an error. Having a cert but no key might be OK, we'll let our caller decide.
         #     self.logger.error("TLSContext %s: SCC.secret_reader found data but no cert in %s?" %
-        #                       (context.name, yaml_path))
+        #                       (self.context.name, yaml_path))
         #     return None
 
         if cert:
-            secret_dir = os.path.join(self.root, namespace, "secrets-decoded", secret_name)
+            secret_dir = os.path.join(self.cache_dir, self.namespace, "secrets-decoded", self.secret_name)
 
             try:
                 os.makedirs(secret_dir)
@@ -366,7 +386,7 @@ class SplitConfigChecker:
                 key_path = os.path.join(secret_dir, "tls.key")
                 open(key_path, "w").write(key.decode("utf-8"))
 
-        return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
+        return SavedSecret(self.secret_name, self.namespace, cert_path, key_path, cert_data)
 
 
 def kube_v1():
@@ -396,19 +416,3 @@ def kube_v1():
             pass
 
     return k8s_api
-
-
-def check_cert_file(path):
-    readable = False
-
-    try:
-        data = open(path, "r").read()
-
-        if data and (len(data) > 0):
-            readable = True
-    except OSError:
-        pass
-    except IOError:
-        pass
-
-    return readable

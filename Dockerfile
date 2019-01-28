@@ -63,7 +63,7 @@ RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
 
 # Grab kubewatch
-RUN wget -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.13/$(go env GOOS)/$(go env GOARCH)/kubewatch
+RUN wget -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.15/$(go env GOOS)/$(go env GOARCH)/kubewatch
 RUN chmod +x kubewatch
 
 # Clean up no-longer-needed dev stuff.
@@ -109,7 +109,8 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
 # COPY the entrypoint and Python-kubewatch and make them runnable.
 COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
-RUN chmod 755 kubewatch.py entrypoint.sh
+COPY ambassador/post_update.py .
+RUN chmod 755 kubewatch.py entrypoint.sh post_update.py
 
 # Grab ambex, too.
 RUN wget -q https://s3.amazonaws.com/datawire-static-files/ambex/0.1.1/ambex

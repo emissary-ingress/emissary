@@ -37,6 +37,8 @@ fi
 
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
+# The bootstrap file really is in the config base dir, not the Envoy dir.
+ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
 
 # Set AMBASSADOR_DEBUG to things separated by spaces to enable debugging.
 check_debug () {
@@ -138,23 +140,6 @@ handle_int() {
     echo "Exiting due to Control-C"
 }
 
-wait_for_ready() {
-    host=$1
-    is_ready=1
-    sleep_for_seconds=4
-    while true; do
-        sleep ${sleep_for_seconds}
-        if getent hosts ${host}; then
-            echo "$host exists"
-            is_ready=0
-            break
-        else
-            echo "$host is not reachable, trying again in ${sleep_for_seconds} seconds ..."
-        fi
-    done
-    return ${is_ready}
-}
-
 # set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
@@ -177,21 +162,45 @@ AMBASSADOR_CLUSTER_ID="${cluster_id}"
 export AMBASSADOR_CLUSTER_ID
 echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 
-echo "AMBASSADOR: starting diagd"
-diagd "${CONFIG_DIR}" $DIAGD_DEBUG $DIAGD_K8S --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
-pids="${pids:+${pids} }$!:diagd"
-
 echo "AMBASSADOR: starting ads"
 ./ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
 echo "AMBASSADOR: starting Envoy"
-envoy $ENVOY_DEBUG -c "${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json" &
+envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
 pids="${pids:+${pids} }$!:envoy"
 
+echo "AMBASSADOR: starting diagd"
+diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $AMBEX_PID $DIAGD_DEBUG $DIAGD_K8S --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+pids="${pids:+${pids} }$!:diagd"
+
+# Wait for diagd to start
+tries_left=10
+delay=1
+while [ $tries_left -gt 0 ]; do
+    echo "AMBASSADOR: pinging diagd ($tries_left)..."
+
+    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8877/_internal/v0/ping)
+
+    if [ "$status" = "200" ]; then
+        break
+    fi
+
+    tries_left=$(( $tries_left - 1 ))
+    sleep $delay
+    delay=$(( $delay * 2 ))
+    if [ $delay -gt 10 ]; then delay=5; fi
+done
+
+if [ $tries_left -le 0 ]; then
+    echo "AMBASSADOR: giving up on diagd and hoping for the best..."
+else
+    echo "AMBASSADOR: diagd running"
+fi
+
 if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
-    KUBEWATCH_SYNC_CMD="ambassador splitconfig --debug --k8s --bootstrap-path=${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json --ads-path=${ENVOY_CONFIG_FILE} --ambex-pid=${AMBEX_PID}"
+    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
 
     KUBEWATCH_NAMESPACE_ARG=""
 
@@ -200,7 +209,7 @@ if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
     fi
 
     set -x
-    "$APPDIR/kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --root "$CONFIG_DIR" --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    "$APPDIR/kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi

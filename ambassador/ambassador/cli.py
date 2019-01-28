@@ -30,7 +30,7 @@ from . import Scout, Config, IR, Diagnostics, Version
 from .envoy import EnvoyConfig, V1Config, V2Config
 from .ir.irtlscontext import IRTLSContext
 
-from .utils import RichStatus, SavedSecret, SplitConfigChecker
+from .utils import RichStatus, SavedSecret, SecretSaver
 
 __version__ = Version
 
@@ -104,9 +104,11 @@ def file_checker(path: str) -> bool:
     return True
 
 
-def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str, secret_root: str) -> SavedSecret:
+def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
     # In the Real World, the secret reader should, y'know, read secrets..
     # Here we're just gonna fake it.
+
+    secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
 
     cert_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.crt")
     key_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.key")
@@ -371,7 +373,7 @@ def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
 
     # root_path contains directories for each resource type: services, secrets, optional
     # crd-whatever paths.
-    scc = SplitConfigChecker(logger, root_path)
+    scc = SecretSaver(logger, root_path, root_path)
 
     # Start by assuming that we're going to look at everything.
     config_root = root_path
@@ -384,10 +386,8 @@ def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
     aconf = Config()
     aconf.load_from_directory(config_root, k8s=k8s, recurse=True)
 
-    # Use the SplitConfigChecker to resolve secrets. We don't pass a file checker
-    # because anything in the config using an actual path needs to be passing a
-    # correct path by this point.
-    ir = IR(aconf, secret_reader=scc.secret_reader)
+    # Use the SecretSaver to read secret from the filesystem.
+    ir = IR(aconf, secret_reader=scc.file_reader)
 
     # Generate a V2Config from that, and grab the split bootstrap and ADS configs.
     v2config = V2Config(ir)

@@ -187,7 +187,12 @@ class AmbassadorTest(Test):
             with open(fname, "wb") as fd:
                 fd.write(result.stdout)
             content = result.stdout
-        secret = yaml.load(content)
+        try:
+            secret = yaml.load(content)
+        except Exception as e:
+            print("could not parse YAML:\n%s" % content)
+            raise e
+
         data = secret['data']
         # secret_dir = tempfile.mkdtemp(prefix=self.path.k8s, suffix="secret")
         secret_dir = "/tmp/%s-ambassadormixin-%s" % (self.path.k8s, 'secret')
