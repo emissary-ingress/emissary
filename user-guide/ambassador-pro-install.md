@@ -76,14 +76,10 @@ kubectl apply -f ambassador-pro.yaml
 Verify that Ambassador Pro is running:
 
 ```
-kubectl get pods | grep pro
-ambassador-pro-79494c799f-vj2dv        2/2       Running            0         1h
+kubectl get pods | grep ambassador
+ambassador-79494c799f-vj2dv        2/2       Running            0         1h
 ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 ```
-
-### 6. Restart Ambassador
-
-Restart Ambassador once Ambassador Pro is deployed so it will update the `AuthService` and `RateLimitService` configuration. You can do this by deleting all Ambassador pods and letting the deployment reschedule the pods.
 
 ### More
 
