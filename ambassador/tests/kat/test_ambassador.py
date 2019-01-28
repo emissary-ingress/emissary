@@ -584,7 +584,7 @@ config: {}
 """
 
     def queries(self):
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), debug=True, phase=2)
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
@@ -798,8 +798,7 @@ service: https://{self.target.path.k8s}
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"),
                     headers={"Host": "tls-context-host-2"},
                     insecure=True,
-                    sni=True,
-                    debug=True)
+                    sni=True)
 
         # Correct host
         yield Query(self.url("tls-context-same/"),
