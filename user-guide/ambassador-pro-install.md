@@ -38,7 +38,7 @@ Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured cor
 
 ### 3. License Key
 
-In the `ambassador-pro.yaml` file, update all the `AMBASSADOR_LICENSE_KEY` environment variable fields with the license key that is supplied as part of your trial email.
+In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
 
 **Note:** The Ambassador Pro will not start without your license key.
 
