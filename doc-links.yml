@@ -168,6 +168,8 @@
 
 - title: Need Help?
   items:
+    - title: Support
+      link: /about/support
     - title: Ask on Slack
       link: https://d6e.co/slack
     - title: File a GitHub Issue
