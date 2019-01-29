@@ -10,7 +10,7 @@ Your credentials to pull the image from the Ambassador Pro registry were given i
 kubectl create secret docker-registry ambassador-pro-registry-credentials --docker-server=quay.io --docker-username=<CREDENTIALS USERNAME> --docker-password=<CREDENTIALS PASSWORD> --docker-email=<YOUR EMAIL>
 ```
 - `<CREDENTIALS USERNAME>`: Username given in sign up email
-- `<CREDNETIALS PASSWORD>`: Password given in sign up email
+- `<CREDENTIALS PASSWORD>`: Password given in sign up email
 - `<YOUR EMAIL>`: Your email address
 
 ### 2. Download the Ambassador Pro Deployment File 
@@ -93,6 +93,7 @@ kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro
 **Rate Limiting Service***
 ```bash
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-ratelimit.yaml
+```
 
 ### More
 
