@@ -187,6 +187,9 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
             od['v2'] = v2config.as_dict()
 
         if dump_diag:
+            if not diagconfig:
+                diagconfig = V2Config(ir)
+
             econf = typecast(EnvoyConfig, diagconfig)
             diag = Diagnostics(ir, econf)
             od['diag'] = diag.as_dict()
