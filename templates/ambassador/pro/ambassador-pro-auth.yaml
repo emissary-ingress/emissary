@@ -32,16 +32,3 @@ spec:
   - name: auth-http
     port: 80
     targetPort: 8080
----
-apiVersion: getambassador.io/v1beta1
-kind: Policy
-metadata:
-  name: stream-policy
-spec:
-  rules:
-   - host: "*"
-     path: /callback
-     public: true
-   - host: "*"
-     path: /*
-     public: true
