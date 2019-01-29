@@ -66,7 +66,7 @@ Ambassador should now be running, along with the Pro modules. To enable rate lim
 
 ### Enabling Rate limiting
 
-Deploy the Kubernetes service that enables rate limiting. Then want to review the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
+Deploy the Kubernetes service that enables rate limiting. You will then want to review the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
 
 ```bash
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-ratelimit.yaml
