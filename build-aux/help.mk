@@ -55,7 +55,7 @@ include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
 
 help.body ?= $(if $(NAME),  NAME    = $(NAME))$(if $(and $(NAME),$(VERSION)),$(NL))$(if $(VERSION),  VERSION = $(VERSION))
 
-help:  ## Show this message
+help:  ## (Common) Show this message
 	@echo 'Usage: make [TARGETS...]'
 	@echo
 	@printf '%s\n' $(call quote.shell,$(help.body)) | sed -e 's/^# //' -e 's/^#//'
