@@ -773,6 +773,16 @@ hosts:
 secret: same-secret-2
 alpn_protocols: h2,http/1.1
 """)
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: Module
+name: tls
+config:
+  server:
+    enabled: True
+    secret: test-certs-secret 
+""")
 
         yield self, self.format("""
 ---
