@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/sirupsen/logrus"
+
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 )
 
 // PolicyCheck does an initial check on Path and Host matches. If policy matches to
@@ -14,7 +16,7 @@ import (
 type PolicyCheck struct {
 	Logger      *logrus.Entry
 	Ctrl        *controller.Controller
-	DefaultRule *controller.Rule
+	DefaultRule *crd.Rule
 }
 
 func (p *PolicyCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -30,11 +32,11 @@ func (p *PolicyCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next htt
 // The first return result specifies whether authentication is
 // required, the second return result specifies which scopes are
 // required for access.
-func (p *PolicyCheck) policy(host, path string) (bool, *controller.Rule) {
+func (p *PolicyCheck) policy(host, path string) (bool, *crd.Rule) {
 	rules := p.Ctrl.Rules.Load()
 
 	if rules != nil {
-		for _, rule := range rules.([]controller.Rule) {
+		for _, rule := range rules.([]crd.Rule) {
 			// if any rule matches, continue..
 			if !rule.MatchHTTPHeaders(host, path) {
 				continue

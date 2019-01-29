@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/pflag"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
@@ -72,14 +73,14 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 		Logger: l.WithField("test", "unit"),
 	}
 
-	tenants := make([]controller.Tenant, 2)
-	tenants[0] = controller.Tenant{
+	tenants := make([]crd.TenantObject, 2)
+	tenants[0] = crd.TenantObject{
 		CallbackURL: "dummy-host.net/callback",
 		Domain:      "dummy-host.net",
 		Audience:    "foo",
 		ClientID:    "bar",
 	}
-	tenants[1] = controller.Tenant{
+	tenants[1] = crd.TenantObject{
 		CallbackURL: fmt.Sprintf("%s/callback", idpURL),
 		Domain:      c.BaseURL.Hostname(),
 		Audience:    "friends",
@@ -87,7 +88,7 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 	}
 
 	ct.Tenants.Store(tenants)
-	ct.Rules.Store(make([]controller.Rule, 0))
+	ct.Rules.Store(make([]crd.Rule, 0))
 
 	cl := client.NewRestClient(c.BaseURL)
 

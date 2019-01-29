@@ -14,11 +14,14 @@ require (
 	github.com/hashicorp/consul v1.4.0
 	github.com/hashicorp/go-cleanhttp v0.5.0 // indirect
 	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90 // indirect
+	github.com/hashicorp/go-uuid v1.0.1 // indirect
+	github.com/hashicorp/memberlist v0.1.3 // indirect
 	github.com/hashicorp/serf v0.8.1 // indirect
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
+	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pkg/errors v0.8.0
@@ -36,7 +39,7 @@ require (
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63 // indirect
+	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit

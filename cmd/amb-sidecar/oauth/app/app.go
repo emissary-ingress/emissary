@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
@@ -94,8 +95,8 @@ func (a *App) Handler() http.Handler {
 	n.Use(&middleware.PolicyCheck{
 		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "policy_check"}),
 		Ctrl:   a.Controller,
-		DefaultRule: &controller.Rule{
-			Scope:  controller.DefaultScope,
+		DefaultRule: &crd.Rule{
+			Scope:  crd.DefaultScope,
 			Public: false,
 		},
 	})
