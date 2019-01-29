@@ -81,6 +81,19 @@ ambassador-79494c799f-vj2dv        2/2       Running            0         1h
 ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 ```
 
+### 7. Create Ambassador Pro Services
+
+Once Ambassador Pro is deployed, you will need to create services to expose the Pro resources to Ambassador. Create these services with `kubectl`:
+
+**SSO Authentication Service**
+```bash
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml
+```
+
+**Rate Limiting Service***
+```bash
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-ratelimit.yaml
+
 ### More
 
 For more details on Ambassador Pro, see:
