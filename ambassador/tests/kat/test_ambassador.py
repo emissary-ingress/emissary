@@ -783,6 +783,20 @@ prefix: /{self.name}/
 service: https://{self.target.path.k8s}
 """)
 
+# This TLS module tests that an additional TLS configuration in the TLS module is ignored, and SNI takes effect.
+# Also makes sure Ambassador does not go into a spin loop in case of invalid server_names configuration that this
+# configuration might generate.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Module
+name:  tls
+config:
+  server:
+    enabled: True
+    secret: test-certs-secret
+""")
+
     def scheme(self) -> str:
         return "https"
 

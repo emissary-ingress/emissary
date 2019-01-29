@@ -426,7 +426,19 @@ class V2Listener(dict):
             })
 
         for name, hosts, ctx in envoy_contexts:
+            skip_context = False
             if not ctx:
+                skip_context = True
+
+            if global_sni:
+                for host in hosts:
+                    # Wildcard is not accepted in server_names in envoy, so we need to invalidate this
+                    if host == '*':
+                        config.ir.logger.info("V2Listener: invalid host {} found envoy contexts, ignoring context".format(host))
+                        skip_context = True
+                        break
+
+            if skip_context:
                 continue
 
             config.ir.logger.info("V2Listener: SNI route check %s, %s, %s" %
