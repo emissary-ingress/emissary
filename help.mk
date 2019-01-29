@@ -61,7 +61,7 @@ help:  ## Show this message
 	@printf '%s\n' $(call quote.shell,$(help.body)) | sed -e 's/^# //' -e 's/^#//'
 	@echo
 	@echo TARGETS:
-	@sed -En 's/^([^#]*) *: *[#]# *(\([^)]*\))? */\2	\1	/p' $(sort $(abspath $(MAKEFILE_LIST))) | sort | column -t -s '	' | sed 's/^/  /'
+	@sed -En 's/^([^#]*) *: *[#]# *(\([^)]*\))? */\2	\1	/p' $(sort $(abspath $(MAKEFILE_LIST))) | sed 's/^	/-&/' | column -t -s '	' | sed 's/^/  /' | sort
 .PHONY: help
 
 endif
