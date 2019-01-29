@@ -3,7 +3,7 @@
 
 Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, and more. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
 
-### 1. Create the Ambassador Pro registry credentials secret.
+## 1. Create the Ambassador Pro registry credentials secret.
 Your credentials to pull the image from the Ambassador Pro registry were given in the sign up email. If you have lost this email, please contact us at support@datawire.io.
 
 ```
@@ -13,8 +13,10 @@ kubectl create secret docker-registry ambassador-pro-registry-credentials --dock
 - `<CREDENTIALS PASSWORD>`: Password given in sign up email
 - `<YOUR EMAIL>`: Your email address
 
-### 2. Download the Ambassador Pro Deployment File 
-Ambassador Pro is deployed as a sidecar to Ambassador. In addition, Ambassador Pro also relies on a Redis instance for its rate limit service and several Custom Resource Definitions (CRDs) for configuration. The default configuration for Ambassador Pro is available at https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml. Download this file locally:
+## 2. Download the Ambassador Pro Deployment File 
+Ambassador Pro consists of a series of modules that communicate with Ambassador. The core Pro module is typically deployed as a sidecar to Ambassador. This means it is an additional process that runs on the same pod as Ambassador. Ambassador communicates with the Pro sidecar locally. Pro thus scales in parallel with Ambassador. Ambassador Pro also relies on a Redis instance for its rate limit service and several Custom Resource Definitions (CRDs) for configuration.
+
+The full configuration for Ambassador Pro is available at https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml. Download this file locally:
 
 ```
 curl -O "https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml"
@@ -36,15 +38,15 @@ Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured cor
       - "Authorization"
 ```
 
-### 3. License Key
+## 3. License Key
 
 In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
 
 **Note:** The Ambassador Pro will not start without your license key.
 
-### 4. Deploy Ambassador Pro
+## 4. Deploy Ambassador Pro
 
-Once you have fully configured Ambassador Pro, deploy the your configuration:
+Once you have fully configured Ambassador Pro, deploy your updated configuration. Note that the default configuration will also redeploy your current Ambassador configuration, so verify that you have the correct Ambassador version before deploying Pro.
 
 ```
 kubectl apply -f ambassador-pro.yaml
@@ -54,15 +56,23 @@ Verify that Ambassador Pro is running:
 
 ```
 kubectl get pods | grep ambassador
-ambassador-79494c799f-vj2dv        2/2       Running            0         1h
+ambassador-79494c799f-vj2dv            2/2       Running            0         1h
 ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 ```
 
-### 5. Configure Ambassador Pro services
+## 5. Configure Ambassador Pro services
 
+Ambassador should now be running, along with the Pro modules. To enable rate limiting and authentication, some additional configuration is required.
 
+### Enabling Rate limiting
 
-### 4. Single Sign-On
+Deploy the Kubernetes service that enables rate limiting. Then want to review the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
+
+```bash
+kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-ratelimit.yaml
+```
+
+### Enabling Single Sign-On
 
 Ambassador Pro's authentication service requires a URL for your authentication provider. This will be the URL Ambassador Pro will direct to for authentication.
 
@@ -81,29 +91,19 @@ Add this as the `AUTH_PROVIDER_URL` in your Ambassador Pro deployment manifest.
       value: https://datawire-ambassador.auth0.com
 ```
 
-Next, you will need to configure a tenant resource for Ambassador Pro to authenticate against. Details on how to configure this can be found in the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth#configure-your-authentication-tenants) documentation.
+Redeploy the Ambassador Pro deployment manifest, along with the Ambassador Pro auth service:
 
-**Note:** The Ambassador Pro will not start without this value configured.
-
-
-### 7. Create Ambassador Pro Services
-
-Once Ambassador Pro is deployed, you will need to create services to expose the Pro resources to Ambassador. Create these services with `kubectl`:
-
-**SSO Authentication Service**
 ```bash
+kubectl apply -f ambassador-pro.yaml
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml
 ```
 
-**Rate Limiting Service***
-```bash
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-ratelimit.yaml
-```
+Finally, you will need to configure a tenant resource for Ambassador Pro to authenticate against. Details on how to configure this can be found in the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth#configure-your-authentication-tenants) documentation.
 
-### More
+### Enabling Service Preview
 
-For more details on Ambassador Pro, see:
+Service Preview requires a command-line client, `apictl`. For instructions on configuring Service Preview, see the [Service Preview tutorial](/docs/dev-guide/service-preview).
 
-* [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) for information about configuring SSO
-* [Advanced Rate Limiting](/user-guide/advanced-rate-limiting) for information on configuring rate limiting
+### Enabling Consul Connect integration
 
+Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).
