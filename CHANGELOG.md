@@ -9,6 +9,8 @@ Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using th
 There are a number of breaking changes in Ambassador 0.50.0:
 
    - Configuration from a `ConfigMap` is no longer supported.
+   
+   - Configuration from the filesystem is not supported in 0.50.0. It will be supported again in 0.50.1. 
      
    - **API version `ambassador/v0` is officially deprecated as of Ambassador 0.50.0-rc1.**
       - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0.
@@ -109,8 +111,32 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
+## [0.50.0] January 29, 2019
+[0.50.0]: https://github.com/datawire/ambassador/compare/0.50.0-rc6...0.50.0
+
+**Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS. See the "BREAKING NEWS"
+section above for more information.**
+
+(Note that Ambassador 0.50.0-rc7 and -rc8 were internal releases.) 
+
+### Changes since 0.50.0-rc6
+
+- `AMBASSADOR_SINGLE_NAMESPACE` is finally correctly supported and properly tested ([#1098])
+- Ambassador won't throw an exception for name collisions between resources ([#1155])
+- A TLS `Module` can now coexist with SNI (the TLS `Module` effectively defines a fallback cert) ([#1156])
+- `ambassador dump --diag` no longer requires you to explicitly state `--v1` or `--v2` 
+
+### Limitations in 0.50.0 GA
+
+- Configuration from the filesystem is not supported in 0.50.0. It will be resupported in 0.50.1.
+- A `TLSContext` referencing a `secret` in another namespace will not function when `AMBASSADOR_SINGLE_NAMESPACE` is set. 
+
+[#1098]: https://github.com/datawire/ambassador/issues/1098
+[#1155]: https://github.com/datawire/ambassador/issues/1155
+[#1156]: https://github.com/datawire/ambassador/issues/1156
+
 ## [0.50.0-rc6] January 28, 2019
-[0.50.0-rc6]: https://github.com/datawire/ambassador/compare/0.50.0-rc6...0.50.0-rc6
+[0.50.0-rc6]: https://github.com/datawire/ambassador/compare/0.50.0-rc5...0.50.0-rc6
 
 **Ambassador 0.50.0-rc6 is a release candidate**.
 
