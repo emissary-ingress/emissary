@@ -584,7 +584,7 @@ config: {}
 """
 
     def queries(self):
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), debug=True, phase=2)
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
@@ -704,6 +704,8 @@ host: inspector.external
 
 
 class TLSContext(AmbassadorTest):
+    # debug = True
+
     def init(self):
         self.target = HTTP()
 
@@ -773,6 +775,16 @@ hosts:
 secret: same-secret-2
 alpn_protocols: h2,http/1.1
 """)
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: Module
+name: tls
+config:
+  server:
+    enabled: True
+    secret: test-certs-secret 
+""")
 
         yield self, self.format("""
 ---
@@ -795,56 +807,60 @@ service: https://{self.target.path.k8s}
         return "Get {}: EOF".format(url)
 
     def queries(self):
+        # 0
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"),
                     headers={"Host": "tls-context-host-2"},
                     insecure=True,
-                    sni=True,
-                    debug=True)
+                    sni=True)
 
-        # Correct host
+        # 1 - Correct host #1
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True)
+        # 2 - Correct host #2
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-2"},
                     expected=200,
                     insecure=True,
                     sni=True)
 
-        # Incorrect host
+        # 3 - Incorrect host
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-3"},
-                    error=self._go_close_connection_error(self.url("tls-context-same/")),
-                    insecure=True,
-                    sni=True)
+                    # error=self._go_close_connection_error(self.url("tls-context-same/")),
+                    expected=404,
+                    insecure=True)
 
-        # Incorrect path, correct host
+        # 4 - Incorrect path, correct host
         yield Query(self.url("tls-context-different/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=404,
                     insecure=True,
                     sni=True)
 
-        # Other mappings with no host will fail
+        # Other mappings with no host will respond with the fallbock cert.
+        # 5 - no Host header, fallback cert from the TLS module
         yield Query(self.url(self.name + "/"),
-                    error=self._go_close_connection_error(self.url(self.name + "/")),
+                    # error=self._go_close_connection_error(self.url(self.name + "/")),
                     insecure=True)
 
-        # Other mappings with non-existent host will fail
+        # 6 - explicit Host header, fallback cert
         yield Query(self.url(self.name + "/"),
-                    error=self._go_close_connection_error(self.url(self.name + "/")),
-                    sni=True,
+                    # error=self._go_close_connection_error(self.url(self.name + "/")),
+                    # sni=True,
                     headers={"Host": "tls-context-host-3"},
                     insecure=True)
 
-        # Other mappings should get all TLS if existing host specified
+        # 7 - explicit Host header 1 wins, we'll get the SNI cert for this overlapping path
         yield Query(self.url(self.name + "/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True)
+
+        # 7 - explicit Host header 2 wins, we'll get the SNI cert for this overlapping path
         yield Query(self.url(self.name + "/"),
                     headers={"Host": "tls-context-host-2"},
                     expected=200,
@@ -856,11 +872,26 @@ service: https://{self.target.path.k8s}
         errors = self.results[0].json
         assert (len(errors) == 0)
 
+        idx = 0
+
         for result in self.results:
-            if result.status == 200:
+            if result.status == 200 and result.query.headers:
                 host_header = result.query.headers['Host']
                 tls_common_name = result.tls[0]['Issuer']['CommonName']
-                assert host_header == tls_common_name
+
+                # XXX Weirdness with the fallback cert here! You see, if we use host
+                # tls-context-host-3 (or, really, anything except -1 or -2), then the
+                # fallback cert actually has CN 'localhost'. We should replace this with
+                # a real fallback cert, but for now, just hack the host_header.
+                #
+                # Ew.
+
+                if host_header == 'tls-context-host-3':
+                    host_header = 'localhost'
+
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
+
+            idx += 1
 
 
     def url(self, prefix, scheme=None) -> str:

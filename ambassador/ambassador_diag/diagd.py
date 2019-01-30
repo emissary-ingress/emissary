@@ -87,7 +87,7 @@ class DiagApp (Flask):
     logger: logging.Logger
     # scc: SecretSaver
     aconf: Config
-    ir: IR
+    ir: Optional[IR]
     econf: EnvoyConfig
     diag: Diagnostics
     notices: 'Notices'
@@ -513,6 +513,8 @@ def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
 
     app.events = queue.Queue()
     # app.scc = SecretSaver(app.logger, app.config_dir_prefix, app.config_dir_prefix)
+
+    app.ir = None
 
     return app
 

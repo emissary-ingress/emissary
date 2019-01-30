@@ -419,8 +419,9 @@ class Config:
 
         if resource.name in storage:
             # Oooops.
-            raise Exception("%s defines %s %s, which is already present" %
-                            (resource, resource.kind, resource.name))
+            self.post_error("%s defines %s %s, which is already defined by %s" %
+                            (resource, resource.kind, resource.name, storage[resource.name].location),
+                            resource=resource)
 
         if allow_log:
             self.logger.debug("%s: saving %s %s" %

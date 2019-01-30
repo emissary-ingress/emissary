@@ -120,7 +120,7 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
     return server_uri
 
 @v2filter.when("IRAuth_v0")
-def v2filter_auth(auth: IRAuth):
+def v2filter_authv0(auth: IRAuth):
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
     
@@ -161,7 +161,7 @@ def v2filter_auth(auth: IRAuth):
 
 
 @v2filter.when("IRAuth_v1")
-def v2filter_auth(auth: IRAuth):
+def v2filter_authv1(auth: IRAuth):
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
@@ -429,7 +429,7 @@ class V2Listener(dict):
             if not ctx:
                 continue
 
-            config.ir.logger.info("V2Listener: SNI route check %s, %s, %s" %
+            config.ir.logger.info("V2Listener: SNI (1) route check %s, %s, %s" %
                                   (name, hosts, json.dumps(ctx, indent=4, sort_keys=True)))
 
             routes = list(self.routes)
@@ -437,15 +437,15 @@ class V2Listener(dict):
             chain: Dict[str, Any] = { 'tls_context': ctx }
 
             if global_sni:
-                chain['filter_chain_match'] = {
-                    'server_names': hosts
-                }
+                filter_chain_match = {}
+
+                if hosts != [ '*' ]:
+                    filter_chain_match['server_names'] = hosts
+
+                chain['filter_chain_match'] = filter_chain_match
 
             for sni_route in config.sni_routes:
                 # Check if filter chain and SNI route have matching hosts
-                config.ir.logger.info("V2Listener: SNI route check %s, route %s" %
-                                      (name, json.dumps(sni_route, indent=4, sort_keys=True)))
-
                 context_hosts = sorted(hosts or [])
                 matched = sorted(sni_route['info']['hosts']) == context_hosts
 
@@ -460,9 +460,12 @@ class V2Listener(dict):
                         matched = False
                         break
 
+                config.ir.logger.info("V2Listener:   SNI (2 - %s) route check %s, route %s" %
+                                      ("TAKE" if matched else "SKIP", name,
+                                       json.dumps(sni_route, indent=4, sort_keys=True)))
+
                 if matched:
                     routes.append(sni_route['route'])
-
 
             chain['routes'] = routes
             self.filter_chains.append(chain)
