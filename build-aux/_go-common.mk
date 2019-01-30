@@ -82,19 +82,29 @@ go-fmt: go-get
 .PHONY: go-fmt
 
 go-test: ## (Go) Check the code with `go test`
-go-test: go-get
-	$(if $(go.DISABLE_GO_TEST),,go test $(go.pkgs))
-.PHONY: go-test
+go-test: go-get $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-common.mk))go-test.tap.summary)
+
+$(dir $(_go-common.mk))patter.go:
+	{ echo '// +build ignore' && echo && curl https://raw.githubusercontent.com/apg/patter/master/main.go; } > $@
+$(dir $(_go-common.mk))go-test.tap: $(dir $(_go-common.mk))patter.go build FORCE
+	go test -v $(go.pkgs) | GO111MODULE=off go run $(dir $(_go-common.mk))patter.go | tee $@ | $(dir $(_go-common.mk))tap-driver stream -n go-test
 
 #
 # Hook in to common.mk
 
 build: go-build
 lint: go-lint
-check: go-test
 format: go-fmt
+
+clean: _clean-go-common
+_clean-go-common:
+	rm -f $(dir $(_go-common.mk))go-test.tap
+.PHONY: _clean-go-common
 
 clobber: _clobber-go-common
 _clobber-go-common:
 	rm -f $(dir $(_go-common.mk))golangci-lint
+	rm -f $(dir $(_go-common.mk))patter.go  $(dir $(_go-common.mk))patter.go.tmp
 .PHONY: _clobber-go-common
+
+test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-common.mk))go-test.tap)

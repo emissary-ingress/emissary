@@ -16,3 +16,6 @@
 
 # _go-common.mk
 /golangci-lint
+/patter.go
+/patter.go.tmp
+/go-test.tap

@@ -2,6 +2,7 @@
 #
 # Makefile snippet for bits common bits we always want.
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+_common.mk := $(lastword $(MAKEFILE_LIST))
 
 #
 # Variables
@@ -26,7 +27,7 @@ define SPACE
 endef
 
 #
-# Targets
+# User-facing targets
 
 # To the extent reasonable, use target names that agree with the GNU
 # standards.
@@ -40,7 +41,6 @@ build: ## (Common) Build the software
 .PHONY: build
 
 check: ## (Common) Check whether the software works; run the tests
-check: lint
 .PHONY: check
 
 lint: ## (Common) Perform static analysis of the software
@@ -51,7 +51,6 @@ format: ## (Common) Apply automatic formatting+cleanup to source code
 
 clean: ## (Common) Delete all files that are normally created by building the software
 .PHONY: clean
-
 # XXX: Rename this to maintainer-clean, per GNU?
 clobber: ## (Common) Delete all files that this Makefile can re-generate
 clobber: clean
@@ -63,7 +62,26 @@ clobber: clean
 clean: _common_clean
 _common_clean:
 	rm -rf -- bin_*
+	rm -f test-suite.tap
 .PHONY: _common_clean
+
+check: test-suite.tap.summary lint build
+test-suite.tap:
+	@$(dir $(_common.mk))tap-driver cat $(sort $(filter %.tap,$^)) > $@
+
+%.tap.summary: %.tap
+	@$(dir $(_common.mk))tap-driver summarize $<
+
+%.tap: %.tap.gen build FORCE
+	@$(abspath $<) 2>&1 | tee $@ | $(dir $(_common.mk))tap-driver stream -n $<
+%.log: %.test build FORCE
+	@$(abspath $<) >$@ 2>&1; echo :exit-status: $$? >>$@
+%.tap: %.log %.test
+	@{ \
+		printf '%s\n' 'TAP version 13' '1..1' && \
+		sed 's/^/#/' < $< && \
+		sed -n '$${ s/^:exit-status: 0$$/ok 1/; s/^:exit-status: 77$$/ok 1 # SKIP/; s/^:exit-status: .*/not ok 1/; p; }' < $<; \
+	} | tee $@ | $(dir $(_common.mk))tap-driver stream -n $*.test
 
 #
 # Functions
