@@ -178,4 +178,65 @@ Ambassador is constantly watching for changes to the service annotations. When c
 
 These environment variables can be set much like `AMBASSADOR_NAMESPACE`, above.
 
+## Ambassador Update Checks (Scout)
+
+Ambassador integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
+
+We do not recommend you disable Scout, since we use this mechanism to notify users of new release (including critical fixes and security issues). This check can be disabled by setting the environment
+variable `SCOUT_DISABLE` to `1` in your Ambassador deployment.
+  
+Each Ambassador installation generates a unique cluster ID based on the UID of its Kubernetes namespace and
+its Ambassador ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor
+Ambassador ID itself. Ambassador needs RBAC permission to get namespaces for this purpose, as shown in the 
+default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on
+the Ambassador ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID`
+to a UUID that will be used for the cluster ID.
+
+Unless disabled, Ambassador will also report the following anonymized information back to Datawire:
+
+| Attribute                 | Type  | Description               |
+| :------------------------ | :---- | :------------------------ |
+| `cluster_count` | int | total count of clusters in use |
+| `cluster_grpc_count` | int | count of clusters using GRPC upstream |
+| `cluster_http_count` | int | count of clusters using HTTP or HTTPS upstream |
+| `cluster_tls_count` | int | count of clusters originating TLS |
+| `custom_ambassador_id` | bool | has the `ambassador_id` been changed from 'default'? |
+| `custom_diag_port` | bool | has the diag port been changed from 8877? |
+| `custom_listener_port` | bool | has the listener port been changed from 80/443? |
+| `diagnostics` | bool | is the diagnostics service enabled? |
+| `endpoint_grpc_count` | int | count of endpoints to which Ambassador will originate GRPC |
+| `endpoint_http_count` | int | count of endpoints to which Ambassador will originate HTTP or HTTPS |
+| `endpoint_tls_count` | int | count of endpoints to which Ambassador will originate TLS |
+| `extauth` | bool | is extauth enabled? |
+| `extauth_allow_body` | bool | will Ambassador send the body to extauth? |
+| `extauth_host_count` | int | count of extauth hosts in use |
+| `extauth_proto` | str | extauth protocol in use ('http', 'grpc', or `null` if not active) |
+| `group_canary_count` | int | count of Mapping groups that include more than one Mapping |
+| `group_count` | int | total count of Mapping groups in use (length of the route table) |
+| `group_header_match_count` | int | count of groups using header matching (including `host` and `method`) |
+| `group_host_redirect_count` | int | count of groups using host_redirect |
+| `group_host_rewrite_count` | int | count of groups using host_rewrite |
+| `group_precedence_count` | int | count of groups that explicitly set the precedence of the group |
+| `group_regex_header_count` | int | count of groups using regex header matching |
+| `group_regex_prefix_count` | int | count of groups using regex prefix matching |
+| `group_shadow_count` | int | count of groups using shadows |
+| `listener_count` | int | count of active listeners (1 unless `redirect_cleartext_from` is in use) |
+| `liveness_probe` | bool | are liveness probes enabled? |
+| `ratelimit` | bool | is rate limiting in use? |
+| `ratelimit_custom_domain` | bool | has the rate limiting domain been changed from 'ambassador'? |
+| `ratelimit_data_plane_proto` | bool | is rate limiting using the data plane proto? |
+| `readiness_probe` | bool | are readiness probes enabled? |
+| `statsd` | bool | is statsd enabled? |
+| `tls_origination_count` | int | count of TLS origination contexts |
+| `tls_termination_count` | int | count of TLS termination contexts |
+| `tls_using_contexts` | bool | is the old TLS module in use? |
+| `tls_using_module` | bool | are new TLSContext resources in use? |
+| `tracing` | bool | is tracing in use? |
+| `tracing_driver` | str | tracing driver in use ('zipkin', 'lightstep', or `null` if not active) |
+| `use_proxy_proto` | bool | is the `PROXY` protocol in use? |
+| `use_remote_address` | bool | is Ambassador honoring remote addresses? |
+| `x_forwarded_proto_redirect` | bool | is Ambassador redirecting based on `X-Forwarded-Proto`? |
+
+To completely disable feature reporting, set the environment variable `AMBASSADOR_DISABLE_FEATURES` to any non-empty
+value.
 

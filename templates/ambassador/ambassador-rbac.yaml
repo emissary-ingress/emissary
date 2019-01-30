@@ -21,16 +21,14 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - namespaces
   - services
+  - secrets
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   resources:
   - configmaps
   verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -60,13 +58,14 @@ spec:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
     spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: {{AMBASSADOR_DOCKER_IMAGE}}
+        image: quay.io/datawire/ambassador:0.50.0-rc5
         resources:
           limits:
             cpu: 1

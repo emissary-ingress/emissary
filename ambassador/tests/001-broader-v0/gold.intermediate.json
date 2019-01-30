@@ -6,31 +6,6 @@
                 "admin_port": 8001
             }
         ],
-        "breakers": [
-            {
-                "_referenced_by": [
-                    "mapping-qotm.yaml.1"
-                ],
-                "_source": "custom-breaker.yaml.1",
-                "apiVersion": "ambassador/v0",
-                "kind": "CircuitBreaker",
-                "max_connections": 1,
-                "max_pending": 3,
-                "max_requests": 2,
-                "max_retries": 4,
-                "name": "custom"
-            },
-            {
-                "_referenced_by": [
-                    "mapping-qotm.yaml.2",
-                    "mapping-qotm.yaml.3"
-                ],
-                "_source": "default-breaker.yaml.1",
-                "apiVersion": "ambassador/v0",
-                "kind": "CircuitBreaker",
-                "name": "default"
-            }
-        ],
         "clusters": [
             {
                 "_referenced_by": [
@@ -51,7 +26,7 @@
                 ],
                 "_service": "192.168.0.1:45",
                 "_source": "mapping-grpc.yaml.1",
-                "features": "http2",
+                "grpc": true,
                 "lb_type": "round_robin",
                 "name": "cluster_192_168_0_1_45",
                 "type": "strict_dns",
@@ -64,10 +39,10 @@
                     "auth-2.yaml.1",
                     "auth.yaml.1"
                 ],
-                "_service": "extauth",
+                "_service": "canary-auth:3000",
                 "_source": "auth-2.yaml.1",
                 "lb_type": "round_robin",
-                "name": "cluster_ext_auth",
+                "name": "cluster_extauth_http___canary_auth_3000",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://canary-auth:3000",
@@ -80,8 +55,9 @@
                 ],
                 "_service": "httpbin.org",
                 "_source": "mapping-httpbin.yaml.1",
+                "host_rewrite": "httpbin.org",
                 "lb_type": "round_robin",
-                "name": "cluster_http___httpbin_org",
+                "name": "cluster_wtfo___httpbin_org",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://httpbin.org:80"
@@ -89,10 +65,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-evil.yaml.3"
+                    "evil source.3"
                 ],
                 "_service": "qotm",
-                "_source": "mapping-evil.yaml.3",
+                "_source": "evil source.3",
                 "lb_type": "round_robin",
                 "name": "cluster_http___qotm",
                 "type": "strict_dns",
@@ -106,6 +82,7 @@
                 ],
                 "_service": "google.com",
                 "_source": "mapping-google.yaml.1",
+                "host_rewrite": "google.com",
                 "lb_type": "round_robin",
                 "name": "cluster_https___google_com_otls_hr_google_com",
                 "tls_array": [
@@ -115,7 +92,9 @@
                     }
                 ],
                 "tls_context": {
-                    "_ambassador_enabled": true
+                    "_ambassador_enabled": true,
+                    "secret_info": {},
+                    "valid_tls": false
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -141,7 +120,7 @@
                     "mapping-with-precedence.yaml.4"
                 ],
                 "_service": "precedence_one",
-                "_source": "mapping-with-precedence.yaml.4",
+                "_source": "mapping-with-precedence.yaml.3",
                 "lb_type": "round_robin",
                 "name": "cluster_precedence_one",
                 "type": "strict_dns",
@@ -164,75 +143,15 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-evil.yaml.1"
-                ],
-                "_service": "qotm",
-                "_source": "mapping-evil.yaml.1",
-                "lb_type": "round_robin",
-                "name": "cluster_qotm",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://qotm:80"
-                ]
-            },
-            {
-                "_referenced_by": [
-                    "mapping-qotm.yaml.1"
-                ],
-                "_service": "qotm",
-                "_source": "mapping-qotm.yaml.1",
-                "circuit_breakers": {
-                    "apiVersion": "ambassador/v0",
-                    "kind": "CircuitBreaker",
-                    "max_connections": 1,
-                    "max_pending": 3,
-                    "max_requests": 2,
-                    "max_retries": 4,
-                    "name": "custom"
-                },
-                "lb_type": "round_robin",
-                "name": "cluster_qotm_cb_custom",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://qotm:80"
-                ]
-            },
-            {
-                "_referenced_by": [
-                    "mapping-qotm.yaml.2"
-                ],
-                "_service": "qotm",
-                "_source": "mapping-qotm.yaml.2",
-                "circuit_breakers": {
-                    "apiVersion": "ambassador/v0",
-                    "kind": "CircuitBreaker",
-                    "name": "default"
-                },
-                "lb_type": "round_robin",
-                "name": "cluster_qotm_cb_default",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://qotm:80"
-                ]
-            },
-            {
-                "_referenced_by": [
+                    "evil source.1",
+                    "mapping-qotm.yaml.1",
+                    "mapping-qotm.yaml.2",
                     "mapping-qotm.yaml.3"
                 ],
                 "_service": "qotm",
-                "_source": "mapping-qotm.yaml.3",
-                "circuit_breakers": {
-                    "apiVersion": "ambassador/v0",
-                    "kind": "CircuitBreaker",
-                    "name": "default"
-                },
+                "_source": "evil source.1",
                 "lb_type": "round_robin",
-                "name": "cluster_qotm_cb_default_od_default",
-                "outlier_detection": {
-                    "apiVersion": "ambassador/v0",
-                    "kind": "OutlierDetection",
-                    "name": "default"
-                },
+                "name": "cluster_qotm",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://qotm:80"
@@ -253,10 +172,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-long.yaml.1"
+                    "test source.1"
                 ],
                 "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service",
-                "_source": "mapping-long.yaml.1",
+                "_source": "test source.1",
                 "lb_type": "round_robin",
                 "name": "cluster_really_really_really_long_no_i_m-0",
                 "type": "strict_dns",
@@ -266,11 +185,11 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-long.yaml.2",
-                    "mapping-long.yaml.3"
+                    "test source.2",
+                    "test source.3"
                 ],
                 "_service": "really-really-really-long-no-i-mean-really-really-really-really-long-service-two",
-                "_source": "mapping-long.yaml.3",
+                "_source": "test source.2",
                 "lb_type": "round_robin",
                 "name": "cluster_really_really_really_long_no_i_m-1",
                 "type": "strict_dns",
@@ -280,10 +199,10 @@
             },
             {
                 "_referenced_by": [
-                    "mapping-redirector.yaml.2"
+                    "mapping-redirector.yaml.3"
                 ],
                 "_service": "httpbin.org",
-                "_source": "mapping-redirector.yaml.2",
+                "_source": "mapping-redirector.yaml.3",
                 "lb_type": "round_robin",
                 "name": "cluster_shadow_httpbin_org",
                 "type": "strict_dns",
@@ -297,6 +216,7 @@
                 ],
                 "_service": "myservice.org/",
                 "_source": "mapping-httpbin-shadow.yaml.1",
+                "host_rewrite": "httpbin.org",
                 "lb_type": "round_robin",
                 "name": "cluster_shadow_https___myservice_org__otls_hr_httpbin_org",
                 "tls_array": [
@@ -306,11 +226,13 @@
                     }
                 ],
                 "tls_context": {
-                    "_ambassador_enabled": true
+                    "_ambassador_enabled": true,
+                    "secret_info": {},
+                    "valid_tls": false
                 },
                 "type": "strict_dns",
                 "urls": [
-                    "tcp://myservice.org/:443"
+                    "tcp://myservice.org:443"
                 ]
             },
             {
@@ -335,6 +257,7 @@
             },
             {
                 "_referenced_by": [
+                    "auth-2.yaml.1",
                     "auth.yaml.1"
                 ],
                 "_services": [
@@ -346,7 +269,7 @@
                     "allowed_headers": [
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_ext_auth",
+                    "cluster": "cluster_extauth_http___canary_auth_3000",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -368,24 +291,13 @@
                 "tls": {
                     "_source": "ambassador.yaml.1",
                     "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
-                    "cert_required": true,
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt","cert_required": true,
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },
                 "use_proxy_proto": true,
-                "use_remote_address": true
-            }
-        ],
-        "outliers": [
-            {
-                "_referenced_by": [
-                    "mapping-qotm.yaml.3"
-                ],
-                "_source": "default-outlier.yaml.1",
-                "apiVersion": "ambassador/v0",
-                "kind": "OutlierDetection",
-                "name": "default"
+                "use_remote_address": true,
+                "redirect_listener": false
             }
         ],
         "routes": [
@@ -406,7 +318,7 @@
                 "_source": "mapping-qotm.yaml.2",
                 "clusters": [
                     {
-                        "name": "cluster_qotm_cb_default",
+                        "name": "cluster_qotm",
                         "weight": 100.0
                     }
                 ],
@@ -428,10 +340,10 @@
                     "mapping-httpbin-shadow.yaml.1",
                     "mapping-httpbin.yaml.1"
                 ],
-                "_source": "mapping-httpbin.yaml.1",
+                "_source": "mapping-httpbin-shadow.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_http___httpbin_org",
+                        "name": "cluster_wtfo___httpbin_org",
                         "weight": 100.0
                     }
                 ],
@@ -465,7 +377,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -488,6 +402,7 @@
                         "weight": 100.0
                     }
                 ],
+                "grpc": true,
                 "prefix": "/grpc/",
                 "prefix_rewrite": "/"
             },
@@ -519,16 +434,16 @@
                     6,
                     13,
                     "/long/",
-                    "GET",
+                    "DELETE",
                     ":method-DELETE"
                 ],
                 "_group_id": "4d7f4c54aad81617d18e5eb02134d749b453ef86",
                 "_method": "DELETE",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-long.yaml.3"
+                    "test source.3"
                 ],
-                "_source": "mapping-long.yaml.3",
+                "_source": "test source.3",
                 "clusters": [
                     {
                         "name": "cluster_really_really_really_long_no_i_m-1",
@@ -544,6 +459,27 @@
                 ],
                 "prefix": "/long/",
                 "prefix_rewrite": "/qotm/quote/"
+            },
+            {
+                "__saved": [
+                    0,
+                    11,
+                    0,
+                    "/redirect2/",
+                    "GET"
+                ],
+                "_group_id": "588cefdd117b8793eb86711bd22616b13b853ffb",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-redirector.yaml.2"
+                ],
+                "_source": "mapping-redirector.yaml.2",
+                "clusters": [],
+                "host_redirect": "httpbin.org",
+                "prefix": "/redirect2/",
+                "prefix_rewrite": "/",
+                "timeout_ms": 50
             },
             {
                 "__saved": [
@@ -567,7 +503,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -584,9 +522,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-long.yaml.1"
+                    "test source.1"
                 ],
-                "_source": "mapping-long.yaml.1",
+                "_source": "test source.1",
                 "clusters": [
                     {
                         "name": "cluster_really_really_really_long_no_i_m-0",
@@ -619,7 +557,7 @@
                     6,
                     40,
                     "/long/",
-                    "GET",
+                    "PUT",
                     ":authority-^bar\\.example\\.com$",
                     ":method-PUT"
                 ],
@@ -627,9 +565,9 @@
                 "_method": "PUT",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-long.yaml.2"
+                    "test source.2"
                 ],
-                "_source": "mapping-long.yaml.2",
+                "_source": "test source.2",
                 "clusters": [
                     {
                         "name": "cluster_really_really_really_long_no_i_m-1",
@@ -648,6 +586,7 @@
                         "value": "PUT"
                     }
                 ],
+                "host_regex": true,
                 "prefix": "/long/",
                 "prefix_rewrite": "/qotm/quote/"
             },
@@ -657,16 +596,16 @@
                     6,
                     10,
                     "/evil/",
-                    "GET",
+                    "PUT",
                     ":method-PUT"
                 ],
                 "_group_id": "88fe5d48949dbfac1404d01d1a044c97f43e840a",
                 "_method": "PUT",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-evil.yaml.3"
+                    "evil source.3"
                 ],
-                "_source": "mapping-evil.yaml.3",
+                "_source": "evil source.3",
                 "clusters": [
                     {
                         "name": "cluster_http___qotm",
@@ -728,22 +667,20 @@
                 "_precedence": 0,
                 "_referenced_by": [
                     "mapping-qotm.yaml.1",
-                    "mapping-redirector.yaml.2"
+                    "mapping-redirector.yaml.3"
                 ],
-                "_source": "mapping-redirector.yaml.2",
+                "_source": "mapping-qotm.yaml.1",
                 "clusters": [
                     {
-                        "name": "cluster_qotm_cb_custom",
+                        "name": "cluster_qotm",
                         "weight": 100.0
                     }
                 ],
-                "path_redirect": "/ip/",
                 "prefix": "/qotm/",
                 "prefix_rewrite": "/",
                 "shadow": {
                     "name": "cluster_shadow_httpbin_org"
-                },
-                "timeout_ms": 50
+                }
             },
             {
                 "__saved": [
@@ -843,7 +780,7 @@
                 "_source": "mapping-qotm.yaml.3",
                 "clusters": [
                     {
-                        "name": "cluster_qotm_cb_default_od_default",
+                        "name": "cluster_qotm",
                         "weight": 100.0
                     }
                 ],
@@ -932,9 +869,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "mapping-evil.yaml.1"
+                    "evil source.1"
                 ],
-                "_source": "mapping-evil.yaml.1",
+                "_source": "evil source.1",
                 "clusters": [
                     {
                         "name": "cluster_qotm",
@@ -986,7 +923,64 @@
         ]
     },
     "errors": {
-        "mapping-redirector.yaml.2": [
+        "-global-": [
+            {
+                "error": "evil source.4 is not a dictionary? \"hello world\"",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "evil source.5 is missing 'kind'?? {\n    \"dictionary\": true,\n    \"with-no-kind\": true\n}",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "evil source.6 is empty",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            },
+            {
+                "error": "empty.yaml.1 is empty",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
+        "mapping-qotm.yaml.1": [
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
+        "mapping-qotm.yaml.2": [
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
+        "mapping-qotm.yaml.3": [
+            {
+                "error": "circuit_breaker and outlier_detection are not supported",
+                "hostname": "sanitized",
+                "ok": false,
+                "resolvedname": "sanitized",
+                "version": "sanitized"
+            }
+        ],
+        "mapping-redirector.yaml.3": [
             {
                 "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
                 "hostname": "sanitized",
@@ -1018,9 +1012,9 @@
         "default-outlier.yaml": {
             "default-outlier.yaml.1": true
         },
-        "mapping-evil.yaml": {
-            "mapping-evil.yaml.1": true,
-            "mapping-evil.yaml.3": true
+        "evil source": {
+            "evil source.1": true,
+            "evil source.3": true
         },
         "mapping-google.yaml": {
             "mapping-google.yaml.1": true
@@ -1034,10 +1028,10 @@
         "mapping-httpbin.yaml": {
             "mapping-httpbin.yaml.1": true
         },
-        "mapping-long.yaml": {
-            "mapping-long.yaml.1": true,
-            "mapping-long.yaml.2": true,
-            "mapping-long.yaml.3": true
+        "test source": {
+            "test source.1": true,
+            "test source.2": true,
+            "test source.3": true
         },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true,
@@ -1049,7 +1043,8 @@
         },
         "mapping-redirector.yaml": {
             "mapping-redirector.yaml.1": true,
-            "mapping-redirector.yaml.2": true
+            "mapping-redirector.yaml.2": true,
+            "mapping-redirector.yaml.3": true
         },
         "mapping-websocket.yaml": {
             "mapping-websocket.yaml.1": true
@@ -1087,7 +1082,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  statsd:\n    enabled: true\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
         },
         "auth-2.yaml.1": {
             "_source": "auth-2.yaml",
@@ -1134,18 +1129,18 @@
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nkind: OutlierDetection\nname: default\n"
         },
-        "mapping-evil.yaml.1": {
-            "_source": "test source",
-            "filename": "mapping-evil.yaml",
+        "evil source.1": {
+            "_source": "evil source",
+            "filename": "evil source",
             "index": 1,
             "kind": "Mapping",
             "name": "evil_get_mapping",
             "version": "ambassador/v0",
             "yaml": "ambassador_id:\n- default\n- tester\napiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: evil_get_mapping\nprefix: /evil/\nservice: qotm\n"
         },
-        "mapping-evil.yaml.3": {
-            "_source": "test source",
-            "filename": "mapping-evil.yaml",
+        "evil source.3": {
+            "_source": "evil source",
+            "filename": "evil source",
             "index": 3,
             "kind": "Mapping",
             "name": "evil_put_mapping",
@@ -1186,29 +1181,29 @@
             "kind": "Mapping",
             "name": "httpbin_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: http://httpbin.org\ntimeout_ms: 50\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_rewrite: httpbin.org\nkind: Mapping\nname: httpbin_mapping\nprefix: /httpbin/\nservice: wtfo://httpbin.org\ntimeout_ms: 50\n"
         },
-        "mapping-long.yaml.1": {
+        "test source.1": {
             "_source": "test source",
-            "filename": "mapping-long.yaml",
+            "filename": "test source",
             "index": 1,
             "kind": "Mapping",
             "name": "long_get_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nmethod: GET\nname: long_get_mapping\nprefix: /long/\nregex_headers:\n  :authority: ^bar\\.example\\.com$\n  foo: ^bar\\.example\\.com$\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service\n"
         },
-        "mapping-long.yaml.2": {
+        "test source.2": {
             "_source": "test source",
-            "filename": "mapping-long.yaml",
+            "filename": "test source",
             "index": 2,
             "kind": "Mapping",
             "name": "long_put_mapping",
             "version": "ambassador/v0",
             "yaml": "apiVersion: ambassador/v0\nhost: ^bar\\.example\\.com$\nhost_regex: true\nkind: Mapping\nmethod: PUT\nname: long_put_mapping\nprefix: /long/\nrewrite: /qotm/quote/\nservice: really-really-really-long-no-i-mean-really-really-really-really-long-service-two\n"
         },
-        "mapping-long.yaml.3": {
+        "test source.3": {
             "_source": "test source",
-            "filename": "mapping-long.yaml",
+            "filename": "test source",
             "index": 3,
             "kind": "Mapping",
             "name": "long_delete_mapping",
@@ -1217,6 +1212,15 @@
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",
+            "errors": [
+                {
+                    "error": "circuit_breaker and outlier_detection are not supported",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "mapping-qotm.yaml",
             "index": 1,
             "kind": "Mapping",
@@ -1226,6 +1230,15 @@
         },
         "mapping-qotm.yaml.2": {
             "_source": "mapping-qotm.yaml",
+            "errors": [
+                {
+                    "error": "circuit_breaker and outlier_detection are not supported",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "mapping-qotm.yaml",
             "index": 2,
             "kind": "Mapping",
@@ -1235,6 +1248,15 @@
         },
         "mapping-qotm.yaml.3": {
             "_source": "mapping-qotm.yaml",
+            "errors": [
+                {
+                    "error": "circuit_breaker and outlier_detection are not supported",
+                    "hostname": "sanitized",
+                    "ok": false,
+                    "resolvedname": "sanitized",
+                    "version": "sanitized"
+                }
+            ],
             "filename": "mapping-qotm.yaml",
             "index": 3,
             "kind": "Mapping",
@@ -1262,6 +1284,15 @@
         },
         "mapping-redirector.yaml.2": {
             "_source": "mapping-redirector.yaml",
+            "filename": "mapping-redirector.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "redirect_host_only_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: redirect_host_only_mapping\nprefix: /redirect2/\nservice: httpbin.org\ntimeout_ms: 50\n"
+        },
+        "mapping-redirector.yaml.3": {
+            "_source": "mapping-redirector.yaml",
             "errors": [
                 {
                     "error": "At most one of host_redirect and shadow may be set; ignoring host_redirect",
@@ -1272,11 +1303,11 @@
                 }
             ],
             "filename": "mapping-redirector.yaml",
-            "index": 2,
+            "index": 3,
             "kind": "Mapping",
             "name": "bad_redirect_mapping",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: bad_redirect_mapping\npath_redirect: /ip/\nprefix: /qotm/\nservice: httpbin.org\nshadow: true\ntimeout_ms: 50\n"
+            "yaml": "apiVersion: ambassador/v0\nhost_redirect: true\nkind: Mapping\nname: bad_redirect_mapping\npath_redirect: /ip/\nprefix: /qotm/\nservice: httpbin.org\nshadow: true\n"
         },
         "mapping-websocket.yaml.1": {
             "_source": "mapping-websocket.yaml",

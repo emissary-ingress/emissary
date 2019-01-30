@@ -27,6 +27,9 @@ config:
   diagnostics:
     enabled: false
 
+  statsd:
+    enabled: true
+
   use_proxy_proto: True
   use_remote_address: True
   
