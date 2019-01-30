@@ -51,6 +51,7 @@ apply deploy: $(KUBECONFIG) $(KUBEAPPLY) $(K8S_ENVS)
 $(KUBECONFIG).clean: _clean-k8s
 _clean-k8s:
 	rm -f $(addsuffix .docker.knaut-push,$(K8S_IMAGES))
+	rm -f -- $(addsuffix /*.yaml.o,$(K8S_DIRS))
 .PHONY: _clean-k8s
 
 endif
