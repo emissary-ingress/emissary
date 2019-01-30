@@ -1,5 +1,7 @@
 # Ambassador on AWS
 
+## Yaml Configuration
+
 The following is a sample configuration for deploying Ambassador in AWS:
 
 ```yaml
@@ -35,6 +37,49 @@ spec:
 ```
 
 In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route TCP to support both WebSockets and HTTP. Ambassador is configured with `use_remote_address` and `use_proxy_proto` to ensure that remote IP addresses are passed through properly. TLS termination then occurs at the ELB.
+
+## Helm Values Configuration
+
+The following in a sample configuration for deploying Ambassador in AWS using Helm.
+
+Create a values file with the following content:
+
+`values.aws.yaml`
+```
+service:
+  enableHttp: true 
+  enableHttps: true 
+
+  targetPorts:
+    http: 80
+    https: 80
+
+  httpPort: 80
+  httpsPort: 443 
+
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{ tls certificate arn }}"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    getambassador.io/config: |
+      --- 
+      apiVersion: ambassador/v0
+      kind:  Module
+      name:  ambassador
+      config:
+        use_proxy_proto: false
+        use_remote_address: false
+        x_forwarded_proto_redirect: true
+```
+
+Install with: 
+```
+helm repo add datawire https://www.getambassador.io/helm
+helm install --name ambassador -f values.aws.yaml datawire/ambassador
+```
+
+In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route in L7 mode, which means only HTTP(S) traffic is supported, and not web sockets. TLS termination occurs at the ELB. Automatic redirection of HTTP to HTTPS is enabled. Downstream services can extract the client IP from the `X-FORWARDED-FOR` header
 
 ## Ambassador and AWS load balancer notes
 
