@@ -72,6 +72,75 @@ spec:
       value: "yes"
 """
 
+RBAC_CLUSTER_SCOPE = """
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {self.path.k8s}
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  - secrets
+  - namespaces
+  - configmaps
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {self.path.k8s}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {self.path.k8s}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {self.path.k8s}
+subjects:
+- kind: ServiceAccount
+  name: {self.path.k8s}
+  namespace: {self.namespace}
+"""
+
+# The actual namespace attribute will be added by the KAT harness.
+RBAC_NAMESPACE_SCOPE = """
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: {self.path.k8s}
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  - secrets
+  - namespaces
+  - configmaps
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {self.path.k8s}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: {self.path.k8s}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {self.path.k8s}
+subjects:
+- kind: ServiceAccount
+  name: {self.path.k8s}
+  namespace: {self.namespace}
+"""
+
 AMBASSADOR = """
 ---
 apiVersion: v1
@@ -106,37 +175,6 @@ spec:
     targetPort: 8877
   selector:
     service: {self.path.k8s}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: {self.path.k8s}
-rules:
-- apiGroups: [""]
-  resources:
-  - services
-  - secrets
-  - namespaces
-  - configmaps
-  verbs: ["get", "list", "watch"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {self.path.k8s}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: {self.path.k8s}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {self.path.k8s}
-subjects:
-- kind: ServiceAccount
-  name: {self.path.k8s}
-  namespace: {self.namespace}
 ---
 apiVersion: v1
 kind: Pod

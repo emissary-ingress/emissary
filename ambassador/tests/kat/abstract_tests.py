@@ -48,37 +48,6 @@ spec:
   selector:
     service: {self.path.k8s}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: {self.path.k8s}
-rules:
-- apiGroups: [""]
-  resources:
-  - services
-  - secrets
-  - namespaces
-  - configmaps
-  verbs: ["get", "list", "watch"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {self.path.k8s}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: {self.path.k8s}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {self.path.k8s}
-subjects:
-- kind: ServiceAccount
-  name: {self.path.k8s}
-  namespace: {self.namespace}
----
 apiVersion: v1
 kind: Secret
 metadata:
@@ -119,18 +88,20 @@ class AmbassadorTest(Test):
     env = []
 
     def manifests(self) -> str:
-        if DEV:
-            return self.format(AMBASSADOR_LOCAL)
-        else:
-            envs = ""
+        envs = ""
+        rbac = manifests.RBAC_CLUSTER_SCOPE
 
-            if self.single_namespace:
-                envs = """
+        if self.single_namespace:
+            envs = """
     - name: AMBASSADOR_SINGLE_NAMESPACE
       value: "yes"
 """
+            rbac = manifests.RBAC_NAMESPACE_SCOPE
 
-            return self.format(manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs)
+        if DEV:
+            return self.format(rbac + AMBASSADOR_LOCAL)
+        else:
+            return self.format(rbac + manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs)
 
     # Will tear this out of the harness shortly
     @property
