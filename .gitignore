@@ -6,6 +6,7 @@
 *.knaut
 *.knaut.claim
 *.yaml.o
+*.tap
 
 *.pem
 node_modules/

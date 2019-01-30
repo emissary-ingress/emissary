@@ -72,9 +72,7 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 	cp $< $@
 
 #
-# Check
-
-docker_tests =
+# Deploy
 
 # Generate the TLS secret
 %/cert.pem %/key.pem: | %
@@ -85,32 +83,22 @@ docker_tests =
 deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
 apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
 
+#
+# Check
+
+HAVE_DOCKER := $(shell which docker 2>/dev/null)
+
+test-suite.tap: $(patsubst %.test,%.tap,$(wildcard tests/*.test))
+test-suite.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/*.tap.gen))
+
 tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
 	@touch $@
 
-check-consul-connect-integration: k8s-env.sh deploy proxy
-	set -a && . $(abspath k8s-env.sh) && GO111MODULE=off go run tests/consul-e2e.go
-docker_tests += check-consul-connect-integration
-
-check-intercept: ## Check: apictl traffic intercept
-check-intercept: k8s-env.sh bin_$(GOOS)_$(GOARCH)/apictl deploy proxy
-	set -a && . $(abspath k8s-env.sh) && ./loop-intercept.sh
-docker_tests += check-intercept
-
-check-e2e: ## Check: oauth e2e tests
-check-e2e: tests/oauth-e2e/node_modules k8s-env.sh deploy proxy
-	set -a && . $(abspath k8s-env.sh) && cd tests/oauth-e2e && npm test
-docker_tests += check-e2e
-
-.PHONY: $(docker_tests)
-ifneq ($(shell which docker 2>/dev/null),)
-check: $(docker_tests)
-else
-check:
-	@echo 'SKIPPING TESTS THAT REQUIRE DOCKER'
-endif
+tests/oauth-e2e.tap: $(if $(HAVE_DOCKER),tests/oauth-e2e/node_modules deploy proxy)
+tests/consul-e2e.tap: $(if $(HAVE_DOCKER),deploy proxy)
+tests/loop-intercept.tap: $(if $(HAVE_DOCKER),deploy proxy)
 
 #
 # Clean
