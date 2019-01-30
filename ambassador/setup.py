@@ -17,9 +17,8 @@ from setuptools import setup, find_packages
 
 import os
 
-from ambassador.VERSION import Version
-
-print("setuptools %s" % setuptools.__version__)
+# from ambassador.VERSION import Version
+Version = "0.0.0-dev"
 
 requirements = open("requirements.txt", "r").read().split("\n")
 

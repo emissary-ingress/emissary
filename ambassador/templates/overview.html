@@ -42,6 +42,8 @@ limitations under the License
           <br/>
           Hostname <samp>{{ system.hostname }}</samp>
           <br/>
+          Cluster ID <samp>{{ system.cluster_id }}</samp>
+          <br/>
           Configuration from {{ system.boot_time }} &mdash; {{ system.hr_uptime }} ago
           <br/>
           {% if envoy_status.ready %}
@@ -94,8 +96,10 @@ limitations under the License
           <div class="col-12">
             {% for notice in notices %}
               <span 
-              {% if notice.level == 'WARNING' %}
+              {% if (notice.level == 'WARNING') or (notice.level == 'ERROR') %}
               style="color:red"
+              {% elif notice.level == 'NOTICE' %}
+              style="color:orange"
               {% elif notice.level == 'INFO' %}
               style="color:green"
               {% endif %}
@@ -112,15 +116,50 @@ limitations under the License
             <ul>
             {% for error in errors | sort %}
               <li>
-                <a href="/ambassador/v0/diag/{{ error[0] }}">
-                  <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
-                </a>
+                {% if error[0] %}
+                  <a href="/ambassador/v0/diag/{{ error[0] }}">
+                    <span style="color:red">{{ error[0] }}: {{ error[1] }}</span>
+                  </a>
+                {% else %}
+                  <span style="color:red">{{ error[1] }}</span>
+                {% endif %}
               </li>
             {% endfor %}
             </ul>
           </div>
         </div>
       {% endif %}
+
+      <div class="row">
+        <div class="col-12">
+          <a href="https://www.getambassador.io/docs/">Ambassador Documentation</a>
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>Getting Started</b></td>
+                  <td><b>Using Ambassador</b></td>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/user-guide/developers?utm_source=diagnostics">Introduction for Application Developers</a></td>
+                    <td><a href="https://www.getambassador.io/reference/configuration?utm_source=diagnostics">Configuration Reference</a></td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/user-guide/operators?utm_source=diagnostics">Introduction for Operators</a></td>
+                    <td><a href="https://www.getambassador.io/user-guide/advanced-rate-limiting?utm_source=diagnostics">Single Sign-On with OAuth/OIDC (Pro only)</a></td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://www.getambassador.io/reference/debugging?utm_source=diagnostics">Troubleshooting Ambassador</a></td>
+                    <td><a href="https://www.getambassador.io/user-guide/advanced-rate-limiting?utm_source=diagnostics">Rate Limiting (Pro only)</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {% if ambassador_services %}
       <div class="row">

@@ -35,6 +35,8 @@ Please note that you must use the HTTP/2 preudo-header names. For example:
 
 ### `zipkin` driver configurations:
 - `collector_endpoint` gives the API endpoint of the Zipkin service where the spans will be sent. The default value is `/api/v1/spans`
+- `trace_id_128bit` whether a 128bit trace id will be used when creating a new trace instance. The default value is `false`, which will result in a 64 bit trace id being used.
+- `shared_span_context` whether client and server spans will shared the same span id. The default value is `true`.
 
 You may only use a single `TracingService` manifest.
 

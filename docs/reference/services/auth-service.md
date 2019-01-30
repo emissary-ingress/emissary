@@ -2,25 +2,28 @@
 
 Ambassador supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
-There are current two supported versions of the `AuthService` manifest: 
+There are currently two supported versions of the `AuthService` manifest:
 
-### V1
+### V1 (Ambassador 0.50.0 and higher):
 
-`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher. 
+`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher.
 
 ```yaml
 ---
 apiVersion: ambassador/v1
-kind:  AuthService
-name:  authentication
+kind: AuthService
+name: authentication
 auth_service: "example-auth:3000"
-path_prefix: "/extauth"
+path_prefix:  "/extauth"
+proto: http
 allowed_request_headers:
 - "x-example-header"
 allowed_authorization_headers:
 - "x-qotm-session"
 allow_request_body: false
 ```
+
+- `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
 
 - `allowed_request_headers` (optional) lists headers that will be sent from the client to the auth service. These headers are always included:
     * `Authorization`
@@ -41,9 +44,9 @@ allow_request_body: false
 
 - `allow_request_body` (optional) will pass the full body of the request to the auth service for use cases such as computing an HMAC or request signature.
 
-### v0
+### v0 (Ambassador versions prior to 0.50.0)
 
-`AuthService` V0 was current prior to Ambassador 0.50. It is deprecated and support for V0 will be removed in a future Ambassador release.
+`AuthService` V0 was current prior to Ambassador 0.50.0. It is deprecated and support for V0 will be removed in a future Ambassador release.
 
 ```yaml
 ---
@@ -92,7 +95,7 @@ For every incoming request, the HTTP `method` and headers are forwarded to the a
 1. The `Content-Length` header is overwritten with `0`.
 2. The body is removed.
 
-So, for example, if the incoming request is 
+So, for example, if the incoming request is
 
 ```
 PUT /path/to/service HTTP/1.1
@@ -135,6 +138,10 @@ Giving the external auth service control over the response on failure allows man
 - The external auth service can issue a 301 `Redirect` to divert the client into an OAuth or OIDC authentication sequence.
 
 Finally, if Ambassador cannot reach the auth service at all, it will return a HTTP 503 status code to the client.
+
+## Configuring Public Mappings
+
+Authentication can be disabled for a mapping by setting `bypass_auth` to `true`. This will tell Ambassador to allow all requests for that mapping through without interacting with the external auth service.
 
 ## Example
 

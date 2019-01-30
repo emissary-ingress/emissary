@@ -66,7 +66,9 @@
                 "_source": "--internal--",
                 "require_tls": false,
                 "service_port": 80,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true,
+                "redirect_listener": false
             }
         ],
         "routes": [
@@ -92,7 +94,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -145,7 +149,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -193,9 +199,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            }
-        ]
+                "prefix_rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+            }        ]
     },
     "errors": {},
     "source_map": {

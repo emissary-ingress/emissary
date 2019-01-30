@@ -10,6 +10,7 @@
           "name": "http_connection_manager",
           "config": {"codec_type": "auto",
             "stat_prefix": "ingress_http",
+            "use_remote_address": true,
             "access_log": [
               {
                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -28,7 +29,7 @@
                   "domains": ["*"],"routes": [
 
                   {
-                    "timeout_ms": 3000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
+                    "timeout_ms": 10000,"prefix": "/ambassador/v0/check_ready","prefix_rewrite": "/ambassador/v0/check_ready",
                     "weighted_clusters": {
                       "clusters": [
 
@@ -41,7 +42,7 @@
                 ,
 
                   {
-                    "timeout_ms": 3000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
+                    "timeout_ms": 10000,"prefix": "/ambassador/v0/check_alive","prefix_rewrite": "/ambassador/v0/check_alive",
                     "weighted_clusters": {
                       "clusters": [
 
@@ -54,7 +55,7 @@
                 ,
 
                   {
-                    "timeout_ms": 3000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
+                    "timeout_ms": 10000,"prefix": "/ambassador/v0/","prefix_rewrite": "/ambassador/v0/",
                     "weighted_clusters": {
                       "clusters": [
 
@@ -117,17 +118,6 @@
 
         ]},
       {
-        "name": "cluster_ext_tracing",
-        "connect_timeout_ms": 3000,
-        "type": "strict_dns",
-        "lb_type": "round_robin",
-        "hosts": [
-          {
-            "url": "tcp://example-tracing:5000"
-          }
-
-        ]},
-      {
         "name": "cluster_qotm",
         "connect_timeout_ms": 3000,
         "type": "strict_dns",
@@ -137,8 +127,18 @@
             "url": "tcp://qotm:80"
           }
 
-        ]}
+        ]},
+      {
+        "name": "cluster_tracing_example_tracing_with_a_r-0",
+        "connect_timeout_ms": 3000,
+        "type": "strict_dns",
+        "lb_type": "round_robin",
+        "hosts": [
+          {
+            "url": "tcp://example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000"
+          }
 
+        ]}
     ]
   },
   "tracing": {
@@ -146,12 +146,8 @@
       "driver": {
         "type": "zipkin",
         "config": {
-          "collector_cluster": "cluster_ext_tracing"
-        }
+          "collector_cluster": "cluster_tracing_example_tracing_with_a_r-0"        }
       }
     }
-  },
-
-  "statsd_udp_ip_address": "127.0.0.1:8125",
-  "stats_flush_interval_ms": 1000
+  }
 }
