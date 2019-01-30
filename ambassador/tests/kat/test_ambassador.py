@@ -6,7 +6,7 @@ import base64
 from typing import ClassVar, Dict, Sequence, Tuple, Union
 
 from kat.harness import variants, Query, Runner, Test
-from kat.manifests import AMBASSADOR
+from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
 
 from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
@@ -1206,7 +1206,7 @@ class StatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs) + GRAPHITE_CONFIG.format('statsd-sink')
+        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs) + GRAPHITE_CONFIG.format('statsd-sink')
 
     def config(self):
         yield self.target, self.format("""
