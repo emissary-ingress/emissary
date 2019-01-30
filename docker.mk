@@ -81,6 +81,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 _clean-docker:
 	$(FLOCK) $(_docker.port-forward).lock rm $(_docker.port-forward).lock
 	rm -f $(_docker.port-forward).log
+	rm -f $(dir $(_docker.mk))docker-registry.yaml.o
 clean: _clean-docker
 .PHONY: _clean-docker
 
