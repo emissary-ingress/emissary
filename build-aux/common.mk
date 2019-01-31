@@ -36,24 +36,24 @@ endef
 all: build
 .PHONY: all
 
-build: ## Build the software
+build: ## (Common) Build the software
 .PHONY: build
 
-check: ## Check whether the software works; run the tests
+check: ## (Common) Check whether the software works; run the tests
 check: lint
 .PHONY: check
 
-lint: ## Perform static analysis of the software
+lint: ## (Common) Perform static analysis of the software
 .PHONY: lint
 
-format: ## Apply automatic formatting+cleanup to source code
+format: ## (Common) Apply automatic formatting+cleanup to source code
 .PHONY: format
 
-clean: ## Delete all files that are normally created by building the software
+clean: ## (Common) Delete all files that are normally created by building the software
 .PHONY: clean
 
 # XXX: Rename this to maintainer-clean, per GNU?
-clobber: ## Delete all files that this Makefile can re-generate
+clobber: ## (Common) Delete all files that this Makefile can re-generate
 clobber: clean
 .PHONY: clobber
 
