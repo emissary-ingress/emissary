@@ -39,6 +39,11 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 #
 #  line 1: local tag name
 #  line 2: image hash
+#
+# Note: We test for changes for CI early, but test for changes for
+# cleanup late.  If we did the cleanup test early because of :latest,
+# it would leave dangling untagged images.  If we did the CI test
+# late, it would remove the evidence for debugging.
 %.docker: %/Dockerfile
 	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest)' > $(@D)/.tmp.$(@F).tmp
 	docker build -t "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" $*
@@ -48,10 +53,9 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 		if cmp -s $(@D)/.tmp.$(@F).tmp $@; then \
 			rm -f $(@D)/.tmp.$(@F).tmp || true; \
 		else \
-			if test -e $@; then \
-				$(if $(CI),false This should not happen in CI: $@ should not change,docker image rm "$$(sed -n 1p $@)" || true); \
-			fi && \
+			$(if $(CI),if test -e $@; then false This should not happen in CI: $@ should not change; fi &&) \
 			$(if $(VERSION),docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" '$(docker.LOCALHOST):31000/$(notdir $*):latest' &&) \
+			if test -e $@; then docker image rm "$$(sed -n 1p $@)" || true; fi && \
 			mv -f $(@D)/.tmp.$(@F).tmp $@; \
 		fi; \
 	}
