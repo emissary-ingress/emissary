@@ -41,23 +41,23 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 #  line 2: image hash
 %.docker: %/Dockerfile
 	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest)' > $(@D)/.tmp.$(@F).tmp
-	docker build -t "$$(head -n1 $(@D)/.tmp.$(@F).tmp)" $*
-	docker image inspect "$$(head -n1 $(@D)/.tmp.$(@F).tmp)" --format='{{.Id}}' >> $(@D)/.tmp.$(@F).tmp
+	docker build -t "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" $*
+	docker image inspect "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" --format='{{.Id}}' >> $(@D)/.tmp.$(@F).tmp
 	@{ \
 		PS4=''; set -x; \
 		if cmp -s $(@D)/.tmp.$(@F).tmp $@; then \
 			rm -f $(@D)/.tmp.$(@F).tmp || true; \
 		else \
 			if test -e $@; then \
-				$(if $(CI),false This should not happen in CI: $@ should not change,docker image rm "$$(head -n1 $@)" || true); \
+				$(if $(CI),false This should not happen in CI: $@ should not change,docker image rm "$$(sed -n 1p $@)" || true); \
 			fi && \
-			$(if $(VERSION),docker tag "$$(tail -n1 $(@D)/.tmp.$(@F).tmp)" '$(docker.LOCALHOST):31000/$(notdir $*):latest' &&) \
+			$(if $(VERSION),docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" '$(docker.LOCALHOST):31000/$(notdir $*):latest' &&) \
 			mv -f $(@D)/.tmp.$(@F).tmp $@; \
 		fi; \
 	}
 
 %.docker.clean:
-	if [ -e $*.docker ]; then docker image rm "$$(head -n1 $*.docker)" || true; fi
+	if [ -e $*.docker ]; then docker image rm "$$(sed -n 1p $*.docker)" || true; fi
 	rm -f $*.docker
 .PHONY: %.docker.clean
 
@@ -69,12 +69,12 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	{ \
 	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
-	    docker push "$$(head -n1 $<)"; \
+	    docker push "$$(sed -n 1p $<)"; \
 	}
 	sed '1{ s/^host\.docker\.internal:/localhost:/; q; }' $< > $@
 
 %.docker.push: %.docker
-	docker tag "$$(tail -n1 $<)" '$(DOCKER_IMAGE)'
+	docker tag "$$(sed -n 2p $<)" '$(DOCKER_IMAGE)'
 	docker push '$(DOCKER_IMAGE)'
 .PHONY: %.docker.push
 
