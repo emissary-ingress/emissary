@@ -3,23 +3,13 @@ language: go
 go:
 - 1.11.x
 
-addons:
-  apt:
-    sources:
-    - sourceline: ppa:masterminds/glide
-    packages:
-    - glide
-
-install:
-- make vendor
-
 script:
-- make ambex image
+- make build image
 - "./smoketest.sh"
 
 before_deploy:
 - mkdir -p ambex-s3/ambex/${TRAVIS_TAG}/
-- cp ambex_for_image ambex-s3/ambex/${TRAVIS_TAG}/ambex
+- cp bin_linux_amd64/ambex ambex-s3/ambex/${TRAVIS_TAG}/ambex
 
 deploy:
   provider: s3

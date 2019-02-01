@@ -233,7 +233,7 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	for _, dir := range dirs {
 		files, err := ioutil.ReadDir(dir)
 		if err != nil {
-			log.WithError(err).Warn("Error listing %v", dir)
+			log.WithError(err).Warnf("Error listing %v", dir)
 			continue
 		}
 		for _, file := range files {
