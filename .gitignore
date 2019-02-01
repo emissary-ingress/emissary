@@ -5,6 +5,7 @@
 *.docker.knaut-push
 *.knaut
 *.knaut.claim
+*.yaml.o
 
 *.pem
 node_modules/

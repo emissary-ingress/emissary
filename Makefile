@@ -119,6 +119,7 @@ clean:
 	rm -f docker/traffic-proxy/traffic-proxy
 	rm -f docker/app-sidecar/app-sidecar
 	rm -f docker/amb-sidecar/amb-sidecar
+	rm -f docker/consul_connect_integration/consul_connect_integration
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
