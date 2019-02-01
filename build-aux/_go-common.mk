@@ -58,7 +58,7 @@ bin_%/$(notdir $(go.bin)): bin_%/.cache.$(notdir $(go.bin))
 	@{ \
 		PS4=''; set -x; \
 		if ! cmp -s $$< $$@; then \
-			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi, true) && \
+			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
 			cp -f $$< $$@; \
 		fi; \
 	}
