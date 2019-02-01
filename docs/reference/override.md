@@ -30,7 +30,7 @@ These limitations will be addressed in future releases of Ambassador.
 
 ## Modifying Ambassador's Underlying Envoy Configuration
 
-Ambassador ships with a standard configuration template that is used to generate Envoy configuration. If you need to do more extensive modifications, you can create your own custom configuration template to replace the standard template. To do this, create a templated `envoy.json` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
+Ambassador ships with a standard configuration template that is used to generate Envoy configuration. If you need to do more extensive modifications, you can create your own custom configuration template to replace the standard template. To do this, create a templated `envoy.j2` file using the Jinja2 template language. Then, use this template as the value for the key `envoy.j2` in your ConfigMap. This will then replace the [default template](https://github.com/datawire/ambassador/tree/master/ambassador/templates).
 
 ## File an issue
 
