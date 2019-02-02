@@ -130,7 +130,7 @@ quote.shell = "$$(printf '%s\n' $(subst $(NL),' ','$(subst ','\'',$1)'))"
 # re-generate (such as compiling a Go program; we would like to let
 # `go install` decide whether it is up-to-date or not, rather than
 # trying to teach Make how to do that).  We could mark it as .PHONY,
-# but that tells make that "this isn't a "this isn't a real file that
+# but that tells Make that "this isn't a "this isn't a real file that
 # I expect to ever exist", which has a several implications for Make,
 # most of which we don't want.  Instead, we can have them *depend* on
 # a .PHONY target (which we'll name "FORCE"), so that they are always
