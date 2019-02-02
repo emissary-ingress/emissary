@@ -22,6 +22,8 @@
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
         "circuit_breaker": { "type": "string" },
+        "enable_ipv4": { "type": "boolean" },
+        "enable_ipv6": { "type": "boolean" },
         "cors": {
             "type": "object",
             "properties": {
