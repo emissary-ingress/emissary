@@ -479,6 +479,7 @@ kind:  Module
 name:  ambassador
 config:
   use_proxy_proto: true
+  enable_ipv6: true
 """)
 
     def queries(self):

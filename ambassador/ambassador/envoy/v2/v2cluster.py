@@ -27,6 +27,14 @@ class V2Cluster(dict):
     def __init__(self, config: 'V2Config', cluster: IRCluster) -> None:
         super().__init__()
 
+        dns_lookup_family = 'V4_ONLY'
+
+        if cluster.enable_ipv6:
+            if cluster.enable_ipv4:
+                dns_lookup_family = 'AUTO'
+            else:
+                dns_lookup_family = 'V6_ONLY'
+
         fields = {
             'name': cluster.name,
             'type': cluster.type.upper(),
@@ -39,7 +47,8 @@ class V2Cluster(dict):
                         'lb_endpoints': self.get_endpoints(cluster)
                     }
                 ]
-            }
+            },
+            'dns_lookup_family': dns_lookup_family
         }
 
         if cluster.get('grpc', False):
