@@ -13,7 +13,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
+import copy
+import subprocess
 from typing import Any, Dict, List, Optional
 
 import datetime
@@ -79,6 +80,7 @@ class DiagApp (Flask):
     config_dir_prefix: str
     bootstrap_path: str
     ads_path: str
+    ads_temp_path: str = '/tmp/envoy-test.json'
     health_checks: bool
     debugging: bool
     verbose: bool
@@ -580,6 +582,10 @@ class AmbassadorEventWatcher(threading.Thread):
 
             bootstrap_config, ads_config = econf.split_config()
 
+            if not self.validate_envoy_config(config=ads_config):
+                self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+                return
+
             self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
 
             with open(app.bootstrap_path, "w") as output:
@@ -598,6 +604,36 @@ class AmbassadorEventWatcher(threading.Thread):
                 os.kill(app.ambex_pid, signal.SIGHUP)
 
             self.logger.info("configuration updated")
+
+    def validate_envoy_config(self, config) -> bool:
+        # We want to keep the original config untouched
+        validation_config = copy.deepcopy(config)
+        # Envoy fails to validate with @type field in envoy config, so removing that
+        validation_config.pop('@type')
+        config_json = json.dumps(validation_config, sort_keys=True, indent=4)
+
+        with open(app.ads_temp_path, "w") as output:
+            output.write(config_json)
+
+        command = ['envoy', '--config-path', app.ads_temp_path, '--mode', 'validate']
+        output = {
+            'exit_code': 0,
+            'output': ''
+        }
+
+        try:
+            output['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=5)
+            output['exit_code'] = 0
+        except subprocess.CalledProcessError as e:
+            output['exit_code'] = e.returncode
+            output['output'] = e.output
+
+        if output['exit_code'] == 0:
+            self.logger.info("successfully validated the resulting envoy configuration, continuing...")
+            return True
+
+        self.logger.info("{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(config_json, output['output']))
+        return False
 
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
