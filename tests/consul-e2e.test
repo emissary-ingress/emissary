@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if ! type docker &>/dev/null; then
+	exit 77
+fi
+GO111MODULE=off go run "${0%.test}.go" "$@"

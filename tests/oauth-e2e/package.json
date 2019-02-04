@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "mocha ./*test.js* --timeout 15000 --retries 2"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
