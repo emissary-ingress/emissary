@@ -20,6 +20,7 @@ spec:
         app: {{ template "ambassador.name" . }}
         release: {{ .Release.Name }}
       annotations:
+        sidecar.istio.io/inject: false
       {{- if .Values.podAnnotations }}
 {{ toYaml .Values.podAnnotations | indent 8 }}
       {{- end }}

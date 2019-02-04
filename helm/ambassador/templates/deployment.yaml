@@ -21,6 +21,7 @@ spec:
         app: {{ template "ambassador.name" . }}
         release: {{ .Release.Name }}
       annotations:
+        sidecar.istio.io/inject: false
       {{- if .Values.podAnnotations }}
 {{ toYaml .Values.podAnnotations | indent 8 }}
       {{- end }}
@@ -112,7 +113,7 @@ spec:
             periodSeconds: 3
           {{- with .Values.volumeMounts }}
           volumeMounts:
-{{ toYaml . | indent 10 }}
+{{ toYaml . | indent 12 }}
           {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}
