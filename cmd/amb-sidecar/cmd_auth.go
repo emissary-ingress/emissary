@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -15,30 +17,50 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 )
 
+var authCfg *config.Config
+
 func init() {
-	argparser.AddCommand(&cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "Run OAuth service",
 		Run:   cmdAuth,
-	})
+	}
+
+	afterParse := config.InitializeFlags(cmd.Flags())
+
+	cmd.PreRun = func(cmd *cobra.Command, args []string) {
+		authCfg = afterParse()
+		if authCfg.Error != nil {
+			// This is a non-fatal error.  Even with an
+			// invalid configuration, we continue to run,
+			// but serve a 5XX error page.
+			log.Printf("config error: %v", authCfg.Error)
+		}
+	}
+
+	argparser.AddCommand(cmd)
 }
 
 func cmdAuth(flags *cobra.Command, args []string) {
-	c := config.New()
-	l := logger.New(c)
-	s := secret.New(c, l)
-	d := discovery.New(c)
-	cl := client.NewRestClient(c.BaseURL)
+	l := logger.New(authCfg)
+	s := secret.New(authCfg, l)
+	d := discovery.New(authCfg)
+	cl := client.NewRestClient(authCfg.BaseURL)
 
 	ct := &controller.Controller{
-		Config: c,
+		Config: authCfg,
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
 
-	go ct.Watch()
+	go func() {
+		err := ct.Watch(context.Background())
+		if err != nil {
+			l.Fatal(err)
+		}
+	}()
 
 	a := app.App{
-		Config:     c,
+		Config:     authCfg,
 		Logger:     l,
 		Secret:     s,
 		Discovery:  d,

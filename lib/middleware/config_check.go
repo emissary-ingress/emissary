@@ -14,7 +14,7 @@ type CheckConfig struct {
 }
 
 func (c *CheckConfig) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	err := c.Config.Validate()
+	err := c.Config.Error
 	if err != nil {
 		body := []byte(fmt.Sprintf(`
 <html>
