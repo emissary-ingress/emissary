@@ -80,7 +80,7 @@ WORKDIR ${AMBASSADOR_ROOT}
 RUN echo "https://mirror.math.princeton.edu/pub/alpinelinux/v3.8/main" > /etc/apk/repositories && \
     echo "https://mirror.math.princeton.edu/pub/alpinelinux/v3.8/community" >> /etc/apk/repositories
 
-RUN apk --no-cache add curl python3
+RUN apk --no-cache add curl python3 jq
 
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev

@@ -37,6 +37,7 @@ fi
 
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
+TEMP_ENVOY_CONFIG_FILE="/tmp/envoy.json"
 # The bootstrap file really is in the config base dir, not the Envoy dir.
 ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
 
@@ -166,6 +167,17 @@ echo "AMBASSADOR: starting ads"
 ./ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
+
+echo "AMBASSADOR: validation envoy configuration"
+# Envoy does not validate with @type field in there, so removing it
+jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
+envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+    cat "$TEMP_ENVOY_CONFIG_FILE"
+    diediedie "envoy validation" "$STATUS"
+fi
 
 echo "AMBASSADOR: starting Envoy"
 envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
