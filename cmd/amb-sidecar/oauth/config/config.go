@@ -12,6 +12,10 @@ import (
 )
 
 type Config struct {
+	AmbassadorID              string
+	AmbassadorNamespace       string
+	AmbassadorSingleNamespace bool
+
 	AuthProviderURL string
 	IssuerURL       string
 	LogLevel        string
@@ -36,6 +40,16 @@ func InitializeFlags(flags *pflag.FlagSet) func() *Config {
 	flags.Int64Var(&stateTTL, "state_ttl", 5, "TTL (in minutes) of a signed state token; default 5")
 
 	return func() *Config {
+		authCfg.AmbassadorID = os.Getenv("AMBASSADOR_ID")
+		if authCfg.AmbassadorID == "" {
+			authCfg.AmbassadorID = "default"
+		}
+		authCfg.AmbassadorNamespace = os.Getenv("AMBASSADOR_NAMESPACE")
+		if authCfg.AmbassadorNamespace == "" {
+			authCfg.AmbassadorNamespace = "default"
+		}
+		authCfg.AmbassadorSingleNamespace = os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != ""
+
 		authCfg.StateTTL = time.Duration(stateTTL) * time.Minute
 
 		if authCfg.LogLevel == "" {

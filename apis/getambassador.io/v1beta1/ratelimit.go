@@ -1,8 +1,9 @@
 package v1
 
 type RateLimitSpec struct {
-	Domain string  `json:"domain"`
-	Limits []Limit `json:"limits"`
+	AmbassadorID AmbassadorID `json:"ambassador_id"`
+	Domain       string       `json:"domain"`
+	Limits       []Limit      `json:"limits"`
 }
 
 type Limit struct {

@@ -52,6 +52,12 @@ func (c *Controller) Watch() {
 				c.Logger.Errorln(errors.Wrap(err, "malformed tenant resource spec"))
 				continue
 			}
+			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+				continue
+			}
+			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
+				continue
+			}
 
 			for _, t := range spec.Tenants {
 				u, err := url.Parse(t.TenantURL)
@@ -97,12 +103,17 @@ func (c *Controller) Watch() {
 			Host: "*",
 			Path: "/callback",
 		})
-
 		for _, p := range w.List("policies") {
 			var spec crd.PolicySpec
 			err := mapstructure.Convert(p.Spec(), &spec)
 			if err != nil {
 				c.Logger.Errorln(errors.Wrap(err, "malformed policy resource spec"))
+				continue
+			}
+			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+				continue
+			}
+			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
 				continue
 			}
 

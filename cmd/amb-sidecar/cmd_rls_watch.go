@@ -52,10 +52,29 @@ func max(a, b int) int {
 	}
 }
 
+type ControllerConfig struct {
+	AmbassadorID              string
+	AmbassadorNamespace       string
+	AmbassadorSingleNamespace bool
+}
+
 func doWatch(cmd *cobra.Command, args []string) error {
 	rlslog = logrus.New()
 
 	w := k8s.NewClient(nil).Watcher()
+
+	controllerConfig := ControllerConfig{
+		AmbassadorID:              os.Getenv("AMBASSADOR_ID"),
+		AmbassadorNamespace:       os.Getenv("AMBASSADOR_NAMESPACE"),
+		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
+	}
+	if controllerConfig.AmbassadorID == "" {
+		controllerConfig.AmbassadorID = "default"
+	}
+	if controllerConfig.AmbassadorNamespace == "" {
+		controllerConfig.AmbassadorNamespace = "default"
+	}
+
 	count := 0
 
 	matches, err := filepath.Glob(fmt.Sprintf("%s-*", output))
@@ -81,6 +100,12 @@ func doWatch(cmd *cobra.Command, args []string) error {
 			err := mapstructure.Convert(r.Spec(), &spec)
 			if err != nil {
 				rlslog.Errorln(errors.Wrap(err, "malformed ratelimit resource spec"))
+				continue
+			}
+			if controllerConfig.AmbassadorSingleNamespace && r.Namespace() != controllerConfig.AmbassadorNamespace {
+				continue
+			}
+			if !spec.AmbassadorID.Matches(controllerConfig.AmbassadorID) {
 				continue
 			}
 
