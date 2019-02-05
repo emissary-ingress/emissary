@@ -4,34 +4,35 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	ms "github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 )
 
-func die(err error, args ...interface{}) {
+var rlslog *logrus.Logger
+
+func rlsdie(err error, args ...interface{}) {
 	if err != nil {
 		if args != nil {
-			fmt.Printf("%v: %v\n", err, args)
+			rlslog.Fatalf("%v: %v\n", err, args)
 		} else {
-			fmt.Println(err)
+			rlslog.Fatalln(err)
 		}
-		panic(err)
 	}
 }
 
 var watch = &cobra.Command{
 	Use:   "rls-watch",
 	Short: "Watch RateLimit CRD files",
-	Run:   doWatch,
+	RunE:  doWatch,
 }
 
 func init() {
@@ -50,13 +51,15 @@ func max(a, b int) int {
 	}
 }
 
-func doWatch(cmd *cobra.Command, args []string) {
+func doWatch(cmd *cobra.Command, args []string) error {
+	rlslog = logrus.New()
+
 	w := k8s.NewClient(nil).Watcher()
 	count := 0
 
 	matches, err := filepath.Glob(fmt.Sprintf("%s-*", output))
 	if err != nil {
-		log.Printf("warning: %v", err)
+		rlslog.Printf("warning: %v", err)
 	} else {
 		for _, m := range matches {
 			parts := strings.Split(m, "-")
@@ -68,7 +71,7 @@ func doWatch(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	log.Printf("initial count %d", count)
+	rlslog.Printf("initial count %d", count)
 
 	w.Watch("ratelimits", func(w *k8s.Watcher) {
 		config := &Config{Domains: make(map[string]*Domain)}
@@ -76,7 +79,7 @@ func doWatch(cmd *cobra.Command, args []string) {
 		for _, r := range w.List("ratelimits") {
 			spec, err := decode(r.QName(), r.Spec())
 			if err != nil {
-				log.Printf("%s: %v", r.QName(), err)
+				rlslog.Printf("%s: %v", r.QName(), err)
 			} else {
 				config.add(spec)
 			}
@@ -85,24 +88,25 @@ func doWatch(cmd *cobra.Command, args []string) {
 		count += 1
 		realout := fmt.Sprintf("%s-%d/config", output, count)
 		err = os.MkdirAll(realout, 0775)
-		die(err)
+		rlsdie(err)
 
 		for _, domain := range config.Domains {
 			bytes, err := yaml.Marshal(domain)
-			die(err)
+			rlsdie(err)
 			fname := filepath.Join(realout, fmt.Sprintf("config.%s.yaml", domain.Name))
 			err = ioutil.WriteFile(fname, bytes, 0644)
-			die(err)
+			rlsdie(err)
 		}
 
 		err = os.Remove(output)
 		if err != nil {
-			log.Println(err)
+			rlslog.Println(err)
 		}
 		err = os.Symlink(filepath.Dir(realout), output)
-		die(err)
+		rlsdie(err)
 	})
 	w.Wait()
+	return nil
 }
 
 type Errors struct {
@@ -178,7 +182,7 @@ func decode(source string, input interface{}) (Spec, error) {
 func load(path string) []k8s.Resource {
 	var result []k8s.Resource
 	file, err := os.Open(path)
-	die(err)
+	rlsdie(err)
 	d := yaml.NewDecoder(file)
 	for {
 		var uns map[interface{}]interface{}
@@ -186,7 +190,7 @@ func load(path string) []k8s.Resource {
 		if err == io.EOF {
 			break
 		} else {
-			die(err)
+			rlsdie(err)
 		}
 		md := uns["metadata"].(map[interface{}]interface{})
 		_, ok := md["namespace"]
@@ -229,7 +233,7 @@ func normalize(unit string) uint64 {
 	case "day":
 		return 24 * 60 * 60
 	default:
-		log.Printf("warning: unrecognized unit: %s", unit)
+		rlslog.Printf("warning: unrecognized unit: %s", unit)
 		return 0
 	}
 }
@@ -275,7 +279,7 @@ func (c *Config) add(spec Spec) {
 
 func (d *Domain) add(limit Limit) {
 	if len(limit.Pattern) == 0 {
-		log.Printf("%s: empty pattern", limit.source)
+		rlslog.Printf("%s: empty pattern", limit.source)
 	} else {
 		d.Descriptors.add(limit.Pattern, limit)
 	}
@@ -287,7 +291,7 @@ func (n *Node) add(pattern []map[string]string, limit Limit) {
 		if n.Rate.Rate == 0 {
 			n.Rate = newRate
 		} else {
-			log.Printf("warning: %s: multiple limits for pattern %v, smaller limit enforced\n",
+			rlslog.Printf("warning: %s: multiple limits for pattern %v, smaller limit enforced\n",
 				limit.source, limit.Pattern)
 			if newRate.rps() < n.Rate.rps() {
 				n.Rate = newRate
