@@ -121,6 +121,7 @@ ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-cached:1"
+AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:1"
 
 SCOUT_APP_KEY=
 
@@ -194,9 +195,10 @@ export-vars:
 
 ambassador-docker-image-cached:
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
+	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
 
 ambassador-docker-image: version
-	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
@@ -366,7 +368,7 @@ test: setup-develop cluster.yaml
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
-	ENVOY_BASE_IMAGE="$(ENVOY_BASE_IMAGE)" \
+	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	sh ../releng/run-tests.sh

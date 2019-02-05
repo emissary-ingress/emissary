@@ -22,7 +22,7 @@
 # configure a different location for the runtime configuration elements via environment variables.
 
 ARG CACHED_CONTAINER_IMAGE
-ARG ENVOY_BASE_IMAGE
+ARG AMBASSADOR_BASE_IMAGE
 
 # Stage 1
 # This copies in the ambassador code to CACHED_CONTAINER_IMAGE and installs it
@@ -35,12 +35,10 @@ RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
 
 # Stage 2
-# Required dependencies and binaries are copied in from CACHED_CONTAINER_IMAGE to ENVOY_BASE_IMAGE
-FROM $ENVOY_BASE_IMAGE
+# Required dependencies and binaries are copied in from CACHED_CONTAINER_IMAGE to AMBASSADOR_BASE_IMAGE
+FROM $AMBASSADOR_BASE_IMAGE
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
-
-RUN apk --no-cache add curl python3 jq
 
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
@@ -49,9 +47,6 @@ COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6
 
 # Copy Ambassador binaries...
 COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
-
-# ...and go-kubewatch.
-COPY --from=cached ${AMBASSADOR_ROOT}/kubewatch ${AMBASSADOR_ROOT}/
 
 # MKDIR an empty /ambassador/ambassador-config, so that you can drop a configmap over it
 # if you really really need to (not recommended).
