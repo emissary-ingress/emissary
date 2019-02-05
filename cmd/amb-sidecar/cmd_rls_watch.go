@@ -8,12 +8,13 @@ import (
 	"strconv"
 	"strings"
 
-	ms "github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/teleproxy/pkg/k8s"
 )
 
@@ -75,14 +76,16 @@ func doWatch(cmd *cobra.Command, args []string) error {
 
 	w.Watch("ratelimits", func(w *k8s.Watcher) {
 		config := &Config{Domains: make(map[string]*Domain)}
-
 		for _, r := range w.List("ratelimits") {
-			spec, err := decode(r.QName(), r.Spec())
+			var spec crd.RateLimitSpec
+			err := mapstructure.Convert(r.Spec(), &spec)
 			if err != nil {
-				rlslog.Printf("%s: %v", r.QName(), err)
-			} else {
-				config.add(spec)
+				rlslog.Errorln(errors.Wrap(err, "malformed ratelimit resource spec"))
+				continue
 			}
+
+			SetSource(&spec, r.QName())
+			config.add(spec)
 		}
 
 		count += 1
@@ -147,22 +150,6 @@ func validateLimit(l crd.Limit, errs *Errors) {
 	default:
 		errs.add(l.Source, fmt.Errorf("unrecognized unit: %v", l))
 	}
-}
-
-func decode(source string, input interface{}) (crd.RateLimitSpec, error) {
-	var result crd.RateLimitSpec
-	d, err := ms.NewDecoder(&ms.DecoderConfig{
-		ErrorUnused: true,
-		Result:      &result,
-	})
-	if err != nil {
-		return result, err
-	}
-	err = d.Decode(input)
-	if err == nil {
-		SetSource(&result, source)
-	}
-	return result, err
 }
 
 type Config struct {
