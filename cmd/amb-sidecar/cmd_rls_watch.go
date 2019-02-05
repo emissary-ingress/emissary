@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -124,11 +123,9 @@ func (e *Errors) empty() bool {
 type Spec struct {
 	Domain string
 	Limits []Limit
-	source string
 }
 
 func (s *Spec) SetSource(source string) {
-	s.source = source
 	for i := range s.Limits {
 		s.Limits[i].source = source
 	}
@@ -177,29 +174,6 @@ func decode(source string, input interface{}) (Spec, error) {
 		result.SetSource(source)
 	}
 	return result, err
-}
-
-func load(path string) []k8s.Resource {
-	var result []k8s.Resource
-	file, err := os.Open(path)
-	rlsdie(err)
-	d := yaml.NewDecoder(file)
-	for {
-		var uns map[interface{}]interface{}
-		err = d.Decode(&uns)
-		if err == io.EOF {
-			break
-		} else {
-			rlsdie(err)
-		}
-		md := uns["metadata"].(map[interface{}]interface{})
-		_, ok := md["namespace"]
-		if !ok {
-			md["namespace"] = "default"
-		}
-		result = append(result, k8s.NewResourceFromYaml(uns))
-	}
-	return result
 }
 
 type Config struct {
