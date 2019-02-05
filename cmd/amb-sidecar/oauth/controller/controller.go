@@ -8,11 +8,10 @@ import (
 	"strings"
 	"sync/atomic"
 
-	ms "github.com/mitchellh/mapstructure"
+	"github.com/datawire/k8sutil"
+	"github.com/ericchiang/k8s"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
@@ -39,22 +38,23 @@ const (
 )
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch() {
-	c.Rules.Store(make([]crd.Rule, 0))
-	w := k8s.NewClient(nil).Watcher()
+func (c *Controller) Watch(ctx context.Context) error {
+	kubeclient, err := k8s.NewInClusterClient()
+	if err != nil {
+		return err
+	}
 
-	w.Watch("tenants", func(w *k8s.Watcher) {
+	watcher := &k8sutil.WatchingStore{
+		Client: kubeclient,
+		Logger: c.Logger,
+	}
+	watcher.AddWatch(k8s.AllNamespaces, &crd.TenantList{})
+	watcher.AddWatch(k8s.AllNamespaces, &crd.PolicyList{})
+
+	watcher.Callback = func(store k8sutil.Store) {
 		tenants := make([]crd.TenantObject, 0)
-
-		for _, p := range w.List("tenants") {
-			spec := &crd.TenantSpec{}
-			err := decodeSpec(p, spec)
-			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed tenant resource spec"))
-				continue
-			}
-
-			for _, t := range spec.Tenants {
+		for _, p := range store.List(&crd.Tenant{}) {
+			for _, t := range p.(*crd.Tenant).Spec.Tenants {
 				u, err := url.Parse(t.TenantURL)
 				if err != nil {
 					c.Logger.Errorln(errors.Wrap(err, "parsing tenant url"))
@@ -82,32 +82,19 @@ func (c *Controller) Watch() {
 				tenants = append(tenants, t)
 			}
 		}
-
 		if len(tenants) == 0 {
 			c.Logger.Error("0 tenant apps configured")
 		}
-
 		c.Tenants.Store(tenants)
-	})
 
-	w.Watch("policies", func(w *k8s.Watcher) {
 		rules := make([]crd.Rule, 1)
-
 		// callback is always default.
 		rules = append(rules, crd.Rule{
 			Host: "*",
 			Path: "/callback",
 		})
-
-		for _, p := range w.List("policies") {
-			spec := &crd.PolicySpec{}
-			err := decodeSpec(p, spec)
-			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed rule resource spec"))
-				continue
-			}
-
-			for _, rule := range spec.Rules {
+		for _, p := range store.List(&crd.Policy{}) {
+			for _, rule := range p.(*crd.Policy).Spec.Rules {
 				c.Logger.Infof("loading rule host=%s, path=%s, public=%v, scope=%s",
 					rule.Host, rule.Path, rule.Public, rule.Scope)
 
@@ -120,11 +107,10 @@ func (c *Controller) Watch() {
 				rules = append(rules, rule)
 			}
 		}
-
 		c.Rules.Store(rules)
-	})
+	}
 
-	w.Wait()
+	return watcher.Run(ctx)
 }
 
 // GetRuleFromContext is a handy method for retrieving a reference of Rule from an HTTP
@@ -156,21 +142,5 @@ func (c *Controller) FindTenant(domain string) *crd.TenantObject {
 		}
 	}
 
-	return nil
-}
-
-func decodeSpec(input k8s.Resource, output interface{}) error {
-	d, err := ms.NewDecoder(&ms.DecoderConfig{
-		ErrorUnused: true,
-		Result:      output,
-	})
-	if err != nil {
-		return err
-	}
-
-	err = d.Decode(input.Spec())
-	if err != nil {
-		return err
-	}
 	return nil
 }

@@ -5,8 +5,10 @@ require (
 	github.com/Azure/go-autorest v11.3.0+incompatible // indirect
 	github.com/Masterminds/sprig v2.17.1+incompatible // indirect
 	github.com/aokoli/goutils v1.1.0 // indirect
+	github.com/datawire/k8sutil v0.0.0-20190205060121-da9e651dcdf4
 	github.com/datawire/teleproxy v0.3.12
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/ericchiang/k8s v1.2.1-0.20190205011721-e7a4ab0a52d7
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.1.0
 	github.com/gophercloud/gophercloud v0.0.0-20190115030418-a9f90060ebd9 // indirect
@@ -24,7 +26,7 @@ require (
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
@@ -32,14 +34,13 @@ require (
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc // indirect
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc // indirect
 	golang.org/x/oauth2 v0.0.0-20190111185915-36a7019397c4 // indirect
 	golang.org/x/sys v0.0.0-20190114130336-2be517255631 // indirect
 	google.golang.org/api v0.1.0 // indirect
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
+	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63 // indirect
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
