@@ -4,7 +4,11 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -60,6 +64,9 @@ func init() {
 }
 
 func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	s := secret.New(authCfg, l)
 	d := discovery.New(authCfg)
 	cl := client.NewRestClient(authCfg.BaseURL)
@@ -70,6 +77,24 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 	}
 
 	group, ctx := errgroup.WithContext(context.Background())
+
+	group.Go(func() error {
+		defer func() {
+			// it would be bad if the 'sigs' buffer got
+			// full; keep draining it
+			go func() {
+				for range sigs {
+				}
+			}()
+		}()
+
+		select {
+		case sig := <-sigs:
+			return errors.Errorf("received signal %v", sig)
+		case <-ctx.Done():
+			return nil
+		}
+	})
 
 	group.Go(func() error {
 		ct.Watch(ctx)
