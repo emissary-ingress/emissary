@@ -122,7 +122,11 @@ func cmdAuth(
 			Logger:     l,
 			Controller: ct,
 		}
-		server := &http.Server{Addr: ":8080", Handler: a.Handler()}
+		server := &http.Server{
+			Addr:     ":8080",
+			Handler:  a.Handler(),
+			ErrorLog: log.New(l.WriterLevel(logrus.ErrorLevel), "auth-http", 0),
+		}
 		return listenAndServeWithContext(hardCtx, softCtx, server)
 	})
 
