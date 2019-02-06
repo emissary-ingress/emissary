@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -52,12 +51,7 @@ func cmdAuth(flags *cobra.Command, args []string) {
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
 
-	go func() {
-		err := ct.Watch(context.Background())
-		if err != nil {
-			l.Fatal(err)
-		}
-	}()
+	go ct.Watch()
 
 	a := app.App{
 		Config:     authCfg,
