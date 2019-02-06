@@ -7,11 +7,13 @@ import (
 	"os"
 	"strings"
 
-	ms "github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
+
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/lib/mapstructure"
 )
 
 var rls = &cobra.Command{
@@ -72,13 +74,15 @@ func doValidate(cmd *cobra.Command, args []string) {
 	errs := &Errors{make(map[string][]string)}
 
 	for _, r := range resources {
-		spec, err := decode(r.QName(), r.Spec())
+		var spec crd.RateLimitSpec
+		err := mapstructure.Convert(r.Spec(), &spec)
 		if err != nil {
 			log.Printf("%s: %v", r.QName(), err)
-		} else {
-			spec.validate(errs)
-			config.add(spec)
+			continue
 		}
+		SetSource(&spec, r.QName())
+		validateSpec(spec, errs)
+		config.add(spec)
 	}
 
 	count := 0
@@ -104,36 +108,22 @@ func (e *Errors) add(key string, err error) {
 	e.errors[key] = append(e.errors[key], err.Error())
 }
 
-type Spec struct {
-	Domain string
-	Limits []Limit
-	source string
-}
-
-func (s *Spec) SetSource(source string) {
-	s.source = source
+func SetSource(s *crd.RateLimitSpec, source string) {
 	for i := range s.Limits {
-		s.Limits[i].source = source
+		s.Limits[i].Source = source
 	}
 }
 
-type Limit struct {
-	Pattern []map[string]string
-	Rate    uint64
-	Unit    string
-	source  string
-}
-
-func (s Spec) validate(errs *Errors) {
+func validateSpec(s crd.RateLimitSpec, errs *Errors) {
 	for _, l := range s.Limits {
-		l.validate(errs)
+		validateLimit(l, errs)
 	}
 }
 
-func (l Limit) validate(errs *Errors) {
+func validateLimit(l crd.Limit, errs *Errors) {
 	for _, entry := range l.Pattern {
 		if len(entry) == 0 {
-			errs.add(l.source, fmt.Errorf("empty entry: %v", l))
+			errs.add(l.Source, fmt.Errorf("empty entry: %v", l))
 		}
 	}
 	switch l.Unit {
@@ -142,24 +132,8 @@ func (l Limit) validate(errs *Errors) {
 	case "hour":
 	case "day":
 	default:
-		errs.add(l.source, fmt.Errorf("unrecognized unit: %v", l))
+		errs.add(l.Source, fmt.Errorf("unrecognized unit: %v", l))
 	}
-}
-
-func decode(source string, input interface{}) (Spec, error) {
-	var result Spec
-	d, err := ms.NewDecoder(&ms.DecoderConfig{
-		ErrorUnused: true,
-		Result:      &result,
-	})
-	if err != nil {
-		return result, err
-	}
-	err = d.Decode(input)
-	if err == nil {
-		result.SetSource(source)
-	}
-	return result, err
 }
 
 func load(path string) []k8s.Resource {
@@ -242,14 +216,14 @@ func (l *NodeSlice) child(key, value string) *Node {
 	return nd
 }
 
-func (l *NodeSlice) add(pattern []map[string]string, limit Limit) {
+func (l *NodeSlice) add(pattern []map[string]string, limit crd.Limit) {
 	for k, v := range pattern[0] {
 		child := l.child(k, v)
 		child.add(pattern[1:], limit)
 	}
 }
 
-func (c *Config) add(spec Spec) {
+func (c *Config) add(spec crd.RateLimitSpec) {
 	domain, ok := c.Domains[spec.Domain]
 	if !ok {
 		domain = &Domain{spec.Domain, nil}
@@ -260,22 +234,22 @@ func (c *Config) add(spec Spec) {
 	}
 }
 
-func (d *Domain) add(limit Limit) {
+func (d *Domain) add(limit crd.Limit) {
 	if len(limit.Pattern) == 0 {
-		log.Printf("%s: empty pattern", limit.source)
+		log.Printf("%s: empty pattern", limit.Source)
 	} else {
 		d.Descriptors.add(limit.Pattern, limit)
 	}
 }
 
-func (n *Node) add(pattern []map[string]string, limit Limit) {
+func (n *Node) add(pattern []map[string]string, limit crd.Limit) {
 	if len(pattern) == 0 {
 		newRate := Rate{limit.Rate, limit.Unit}
 		if n.Rate.Rate == 0 {
 			n.Rate = newRate
 		} else {
 			log.Printf("warning: %s: multiple limits for pattern %v, smaller limit enforced\n",
-				limit.source, limit.Pattern)
+				limit.Source, limit.Pattern)
 			if newRate.rps() < n.Rate.rps() {
 				n.Rate = newRate
 			}

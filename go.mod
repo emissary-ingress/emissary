@@ -22,7 +22,6 @@ require (
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mitchellh/go-homedir v1.0.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
-	github.com/mitchellh/mapstructure v1.1.2
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pkg/errors v0.8.0
 	github.com/satori/go.uuid v1.2.0
@@ -40,7 +39,7 @@ require (
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63
+	k8s.io/apimachinery v0.0.0-20190111195121-fa6ddc151d63 // indirect
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
