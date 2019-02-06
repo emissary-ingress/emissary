@@ -30,7 +30,11 @@ var idpClient *http.Client
 func TestMain(m *testing.M) {
 	// Setup Test Servers & Clients
 	idpSRV = testutil.NewIDP()
-	appSRV, appUT = testutil.NewAPP(idpSRV.URL)
+	var err error
+	appSRV, appUT, err = testutil.NewAPP(idpSRV.URL)
+	if err != nil {
+		panic(err)
+	}
 	appClient = appSRV.Client()
 
 	// Run

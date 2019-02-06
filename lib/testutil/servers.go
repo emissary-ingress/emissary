@@ -54,7 +54,7 @@ func NewIDP() *httptest.Server {
 }
 
 // NewAPP returns an instance of the authorization server.
-func NewAPP(idpURL string) (*httptest.Server, *app.App) {
+func NewAPP(idpURL string) (*httptest.Server, *app.App, error) {
 	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 
 	flags := pflag.NewFlagSet("newapp", pflag.PanicOnError)
@@ -91,6 +91,10 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 		Logger:     l,
 		Controller: ct,
 	}
+	httpHandler, err := app.Handler()
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return httptest.NewServer(app.Handler()), app
+	return httptest.NewServer(httpHandler), app, nil
 }

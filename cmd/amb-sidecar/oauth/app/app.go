@@ -29,7 +29,7 @@ type App struct {
 }
 
 // Handler returns an app handler that should be consumed by an HTTP server.
-func (a *App) Handler() http.Handler {
+func (a *App) Handler() (http.Handler, error) {
 	if a.Config == nil {
 		panic("config object cannot be nil")
 	}
@@ -40,7 +40,11 @@ func (a *App) Handler() http.Handler {
 		panic("controller object cannot be nil")
 	}
 
-	a.secret = secret.New(a.Config, a.Logger) // RSA keys
+	var err error
+	a.secret, err = secret.New(a.Config, a.Logger) // RSA keys
+	if err != nil {
+		return nil, err
+	}
 	a.discovery = discovery.New(a.Config)
 	a.rest = client.NewRestClient(a.Config.BaseURL)
 
@@ -104,5 +108,5 @@ func (a *App) Handler() http.Handler {
 
 	n.UseHandler(r)
 
-	return n
+	return n, nil
 }
