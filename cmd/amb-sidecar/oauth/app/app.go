@@ -9,12 +9,12 @@ import (
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 )
 
 // App is used to wire up all the cmd application components.

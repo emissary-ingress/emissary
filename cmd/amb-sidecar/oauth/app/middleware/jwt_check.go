@@ -10,9 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
 	"github.com/datawire/apro/lib/util"
 )
 
