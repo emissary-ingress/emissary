@@ -1,6 +1,6 @@
 # Core Configuration: Modules
 
-Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actu al configuration possible for a given module depends on the module.
+Modules let you enable and configure special behaviors for Ambassador, in ways that may apply to Ambassador as a whole or which may apply only to some mappings. The actual configuration possible for a given module depends on the module.
 
 ## The `ambassador` Module
 
