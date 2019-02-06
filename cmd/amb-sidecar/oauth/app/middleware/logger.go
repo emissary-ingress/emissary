@@ -19,9 +19,5 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	next(rw, r)
 
 	status := rw.(negroni.ResponseWriter).Status()
-	if status > 499 && status < 599 {
-		l.Logger.Debugf("[HTTP %v] %s %s", status, r.Method, r.URL.Path)
-	} else {
-		l.Logger.Debugf("[HTTP %v] %s %s", status, r.Method, r.URL.Path)
-	}
+	l.Logger.Debugf("[HTTP %v] %s %s", status, r.Method, r.URL.Path)
 }

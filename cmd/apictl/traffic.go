@@ -373,7 +373,7 @@ func doIntercept(cmd *cobra.Command, args []string) error {
 	ssh.Start()
 	defer ssh.Stop()
 
-	signalChan := make(chan os.Signal)
+	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
 	fmt.Println("Intercept is running. Press Ctrl-C/Ctrl-Break to quit.")
@@ -390,14 +390,12 @@ func icept(name, header, regex string) (string, error) {
 				{"name": header, "regex_match": regex},
 			},
 		})
-		if err != nil {
-			if _, is_fatal := err.(*FatalError); is_fatal {
-				return "", err
-			} else {
-				log.Printf("ICP: %v", err)
-				time.Sleep(1 * time.Second)
-				continue
-			}
+		if _, is_fatal := err.(*FatalError); is_fatal {
+			return "", err
+		} else if err != nil {
+			log.Printf("ICP: %v", err)
+			time.Sleep(1 * time.Second)
+			continue
 		}
 		return result, nil
 	}

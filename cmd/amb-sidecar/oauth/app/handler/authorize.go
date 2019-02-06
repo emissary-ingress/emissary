@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/satori/go.uuid"
+	jwt "github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"

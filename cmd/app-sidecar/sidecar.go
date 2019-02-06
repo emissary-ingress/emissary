@@ -143,18 +143,16 @@ func Main(flags *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		select {
-		case e := <-c.EventsChan:
-			if e == nil {
-				log.Print("No connection to the proxy")
+		e := <-c.EventsChan
+		if e == nil {
+			log.Print("No connection to the proxy")
+			intercepts = empty
+		} else {
+			err := json.Unmarshal(e.Data, &intercepts)
+			if err != nil {
+				log.Println("Failed to unmarshal event", string(e.Data))
+				log.Println("Because", err)
 				intercepts = empty
-			} else {
-				err := json.Unmarshal(e.Data, &intercepts)
-				if err != nil {
-					log.Println("Failed to unmarshal event", string(e.Data))
-					log.Println("Because", err)
-					intercepts = empty
-				}
 			}
 		}
 	}

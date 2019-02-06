@@ -275,7 +275,7 @@ func getEnvOrFallback(name string, fallback string) string {
 
 func createCertificateChain(root string, leaf string, intermediaries []string) string {
 	result := intermediaries
-	result = append(intermediaries, root)
+	result = append(result, root)
 	result = append([]string{leaf}, result...)
 	return strings.Join(result, "")
 }
