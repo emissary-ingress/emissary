@@ -108,6 +108,12 @@ func cmdAuth(
 	d := discovery.New(authCfg)
 	cl := client.NewRestClient(authCfg.BaseURL)
 
+	// The gist here is that we have 2 main goroutines:
+	// - the k8s controller, witch watches for CRD changes
+	// - the HTTP server than handles auth requests
+	// The HTTP server queries k8s controller for the current CRD
+	// state.
+
 	ct := &controller.Controller{
 		Config: authCfg,
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
