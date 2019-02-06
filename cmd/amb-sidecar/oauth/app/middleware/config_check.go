@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 // CheckConfig verifies that configuration is set and display a friendly error
 // message
 type CheckConfig struct {
-	Config *config.Config
+	Config *types.Config
 }
 
 func (c *CheckConfig) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {

@@ -9,20 +9,19 @@ import (
 	"sync/atomic"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  *logrus.Entry
-	Config  *config.Config
+	Logger  types.Logger
+	Config  *types.Config
 	Rules   atomic.Value
 	Tenants atomic.Value
 }
@@ -39,7 +38,7 @@ const (
 )
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch() {
+func (c *Controller) Watch(ctx context.Context) {
 	c.Rules.Store(make([]crd.Rule, 0))
 	w := k8s.NewClient(nil).Watcher()
 
@@ -133,6 +132,11 @@ func (c *Controller) Watch() {
 
 		c.Rules.Store(rules)
 	})
+
+	go func() {
+		<-ctx.Done()
+		w.Stop()
+	}()
 
 	w.Wait()
 }

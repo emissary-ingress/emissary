@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 const (
@@ -24,7 +24,7 @@ type Discovery struct {
 var instance *Discovery
 
 // New creates a singleton instance of the discovery client.
-func New(cfg *config.Config) *Discovery {
+func New(cfg *types.Config) *Discovery {
 	if instance == nil {
 		instance = &Discovery{
 			cache: make(map[string]*JWK),

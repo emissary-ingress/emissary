@@ -10,16 +10,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/logger"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -56,17 +54,15 @@ func NewIDP() *httptest.Server {
 }
 
 // NewAPP returns an instance of the authorization server.
-func NewAPP(idpURL string) (*httptest.Server, *app.App) {
+func NewAPP(idpURL string) (*httptest.Server, *app.App, error) {
 	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 
 	flags := pflag.NewFlagSet("newapp", pflag.PanicOnError)
-	afterParse := config.InitializeFlags(flags)
+	afterParse := types.InitializeFlags(flags)
 	_ = flags.Parse([]string{})
 
 	c := afterParse()
-	l := logger.New(c)
-	s := secret.New(c, l)
-	d := discovery.New(c)
+	l := types.WrapLogrus(logrus.New())
 
 	ct := &controller.Controller{
 		Config: c,
@@ -90,16 +86,15 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 	ct.Tenants.Store(tenants)
 	ct.Rules.Store(make([]crd.Rule, 0))
 
-	cl := client.NewRestClient(c.BaseURL)
-
 	app := &app.App{
 		Config:     c,
 		Logger:     l,
-		Secret:     s,
-		Discovery:  d,
 		Controller: ct,
-		Rest:       cl,
+	}
+	httpHandler, err := app.Handler()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return httptest.NewServer(app.Handler()), app
+	return httptest.NewServer(httpHandler), app, nil
 }

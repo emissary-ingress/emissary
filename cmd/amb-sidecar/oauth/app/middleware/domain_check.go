@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -16,7 +15,7 @@ import (
 // but after config_check. If an app is found, its configuration will be written to the request
 // context. See controller.App for more details.
 type DomainCheck struct {
-	Logger *logrus.Entry
+	Logger types.Logger
 	Ctrl   *controller.Controller
 }
 

@@ -7,11 +7,10 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/satori/go.uuid"
-	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -22,8 +21,8 @@ const (
 
 // Authorize is the last handler in the chain of the authorization server.
 type Authorize struct {
-	Config *config.Config
-	Logger *logrus.Entry
+	Config *types.Config
+	Logger types.Logger
 	Ctrl   *controller.Controller
 	Secret *secret.Secret
 }

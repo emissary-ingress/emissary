@@ -7,9 +7,10 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
+	"github.com/pkg/errors"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 const (
@@ -22,8 +23,8 @@ const (
 
 // Secret pointer to struct contains methods and fields to manage public and private keys.
 type Secret struct {
-	config      *config.Config
-	logger      *logrus.Logger
+	config      *types.Config
+	logger      types.Logger
 	privateKey  *rsa.PrivateKey
 	publicKey   *rsa.PublicKey
 	signBytes   []byte
@@ -33,19 +34,27 @@ type Secret struct {
 var instance *Secret
 
 // New returns singleton instance of secret.
-func New(cfg *config.Config, log *logrus.Logger) *Secret {
+func New(cfg *types.Config, log types.Logger) (*Secret, error) {
 	if instance == nil {
 		instance = &Secret{config: cfg, logger: log}
 		if cfg.PubKPath != "" && cfg.PvtKPath != "" {
-			instance.readPEMfromFile(instance.config.PubKPath, instance.config.PubKPath)
+			if err := instance.readPEMfromFile(instance.config.PubKPath, instance.config.PubKPath); err != nil {
+				return nil, err
+			}
 		} else {
-			instance.generatePEM(pvtKEYPath, pubKEYPath)
+			if err := instance.generatePEM(pvtKEYPath, pubKEYPath); err != nil {
+				return nil, err
+			}
 		}
-		instance.parsePrivateKey()
-		instance.parsePublicKey()
+		if err := instance.parsePrivateKey(); err != nil {
+			return nil, err
+		}
+		if err := instance.parsePublicKey(); err != nil {
+			return nil, err
+		}
 	}
 
-	return instance
+	return instance, nil
 }
 
 // GetPublicKeyPEM returns private key PEM.
@@ -68,31 +77,33 @@ func (k *Secret) GetPrivateKey() *rsa.PrivateKey {
 	return k.privateKey
 }
 
-func (k *Secret) parsePublicKey() {
+func (k *Secret) parsePublicKey() error {
 	key, err := jwt.ParseRSAPublicKeyFromPEM(k.verifyBytes)
 	if err != nil {
-		k.logger.Fatalf("failed to parse public key from PEM: %v", err)
+		return errors.Wrap(err, "failed to parse public key from PEM")
 	}
 	k.publicKey = key
+	return nil
 }
 
-func (k *Secret) parsePrivateKey() {
+func (k *Secret) parsePrivateKey() error {
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(k.signBytes)
 	if err != nil {
-		k.logger.Fatalf("failed to parse private key from PEM: %v", err)
+		return errors.Wrap(err, "failed to parse private key from PEM")
 	}
 	k.privateKey = key
+	return nil
 }
 
-func (k *Secret) generatePEM(pubkPath string, pvtKeyPath string) {
+func (k *Secret) generatePEM(pubkPath string, pvtKeyPath string) error {
 	// Private key
 	var pvtkey *rsa.PrivateKey
 	pvtkey, err := rsa.GenerateKey(rand.Reader, bitSize)
 	if err != nil {
-		k.logger.Fatalf("generating private key: %v", err)
+		return errors.Wrap(err, "generating private key")
 	}
 	if err := pvtkey.Validate(); err != nil {
-		k.logger.Fatalf("validating private key: %v", err)
+		return errors.Wrap(err, "validating private key")
 	}
 
 	pemBlock := pem.Block{
@@ -103,7 +114,7 @@ func (k *Secret) generatePEM(pubkPath string, pvtKeyPath string) {
 
 	// Public key
 	if pubKEYBytes, err := x509.MarshalPKIXPublicKey(&pvtkey.PublicKey); err != nil {
-		k.logger.Fatalf("error marshalling pub key: %v", err)
+		return errors.Wrap(err, "error marshalling pub key")
 	} else {
 		pemBlockPub := pem.Block{
 			Type:  pubKEYType,
@@ -111,18 +122,20 @@ func (k *Secret) generatePEM(pubkPath string, pvtKeyPath string) {
 		}
 		k.verifyBytes = pem.EncodeToMemory(&pemBlockPub)
 	}
+	return nil
 }
 
-func (k *Secret) readPEMfromFile(pubkPath string, pvtKeyPath string) {
+func (k *Secret) readPEMfromFile(pubkPath string, pvtKeyPath string) error {
 	if vbyte, err := ioutil.ReadFile(k.config.PubKPath); err != nil {
-		k.logger.Fatalf("reading public key file: %v", err)
+		return errors.Wrap(err, "reading public key file")
 	} else {
 		k.verifyBytes = vbyte
 	}
 
 	if sbyte, err := ioutil.ReadFile(k.config.PvtKPath); err != nil {
-		k.logger.Fatalf("reading private key file: %v", err)
+		return errors.Wrap(err, "reading private key file")
 	} else {
 		k.signBytes = sbyte
 	}
+	return nil
 }

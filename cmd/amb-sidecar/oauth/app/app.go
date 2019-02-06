@@ -4,64 +4,62 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
-	"github.com/datawire/apro/lib/handler"
-	"github.com/datawire/apro/lib/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 // App is used to wire up all the cmd application components.
 type App struct {
-	Config     *config.Config
-	Logger     *logrus.Logger
-	Secret     *secret.Secret
-	Discovery  *discovery.Discovery
+	Config     *types.Config
+	Logger     types.Logger
 	Controller *controller.Controller
-	Rest       *client.Rest
+
+	secret    *secret.Secret
+	discovery *discovery.Discovery
+	rest      *client.Rest
 }
 
 // Handler returns an app handler that should be consumed by an HTTP server.
-func (a *App) Handler() http.Handler {
-	// Config
+func (a *App) Handler() (http.Handler, error) {
 	if a.Config == nil {
 		panic("config object cannot be nil")
 	}
-
-	// Logger
 	if a.Logger == nil {
 		panic("logger object cannot be nil")
 	}
-
-	// RSA keys
-	if a.Secret == nil {
-		a.Logger.Fatal("keys object cannot be nil")
+	if a.Controller == nil {
+		panic("controller object cannot be nil")
 	}
 
-	// Discovery
-	if a.Discovery == nil {
-		a.Logger.Fatal("certificate util object cannot be nil")
+	var err error
+	a.secret, err = secret.New(a.Config, a.Logger) // RSA keys
+	if err != nil {
+		return nil, err
 	}
+	a.discovery = discovery.New(a.Config)
+	a.rest = client.NewRestClient(a.Config.BaseURL)
 
 	// Handler
 	auth := handler.Authorize{
 		Config: a.Config,
-		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "authorize"}),
+		Logger: a.Logger.WithField("HANDLER", "authorize"),
 		Ctrl:   a.Controller,
-		Secret: a.Secret,
+		Secret: a.secret,
 	}
 
 	cb := &handler.Callback{
-		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "callback"}),
-		Secret: a.Secret,
+		Logger: a.Logger.WithField("HANDLER", "callback"),
+		Secret: a.secret,
 		Ctrl:   a.Controller,
-		Rest:   a.Rest,
+		Rest:   a.rest,
 	}
 
 	// Router
@@ -73,10 +71,10 @@ func (a *App) Handler() http.Handler {
 	// Middleware
 	n := negroni.New()
 
-	n.Use(&middleware.Logger{Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "http"})})
+	n.Use(&middleware.Logger{Logger: a.Logger.WithField("MIDDLEWARE", "http")})
 
 	n.Use(&negroni.Recovery{
-		Logger:     a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "recovery"}),
+		Logger:     a.Logger.WithField("MIDDLEWARE", "recovery"),
 		PrintStack: false,
 		StackAll:   false,
 		StackSize:  1024 * 8,
@@ -88,12 +86,12 @@ func (a *App) Handler() http.Handler {
 	})
 
 	n.Use(&middleware.DomainCheck{
-		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "app_check"}),
+		Logger: a.Logger.WithField("MIDDLEWARE", "app_check"),
 		Ctrl:   a.Controller,
 	})
 
 	n.Use(&middleware.PolicyCheck{
-		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "policy_check"}),
+		Logger: a.Logger.WithField("MIDDLEWARE", "policy_check"),
 		Ctrl:   a.Controller,
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
@@ -102,12 +100,12 @@ func (a *App) Handler() http.Handler {
 	})
 
 	n.Use(&middleware.JWTCheck{
-		Logger:    a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "jwt_check"}),
-		Discovery: a.Discovery,
+		Logger:    a.Logger.WithField("MIDDLEWARE", "jwt_check"),
+		Discovery: a.discovery,
 		Config:    a.Config,
 	})
 
 	n.UseHandler(r)
 
-	return n
+	return n, nil
 }

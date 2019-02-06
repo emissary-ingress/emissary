@@ -4,17 +4,16 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 // PolicyCheck does an initial check on Path and Host matches. If policy matches to
 // a public resource this midleware will return immediately, otherwise a reference to Rules
 // will be passed to the request context for further checking.
 type PolicyCheck struct {
-	Logger      *logrus.Entry
+	Logger      types.Logger
 	Ctrl        *controller.Controller
 	DefaultRule *crd.Rule
 }

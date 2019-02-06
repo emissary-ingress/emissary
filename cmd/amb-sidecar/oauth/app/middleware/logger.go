@@ -3,13 +3,14 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 // Logger middleware for logging HTTP calls.
 type Logger struct {
-	Logger *logrus.Entry
+	Logger types.Logger
 }
 
 func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
