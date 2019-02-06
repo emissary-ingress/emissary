@@ -10,7 +10,6 @@ linters:
     - gosimple
     - ineffassign
     - lll
-    - misspell
     - prealloc
     - scopelint
     - staticcheck

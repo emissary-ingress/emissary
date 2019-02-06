@@ -49,8 +49,8 @@ func init() {
 			group, softCtx := errgroup.WithContext(hardCtx)
 			group.Go(func() error {
 				defer func() {
-					// If we recieve another signal after
-					// gracefull-shutdown, we should trigger a
+					// If we receive another signal after
+					// graceful-shutdown, we should trigger a
 					// not-so-graceful shutdown.
 					go func() {
 						sig := <-sigs
