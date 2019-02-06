@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
@@ -18,7 +19,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/logger"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 	"github.com/datawire/apro/lib/util"
 )
@@ -64,7 +64,7 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 	_ = flags.Parse([]string{})
 
 	c := afterParse()
-	l := logger.New(c)
+	l := logrus.New()
 	s := secret.New(c, l)
 	d := discovery.New(c)
 

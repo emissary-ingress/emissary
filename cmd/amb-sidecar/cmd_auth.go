@@ -12,7 +12,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/logger"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 )
 
@@ -23,7 +22,23 @@ func init() {
 		Use:   "auth",
 		Short: "Run OAuth service",
 		RunE: func(*cobra.Command, []string) error {
-			return cmdAuth(cfg, logger.New(cfg))
+			l := logrus.New()
+
+			// Sets custom formatter.
+			customFormatter := new(logrus.TextFormatter)
+			customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+			l.SetFormatter(customFormatter)
+
+			customFormatter.FullTimestamp = true
+			// Sets log level.
+			if level, err := logrus.ParseLevel(cfg.LogLevel); err == nil {
+				l.SetLevel(level)
+			} else {
+				l.Errorf("%v. Setting info log level as default.", err)
+				l.SetLevel(logrus.InfoLevel)
+			}
+
+			return cmdAuth(cfg, l)
 		},
 	}
 
