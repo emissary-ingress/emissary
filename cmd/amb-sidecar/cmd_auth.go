@@ -76,14 +76,27 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
 
-	group, ctx := errgroup.WithContext(context.Background())
+	// hardCtx is canceled / hardCancel() is called when "you
+	// should shutdown ASAP".
+	hardCtx, hardCancel := context.WithCancel(context.Background())
+
+	// softCtx is canceled when the first goroutine exits with a
+	// non-nil error; it triggers a "slow, take your time"
+	// shutdown.
+	group, softCtx := errgroup.WithContext(hardCtx)
 
 	group.Go(func() error {
 		defer func() {
-			// it would be bad if the 'sigs' buffer got
-			// full; keep draining it
+			// If we recieve another signal after
+			// gracefull-shutdown, we should trigger a
+			// not-so-graceful shutdown.
 			go func() {
-				for range sigs {
+				sig := <-sigs
+				l.Errorln(errors.Errorf("received signal %v", sig))
+				hardCancel()
+				// keep logging signals
+				for sig := range sigs {
+					l.Errorln(errors.Errorf("received signal %v", sig))
 				}
 			}()
 		}()
@@ -91,13 +104,13 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 		select {
 		case sig := <-sigs:
 			return errors.Errorf("received signal %v", sig)
-		case <-ctx.Done():
+		case <-softCtx.Done():
 			return nil
 		}
 	})
 
 	group.Go(func() error {
-		ct.Watch(ctx)
+		ct.Watch(softCtx)
 		return nil
 	})
 
@@ -111,13 +124,21 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 			Rest:       cl,
 		}
 		server := &http.Server{Addr: ":8080", Handler: a.Handler()}
-		return listenAndServeWithContext(ctx, server)
+		return listenAndServeWithContext(hardCtx, softCtx, server)
 	})
 
 	return group.Wait()
 }
 
-func listenAndServeWithContext(ctx context.Context, server *http.Server) error {
+// listenAndServeWithContext runs server.ListenAndServer() on an
+// http.Server(), but properly calls server.Shutdown when the context
+// is canceled.
+//
+// softCtx should be a child context of hardCtx.  softCtx being
+// canceled triggers server.Shutdown().  If hardCtx being cacneled
+// triggers that .Shutdown() to kill any live requests and return,
+// instead of waiting for them to be completed gracefully.
+func listenAndServeWithContext(hardCtx context.Context, softCtx context.Context, server *http.Server) error {
 	serverCh := make(chan error)
 	go func() {
 		serverCh <- server.ListenAndServe()
@@ -125,7 +146,7 @@ func listenAndServeWithContext(ctx context.Context, server *http.Server) error {
 	select {
 	case err := <-serverCh:
 		return err
-	case <-ctx.Done():
-		return server.Shutdown(context.Background())
+	case <-softCtx.Done():
+		return server.Shutdown(hardCtx)
 	}
 }
