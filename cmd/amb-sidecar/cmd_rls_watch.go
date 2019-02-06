@@ -137,43 +137,9 @@ func doWatch(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-type Errors struct {
-	errors map[string][]string
-}
-
-func (e *Errors) add(key string, err error) {
-	e.errors[key] = append(e.errors[key], err.Error())
-}
-
-func (e *Errors) empty() bool {
-	return len(e.errors) != 0
-}
-
 func SetSource(s *crd.RateLimitSpec, source string) {
 	for i := range s.Limits {
 		s.Limits[i].Source = source
-	}
-}
-
-func validateSpec(s crd.RateLimitSpec, errs *Errors) {
-	for _, l := range s.Limits {
-		validateLimit(l, errs)
-	}
-}
-
-func validateLimit(l crd.Limit, errs *Errors) {
-	for _, entry := range l.Pattern {
-		if len(entry) == 0 {
-			errs.add(l.Source, fmt.Errorf("empty entry: %v", l))
-		}
-	}
-	switch l.Unit {
-	case "second":
-	case "minute":
-	case "hour":
-	case "day":
-	default:
-		errs.add(l.Source, fmt.Errorf("unrecognized unit: %v", l))
 	}
 }
 

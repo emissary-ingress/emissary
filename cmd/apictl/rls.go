@@ -104,10 +104,6 @@ func (e *Errors) add(key string, err error) {
 	e.errors[key] = append(e.errors[key], err.Error())
 }
 
-func (e *Errors) empty() bool {
-	return len(e.errors) != 0
-}
-
 type Spec struct {
 	Domain string
 	Limits []Limit

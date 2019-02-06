@@ -25,7 +25,6 @@ var appUT *app.App
 var idpSRV *httptest.Server
 var appSRV *httptest.Server
 var appClient *http.Client
-var idpClient *http.Client
 
 func TestMain(m *testing.M) {
 	// Setup Test Servers & Clients
