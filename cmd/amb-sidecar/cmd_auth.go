@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/config"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
@@ -67,20 +69,24 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
 
-	go ct.Watch()
+	group, _ := errgroup.WithContext(context.Background())
 
-	a := app.App{
-		Config:     authCfg,
-		Logger:     l,
-		Secret:     s,
-		Discovery:  d,
-		Controller: ct,
-		Rest:       cl,
-	}
+	group.Go(func() error {
+		ct.Watch()
+		return nil
+	})
 
-	// Server
-	if err := http.ListenAndServe(":8080", a.Handler()); err != nil {
-		return err
-	}
-	return nil
+	group.Go(func() error {
+		a := app.App{
+			Config:     authCfg,
+			Logger:     l,
+			Secret:     s,
+			Discovery:  d,
+			Controller: ct,
+			Rest:       cl,
+		}
+		return http.ListenAndServe(":8080", a.Handler())
+	})
+
+	return group.Wait()
 }
