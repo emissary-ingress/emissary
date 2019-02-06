@@ -101,6 +101,9 @@ RUN mkdir envoy
 # COPY in a default config for use with --demo.
 COPY ambassador/default-config/ ambassador-demo-config
 
+# COPY in the starting bootstrap file.
+COPY ambassador/default-bootstrap-ads.json bootstrap-ads.json
+
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R u+x ${AMBASSADOR_ROOT} && \

@@ -38,7 +38,8 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, save_url_contents
+from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, load_url_contents
+from ambassador.config.resourcefetcher import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
 
@@ -563,14 +564,16 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self.logger.info("copying configuration from %s to %s" % (url, aconf_path))
 
-        saved = save_url_contents(self.logger, "%s/services" % url, aconf_path)
+        # Grab the serialization, and save it to disk too.
+        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(aconf_path, "w"))
 
-        if saved:
+        if serialization:
             scc = SecretSaver(app.logger, url, app.config_dir_prefix)
 
             aconf = Config()
-            # Yeah yeah yeah. It's not really a directory. Whatever.
-            aconf.load_from_directory(aconf_path, k8s=app.k8s, recurse=True)
+            fetcher = ResourceFetcher(app.logger, aconf)
+            fetcher.parse_yaml(serialization, k8s=True)
+            aconf.load_all(fetcher.sorted())
 
             ir = IR(aconf, secret_reader=scc.url_reader)
             open(ir_path, "w").write(ir.as_json())

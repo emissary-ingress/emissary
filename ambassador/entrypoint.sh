@@ -147,14 +147,14 @@ trap "handle_int" INT
 
 #KUBEWATCH_DEBUG="--debug"
 
-# Start by reading config from ${CONFIG_DIR} itself, to bootstrap the world and get our
-# cluster ID.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
+# Start by reading config from ${CONFIG_DIR} itself, to get our cluster ID.
+# XXX Ditch this, really.
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
 
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
-    diediedie "kubewatch sync" "$STATUS"
+    diediedie "kubewatch cluster-id" "$STATUS"
 fi
 
 # Set Ambassador's cluster ID here. We can do this unconditionally because if AMBASSADOR_CLUSTER_ID was set
@@ -163,21 +163,24 @@ AMBASSADOR_CLUSTER_ID="${cluster_id}"
 export AMBASSADOR_CLUSTER_ID
 echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 
+# Empty Envoy directory, hence no config via ADS yet.
+mkdir -p "${ENVOY_DIR}"
+
 echo "AMBASSADOR: starting ads"
 ./ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
-echo "AMBASSADOR: validation envoy configuration"
-# Envoy does not validate with @type field in there, so removing it
-jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
-envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
-STATUS=$?
-
-if [ $STATUS -ne 0 ]; then
-    cat "$TEMP_ENVOY_CONFIG_FILE"
-    diediedie "envoy validation" "$STATUS"
-fi
+#echo "AMBASSADOR: validation envoy configuration"
+## Envoy does not validate with @type field in there, so removing it
+#jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
+#envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
+#STATUS=$?
+#
+#if [ $STATUS -ne 0 ]; then
+#    cat "$TEMP_ENVOY_CONFIG_FILE"
+#    diediedie "envoy validation" "$STATUS"
+#fi
 
 echo "AMBASSADOR: starting Envoy"
 envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
