@@ -85,8 +85,22 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 			Controller: ct,
 			Rest:       cl,
 		}
-		return http.ListenAndServe(":8080", a.Handler())
+		server := &http.Server{Addr: ":8080", Handler: a.Handler()}
+		return listenAndServeWithContext(ctx, server)
 	})
 
 	return group.Wait()
+}
+
+func listenAndServeWithContext(ctx context.Context, server *http.Server) error {
+	serverCh := make(chan error)
+	go func() {
+		serverCh <- server.ListenAndServe()
+	}()
+	select {
+	case err := <-serverCh:
+		return err
+	case <-ctx.Done():
+		return server.Shutdown(context.Background())
+	}
 }
