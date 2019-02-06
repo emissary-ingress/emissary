@@ -14,7 +14,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/config"
 	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
