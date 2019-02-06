@@ -1195,6 +1195,42 @@ ambassador_id: {amb_id}
         yield Query(self.url("missme-array/"), expected=404)
 
 
+class XFPTest(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self) -> Union[str, Tuple[Node, str]]:
+        yield self, """
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  x_forwarded_proto_redirect: true
+"""
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.k8s}
+""")
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"), expected=301)
+        yield Query(self.url(self.name + "/"), headers={"X-FORWARDED-PROTO": "https"})
+        yield Query(self.url(self.name + "/"), headers={"X-FORWARDED-PROTO": "http"}, expected=301)
+
+    def requirements(self):
+        for r in super().requirements():
+            r[1].headers = {"X-FORWARDED-PROTO": "https"}
+            yield r
+
+
 class StatsdTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
