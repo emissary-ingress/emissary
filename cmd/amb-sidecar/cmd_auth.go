@@ -16,32 +16,33 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 )
 
-var authCfg *config.Config
-
 func init() {
+	var cfg *config.Config
+
 	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "Run OAuth service",
-		Run:   cmdAuth,
+		RunE: func(*cobra.Command, []string) error {
+			return cmdAuth(cfg, logger.New(cfg))
+		},
 	}
 
 	afterParse := config.InitializeFlags(cmd.Flags())
 
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
-		authCfg = afterParse()
-		if authCfg.Error != nil {
+		cfg = afterParse()
+		if cfg.Error != nil {
 			// This is a non-fatal error.  Even with an
 			// invalid configuration, we continue to run,
 			// but serve a 5XX error page.
-			log.Printf("config error: %v", authCfg.Error)
+			log.Printf("config error: %v", cfg.Error)
 		}
 	}
 
 	argparser.AddCommand(cmd)
 }
 
-func cmdAuth(flags *cobra.Command, args []string) {
-	l := logger.New(authCfg)
+func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 	s := secret.New(authCfg, l)
 	d := discovery.New(authCfg)
 	cl := client.NewRestClient(authCfg.BaseURL)
@@ -64,6 +65,7 @@ func cmdAuth(flags *cobra.Command, args []string) {
 
 	// Server
 	if err := http.ListenAndServe(":8080", a.Handler()); err != nil {
-		l.Fatal(err)
+		return err
 	}
+	return nil
 }
