@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -26,7 +26,7 @@ const (
 
 // Callback validates IDP requests and handles code exchange flow.
 type Callback struct {
-	Logger *logrus.Entry
+	Logger types.Logger
 	Secret *secret.Secret
 	Ctrl   *controller.Controller
 	Rest   *client.Rest

@@ -71,7 +71,7 @@ func init() {
 				}
 			})
 
-			return cmdAuth(hardCtx, softCtx, group, cfg, l)
+			return cmdAuth(hardCtx, softCtx, group, cfg, types.WrapLogrus(l))
 		},
 	}
 
@@ -98,7 +98,7 @@ func init() {
 func cmdAuth(
 	hardCtx, softCtx context.Context, group *errgroup.Group, // for keeping track of goroutines
 	authCfg *types.Config, // config, tells us what to do
-	l *logrus.Logger, // where to log to
+	l types.Logger, // where to log to
 ) error {
 	// The gist here is that we have 2 main goroutines:
 	// - the k8s controller, witch watches for CRD changes
@@ -108,7 +108,7 @@ func cmdAuth(
 
 	ct := &controller.Controller{
 		Config: authCfg,
-		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
+		Logger: l.WithField("MAIN", "auth-k8s"),
 	}
 
 	group.Go(func() error {
@@ -129,7 +129,7 @@ func cmdAuth(
 		server := &http.Server{
 			Addr:     ":8080",
 			Handler:  httpHandler,
-			ErrorLog: log.New(l.WriterLevel(logrus.ErrorLevel), "auth-http", 0),
+			ErrorLog: l.WithField("MAIN", "auth-http").StdLogger(types.LogLevelError),
 		}
 		return listenAndServeWithContext(hardCtx, softCtx, server)
 	})

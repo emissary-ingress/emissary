@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 
@@ -21,7 +20,7 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  *logrus.Entry
+	Logger  types.Logger
 	Config  *types.Config
 	Rules   atomic.Value
 	Tenants atomic.Value

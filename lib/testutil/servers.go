@@ -62,7 +62,7 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App, error) {
 	_ = flags.Parse([]string{})
 
 	c := afterParse()
-	l := logrus.New()
+	l := types.WrapLogrus(logrus.New())
 
 	ct := &controller.Controller{
 		Config: c,

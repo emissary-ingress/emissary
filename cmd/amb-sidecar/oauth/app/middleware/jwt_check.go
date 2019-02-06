@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
@@ -18,7 +17,7 @@ import (
 
 // JWTCheck middleware validates signed tokens when present in the request.
 type JWTCheck struct {
-	Logger    *logrus.Entry
+	Logger    types.Logger
 	Discovery *discovery.Discovery
 	Config    *types.Config
 	IssuerURL string

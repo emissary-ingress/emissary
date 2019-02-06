@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
@@ -20,7 +19,7 @@ import (
 // App is used to wire up all the cmd application components.
 type App struct {
 	Config     *types.Config
-	Logger     *logrus.Logger
+	Logger     types.Logger
 	Controller *controller.Controller
 
 	secret    *secret.Secret
@@ -51,13 +50,13 @@ func (a *App) Handler() (http.Handler, error) {
 	// Handler
 	auth := handler.Authorize{
 		Config: a.Config,
-		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "authorize"}),
+		Logger: a.Logger.WithField("HANDLER", "authorize"),
 		Ctrl:   a.Controller,
 		Secret: a.secret,
 	}
 
 	cb := &handler.Callback{
-		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "callback"}),
+		Logger: a.Logger.WithField("HANDLER", "callback"),
 		Secret: a.secret,
 		Ctrl:   a.Controller,
 		Rest:   a.rest,
@@ -72,10 +71,10 @@ func (a *App) Handler() (http.Handler, error) {
 	// Middleware
 	n := negroni.New()
 
-	n.Use(&middleware.Logger{Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "http"})})
+	n.Use(&middleware.Logger{Logger: a.Logger.WithField("MIDDLEWARE", "http")})
 
 	n.Use(&negroni.Recovery{
-		Logger:     a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "recovery"}),
+		Logger:     a.Logger.WithField("MIDDLEWARE", "recovery"),
 		PrintStack: false,
 		StackAll:   false,
 		StackSize:  1024 * 8,
@@ -87,12 +86,12 @@ func (a *App) Handler() (http.Handler, error) {
 	})
 
 	n.Use(&middleware.DomainCheck{
-		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "app_check"}),
+		Logger: a.Logger.WithField("MIDDLEWARE", "app_check"),
 		Ctrl:   a.Controller,
 	})
 
 	n.Use(&middleware.PolicyCheck{
-		Logger: a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "policy_check"}),
+		Logger: a.Logger.WithField("MIDDLEWARE", "policy_check"),
 		Ctrl:   a.Controller,
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
@@ -101,7 +100,7 @@ func (a *App) Handler() (http.Handler, error) {
 	})
 
 	n.Use(&middleware.JWTCheck{
-		Logger:    a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "jwt_check"}),
+		Logger:    a.Logger.WithField("MIDDLEWARE", "jwt_check"),
 		Discovery: a.discovery,
 		Config:    a.Config,
 	})
