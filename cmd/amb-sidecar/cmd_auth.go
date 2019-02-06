@@ -69,10 +69,10 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
 
-	group, _ := errgroup.WithContext(context.Background())
+	group, ctx := errgroup.WithContext(context.Background())
 
 	group.Go(func() error {
-		ct.Watch()
+		ct.Watch(ctx)
 		return nil
 	})
 

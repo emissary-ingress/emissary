@@ -39,7 +39,7 @@ const (
 )
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch() {
+func (c *Controller) Watch(ctx context.Context) {
 	c.Rules.Store(make([]crd.Rule, 0))
 	w := k8s.NewClient(nil).Watcher()
 
@@ -133,6 +133,11 @@ func (c *Controller) Watch() {
 
 		c.Rules.Store(rules)
 	})
+
+	go func() {
+		<-ctx.Done()
+		w.Stop()
+	}()
 
 	w.Wait()
 }
