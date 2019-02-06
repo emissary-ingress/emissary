@@ -6,7 +6,7 @@ Rate limits are a powerful way to improve availability and scalability for your 
 
 In Ambassador 0.50 and later, each mapping in Ambassador can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels are specified with the `labels` annotation:
 
-```
+```yaml
 apiVersion: ambassador/v1
 kind: Mapping
 name: catalog
@@ -37,6 +37,25 @@ Let's digest the above example:
 * The `header_request_label` adds a specific HTTP header value to the request, in this case, the method. Note that HTTP/2 request headers must be used here (e.g., the `host` header needs to be specified as the `:authority` header).
 * Multiple labels can be part of a single named label, e.g., `multi_request_label` specifies two different headers to be added
 * When an HTTP header is not present, the entire named label is omitted. The `omit_if_not_present: true` is an explicit notation to remind end users of this limitation. `false` is *not* a supported value. This limitation will be removed in future versions of Ambassador.
+
+### Global Rate Limiting
+Rate limit labels can be configured on a global level within the [Ambassador Module](/reference/modules#the-ambassador-module).
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  use_remote_address: true
+  default_label_domain: ambassador
+  default_labels:
+    ambassador:
+      defaults:
+      - default
+```
+
+This will annotate every request with the string `default`, creating a key for a rate limiting service to rate limit based off. 
 
 ## The `rate_limits` attribute
 
