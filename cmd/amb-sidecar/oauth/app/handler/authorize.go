@@ -9,9 +9,9 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/config"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -22,7 +22,7 @@ const (
 
 // Authorize is the last handler in the chain of the authorization server.
 type Authorize struct {
-	Config *config.Config
+	Config *types.Config
 	Logger *logrus.Entry
 	Ctrl   *controller.Controller
 	Secret *secret.Secret

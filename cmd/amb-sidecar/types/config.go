@@ -1,7 +1,4 @@
-// Package config stores the 'Config' structure for all Ambassador Pro
-// static configuration options.  It is a separate package so that
-// everything can import it without having dependency loops.
-package config
+package types
 
 import (
 	"fmt"

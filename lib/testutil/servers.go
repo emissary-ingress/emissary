@@ -14,10 +14,10 @@ import (
 	"github.com/spf13/pflag"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/config"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -58,7 +58,7 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 
 	flags := pflag.NewFlagSet("newapp", pflag.PanicOnError)
-	afterParse := config.InitializeFlags(flags)
+	afterParse := types.InitializeFlags(flags)
 	_ = flags.Parse([]string{})
 
 	c := afterParse()

@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/config"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 func init() {
-	var cfg *config.Config
+	var cfg *types.Config
 
 	cmd := &cobra.Command{
 		Use:   "auth",
@@ -75,7 +75,7 @@ func init() {
 		},
 	}
 
-	afterParse := config.InitializeFlags(cmd.Flags())
+	afterParse := types.InitializeFlags(cmd.Flags())
 
 	cmd.PreRun = func(cmd *cobra.Command, args []string) {
 		cfg = afterParse()
@@ -97,7 +97,7 @@ func init() {
 //  - register goroutines with `group`
 func cmdAuth(
 	hardCtx, softCtx context.Context, group *errgroup.Group, // for keeping track of goroutines
-	authCfg *config.Config, // config, tells us what to do
+	authCfg *types.Config, // config, tells us what to do
 	l *logrus.Logger, // where to log to
 ) error {
 	// The gist here is that we have 2 main goroutines:

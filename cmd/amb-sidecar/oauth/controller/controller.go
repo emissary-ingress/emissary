@@ -14,7 +14,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/config"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
@@ -22,7 +22,7 @@ import (
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
 	Logger  *logrus.Entry
-	Config  *config.Config
+	Config  *types.Config
 	Rules   atomic.Value
 	Tenants atomic.Value
 }
