@@ -44,7 +44,37 @@ func init() {
 				l.SetLevel(logrus.InfoLevel)
 			}
 
-			return cmdAuth(cfg, l)
+			// Initialize hardCtx/softCtx/group to manage
+			// our goroutines and graceful shutdown.
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+			hardCtx, hardCancel := context.WithCancel(context.Background())
+			group, softCtx := errgroup.WithContext(hardCtx)
+			group.Go(func() error {
+				defer func() {
+					// If we recieve another signal after
+					// gracefull-shutdown, we should trigger a
+					// not-so-graceful shutdown.
+					go func() {
+						sig := <-sigs
+						l.Errorln(errors.Errorf("received signal %v", sig))
+						hardCancel()
+						// keep logging signals
+						for sig := range sigs {
+							l.Errorln(errors.Errorf("received signal %v", sig))
+						}
+					}()
+				}()
+
+				select {
+				case sig := <-sigs:
+					return errors.Errorf("received signal %v", sig)
+				case <-softCtx.Done():
+					return nil
+				}
+			})
+
+			return cmdAuth(hardCtx, softCtx, group, cfg, l)
 		},
 	}
 
@@ -63,9 +93,16 @@ func init() {
 	argparser.AddCommand(cmd)
 }
 
-func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+// cmdAuth runs the auth service.
+//
+//  - `softCtx` being canceled triggers a graceful shutdown
+//  - `hardCtx` being canceled triggers a not-so-graceful shutdown
+//  - register goroutines with `group`
+func cmdAuth(
+	hardCtx, softCtx context.Context, group *errgroup.Group, // for keeping track of goroutines
+	authCfg *config.Config, // config, tells us what to do
+	l *logrus.Logger, // where to log to
+) error {
 
 	s := secret.New(authCfg, l)
 	d := discovery.New(authCfg)
@@ -75,39 +112,6 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 		Config: authCfg,
 		Logger: l.WithFields(logrus.Fields{"MAIN": "controller"}),
 	}
-
-	// hardCtx is canceled / hardCancel() is called when "you
-	// should shutdown ASAP".
-	hardCtx, hardCancel := context.WithCancel(context.Background())
-
-	// softCtx is canceled when the first goroutine exits with a
-	// non-nil error; it triggers a "slow, take your time"
-	// shutdown.
-	group, softCtx := errgroup.WithContext(hardCtx)
-
-	group.Go(func() error {
-		defer func() {
-			// If we recieve another signal after
-			// gracefull-shutdown, we should trigger a
-			// not-so-graceful shutdown.
-			go func() {
-				sig := <-sigs
-				l.Errorln(errors.Errorf("received signal %v", sig))
-				hardCancel()
-				// keep logging signals
-				for sig := range sigs {
-					l.Errorln(errors.Errorf("received signal %v", sig))
-				}
-			}()
-		}()
-
-		select {
-		case sig := <-sigs:
-			return errors.Errorf("received signal %v", sig)
-		case <-softCtx.Done():
-			return nil
-		}
-	})
 
 	group.Go(func() error {
 		ct.Watch(softCtx)
@@ -138,7 +142,7 @@ func cmdAuth(authCfg *config.Config, l *logrus.Logger) error {
 // canceled triggers server.Shutdown().  If hardCtx being cacneled
 // triggers that .Shutdown() to kill any live requests and return,
 // instead of waiting for them to be completed gracefully.
-func listenAndServeWithContext(hardCtx context.Context, softCtx context.Context, server *http.Server) error {
+func listenAndServeWithContext(hardCtx, softCtx context.Context, server *http.Server) error {
 	serverCh := make(chan error)
 	go func() {
 		serverCh <- server.ListenAndServe()
