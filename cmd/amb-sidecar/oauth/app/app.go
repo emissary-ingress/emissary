@@ -21,47 +21,42 @@ import (
 type App struct {
 	Config     *config.Config
 	Logger     *logrus.Logger
-	Secret     *secret.Secret
-	Discovery  *discovery.Discovery
 	Controller *controller.Controller
-	Rest       *client.Rest
+
+	secret    *secret.Secret
+	discovery *discovery.Discovery
+	rest      *client.Rest
 }
 
 // Handler returns an app handler that should be consumed by an HTTP server.
 func (a *App) Handler() http.Handler {
-	// Config
 	if a.Config == nil {
 		panic("config object cannot be nil")
 	}
-
-	// Logger
 	if a.Logger == nil {
 		panic("logger object cannot be nil")
 	}
-
-	// RSA keys
-	if a.Secret == nil {
-		a.Logger.Fatal("keys object cannot be nil")
+	if a.Controller == nil {
+		panic("controller object cannot be nil")
 	}
 
-	// Discovery
-	if a.Discovery == nil {
-		a.Logger.Fatal("certificate util object cannot be nil")
-	}
+	a.secret = secret.New(a.Config, a.Logger) // RSA keys
+	a.discovery = discovery.New(a.Config)
+	a.rest = client.NewRestClient(a.Config.BaseURL)
 
 	// Handler
 	auth := handler.Authorize{
 		Config: a.Config,
 		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "authorize"}),
 		Ctrl:   a.Controller,
-		Secret: a.Secret,
+		Secret: a.secret,
 	}
 
 	cb := &handler.Callback{
 		Logger: a.Logger.WithFields(logrus.Fields{"HANDLER": "callback"}),
-		Secret: a.Secret,
+		Secret: a.secret,
 		Ctrl:   a.Controller,
-		Rest:   a.Rest,
+		Rest:   a.rest,
 	}
 
 	// Router
@@ -103,7 +98,7 @@ func (a *App) Handler() http.Handler {
 
 	n.Use(&middleware.JWTCheck{
 		Logger:    a.Logger.WithFields(logrus.Fields{"MIDDLEWARE": "jwt_check"}),
-		Discovery: a.Discovery,
+		Discovery: a.discovery,
 		Config:    a.Config,
 	})
 

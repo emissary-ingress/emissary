@@ -15,10 +15,7 @@ import (
 
 	"github.com/datawire/apro/cmd/amb-sidecar/config"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 )
 
 func init() {
@@ -103,11 +100,6 @@ func cmdAuth(
 	authCfg *config.Config, // config, tells us what to do
 	l *logrus.Logger, // where to log to
 ) error {
-
-	s := secret.New(authCfg, l)
-	d := discovery.New(authCfg)
-	cl := client.NewRestClient(authCfg.BaseURL)
-
 	// The gist here is that we have 2 main goroutines:
 	// - the k8s controller, witch watches for CRD changes
 	// - the HTTP server than handles auth requests
@@ -128,10 +120,7 @@ func cmdAuth(
 		a := app.App{
 			Config:     authCfg,
 			Logger:     l,
-			Secret:     s,
-			Discovery:  d,
 			Controller: ct,
-			Rest:       cl,
 		}
 		server := &http.Server{Addr: ":8080", Handler: a.Handler()}
 		return listenAndServeWithContext(hardCtx, softCtx, server)

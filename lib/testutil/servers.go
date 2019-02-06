@@ -18,8 +18,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/secret"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -65,8 +63,6 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 
 	c := afterParse()
 	l := logrus.New()
-	s := secret.New(c, l)
-	d := discovery.New(c)
 
 	ct := &controller.Controller{
 		Config: c,
@@ -90,15 +86,10 @@ func NewAPP(idpURL string) (*httptest.Server, *app.App) {
 	ct.Tenants.Store(tenants)
 	ct.Rules.Store(make([]crd.Rule, 0))
 
-	cl := client.NewRestClient(c.BaseURL)
-
 	app := &app.App{
 		Config:     c,
 		Logger:     l,
-		Secret:     s,
-		Discovery:  d,
 		Controller: ct,
-		Rest:       cl,
 	}
 
 	return httptest.NewServer(app.Handler()), app
