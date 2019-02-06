@@ -1,7 +1,8 @@
 package v1
 
 type TenantSpec struct {
-	Tenants []TenantObject `json:"tenants"`
+	AmbassadorID AmbassadorID   `json:"ambassador_id"`
+	Tenants      []TenantObject `json:"tenants"`
 }
 
 type TenantObject struct {

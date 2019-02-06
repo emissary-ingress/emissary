@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync/atomic"
 
-	ms "github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
@@ -16,6 +15,7 @@ import (
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/config"
+	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -45,12 +45,17 @@ func (c *Controller) Watch() {
 
 	w.Watch("tenants", func(w *k8s.Watcher) {
 		tenants := make([]crd.TenantObject, 0)
-
 		for _, p := range w.List("tenants") {
-			spec := &crd.TenantSpec{}
-			err := decodeSpec(p, spec)
+			var spec crd.TenantSpec
+			err := mapstructure.Convert(p.Spec(), &spec)
 			if err != nil {
 				c.Logger.Errorln(errors.Wrap(err, "malformed tenant resource spec"))
+				continue
+			}
+			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+				continue
+			}
+			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
 				continue
 			}
 
@@ -98,12 +103,17 @@ func (c *Controller) Watch() {
 			Host: "*",
 			Path: "/callback",
 		})
-
 		for _, p := range w.List("policies") {
-			spec := &crd.PolicySpec{}
-			err := decodeSpec(p, spec)
+			var spec crd.PolicySpec
+			err := mapstructure.Convert(p.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed rule resource spec"))
+				c.Logger.Errorln(errors.Wrap(err, "malformed policy resource spec"))
+				continue
+			}
+			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+				continue
+			}
+			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
 				continue
 			}
 
@@ -156,21 +166,5 @@ func (c *Controller) FindTenant(domain string) *crd.TenantObject {
 		}
 	}
 
-	return nil
-}
-
-func decodeSpec(input k8s.Resource, output interface{}) error {
-	d, err := ms.NewDecoder(&ms.DecoderConfig{
-		ErrorUnused: true,
-		Result:      output,
-	})
-	if err != nil {
-		return err
-	}
-
-	err = d.Decode(input.Spec())
-	if err != nil {
-		return err
-	}
 	return nil
 }

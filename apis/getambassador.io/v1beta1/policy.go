@@ -5,7 +5,8 @@ import (
 )
 
 type PolicySpec struct {
-	Rules []Rule `json:"rules"`
+	AmbassadorID AmbassadorID `json:"ambassador_id"`
+	Rules        []Rule       `json:"rules"`
 }
 
 // Rule defines authorization rules object.

@@ -323,6 +323,12 @@ spec:
           value: tcp
         - name: REDIS_URL # For ratelimit
           value: ambassador-pro-redis:6379
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
         - name: AMBASSADOR_LICENSE_KEY # For everything
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
