@@ -36,10 +36,14 @@ if [ -z "${AMBASSADOR_SYNC_DIR}" ]; then
 fi
 
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
+export ENVOY_DIR
+
 ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
 TEMP_ENVOY_CONFIG_FILE="/tmp/envoy.json"
+
 # The bootstrap file really is in the config base dir, not the Envoy dir.
 ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
+export ENVOY_BOOTSTRAP_FILE
 
 # Set AMBASSADOR_DEBUG to things separated by spaces to enable debugging.
 check_debug () {
@@ -60,7 +64,9 @@ check_debug () {
 
 DIAGD_DEBUG=$(check_debug "diagd")
 KUBEWATCH_DEBUG=$(check_debug "kubewatch")
+
 ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
+export ENVOY_DEBUG
 
 DIAGD_K8S=--k8s
 DEMO_MODE=
@@ -182,12 +188,15 @@ pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 #    diediedie "envoy validation" "$STATUS"
 #fi
 
-echo "AMBASSADOR: starting Envoy"
-envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
-pids="${pids:+${pids} }$!:envoy"
+# We can't start Envoy until the initial config happens, which means that diagd has to start it.
+#echo "AMBASSADOR: starting Envoy"
+#envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
+#pids="${pids:+${pids} }$!:envoy"
 
 echo "AMBASSADOR: starting diagd"
-diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $AMBEX_PID $DIAGD_DEBUG $DIAGD_K8S --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+
+diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_K8S \
+      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 # Wait for diagd to start

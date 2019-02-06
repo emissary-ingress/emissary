@@ -77,6 +77,7 @@ def number_of_workers():
 
 class DiagApp (Flask):
     ambex_pid: int
+    kick: Optional[str]
     estats: EnvoyStats
     config_dir_prefix: str
     bootstrap_path: str
@@ -485,7 +486,7 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
-def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
+def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid: int, kick: Optional[str],
                     do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
     app.estats = EnvoyStats()
     app.health_checks = False
@@ -498,6 +499,7 @@ def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
 
     # This will raise an exception and crash if you pass it a string. That's intentional.
     app.ambex_pid = int(ambex_pid)
+    app.kick = kick
 
     # This feels like overkill.
     app.logger = logging.getLogger("ambassador.diagd")
@@ -602,7 +604,10 @@ class AmbassadorEventWatcher(threading.Thread):
             app.econf = econf
             app.diag = diag
 
-            if app.ambex_pid != 0:
+            if app.kick:
+                self.logger.info("running '%s'" % app.kick)
+                os.system(app.kick)
+            elif app.ambex_pid != 0:
                 self.logger.info("notifying PID %d ambex" % app.ambex_pid)
                 os.kill(app.ambex_pid, signal.SIGHUP)
 
@@ -664,7 +669,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          ambex_pid: Parameter.REQUIRED, *,
+          *, ambex_pid=0, kick=None,
           no_checks=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', k8s=False, notices=None):
     """
@@ -673,7 +678,8 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
-    :param ambex_pid: PID to signal with HUP after updating Envoy configuration
+    :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
+    :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
     :param reload: If True, run Flask in debug mode for live reloading
     :param debug: If True, do debug logging
@@ -685,7 +691,7 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
     """
 
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid,
+    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid, kick,
                                 not no_checks, reload, debug, k8s, verbose, notices)
 
     if not workers:

@@ -101,9 +101,6 @@ RUN mkdir envoy
 # COPY in a default config for use with --demo.
 COPY ambassador/default-config/ ambassador-demo-config
 
-# COPY in the starting bootstrap file.
-COPY ambassador/default-bootstrap-ads.json bootstrap-ads.json
-
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R u+x ${AMBASSADOR_ROOT} && \
@@ -112,8 +109,9 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
 # COPY the entrypoint and Python-kubewatch and make them runnable.
 COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
+COPY ambassador/kick_ads.sh .
 COPY ambassador/post_update.py .
-RUN chmod 755 kubewatch.py entrypoint.sh post_update.py
+RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py
 
 # Grab ambex, too.
 RUN wget -q https://s3.amazonaws.com/datawire-static-files/ambex/0.1.1/ambex
