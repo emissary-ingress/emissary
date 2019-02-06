@@ -352,6 +352,10 @@ class V2Listener(dict):
 
             http_config = dict(base_http_config)    # Shallow copy is enough.
 
+            if config.ir.ambassador_module.get('x_forwarded_proto_redirect', False):
+                vhost['require_tls'] = 'ALL'
+                http_config['use_remote_address'] = False
+
             http_config['route_config'] = {
                 'virtual_hosts': [ vhost ]
             }
