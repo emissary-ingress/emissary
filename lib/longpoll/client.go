@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"sync/atomic"
@@ -38,20 +37,23 @@ type Client struct {
 	BasicAuthUsername string
 	BasicAuthPassword string
 
-	// Whether or not logging should be enabled
-	LoggingEnabled bool
+	// nil to disable logging
+	Logger interface {
+		Printf(string, ...interface{})
+		Println(...interface{})
+	}
 }
 
 // NewClient creates a long poll client
 func NewClient(url *url.URL, category string) *Client {
 	return &Client{
-		url:            url,
-		category:       category,
-		Timeout:        120,
-		Reattempt:      30,
-		EventsChan:     make(chan *PollEvent),
-		HTTPClient:     &http.Client{},
-		LoggingEnabled: true,
+		url:        url,
+		category:   category,
+		Timeout:    120,
+		Reattempt:  30,
+		EventsChan: make(chan *PollEvent),
+		HTTPClient: &http.Client{},
+		Logger:     nil,
 	}
 }
 
@@ -59,8 +61,8 @@ func NewClient(url *url.URL, category string) *Client {
 // Will send the events in the EventsChan of the client
 func (c *Client) Start() {
 	u := c.url
-	if c.LoggingEnabled {
-		log.Println("Now observing changes on", u.String())
+	if c.Logger != nil {
+		c.Logger.Println("Now observing changes on", u.String())
 	}
 
 	atomic.AddUint64(&(c.runID), 1)
@@ -72,9 +74,9 @@ func (c *Client) Start() {
 			pr, err := c.fetchEvents(since)
 
 			if err != nil {
-				if c.LoggingEnabled {
-					log.Println(err)
-					log.Printf("Reattempting to connect to %s in %d seconds", u.String(), c.Reattempt)
+				if c.Logger != nil {
+					c.Logger.Println(err)
+					c.Logger.Printf("Reattempting to connect to %s in %d seconds", u.String(), c.Reattempt)
 				}
 				c.EventsChan <- nil
 				time.Sleep(time.Duration(c.Reattempt) * time.Second)
@@ -84,15 +86,15 @@ func (c *Client) Start() {
 			// We check that its still the same runID as when this goroutine was started
 			clientRunID := atomic.LoadUint64(&(c.runID))
 			if clientRunID != runID {
-				if c.LoggingEnabled {
-					log.Printf("Client on URL %s has been stopped, not sending events", u.String())
+				if c.Logger != nil {
+					c.Logger.Printf("Client on URL %s has been stopped, not sending events", u.String())
 				}
 				return
 			}
 
 			if len(pr.Events) > 0 {
-				if c.LoggingEnabled {
-					log.Println("Got", len(pr.Events), "event(s) from URL", u.String())
+				if c.Logger != nil {
+					c.Logger.Println("Got", len(pr.Events), "event(s) from URL", u.String())
 				}
 				for _, event := range pr.Events {
 					since = event.Timestamp
@@ -115,8 +117,8 @@ func (c *Client) Stop() {
 // Call the longpoll server to get the events since a specific timestamp
 func (c Client) fetchEvents(since int64) (PollResponse, error) {
 	u := c.url
-	if c.LoggingEnabled {
-		log.Println("Checking for events since", since, "on URL", u.String())
+	if c.Logger != nil {
+		c.Logger.Println("Checking for events since", since, "on URL", u.String())
 	}
 
 	query := u.Query()
@@ -147,8 +149,8 @@ func (c Client) fetchEvents(since int64) (PollResponse, error) {
 	var pr PollResponse
 	err = decoder.Decode(&pr)
 	if err != nil {
-		if c.LoggingEnabled {
-			log.Printf("Error while decoding poll response: %s", err)
+		if c.Logger != nil {
+			c.Logger.Printf("Error while decoding poll response: %s", err)
 		}
 		return PollResponse{}, err
 	}

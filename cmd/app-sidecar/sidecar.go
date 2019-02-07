@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	_log "log"
 	"math"
 	"net/url"
 	"os"
@@ -15,6 +15,8 @@ import (
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/longpoll"
 )
+
+var log = _log.New(os.Stderr, "", _log.LstdFlags)
 
 // PatternInfo represents one Envoy header regex_match
 type PatternInfo struct {
@@ -136,6 +138,7 @@ func Main(flags *cobra.Command, args []string) error {
 
 	u, _ := url.Parse("http://telepresence-proxy:8081/routes")
 	c := longpoll.NewClient(u, appName)
+	c.Logger = log
 	c.Start()
 
 	for {
