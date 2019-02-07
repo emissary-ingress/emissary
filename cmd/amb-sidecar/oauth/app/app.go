@@ -64,26 +64,20 @@ func (a *App) Handler() (http.Handler, error) {
 	a.rest = client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
 
 	// Handler
-	auth := handler.Authorize{
+	r := http.NewServeMux()
+	r.Handle("/", &handler.Authorize{
 		Config:    a.Config,
 		Logger:    a.Logger.WithField("HANDLER", "authorize"),
 		Ctrl:      a.Controller,
 		Secret:    a.secret,
 		Discovery: a.discovery,
-	}
-
-	cb := &handler.Callback{
+	})
+	r.Handle("/callback", &handler.Callback{
 		Logger: a.Logger.WithField("HANDLER", "callback"),
 		Secret: a.secret,
 		Ctrl:   a.Controller,
 		Rest:   a.rest,
-	}
-
-	// Router
-	r := http.NewServeMux()
-
-	r.HandleFunc("/callback", cb.Check)
-	r.HandleFunc("/", auth.Check)
+	})
 
 	// Middleware
 	n := negroni.New()

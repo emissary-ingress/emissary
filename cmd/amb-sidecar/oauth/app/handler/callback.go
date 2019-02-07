@@ -32,8 +32,8 @@ type Callback struct {
 	Rest   *client.Rest
 }
 
-// Check inspects if the request contains code and signed states...
-func (c *Callback) Check(w http.ResponseWriter, r *http.Request) {
+// ServeHTTP inspects if the request contains code and signed states...
+func (c *Callback) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Logger.Debug("request received")
 	if err := r.URL.Query().Get("error"); err != "" {
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
