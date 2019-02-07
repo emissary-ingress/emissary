@@ -97,8 +97,8 @@ tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oaut
 	@touch $@
 
 tests/oauth-e2e.tap: $(if $(HAVE_DOCKER),tests/oauth-e2e/node_modules deploy proxy)
-tests/consul-e2e.tap: $(if $(HAVE_DOCKER),deploy proxy)
-tests/loop-intercept.tap: $(if $(HAVE_DOCKER),deploy proxy)
+tests/consul-e2e.log: $(if $(HAVE_DOCKER),deploy proxy)
+tests/loop-intercept.log: $(if $(HAVE_DOCKER),deploy proxy)
 
 #
 # Clean
