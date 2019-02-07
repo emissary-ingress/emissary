@@ -63,7 +63,39 @@ func (a *App) Handler() (http.Handler, error) {
 
 	a.rest = client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
 
-	// Handler
+	n := negroni.New()
+
+	// Middleware (most-outer is listed first, most-inner is listed last)
+	n.Use(&middleware.Logger{Logger: a.Logger.WithField("MIDDLEWARE", "http")})
+	n.Use(&negroni.Recovery{
+		Logger:     a.Logger.WithField("MIDDLEWARE", "recovery"),
+		PrintStack: false,
+		StackAll:   false,
+		StackSize:  1024 * 8,
+		Formatter:  &negroni.TextPanicFormatter{},
+	})
+	n.Use(&middleware.CheckConfig{
+		Config: a.Config,
+	})
+	n.Use(&middleware.DomainCheck{
+		Logger: a.Logger.WithField("MIDDLEWARE", "app_check"),
+		Ctrl:   a.Controller,
+	})
+	n.Use(&middleware.PolicyCheck{
+		Logger: a.Logger.WithField("MIDDLEWARE", "policy_check"),
+		Ctrl:   a.Controller,
+		DefaultRule: &crd.Rule{
+			Scope:  crd.DefaultScope,
+			Public: false,
+		},
+	})
+	n.Use(&middleware.JWTCheck{
+		Logger:    a.Logger.WithField("MIDDLEWARE", "jwt_check"),
+		Discovery: a.discovery,
+		Config:    a.Config,
+	})
+
+	// Final handler (most-inner of all)
 	r := http.NewServeMux()
 	r.Handle("/", &handler.Authorize{
 		Config:    a.Config,
@@ -78,44 +110,6 @@ func (a *App) Handler() (http.Handler, error) {
 		Ctrl:   a.Controller,
 		Rest:   a.rest,
 	})
-
-	// Middleware
-	n := negroni.New()
-
-	n.Use(&middleware.Logger{Logger: a.Logger.WithField("MIDDLEWARE", "http")})
-
-	n.Use(&negroni.Recovery{
-		Logger:     a.Logger.WithField("MIDDLEWARE", "recovery"),
-		PrintStack: false,
-		StackAll:   false,
-		StackSize:  1024 * 8,
-		Formatter:  &negroni.TextPanicFormatter{},
-	})
-
-	n.Use(&middleware.CheckConfig{
-		Config: a.Config,
-	})
-
-	n.Use(&middleware.DomainCheck{
-		Logger: a.Logger.WithField("MIDDLEWARE", "app_check"),
-		Ctrl:   a.Controller,
-	})
-
-	n.Use(&middleware.PolicyCheck{
-		Logger: a.Logger.WithField("MIDDLEWARE", "policy_check"),
-		Ctrl:   a.Controller,
-		DefaultRule: &crd.Rule{
-			Scope:  crd.DefaultScope,
-			Public: false,
-		},
-	})
-
-	n.Use(&middleware.JWTCheck{
-		Logger:    a.Logger.WithField("MIDDLEWARE", "jwt_check"),
-		Discovery: a.discovery,
-		Config:    a.Config,
-	})
-
 	n.UseHandler(r)
 
 	return n, nil
