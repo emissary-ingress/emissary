@@ -38,6 +38,15 @@ Let's digest the above example:
 * Multiple labels can be part of a single named label, e.g., `multi_request_label` specifies two different headers to be added
 * When an HTTP header is not present, the entire named label is omitted. The `omit_if_not_present: true` is an explicit notation to remind end users of this limitation. `false` is *not* a supported value. This limitation will be removed in future versions of Ambassador.
 
+Ambassador supports several special labels:
+
+* `remote_address` automatically populates the remote IP address using the trusted IP address from `X-Forwarded-For`
+* `request_headers: HEADER` will extract the value from a given HTTP header
+* `destination_cluster` populates the name of the Envoy cluster. Typically, there is a 1:1 correspondence between a `service` in a `Mapping` to a `destination_cluster`. You can get the name of the cluster from the diagnostics service.
+* `source_cluster` populates the name of the originating cluster (e.g., the Envoy listener).
+
+Note: In Envoy, labels are referred to as descriptors.
+
 ## The `rate_limits` attribute
 
 In pre-0.50 versions of Ambassador, a mapping can specify the `rate_limits` list attribute and at least one `rate_limits` rule which will call the external [RateLimitService](/reference/services/rate-limit-service) before proceeding with the request. An example:
