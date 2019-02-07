@@ -1,0 +1,33 @@
+# Copyright 2018 Datawire. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+# All of Ambassador's dependencies and related packages are installed in this Dockerfile.
+# The container image produced by this Dockerfile is manually pushed to the registry, which is
+# treated as a cached container image for subsequent Ambassador builds.
+
+ARG ENVOY_BASE_IMAGE
+FROM $ENVOY_BASE_IMAGE
+
+ENV AMBASSADOR_ROOT=/ambassador
+WORKDIR ${AMBASSADOR_ROOT}
+
+RUN apk --no-cache add curl python3 jq
+
+# Grab kubewatch
+RUN curl -o /usr/bin/kubewatch -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.16/linux/amd64/kubewatch
+RUN chmod +x /usr/bin/kubewatch
+
+# Grab ambex
+RUN curl -o /usr/bin/ambex https://s3.amazonaws.com/datawire-static-files/ambex/0.1.1/ambex
+RUN chmod 755 /usr/bin/ambex
