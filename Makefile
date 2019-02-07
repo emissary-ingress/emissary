@@ -105,6 +105,7 @@ tests/tls-smoketest.tap: $(if $(HAVE_DOCKER),deploy proxy)
 # Clean
 
 clean:
+	rm -f tests/*.log tests/*.tap
 	rm -f docker/traffic-proxy/traffic-proxy
 	rm -f docker/app-sidecar/app-sidecar
 	rm -f docker/amb-sidecar/amb-sidecar
