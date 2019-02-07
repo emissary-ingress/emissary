@@ -5,6 +5,6 @@ if ! type docker >& /dev/null; then
 	echo 'ok 1 # SKIP docker not installed'
 	echo 'ok 2 # SKIP docker not installed'
 else
-	cd "${BASH_SOURCE[0]%/*}/.." &&
-	set -a && . ./k8s-env.sh && cd tests/oauth-e2e && ./node_modules/.bin/mocha ./*test.js* --timeout 15000 --retries 2 --reporter tap
+	cd "${BASH_SOURCE[0]%/*}/../.." &&
+	set -a && . ./k8s-env.sh && cd tests/cluster/oauth-e2e && ./node_modules/.bin/mocha ./*test.js* --timeout 15000 --retries 2 --reporter tap
 fi
