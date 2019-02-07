@@ -26,7 +26,7 @@ config:
   # diag_port: 8877
 
   # The diagnostic service (at /ambassador/v0/diag/) defaults on, but
-  # you can disable the api route. It will remain accessible on 
+  # you can disable the api route. It will remain accessible on
   # diag_port.
   # diagnostics:
   #   enabled: true
@@ -34,7 +34,7 @@ config:
   # Should we do IPv4 DNS lookups when contacting services? Defaults to true,
   # but can be overridden in a [`Mapping`](/reference/mappings).
   # enable_ipv4: true
-  
+
   # Should we do IPv6 DNS lookups when contacting services? Defaults to false,
   # but can be overridden in a [`Mapping`](/reference/mappings).
   # enable_ipv6: false
@@ -91,7 +91,7 @@ reason, the default for 0.50.0 is IPv4 only.
 
 A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`,
 the values here are used. Most Ambassador installations will probably be able to avoid overridding these setting in `Mapping`s.
- 
+
 ### `use_remote_address`
 
 In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
