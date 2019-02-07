@@ -11,7 +11,6 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.1.0
 	github.com/gophercloud/gophercloud v0.0.0-20190115030418-a9f90060ebd9 // indirect
-	github.com/gorilla/mux v1.6.2
 	github.com/hashicorp/consul v1.4.0
 	github.com/hashicorp/go-cleanhttp v0.5.0 // indirect
 	github.com/hashicorp/go-rootcerts v0.0.0-20160503143440-6bb64b370b90 // indirect

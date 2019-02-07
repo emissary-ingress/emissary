@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/urfave/negroni"
 
@@ -81,10 +80,10 @@ func (a *App) Handler() (http.Handler, error) {
 	}
 
 	// Router
-	r := mux.NewRouter()
+	r := http.NewServeMux()
 
 	r.HandleFunc("/callback", cb.Check)
-	r.PathPrefix("/").HandlerFunc(auth.Check)
+	r.HandleFunc("/", auth.Check)
 
 	// Middleware
 	n := negroni.New()
