@@ -17,11 +17,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/lib/testutil"
 )
 
-var appUT *app.App
+var appUT http.Handler
 var idpSRV *httptest.Server
 var appSRV *httptest.Server
 var appClient *http.Client

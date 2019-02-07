@@ -12,102 +12,82 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
+	_secret "github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-// App is used to wire up all the cmd application components.
-type App struct {
-	Config     types.Config
-	Logger     types.Logger
-	Controller *controller.Controller
-
-	secret    *secret.Secret
-	discovery *discovery.Discovery
-	rest      *client.Rest
-}
-
 // Handler returns an app handler that should be consumed by an HTTP server.
-func (a *App) Handler() (http.Handler, error) {
-	if a.Logger == nil {
-		panic("logger object cannot be nil")
-	}
-	if a.Controller == nil {
-		panic("controller object cannot be nil")
-	}
-
-	var err error
-	a.secret, err = secret.New(a.Config, a.Logger) // RSA keys
+func NewHandler(config types.Config, logger types.Logger, controller *controller.Controller) (http.Handler, error) {
+	secret, err := _secret.New(config, logger) // RSA keys
 	if err != nil {
 		return nil, errors.Wrap(err, "secret")
 	}
 
-	disco, err := discovery.New(a.Config, a.Logger)
+	disco, err := discovery.New(config, logger)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery")
 	}
 
-	a.discovery = disco
-	authorizationEndpointURL, err := url.Parse(a.discovery.AuthorizationEndpoint)
+	authorizationEndpointURL, err := url.Parse(disco.AuthorizationEndpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery.AuthorizationEndpoint")
 	}
 
-	tokenEndpointURL, err := url.Parse(a.discovery.TokenEndpoint)
+	tokenEndpointURL, err := url.Parse(disco.TokenEndpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery.TokenEndpoint")
 	}
 
-	a.rest = client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
+	rest := client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
 
 	n := negroni.New()
 
 	// Middleware (most-outer is listed first, most-inner is listed last)
-	n.Use(&middleware.Logger{Logger: a.Logger.WithField("MIDDLEWARE", "http")})
+	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "http")})
 	n.Use(&negroni.Recovery{
-		Logger:     a.Logger.WithField("MIDDLEWARE", "recovery"),
+		Logger:     logger.WithField("MIDDLEWARE", "recovery"),
 		PrintStack: false,
 		StackAll:   false,
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
 	n.Use(&middleware.CheckConfig{
-		Config: a.Config,
+		Config: config,
 	})
 	n.Use(&middleware.DomainCheck{
-		Logger: a.Logger.WithField("MIDDLEWARE", "app_check"),
-		Ctrl:   a.Controller,
+		Logger: logger.WithField("MIDDLEWARE", "app_check"),
+		Ctrl:   controller,
 	})
 	n.Use(&middleware.PolicyCheck{
-		Logger: a.Logger.WithField("MIDDLEWARE", "policy_check"),
-		Ctrl:   a.Controller,
+		Logger: logger.WithField("MIDDLEWARE", "policy_check"),
+		Ctrl:   controller,
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
 	})
 	n.Use(&middleware.JWTCheck{
-		Logger:    a.Logger.WithField("MIDDLEWARE", "jwt_check"),
-		Discovery: a.discovery,
-		Config:    a.Config,
+		Logger:    logger.WithField("MIDDLEWARE", "jwt_check"),
+		Discovery: disco,
+		Config:    config,
 		IssuerURL: disco.Issuer,
 	})
 
 	// Final handler (most-inner of all)
 	r := http.NewServeMux()
 	r.Handle("/", &handler.Authorize{
-		Config:    a.Config,
-		Logger:    a.Logger.WithField("HANDLER", "authorize"),
-		Ctrl:      a.Controller,
-		Secret:    a.secret,
-		Discovery: a.discovery,
+		Config:    config,
+		Logger:    logger.WithField("HANDLER", "authorize"),
+		Ctrl:      controller,
+		Secret:    secret,
+		Discovery: disco,
 	})
 	r.Handle("/callback", &handler.Callback{
-		Logger: a.Logger.WithField("HANDLER", "callback"),
-		Secret: a.secret,
-		Ctrl:   a.Controller,
-		Rest:   a.rest,
+		Logger: logger.WithField("HANDLER", "callback"),
+		Secret: secret,
+		Ctrl:   controller,
+		Rest:   rest,
 	})
 	n.UseHandler(r)
 

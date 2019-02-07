@@ -113,12 +113,7 @@ func cmdAuth(
 	})
 
 	group.Go(func() error {
-		a := app.App{
-			Config:     authCfg,
-			Logger:     l,
-			Controller: ct,
-		}
-		httpHandler, err := a.Handler()
+		httpHandler, err := app.NewHandler(authCfg, l, ct)
 		if err != nil {
 			return err
 		}
