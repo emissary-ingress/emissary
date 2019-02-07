@@ -12,9 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# All of Ambassador's dependencies and related packages are installed in this Dockerfile.
-# The container image produced by this Dockerfile is manually pushed to the registry, which is
-# treated as a cached container image for subsequent Ambassador builds.
+################################################################
+# This image is the base _runtime_ for Ambassador. No compilers or
+# other toolchains, just the basics and the external Golang
+# dependencies that Ambassador needs. It's used as a base image in the
+# main Dockerfile, so that we can use the Docker cache to more
+# effectively dodge network issues re-downloading the Golang stuff.
+#
+# If you have to change this - notably, if you switch to a new rev of
+# either Golang dependency - you _must_ update AMBASSADOR_BASE_IMAGE
+# in the Makefile, then run "make docker-update-base" to build and push
+# the new image.
 
 ARG ENVOY_BASE_IMAGE
 FROM $ENVOY_BASE_IMAGE
@@ -22,6 +30,8 @@ FROM $ENVOY_BASE_IMAGE
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
 
+# This is the best place to add things that you want to guarantee will
+# always be present in Ambassador pods.
 RUN apk --no-cache add curl python3 jq
 
 # Grab kubewatch

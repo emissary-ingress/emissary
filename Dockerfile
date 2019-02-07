@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+################################################################
 # This Dockerfile copies in the required packages from the CACHED_CONTAINER_IMAGE and configures
 # Ambassador. The reason packages are not installed and copied instead is that this pattern speeds up
 # the inner development loop, since packages do not need to be installed in every docker build.
@@ -24,8 +25,10 @@
 ARG CACHED_CONTAINER_IMAGE
 ARG AMBASSADOR_BASE_IMAGE
 
-# Stage 1
-# This copies in the ambassador code to CACHED_CONTAINER_IMAGE and installs it
+################################################################
+# STAGE ONE: use the CACHED_CONTAINER_IMAGE's toolchains to
+# build and install the Ambassador app itself.
+
 FROM $CACHED_CONTAINER_IMAGE as cached
 
 # Install the application itself
@@ -34,9 +37,13 @@ COPY ambassador/ ambassador
 RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
 
-# Stage 2
-# Required dependencies and binaries are copied in from CACHED_CONTAINER_IMAGE to AMBASSADOR_BASE_IMAGE
+################################################################
+# STAGE TWO: switch to the AMBASSADOR_BASE_IMAGE as the base of
+# our actual runtime image, and copy the built artifacts from
+# stage one to here.
+
 FROM $AMBASSADOR_BASE_IMAGE
+
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
 
@@ -45,7 +52,7 @@ WORKDIR ${AMBASSADOR_ROOT}
 # chain.
 COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6
 
-# Copy Ambassador binaries...
+# Copy Ambassador binaries (built in stage one).
 COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 
 # MKDIR an empty /ambassador/ambassador-config, so that you can drop a configmap over it

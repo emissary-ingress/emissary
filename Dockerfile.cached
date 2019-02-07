@@ -12,9 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# All of Ambassador's dependencies and related packages are installed in this Dockerfile.
-# The container image produced by this Dockerfile is manually pushed to the registry, which is
-# treated as a cached container image for subsequent Ambassador builds.
+################################################################
+# This image has the toolchains we need to actually build Ambassador, plus
+# the Python dependencies that Ambassador actually needs. It's used as a
+# base image in the main Dockerfile, so that we can use the Docker cache
+# to more effectively dodge network issues with APK repos or the Cheese
+# Shop.
+#
+# If you have to change this - including changing Ambassador's dependency
+# graph, including multi! - you _must_ update AMBASSADOR_DOCKER_IMAGE_CACHED
+# in the Makefile, then run "make docker-update-base" to build and push the
+# new image.
 
 ARG ENVOY_BASE_IMAGE
 FROM $ENVOY_BASE_IMAGE
