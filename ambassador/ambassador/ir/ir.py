@@ -62,7 +62,7 @@ class IR:
     tls_contexts: Dict[str, IRTLSContext]
     aconf: Config
     secret_root: str
-    secret_reader: Callable[[IRTLSContext, str, str, str], SavedSecret]
+    secret_reader: Callable[[IRTLSContext, str, str], SavedSecret]
     file_checker: Callable[[str], bool]
 
     def __init__(self, aconf: Config, secret_reader=None, file_checker=None) -> None:

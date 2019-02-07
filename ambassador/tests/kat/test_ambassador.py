@@ -268,8 +268,8 @@ config:
   upstream:
     secret: test-certs-secret
   upstream-files:
-    cert_chain_file: /ambassador/ambassador-config/default/secrets-decoded/test-certs-secret/tls.crt
-    private_key_file: /ambassador/ambassador-config/default/secrets-decoded/test-certs-secret/tls.key
+    cert_chain_file: /ambassador/snapshots/default/secrets-decoded/test-certs-secret/tls.crt
+    private_key_file: /ambassador/snapshots/default/secrets-decoded/test-certs-secret/tls.key
 """)
 
         yield self, self.format("""

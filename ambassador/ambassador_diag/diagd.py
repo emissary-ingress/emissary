@@ -15,7 +15,7 @@
 # limitations under the License
 import copy
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
 
 import datetime
 import functools
@@ -24,6 +24,7 @@ import logging
 import multiprocessing
 import os
 import queue
+import re
 import signal
 import threading
 import time
@@ -38,10 +39,13 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, load_url_contents
+from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents
 from ambassador.config.resourcefetcher import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
+
+if TYPE_CHECKING:
+    from ambassador.ir.irtlscontext import IRTLSContext
 
 __version__ = Version
 
@@ -80,6 +84,7 @@ class DiagApp (Flask):
     kick: Optional[str]
     estats: EnvoyStats
     config_dir_prefix: str
+    snapshot_path: str
     bootstrap_path: str
     ads_path: str
     ads_temp_path: str = '/tmp/envoy-test.json'
@@ -486,7 +491,7 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
-def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid: int, kick: Optional[str],
+def create_diag_app(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid: int, kick: Optional[str],
                     do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
     app.estats = EnvoyStats()
     app.health_checks = False
@@ -515,9 +520,7 @@ def create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid: int, k
     app.config_dir_prefix = config_dir_path
     app.bootstrap_path = bootstrap_path
     app.ads_path = ads_path
-
-    app.events = queue.Queue()
-    # app.scc = SecretSaver(app.logger, app.config_dir_prefix, app.config_dir_prefix)
+    app.snapshot_path = snapshot_path
 
     app.ir = None
 
@@ -550,6 +553,12 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not update estats: %s" % e)
                     self.logger.exception(e)
+            elif cmd == 'CONFIG_FS':
+                try:
+                    self.load_config_fs(arg)
+                except Exception as e:
+                    self.logger.error("could not reconfigure: %s" % e)
+                    self.logger.exception(e)
             elif cmd == 'CONFIG':
                 try:
                     self.load_config(arg)
@@ -559,59 +568,93 @@ class AmbassadorEventWatcher(threading.Thread):
             else:
                 self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
 
+    def load_config_fs(self, path: str) -> None:
+        snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
+        self.logger.info("loading configuration from disk: %s" % path)
+
+        scc = SecretSaver(app.logger, path, app.snapshot_path)
+
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+        fetcher.load_from_filesystem(path, k8s=False, recurse=True)
+
+        if not fetcher.elements:
+            self.logger.info("no configuration found at %s" % path)
+            return
+
+        self._load_ir(aconf, fetcher, scc.null_reader, snapshot)
+
     def load_config(self, url):
         snapshot = url.split('/')[-1]
-        aconf_path = os.path.join(app.config_dir_prefix, "snapshot-%s.yaml" % snapshot)
-        ir_path = os.path.join(app.config_dir_prefix, "ir-%s.json" % snapshot)
+        ss_path = os.path.join(app.snapshot_path, "snapshot-%s.yaml" % snapshot)
 
-        self.logger.info("copying configuration from %s to %s" % (url, aconf_path))
+        self.logger.info("copying configuration from %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
-        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(aconf_path, "w"))
+        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
 
-        if serialization:
-            scc = SecretSaver(app.logger, url, app.config_dir_prefix)
+        if not serialization:
+            self.logger.info("no data loaded from snapshot %s?" % snapshot)
+            return
 
-            aconf = Config()
-            fetcher = ResourceFetcher(app.logger, aconf)
-            fetcher.parse_yaml(serialization, k8s=True)
-            aconf.load_all(fetcher.sorted())
+        scc = SecretSaver(app.logger, url, app.snapshot_path)
 
-            ir = IR(aconf, secret_reader=scc.url_reader)
-            open(ir_path, "w").write(ir.as_json())
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+        fetcher.parse_yaml(serialization, k8s=True)
 
-            check_scout(app, "update", ir)
+        if not fetcher.elements:
+            self.logger.info("no configuration found in snapshot %s?" % snapshot)
+            return
 
-            econf = EnvoyConfig.generate(ir, "V2")
-            diag = Diagnostics(ir, econf)
+        self._load_ir(aconf, fetcher, scc.url_reader, snapshot)
 
-            bootstrap_config, ads_config = econf.split_config()
+    def _load_ir(self, aconf: Config, fetcher: ResourceFetcher,
+                 secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
+                 snapshot: str) -> None:
 
-            if not self.validate_envoy_config(config=ads_config):
-                self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
-                return
+        aconf.load_all(fetcher.sorted())
 
-            self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
+        aconf_path = os.path.join(app.snapshot_path, "aconf-%s.json" % snapshot)
+        open(aconf_path, "w").write(aconf.as_json())
 
-            with open(app.bootstrap_path, "w") as output:
-                output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+        ir = IR(aconf, secret_reader=secret_reader)
 
-            with open(app.ads_path, "w") as output:
-                output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+        ir_path = os.path.join(app.snapshot_path, "ir-%s.json" % snapshot)
+        open(ir_path, "w").write(ir.as_json())
 
-            app.aconf = aconf
-            app.ir = ir
-            app.econf = econf
-            app.diag = diag
+        check_scout(app, "update", ir)
 
-            if app.kick:
-                self.logger.info("running '%s'" % app.kick)
-                os.system(app.kick)
-            elif app.ambex_pid != 0:
-                self.logger.info("notifying PID %d ambex" % app.ambex_pid)
-                os.kill(app.ambex_pid, signal.SIGHUP)
+        econf = EnvoyConfig.generate(ir, "V2")
+        diag = Diagnostics(ir, econf)
 
-            self.logger.info("configuration updated")
+        bootstrap_config, ads_config = econf.split_config()
+
+        if not self.validate_envoy_config(config=ads_config):
+            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+            return
+
+        self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
+
+        with open(app.bootstrap_path, "w") as output:
+            output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+
+        with open(app.ads_path, "w") as output:
+            output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+
+        app.aconf = aconf
+        app.ir = ir
+        app.econf = econf
+        app.diag = diag
+
+        if app.kick:
+            self.logger.info("running '%s'" % app.kick)
+            os.system(app.kick)
+        elif app.ambex_pid != 0:
+            self.logger.info("notifying PID %d ambex" % app.ambex_pid)
+            os.kill(app.ambex_pid, signal.SIGHUP)
+
+        self.logger.info("configuration updated")
 
     def validate_envoy_config(self, config) -> bool:
         # We want to keep the original config untouched
@@ -660,6 +703,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         # This is a little weird, but whatever.
         self.application.watcher = AmbassadorEventWatcher(self.application)
         self.application.watcher.start()
+        self.application.watcher.post("CONFIG_FS", self.application.config_dir_prefix)
 
         if self.application.health_checks:
             self.application.logger.info("Starting periodic updates")
@@ -669,7 +713,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, ambex_pid=0, kick=None,
+          *, snapshot_path=None, ambex_pid=0, kick=None,
           no_checks=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', k8s=False, notices=None):
     """
@@ -678,6 +722,7 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
+    :param snapshot_path: Optional path to directory in which to save configuration snapshots
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
@@ -691,7 +736,7 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
     """
 
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, ambex_pid, kick,
+    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid, kick,
                                 not no_checks, reload, debug, k8s, verbose, notices)
 
     if not workers:

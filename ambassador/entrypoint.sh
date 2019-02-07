@@ -24,6 +24,7 @@ fi
 AMBASSADOR_ROOT="/ambassador"
 AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
+SNAPSHOT_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
 
 # If AMBASSADOR_NO_KUBEWATCH is set, it means that we're not supposed to try
 # to watch for Kubernetes stuff at all. If it's NOT set - so we _are_ allowed
@@ -83,6 +84,7 @@ if [ "$1" == "--demo" ]; then
 fi
 
 mkdir -p "${CONFIG_DIR}"
+mkdir -p "${SNAPSHOT_DIR}"
 mkdir -p "${ENVOY_DIR}"
 
 DELAY=${AMBASSADOR_RESTART_TIME:-1}
@@ -196,6 +198,7 @@ pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 echo "AMBASSADOR: starting diagd"
 
 diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_K8S \
+      --snapshot-path "${SNAPSHOT_DIR}" \
       --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 

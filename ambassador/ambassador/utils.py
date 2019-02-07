@@ -277,6 +277,18 @@ class SecretSaver:
         self.source_root = source_root
         self.cache_dir = cache_dir
 
+    def null_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str):
+        self.context = context
+        self.secret_name = secret_name
+        self.namespace = namespace
+
+        self.source = os.path.join(self.source_root, namespace, "secrets", "%s.yaml" % secret_name)
+
+        self.serialization = None
+        self.logger.error("TLSContext %s: no way to find secret" % context.name)
+
+        return self.secret_parser()
+
     def file_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str):
         self.context = context
         self.secret_name = secret_name
