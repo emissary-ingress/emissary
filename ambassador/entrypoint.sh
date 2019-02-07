@@ -79,7 +79,7 @@ if [ "$1" == "--demo" ]; then
 
     # Demo mode doesn't watch for Kubernetes changes.
     DIAGD_K8S=
-    AMBASSADOR_NO_KUBERNETES=no_kubernetes
+    AMBASSADOR_NO_KUBEWATCH=no_kubewatch
     AMBASSADOR_SYNC_DIR=
 fi
 
@@ -226,7 +226,7 @@ else
     echo "AMBASSADOR: diagd running"
 fi
 
-if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
+if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
     KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
 
     KUBEWATCH_NAMESPACE_ARG=""
