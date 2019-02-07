@@ -53,7 +53,7 @@ Set the contents of the `config/ambassador.yaml` to this yaml configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config: {}
@@ -89,7 +89,7 @@ Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config:
@@ -124,7 +124,7 @@ Create a new file `config/mapping-qotm.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
@@ -185,7 +185,7 @@ Edit the `config/mapping-qotm.yaml` file and modify the `service` and `rewrite` 
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
@@ -276,7 +276,7 @@ Make a new file called `config/auth.yaml` with an auth definition inside:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  AuthService
 name:  authentication
 auth_service: "auth:3000"
@@ -376,7 +376,7 @@ Add a new configuration file `config/tracing.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: TracingService
 name: tracing
 service: tracing:9411
