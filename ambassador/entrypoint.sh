@@ -175,7 +175,7 @@ echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 mkdir -p "${ENVOY_DIR}"
 
 echo "AMBASSADOR: starting ads"
-./ambex "${ENVOY_DIR}" &
+ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
@@ -236,7 +236,7 @@ if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
     fi
 
     set -x
-    "$APPDIR/kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi

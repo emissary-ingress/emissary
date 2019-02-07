@@ -132,13 +132,15 @@ class AmbassadorTest(Test):
         run("docker", "rm", self.path.k8s)
 
         image = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+        cached_image = os.environ["AMBASSADOR_DOCKER_IMAGE_CACHED"]
+        ambassador_base_image = os.environ["AMBASSADOR_BASE_IMAGE"]
 
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
             context = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
             print("Starting docker build...", end="")
             sys.stdout.flush()
-            result = run("docker", "build", context, "-t", image)
+            result = run("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)
             try:
                 result.check_returncode()
                 print("done.")
