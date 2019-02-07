@@ -75,7 +75,7 @@ func (state *ProxyState) handleState(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	w.Write([]byte(result))
+	w.Write(result)
 }
 
 func (state *ProxyState) publish(deployment string) error {
@@ -222,7 +222,7 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 		if err != nil {
 			panic(err)
 		}
-		w.Write([]byte(result))
+		w.Write(result)
 		return
 	}
 
@@ -237,7 +237,7 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 		if err != nil {
 			panic(err)
 		}
-		w.Write([]byte(result))
+		w.Write(result)
 	case http.MethodPost:
 		d := json.NewDecoder(r.Body)
 		type InInterceptInfo struct {
@@ -270,7 +270,7 @@ func (state *ProxyState) handleIntercept(w http.ResponseWriter, r *http.Request)
 		if err != nil {
 			panic(err)
 		}
-		w.Write([]byte(result))
+		w.Write(result)
 	case http.MethodDelete:
 		d := json.NewDecoder(r.Body)
 		var port int
@@ -383,7 +383,7 @@ func Main(flags *cobra.Command, args []string) {
 		if err != nil {
 			panic(err)
 		}
-		w.Write([]byte(result))
+		w.Write(result)
 	})
 
 	fmt.Println("Starting server...")

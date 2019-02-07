@@ -98,11 +98,9 @@ func (c *Client) Start() {
 					since = event.Timestamp
 					c.EventsChan <- &event
 				}
-			} else {
+			} else if pr.Timestamp > since {
 				// Only push timestamp forward if its greater than the last we checked
-				if pr.Timestamp > since {
-					since = pr.Timestamp
-				}
+				since = pr.Timestamp
 			}
 		}
 	}(currentRunID, u)

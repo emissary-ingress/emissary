@@ -48,7 +48,7 @@ var defaultRoute = map[string]map[string]string{
 	"route": {"cluster": "app"},
 }
 
-func processIntercepts(intercepts []InterceptInfo) {
+func processIntercepts(intercepts []InterceptInfo) error {
 	routes := make([]interface{}, 0, len(intercepts)+1)
 	for idx, intercept := range intercepts {
 		log.Printf("%2d Sending to proxy:%d (%s) when:",
@@ -64,7 +64,7 @@ func processIntercepts(intercepts []InterceptInfo) {
 	routes = append(routes, defaultRoute)
 	routesJSON, err := json.Marshal(routes)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if len(intercepts) == 0 {
@@ -77,9 +77,13 @@ func processIntercepts(intercepts []InterceptInfo) {
 	contents := fmt.Sprintf(routeTemplate, string(routesJSON))
 	err = ioutil.WriteFile("temp/route.json", []byte(contents), 0644)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	err = os.Rename("temp/route.json", "data/route.json")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Version is inserted at build using --ldflags -X
@@ -92,7 +96,7 @@ func main() {
 	argparser := &cobra.Command{
 		Use:     os.Args[0],
 		Version: Version,
-		Run:     Main,
+		RunE:    Main,
 	}
 	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "application-sidecar", Version)
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
@@ -110,7 +114,7 @@ func main() {
 	}
 }
 
-func Main(flags *cobra.Command, args []string) {
+func Main(flags *cobra.Command, args []string) error {
 	os.Mkdir("temp", 0775)
 
 	empty := make([]InterceptInfo, 0)
@@ -120,7 +124,10 @@ func Main(flags *cobra.Command, args []string) {
 	if appName == "" {
 		log.Print("ERROR: APPNAME env var not configured.")
 		log.Print("Running without intercept capabilities.")
-		processIntercepts(intercepts)
+		err := processIntercepts(intercepts)
+		if err != nil {
+			return err
+		}
 		<-time.After(time.Duration(math.MaxInt64)) // Block forever-ish
 		// not reached for a long time
 	}
@@ -132,19 +139,20 @@ func Main(flags *cobra.Command, args []string) {
 	c.Start()
 
 	for {
-		processIntercepts(intercepts)
-		select {
-		case e := <-c.EventsChan:
-			if e == nil {
-				log.Print("No connection to the proxy")
+		err := processIntercepts(intercepts)
+		if err != nil {
+			return err
+		}
+		e := <-c.EventsChan
+		if e == nil {
+			log.Print("No connection to the proxy")
+			intercepts = empty
+		} else {
+			err := json.Unmarshal(e.Data, &intercepts)
+			if err != nil {
+				log.Println("Failed to unmarshal event", string(e.Data))
+				log.Println("Because", err)
 				intercepts = empty
-			} else {
-				err := json.Unmarshal(e.Data, &intercepts)
-				if err != nil {
-					log.Println("Failed to unmarshal event", string(e.Data))
-					log.Println("Because", err)
-					intercepts = empty
-				}
 			}
 		}
 	}

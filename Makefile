@@ -91,7 +91,7 @@ HAVE_DOCKER := $(shell which docker 2>/dev/null)
 test-suite.tap: tests/local.tap tests/cluster.tap
 
 check-local: ## Check: Run only tests that do not talk to the cluster
-check-local: tests/local-all.tap.summary
+check-local: lint tests/local-all.tap.summary
 .PHONY: check-local
 tests/local-all.tap: build-aux/go-test.tap tests/local.tap
 	./build-aux/tap-driver cat $^ > $@

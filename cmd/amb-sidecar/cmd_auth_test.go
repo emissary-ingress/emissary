@@ -25,13 +25,12 @@ var appUT *app.App
 var idpSRV *httptest.Server
 var appSRV *httptest.Server
 var appClient *http.Client
-var idpClient *http.Client
 
 func TestMain(m *testing.M) {
 	// Setup Test Servers & Clients
-	idpSRV = testutil.NewIDP()
+	idpSRV = NewIDP()
 	var err error
-	appSRV, appUT, err = testutil.NewAPP(idpSRV.URL)
+	appSRV, appUT, err = NewAPP(idpSRV.URL)
 	if err != nil {
 		panic(err)
 	}
