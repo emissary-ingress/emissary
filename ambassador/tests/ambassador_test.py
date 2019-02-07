@@ -15,6 +15,7 @@ import re
 
 from diag_paranoia import diag_paranoia, filtered_overview, sanitize_errors
 from ambassador import Config, IR
+from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.envoy import V1Config
 from ambassador.utils import SavedSecret
 
@@ -538,7 +539,9 @@ def test_config(testname, dirpath, configdir):
     print("==== loading resources")
 
     aconf = Config()
-    aconf.load_from_directory(configdir)
+    fetcher = ResourceFetcher(logger, aconf)
+    fetcher.load_from_filesystem(configdir, recurse=True)
+    aconf.load_all(fetcher.sorted())
 
     ir = IR(aconf, file_checker=file_always_exists, secret_reader=atest_secret_reader)
     v1config = V1Config(ir)

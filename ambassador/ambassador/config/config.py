@@ -172,6 +172,19 @@ class Config:
     def as_json(self):
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
+    def good_ambassador_id(self, resource: ACResource):
+        # Is an ambassador_id present in this object?
+        allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
+
+        if allowed_ids:
+            # Make sure it's a list. Yes, this is Draconian,
+            # but the jsonschema will allow only a string or a list,
+            # and guess what? Strings are Iterables.
+            if type(allowed_ids) != list:
+                allowed_ids = typecast(StringOrList, [ allowed_ids ])
+
+            return Config.ambassador_id in allowed_ids
+
     def save_source(self, resource: ACResource) -> None:
         """
         Save a given ACResource as a source of Ambassador config information.
@@ -189,20 +202,8 @@ class Config:
         for resource in resources:
             rcount += 1
 
-            # Is an ambassador_id present in this object?
-            allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
-
-            if allowed_ids:
-                # Make sure it's a list. Yes, this is Draconian,
-                # but the jsonschema will allow only a string or a list,
-                # and guess what? Strings are Iterables.
-                if type(allowed_ids) != list:
-                    allowed_ids = typecast(StringOrList, [ allowed_ids ])
-
-                if Config.ambassador_id not in allowed_ids:
-                    # self.logger.debug("LOAD_ALL: skip %s; id %s not in %s" %
-                    #                   (resource, Config.ambassador_id, allowed_ids))
-                    continue
+            if not self.good_ambassador_id(resource):
+                continue
 
             self.logger.debug("LOAD_ALL: %s @ %s" % (resource, resource.location))
 
@@ -221,31 +222,32 @@ class Config:
         if self.errors:
             self.logger.error("ERROR ERROR ERROR Starting with configuration errors")
 
-    # Utility methods built around ResourceFetcher.
-    def fetch_resources(self, config_dir_path: str, k8s=False, recurse=False):
-        fetcher = ResourceFetcher(self, config_dir_path, k8s=k8s, recurse=recurse)
-        return fetcher.__iter__()
-
-    def load_from_directory(self, config_dir_path: str, k8s=False, recurse=False, key=lambda x: x.rkey) -> None:
-        """
-        Load all the resources contained in YAML files in a given directory. To be considered,
-        the files must have names ending in '.yaml' (case insensitive).
-
-        By default, resources are sorted according to their rkey before loading. Pass a different
-        sort function as key if you want to change the sort order.
-
-        This is a really just a convenience method that uses a ResourceFetcher to find the resources,
-        sorts them, and then calls self.load_all().
-
-        :param config_dir_path: the directory to search for YAML files
-        :param k8s: should we expect that the files we find are annotated K8s resources?
-        :param key: sort function; defaults to lambda x: x.rkey
-        """
-
-        raw = list(self.fetch_resources(config_dir_path, k8s=k8s, recurse=recurse))
-        resources = sorted(raw, key=key)
-
-        self.load_all(resources)
+    # # Utility methods built around ResourceFetcher. Ambassador doesn't really use these running
+    # # "for real" but they make life easier for the CLI.
+    # def fetch_resources(self, config_dir_path: str, k8s=False, recurse=False):
+    #     fetcher = ResourceFetcher(self, config_dir_path, k8s=k8s, recurse=recurse)
+    #     return fetcher.__iter__()
+    #
+    # def load_from_directory(self, config_dir_path: str, k8s=False, recurse=False, key=lambda x: x.rkey) -> None:
+    #     """
+    #     Load all the resources contained in YAML files in a given directory. To be considered,
+    #     the files must have names ending in '.yaml' (case insensitive).
+    #
+    #     By default, resources are sorted according to their rkey before loading. Pass a different
+    #     sort function as key if you want to change the sort order.
+    #
+    #     This is a really just a convenience method that uses a ResourceFetcher to find the resources,
+    #     sorts them, and then calls self.load_all().
+    #
+    #     :param config_dir_path: the directory to search for YAML files
+    #     :param k8s: should we expect that the files we find are annotated K8s resources?
+    #     :param key: sort function; defaults to lambda x: x.rkey
+    #     """
+    #
+    #     raw = list(self.fetch_resources(config_dir_path, k8s=k8s, recurse=recurse))
+    #     resources = sorted(raw, key=key)
+    #
+    #     self.load_all(resources)
 
     def post_notice(self, msg: str, resource: Optional[Resource]=None) -> None:
         if resource is None:

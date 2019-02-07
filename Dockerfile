@@ -63,7 +63,8 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
 # COPY the entrypoint and Python-kubewatch and make them runnable.
 COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
+COPY ambassador/kick_ads.sh .
 COPY ambassador/post_update.py .
-RUN chmod 755 kubewatch.py entrypoint.sh post_update.py
+RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py
 
 ENTRYPOINT [ "./entrypoint.sh" ]

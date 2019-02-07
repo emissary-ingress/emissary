@@ -24,6 +24,7 @@ fi
 AMBASSADOR_ROOT="/ambassador"
 AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
+SNAPSHOT_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
 
 # If AMBASSADOR_NO_KUBEWATCH is set, it means that we're not supposed to try
 # to watch for Kubernetes stuff at all. If it's NOT set - so we _are_ allowed
@@ -36,10 +37,14 @@ if [ -z "${AMBASSADOR_SYNC_DIR}" ]; then
 fi
 
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
+export ENVOY_DIR
+
 ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
 TEMP_ENVOY_CONFIG_FILE="/tmp/envoy.json"
+
 # The bootstrap file really is in the config base dir, not the Envoy dir.
 ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
+export ENVOY_BOOTSTRAP_FILE
 
 # Set AMBASSADOR_DEBUG to things separated by spaces to enable debugging.
 check_debug () {
@@ -60,7 +65,9 @@ check_debug () {
 
 DIAGD_DEBUG=$(check_debug "diagd")
 KUBEWATCH_DEBUG=$(check_debug "kubewatch")
+
 ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
+export ENVOY_DEBUG
 
 DIAGD_K8S=--k8s
 DEMO_MODE=
@@ -72,11 +79,12 @@ if [ "$1" == "--demo" ]; then
 
     # Demo mode doesn't watch for Kubernetes changes.
     DIAGD_K8S=
-    AMBASSADOR_NO_KUBERNETES=no_kubernetes
+    AMBASSADOR_NO_KUBEWATCH=no_kubewatch
     AMBASSADOR_SYNC_DIR=
 fi
 
 mkdir -p "${CONFIG_DIR}"
+mkdir -p "${SNAPSHOT_DIR}"
 mkdir -p "${ENVOY_DIR}"
 
 DELAY=${AMBASSADOR_RESTART_TIME:-1}
@@ -147,14 +155,14 @@ trap "handle_int" INT
 
 #KUBEWATCH_DEBUG="--debug"
 
-# Start by reading config from ${CONFIG_DIR} itself, to bootstrap the world and get our
-# cluster ID.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG sync "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
+# Start by reading config from ${CONFIG_DIR} itself, to get our cluster ID.
+# XXX Ditch this, really.
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
 
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
-    diediedie "kubewatch sync" "$STATUS"
+    diediedie "kubewatch cluster-id" "$STATUS"
 fi
 
 # Set Ambassador's cluster ID here. We can do this unconditionally because if AMBASSADOR_CLUSTER_ID was set
@@ -163,28 +171,35 @@ AMBASSADOR_CLUSTER_ID="${cluster_id}"
 export AMBASSADOR_CLUSTER_ID
 echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 
+# Empty Envoy directory, hence no config via ADS yet.
+mkdir -p "${ENVOY_DIR}"
+
 echo "AMBASSADOR: starting ads"
 ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
-echo "AMBASSADOR: validation envoy configuration"
-# Envoy does not validate with @type field in there, so removing it
-jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
-envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
-STATUS=$?
+#echo "AMBASSADOR: validation envoy configuration"
+## Envoy does not validate with @type field in there, so removing it
+#jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
+#envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
+#STATUS=$?
+#
+#if [ $STATUS -ne 0 ]; then
+#    cat "$TEMP_ENVOY_CONFIG_FILE"
+#    diediedie "envoy validation" "$STATUS"
+#fi
 
-if [ $STATUS -ne 0 ]; then
-    cat "$TEMP_ENVOY_CONFIG_FILE"
-    diediedie "envoy validation" "$STATUS"
-fi
-
-echo "AMBASSADOR: starting Envoy"
-envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
-pids="${pids:+${pids} }$!:envoy"
+# We can't start Envoy until the initial config happens, which means that diagd has to start it.
+#echo "AMBASSADOR: starting Envoy"
+#envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
+#pids="${pids:+${pids} }$!:envoy"
 
 echo "AMBASSADOR: starting diagd"
-diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $AMBEX_PID $DIAGD_DEBUG $DIAGD_K8S --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+
+diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_K8S \
+      --snapshot-path "${SNAPSHOT_DIR}" \
+      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
 # Wait for diagd to start
@@ -211,7 +226,7 @@ else
     echo "AMBASSADOR: diagd running"
 fi
 
-if [ -z "${AMBASSADOR_NO_KUBERNETES}" ]; then
+if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
     KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
 
     KUBEWATCH_NAMESPACE_ARG=""

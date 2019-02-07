@@ -476,7 +476,7 @@ class KubeWatcher:
 
 
 @click.command()
-@click.argument("mode", type=click.Choice(["sync", "watch"]))
+@click.argument("mode", type=click.Choice(["cluster-id", "sync", "watch"]))
 @click.argument("ambassador_config_dir")
 @click.argument("envoy_config_file")
 @click.option("--debug", is_flag=True,
