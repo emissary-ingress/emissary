@@ -57,9 +57,16 @@ commands:
           trap 'make unclaim' EXIT
           set -x
           make check
+      - run:
+          name: "gather logs"
+          when: always
+          command: |
+            rsync -ma --include='*/' --include='*.tap' --include='*.log' --exclude='*' . /tmp/test-logs
+      - store_artifacts:
+          path: /tmp/test-logs
+          destination: test-logs
       # Verify that the build is still not dirty
       - run: make help
-
   release:
     steps:
       - run: |
