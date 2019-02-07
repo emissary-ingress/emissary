@@ -88,22 +88,39 @@ apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.y
 
 HAVE_DOCKER := $(shell which docker 2>/dev/null)
 
-test-suite.tap: $(patsubst %.test,%.tap,$(wildcard tests/*.test))
-test-suite.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/*.tap.gen))
+test-suite.tap: tests/local.tap tests/cluster.tap
 
-tests/oauth-e2e/node_modules: tests/oauth-e2e/package.json $(wildcard tests/oauth-e2e/package-lock.json)
+check-local: ## Check: Run only tests that do not talk to the cluster
+check-local: tests/local-all.tap.summary
+.PHONY: check-local
+tests/local-all.tap: build-aux/go-test.tap tests/local.tap
+	./build-aux/tap-driver cat $^ > $@
+tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
+tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
+tests/local.tap:
+	./build-aux/tap-driver cat $^ > $@
+
+check-cluster: ## Check: Run only tests that talk to the cluster
+check-cluster: tests/cluster.tap.summary
+.PHONY: check-cluster
+tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
+tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
+tests/cluster.tap:
+	./build-aux/tap-driver cat $^ > $@
+$(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen)): $(if $(HAVE_DOCKER),deploy proxy)
+$(patsubst %.test,%.log,$(wildcard tests/cluster/*.test)): $(if $(HAVE_DOCKER),deploy proxy)
+
+tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
 	@touch $@
-
-tests/oauth-e2e.tap: $(if $(HAVE_DOCKER),tests/oauth-e2e/node_modules deploy proxy)
-tests/consul-e2e.tap: $(if $(HAVE_DOCKER),deploy proxy)
-tests/loop-intercept.tap: $(if $(HAVE_DOCKER),deploy proxy)
+tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 
 #
 # Clean
 
 clean:
+	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/traffic-proxy/traffic-proxy
 	rm -f docker/app-sidecar/app-sidecar
 	rm -f docker/amb-sidecar/amb-sidecar
@@ -112,6 +129,9 @@ clean:
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-02-07
+	rm -rf tests/oauth-e2e/node_modules
+	rmdir tests/oauth-e2e || true
 # 2019-01-23
 	rm -f docker/traffic-proxy/proxy
 # 2019-01-23
@@ -143,7 +163,7 @@ clean:
 	rm -f docker/traffic-sidecar/ambex
 clobber:
 	rm -f docker/app-sidecar/ambex
-	rm -rf tests/oauth-e2e/node_modules
+	rm -rf tests/cluster/oauth-e2e/node_modules
 
 #
 # Release

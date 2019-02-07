@@ -6,7 +6,7 @@ if ! type docker &>/dev/null; then
 	exit 77
 fi
 
-cd "${BASH_SOURCE%/*}/.."
+cd "${BASH_SOURCE%/*}/../.."
 set -a
 source ./k8s-env.sh
 set +a
