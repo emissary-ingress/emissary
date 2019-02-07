@@ -21,16 +21,45 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.38.0
+    image: quay.io/datawire/ambassador:0.50.1
     ports:
     # expose port 80 via 8080 on the host machine
     - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
+    environment:
+    # don't try to watch Kubernetes for configuration changes
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
 Note the mounted volume. When Ambassador bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
+
+Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
+
+### Create the initial configuration
+
+Ambassador will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
+
+Create a `config` folder (which must match the mounted volume in the `docker-compose.yaml` file) and add a file called `ambassador.yaml` to the directory.
+(Note: Configuration files can have any name or combined into the same yaml file)
+
+```bash
+mkdir config
+touch config/ambassador.yaml
+```
+
+Set the contents of the `config/ambassador.yaml` to this yaml configuration:
+
+```yaml
+---
+apiVersion: ambassador/v0
+kind: Module
+name: ambassador
+config: {}
+```
+
+This will allow Ambassador to come up with a completely default configuration.
 
 ### Test using Ambassador's Diagnostics
 
@@ -56,15 +85,7 @@ x-envoy-upstream-service-time: 10
 
 Let's turn off the diagnostics page to demonstrate how we will enable and configure Ambassador.
 
-Create a `config` folder (which must match the mounted volume in the `docker-compose.yaml` file) and add a file called `ambassador.yaml` to the directory.
-(Note: Configuration files can have any name or combined into the same yaml file)
-
-```bash
-mkdir config
-touch config/ambassador.yaml
-```
-
-Set the contents of the `config/ambassador.yaml` to this yaml configuration:
+Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
 
 ```yaml
 ---
@@ -143,12 +164,15 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.38.0
+    image: quay.io/datawire/ambassador:0.50.1
     ports:
     - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
+    environment:
+    # don't try to watch Kubernetes for configuration changes
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   qotm:
     image: datawire/qotm:1.3
     ports:
@@ -227,12 +251,15 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.38.0
+    image: quay.io/datawire/ambassador:0.50.1
     ports:
     - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
+    environment:
+    # don't try to watch Kubernetes for configuration changes
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   qotm:
     image: datawire/qotm:1.3
     ports:
@@ -312,12 +339,15 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.38.0
+    image: quay.io/datawire/ambassador:0.50.1
     ports:
     - 8080:80
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
+    environment:
+    # don't try to watch Kubernetes for configuration changes
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch   
   qotm:
     image: datawire/qotm:1.3
     ports:
