@@ -75,10 +75,10 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 # Deploy
 
 # Generate the TLS secret
-%/cert.pem %/key.pem: | %
-	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.standalone.svc.cluster.local"
-%/02-ambassador-certs.yaml: %/cert.pem %/key.pem
-	kubectl --namespace=standalone create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
+%/cert.pem %/key.pem: %/namespace.txt
+	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.$$(cat $<).svc.cluster.local"
+%/02-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
+	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
 deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
 apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
