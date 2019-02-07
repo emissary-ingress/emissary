@@ -347,7 +347,7 @@ services:
     - ./config:/ambassador/ambassador-config
     environment:
     # don't try to watch Kubernetes for configuration changes
-    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch   
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   qotm:
     image: datawire/qotm:1.3
     ports:
