@@ -111,6 +111,20 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
+## [0.50.1] February 7, 2019
+[0.50.1]: https://github.com/datawire/ambassador/compare/0.50.0...0.50.1
+
+### Changes since 0.50.0
+
+- Ambassador defaults to only doing IPv4 DNS lookups. IPv6 can be enabled in the Ambassador module or in a Mapping. ([#944])
+- An invalid Envoy configuration should not cause Ambassador to hang.
+- Testing using `docker run` and `docker compose` is supported again. ([#1160])
+- Configuration from the filesystem is supported again, but see the "Running Ambassador" documentation for more.
+- Datawire's default Ambassador YAML no longer asks for any permissions for `ConfigMap`s.
+
+[#944]: https://github.com/datawire/ambassador/issues/944
+[#1160]: https://github.com/datawire/ambassador/issues/1160
+
 ## [0.50.0] January 29, 2019
 [0.50.0]: https://github.com/datawire/ambassador/compare/0.50.0-rc6...0.50.0
 
