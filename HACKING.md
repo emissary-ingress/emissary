@@ -10,9 +10,9 @@
    Help text` usage comment.  See `help.mk` for more information.
  - Wrap your `.mk` files in
 
-       ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-       …
-	   endif
+		ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+		…
+		endif
 
    include guards to make sure they are only included once; similar to
    how you would with a C header file.
@@ -26,6 +26,9 @@
  - `test` is the POSIX `test(1)` command.  Don't use it as a Makefile
    rule name.
  - (That is, use "check" as a *verb*, and "test" as a *noun*.)
+ - Internal "private" variables should be named `_snippet-name.VAR`;
+   for example, a variable internal to `k8s.mk` might be named
+   `_k8s.push`.
 
 ## Compatibility
 

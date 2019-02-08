@@ -13,7 +13,8 @@ VERSION ?= $(patsubst v%,%,$(shell git describe --tags --always))$(if $(shell gi
 
 define _version.ci_error
 $(warning Build is dirty:)
-$(shell git status -s >&2)
+$(shell git add . >&2)
+$(shell PAGER= git diff --cached >&2)
 $(error This should not happen in CI: the build should not be dirty)
 endef
 
