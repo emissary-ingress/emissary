@@ -43,6 +43,7 @@ status-cluster:
 		echo "Cluster not claimed."; \
 		exit 1; \
 	fi
+.PHONY: status-cluster
 
 clean: unclaim
 

@@ -64,6 +64,7 @@ status-proxy:
 		echo "Proxy not running."; \
 		exit 1; \
 	fi
+.PHONY: status-proxy
 
 $(KUBECONFIG).clean: unproxy
 
