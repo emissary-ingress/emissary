@@ -16,6 +16,7 @@ type Config struct {
 	AmbassadorNamespace       string
 	AmbassadorSingleNamespace bool
 
+	// Auth
 	AuthProviderURL string
 	IssuerURL       string
 	LogLevel        string
@@ -24,6 +25,9 @@ type Config struct {
 	PubKPath        string
 	BaseURL         *url.URL
 	StateTTL        time.Duration
+
+	// Rate Limit
+	Output string
 
 	Error error
 }

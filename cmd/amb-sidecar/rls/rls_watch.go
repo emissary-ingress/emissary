@@ -15,6 +15,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
@@ -38,32 +39,14 @@ func max(a, b int) int {
 	}
 }
 
-type ControllerConfig struct {
-	AmbassadorID              string
-	AmbassadorNamespace       string
-	AmbassadorSingleNamespace bool
-}
-
-func DoWatch(_rlslog logrus.FieldLogger, output string) error {
+func DoWatch(cfg *types.Config, _rlslog logrus.FieldLogger) error {
 	rlslog = _rlslog
 
 	w := k8s.NewClient(nil).Watcher()
 
-	controllerConfig := ControllerConfig{
-		AmbassadorID:              os.Getenv("AMBASSADOR_ID"),
-		AmbassadorNamespace:       os.Getenv("AMBASSADOR_NAMESPACE"),
-		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
-	}
-	if controllerConfig.AmbassadorID == "" {
-		controllerConfig.AmbassadorID = "default"
-	}
-	if controllerConfig.AmbassadorNamespace == "" {
-		controllerConfig.AmbassadorNamespace = "default"
-	}
-
 	count := 0
 
-	matches, err := filepath.Glob(fmt.Sprintf("%s-*", output))
+	matches, err := filepath.Glob(fmt.Sprintf("%s-*", cfg.Output))
 	if err != nil {
 		rlslog.Printf("warning: %v", err)
 	} else {
@@ -88,10 +71,10 @@ func DoWatch(_rlslog logrus.FieldLogger, output string) error {
 				rlslog.Errorln(errors.Wrap(err, "malformed ratelimit resource spec"))
 				continue
 			}
-			if controllerConfig.AmbassadorSingleNamespace && r.Namespace() != controllerConfig.AmbassadorNamespace {
+			if cfg.AmbassadorSingleNamespace && r.Namespace() != cfg.AmbassadorNamespace {
 				continue
 			}
-			if !spec.AmbassadorID.Matches(controllerConfig.AmbassadorID) {
+			if !spec.AmbassadorID.Matches(cfg.AmbassadorID) {
 				continue
 			}
 
@@ -100,7 +83,7 @@ func DoWatch(_rlslog logrus.FieldLogger, output string) error {
 		}
 
 		count += 1
-		realout := fmt.Sprintf("%s-%d/config", output, count)
+		realout := fmt.Sprintf("%s-%d/config", cfg.Output, count)
 		err = os.MkdirAll(realout, 0775)
 		rlsdie(err)
 
@@ -112,11 +95,11 @@ func DoWatch(_rlslog logrus.FieldLogger, output string) error {
 			rlsdie(err)
 		}
 
-		err = os.Remove(output)
+		err = os.Remove(cfg.Output)
 		if err != nil {
 			rlslog.Println(err)
 		}
-		err = os.Symlink(filepath.Dir(realout), output)
+		err = os.Symlink(filepath.Dir(realout), cfg.Output)
 		rlsdie(err)
 	})
 	w.Wait()
