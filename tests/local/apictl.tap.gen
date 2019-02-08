@@ -13,6 +13,7 @@ n=0
 do_test() {
 	local name=$1
 	shift
+	n=$((n+1))
 	if "$@" | sed 's/%/# /'; then
 		echo "ok $n $name"
 	else
