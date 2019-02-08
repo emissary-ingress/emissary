@@ -8,9 +8,10 @@
 #  - Variable: KUBECONFIG
 #  - Variable: KUBE_URL
 ## Outputs ##
-#  - Target       : $(TELERPOXY)
+#  - Target       : $(TELEPROXY)
 #  - .PHONY Target: proxy
 #  - .PHONY Target: unproxy
+#  - .PHONY Target: status-proxy
 ## common.mk targets ##
 #  - clean
 #  - clobber
@@ -52,7 +53,7 @@ unproxy: ## (Kubernaut) Shut down 'proxy'
 	@sleep 1
 .PHONY: unproxy
 
-status-proxy:
+status-proxy: ## (Kubernaut) Fail if cluster connectivity is broken or Teleproxy is not running
 	@if curl -o /dev/null -s --connect-timeout 1 127.254.254.254; then \
 		if curl -o /dev/null -sk $(KUBE_URL); then \
 			echo "Proxy okay!"; \
