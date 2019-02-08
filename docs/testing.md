@@ -5,12 +5,12 @@ in your own tests, and have them aggregated and summarized, like:
 
 	$ make check
 	...
-	PASS: go-test 5 -  github.com/datawire/apro/cmd/amb-sidecar.TestAppNoToken # 2019-02-07T18:56:12.496677123 (0s) 
-	PASS: go-test 6 -  github.com/datawire/apro/cmd/amb-sidecar.TestAppBadToken # 2019-02-07T18:56:12.496701826 (0s) 
-	PASS: go-test 7 -  github.com/datawire/apro/cmd/amb-sidecar.TestAppBadCookie # 2019-02-07T18:56:12.496726860 (0s) 
-	PASS: go-test 8 -  github.com/datawire/apro/cmd/amb-sidecar.TestAppCallback # 2019-02-07T18:56:12.496751744 (0s) 
-	PASS: go-test 9 -  github.com/datawire/apro/cmd/amb-sidecar.TestAppCallbackNoCode # 2019-02-07T18:56:12.496781729 (0s) 
-	PASS: tests/local/apictl.tap.gen 0 -  check_version
+	PASS: go-test 5 - github.com/datawire/apro/cmd/amb-sidecar.TestAppNoToken
+	PASS: go-test 6 - github.com/datawire/apro/cmd/amb-sidecar.TestAppBadToken
+	PASS: go-test 7 - github.com/datawire/apro/cmd/amb-sidecar.TestAppBadCookie
+	PASS: go-test 8 - github.com/datawire/apro/cmd/amb-sidecar.TestAppCallback
+	PASS: go-test 9 - github.com/datawire/apro/cmd/amb-sidecar.TestAppCallbackNoCode
+	PASS: tests/local/apictl.tap.gen 1 - check_version
 	============================================================================
 	test-suite summary
 	============================================================================
@@ -92,7 +92,7 @@ stream -n TEST_GROUP_NAME` to pretty-print the results as they happen:
 	# Tell Make how to run the test command, and stream the results to
 	# `tap-driver stream` to pretty-print the results as they happen.
 	my-test.tap: my-test.input FORCE
-		SOME_COMMAND_THAT_EMITS_TAP 2>&1 | tee $@ | build-aux/tap-driver stream -n my-test
+		@SOME_COMMAND_THAT_EMITS_TAP 2>&1 | tee $@ | build-aux/tap-driver stream -n my-test
 
 	# Tell Make to include 'my-test' in `make check`
 	test-suite.tap: my-test.tap
@@ -101,7 +101,7 @@ For example, to use [BATS (Bash Automated Testing System)][BATS], you
 would write:
 
 	%.tap: %.bats FORCE
-		bats --tap $< | tee $@ | build-aux/tap-driver stream -n $<
+		@bats --tap $< | tee $@ | build-aux/tap-driver stream -n $<
 
 	# Automatically include `./tests/*.bats`
 	test-suite.tap: $(patsubst %.bats,%.tap,$(wildcard tests/*.bats))
