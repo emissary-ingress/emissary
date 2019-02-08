@@ -82,10 +82,13 @@ go-fmt: go-get
 .PHONY: go-fmt
 
 go-test: ## (Go) Check the code with `go test`
-go-test: go-get $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-common.mk))go-test.tap.summary)
+go-test: go-build
+ifneq ($(go.DISABLE_GO_TEST),)
+	$(MAKE) $(dir $(_go-common.mk))go-test.tap.summary
+endif
 
-$(dir $(_go-common.mk))go-test.tap: go-build FORCE
-	go test -json $(go.pkgs) 2>&1 | GO111MODULE=off go run $(dir $(_go-common.mk))gotest2tap.go | tee $@ | $(dir $(_go-common.mk))tap-driver stream -n go-test
+$(dir $(_go-common.mk))go-test.tap: FORCE
+	@go test -json $(go.pkgs) 2>&1 | GO111MODULE=off go run $(dir $(_go-common.mk))gotest2tap.go | tee $@ | $(dir $(_go-common.mk))tap-driver stream -n go-test
 
 #
 # Hook in to common.mk
@@ -93,6 +96,7 @@ $(dir $(_go-common.mk))go-test.tap: go-build FORCE
 build: go-build
 lint: go-lint
 format: go-fmt
+test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-common.mk))go-test.tap)
 
 clean: _clean-go-common
 _clean-go-common:
@@ -109,4 +113,3 @@ _clobber-go-common:
 	rm -f $(dir $(_go-common.mk))golangci-lint
 .PHONY: _clobber-go-common
 
-test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-common.mk))go-test.tap)

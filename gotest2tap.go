@@ -51,7 +51,7 @@ func main() {
 				Output)
 		} else {
 			Name := event.Package + "." + event.Test
-			// TODO(lukeshu): I think maybe this should also handel "bench"?
+			// TODO(lukeshu): I think maybe this should also handle "bench"?
 			switch event.Action {
 			case "pass":
 				testCnt++
