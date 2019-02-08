@@ -22,6 +22,7 @@ include build-aux/help.mk
 
 status: ## Report on the status of Kubernaut and Teleproxy
 status: status-cluster status-proxy
+.PHONY: status
 
 #
 # Lyft
