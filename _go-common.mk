@@ -83,7 +83,7 @@ go-fmt: go-get
 
 go-test: ## (Go) Check the code with `go test`
 go-test: go-build
-ifneq ($(go.DISABLE_GO_TEST),)
+ifeq ($(go.DISABLE_GO_TEST),)
 	$(MAKE) $(dir $(_go-common.mk))go-test.tap.summary
 endif
 
