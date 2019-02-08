@@ -5,7 +5,7 @@ NAME            = ambassador-pro
 DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
-K8S_DIRS        = k8s-sidecar k8s-standalone
+K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
@@ -84,8 +84,8 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 %/02-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
 	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
-apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
+deploy: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
+apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
 
 #
 # Check
