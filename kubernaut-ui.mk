@@ -9,6 +9,7 @@
 #  - .PHONY Target: claim
 #  - .PHONY Target: unclaim
 #  - .PHONY Target: shell
+#  - .PHONY Target: status-cluster
 ## common.mk targets ##
 #  - clean
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
@@ -31,7 +32,7 @@ shell: $(KUBECONFIG)
 	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " bash
 .PHONY: shell
 
-status-cluster:
+status-cluster: ## (Kubernaut) Fail if the cluster is not reachable or not claimed
 	@if [ -e $(KUBECONFIG) ] ; then \
 		if kubectl get pods connectivity-check --ignore-not-found; then \
 			echo "Cluster okay!"; \
