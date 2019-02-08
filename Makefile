@@ -20,6 +20,9 @@ include build-aux/help.mk
 
 .DEFAULT_GOAL = help
 
+status: ## Report on the status of Kubernaut and Teleproxy
+status: status-cluster status-proxy
+
 #
 # Lyft
 
