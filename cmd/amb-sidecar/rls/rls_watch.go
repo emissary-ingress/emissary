@@ -29,7 +29,7 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(ctx context.Context, cfg *types.Config, _rlslog types.Logger) error {
+func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error {
 	rlslog = _rlslog
 
 	w := k8s.NewClient(nil).Watcher()

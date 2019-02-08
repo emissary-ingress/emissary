@@ -21,7 +21,7 @@ import (
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
 	Logger  types.Logger
-	Config  *types.Config
+	Config  types.Config
 	Rules   atomic.Value
 	Tenants atomic.Value
 }

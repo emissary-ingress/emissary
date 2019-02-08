@@ -93,7 +93,7 @@ func init() {
 //  - register goroutines with `group`
 func cmdAuth(
 	hardCtx, softCtx context.Context, group *errgroup.Group, // for keeping track of goroutines
-	authCfg *types.Config, // config, tells us what to do
+	authCfg types.Config, // config, tells us what to do
 	l types.Logger, // where to log to
 ) error {
 	// The gist here is that we have 2 main goroutines:

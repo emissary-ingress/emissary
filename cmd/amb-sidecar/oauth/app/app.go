@@ -18,7 +18,7 @@ import (
 
 // App is used to wire up all the cmd application components.
 type App struct {
-	Config     *types.Config
+	Config     types.Config
 	Logger     types.Logger
 	Controller *controller.Controller
 
@@ -29,9 +29,6 @@ type App struct {
 
 // Handler returns an app handler that should be consumed by an HTTP server.
 func (a *App) Handler() (http.Handler, error) {
-	if a.Config == nil {
-		panic("config object cannot be nil")
-	}
 	if a.Logger == nil {
 		panic("logger object cannot be nil")
 	}

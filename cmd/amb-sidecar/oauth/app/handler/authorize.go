@@ -21,7 +21,7 @@ const (
 
 // Authorize is the last handler in the chain of the authorization server.
 type Authorize struct {
-	Config *types.Config
+	Config types.Config
 	Logger types.Logger
 	Ctrl   *controller.Controller
 	Secret *secret.Secret

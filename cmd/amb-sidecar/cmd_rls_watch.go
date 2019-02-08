@@ -17,7 +17,7 @@ var watch = &cobra.Command{
 	Use:   "rls-watch",
 	Short: "Watch RateLimit CRD files",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := &types.Config{
+		cfg := types.Config{
 			AmbassadorID:              os.Getenv("AMBASSADOR_ID"),
 			AmbassadorNamespace:       os.Getenv("AMBASSADOR_NAMESPACE"),
 			AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",

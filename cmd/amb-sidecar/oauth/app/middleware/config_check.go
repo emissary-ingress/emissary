@@ -10,7 +10,7 @@ import (
 // CheckConfig verifies that configuration is set and display a friendly error
 // message
 type CheckConfig struct {
-	Config *types.Config
+	Config types.Config
 }
 
 func (c *CheckConfig) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
