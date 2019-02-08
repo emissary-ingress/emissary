@@ -13,42 +13,39 @@ import (
 )
 
 func init() {
-	cmd := &cobra.Command{
+	argparser.AddCommand(&cobra.Command{
 		Use:   "auth",
 		Short: "Run OAuth service",
-	}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l := logrus.New()
+			l.SetFormatter(&logrus.TextFormatter{
+				TimestampFormat: "2006-01-02 15:04:05",
+				FullTimestamp:   true,
+			})
 
-	cmd.RunE = func(*cobra.Command, []string) error {
-		l := logrus.New()
-		l.SetFormatter(&logrus.TextFormatter{
-			TimestampFormat: "2006-01-02 15:04:05",
-			FullTimestamp:   true,
-		})
+			cfg, warn, fatal := types.ConfigFromEnv()
+			for _, err := range warn {
+				l.Warnln("config error:", err)
+			}
+			for _, err := range fatal {
+				l.Errorln("config error:", err)
+			}
+			if len(fatal) > 0 {
+				return fatal[len(fatal)-1]
+			}
 
-		cfg, warn, fatal := types.ConfigFromEnv()
-		for _, err := range warn {
-			l.Warnln("config error:", err)
-		}
-		for _, err := range fatal {
-			l.Errorln("config error:", err)
-		}
-		if len(fatal) > 0 {
-			return fatal[len(fatal)-1]
-		}
+			// cfg.LogLevel has already been validated in
+			// ConfigFromEnv(), no need to error-check.
+			level, _ := logrus.ParseLevel(cfg.LogLevel)
+			l.SetLevel(level)
 
-		// cfg.LogLevel has already been validated in
-		// ConfigFromEnv(), no need to error-check.
-		level, _ := logrus.ParseLevel(cfg.LogLevel)
-		l.SetLevel(level)
-
-		group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
-			return types.WrapLogrus(l)
-		})
-		cmdAuth(group)
-		return group.Wait()
-	}
-
-	argparser.AddCommand(cmd)
+			group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
+				return types.WrapLogrus(l)
+			})
+			cmdAuth(group)
+			return group.Wait()
+		},
+	})
 }
 
 // cmdAuth runs the auth service.
