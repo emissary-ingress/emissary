@@ -23,7 +23,7 @@ const (
 
 // Secret pointer to struct contains methods and fields to manage public and private keys.
 type Secret struct {
-	config      *types.Config
+	config      types.Config
 	logger      types.Logger
 	privateKey  *rsa.PrivateKey
 	publicKey   *rsa.PublicKey
@@ -34,7 +34,7 @@ type Secret struct {
 var instance *Secret
 
 // New returns singleton instance of secret.
-func New(cfg *types.Config, log types.Logger) (*Secret, error) {
+func New(cfg types.Config, log types.Logger) (*Secret, error) {
 	if instance == nil {
 		instance = &Secret{config: cfg, logger: log}
 		if cfg.PubKPath != "" && cfg.PvtKPath != "" {

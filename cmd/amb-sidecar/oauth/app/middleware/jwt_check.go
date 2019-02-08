@@ -19,7 +19,7 @@ import (
 type JWTCheck struct {
 	Logger    types.Logger
 	Discovery *discovery.Discovery
-	Config    *types.Config
+	Config    types.Config
 	IssuerURL string
 }
 
