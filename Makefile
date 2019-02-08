@@ -21,7 +21,7 @@ include build-aux/help.mk
 .DEFAULT_GOAL = help
 
 status: ## Report on the status of Kubernaut and Teleproxy
-status: status-proxy
+status: status-proxy status-pro-tel
 .PHONY: status
 
 #
@@ -86,6 +86,49 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 
 deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
 apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
+
+# Deploy with the standalone Pro container replaced with Telepresence
+launch-pro-tel:
+	rm -f pro-env.sh
+	telepresence \
+		--logfile build-aux/tel-pro.log --env-file pro-env.sh \
+		--namespace standalone -d ambassador-pro -m inject-tcp --mount false \
+		--expose 6070 --expose 8080 --expose 8081 --expose 38888 \
+		--run python3 -m http.server --bind 127.0.0.1 --directory build-aux/docs 38888 \
+		> /dev/null 2>&1 &
+	@for i in $$(seq 127); do \
+		if curl -s -o /dev/null localhost:38888; then \
+			exit 0; \
+		fi; \
+		sleep 1; \
+	done; echo "ERROR: Telepresence failed. See build-aux/tel-pro.log"; exit 1
+	@if [ -s pro-env.sh ]; then \
+		echo "KUBECONFIG=$(KUBECONFIG)" >> pro-env.sh; \
+	else \
+		echo "ERROR: Telepresence did not populate pro-env.sh"; \
+		exit 1; \
+	fi
+kill-pro-tel: ## (LocalDev) Kill the running Telepresence
+	pkill -f tel-pro.log || true
+tail-pro-tel: ## (LocalDev) Tail the logs of the running/last Telepresence
+	tail build-aux/tel-pro.log
+status-pro-tel: ## (LocalDev) Fail if Telepresence is not running
+	@if curl -s -o /dev/null localhost:38888; then \
+		echo "Telepresence okay!"; \
+	else \
+		echo "Telepresence is not running."; \
+		exit 1; \
+	fi
+clean: kill-pro-tel
+deploy-local-pro: ## (LocalDev) deploy, proxy, Telepresence in place of Pro standalone container
+	env USE_TEL_FOR_PRO=1 make deploy proxy
+	make launch-pro-tel
+	@echo
+	@echo "Launch auth:"
+	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
+	@echo "Kill Telepresence:"
+	@echo "  make kill-pro-tel"
+.PHONY: launch-pro-tel kill-pro-tel tail-pro-tel deploy-local-pro
 
 #
 # Check
