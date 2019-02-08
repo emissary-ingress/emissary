@@ -113,6 +113,7 @@ build-aux/tel-pro.pid: apply proxy
 	done; echo "ERROR: Telepresence failed. See build-aux/tel-pro.log"; exit 1
 	@if [ -s pro-env.tmp ]; then \
 		echo "KUBECONFIG=$(KUBECONFIG)" >> pro-env.tmp; \
+		echo "RLS_RUNTIME_DIR=/bogus" >> pro-env.tmp; \
 		mv -f pro-env.tmp pro-env.sh; \
 	elif ! grep -q "^KUBECONFIG=" pro-env.sh; then \
 		echo "ERROR: Telepresence did not populate pro-env.tmp"; \

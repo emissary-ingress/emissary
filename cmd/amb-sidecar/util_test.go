@@ -95,9 +95,12 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 	os.Setenv("RLS_RUNTIME_DIR", "/bogus")
 
-	c, errs := types.ConfigFromEnv()
-	if len(errs) > 0 {
-		return nil, nil, errs[len(errs)-1]
+	c, warn, fatal := types.ConfigFromEnv()
+	if len(fatal) > 0 {
+		return nil, nil, fatal[len(fatal)-1]
+	}
+	if len(warn) > 0 {
+		return nil, nil, warn[len(warn)-1]
 	}
 
 	l := types.WrapLogrus(logrus.New())

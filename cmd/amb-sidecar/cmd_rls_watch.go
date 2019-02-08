@@ -14,17 +14,20 @@ var watch = &cobra.Command{
 	Use:   "rls-watch",
 	Short: "Watch RateLimit CRD files",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger := types.WrapLogrus(logrus.New())
-		cfg, errs := types.ConfigFromEnv()
-		for _, err := range errs {
-			// This is only fatal if cfg.Output == ""
-			// (see below)
-			logger.Errorln("config error:", err)
+		l := types.WrapLogrus(logrus.New())
+
+		cfg, warn, fatal := types.ConfigFromEnv()
+		for _, err := range warn {
+			l.Warnln("config error:", err)
 		}
-		if cfg.Output == "" {
-			return errs[len(errs)-1]
+		for _, err := range fatal {
+			l.Errorln("config error:", err)
 		}
-		return rls.DoWatch(context.Background(), cfg, logger)
+		if len(fatal) > 0 {
+			return fatal[len(fatal)-1]
+		}
+
+		return rls.DoWatch(context.Background(), cfg, l)
 	},
 }
 

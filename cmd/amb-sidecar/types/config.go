@@ -34,10 +34,8 @@ func getenvDefault(varname, def string) string {
 	return ret
 }
 
-func ConfigFromEnv() (Config, []error) {
-	var errs []error
-
-	ret := Config{
+func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
+	cfg = Config{
 		AmbassadorID:              getenvDefault("AMBASSADOR_ID", "default"),
 		AmbassadorNamespace:       getenvDefault("AMBASSADOR_NAMESPACE", "default"),
 		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
@@ -55,30 +53,30 @@ func ConfigFromEnv() (Config, []error) {
 		Output: os.Getenv("RLS_RUNTIME_DIR"),
 	}
 
-	u, err := url.Parse(ret.AuthProviderURL)
+	u, err := url.Parse(cfg.AuthProviderURL)
 	switch {
 	case err != nil:
-		errs = append(errs, errors.Wrap(err, "invalid AUTH_PROVIDER_URL (disabling auth service)"))
+		fatal = append(fatal, errors.Wrap(err, "invalid AUTH_PROVIDER_URL (aborting)"))
 	case u.Scheme == "":
-		errs = append(errs, errors.Errorf("invalid AUTH_PROVIDER_URL (disabling auth service): missing scheme. Format is `SCHEME://HOST[:PORT]'. Got: %v", ret.AuthProviderURL))
+		fatal = append(fatal, errors.Errorf("invalid AUTH_PROVIDER_URL (aborting): missing scheme. Format is `SCHEME://HOST[:PORT]'. Got: %v", cfg.AuthProviderURL))
 	default:
-		ret.BaseURL = u
+		cfg.BaseURL = u
 	}
 
-	if _, err := logrus.ParseLevel(ret.LogLevel); err != nil {
-		errs = append(errs, errors.Wrap(err, "invalid APP_LOG_LEVEL (falling back to default \"info\")"))
-		ret.LogLevel = "info"
+	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid APP_LOG_LEVEL (falling back to default \"info\")"))
+		cfg.LogLevel = "info"
 	}
 
-	ret.StateTTL, err = time.ParseDuration(getenvDefault("AUTH_STATE_TTL", "5m"))
+	cfg.StateTTL, err = time.ParseDuration(getenvDefault("AUTH_STATE_TTL", "5m"))
 	if err != nil {
-		errs = append(errs, errors.Wrap(err, "invalid AUTH_STATE_TTL (falling back to default \"5m\")"))
-		ret.StateTTL = 5 * time.Minute
+		warn = append(warn, errors.Wrap(err, "invalid AUTH_STATE_TTL (falling back to default \"5m\")"))
+		cfg.StateTTL = 5 * time.Minute
 	}
 
-	if ret.Output == "" {
-		errs = append(errs, errors.Errorf("must set RLS_RUNTIME_DIR (disabling ratelimit service)"))
+	if cfg.Output == "" {
+		fatal = append(fatal, errors.Errorf("must set RLS_RUNTIME_DIR (aborting)"))
 	}
 
-	return ret, errs
+	return cfg, warn, fatal
 }

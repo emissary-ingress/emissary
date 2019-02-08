@@ -25,12 +25,15 @@ func init() {
 			FullTimestamp:   true,
 		})
 
-		cfg, errs := types.ConfigFromEnv()
-		for _, err := range errs {
-			// This is a non-fatal error.  Even with an
-			// invalid configuration, we continue to run,
-			// but serve a 5XX error page.
+		cfg, warn, fatal := types.ConfigFromEnv()
+		for _, err := range warn {
+			l.Warnln("config error:", err)
+		}
+		for _, err := range fatal {
 			l.Errorln("config error:", err)
+		}
+		if len(fatal) > 0 {
+			return fatal[len(fatal)-1]
 		}
 
 		// cfg.LogLevel has already been validated in
