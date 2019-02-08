@@ -29,7 +29,7 @@ var watch = &cobra.Command{
 		if cfg.AmbassadorNamespace == "" {
 			cfg.AmbassadorNamespace = "default"
 		}
-		return rls.DoWatch(context.Background(), cfg, logrus.New())
+		return rls.DoWatch(context.Background(), cfg, types.WrapLogrus(logrus.New()))
 	},
 }
 

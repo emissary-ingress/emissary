@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
@@ -20,17 +19,7 @@ import (
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
-var rlslog logrus.FieldLogger
-
-func rlsdie(err error, args ...interface{}) {
-	if err != nil {
-		if args != nil {
-			rlslog.Fatalf("%v: %v\n", err, args)
-		} else {
-			rlslog.Fatalln(err)
-		}
-	}
-}
+var rlslog types.Logger
 
 func max(a, b int) int {
 	if a > b {
@@ -40,7 +29,7 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(ctx context.Context, cfg *types.Config, _rlslog logrus.FieldLogger) error {
+func DoWatch(ctx context.Context, cfg *types.Config, _rlslog types.Logger) error {
 	rlslog = _rlslog
 
 	w := k8s.NewClient(nil).Watcher()
@@ -63,6 +52,7 @@ func DoWatch(ctx context.Context, cfg *types.Config, _rlslog logrus.FieldLogger)
 
 	rlslog.Printf("initial count %d", count)
 
+	fatal := make(chan error)
 	w.Watch("ratelimits", func(w *k8s.Watcher) {
 		config := &Config{Domains: make(map[string]*Domain)}
 		for _, r := range w.List("ratelimits") {
@@ -86,14 +76,23 @@ func DoWatch(ctx context.Context, cfg *types.Config, _rlslog logrus.FieldLogger)
 		count += 1
 		realout := fmt.Sprintf("%s-%d/config", cfg.Output, count)
 		err = os.MkdirAll(realout, 0775)
-		rlsdie(err)
+		if err != nil {
+			fatal <- err
+			return
+		}
 
 		for _, domain := range config.Domains {
 			bytes, err := yaml.Marshal(domain)
-			rlsdie(err)
+			if err != nil {
+				fatal <- err
+				return
+			}
 			fname := filepath.Join(realout, fmt.Sprintf("config.%s.yaml", domain.Name))
 			err = ioutil.WriteFile(fname, bytes, 0644)
-			rlsdie(err)
+			if err != nil {
+				fatal <- err
+				return
+			}
 		}
 
 		err = os.Remove(cfg.Output)
@@ -101,16 +100,23 @@ func DoWatch(ctx context.Context, cfg *types.Config, _rlslog logrus.FieldLogger)
 			rlslog.Println(err)
 		}
 		err = os.Symlink(filepath.Dir(realout), cfg.Output)
-		rlsdie(err)
+		if err != nil {
+			fatal <- err
+			return
+		}
 	})
 
+	var reterr error
 	go func() {
-		<-ctx.Done()
+		select {
+		case <-ctx.Done():
+		case reterr = <-fatal:
+			rlslog.Errorln(reterr)
+		}
 		w.Stop()
 	}()
-
 	w.Wait()
-	return nil
+	return reterr
 }
 
 func SetSource(s *crd.RateLimitSpec, source string) {
