@@ -31,6 +31,19 @@ shell: $(KUBECONFIG)
 	@exec env -u MAKELEVEL PS1="(dev) [\W]$$ " bash
 .PHONY: shell
 
+status-cluster:
+	@if [ -e $(KUBECONFIG) ] ; then \
+		if kubectl get pods connectivity-check --ignore-not-found; then \
+			echo "Cluster okay!"; \
+		else \
+			echo "Cluster claimed but connectivity check failed."; \
+			exit 1; \
+		fi \
+	else \
+		echo "Cluster not claimed."; \
+		exit 1; \
+	fi
+
 clean: unclaim
 
 endif
