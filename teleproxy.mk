@@ -54,13 +54,14 @@ unproxy: ## (Kubernaut) Shut down 'proxy'
 .PHONY: unproxy
 
 status-proxy: ## (Kubernaut) Fail if cluster connectivity is broken or Teleproxy is not running
+status-proxy: status-cluster
 	@if curl -o /dev/null -s --connect-timeout 1 127.254.254.254; then \
 		if curl -o /dev/null -sk $(KUBE_URL); then \
 			echo "Proxy okay!"; \
 		else \
 			echo "Proxy up but connectivity check failed."; \
 			exit 1; \
-		fi \
+		fi; \
 	else \
 		echo "Proxy not running."; \
 		exit 1; \
