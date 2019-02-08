@@ -34,7 +34,7 @@ shell: $(KUBECONFIG)
 
 status-cluster: ## (Kubernaut) Fail if the cluster is not reachable or not claimed
 	@if [ -e $(KUBECONFIG) ] ; then \
-		if kubectl get pods connectivity-check --ignore-not-found; then \
+		if kubectl --request-timeout=1 get pods connectivity-check --ignore-not-found; then \
 			echo "Cluster okay!"; \
 		else \
 			echo "Cluster claimed but connectivity check failed."; \
