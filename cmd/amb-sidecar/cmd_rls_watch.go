@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ var watch = &cobra.Command{
 		if cfg.AmbassadorNamespace == "" {
 			cfg.AmbassadorNamespace = "default"
 		}
-		return rls.DoWatch(cfg, logrus.New())
+		return rls.DoWatch(context.Background(), cfg, logrus.New())
 	},
 }
 

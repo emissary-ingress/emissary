@@ -1,6 +1,7 @@
 package rls
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -39,7 +40,7 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(cfg *types.Config, _rlslog logrus.FieldLogger) error {
+func DoWatch(ctx context.Context, cfg *types.Config, _rlslog logrus.FieldLogger) error {
 	rlslog = _rlslog
 
 	w := k8s.NewClient(nil).Watcher()
@@ -102,6 +103,12 @@ func DoWatch(cfg *types.Config, _rlslog logrus.FieldLogger) error {
 		err = os.Symlink(filepath.Dir(realout), cfg.Output)
 		rlsdie(err)
 	})
+
+	go func() {
+		<-ctx.Done()
+		w.Stop()
+	}()
+
 	w.Wait()
 	return nil
 }
