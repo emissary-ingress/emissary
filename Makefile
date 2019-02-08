@@ -92,33 +92,30 @@ apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.y
 
 HAVE_DOCKER := $(shell which docker 2>/dev/null)
 
+check: $(if $(HAVE_DOCKER),deploy proxy)
 test-suite.tap: tests/local.tap tests/cluster.tap
 
 check-local: ## Check: Run only tests that do not talk to the cluster
-check-local: lint tests/local-all.tap.summary
+check-local: lint go-build
+	$(MAKE) tests/local-all.tap.summary
 .PHONY: check-local
 tests/local-all.tap: build-aux/go-test.tap tests/local.tap
-	./build-aux/tap-driver cat $^ > $@
+	@./build-aux/tap-driver cat $^ > $@
 tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
 tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
 tests/local.tap:
-	./build-aux/tap-driver cat $^ > $@
+	@./build-aux/tap-driver cat $^ > $@
 
-check-cluster: ## Check: Run only tests that talk to the cluster
-check-cluster: tests/cluster.tap.summary
-.PHONY: check-cluster
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
 tests/cluster.tap:
-	./build-aux/tap-driver cat $^ > $@
-$(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen)): $(if $(HAVE_DOCKER),deploy proxy)
-$(patsubst %.test,%.log,$(wildcard tests/cluster/*.test)): $(if $(HAVE_DOCKER),deploy proxy)
+	@./build-aux/tap-driver cat $^ > $@
 
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
 	@touch $@
-tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
+check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 
 #
 # Clean
