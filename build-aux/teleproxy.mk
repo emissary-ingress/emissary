@@ -52,6 +52,19 @@ unproxy: ## (Kubernaut) Shut down 'proxy'
 	@sleep 1
 .PHONY: unproxy
 
+status-proxy:
+	@if curl -o /dev/null -s --connect-timeout 1 127.254.254.254; then \
+		if curl -o /dev/null -sk $(KUBE_URL); then \
+			echo "Proxy okay!"; \
+		else \
+			echo "Proxy up but connectivity check failed."; \
+			exit 1; \
+		fi \
+	else \
+		echo "Proxy not running."; \
+		exit 1; \
+	fi
+
 $(KUBECONFIG).clean: unproxy
 
 clean: _clean-teleproxy
