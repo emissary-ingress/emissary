@@ -154,7 +154,7 @@ help-local-dev: ## (LocalDev) Describe how to use local dev features
 .PHONY: help-local-dev
 run-auth: ## (LocalDev) Build and launch the auth service locally
 run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
-	env $$(cat pro-env.sh) bin_$(GOOS)_$(GOARCH)/amb-sidecar auth --log_level debug
+	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOOS)_$(GOARCH)/amb-sidecar auth
 .PHONY: run-auth
 
 #

@@ -18,12 +18,12 @@ else
 	# Setting the PORT is important only because the default PORT
 	# is 8080, which would clash with auth.
 	launch USE_STATSD=false RUNTIME_ROOT=/run/amb/config RUNTIME_SUBDIRECTORY=config PORT=7000 "$exe" ratelimit
-	launch "$exe" rls-watch -o /run/amb/config
+	launch RLS_RUNTIME_DIR=/run/amb/config "$exe" rls-watch
 fi
 if test -z "$AUTH_PROVIDER_URL"; then
 	echo 'Warning: ${AUTH_PROVIDER_URL} is not set; not starting auth service'
 else
-	launch "$exe" auth
+	launch RLS_RUNTIME_DIR=/run/amb/config "$exe" auth
 fi
 
 # Wait for one of them to quit, then kill the others

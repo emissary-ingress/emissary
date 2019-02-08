@@ -18,32 +18,25 @@ func init() {
 		Short: "Run OAuth service",
 	}
 
-	afterParse := types.InitializeFlags(cmd.Flags())
-
 	cmd.RunE = func(*cobra.Command, []string) error {
 		l := logrus.New()
+		l.SetFormatter(&logrus.TextFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+			FullTimestamp:   true,
+		})
 
-		// Sets custom formatter.
-		customFormatter := new(logrus.TextFormatter)
-		customFormatter.TimestampFormat = "2006-01-02 15:04:05"
-		l.SetFormatter(customFormatter)
-
-		cfg := afterParse()
-		if cfg.Error != nil {
+		cfg, errs := types.ConfigFromEnv()
+		for _, err := range errs {
 			// This is a non-fatal error.  Even with an
 			// invalid configuration, we continue to run,
 			// but serve a 5XX error page.
-			l.Errorf("config error: %v", cfg.Error)
+			l.Errorln("config error:", err)
 		}
 
-		customFormatter.FullTimestamp = true
-		// Sets log level.
-		if level, err := logrus.ParseLevel(cfg.LogLevel); err == nil {
-			l.SetLevel(level)
-		} else {
-			l.Errorf("%v. Setting info log level as default.", err)
-			l.SetLevel(logrus.InfoLevel)
-		}
+		// cfg.LogLevel has already been validated in
+		// ConfigFromEnv(), no need to error-check.
+		level, _ := logrus.ParseLevel(cfg.LogLevel)
+		l.SetLevel(level)
 
 		group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
 			return types.WrapLogrus(l)

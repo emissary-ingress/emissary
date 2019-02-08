@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -11,30 +10,24 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-var output string
-
 var watch = &cobra.Command{
 	Use:   "rls-watch",
 	Short: "Watch RateLimit CRD files",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := types.Config{
-			AmbassadorID:              os.Getenv("AMBASSADOR_ID"),
-			AmbassadorNamespace:       os.Getenv("AMBASSADOR_NAMESPACE"),
-			AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
-			Output:                    output,
+		logger := types.WrapLogrus(logrus.New())
+		cfg, errs := types.ConfigFromEnv()
+		for _, err := range errs {
+			// This is only fatal if cfg.Output == ""
+			// (see below)
+			logger.Errorln("config error:", err)
 		}
-		if cfg.AmbassadorID == "" {
-			cfg.AmbassadorID = "default"
+		if cfg.Output == "" {
+			return errs[len(errs)-1]
 		}
-		if cfg.AmbassadorNamespace == "" {
-			cfg.AmbassadorNamespace = "default"
-		}
-		return rls.DoWatch(context.Background(), cfg, types.WrapLogrus(logrus.New()))
+		return rls.DoWatch(context.Background(), cfg, logger)
 	},
 }
 
 func init() {
 	argparser.AddCommand(watch)
-	watch.Flags().StringVarP(&output, "output", "o", "", "output directory")
-	watch.MarkFlagRequired("output")
 }
