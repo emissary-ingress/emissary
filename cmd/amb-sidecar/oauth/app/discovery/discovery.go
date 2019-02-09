@@ -1,11 +1,18 @@
 package discovery
 
 import (
+	"bytes"
+	"crypto/rsa"
+	"encoding/asn1"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"math/big"
 	"net/http"
 	"sync"
 
@@ -33,10 +40,10 @@ type openIDConfig struct {
 // Discovery is used to fetch the certificate information from the IDP.
 type Discovery struct {
 	AuthorizationEndpoint string
-	TokenEndpoint string
-	JSONWebKeysURI string
-	cache map[string]*JWK
-	mux   *sync.RWMutex
+	TokenEndpoint         string
+	JSONWebKeysURI        string
+	cache                 map[string]*JWK
+	mux                   *sync.RWMutex
 }
 
 var instance *Discovery
@@ -101,13 +108,33 @@ func (d *Discovery) GetPemCert(kid string) (string, error) {
 }
 
 func (d *Discovery) getCert(kid string) string {
-	fmt.Println("KeyID = " + kid)
-	spew.Dump(d)
-
 	d.mux.RLock()
 	defer d.mux.RUnlock()
 	if jwk := d.cache[kid]; jwk != nil {
-		return fmt.Sprintf(certFMT, jwk.X5c[0])
+		if jwk.X5c != nil {
+			return fmt.Sprintf(certFMT, jwk.X5c)
+		} else if jwk.E != "" && jwk.N != "" {
+			pubKey, err := assemblePubKeyFromNandE(jwk)
+
+			fmt.Println(pubKey.Size())
+			spew.Dump(pubKey)
+
+			if err != nil {
+				return "" // TODO: err?
+			}
+
+			asn1Bytes, err := asn1.Marshal(pubKey)
+			var pemkey = &pem.Block{
+				Type:  "RSA PUBLIC KEY",
+				Bytes: asn1Bytes,
+			}
+
+			key := pem.EncodeToMemory(pemkey)
+			fmt.Println(string(key))
+			return string(key)
+		} else {
+			return "" // TODO: err?
+		}
 	}
 	return ""
 }
@@ -132,6 +159,43 @@ func (d *Discovery) fetchWebKeys() error {
 	}
 
 	return nil
+}
+
+func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
+	// Extract n and e values from the jwk
+	nStr := jwk.N
+	eStr := jwk.E
+
+	key := rsa.PublicKey{}
+
+	// Base64URL Decode the strings
+	decN, err := base64.RawURLEncoding.DecodeString(nStr)
+	if err != nil {
+		return key, err
+	}
+	n := big.NewInt(0)
+	n.SetBytes(decN)
+
+	decE, err := base64.RawURLEncoding.DecodeString(eStr)
+	if err != nil {
+		return key, err
+	}
+
+	var eBytes []byte
+	if len(decE) < 8 {
+		eBytes = make([]byte, 8-len(decE), 8)
+		eBytes = append(eBytes, decE...)
+	} else {
+		eBytes = decE
+	}
+	eReader := bytes.NewReader(eBytes)
+	var e uint64
+	err = binary.Read(eReader, binary.BigEndian, &e)
+	if err != nil {
+		return key, err
+	}
+
+	return rsa.PublicKey{N: n, E: int(e)}, nil
 }
 
 func fetchOpenIDConfig(documentURL string) (openIDConfig, error) {
