@@ -1,27 +1,28 @@
 package client
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Rest is a generic rest HTTP client.
 type Rest struct {
-	BaseURL *url.URL
+	AuthorizationEndpoint *url.URL
+	TokenEndpoint *url.URL
 	client  *http.Client
 	token   string
 }
 
 // NewRestClient creates an instance of a rest client.
-func NewRestClient(u *url.URL) *Rest {
+func NewRestClient(authorizationEndpoint *url.URL, tokenEndpoint *url.URL) *Rest {
 	return &Rest{
 		client:  http.DefaultClient,
-		BaseURL: u,
+		AuthorizationEndpoint: authorizationEndpoint,
+		TokenEndpoint: tokenEndpoint,
 	}
 }
 
@@ -54,7 +55,15 @@ func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error
 	var rq *http.Request
 	var err error
 
-	rq, err = c.request("POST", "/oauth/token", *a)
+	data := url.Values{}
+	data.Set("grant_type", a.GrantType)
+	data.Set("client_id", a.ClientID)
+	data.Set("code", a.Code)
+	data.Set("redirect_uri", a.RedirectURL)
+	data.Set("client_secret", a.ClientSecret)
+	data.Set("audience", a.Audience)
+
+	rq, err = c.request("POST", c.TokenEndpoint, data, *a)
 	if err != nil {
 		return nil, err
 	}
@@ -67,29 +76,13 @@ func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error
 	return rs, nil
 }
 
-func (c *Rest) request(method, path string, body interface{}) (*http.Request, error) {
-	rpath := &url.URL{Path: path}
-	url := c.BaseURL.ResolveReference(rpath)
-
-	var buf io.ReadWriter
-	if body != nil {
-		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	rq, err := http.NewRequest(method, url.String(), buf)
+func (c *Rest) request(method string, url *url.URL, params url.Values, body interface{}) (*http.Request, error) {
+	rq, err := http.NewRequest(method, url.String(), strings.NewReader(params.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	rq.Header.Set("Accept", "application/json")
-	if body != nil {
-		rq.Header.Set("Content-Type", "application/json")
-	}
-
+	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if c.token != "" {
 		rq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
 	}

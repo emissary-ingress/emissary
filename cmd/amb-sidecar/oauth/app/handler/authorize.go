@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"net/http"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 
 const (
 	// RedirectURLFmt is a template string for redirect url.
-	RedirectURLFmt = "%s://%s/authorize?audience=%s&response_type=code&redirect_uri=%s&client_id=%s&state=%s&scope=%s"
+	RedirectURLFmt = "%s?audience=%s&response_type=code&redirect_uri=%s&client_id=%s&state=%s&scope=%s"
 )
 
 // Authorize is the last handler in the chain of the authorization server.
@@ -25,6 +26,7 @@ type Authorize struct {
 	Logger types.Logger
 	Ctrl   *controller.Controller
 	Secret *secret.Secret
+	Discovery *discovery.Discovery
 }
 
 // Check is a handler function that inspects the request by looking for the presence of
@@ -47,8 +49,7 @@ func (h *Authorize) Check(w http.ResponseWriter, r *http.Request) {
 
 	redirect := fmt.Sprintf(
 		RedirectURLFmt,
-		h.Config.BaseURL.Scheme,
-		h.Config.BaseURL.Host,
+		h.Discovery.AuthorizationEndpoint,
 		tenant.Audience,
 		tenant.CallbackURL,
 		tenant.ClientID,

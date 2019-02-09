@@ -2,6 +2,7 @@ package app
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
@@ -41,8 +42,24 @@ func (a *App) Handler() (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.discovery = discovery.New(a.Config)
-	a.rest = client.NewRestClient(a.Config.BaseURL)
+
+	discovery, err := discovery.New(a.Config)
+	if err != nil {
+		return nil, err
+	}
+
+	a.discovery = discovery
+	authorizationEndpointURL, err := url.Parse(a.discovery.AuthorizationEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenEndpointURL, err := url.Parse(a.discovery.TokenEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	a.rest = client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
 
 	// Handler
 	auth := handler.Authorize{
@@ -50,6 +67,7 @@ func (a *App) Handler() (http.Handler, error) {
 		Logger: a.Logger.WithField("HANDLER", "authorize"),
 		Ctrl:   a.Controller,
 		Secret: a.secret,
+		Discovery: a.discovery,
 	}
 
 	cb := &handler.Callback{
