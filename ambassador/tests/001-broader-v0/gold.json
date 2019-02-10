@@ -296,6 +296,10 @@
               ]
             },
             "filters": [
+              {
+                "name": "grpc_http1_bridge",
+                "config": {}
+              },
               {"type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_extauth_http___canary_auth_3000", "path_prefix": "/extauth", "timeout_ms": 5000}

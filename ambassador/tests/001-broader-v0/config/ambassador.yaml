@@ -32,6 +32,7 @@ config:
 
   use_proxy_proto: True
   use_remote_address: True
+  enable_grpc_http11_bridge: True
   
   # TLS defaults to unconfigured. Here's the simplest way.
   tls:

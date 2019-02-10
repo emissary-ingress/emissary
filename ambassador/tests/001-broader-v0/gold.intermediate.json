@@ -309,6 +309,11 @@
                 "type": "decoder"
             },
             {
+                "_source": "ambassador.yaml.1",
+                "config": {},
+                "name": "grpc_http1_bridge"
+            },
+            {
                 "_source": "--internal--",
                 "config": {},
                 "name": "router",
@@ -1114,7 +1119,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  statsd:\n    enabled: true\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  diagnostics:\n    enabled: false\n  enable_grpc_http11_bridge: true\n  statsd:\n    enabled: true\n  tls:\n    client:\n      cacert_chain_file: /etc/ambassador-config/ca_cert_chain/tls.crt\n      cert_required: true\n      enabled: True,\n    server:\n      cert_chain_file: /etc/ambassador-config/certs/tls.crt\n      enabled: true\n      private_key_file: /etc/ambassador-config/certs/tls.key\n  use_proxy_proto: true\n  use_remote_address: true\nkind: Module\nname: ambassador\n"
         },
         "auth-2.yaml.1": {
             "_source": "auth-2.yaml",
