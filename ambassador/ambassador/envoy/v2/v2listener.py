@@ -103,6 +103,12 @@ def v2filter_buffer(buffer: IRBuffer):
         }        
     }
 
+@v2filter.when("ir.grpc_http1_bridge")
+def v2filter_grpc_http1_bridge(irfilter: IRFilter):
+    return {
+        'name': 'envoy.grpc_http1_bridge',
+        'config': {},
+    }
 
 def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
     cluster_context = cluster.get('tls_context')
