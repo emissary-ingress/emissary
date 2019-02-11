@@ -89,4 +89,3 @@ do
 done
 
 cp -r ${root}/envoy/* /envoy
-cp -r ${root}/vendor/* /vendor

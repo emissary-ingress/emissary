@@ -1,4 +1,0 @@
-bazel-*
-*.pyc
-build_docs/
-generated/

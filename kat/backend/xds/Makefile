@@ -6,7 +6,7 @@ xds.build-docker:
 	@docker build -t envoy-api-build .
 
 xds.clean:
-	@rm -rf vendor envoy && mkdir vendor envoy
+	@rm -rf envoy && mkdir envoy
 
 xds.generate:	
-	@docker run -it -v ${PWD}/envoy:/envoy -v ${PWD}/vendor:/vendor envoy-api-build:latest
+	@docker run -it -v ${PWD}/envoy:/envoy envoy-api-build:latest

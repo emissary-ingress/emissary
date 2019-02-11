@@ -6,4 +6,5 @@ require (
 	github.com/lyft/protoc-gen-validate v0.0.13
 	golang.org/x/net v0.0.0-20180826012351-8a410e7b638d
 	google.golang.org/grpc v1.18.0
+	istio.io/gogo-genproto v0.0.0-20190124151557-6d926a6e6feb
 )
