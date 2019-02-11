@@ -176,33 +176,4 @@ spec:
 
 ## Certificate Manager
 
-Jetstack's [cert-manager](https://github.com/jetstack/cert-manager) lets you easily provision and manage TLS certificates on Kubernetes. No special configuration is required to use Ambassador with `cert-manager`.
-
-Once `cert-manager` is running and you have successfully created the Issuer, you can request a Certificate such as the following:
-
-```yaml
-apiVersion: certmanager.k8s.io/v1alpha1
-kind: Certificate
-metadata:
-  name: cloud-foo-com
-  # cert-manager will put the resulting Secret in the same Kubernetes namespace
-  # as the Certificate. Therefore you should put this Certificate in the same
-  # namespace as Ambassador.
-  namespace: default
-spec:
-  secretName: ambassador-certs
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer
-  commonName: cloud.foo.com
-  dnsNames:
-  - cloud.foo.com
-  acme:
-    config:
-    - dns01:
-        provider: clouddns
-      domains:
-      - cloud.foo.com
-```
-
-Note the `secretName` line above. When the certificate has been stored in the secret, restart Ambassador to pick up the new certificate.
+Jetstack's [cert-manager](https://github.com/jetstack/cert-manager) lets you easily provision and manage TLS certificates on Kubernetes. See documentation on using [cert-manager with Ambassador](/user-guide/cert-manager).

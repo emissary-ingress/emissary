@@ -77,6 +77,8 @@
         link: /user-guide/tls-termination
       - title: Server Name Indication (SNI)
         link: /user-guide/sni
+      - title: cert-manager with Ambassador
+        link: /user-guide/cert-manager
       - title: Basic Authentication
         link: /user-guide/auth-tutorial
       - title: Single Sign-On with OAuth & OIDC
