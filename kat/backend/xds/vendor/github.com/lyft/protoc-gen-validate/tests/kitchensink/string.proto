@@ -1,0 +1,36 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+message String {
+    string none = 1;
+
+    string min     = 2 [(validate.rules).string.min_len = 3];
+    string max     = 3 [(validate.rules).string.max_len = 10];
+    string min_max = 4 [(validate.rules).string = { min_len: 3, max_len: 10 }];
+    string eq_len  = 5 [(validate.rules).string = { min_len: 5, max_len: 5}];
+
+    string min_bytes     = 6 [(validate.rules).string.min_bytes = 4];
+    string max_bytes     = 7 [(validate.rules).string.max_bytes = 11];
+    string min_max_bytes = 8 [(validate.rules).string = { min_bytes: 4, max_bytes: 11}];
+    string eq_bytes      = 9 [(validate.rules).string = { min_bytes: 6, max_bytes: 6}];
+
+    string pattern  = 10 [(validate.rules).string.pattern = "foo+(ba+r)?"];
+    string prefix   = 11 [(validate.rules).string.prefix = "fizz"];
+    string suffix   = 12 [(validate.rules).string.suffix = "buzz"];
+    string contains = 13 [(validate.rules).string.contains = "baz"];
+
+    string in     = 14  [(validate.rules).string = {in: ["foo", "bar", "baz"]}];
+    string not_in = 15 [(validate.rules).string = {not_in: ["fizz", "buzz"]}];
+
+    string const = 16 [(validate.rules).string.const = "foobar"];
+
+    string ip      = 17 [(validate.rules).string.ip = true];
+    string ip_v4   = 18 [(validate.rules).string.ipv4 = true];
+    string ip_v6   = 19 [(validate.rules).string.ipv6 = true];
+    string email   = 20 [(validate.rules).string.email = true];
+    string host    = 21 [(validate.rules).string.hostname = true];
+    string uri     = 22 [(validate.rules).string.uri = true];
+    string uri_ref = 23 [(validate.rules).string.uri_ref = true];
+}

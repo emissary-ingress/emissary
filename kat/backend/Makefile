@@ -1,4 +1,4 @@
-TAG=7
+TAG 			:= 7
 
 build:
 	docker build . -t quay.io/datawire/kat-backend:${TAG}

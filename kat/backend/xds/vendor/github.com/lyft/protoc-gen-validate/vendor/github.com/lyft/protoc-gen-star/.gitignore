@@ -1,0 +1,5 @@
+vendor/
+testdata/generated/
+
+# coverage reports
+cover.*

@@ -1,0 +1,27 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+import "gogoproto/gogo.proto";
+
+message Repeated {
+    repeated int64 none = 1;
+
+    repeated int64  min_items     = 2 [(validate.rules).repeated.min_items = 1];
+    repeated string max_items     = 3 [(validate.rules).repeated.max_items = 2];
+    repeated bytes  min_max_items = 4 [(validate.rules).repeated = { min_items: 3, max_items: 4}];
+    repeated Embed  eq_items      = 5 [(validate.rules).repeated = {min_items: 5, max_items: 5}];
+
+    repeated int64 unique = 6 [(validate.rules).repeated.unique = true];
+    repeated bytes unique_bytes = 7 [(validate.rules).repeated.unique = true];
+
+    repeated double item_rules = 8 [(validate.rules).repeated.items.double.lt = 3];
+
+    repeated Embed nonnullable_items = 9 [(validate.rules).repeated.min_items = 1, (gogoproto.nullable) = false];
+
+    repeated string in_item_rules = 10 [(validate.rules).repeated.items.string = {in: ["foo"]}];
+    repeated string not_in_item_rules = 11 [(validate.rules).repeated.items.string = {not_in: ["foo"]}];
+
+    message Embed {}
+}

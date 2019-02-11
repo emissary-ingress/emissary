@@ -1,0 +1,15 @@
+language: go
+go: 1.8
+
+env:
+  global:
+    - GLIDE_VER="v0.12.3"
+    - GLIDE_ARCH="linux-amd64"
+
+before_install:
+  - mkdir -p $GOPATH/bin
+  - wget "https://github.com/Masterminds/glide/releases/download/${GLIDE_VER}/glide-${GLIDE_VER}-${GLIDE_ARCH}.tar.gz" -O /tmp/glide.tar.gz
+  - tar -xvf /tmp/glide.tar.gz --strip-components 1 -C ${GOPATH}/bin
+
+install: make install
+script: make lint tests

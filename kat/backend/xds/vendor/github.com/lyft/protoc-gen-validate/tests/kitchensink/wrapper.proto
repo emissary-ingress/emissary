@@ -1,0 +1,19 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+import "google/protobuf/wrappers.proto";
+
+message Wrappers {
+    google.protobuf.DoubleValue none = 1;
+
+    google.protobuf.DoubleValue double_value = 2  [(validate.rules).double.gt = 1.23];
+    google.protobuf.FloatValue  float_value  = 3  [(validate.rules).float.lte = 4.56];
+    google.protobuf.Int64Value  int64_value  = 4  [(validate.rules).int64.const = 5];
+    google.protobuf.UInt64Value uint64_value = 5  [(validate.rules).uint64 = {in: [1, 2, 3]}];
+    google.protobuf.Int32Value  int32_value  = 6  [(validate.rules).int32 = {not_in: [4, 5, 6]}];
+    google.protobuf.UInt32Value uint32_value = 7  [(validate.rules).uint32.gt = 3];
+    google.protobuf.BoolValue   bool_value   = 8  [(validate.rules).bool.const = true];
+    google.protobuf.StringValue string_value = 9  [(validate.rules).string.prefix = "foo"];
+    google.protobuf.BytesValue  bytes_value  = 10 [(validate.rules).bytes.max_len = 8];
+}

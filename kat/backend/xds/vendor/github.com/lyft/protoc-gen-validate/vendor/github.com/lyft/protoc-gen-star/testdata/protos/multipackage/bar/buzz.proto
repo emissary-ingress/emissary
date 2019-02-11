@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package bar;
+
+import "multipackage/bar/baz/quux.proto";
+
+message Buzz {
+    uint64 id     = 1;
+    baz.Quux quux = 2;
+}

@@ -1,0 +1,35 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "google/protobuf/duration.proto";
+import "validate/validate.proto";
+
+import "gogoproto/gogo.proto";
+
+message Duration {
+    google.protobuf.Duration none = 1;
+
+    google.protobuf.Duration lt  = 2 [(validate.rules).duration.lt  = {seconds: 5}]; // x <  5
+    google.protobuf.Duration lte = 3 [(validate.rules).duration.lte = {seconds: 5}]; // x <= 5
+    google.protobuf.Duration gt  = 4 [(validate.rules).duration.gt  = {seconds: 5}]; // x >  5
+    google.protobuf.Duration gte = 5 [(validate.rules).duration.gte = {seconds: 5}]; // x >= 5
+
+    google.protobuf.Duration lt_gt   = 6 [(validate.rules).duration = {gt:  {seconds: 10}, lt:  {seconds: 15}}]; // x >  gt && x <  lt
+    google.protobuf.Duration lt_gte  = 7 [(validate.rules).duration = {gte: {seconds: 10}, lt:  {seconds: 15}}]; // x >= gte && x <  lt
+    google.protobuf.Duration lte_gt  = 8 [(validate.rules).duration = {gt:  {seconds: 10}, lte: {seconds: 15}}]; // x >  gt && x <= lte
+    google.protobuf.Duration lte_gte = 9 [(validate.rules).duration = {gte: {seconds: 10}, lte: {seconds: 15}}]; // x >= gte && x <= lte
+
+    google.protobuf.Duration lt_gt_inv   = 10 [(validate.rules).duration = {lt:  {seconds: 20}, gt:  {seconds: 25}}]; // x <  lt || x >  gt
+    google.protobuf.Duration lt_gte_inv  = 11 [(validate.rules).duration = {lt:  {seconds: 20}, gte: {seconds: 25}}]; // x <  lt || x >= gte
+    google.protobuf.Duration lte_gt_inv  = 12 [(validate.rules).duration = {lte: {seconds: 20}, gt:  {seconds: 25}}]; // x <= lte || x >  gt
+    google.protobuf.Duration lte_gte_inv = 13 [(validate.rules).duration = {lte: {seconds: 20}, gte: {seconds: 25}}]; // x <= lte || x >= gte
+
+    google.protobuf.Duration required = 14 [(validate.rules).duration.required = true];
+    google.protobuf.Duration in     = 15 [(validate.rules).duration = {in: [{seconds: 123}]}];
+    google.protobuf.Duration not_in = 16 [(validate.rules).duration = {not_in: [{seconds: 123}]}];
+
+    google.protobuf.Duration stdduration = 17 [(validate.rules).duration.lt  = {seconds: 5}, (gogoproto.stdduration) = true];
+    google.protobuf.Duration nullable    = 18 [(validate.rules).duration.lt  = {seconds: 5}, (gogoproto.nullable) = false];
+    google.protobuf.Duration stdnullable = 19 [(validate.rules).duration.lt  = {seconds: 5}, (gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration reqnullable = 20 [(validate.rules).duration.required = true, (gogoproto.nullable) = false];
+}

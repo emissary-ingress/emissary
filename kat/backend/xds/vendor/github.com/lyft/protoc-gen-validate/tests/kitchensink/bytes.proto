@@ -1,0 +1,27 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+message Bytes {
+    bytes none = 1;
+
+    bytes min     = 2 [(validate.rules).bytes.min_len = 3];
+    bytes max     = 3 [(validate.rules).bytes.max_len = 10];
+    bytes min_max = 4 [(validate.rules).bytes = { min_len: 3, max_len: 10 }];
+    bytes eq_len  = 5 [(validate.rules).bytes = { min_len: 5, max_len: 5}];
+
+    bytes pattern  = 6 [(validate.rules).bytes.pattern  = "foo+(ba+r)?"];
+    bytes prefix   = 7 [(validate.rules).bytes.prefix   = "\x99"];
+    bytes suffix   = 8 [(validate.rules).bytes.suffix   = "buz\x7a"];
+    bytes contains = 9 [(validate.rules).bytes.contains = "baz"];
+
+    bytes in     = 10  [(validate.rules).bytes = {in: ["foo", "bar", "baz"]}];
+    bytes not_in = 11 [(validate.rules).bytes = {not_in: ["fizz", "buzz"]}];
+
+    bytes const = 12 [(validate.rules).bytes.const = "foobar"];
+
+    bytes ip      = 13 [(validate.rules).bytes.ip = true];
+    bytes ip_v4   = 14 [(validate.rules).bytes.ipv4 = true];
+    bytes ip_v6   = 15 [(validate.rules).bytes.ipv6 = true];
+}

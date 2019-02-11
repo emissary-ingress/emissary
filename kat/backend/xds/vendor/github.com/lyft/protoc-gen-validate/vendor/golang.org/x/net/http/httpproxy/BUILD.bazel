@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["proxy.go"],
+    importpath = "golang.org/x/net/http/httpproxy",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/golang.org/x/net/idna:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["export_test.go"],
+    embed = [":go_default_library"],
+    importpath = "golang.org/x/net/http/httpproxy",
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = [
+        "go19_test.go",
+        "proxy_test.go",
+    ],
+    importpath = "golang.org/x/net/http/httpproxy_test",
+    deps = [":go_default_library"],
+)

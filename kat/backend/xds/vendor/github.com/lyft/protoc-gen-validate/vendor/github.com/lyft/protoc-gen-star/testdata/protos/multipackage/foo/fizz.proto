@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package foo;
+
+import "multipackage/bar/buzz.proto";
+
+message Fizz {
+    uint64 id           = 1;
+    bar.Buzz three_five = 2;
+}

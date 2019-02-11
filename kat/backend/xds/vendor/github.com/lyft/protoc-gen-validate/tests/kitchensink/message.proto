@@ -1,0 +1,12 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+message Message {
+    Embed none     = 1;
+    Embed required = 2 [(validate.rules).message.required = true];
+    Embed skip     = 3 [(validate.rules).message.skip = true];
+
+    message Embed {}
+}

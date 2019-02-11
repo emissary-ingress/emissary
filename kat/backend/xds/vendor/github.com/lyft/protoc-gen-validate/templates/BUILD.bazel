@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["pkg.go"],
+    importpath = "github.com/lyft/protoc-gen-validate/templates",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//templates/cc:go_default_library",
+        "//templates/go:go_default_library",
+        "//templates/gogo:go_default_library",
+        "//templates/shared:go_default_library",
+    ],
+)

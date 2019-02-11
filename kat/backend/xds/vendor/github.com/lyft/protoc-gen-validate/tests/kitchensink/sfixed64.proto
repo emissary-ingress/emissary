@@ -1,0 +1,28 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+message SFixed64 {
+    sfixed64 none = 1;
+
+    sfixed64 lt  = 2 [(validate.rules).sfixed64.lt  = 5]; // x <  5
+    sfixed64 lte = 3 [(validate.rules).sfixed64.lte = 5]; // x <= 5
+    sfixed64 gt  = 4 [(validate.rules).sfixed64.gt  = 5]; // x >  5
+    sfixed64 gte = 5 [(validate.rules).sfixed64.gte = 5]; // x >= 5
+
+    sfixed64 lt_gt   = 6 [(validate.rules).sfixed64 = {gt:  10, lt:  15}]; // x >  gt && x <  lt
+    sfixed64 lt_gte  = 7 [(validate.rules).sfixed64 = {gte: 10, lt:  15}]; // x >= gte && x <  lt
+    sfixed64 lte_gt  = 8 [(validate.rules).sfixed64 = {gt:  10, lte: 15}]; // x >  gt && x <= lte
+    sfixed64 lte_gte = 9 [(validate.rules).sfixed64 = {gte: 10, lte: 15}]; // x >= gte && x <= lte
+
+    sfixed64 lt_gt_inv   = 10 [(validate.rules).sfixed64 = {lt:  20, gt:  25}]; // x <  lt || x >  gt
+    sfixed64 lt_gte_inv  = 11 [(validate.rules).sfixed64 = {lt:  20, gte: 25}]; // x <  lt || x >= gte
+    sfixed64 lte_gt_inv  = 12 [(validate.rules).sfixed64 = {lte: 20, gt:  25}]; // x <= lte || x >  gt
+    sfixed64 lte_gte_inv = 13 [(validate.rules).sfixed64 = {lte: 20, gte: 25}]; // x <= lte || x >= gte
+
+    sfixed64 in     = 14 [(validate.rules).sfixed64 = {in: [30, 35]}];
+    sfixed64 not_in = 15 [(validate.rules).sfixed64 = {not_in: [40, 45]}];
+
+    sfixed64 const = 16 [(validate.rules).sfixed64.const = 50];
+}

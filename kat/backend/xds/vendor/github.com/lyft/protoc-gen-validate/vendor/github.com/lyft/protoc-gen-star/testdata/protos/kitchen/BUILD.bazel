@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_grpc_library")
+
+proto_library(
+    name = "kitchen_proto",
+    srcs = [
+        "kitchen.proto",
+        "sink.proto",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//kitchen:kitchen_proto",
+        "@com_google_protobuf//:timestamp_proto",
+    ],
+)
+
+go_grpc_library(
+    name = "kitchen_go_proto",
+    importpath = "github.com/lyft/protoc-gen-star/testdata/protos/kitchen",
+    proto = ":kitchen_proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/golang/protobuf/ptypes/timestamp:go_default_library",
+        "//vendor/kitchen:go_default_library",
+    ],
+)
+
+go_library(
+    name = "go_default_library",
+    embed = [":kitchen_go_proto"],
+    importpath = "github.com/lyft/protoc-gen-star/testdata/protos/kitchen",
+    visibility = ["//visibility:public"],
+)

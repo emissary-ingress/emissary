@@ -1,0 +1,26 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+message Enum {
+    MyEnum none = 1;
+
+    MyEnum const = 2 [(validate.rules).enum.const = 3];
+
+    MyEnum defined_only = 3 [(validate.rules).enum.defined_only = true];
+
+    MyEnum in     = 4 [(validate.rules).enum = {in: [0, 1, 3]}];
+    MyEnum not_in = 5 [(validate.rules).enum = {not_in: [2, 4]}];
+}
+
+enum MyEnum {
+    option allow_alias = true;
+
+    default = 0;
+    foo     = 1;
+    bar     = 2;
+    baz     = 2; // alias of bar
+    fizz    = 3;
+    buzz    = 4;
+}

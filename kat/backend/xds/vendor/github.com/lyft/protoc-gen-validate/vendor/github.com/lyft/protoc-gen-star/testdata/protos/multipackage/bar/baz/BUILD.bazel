@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "baz_proto",
+    srcs = ["quux.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "baz_go_proto",
+    importpath = "github.com/lyft/protoc-gen-star/testdata/protos/multipackage/bar/baz",
+    proto = ":baz_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    embed = [":baz_go_proto"],
+    importpath = "github.com/lyft/protoc-gen-star/testdata/protos/multipackage/bar/baz",
+    visibility = ["//visibility:public"],
+)

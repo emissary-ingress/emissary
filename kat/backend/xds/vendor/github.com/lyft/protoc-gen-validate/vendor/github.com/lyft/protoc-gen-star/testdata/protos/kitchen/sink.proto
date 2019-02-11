@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package kitchen;
+option go_package = "kitchen";
+
+import "google/protobuf/timestamp.proto";
+
+message Sink {
+    Brand                     brand       = 1;
+    Material                  material    = 2;
+    string                    model       = 3;
+    uint32                    basin_count = 4;
+    google.protobuf.Timestamp installed   = 5;
+
+    enum Brand {
+        KRAUS     = 0;
+        SWANSTONE = 1;
+        HOUZER    = 2;
+        BLANCO    = 3;
+        KOHLER    = 4;
+    }
+
+    message Material {
+        Type   type   = 1;
+        Finish finish = 2;
+
+        enum Type {
+            STAINLESS_STEEL = 0;
+            COPPER          = 1;
+            GRANITE         = 2;
+            SOAPSTONE       = 3;
+            CERAMIC         = 4;
+            CAST_IRON       = 5;
+        }
+
+        enum Finish {
+            NONE            = 0;
+            POLISHED        = 1;
+            MIRROR          = 2;
+            HAMMERED_MIRROR = 3;
+            BRIGHT_SATIN    = 4;
+            BRUSHED_SATIN   = 5;
+        }
+    }
+}

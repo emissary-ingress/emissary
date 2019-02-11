@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package kitchen;
+option go_package = "kitchen";
+
+import "kitchen/sink.proto";
+import "google/protobuf/timestamp.proto";
+
+enum Style {
+    CONTEMPORARY  = 0;
+    COTTAGE_CHARM = 1;
+    MEDITERRANEAN = 2;
+    COASTAL       = 3;
+    OLD_WORLD     = 4;
+    TRADITIONAL   = 5;
+}
+
+message Kitchen {
+    Style style      = 1;
+    Sink  sink       = 2;
+
+    repeated string     utensils    = 4;
+    map<string, uint32> dish_counts = 5;
+
+    repeated Color wall_colors = 6;
+    map<string, Color> appliance_colors = 7;
+}
+
+message Color {
+    oneof model {
+        string pantone = 1;
+        RGB    rgb     = 2;
+        CMYK   cmyk    = 3;
+    }
+
+    double alpha = 4;
+
+    message RGB {
+        uint32 r = 1;
+        uint32 g = 2;
+        uint32 b = 3;
+    }
+
+    message CMYK {
+        uint32 c = 1;
+        uint32 m = 2;
+        uint32 y = 3;
+        uint32 k = 4;
+    }
+}
+
+service Cooking {
+    rpc Saute(SauteRequest) returns (SauteResponse);
+    rpc DispenseIce(IceRequest) returns (stream IceResponse);
+    rpc LoadFridge(stream GroceryItem) returns (LoadSummary);
+    rpc OrderDrinks(stream DrinkOrder) returns (stream PreparedDrink);
+    rpc CheckBestByDate(GroceryItem) returns (google.protobuf.Timestamp);
+}
+
+message SauteRequest {}
+
+message SauteResponse {}
+
+message IceRequest {}
+
+message IceResponse {}
+
+message GroceryItem {}
+
+message LoadSummary {}
+
+message DrinkOrder {}
+
+message PreparedDrink {}

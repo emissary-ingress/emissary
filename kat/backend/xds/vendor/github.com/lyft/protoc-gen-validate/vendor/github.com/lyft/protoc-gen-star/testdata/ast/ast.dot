@@ -1,0 +1,16 @@
+digraph G {
+	Package -> File;
+	
+	File -> Enum;
+	File -> Service -> Method;
+	File -> Message;
+
+	Enum -> EnumValue;
+
+	OneOf -> Field;
+
+	Message -> Message;
+	Message -> Enum;
+	Message -> Field;
+	Message -> OneOf;
+}

@@ -1,0 +1,40 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+import "gogoproto/gogo.proto";
+
+message Timestamp {
+    google.protobuf.Timestamp none = 1;
+
+    google.protobuf.Timestamp lt  = 2 [(validate.rules).timestamp.lt  = {seconds: 5}]; // x <  5
+    google.protobuf.Timestamp lte = 3 [(validate.rules).timestamp.lte = {seconds: 5}]; // x <= 5
+    google.protobuf.Timestamp gt  = 4 [(validate.rules).timestamp.gt  = {seconds: 5}]; // x >  5
+    google.protobuf.Timestamp gte = 5 [(validate.rules).timestamp.gte = {seconds: 5}]; // x >= 5
+
+    google.protobuf.Timestamp lt_gt   = 6 [(validate.rules).timestamp = {gt:  {seconds: 10}, lt:  {seconds: 15}}]; // x >  gt && x <  lt
+    google.protobuf.Timestamp lt_gte  = 7 [(validate.rules).timestamp = {gte: {seconds: 10}, lt:  {seconds: 15}}]; // x >= gte && x <  lt
+    google.protobuf.Timestamp lte_gt  = 8 [(validate.rules).timestamp = {gt:  {seconds: 10}, lte: {seconds: 15}}]; // x >  gt && x <= lte
+    google.protobuf.Timestamp lte_gte = 9 [(validate.rules).timestamp = {gte: {seconds: 10}, lte: {seconds: 15}}]; // x >= gte && x <= lte
+
+    google.protobuf.Timestamp lt_gt_inv   = 10 [(validate.rules).timestamp = {lt:  {seconds: 20}, gt:  {seconds: 25}}]; // x <  lt || x >  gt
+    google.protobuf.Timestamp lt_gte_inv  = 11 [(validate.rules).timestamp = {lt:  {seconds: 20}, gte: {seconds: 25}}]; // x <  lt || x >= gte
+    google.protobuf.Timestamp lte_gt_inv  = 12 [(validate.rules).timestamp = {lte: {seconds: 20}, gt:  {seconds: 25}}]; // x <= lte || x >  gt
+    google.protobuf.Timestamp lte_gte_inv = 13 [(validate.rules).timestamp = {lte: {seconds: 20}, gte: {seconds: 25}}]; // x <= lte || x >= gte
+
+    google.protobuf.Timestamp required = 14 [(validate.rules).timestamp.required = true];
+
+    google.protobuf.Timestamp lt_now = 15 [(validate.rules).timestamp.lt_now = true];
+    google.protobuf.Timestamp gt_now = 16 [(validate.rules).timestamp.gt_now = true];
+
+    google.protobuf.Timestamp lt_now_within = 17 [(validate.rules).timestamp = {lt_now: true, within: {seconds: 300}}];
+    google.protobuf.Timestamp gt_now_within = 18 [(validate.rules).timestamp = {gt_now: true, within: {seconds: 3000}}];
+    google.protobuf.Timestamp within = 19 [(validate.rules).timestamp.within = {seconds: 30000}];
+
+    google.protobuf.Timestamp stdtime     = 20 [(validate.rules).timestamp.lt  = {seconds: 5}, (gogoproto.stdtime) = true];
+    google.protobuf.Timestamp nullable    = 21 [(validate.rules).timestamp.lt  = {seconds: 5}, (gogoproto.nullable) = false];
+    google.protobuf.Timestamp stdnullable = 22 [(validate.rules).timestamp.lt  = {seconds: 5}, (gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+    google.protobuf.Timestamp reqnullable = 23 [(validate.rules).timestamp.required = true, (gogoproto.nullable) = false];
+}

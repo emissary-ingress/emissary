@@ -1,0 +1,29 @@
+syntax = "proto3";
+package tests.kitchensink;
+
+import "validate/validate.proto";
+
+message OneOf {
+
+    oneof none {
+        string string  = 1 [(validate.rules).string.min_len = 5];
+        Embed msg_none = 2;
+    }
+
+    oneof required {
+        option (validate.required) = true;
+
+        bytes bytes   = 3;
+        Embed msg_req = 4 [(validate.rules).message.required = true];
+        Enum  enum    = 5 [(validate.rules).enum.defined_only = true];
+
+        // ensure proper generation around potential name conflict with type
+        Embed embed        = 6;
+        string other_embed = 7;
+    }
+
+    message Embed {}
+    message OtherEmbed{}
+    enum Enum { DEFAULT = 0; }
+}
+

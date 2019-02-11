@@ -1,0 +1,174 @@
+diff --git a/usr/local/google/home/htuch/src/rules_go/proto/go_proto_library.bzl b/go_proto_library.bzl
+index 534064e..78aad52 100644
+--- a/usr/local/google/home/htuch/src/rules_go/proto/go_proto_library.bzl
++++ b/go_proto_library.bzl
+@@ -1,3 +1,13 @@
++# This is a fork of https://github.com/bazelbuild/rules_go/blob/master/proto/go_proto_library.bzl.
++#
++# There's a fair bit of customization we need to run protoc-gen-validate and
++# interop with the Envoy build environment. Specifically:
++# 1. Support the optional protoc-gen-validate in _go_proto_library_gen_impl
++#    (similar to existing support for the gRPC plugin).
++# 2. Provide the descriptor.proto WKT, which is missing upstream and doesn't sit in the regular
++#    ptypes directory.
++# 3. Support use_default_shell_env when working with non-default toolchain locations.
++
+ """A basic go_proto_library.
+ 
+ Takes .proto as srcs and go_proto_library as deps
+@@ -47,7 +57,8 @@ _PROTOS_SUFFIX = "_protos"
+ 
+ _GO_GOOGLE_PROTOBUF = "go_google_protobuf"
+ 
+-_WELL_KNOWN_REPO = "@com_github_golang_protobuf//ptypes/"
++_PROTOBUF_REPO = "@com_github_golang_protobuf"
++_WELL_KNOWN_REPO = _PROTOBUF_REPO + "//ptypes/"
+ 
+ def _collect_protos_import(ctx):
+   """Collect the list of transitive protos and m_import_path.
+@@ -93,12 +104,19 @@ def _check_bazel_style(ctx):
+   """If the library name is not 'go_default_library', then we have to create an extra level of indirection."""
+   if ctx.label.name == _DEFAULT_LIB + _PROTOS_SUFFIX:
+     return ctx.outputs.outs, ""
+-  proto_outs = [
++  pb_go_outs = [
+       ctx.new_file(
+           ctx.configuration.bin_dir,
+           s.basename[:-len(".proto")] + ".pb.go")
+       for s in ctx.files.srcs
+   ]
++  validate_pb_go_outs = [
++      ctx.new_file(
++          ctx.configuration.bin_dir,
++          s.basename[:-len(".proto")] + ".pb.validate.go")
++      for s in ctx.files.srcs
++  ]
++  proto_outs = pb_go_outs + validate_pb_go_outs
+   for proto_out, ctx_out in zip(proto_outs, ctx.outputs.outs):
+     ctx.action(
+         inputs=[proto_out],
+@@ -127,6 +145,7 @@ def _go_proto_library_gen_impl(ctx):
+   work_dir = ctx.outputs.outs[0].path + ".protoc"
+   root_prefix = "/".join([".." for _ in work_dir.split("/")])
+   cmds = ["set -e", "/bin/rm -rf %s; /bin/mkdir -p %s" % (work_dir, work_dir)]
++  cmds += ["export PATH=\"$1\""]
+   srcs = list(ctx.files.srcs)
+   dirs = depset([s.short_path[:-1-len(s.basename)] for s in srcs + protos])
+   cmds += ["mkdir -p %s/%s" % (work_dir, _drop_external(d)) for d in dirs if d]
+@@ -144,9 +163,10 @@ def _go_proto_library_gen_impl(ctx):
+   else:
+     cmds += ["cp %s %s/%s" % (s.path, work_dir, _drop_external(s.short_path))
+              for s in srcs + protos]
++  validate_arg = "--validate_out=\"lang=go:.\"" if ctx.attr.validate else ""
+   cmds += ["cd %s" % work_dir,
+-           "%s/%s --go_out=%s%s:. %s" % (root_prefix, ctx.executable.protoc.path,
+-                                         use_grpc, m_import_path,
++           "%s/%s --go_out=%s%s:. %s %s" % (root_prefix, ctx.executable.protoc.path,
++                                         use_grpc, m_import_path, validate_arg,
+                                          " ".join([_drop_external(f.short_path) for f in srcs]))]
+   cmds += ["cp %s %s/%s" % (_drop_external(p.short_path), root_prefix, p.path)
+            for p in proto_outs]
+@@ -156,13 +176,16 @@ def _go_proto_library_gen_impl(ctx):
+       content = "\n".join(cmds),
+       executable = True)
+ 
++  validate_path = root_prefix + "/" + ctx.files.protoc_gen_validate[0].dirname if ctx.attr.validate else ""
++  validate_inputs = ctx.files.protoc_gen_validate if ctx.attr.validate else []
+   ctx.action(
+-      inputs=srcs + protos + ctx.files.protoc_gen_go + [ctx.executable.protoc, run],
++      inputs=srcs + protos + ctx.files.protoc_gen_go + validate_inputs + [ctx.executable.protoc, run],
+       outputs=proto_outs,
+       progress_message="Generating into %s" % ctx.outputs.outs[0].dirname,
+       mnemonic="GoProtocGen",
+-      env = {"PATH": root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname +
+-             ":/bin:/usr/bin"},  # /bin/sed for linux, /usr/bin/sed for macos.
++      arguments=[root_prefix + "/" + ctx.files.protoc_gen_go[0].dirname + ":" +
++             validate_path +
++             ":/bin:/usr/bin"],  # /bin/sed for linux, /usr/bin/sed for macos.
+       executable=run,
+       use_default_shell_env=True)
+   return struct(_protos=protos+srcs,
+@@ -176,6 +199,7 @@ _go_proto_library_gen = rule(
+             allow_files = True,
+         ),
+         "grpc": attr.int(default = 0),
++        "validate": attr.int(default = 0),
+         "outs": attr.output_list(mandatory = True),
+         "ignore_go_package_option": attr.int(default = 0),
+         "protoc": attr.label(
+@@ -188,6 +212,10 @@ _go_proto_library_gen = rule(
+             allow_files = True,
+             cfg = "host",
+         ),
++        "protoc_gen_validate": attr.label(
++            allow_files = True,
++            cfg = "host",
++        ),
+         "_protos": attr.label_list(default = []),
+         "go_prefix": attr.label(
+             providers = ["go_prefix"],
+@@ -220,8 +248,10 @@ def go_proto_library(name, srcs = None, deps = None,
+                      has_services = 0,
+                      testonly = 0, visibility = None,
+                      ignore_go_package_option = 0,
++                     validate = 0,
+                      protoc = "@com_github_google_protobuf//:protoc",
+                      protoc_gen_go = "@com_github_golang_protobuf//protoc-gen-go",
++                     protoc_gen_validate = "//:protoc-gen-validate",
+                      x_net_context = "@org_golang_x_net//context:go_default_library",
+                      google_grpc = "@org_golang_google_grpc//:go_default_library",
+                      golang_protobuf = "@com_github_golang_protobuf//proto:go_default_library",
+@@ -242,9 +272,12 @@ def go_proto_library(name, srcs = None, deps = None,
+     visibility: visibility to use on underlying go_library
+     ignore_go_package_option: if 1, ignore the "option go_package" statement in
+                               the srcs proto files.
++    validate: if 1, generate validation code with protoc-gen-validate.
+     protoc: override the default version of protoc.  Most users won't need this.
+     protoc_gen_go: override the default version of protoc_gen_go.
+                    Most users won't need this.
++    protoc_gen_validate: override the default version of protoc_gen_validate.
++                   Most users won't need this.
+     x_net_context: override the default version of the context package.  Most
+                    users won't need this.
+     google_grpc: override the default version of grpc.  Most users won't need
+@@ -268,6 +301,9 @@ def go_proto_library(name, srcs = None, deps = None,
+     outs = [s[:-len(".proto")] + ".pb.go"
+             for s in srcs]
+ 
++  if not validate:
++    protoc_gen_validate = None
++
+   _go_proto_library_gen(
+       name = name + _PROTOS_SUFFIX,
+       srcs = srcs,
+@@ -279,8 +315,10 @@ def go_proto_library(name, srcs = None, deps = None,
+       visibility = visibility,
+       ignore_go_package_option = ignore_go_package_option,
+       grpc = has_services,
++      validate = validate,
+       protoc = protoc,
+       protoc_gen_go = protoc_gen_go,
++      protoc_gen_validate = protoc_gen_validate,
+   )
+   grpc_deps = []
+   if has_services:
+@@ -313,6 +351,10 @@ def go_google_protobuf(name = _GO_GOOGLE_PROTOBUF):
+           for wk in _well_known_imports]
+   outs = [wk + ".proto" for wk in _well_known_imports]
+ 
++  # We need to special case descriptor.proto, it's not under ptypes/
++  deps += [_add_target_suffix(_PROTOBUF_REPO + "//protoc-gen-go/descriptor:go_default_library", _PROTOS_SUFFIX)]
++  outs += ["descriptor.proto"]
++
+   native.genrule(
+       name = name,
+       srcs = deps,
+@@ -326,7 +368,7 @@ def go_proto_repositories(shared = 1):
+   go_repository(
+       name = "com_github_golang_protobuf",
+       importpath = "github.com/golang/protobuf",
+-      commit = "8ee79997227bf9b34611aee7946ae64735e6fd93",
++      commit = "5afd06f9d81a86d6e3bb7dc702d6bd148ea3ff23",
+   )
+   if shared:
+     # if using multiple *_proto_library, allows caller to skip this.

@@ -1,0 +1,15 @@
+[[constraint]]
+  name = "github.com/golang/protobuf"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/lyft/protoc-gen-star"
+  version = "0.3.2"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/net"
+
+[[constraint]]
+  name = "github.com/gogo/protobuf"
+  version = "0.5.0"

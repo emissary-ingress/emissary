@@ -1,0 +1,8 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_test")
+
+go_test(
+    name = "go_default_test",
+    srcs = ["jsonpb_gogo_test.go"],
+    importpath = "github.com/gogo/protobuf/test/jsonpb-gogo",
+    deps = ["//vendor/github.com/gogo/protobuf/jsonpb:go_default_library"],
+)
