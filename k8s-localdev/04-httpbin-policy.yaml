@@ -1,0 +1,20 @@
+---
+apiVersion: getambassador.io/v1beta1
+kind: Policy
+metadata:
+  name: httpbin-policy
+  namespace: localdev
+spec:
+  # everything defaults to private; you can create rules to make stuff
+  # public, and you can create rules to require additional scopes
+  # which will be automatically checked
+  rules:
+  - host: "*"
+    path: /httpbin/ip
+    public: true
+  - host: "*"
+    path: /httpbin/user-agent
+    public: false
+  - host: "*"
+    path: /httpbin/headers
+    public: false

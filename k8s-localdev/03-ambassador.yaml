@@ -1,0 +1,155 @@
+# This file is roughly:
+# cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml)
+# but:
+#  - split in to sections, for readability
+#  - modified to work with Kubernaut
+#  - in the "localdev" namespace
+#  - with TLS enabled
+
+######################################################################
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador
+#
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-localdev
+rules:
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+  namespace: localdev
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-localdev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-localdev
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: localdev
+
+
+######################################################################
+# Create the ambassador Service+Service+Deployment
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+  namespace: localdev
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  namespace: localdev
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
+spec:
+  type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  selector:
+    service: ambassador
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+  namespace: localdev
+spec:
+  replicas: 1 # XXX: Kubernaut
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
+      labels:
+        service: ambassador
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.50.0-rc8
+# XXX: Kubernaut
+#        resources:
+#          limits:
+#            cpu: 1
+#            memory: 400Mi
+#          requests:
+#            cpu: 200m
+#            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+# XXX: Kubernaut
+#        livenessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_alive
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+#        readinessProbe:
+#          httpGet:
+#            path: /ambassador/v0/check_ready
+#            port: 8877
+#          initialDelaySeconds: 30
+#          periodSeconds: 3
+      restartPolicy: Always

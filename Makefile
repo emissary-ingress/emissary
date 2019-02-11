@@ -5,7 +5,7 @@ NAME            = ambassador-pro
 DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
-K8S_DIRS        = k8s-sidecar k8s-standalone
+K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
@@ -16,12 +16,13 @@ include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/k8s.mk
 include build-aux/teleproxy.mk
+include build-aux/pidfile.mk
 include build-aux/help.mk
 
 .DEFAULT_GOAL = help
 
 status: ## Report on the status of Kubernaut and Teleproxy
-status: status-proxy
+status: status-pro-tel
 .PHONY: status
 
 #
@@ -84,8 +85,77 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 %/02-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
 	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
-apply: k8s-sidecar/02-ambassador-certs.yaml k8s-standalone/02-ambassador-certs.yaml
+deploy: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
+apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
+
+#
+# Local Dev
+
+launch-pro-tel: ## (LocalDev) Launch Telepresence for the APro pod
+launch-pro-tel: build-aux/tel-pro.pid
+.PHONY: launch-pro-tel
+build-aux/tel-pro.pid: apply proxy
+	@if ! curl -s -o /dev/null ambassador-pro.localdev:38888; then \
+		echo "Launching Telepresence..."; \
+		rm -f pro-env.tmp; \
+		telepresence \
+			--logfile build-aux/tel-pro.log --env-file pro-env.tmp \
+			--namespace localdev -d ambassador-pro -m inject-tcp --mount false \
+			--expose 6070 --expose 8080 --expose 8081 --expose 38888 \
+			--run python3 -m http.server --bind 127.0.0.1 38888 \
+			> /dev/null 2>&1 & echo $$! > build-aux/tel-pro.pid ; \
+	fi
+	@for i in $$(seq 127); do \
+		if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
+			exit 0; \
+		fi; \
+		sleep 1; \
+	done; echo "ERROR: Telepresence failed. See build-aux/tel-pro.log"; exit 1
+	@if [ -s pro-env.tmp ]; then \
+		echo "KUBECONFIG=$(KUBECONFIG)" >> pro-env.tmp; \
+		mv -f pro-env.tmp pro-env.sh; \
+	elif ! grep -q "^KUBECONFIG=" pro-env.sh; then \
+		echo "ERROR: Telepresence did not populate pro-env.tmp"; \
+		echo "See build-aux/tel-pro.log"; \
+		exit 1; \
+	fi
+	@echo "Telepresence UP!"
+kill-pro-tel: ## (LocalDev) Kill the running Telepresence
+kill-pro-tel: build-aux/tel-pro.pid.clean
+	rm -f pro-env.sh pro-env.tmp
+.PHONY: kill-pro-tel
+tail-pro-tel: ## (LocalDev) Tail the logs of the running/last Telepresence
+	tail build-aux/tel-pro.log
+.PHONY: tail-pro-tel
+status-pro-tel: ## (LocalDev) Fail if Telepresence is not running
+status-pro-tel: status-proxy
+	@if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
+		echo "Telepresence okay!"; \
+	else \
+		echo "Telepresence is not running."; \
+		exit 1; \
+	fi
+.PHONY: status-pro-tel
+clean: kill-pro-tel
+help-local-dev: ## (LocalDev) Describe how to use local dev features
+	@echo "In the localdev namespace, the pro container has been replaced with"
+	@echo "Telepresence. You will need to run the relevant binaries on your own"
+	@echo "machine if you wish to use the Ambassador in this namespace."
+	@echo "  https://ambassador.localdev.svc.cluster.local/"
+	@echo
+	@echo "A copy of the remote environment is available in pro-env.sh and"
+	@echo "KUBECONFIG is also set in that file."
+	@echo
+	@echo "make run-auth        rebuild and run auth with debug logging"
+	@echo "make launch-pro-tel  relaunch Telepresence if needed"
+	@echo
+	@echo "Launch auth manually:"
+	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
+.PHONY: help-local-dev
+run-auth: ## (LocalDev) Build and launch the auth service locally
+run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
+	env $$(cat pro-env.sh) bin_$(GOOS)_$(GOARCH)/amb-sidecar auth --log_level debug
+.PHONY: run-auth
 
 #
 # Check

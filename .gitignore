@@ -1,3 +1,5 @@
+pro-env.sh
+
 /bin_*/
 /vendor/
 
@@ -7,6 +9,7 @@
 *.knaut.claim
 *.yaml.o
 *.tap
+*.pid
 
 *.pem
 node_modules/
