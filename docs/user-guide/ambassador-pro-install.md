@@ -1,7 +1,7 @@
 # Installing Ambassador Pro
 ---
 
-Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, and more. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
+Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, and more. Ambassador Pro also uses a certified version of Ambassador OSS that undergoes additional testing and validation. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
 
 ## 1. Create the Ambassador Pro registry credentials secret.
 Your credentials to pull the image from the Ambassador Pro registry were given in the sign up email. If you have lost this email, please contact us at support@datawire.io.
