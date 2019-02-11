@@ -158,17 +158,3 @@ func GetTenantFromContext(ctx context.Context) *crd.TenantObject {
 	}
 	return nil
 }
-
-// FindTenant returns app definition resource by looking up the domain name.
-func (c *Controller) FindTenant(domain string) *crd.TenantObject {
-	apps := c.Tenants.Load()
-	if apps != nil {
-		for _, app := range apps.([]crd.TenantObject) {
-			if app.Domain == domain {
-				return &app
-			}
-		}
-	}
-
-	return nil
-}
