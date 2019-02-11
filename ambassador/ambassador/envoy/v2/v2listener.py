@@ -103,6 +103,12 @@ def v2filter_buffer(buffer: IRBuffer):
         }        
     }
 
+@v2filter.when("ir.grpc_web")
+def v2filter_grpc_web(irfilter: IRFilter):
+    return {
+        'name': 'envoy.grpc_web',
+        'config': {},
+    }
 
 def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
     cluster_context = cluster.get('tls_context')
