@@ -4,9 +4,9 @@ From time to time, Ambassador may ship early access releases to test major chang
 
 Early access releases will always have names that include the string "-ea" followed by a build number, for example `0.50.0-ea1` is the first early access build of Ambassador 0.50.0.
 
-## Ambassador 0.50 Early Access
+## Early Access Status
 
-Ambassador 0.50 is a major revamp of Ambassador's architecture, with support for Envoy v2 configuration, ADS, and significant internal refactoring. For details on Ambassador 0.50, see the [Ambassador 0.50 Early Access blog post](https://blog.getambassador.io/announcing-ambassador-0-50-early-access-1-with-v2-config-ads-support-cd785276a60e).
+There are currently no early access releases available.
 
 ### Installing Ambassador Early Access releases
 
