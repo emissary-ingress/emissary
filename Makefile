@@ -135,11 +135,20 @@ help-local-dev: ## (LocalDev) Describe how to use local dev features
 	@echo "In the localdev namespace, the pro container has been replaced with"
 	@echo "Telepresence. You will need to run the relevant binaries on your own"
 	@echo "machine if you wish to use the Ambassador in this namespace."
+	@echo "  https://ambassador.localdev.svc.cluster.local/"
+	@echo
 	@echo "A copy of the remote environment is available in pro-env.sh and"
 	@echo "KUBECONFIG is also set in that file."
-	@echo "Launch auth:"
+	@echo
+	@echo "make run-auth        rebuild and run auth with debug logging"
+	@echo "make launch-pro-tel  relaunch Telepresence if needed"
+	@echo
+	@echo "Launch auth manually:"
 	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
 .PHONY: launch-pro-tel kill-pro-tel tail-pro-tel deploy-local-pro
+run-auth: ## (LocalDev) Build and launch the auth service locally
+run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
+	env $$(cat pro-env.sh) bin_$(GOOS)_$(GOARCH)/amb-sidecar auth --log_level debug
 
 #
 # Check
