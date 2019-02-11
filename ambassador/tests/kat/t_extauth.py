@@ -2,7 +2,56 @@ import json
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
+
+class AuthenticationGRPCTest(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = AGRPC(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+timeout_ms: 5000
+proto: grpc
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.k8s}
+""")
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+                                                  "Baz": "baz",
+                                                  "Request-Header": "Baz"}, expected=401)
+
+    def check(self):
+        # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/extauth/target/"
+        assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
+        assert self.results[0].backend.request.headers["content-length"]== ["0"]
+        assert "x-forwarded-for" in self.results[0].backend.request.headers
+        assert "user-agent" in self.results[0].backend.request.headers
+        assert "baz" not in self.results[0].backend.request.headers
+        assert self.results[0].status == 401
+        assert self.results[0].headers["Server"] == ["envoy"]
 
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):

@@ -268,7 +268,7 @@ class AGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=manifests.AUTH_BACKEND, **kwargs)
+        super().__init__(*args, service_manifests=manifests.GRPC_AUTH_BACKEND, **kwargs)
 
 
 @abstract_test

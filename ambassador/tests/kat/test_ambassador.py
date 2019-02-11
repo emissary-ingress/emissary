@@ -14,14 +14,7 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 from t_ratelimit import RateLimitTest
 from t_tracing import TracingTest
 from t_shadow import ShadowTest
-from t_extauth import (
-    AuthenticationTest,
-    AuthenticationTestV1,
-    AuthenticationHTTPBufferedTest,
-    AuthenticationWebsocketTest,
-    AuthenticationWebsocketTest,
-    AuthenticationWebsocketTimeoutTest
-)
+from t_extauth import AuthenticationGRPCTest
 
 # XXX: should test empty ambassador config
 
