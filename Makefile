@@ -87,7 +87,7 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 deploy: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
 apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
 
-#
+#
 # Local Dev
 
 launch-pro-tel: ## (LocalDev) Launch Telepresence for the APro pod
