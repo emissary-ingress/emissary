@@ -117,11 +117,14 @@ launch-pro-tel: apply proxy
 		exit 1; \
 	fi
 	@echo "Telepresence UP!"
+.PHONY: launch-pro-tel
 kill-pro-tel: ## (LocalDev) Kill the running Telepresence
 	pkill -f tel-pro.log || true
 	rm -f pro-env.sh pro-env.tmp
+.PHONY: kill-pro-tel
 tail-pro-tel: ## (LocalDev) Tail the logs of the running/last Telepresence
 	tail build-aux/tel-pro.log
+.PHONY: tail-pro-tel
 status-pro-tel: ## (LocalDev) Fail if Telepresence is not running
 status-pro-tel: status-proxy
 	@if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
@@ -130,6 +133,7 @@ status-pro-tel: status-proxy
 		echo "Telepresence is not running."; \
 		exit 1; \
 	fi
+.PHONY: status-pro-tel
 clean: kill-pro-tel
 help-local-dev: ## (LocalDev) Describe how to use local dev features
 	@echo "In the localdev namespace, the pro container has been replaced with"
@@ -145,10 +149,11 @@ help-local-dev: ## (LocalDev) Describe how to use local dev features
 	@echo
 	@echo "Launch auth manually:"
 	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
-.PHONY: launch-pro-tel kill-pro-tel tail-pro-tel deploy-local-pro
+.PHONY: help-local-dev
 run-auth: ## (LocalDev) Build and launch the auth service locally
 run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
 	env $$(cat pro-env.sh) bin_$(GOOS)_$(GOARCH)/amb-sidecar auth --log_level debug
+.PHONY: run-auth
 
 #
 # Check
