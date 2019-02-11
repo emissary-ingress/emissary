@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"time"
@@ -72,7 +71,6 @@ func InitializeFlags(flags *pflag.FlagSet) func() Config {
 		}
 
 		authCfg.BaseURL = u
-		authCfg.IssuerURL = fmt.Sprintf("%s://%s/", u.Scheme, u.Host)
 
 		return *authCfg
 	}

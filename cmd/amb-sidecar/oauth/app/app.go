@@ -48,6 +48,8 @@ func (a *App) Handler() (http.Handler, error) {
 		return nil, err
 	}
 
+	a.Config.IssuerURL = discovery.Issuer
+
 	a.discovery = discovery
 	authorizationEndpointURL, err := url.Parse(a.discovery.AuthorizationEndpoint)
 	if err != nil {
@@ -63,10 +65,10 @@ func (a *App) Handler() (http.Handler, error) {
 
 	// Handler
 	auth := handler.Authorize{
-		Config: a.Config,
-		Logger: a.Logger.WithField("HANDLER", "authorize"),
-		Ctrl:   a.Controller,
-		Secret: a.secret,
+		Config:    a.Config,
+		Logger:    a.Logger.WithField("HANDLER", "authorize"),
+		Ctrl:      a.Controller,
+		Secret:    a.secret,
 		Discovery: a.discovery,
 	}
 

@@ -224,6 +224,8 @@ spec:
         env:
         - name: AUTH_PROVIDER_URL # For auth: Auth provider's absolute url: {scheme}://{host}
           value: {{env "AUTH_PROVIDER_URL"}}
+        - name: APP_LOG_LEVEL
+          value: DEBUG
         - name: REDIS_SOCKET_TYPE # For ratelimit
           value: tcp
         - name: REDIS_URL # For ratelimit

@@ -39,6 +39,7 @@ type openIDConfig struct {
 
 // Discovery is used to fetch the certificate information from the IDP.
 type Discovery struct {
+	Issuer                string
 	AuthorizationEndpoint string
 	TokenEndpoint         string
 	JSONWebKeysURI        string
@@ -61,6 +62,7 @@ func New(cfg types.Config) (*Discovery, error) {
 			mux:   &sync.RWMutex{},
 		}
 
+		instance.Issuer = config.Issuer
 		instance.AuthorizationEndpoint = config.AuthorizationEndpoint
 		instance.TokenEndpoint = config.TokenEndpoint
 		instance.JSONWebKeysURI = config.JSONWebKeyURI
