@@ -48,9 +48,6 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
-	})
-	n.Use(&middleware.JWTCheck{
-		Logger:    logger.WithField("MIDDLEWARE", "jwt_check"),
 		Discovery: disco,
 		Config:    config,
 		IssuerURL: disco.Issuer,
