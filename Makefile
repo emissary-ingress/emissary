@@ -21,7 +21,7 @@ include build-aux/help.mk
 .DEFAULT_GOAL = help
 
 status: ## Report on the status of Kubernaut and Teleproxy
-status: status-proxy
+status: status-proxy status-pro-tel
 .PHONY: status
 
 #
@@ -86,6 +86,59 @@ docker/amb-sidecar/%: bin_linux_amd64/%
 
 deploy: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
 apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
+
+#
+# Local Dev
+
+launch-pro-tel: ## (LocalDev) Launch Telepresence for the APro pod
+launch-pro-tel: apply proxy
+	@if ! curl -s -o /dev/null ambassador-pro.localdev:38888; then \
+		echo "Launching Telepresence..."; \
+		rm -f pro-env.tmp; \
+		telepresence \
+			--logfile build-aux/tel-pro.log --env-file pro-env.tmp \
+			--namespace localdev -d ambassador-pro -m inject-tcp --mount false \
+			--expose 6070 --expose 8080 --expose 8081 --expose 38888 \
+			--run python3 -m http.server --bind 127.0.0.1 --directory build-aux/docs 38888 \
+			> /dev/null 2>&1 & \
+	fi
+	@for i in $$(seq 127); do \
+		if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
+			exit 0; \
+		fi; \
+		sleep 1; \
+	done; echo "ERROR: Telepresence failed. See build-aux/tel-pro.log"; exit 1
+	@if [ -s pro-env.tmp ]; then \
+		echo "KUBECONFIG=$(KUBECONFIG)" >> pro-env.tmp; \
+		mv -f pro-env.tmp pro-env.sh; \
+	elif ! grep -q "^KUBECONFIG=" pro-env.sh; then \
+		echo "ERROR: Telepresence did not populate pro-env.tmp"; \
+		echo "See build-aux/tel-pro.log"; \
+		exit 1; \
+	fi
+	@echo "Telepresence UP!"
+kill-pro-tel: ## (LocalDev) Kill the running Telepresence
+	pkill -f tel-pro.log || true
+	rm -f pro-env.sh pro-env.tmp
+tail-pro-tel: ## (LocalDev) Tail the logs of the running/last Telepresence
+	tail build-aux/tel-pro.log
+status-pro-tel: ## (LocalDev) Fail if Telepresence is not running
+	@if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
+		echo "Telepresence okay!"; \
+	else \
+		echo "Telepresence is not running."; \
+		exit 1; \
+	fi
+clean: kill-pro-tel
+help-local-dev: ## (LocalDev) Describe how to use local dev features
+	@echo "In the localdev namespace, the pro container has been replaced with"
+	@echo "Telepresence. You will need to run the relevant binaries on your own"
+	@echo "machine if you wish to use the Ambassador in this namespace."
+	@echo "A copy of the remote environment is available in pro-env.sh and"
+	@echo "KUBECONFIG is also set in that file."
+	@echo "Launch auth:"
+	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
+.PHONY: launch-pro-tel kill-pro-tel tail-pro-tel deploy-local-pro
 
 #
 # Check
