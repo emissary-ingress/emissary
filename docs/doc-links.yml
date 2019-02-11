@@ -27,6 +27,8 @@
         link: /user-guide/ambassador-pro-install
       - title: Early Access Releases
         link: /user-guide/early-access
+      - title: Certified Builds
+        link: /user-guide/certified-builds
 
 - title: Concepts
   link: /concepts/overview
