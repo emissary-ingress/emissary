@@ -94,12 +94,14 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"
       path_prefix: "/extauth"
-      allowed_headers:
+      allowed_request_headers:
+      - "x-qotm-session"
+      allowed_authorization_headers:
       - "x-qotm-session"
 spec:
   type: ClusterIP
@@ -195,3 +197,16 @@ TCP_NODELAY set
 ## More
 
 For more details about configuring authentication, read the documentation on [external authentication](/reference/services/auth-service).
+
+## Legacy v0 API
+If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
+```yaml
+      ---
+      apiVersion: ambassador/v0
+      kind:  AuthService
+      name:  authentication
+      auth_service: "example-auth:3000"
+      path_prefix: "/extauth"
+      allowed_headers:
+      - "x-qotm-session"
+```
