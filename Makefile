@@ -99,7 +99,7 @@ launch-pro-tel: apply proxy
 			--logfile build-aux/tel-pro.log --env-file pro-env.tmp \
 			--namespace localdev -d ambassador-pro -m inject-tcp --mount false \
 			--expose 6070 --expose 8080 --expose 8081 --expose 38888 \
-			--run python3 -m http.server --bind 127.0.0.1 --directory build-aux/docs 38888 \
+			--run python3 -m http.server --bind 127.0.0.1 38888 \
 			> /dev/null 2>&1 & \
 	fi
 	@for i in $$(seq 127); do \
