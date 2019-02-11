@@ -60,7 +60,34 @@ ambassador-79494c799f-vj2dv            2/2       Running            0         1h
 ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 ```
 
-## 5. Configure Ambassador Pro services
+## 5. Defining the Ambassador Service
+
+After deploying Ambassador Pro, you will need to expose the service to the internet. This is done with a Kubernetes Service.
+
+Create the following YAML and put it in a file called `ambassador-service.yaml:
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+   - name: http
+     port: 80
+     targetPort: 80
+  selector:
+    service: ambassador
+```
+
+This will create a `LoadBalancer` service listening on and forwarding traffic to Ambassador on port `80`. `externalTrafficPolicy: Local` will configure the load balancer to to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client to Ambassador.
+
+**Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change this to a different service type (e.g. `NodePort`).
+
+
+## 6. Configure Ambassador Pro services
 
 Ambassador should now be running, along with the Pro modules. To enable rate limiting and authentication, some additional configuration is required.
 
