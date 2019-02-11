@@ -11,18 +11,17 @@ launch() {
 }
 
 export RLS_RUNTIME_DIR=/run/amb/config
+mkdir -p /run/amb
 
 # Launch each of the worker processes
 if test -z "$REDIS_URL"; then
 	echo 'Warning: ${REDIS_URL} is not set; not starting ratelimit service'
 else
-	mkdir -p /run/amb
 	# Setting the PORT is important only because the default PORT
 	# is 8080, which would clash with auth.
 	launch USE_STATSD=false RUNTIME_ROOT=/run/amb/config RUNTIME_SUBDIRECTORY=config PORT=7000 "$exe" ratelimit
-	launch "$exe" rls-watch
 fi
-launch "$exe" auth
+launch "$exe" main
 
 # Wait for one of them to quit, then kill the others
 wait -n

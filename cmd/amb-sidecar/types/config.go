@@ -10,13 +10,13 @@ import (
 )
 
 type Config struct {
+	// Ambassador
 	AmbassadorID              string
 	AmbassadorNamespace       string
 	AmbassadorSingleNamespace bool
 
 	// Auth
 	AuthProviderURL string        // the Identity Provider's URL
-	LogLevel        string        // auth log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
 	PvtKPath        string        // the path for private key file
 	PubKPath        string        // the path for public key file
 	BaseURL         *url.URL      // (this is just AuthProviderURL, but as a *url.URL)
@@ -24,6 +24,9 @@ type Config struct {
 
 	// Rate Limit
 	Output string // e.g.: "/run/amb/config"; same as the RUNTIME_ROOT for Lyft ratelimit
+
+	// General
+	LogLevel string // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
 }
 
 func getenvDefault(varname, def string) string {
@@ -36,6 +39,7 @@ func getenvDefault(varname, def string) string {
 
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	cfg = Config{
+		// Ambassador
 		AmbassadorID:              getenvDefault("AMBASSADOR_ID", "default"),
 		AmbassadorNamespace:       getenvDefault("AMBASSADOR_NAMESPACE", "default"),
 		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
@@ -43,7 +47,6 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		// Auth
 		AuthProviderURL: os.Getenv("AUTH_PROVIDER_URL"),
 		//IssuerURL: (this is just AuthProviderURL, but as a *url.URL)
-		LogLevel: getenvDefault("APP_LOG_LEVEL", "info"),
 		PvtKPath: os.Getenv("APP_PRIVATE_KEY_PATH"),
 		PubKPath: os.Getenv("APP_PUBLIC_KEY_PATH"),
 		//BaseURL: (derived from AuthProviderURL)
@@ -51,6 +54,9 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 
 		// Rate Limit
 		Output: os.Getenv("RLS_RUNTIME_DIR"),
+
+		// General
+		LogLevel: getenvDefault("APP_LOG_LEVEL", "info"),
 	}
 
 	u, err := url.Parse(cfg.AuthProviderURL)
