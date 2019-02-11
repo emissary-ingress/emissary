@@ -50,7 +50,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
-		return types.WrapLogrus(l)
+		return types.WrapLogrus(l).WithField("MAIN", name)
 	})
 
 	// Launch all of the worker goroutines...
@@ -66,21 +66,21 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	ct := &controller.Controller{}
 	group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		ct.Config = cfg
-		ct.Logger = l.WithField("MAIN", "auth-k8s")
+		ct.Logger = l
 		ct.Watch(softCtx)
 		return nil
 	})
 
 	// Auth HTTP server
 	group.Go("auth_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		httpHandler, err := app.NewHandler(cfg, l, ct)
+		httpHandler, err := app.NewHandler(cfg, l.WithField("SUB", "http-handler"), ct)
 		if err != nil {
 			return err
 		}
 		server := &http.Server{
 			Addr:     ":8080",
 			Handler:  httpHandler,
-			ErrorLog: l.WithField("MAIN", "auth-http").StdLogger(types.LogLevelError),
+			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
 		}
 		return listenAndServeWithContext(hardCtx, softCtx, server)
 	})
