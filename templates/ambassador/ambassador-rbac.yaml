@@ -25,10 +25,6 @@ rules:
   - services
   - secrets
   verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -65,7 +61,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.0-rc5
+        image: quay.io/datawire/ambassador:0.50.0
         resources:
           limits:
             cpu: 1

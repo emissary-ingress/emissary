@@ -27,6 +27,7 @@ import clize
 from clize import Parameter
 
 from . import Scout, Config, IR, Diagnostics, Version
+from .config.resourcefetcher import ResourceFetcher
 from .envoy import EnvoyConfig, V1Config, V2Config
 from .ir.irtlscontext import IRTLSContext
 
@@ -164,7 +165,10 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
     try:
         aconf = Config()
-        aconf.load_from_directory(config_dir_path, k8s=k8s, recurse=recurse)
+        fetcher = ResourceFetcher(logger, aconf)
+        fetcher.load_from_filesystem(config_dir_path, k8s=k8s, recurse=True)
+        aconf.load_all(fetcher.sorted())
+
         # aconf.post_error("Error from string, boo yah")
         # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 
@@ -290,7 +294,9 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             logger.info("Generating new Envoy configuration...")
 
             aconf = Config()
-            aconf.load_from_directory(config_dir_path, k8s=k8s)
+            fetcher = ResourceFetcher(logger, aconf)
+            fetcher.load_from_filesystem(config_dir_path, k8s=k8s)
+            aconf.load_all(fetcher.sorted())
 
             if dump_aconf:
                 with open(dump_aconf, "w") as output:
@@ -387,7 +393,9 @@ def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
 
     # OK. Load the Config from the config_root.
     aconf = Config()
-    aconf.load_from_directory(config_root, k8s=k8s, recurse=True)
+    fetcher = ResourceFetcher(logger, aconf)
+    fetcher.load_from_filesystem(config_root, k8s=k8s, recurse=True)
+    aconf.load_all(fetcher.sorted())
 
     # Use the SecretSaver to read secret from the filesystem.
     ir = IR(aconf, secret_reader=scc.file_reader)

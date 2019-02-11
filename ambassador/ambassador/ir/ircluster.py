@@ -38,15 +38,17 @@ if TYPE_CHECKING:
 
 
 class IRCluster (IRResource):
-    TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
-        "auto_host_rewrite": True,
-        "case_sensitive": True,
-        "envoy_override": True,
-        "host_rewrite": True,
-        "path_redirect": True,
-        "priority": True,
-        "timeout_ms": True,
-    }
+    # TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
+    #     "auto_host_rewrite": True,
+    #     "case_sensitive": True,
+    #     "enable_ipv4": True,
+    #     "enable_ipv6": True,
+    #     "envoy_override": True,
+    #     "host_rewrite": True,
+    #     "path_redirect": True,
+    #     "priority": True,
+    #     "timeout_ms": True,
+    # }
 
     def __init__(self, ir: 'IR', aconf: Config,
                  location: str,  # REQUIRED
@@ -59,6 +61,8 @@ class IRCluster (IRResource):
                  host_rewrite: Optional[str]=None,
 
                  dns_type: str="strict_dns",
+                 enable_ipv4: Optional[bool]=None,
+                 enable_ipv6: Optional[bool]=None,
                  lb_type: str="round_robin",
                  grpc: Optional[bool] = False,
 
@@ -180,11 +184,21 @@ class IRCluster (IRResource):
         #
         # XXX We should really save the hostname and the port, not the URL.
 
+        if enable_ipv4 is None:
+            enable_ipv4 = ir.ambassador_module.enable_ipv4
+            ir.logger.debug("%s: copying enable_ipv4 %s from Ambassador Module" % (name, enable_ipv4))
+
+        if enable_ipv6 is None:
+            enable_ipv6 = ir.ambassador_module.enable_ipv6
+            ir.logger.debug("%s: copying enable_ipv6 %s from Ambassador Module" % (name, enable_ipv6))
+
         new_args: Dict[str, Any] = {
             "type": dns_type,
             "lb_type": lb_type,
             "urls": [ url ],
-            "service": service
+            "service": service,
+            'enable_ipv4': enable_ipv4,
+            'enable_ipv6': enable_ipv6
         }
 
         if grpc:

@@ -13,48 +13,23 @@
 # limitations under the License
 
 ################################################################
-# This is a multistage Dockerfile, because while we need the compilers et al for the build, we don't need them
-# to run things. If you don't know what you're doing, it's probably a mistake to blindly hack up this file.
-#
+# This Dockerfile copies in the required packages from the CACHED_CONTAINER_IMAGE and configures
+# Ambassador. The reason packages are not installed and copied instead is that this pattern speeds up
+# the inner development loop, since packages do not need to be installed in every docker build.
+# Besides that, alpine mirrors have been found to be inconsistent over timezones, so this seems to
+# be a better approach.
+
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
-#
-# Ambassador itself is installed with pip, so it ends up in /usr/bin and /usr/lib. At present, other
-# executables are written into /ambassador, but we'll likely change that shortly.
-#
-# The base image (for everything) is defined here.
 
-FROM quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g523a9e31d as BASE
-
-MAINTAINER Datawire <flynn@datawire.io>
-LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
-      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
-      DESCRIPTION              = "Ambassador" \
-      VENDOR                   = "Datawire" \
-      VENDOR_URL               = "https://datawire.io/"
+ARG CACHED_CONTAINER_IMAGE
+ARG AMBASSADOR_BASE_IMAGE
 
 ################################################################
-## FIRST STAGE: this is where we do compiles and pip installs and all that.
+# STAGE ONE: use the CACHED_CONTAINER_IMAGE's toolchains to
+# build and install the Ambassador app itself.
 
-FROM BASE as builder
-ENV AMBASSADOR_ROOT=/ambassador
-
-# Compilers and pip and all that good stuff go here.
-RUN apk --no-cache add go build-base libffi-dev openssl-dev python3-dev
-RUN pip3 install -U pip
-
-# Set WORKDIR to /ambassador which is the root of all our apps then COPY
-# only requirements.txt to avoid screwing up Docker caching and causing a
-# full reinstall of all dependencies when dependencies are not changed.
-
-WORKDIR ${AMBASSADOR_ROOT}
-
-COPY releng releng
-COPY multi/requirements.txt multi/
-COPY ambassador/requirements.txt ambassador/
-
-# Install application dependencies
-RUN releng/install-py.sh prd requirements */requirements.txt
+FROM $CACHED_CONTAINER_IMAGE as cached
 
 # Install the application itself
 COPY multi/ multi
@@ -62,41 +37,27 @@ COPY ambassador/ ambassador
 RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
 
-# Grab kubewatch
-RUN wget -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.16/$(go env GOOS)/$(go env GOARCH)/kubewatch
-RUN chmod +x kubewatch
-
-# Clean up no-longer-needed dev stuff.
-# RUN apk del build-base libffi-dev openssl-dev python3-dev go
-
 ################################################################
-## SECOND STAGE: this is where we pull over the stuff we need to actually run Ambassador,
-## _without_ all the compilers and crap.
+# STAGE TWO: switch to the AMBASSADOR_BASE_IMAGE as the base of
+# our actual runtime image, and copy the built artifacts from
+# stage one to here.
 
-FROM BASE as foundation
+FROM $AMBASSADOR_BASE_IMAGE
+
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
-
-RUN echo "https://mirror.math.princeton.edu/pub/alpinelinux/v3.8/main" > /etc/apk/repositories && \
-    echo "https://mirror.math.princeton.edu/pub/alpinelinux/v3.8/community" >> /etc/apk/repositories
-
-RUN apk --no-cache add curl python3
 
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=builder /usr/lib/python3.6 /usr/lib/python3.6
+COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6
 
-# Copy Ambassador binaries...
-COPY --from=builder /usr/bin/ambassador /usr/bin/diagd /usr/bin/
-
-# ...and go-kubewatch.
-COPY --from=builder ${AMBASSADOR_ROOT}/kubewatch ${AMBASSADOR_ROOT}/
+# Copy Ambassador binaries (built in stage one).
+COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 
 # MKDIR an empty /ambassador/ambassador-config, so that you can drop a configmap over it
 # if you really really need to (not recommended).
-RUN mkdir ambassador-config
-RUN mkdir envoy
+RUN mkdir ambassador-config envoy
 
 # COPY in a default config for use with --demo.
 COPY ambassador/default-config/ ambassador-demo-config
@@ -109,11 +70,8 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
 # COPY the entrypoint and Python-kubewatch and make them runnable.
 COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
+COPY ambassador/kick_ads.sh .
 COPY ambassador/post_update.py .
-RUN chmod 755 kubewatch.py entrypoint.sh post_update.py
-
-# Grab ambex, too.
-RUN wget -q https://s3.amazonaws.com/datawire-static-files/ambex/0.1.1/ambex
-RUN chmod 755 ambex
+RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py
 
 ENTRYPOINT [ "./entrypoint.sh" ]

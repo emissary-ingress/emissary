@@ -122,7 +122,6 @@ rules:
   - services
   - secrets
   - namespaces
-  - configmaps
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -157,7 +156,6 @@ rules:
   - services
   - secrets
   - namespaces
-  - configmaps
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1

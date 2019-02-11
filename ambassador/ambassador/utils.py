@@ -37,7 +37,7 @@ logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
 
 
-def _load_url_contents(logger: logging.Logger, url: str, stream: TextIO) -> bool:
+def _load_url_contents(logger: logging.Logger, url: str, stream1: TextIO, stream2: Optional[TextIO]=None) -> bool:
     saved = False
 
     try:
@@ -47,8 +47,12 @@ def _load_url_contents(logger: logging.Logger, url: str, stream: TextIO) -> bool
                 # All's well, pull the config down.
                 try:
                     for chunk in r.iter_content(chunk_size=65536, decode_unicode=True):
-                        stream.write(chunk)
-                        saved = True
+                        stream1.write(chunk)
+
+                        if stream2:
+                            stream2.write(chunk)
+
+                    saved = True
                 except IOError as e:
                     logger.error("couldn't save Kubernetes service resources: %s" % e)
                 except Exception as e:
@@ -58,14 +62,15 @@ def _load_url_contents(logger: logging.Logger, url: str, stream: TextIO) -> bool
 
     return saved
 
-def save_url_contents(logger: logging.Logger, url: str, path: str) -> bool:
-    with open(path, 'w', encoding='utf-8') as stream:
-        return _load_url_contents(logger, url, stream)
 
-def load_url_contents(logger: logging.Logger, url: str) -> Optional[str]:
+def save_url_contents(logger: logging.Logger, url: str, path: str, stream2: Optional[TextIO]=None) -> bool:
+    with open(path, 'w', encoding='utf-8') as stream:
+        return _load_url_contents(logger, url, stream, stream2=stream2)
+
+def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO]=None) -> Optional[str]:
     stream = io.StringIO()
 
-    saved = _load_url_contents(logger, url, stream)
+    saved = _load_url_contents(logger, url, stream, stream2=stream2)
 
     if saved:
         return stream.getvalue()
@@ -271,6 +276,18 @@ class SecretSaver:
         self.logger = logger
         self.source_root = source_root
         self.cache_dir = cache_dir
+
+    def null_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str):
+        self.context = context
+        self.secret_name = secret_name
+        self.namespace = namespace
+
+        self.source = os.path.join(self.source_root, namespace, "secrets", "%s.yaml" % secret_name)
+
+        self.serialization = None
+        self.logger.error("TLSContext %s: no way to find secret" % context.name)
+
+        return self.secret_parser()
 
     def file_reader(self, context: 'IRTLSContext', secret_name: str, namespace: str):
         self.context = context

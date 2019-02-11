@@ -104,6 +104,9 @@ class AmbScout:
             if 'commit' not in kwargs:
                 kwargs['commit'] = Build.git.commit
 
+            if 'branch' not in kwargs:
+                kwargs['branch'] = Build.git.branch
+
             # How long since the last Scout update? If it's been more than an hour,
             # check Scout again.
 
@@ -313,7 +316,11 @@ class AmbScout:
             if base_version != version:
                 build_elements.append("q%s" % version.replace('.', '-'))
 
-            version = build.git.branch
+            # Overwrite the version with the branch only if it's important to show the
+            # branch (e.g. 0.50.0-rc7 instead of 0.50.0) at all times. We should probably
+            # not do this again -- or we should revamp this stuff to rebuild the Docker
+            # image for a GA build.
+            # version = build.git.branch
 
         # Finally, put it all together.
         if build_elements:
