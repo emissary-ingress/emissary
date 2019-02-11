@@ -16,6 +16,7 @@ include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/k8s.mk
 include build-aux/teleproxy.mk
+include build-aux/pidfile.mk
 include build-aux/help.mk
 
 .DEFAULT_GOAL = help
@@ -91,7 +92,9 @@ apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
 # Local Dev
 
 launch-pro-tel: ## (LocalDev) Launch Telepresence for the APro pod
-launch-pro-tel: apply proxy
+launch-pro-tel: build-aux/tel-pro.pid
+.PHONY: launch-pro-tel
+build-aux/tel-pro.pid: apply proxy
 	@if ! curl -s -o /dev/null ambassador-pro.localdev:38888; then \
 		echo "Launching Telepresence..."; \
 		rm -f pro-env.tmp; \
@@ -100,7 +103,7 @@ launch-pro-tel: apply proxy
 			--namespace localdev -d ambassador-pro -m inject-tcp --mount false \
 			--expose 6070 --expose 8080 --expose 8081 --expose 38888 \
 			--run python3 -m http.server --bind 127.0.0.1 38888 \
-			> /dev/null 2>&1 & \
+			> /dev/null 2>&1 & echo $$! > build-aux/tel-pro.pid ; \
 	fi
 	@for i in $$(seq 127); do \
 		if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
@@ -117,9 +120,8 @@ launch-pro-tel: apply proxy
 		exit 1; \
 	fi
 	@echo "Telepresence UP!"
-.PHONY: launch-pro-tel
 kill-pro-tel: ## (LocalDev) Kill the running Telepresence
-	pkill -f tel-pro.log || true
+kill-pro-tel: build-aux/tel-pro.pid.clean
 	rm -f pro-env.sh pro-env.tmp
 .PHONY: kill-pro-tel
 tail-pro-tel: ## (LocalDev) Tail the logs of the running/last Telepresence

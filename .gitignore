@@ -9,6 +9,7 @@ pro-env.sh
 *.knaut.claim
 *.yaml.o
 *.tap
+*.pid
 
 *.pem
 node_modules/
