@@ -140,6 +140,7 @@ func Main(flags *cobra.Command, args []string) error {
 	c := longpoll.NewClient(u, appName)
 	c.Logger = log
 	c.Start()
+	defer c.Stop()
 
 	for {
 		err := processIntercepts(intercepts)
@@ -159,9 +160,6 @@ func Main(flags *cobra.Command, args []string) error {
 			}
 		}
 	}
-
-	//c.Stop()
-
 }
 
 const routeTemplate = `
