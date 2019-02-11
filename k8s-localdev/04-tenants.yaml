@@ -15,7 +15,7 @@ spec:
   tenants:
 
   # app 1
-  - tenantUrl: {{env "AUTH_TENANT_URL"}}
+  - tenantUrl: https://ambassador.localdev.svc.cluster.local
     audience: {{env "AUTH_AUDIENCE"}}
     clientId: {{env "AUTH_CLIENT_ID"}}
     secret: {{env "AUTH_CLIENT_SECRET"}}
