@@ -62,7 +62,7 @@ func (h *Authorize) signState(r *http.Request) string {
 		"jti":          uuid.Must(uuid.NewV4(), nil).String(),    // a unique identifier for the token
 		"iat":          time.Now().Unix(),                        // when the token was issued/created (now)
 		"nbf":          0,                                        // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": util.ToRawURL(r),                         // original request url
+		"redirect_url": util.OriginalURL(r).String(),             // original request url
 	}
 
 	k, err := t.SignedString(h.Secret.GetPrivateKey())

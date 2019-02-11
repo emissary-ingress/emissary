@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"net/http"
-	"net/url"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -20,12 +19,7 @@ type DomainCheck struct {
 }
 
 func (c *DomainCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	u, err := url.Parse(util.ToRawURL(r))
-	if err != nil {
-		c.Logger.Errorf("error parsing request url: %v", err)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
+	u := util.OriginalURL(r)
 
 	a := c.Ctrl.FindTenant(u.Hostname())
 	if a == nil {
