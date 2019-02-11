@@ -8,7 +8,7 @@ type TenantSpec struct {
 type TenantObject struct {
 	CallbackURL string `json:"-"` // is calculated from TenantURL
 	TenantURL   string `json:"tenantUrl"`
-	TLS         bool   `json:"tls"`
+	TLS         bool   `json:"-"` // is calculated from TenantURL
 	Domain      string `json:"-"` // is calculated from TenantURL
 	Audience    string `json:"audience"`
 	ClientID    string `json:"clientId"`
