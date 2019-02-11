@@ -81,6 +81,10 @@ config:
   #   methods: POST, GET, OPTIONS
   #   ...
   #   ...
+
+  # This enables gRPC-Web; a bridge to have Ambassador translate between
+  # the gRPC-Web protocol and a native gRPC upstream server.
+  # enable_grpc_web: true
 ```
 
 ### `enable_ivp4` and `enable_ipv6`

@@ -10,6 +10,7 @@ from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
 from .irbuffer import IRBuffer
+from .irfilter import IRFilter
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -192,6 +193,11 @@ class IRAmbassador (IRResource):
 
                 if not cur.get('service', None):
                     cur['service'] = diag_service
+
+        if amod and ('enable_grpc_web' in amod):
+            self.grpc_web = IRFilter(ir=ir, aconf=aconf, kind='ir.grpc_web', name='grpc_web', config=dict())
+            self.grpc_web.sourced_by(amod)
+            ir.save_filter(self.grpc_web)
 
          # Buffer.
         if amod and ('buffer' in amod):            
