@@ -21,7 +21,7 @@ include build-aux/help.mk
 .DEFAULT_GOAL = help
 
 status: ## Report on the status of Kubernaut and Teleproxy
-status: status-proxy status-pro-tel
+status: status-pro-tel
 .PHONY: status
 
 #
@@ -123,6 +123,7 @@ kill-pro-tel: ## (LocalDev) Kill the running Telepresence
 tail-pro-tel: ## (LocalDev) Tail the logs of the running/last Telepresence
 	tail build-aux/tel-pro.log
 status-pro-tel: ## (LocalDev) Fail if Telepresence is not running
+status-pro-tel: status-proxy
 	@if curl -s -o /dev/null ambassador-pro.localdev:38888; then \
 		echo "Telepresence okay!"; \
 	else \
