@@ -235,8 +235,8 @@ ifneq ($(DOCKER_REGISTRY), -)
 	fi
 endif
 
+# TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py:
-	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
