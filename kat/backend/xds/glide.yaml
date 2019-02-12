@@ -1,4 +1,4 @@
-package: github.com/datawire/ambassador/kat/backend
+package: github.com/datawire/ambassador/kat/backend/xds
 
 excludeDirs:
 - services
@@ -26,5 +26,3 @@ import:
   version: f9d2b11e44149635b23a002693b76512b01ae515
 - package: istio.io/gogo-genproto
 - package: github.com/gogo/googleapis
-- package: github.com/envoyproxy/data-plane-api
-  version: 2783fad78371d15b9c3d353d84f78fc85bf07885
