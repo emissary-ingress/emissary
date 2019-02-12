@@ -6,7 +6,7 @@ Rate limits are a powerful way to improve availability and scalability for your 
 
 In Ambassador 0.50 and later, each mapping in Ambassador can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels are specified with the `labels` annotation:
 
-```
+```yaml
 apiVersion: ambassador/v1
 kind: Mapping
 name: catalog
@@ -46,6 +46,25 @@ Ambassador supports several special labels:
 * `source_cluster` populates the name of the originating cluster (e.g., the Envoy listener).
 
 Note: In Envoy, labels are referred to as descriptors.
+
+### Global Rate Limiting
+Rate limit labels can be configured on a global level within the [Ambassador Module](/reference/modules#the-ambassador-module).
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  use_remote_address: true
+  default_label_domain: ambassador
+  default_labels:
+    ambassador:
+      defaults:
+      - default
+```
+
+This will annotate every request with the string `default`, creating a key for a rate limiting service to rate limit based off. 
 
 ## The `rate_limits` attribute
 

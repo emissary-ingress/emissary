@@ -7,7 +7,7 @@ Rate limiting is a powerful technique to improve the [availability and resilienc
 Ambassador lets users add one or more labels to a given request. These labels are added as part of a `Mapping` object. For example:
 
 ```
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: catalog
 prefix: /catalog/
