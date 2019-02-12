@@ -332,7 +332,7 @@ cluster.yaml: $(CLAIM_FILE)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
-	rm -f /tmp/k8s-*.yaml
+	rm -rf /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
 	@echo "Sleeping for Teleproxy cluster"
