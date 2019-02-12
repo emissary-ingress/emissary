@@ -249,6 +249,26 @@ class ServiceType(Node):
         yield ("url", Query("https://%s" % self.path.k8s))
 
 
+@abstract_test
+class ServiceTypeGrpc(Node):
+
+    path: Name
+
+    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._manifests = service_manifests or manifests.BACKEND
+
+    def config(self):
+        yield from ()
+
+    def manifests(self):
+        return self.format(self._manifests)
+
+    def requirements(self):
+        yield ("url", Query("http://%s" % self.path.k8s))
+        yield ("url", Query("https://%s" % self.path.k8s))
+
+
 class HTTP(ServiceType):
     pass
 
@@ -268,8 +288,10 @@ class AGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=manifests.AUTH_BACKEND, **kwargs)
+        super().__init__(*args, service_manifests=manifests.GRPC_AUTH_BACKEND, **kwargs)
 
+    def requirements(self):
+        yield ("pod", self.path.k8s)
 
 @abstract_test
 class MappingTest(Test):

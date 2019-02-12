@@ -2,7 +2,88 @@ import json
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP
+from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
+
+class AuthenticationGRPCTest(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = AGRPC(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.k8s}"
+timeout_ms: 5000
+proto: grpc
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.k8s}
+""")
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"requested-status": "401",
+                                                  "baz": "baz",
+                                                  "request-header": "baz"}, expected=401)
+        # [1]
+        yield Query(self.url("target/"), headers={"requested-status": "302",
+                                                  "requested-location": "foo"}, expected=302)
+        
+        # [2]
+        yield Query(self.url("target/"), headers={"requested-status": "401",
+                                                  "x-foo": "foo",
+                                                  "requested-header": "x-foo"}, expected=401)
+        # [3]
+        yield Query(self.url("target/"), headers={"requested-status": "200",
+                                                  "authorization": "foo-11111",
+                                                  "requested-header": "Authorization"}, expected=200)
+
+    def check(self):
+        # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/target/"
+        assert self.results[0].backend.request.headers["x-envoy-internal"]== ["true"]
+        assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
+        assert "user-agent" in self.results[0].backend.request.headers
+        assert "baz" in self.results[0].backend.request.headers
+        assert self.results[0].status == 401
+        assert self.results[0].headers["Server"] == ["envoy"]
+
+        # [1] Verifies that Location header is returned from Envoy.
+        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request.headers["requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
+        assert self.results[1].status == 302
+        assert self.results[1].headers["Location"] == ["foo"]
+
+        # [2] Verifies Envoy returns whitelisted headers input by the user.
+        assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["requested-header"] == ["x-foo"]
+        assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
+        assert self.results[2].status == 401
+        assert self.results[2].headers["Server"] == ["envoy"]
+        assert self.results[2].headers["X-Foo"] == ["foo"]
+
+        # [3] Verifies default whitelisted Authorization request header.
+        assert self.results[3].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[3].backend.request.headers["requested-header"] == ["Authorization"]
+        assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[3].status == 200
+        assert self.results[3].headers["Server"] == ["envoy"]
+        assert self.results[3].headers["Authorization"] == ["foo-11111"]
 
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):

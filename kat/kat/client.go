@@ -29,7 +29,7 @@ func Semaphore(n int) semaphore {
 }
 
 func (s semaphore) Acquire() {
-	<- s
+	<-s
 }
 
 func (s semaphore) Release() {
@@ -77,8 +77,6 @@ func (q Query) ClientCert() string {
 	}
 	return ""
 }
-
-
 
 func (q Query) ClientKey() string {
 	val, ok := q["client_key"]
@@ -189,20 +187,24 @@ func main() {
 	} else {
 		data, err = ioutil.ReadFile(input)
 	}
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	var specs []Query
 
 	err = json.Unmarshal(data, &specs)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	tr := &http.Transport{
-		MaxIdleConns:       10,
-		IdleConnTimeout:    30 * time.Second,
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
 	}
 	client := &http.Client{
 		Transport: tr,
-		Timeout: time.Duration(10 * time.Second),
+		Timeout:   time.Duration(10 * time.Second),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -232,8 +234,8 @@ func main() {
 			url := query.Url()
 
 			insecure_tr := &http.Transport{
-				MaxIdleConns:       10,
-				IdleConnTimeout:    30 * time.Second,
+				MaxIdleConns:    10,
+				IdleConnTimeout: 30 * time.Second,
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			}
 
@@ -254,7 +256,7 @@ func main() {
 
 			insecure_client := &http.Client{
 				Transport: insecure_tr,
-				Timeout: time.Duration(10 * time.Second),
+				Timeout:   time.Duration(10 * time.Second),
 				CheckRedirect: func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
 				},
@@ -262,18 +264,24 @@ func main() {
 
 			if query.IsWebsocket() {
 				c, resp, err := websocket.DefaultDialer.Dial(url, query.Headers())
-				if query.CheckErr(err) { return }
+				if query.CheckErr(err) {
+					return
+				}
 				defer c.Close()
 				query.AddResponse(resp)
 				messages := query["messages"].([]interface{})
 				for _, msg := range messages {
 					err = c.WriteMessage(websocket.TextMessage, []byte(msg.(string)))
-					if query.CheckErr(err) { return }
+					if query.CheckErr(err) {
+						return
+					}
 				}
 
 				err = c.WriteMessage(websocket.CloseMessage,
 					websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-				if query.CheckErr(err) { return }
+				if query.CheckErr(err) {
+					return
+				}
 
 				answers := []string{}
 
@@ -294,12 +302,14 @@ func main() {
 				}
 			} else {
 				req, err := http.NewRequest(query.Method(), url, nil)
-				if query.CheckErr(err) { return }
+				if query.CheckErr(err) {
+					return
+				}
 
 				req.Header = query.Headers()
-                host := req.Header.Get("Host")
-                if host != "" {
-				    if query.SNI() {
+				host := req.Header.Get("Host")
+				if host != "" {
+					if query.SNI() {
 						if tr.TLSClientConfig == nil {
 							tr.TLSClientConfig = &tls.Config{}
 						}
@@ -309,10 +319,10 @@ func main() {
 						}
 
 						insecure_tr.TLSClientConfig.ServerName = host
-                        tr.TLSClientConfig.ServerName = host
-                    }
-                    req.Host = host
-			    }
+						tr.TLSClientConfig.ServerName = host
+					}
+					req.Host = host
+				}
 
 				var cli *http.Client
 				if query.Insecure() {
@@ -322,21 +332,23 @@ func main() {
 				}
 
 				resp, err := cli.Do(req)
-				if query.CheckErr(err) { return }
+				if query.CheckErr(err) {
+					return
+				}
 
 				query.AddResponse(resp)
 			}
 		}(i)
 	}
 
-	for i := 0 ; i < count; i++ {
-		<- queries
+	for i := 0; i < count; i++ {
+		<-queries
 	}
 
 	bytes, err := json.MarshalIndent(specs, "", "  ")
 	if err != nil {
 		log.Print(err)
-	} else if (output == "") {
+	} else if output == "" {
 		fmt.Print(string(bytes))
 	} else {
 		err = ioutil.WriteFile(output, bytes, 0644)
