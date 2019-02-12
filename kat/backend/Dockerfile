@@ -15,13 +15,10 @@ COPY services ./services
 COPY server.go server.go
 COPY server.crt server.crt
 COPY server.key server.key
-
-# We commit vendor only for speeding up the build. 
-COPY vendor ./vendor
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-RUN go build -mod=vendor -o bin/server
+RUN go build -o bin/server
 
 EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "./bin/server"]
