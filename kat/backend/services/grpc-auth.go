@@ -84,39 +84,72 @@ type AuthService struct{}
 func (s *AuthService) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
 	rs := &Response{}
 
-	// These are the client request info that will go in the response body.
-	request := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
-	request["body"] = r.GetAttributes().GetRequest().GetHttp().GetBody().String()
+	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
+	rbody := r.GetAttributes().GetRequest().GetHttp().GetBody().String()
+	if len(rbody) > 0 {
+		rheader["body"] = rbody
+	}
 
 	// Sets requested HTTP status.
-	rs.SetStatus(request["requested-status"])
+	rs.SetStatus(rheader["requested-status"])
 
 	// Sets requested headers.
-	for _, key := range strings.Split(request["requested-headers"], ",") {
-		rs.AddHeader(true, key, request[key])
+	for _, key := range strings.Split(rheader["requested-header"], ",") {
+		if val := rheader[key]; len(val) > 0 {
+			rs.AddHeader(false, key, val)
+		}
 	}
 
 	// Sets requested location.
-	rs.AddHeader(true, "Location", request["requested-location"])
+	if len(rheader["requested-location"]) > 0 {
+		rs.AddHeader(false, "Location", rheader["requested-location"])
+	}
 
-	// Write out all request/response information.
-	response := make(map[string]interface{})
-	response["headers"] = rs.GetHTTPHeaderMap()
+	// Parses request headers.
+	headers := make(map[string]interface{})
+	for k, v := range rheader {
+		headers[k] = strings.Split(v, ",")
+	}
 
-	expected := make(map[string]interface{})
-	expected["backend"] = os.Getenv("BACKEND")
-	expected["request"] = request
-	expected["response"] = response
+	// Parses request URL.
+	url := make(map[string]interface{})
+	url["fragment"] = r.GetAttributes().GetRequest().GetHttp().GetFragment()
+	url["host"] = r.GetAttributes().GetRequest().GetHttp().GetHost()
+	url["path"] = r.GetAttributes().GetRequest().GetHttp().GetPath()
+	url["query"] = r.GetAttributes().GetRequest().GetHttp().GetQuery()
+	url["scheme"] = r.GetAttributes().GetRequest().GetHttp().GetScheme()
 
-	body, err := json.MarshalIndent(expected, "", "  ")
+	// Parses TLS info.
+	tls := make(map[string]interface{})
+	tls["enabled"] = false
+
+	// Sets request portion of the results body.
+	request := make(map[string]interface{})
+	request["url"] = url
+	request["method"] = r.GetAttributes().GetRequest().GetHttp().GetMethod()
+	request["headers"] = headers
+	request["host"] = r.GetAttributes().GetRequest().GetHttp().GetHost()
+	request["tls"] = tls
+
+	// Sets results body.
+	results := make(map[string]interface{})
+	results["backend"] = os.Getenv("BACKEND")
+	results["status"] = rs.GetStatus()
+	if len(request) > 0 {
+		results["request"] = request
+	}
+	if rs.GetHTTPHeaderMap() != nil {
+		results["headers"] = *rs.GetHTTPHeaderMap()
+	}
+	body, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
 		body = []byte(fmt.Sprintf("Error: %v", err))
 	}
 
 	// Sets response body.
+	log.Printf("setting response body: %s", string(body))
 	rs.SetBody(string(body))
 
-	log.Printf("writing response HTTP %v", request["requested-status"])
 	return rs.GetResponse(), nil
 }
 
@@ -129,21 +162,16 @@ type Response struct {
 
 // AddHeader adds a header to the response. When append param is true, Envoy will
 // append the value to an existent request header instead of overriding it.
-func (r *Response) AddHeader(a bool, key, value string) {
+func (r *Response) AddHeader(a bool, k, v string) {
 	val := &core.HeaderValueOption{
 		Header: &core.HeaderValue{
-			Key:   key,
-			Value: value,
+			Key:   k,
+			Value: v,
 		},
 		Append: &gogo_type.BoolValue{Value: a},
 	}
 	r.headers = append(r.headers, val)
 }
-
-// // AddHeader adds a header option to the response.
-// func (r *Response) AddHeader(header *core.HeaderValueOption) {
-// 	r.headers = append(r.headers, header)
-// }
 
 // GetHTTPHeaderMap returns HTTP header mapping of the response header-options.
 func (r *Response) GetHTTPHeaderMap() *http.Header {
@@ -161,12 +189,23 @@ func (r *Response) SetBody(s string) {
 
 // SetStatus sets the authorization response HTTP status code.
 func (r *Response) SetStatus(s string) {
-	if val, err := strconv.ParseUint(s, 10, 64); err != nil {
-		r.status = uint32(val)
-	} else {
-		log.Print(err)
-		r.status = uint32(500)
+	if len(s) == 0 {
+		s = "200"
 	}
+	if val, err := strconv.Atoi(s); err == nil {
+		r.status = uint32(val)
+		r.AddHeader(false, "status", s)
+		log.Printf("setting HTTP status %v", r.status)
+	} else {
+		r.status = uint32(500)
+		r.AddHeader(false, "status", "500")
+		log.Printf("error setting HTTP status. Cannot parse string %s: %v.", s, err)
+	}
+}
+
+// GetStatus returns the authorization response HTTP status code.
+func (r *Response) GetStatus() uint32 {
+	return r.status
 }
 
 // GetResponse returns the gRPC authorization response object.

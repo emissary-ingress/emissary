@@ -90,7 +90,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 8443
----
+--- 
 apiVersion: v1
 kind: Pod
 metadata:
