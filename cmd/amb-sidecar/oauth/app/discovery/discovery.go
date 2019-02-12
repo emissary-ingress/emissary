@@ -3,13 +3,12 @@ package discovery
 import (
 	"bytes"
 	"crypto/rsa"
-	"encoding/asn1"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"math/big"
@@ -116,24 +115,24 @@ func (d *Discovery) getCert(kid string) string {
 		if jwk.X5c != nil {
 			return fmt.Sprintf(certFMT, jwk.X5c)
 		} else if jwk.E != "" && jwk.N != "" {
-			pubKey, err := assemblePubKeyFromNandE(jwk)
+			fmt.Printf("jwk.E = '%s'\n", jwk.E)
+			fmt.Printf("jwk.N = '%s'\n", jwk.N)
 
-			fmt.Println(pubKey.Size())
-			spew.Dump(pubKey)
-
+			rsaPubKey, err := assemblePubKeyFromNandE(jwk)
+			pubKey, err := x509.MarshalPKIXPublicKey(&rsaPubKey)
 			if err != nil {
-				return "" // TODO: err?
+				fmt.Println("ERR0")
+				fmt.Println(err)
 			}
 
-			asn1Bytes, err := asn1.Marshal(pubKey)
-			var pemkey = &pem.Block{
-				Type:  "RSA PUBLIC KEY",
-				Bytes: asn1Bytes,
+			var keyPEM = &pem.Block{
+				Type:    "RSA PUBLIC KEY",
+				Headers: make(map[string]string, 0),
+				Bytes:   pubKey,
 			}
 
-			key := pem.EncodeToMemory(pemkey)
-			fmt.Println(string(key))
-			return string(key)
+			keyPEMString := string(pem.EncodeToMemory(keyPEM))
+			return keyPEMString
 		} else {
 			return "" // TODO: err?
 		}
@@ -173,6 +172,7 @@ func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
 	// Base64URL Decode the strings
 	decN, err := base64.RawURLEncoding.DecodeString(nStr)
 	if err != nil {
+		fmt.Printf("Error %v\n", err)
 		return key, err
 	}
 	n := big.NewInt(0)
@@ -180,6 +180,7 @@ func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
 
 	decE, err := base64.RawURLEncoding.DecodeString(eStr)
 	if err != nil {
+		fmt.Printf("Error %v\n", err)
 		return key, err
 	}
 
@@ -194,6 +195,7 @@ func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
 	var e uint64
 	err = binary.Read(eReader, binary.BigEndian, &e)
 	if err != nil {
+		fmt.Printf("Error %v\n", err)
 		return key, err
 	}
 
