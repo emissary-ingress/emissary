@@ -66,14 +66,18 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 			return "", errors.New("failed to extract claims")
 		}
 
+		//fmt.Printf("Expected aud: %s\n", tenant.Audience)
+		//fmt.Printf("Expected iss: %s\n", j.Config.IssuerURL)
+		//spew.Dump(claims)
+
 		// Verifies 'aud' claim.
 		if !claims.VerifyAudience(tenant.Audience, false) {
-			return "", errors.New("invalid audience")
+			return "", fmt.Errorf("invalid audience %s", tenant.Audience)
 		}
 
 		// Verifies 'iss' claim.
 		if !claims.VerifyIssuer(j.Config.IssuerURL, false) {
-			return "", errors.New("invalid issuer")
+			return "", fmt.Errorf("invalid issuer %s", j.Config.IssuerURL)
 		}
 
 		// Validates time based claims "exp, iat, nbf".
@@ -102,8 +106,7 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 	// Since the application received an invalid jwt, clean AccessToken cookie if any and
 	// call the next handler.
 	if err != nil {
-		j.Logger.Debug(err)
-
+		j.Logger.Error(err)
 		next(w, r)
 		return
 	}

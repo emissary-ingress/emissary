@@ -6,6 +6,7 @@ require (
 	github.com/Masterminds/sprig v2.17.1+incompatible // indirect
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/datawire/teleproxy v0.3.12
+	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.1.0
@@ -35,6 +36,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190111185915-36a7019397c4 // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	golang.org/x/sys v0.0.0-20190114130336-2be517255631 // indirect
+	golang.org/x/tools v0.0.0-20190213192042-740235f6c0d8 // indirect
 	google.golang.org/api v0.1.0 // indirect
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
