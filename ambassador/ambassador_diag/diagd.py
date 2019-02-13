@@ -105,8 +105,42 @@ class DiagApp (Flask):
     scout_result: Dict[str, Any]
     watcher: 'AmbassadorEventWatcher'
 
+    def setup(self, config_dir_path: str, bootstrap_path: str, ads_path: str, snapshot_path: str,
+              ambex_pid: int, kick: Optional[str],
+              do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
+        self.estats = EnvoyStats()
+        self.health_checks = False
+        self.debugging = reload
+        self.verbose = verbose
+        self.k8s = k8s
+        self.notice_path = notices
+        self.notices = Notices(self.notice_path)
+        self.notices.reset()
 
-# Get the Flask app defined early.
+        # This will raise an exception and crash if you pass it a string. That's intentional.
+        self.ambex_pid = int(ambex_pid)
+        self.kick = kick
+
+        # This feels like overkill.
+        self.logger = logging.getLogger("ambassador.diagd")
+        self.logger.setLevel(logging.INFO)
+
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+            logging.getLogger('ambassador').setLevel(logging.DEBUG)
+
+        if do_checks:
+            self.health_checks = True
+
+        self.config_dir_prefix = config_dir_path
+        self.bootstrap_path = bootstrap_path
+        self.ads_path = ads_path
+        self.snapshot_path = snapshot_path
+
+        self.ir = None
+
+
+# Get the Flask app defined early. Setup happens later.
 app = DiagApp(__name__,
               template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
@@ -491,42 +525,6 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
-def create_diag_app(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid: int, kick: Optional[str],
-                    do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
-    app.estats = EnvoyStats()
-    app.health_checks = False
-    app.debugging = reload
-    app.verbose = verbose
-    app.k8s = k8s
-    app.notice_path = notices
-    app.notices = Notices(app.notice_path)
-    app.notices.reset()
-
-    # This will raise an exception and crash if you pass it a string. That's intentional.
-    app.ambex_pid = int(ambex_pid)
-    app.kick = kick
-
-    # This feels like overkill.
-    app.logger = logging.getLogger("ambassador.diagd")
-    app.logger.setLevel(logging.INFO)
-
-    if debug:
-        app.logger.setLevel(logging.DEBUG)
-        logging.getLogger('ambassador').setLevel(logging.DEBUG)
-
-    if do_checks:
-        app.health_checks = True
-
-    app.config_dir_prefix = config_dir_path
-    app.bootstrap_path = bootstrap_path
-    app.ads_path = ads_path
-    app.snapshot_path = snapshot_path
-
-    app.ir = None
-
-    return app
-
-
 class AmbassadorEventWatcher(threading.Thread):
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AmbassadorEventWatcher", daemon=True)
@@ -736,8 +734,8 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
     """
 
     # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid, kick,
-                                not no_checks, reload, debug, k8s, verbose, notices)
+    app.setup(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid, kick,
+              not no_checks, reload, debug, k8s, verbose, notices)
 
     if not workers:
         workers = number_of_workers()
@@ -750,7 +748,7 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
 
     app.logger.info("thread count %d, listening on %s" % (gunicorn_config['threads'], gunicorn_config['bind']))
 
-    StandaloneApplication(flask_app, gunicorn_config).run()
+    StandaloneApplication(app, gunicorn_config).run()
 
 
 def main():
