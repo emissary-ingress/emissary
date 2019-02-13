@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/pkg/errors"
+
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
@@ -60,24 +62,30 @@ func (c *MiddlewareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h := &oauth2handler.OAuth2Handler{
-		Logger:      c.Logger,
-		Secret:      c.OAuth2Secret,
-		Rule:        *rule,
-		Middleware:  *middleware,
-		OriginalURL: originalURL,
-		RedirectURL: redirectURL,
+	var handler http.Handler
+	switch middlewareT := middleware.(type) {
+	case crd.MiddlewareOAuth2:
+		handler = &oauth2handler.OAuth2Handler{
+			Logger:      c.Logger,
+			Secret:      c.OAuth2Secret,
+			Rule:        *rule,
+			Middleware:  middlewareT,
+			OriginalURL: originalURL,
+			RedirectURL: redirectURL,
+		}
+	default:
+		panic(errors.Errorf("unexpected middleware type %T", middleware))
 	}
-	h.ServeHTTP(w, r)
+	handler.ServeHTTP(w, r)
 }
 
-func findMiddleware(c *controller.Controller, qname string) *crd.MiddlewareOAuth2 {
+func findMiddleware(c *controller.Controller, qname string) interface{} {
 	mws := c.Middlewares.Load()
 	if mws != nil {
-		middlewares := mws.(map[string]crd.MiddlewareOAuth2)
+		middlewares := mws.(map[string]interface{})
 		middleware, ok := middlewares[qname]
 		if ok {
-			return &middleware
+			return middleware
 		}
 	}
 

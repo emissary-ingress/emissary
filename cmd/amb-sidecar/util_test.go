@@ -117,21 +117,22 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	}
 	server := httptest.NewServer(httpHandler)
 
-	middlewares := map[string]crd.MiddlewareOAuth2{
-		"dummy.default": {
+	middlewares := map[string]interface{}{
+		"dummy.default": crd.MiddlewareOAuth2{
 			RawAuthorizationURL: idpURL,
 			RawClientURL:        "http://dummy-host.net",
 			Audience:            "foo",
 			ClientID:            "bar",
 		},
-		"app.default": {
+		"app.default": crd.MiddlewareOAuth2{
 			RawAuthorizationURL: idpURL,
 			RawClientURL:        server.URL,
 			Audience:            "friends",
 			ClientID:            "foo",
 		},
 	}
-	for k, v := range middlewares {
+	for k, _v := range middlewares {
+		v := _v.(crd.MiddlewareOAuth2)
 		v.Validate()
 		middlewares[k] = v
 	}
