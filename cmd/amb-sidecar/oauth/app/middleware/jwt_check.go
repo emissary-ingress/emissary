@@ -3,7 +3,6 @@ package middleware
 import (
 	"errors"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"net/http"
 	"strings"
 
@@ -67,14 +66,14 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 			return "", errors.New("failed to extract claims")
 		}
 
-		fmt.Printf("Expected aud: %s\n", tenant.Audience)
-		fmt.Printf("Expected iss: %s\n", j.Config.IssuerURL)
-		spew.Dump(claims)
+		//fmt.Printf("Expected aud: %s\n", tenant.Audience)
+		//fmt.Printf("Expected iss: %s\n", j.Config.IssuerURL)
+		//spew.Dump(claims)
 
 		// Verifies 'aud' claim.
-		//if !claims.VerifyAudience(tenant.Audience, false) {
-		//	return "", errors.New(fmt.Sprintf("invalid audience %s", tenant.Audience))
-		//}
+		if !claims.VerifyAudience(tenant.Audience, false) {
+			return "", errors.New(fmt.Sprintf("invalid audience %s", tenant.Audience))
+		}
 
 		// Verifies 'iss' claim.
 		if !claims.VerifyIssuer(j.Config.IssuerURL, false) {
@@ -85,11 +84,6 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 		if err := t.Claims.Valid(); err != nil {
 			return "", err
 		}
-
-		// TODO: azp should match clientID if it is present
-		//if claims["azp"] != nil && claims["azp"] != "" {
-		//
-		//}
 
 		// Validate scopes.
 		if claims["scope"] != nil {

@@ -44,12 +44,13 @@ type Discovery struct {
 	JSONWebKeysURI        string
 	cache                 map[string]*JWK
 	mux                   *sync.RWMutex
+	logger                types.Logger
 }
 
 var instance *Discovery
 
 // New creates a singleton instance of the discovery client.
-func New(cfg types.Config) (*Discovery, error) {
+func New(cfg types.Config, logger types.Logger) (*Discovery, error) {
 	config, err := fetchOpenIDConfig(cfg.AuthProviderURL + "/.well-known/openid-configuration")
 	if err != nil {
 		return nil, err
@@ -57,8 +58,9 @@ func New(cfg types.Config) (*Discovery, error) {
 
 	if instance == nil {
 		instance = &Discovery{
-			cache: make(map[string]*JWK),
-			mux:   &sync.RWMutex{},
+			cache:  make(map[string]*JWK),
+			mux:    &sync.RWMutex{},
+			logger: logger,
 		}
 
 		instance.Issuer = config.Issuer
@@ -111,18 +113,23 @@ func (d *Discovery) GetPemCert(kid string) (string, error) {
 func (d *Discovery) getCert(kid string) string {
 	d.mux.RLock()
 	defer d.mux.RUnlock()
+
+	log := d.logger.WithField("KeyID", kid)
 	if jwk := d.cache[kid]; jwk != nil {
 		if jwk.X5c != nil {
+			log.WithField("KeyFormat", "x509 certificate").Debug("JWK found")
 			return fmt.Sprintf(certFMT, jwk.X5c)
 		} else if jwk.E != "" && jwk.N != "" {
-			fmt.Printf("jwk.E = '%s'\n", jwk.E)
-			fmt.Printf("jwk.N = '%s'\n", jwk.N)
+			log.WithField("KeyFormat", "public key").
+				WithField("n", jwk.N).
+				WithField("e", jwk.E).
+				Debug("JWK found")
 
 			rsaPubKey, err := assemblePubKeyFromNandE(jwk)
 			pubKey, err := x509.MarshalPKIXPublicKey(&rsaPubKey)
 			if err != nil {
-				fmt.Println("ERR0")
-				fmt.Println(err)
+				log.Error(err)
+				return ""
 			}
 
 			var keyPEM = &pem.Block{
@@ -134,8 +141,11 @@ func (d *Discovery) getCert(kid string) string {
 			keyPEMString := string(pem.EncodeToMemory(keyPEM))
 			return keyPEMString
 		} else {
-			return "" // TODO: err?
+			log.Error("JWK does not have required 'x5c', or 'n' and 'e' values")
+			return ""
 		}
+	} else {
+		log.Error("JWK not found")
 	}
 	return ""
 }
@@ -207,7 +217,6 @@ func fetchOpenIDConfig(documentURL string) (openIDConfig, error) {
 
 	res, err := http.Get(documentURL)
 	if err != nil {
-
 		return config, errors.Wrap(err, "failed to fetch remote openid-configuration")
 	}
 

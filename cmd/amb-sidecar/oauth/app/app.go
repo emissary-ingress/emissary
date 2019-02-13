@@ -43,14 +43,14 @@ func (a *App) Handler() (http.Handler, error) {
 		return nil, err
 	}
 
-	discovery, err := discovery.New(a.Config)
+	disco, err := discovery.New(a.Config, a.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	a.Config.IssuerURL = discovery.Issuer
+	a.Config.IssuerURL = disco.Issuer
 
-	a.discovery = discovery
+	a.discovery = disco
 	authorizationEndpointURL, err := url.Parse(a.discovery.AuthorizationEndpoint)
 	if err != nil {
 		return nil, err

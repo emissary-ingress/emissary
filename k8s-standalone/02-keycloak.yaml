@@ -73,6 +73,28 @@ data:
           ],
           "webOrigins": [
             "*"
+          ],
+          "defaultClientScopes": [
+            "role_list"
+          ],
+          "optionalClientScopes": [
+            "address",
+            "phone",
+            "offline_access"
+          ],
+          "protocolMappers": [
+            {
+              "id": "a4d17aaa-d70e-4858-9b1d-2949e3222615",
+              "name": "audience",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-audience-mapper",
+              "consentRequired": false,
+              "config": {
+                "included.client.audience": "app",
+                "id.token.claim": "false",
+                "access.token.claim": "true"
+              }
+            }
           ]
         }
       ]
@@ -110,7 +132,7 @@ spec:
             - name: KEYCLOAK_PASSWORD
               value: "admin"
             - name: KEYCLOAK_LOGLEVEL
-              value: TRACE
+              value: INFO
             - name: PROXY_ADDRESS_FORWARDING
               value: "true"
             - name: KEYCLOAK_IMPORT
@@ -120,7 +142,7 @@ spec:
               containerPort: 8080
             - name: https
               containerPort: 8443
-#          readinessProbe:
-#            httpGet:
-#              path: /auth/realms/master
-#              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: 8080
