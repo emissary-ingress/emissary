@@ -67,7 +67,7 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 		}
 
 		//fmt.Printf("Expected aud: %s\n", tenant.Audience)
-		//fmt.Printf("Expected iss: %s\n", j.Config.IssuerURL)
+		//fmt.Printf("Expected iss: %s\n", j.IssuerURL)
 		//spew.Dump(claims)
 
 		// Verifies 'aud' claim.
@@ -76,8 +76,8 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 		}
 
 		// Verifies 'iss' claim.
-		if !claims.VerifyIssuer(j.Config.IssuerURL, false) {
-			return "", fmt.Errorf("invalid issuer %s", j.Config.IssuerURL)
+		if !claims.VerifyIssuer(j.IssuerURL, false) {
+			return "", fmt.Errorf("invalid issuer %s", j.IssuerURL)
 		}
 
 		// Validates time based claims "exp, iat, nbf".

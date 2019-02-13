@@ -48,8 +48,6 @@ func (a *App) Handler() (http.Handler, error) {
 		return nil, errors.Wrap(err, "discovery")
 	}
 
-	a.Config.IssuerURL = disco.Issuer
-
 	a.discovery = disco
 	authorizationEndpointURL, err := url.Parse(a.discovery.AuthorizationEndpoint)
 	if err != nil {
@@ -93,6 +91,7 @@ func (a *App) Handler() (http.Handler, error) {
 		Logger:    a.Logger.WithField("MIDDLEWARE", "jwt_check"),
 		Discovery: a.discovery,
 		Config:    a.Config,
+		IssuerURL: disco.Issuer,
 	})
 
 	// Final handler (most-inner of all)
