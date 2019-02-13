@@ -21,18 +21,18 @@ _Auth0_Client_Secret=MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkr
 #  - The TESTUSER_EMAIL/TESTUSER_PASSWORD account is set up
 
 # 03-ambassador-pro-*.yaml
-AUTH_PROVIDER_URL=https://${_Auth0_Domain}
 AMBASSADOR_LICENSE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
 
 AUTH_TENANT_URL=https://${EXTERNAL_IP}
 
-# 04-tenants.yaml
-#AUTH_AUDIENCE=https://${_Auth0_Domain}/api/v2/
-#AUTH_CLIENT_ID=${_Auth0_Client_ID}
-#AUTH_CLIENT_SECRET=${_Auth0_Client_Secret}
+# --- Auth0 ---
+AUTH_PROVIDER_URL=https://${_Auth0_Domain}
+AUTH_AUDIENCE=https://${_Auth0_Domain}/api/v2/
+AUTH_CLIENT_ID=${_Auth0_Client_ID}
+AUTH_CLIENT_SECRET=${_Auth0_Client_Secret}
 
 # --- Keycloak ---
-AUTH_PROVIDER_URL=http://keycloak.standalone.svc.cluster.local/auth/realms/apro
-AUTH_AUDIENCE=app
-AUTH_CLIENT_ID=app
-AUTH_CLIENT_SECRET=8517c278-0ae8-40e5-b418-20199b7e3fb5
+#AUTH_PROVIDER_URL=http://keycloak.standalone.svc.cluster.local/auth/realms/apro
+#AUTH_AUDIENCE=app
+#AUTH_CLIENT_ID=app
+#AUTH_CLIENT_SECRET=8517c278-0ae8-40e5-b418-20199b7e3fb5

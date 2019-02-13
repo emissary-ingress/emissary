@@ -116,9 +116,14 @@ func (d *Discovery) getCert(kid string) string {
 
 	log := d.logger.WithField("KeyID", kid)
 	if jwk := d.cache[kid]; jwk != nil {
-		if jwk.X5c != nil {
+		// NOTE, plombardi@datawire.io: Multiple x5c entries?
+		//
+		// It seems there can be multiple entries in the x5c field (at least theoretically), but I haven't seen it or
+		// run into it... so let's assume the first entry is valid and use that until something breaks.
+		//
+		if jwk.X5c != nil && len(jwk.X5c) >= 1 {
 			log.WithField("KeyFormat", "x509 certificate").Debug("JWK found")
-			return fmt.Sprintf(certFMT, jwk.X5c)
+			return fmt.Sprintf(certFMT, jwk.X5c[0])
 		} else if jwk.E != "" && jwk.N != "" {
 			log.WithField("KeyFormat", "public key").
 				WithField("n", jwk.N).
