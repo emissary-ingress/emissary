@@ -235,7 +235,7 @@ func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
 func fetchOpenIDConfig(documentURL string) (OpenIDConfig, error) {
 	config := OpenIDConfig{}
 
-	res, err := http.Get(documentURL)
+	res, err := http.Get(documentURL) // #nosec G107
 	if err != nil {
 		return config, errors.Wrap(err, "failed to fetch remote openid-configuration")
 	}
