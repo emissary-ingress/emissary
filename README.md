@@ -26,6 +26,75 @@ Use that `amb-sidecar-plugin` Docker image instead of
 `quay.io/datawire/ambassador_pro:amb-sidecar` when deploying
 Ambassador Pro.
 
+Tell Ambassador Pro about the plugin:
+
+```yaml
+---
+apiVersion: getambassador.io/v1beta1
+kind: Middleware
+metadata:
+  name: wikiplugin # how we'll refer to the plugin in our Policy (below)
+  namespace: standalone
+spec:
+  Plugin:
+    name: example-plugin # The plugin's `.so` file's base name
+```
+
+Tell Ambassador Pro when to use that middleware:
+
+```yaml
+---
+apiVersion: getambassador.io/v1beta1
+kind: Policy
+metadata:
+  name: httpbin-policy
+  namespace: standalone
+spec:
+  # everything defaults to private; you can create rules to make stuff
+  # public, and you can create rules to require additional scopes
+  # which will be automatically checked
+  rules:
+  - host: "*"
+    path: /httpbin/ip
+    public: true
+  - host: "*"
+    path: /httpbin/headers
+    public: false # must be false if using a middleware
+    middleware:
+      name: wikiplugin
+```
+
+Finally, edit the Ambassador Pro manifest to (1) use the image with
+the plugin, and (2) allow the plugin to inject the `X-Wikipedia`
+header:
+
+```patch
+@ -171,10 +171,11 @@ metadata:
+       - "Client-Secret"
+       allowed_authorization_headers:
+       - "Authorization"
+       - "Client-Id"
+       - "Client-Secret"
++      - "X-Wikipedia"
+       ---
+       apiVersion: ambassador/v1
+       kind: Mapping
+       name: callback_mapping
+       prefix: /callback
+@@ -210,11 +211,11 @@ spec:
+         service: ambassador-pro
+     spec:
+       serviceAccountName: ambassador-pro
+       containers:
+       - name: ambassador-pro
+-        image: {{env "AMB_SIDECAR_IMAGE"}}
++        image: localhost:31000/amb-sidecar-plugin:3
+         ports:
+         - name: ratelimit-grpc
+           containerPort: 8081
+         - name: ratelimit-debug
+           containerPort: 6070
+```
 
 ## How a plugin works
 
