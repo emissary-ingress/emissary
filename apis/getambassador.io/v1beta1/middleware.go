@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"net/http"
 	"net/url"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 type MiddlewareSpec struct {
 	AmbassadorID AmbassadorID      `json:"ambassador_id"`
 	OAuth2       *MiddlewareOAuth2 `json:",omitempty"`
+	Plugin       *MiddlewarePlugin `json:",omitempty"`
 }
 
 type MiddlewareOAuth2 struct {
@@ -68,4 +70,9 @@ func (m MiddlewareOAuth2) Domain() string {
 
 func (m MiddlewareOAuth2) TLS() bool {
 	return m.ClientURL.Scheme == "https"
+}
+
+type MiddlewarePlugin struct {
+	Name    string       `json:"name"`
+	Handler http.Handler `json:"-"`
 }

@@ -73,6 +73,8 @@ func (c *MiddlewareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			OriginalURL: originalURL,
 			RedirectURL: redirectURL,
 		}
+	case crd.MiddlewarePlugin:
+		handler = middlewareT.Handler
 	default:
 		panic(errors.Errorf("unexpected middleware type %T", middleware))
 	}

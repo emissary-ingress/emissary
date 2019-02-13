@@ -21,6 +21,10 @@ include build-aux/help.mk
 
 .DEFAULT_GOAL = help
 
+ifeq ($(GOOS)_$(GOARCH),linux_amd64)
+bin_linux_amd64/amb-sidecar: CGO_ENABLED=1
+endif
+
 status: ## Report on the status of Kubernaut and Teleproxy
 status: status-pro-tel
 .PHONY: status

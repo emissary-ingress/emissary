@@ -2,6 +2,8 @@ package controller
 
 import (
 	"context"
+	"net/http"
+	"plugin"
 	"strings"
 	"sync/atomic"
 
@@ -55,9 +57,9 @@ func (c *Controller) Watch(ctx context.Context) {
 				continue
 			}
 
-			if countTrue(spec.OAuth2 != nil) != 1 {
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil) != 1 {
 				c.Logger.Errorf("middleware resource: must specify exactly 1 of: %v",
-					[]string{"OAuth2"})
+					[]string{"OAuth2", "Plugin"})
 				continue
 			}
 
@@ -70,6 +72,30 @@ func (c *Controller) Watch(ctx context.Context) {
 
 				c.Logger.Infof("loading middleware domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
 				middlewares[mw.QName()] = *spec.OAuth2
+			case spec.Plugin != nil:
+				if strings.Contains(spec.Plugin.Name, "/") {
+					c.Logger.Errorf("middleware resource: invalid Plugin.name: contains a /: %q", spec.Plugin.Name)
+					continue
+				}
+				p, err := plugin.Open("/etc/ambassador-plugins/" + spec.Plugin.Name + ".so")
+				if err != nil {
+					c.Logger.Errorln("middleware resource: could not open plugin file:", err)
+					continue
+				}
+				f, err := p.Lookup("PluginMain")
+				if err != nil {
+					c.Logger.Errorln("middleware resource: invalid plugin file:", err)
+					continue
+				}
+				h, ok := f.(func(http.ResponseWriter, *http.Request))
+				if !ok {
+					c.Logger.Errorln("middleware resource: invalid plugin file: PluginMain has the wrong type")
+					continue
+				}
+				spec.Plugin.Handler = http.HandlerFunc(h)
+
+				c.Logger.Infof("loading middleware plugin=%s", spec.Plugin.Name)
+				middlewares[mw.QName()] = *spec.Plugin
 			default:
 				panic("should not happen")
 			}
