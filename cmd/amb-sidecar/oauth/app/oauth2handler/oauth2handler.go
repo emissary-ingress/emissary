@@ -1,4 +1,4 @@
-package app
+package oauth2handler
 
 import (
 	"errors"
@@ -15,7 +15,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
@@ -32,54 +31,15 @@ const (
 type OAuth2Handler struct {
 	Config      types.Config
 	Logger      types.Logger
-	Ctrl        *controller.Controller
-	DefaultRule *crd.Rule
-	IssuerURL   string
 	Secret      *secret.Secret
+	Rule        crd.Rule
+	Middleware  crd.MiddlewareOAuth2
+	OriginalURL *url.URL
+	RedirectURL *url.URL
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	originalURL := util.OriginalURL(r)
-
-	var rule *crd.Rule
-	var redirectURL *url.URL
-	switch originalURL.Path {
-	case "/callback":
-		redirectURLstr, err := c.checkState(r)
-		if err != nil {
-			c.Logger.Errorf("check state failed: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		redirectURL, err = url.Parse(redirectURLstr)
-		if err != nil {
-			c.Logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		rule = findRule(c.Ctrl, redirectURL.Host, redirectURL.Path)
-	default:
-		rule = findRule(c.Ctrl, originalURL.Host, originalURL.Path)
-	}
-	if rule == nil {
-		rule = c.DefaultRule
-	}
-	middlewareQName := rule.Middleware.Name + "." + rule.Middleware.Namespace
-	c.Logger.Debugf("host=%s, path=%s, public=%v, middleware=%q", rule.Host, rule.Path, rule.Public, middlewareQName)
-	if rule.Public {
-		c.Logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	middleware := findMiddleware(c.Ctrl, middlewareQName)
-	if middleware == nil {
-		c.Logger.Debugf("could not find not middleware: %q", middlewareQName)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
-
-	disco, err := discovery.New(*middleware, c.Logger)
+	disco, err := discovery.New(c.Middleware, c.Logger)
 	if err != nil {
 		c.Logger.Debugf("create discovery: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
@@ -90,7 +50,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if token == "" {
 		tokenErr = errors.New("token not present in the request")
 	} else {
-		tokenErr = c.validateToken(token, middleware, rule, disco)
+		tokenErr = c.validateToken(token, disco)
 	}
 	if tokenErr == nil {
 		w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
@@ -99,7 +59,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.Logger.Debug(tokenErr)
 
-	switch originalURL.Path {
+	switch c.OriginalURL.Path {
 	case "/callback":
 		if err := r.URL.Query().Get("error"); err != "" {
 			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
@@ -113,13 +73,12 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var res *client.AuthorizationResponse
-		res, err = client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&client.AuthorizationRequest{
+		res, err := client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&client.AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
-			ClientID:     middleware.ClientID,
+			ClientID:     c.Middleware.ClientID,
 			Code:         code,
-			RedirectURL:  middleware.CallbackURL().String(),
-			ClientSecret: middleware.Secret,
+			RedirectURL:  c.Middleware.CallbackURL().String(),
+			ClientSecret: c.Middleware.Secret,
 		})
 		if err != nil {
 			c.Logger.Errorf("authorization request failed: %v", err)
@@ -132,24 +91,24 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Name:     AccessTokenCookie,
 			Value:    res.AccessToken,
 			HttpOnly: true,
-			Secure:   middleware.TLS(),
+			Secure:   c.Middleware.TLS(),
 			Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
 		})
 
 		// If the user-agent request was a POST or PUT, 307 will preserve the body
 		// and just follow the location header.
 		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		c.Logger.Debugf("redirecting user-agent to: %s", redirectURL)
-		http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
+		c.Logger.Debugf("redirecting user-agent to: %s", c.RedirectURL)
+		http.Redirect(w, r, c.RedirectURL.String(), http.StatusTemporaryRedirect)
 
 	default:
 		redirect, _ := disco.AuthorizationEndpoint.Parse("?" + url.Values{
-			"audience":      {middleware.Audience},
+			"audience":      {c.Middleware.Audience},
 			"response_type": {"code"},
-			"redirect_uri":  {middleware.CallbackURL().String()},
-			"client_id":     {middleware.ClientID},
-			"state":         {c.signState(r, middleware)},
-			"scope":         {rule.Scope},
+			"redirect_uri":  {c.Middleware.CallbackURL().String()},
+			"client_id":     {c.Middleware.ClientID},
+			"state":         {c.signState(r)},
+			"scope":         {c.Rule.Scope},
 		}.Encode())
 
 		c.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
@@ -157,33 +116,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findMiddleware(c *controller.Controller, qname string) *crd.MiddlewareOAuth2 {
-	mws := c.Middlewares.Load()
-	if mws != nil {
-		middlewares := mws.(map[string]crd.MiddlewareOAuth2)
-		middleware, ok := middlewares[qname]
-		if ok {
-			return &middleware
-		}
-	}
-
-	return nil
-}
-
-func findRule(c *controller.Controller, host, path string) *crd.Rule {
-	rules := c.Rules.Load()
-	if rules != nil {
-		for _, rule := range rules.([]crd.Rule) {
-			if rule.MatchHTTPHeaders(host, path) {
-				return &rule
-			}
-		}
-	}
-
-	return nil
-}
-
-func (j *OAuth2Handler) validateToken(token string, middleware *crd.MiddlewareOAuth2, rule *crd.Rule, disco *discovery.Discovery) error {
+func (j *OAuth2Handler) validateToken(token string, disco *discovery.Discovery) error {
 	// JWT validation is performed by doing the cheap operations first.
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
@@ -208,13 +141,13 @@ func (j *OAuth2Handler) validateToken(token string, middleware *crd.MiddlewareOA
 		//spew.Dump(claims)
 
 		// Verifies 'aud' claim.
-		if !claims.VerifyAudience(middleware.Audience, false) {
-			return "", fmt.Errorf("invalid audience %s", middleware.Audience)
+		if !claims.VerifyAudience(j.Middleware.Audience, false) {
+			return "", fmt.Errorf("invalid audience %s", j.Middleware.Audience)
 		}
 
 		// Verifies 'iss' claim.
 		if !claims.VerifyIssuer(disco.Issuer, false) {
-			return "", fmt.Errorf("invalid issuer: %s", disco.Issuer)
+			return "", errors.New("invalid issuer")
 		}
 
 		// Validates time based claims "exp, iat, nbf".
@@ -226,7 +159,7 @@ func (j *OAuth2Handler) validateToken(token string, middleware *crd.MiddlewareOA
 		if claims["scope"] != nil {
 			for _, s := range strings.Split(claims["scope"].(string), " ") {
 				j.Logger.Debugf("verifying scope %s", s)
-				if !rule.MatchScope(s) {
+				if !j.Rule.MatchScope(s) {
 					return "", fmt.Errorf("scope %v is not in the policy", s)
 				}
 			}
@@ -259,14 +192,14 @@ func (j *OAuth2Handler) getToken(r *http.Request) string {
 	return bearer[1]
 }
 
-func (h *OAuth2Handler) signState(r *http.Request, middleware *crd.MiddlewareOAuth2) string {
+func (h *OAuth2Handler) signState(r *http.Request) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
-		"exp":          time.Now().Add(middleware.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
-		"jti":          uuid.Must(uuid.NewV4(), nil).String(),      // a unique identifier for the token
-		"iat":          time.Now().Unix(),                          // when the token was issued/created (now)
-		"nbf":          0,                                          // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": util.OriginalURL(r).String(),               // original request url
+		"exp":          time.Now().Add(h.Middleware.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
+		"jti":          uuid.Must(uuid.NewV4(), nil).String(),        // a unique identifier for the token
+		"iat":          time.Now().Unix(),                            // when the token was issued/created (now)
+		"nbf":          0,                                            // time before which the token is not yet valid (2 minutes ago)
+		"redirect_url": h.OriginalURL.String(),                       // original request url
 	}
 
 	k, err := t.SignedString(h.Secret.GetPrivateKey())
@@ -277,7 +210,7 @@ func (h *OAuth2Handler) signState(r *http.Request, middleware *crd.MiddlewareOAu
 	return k
 }
 
-func (c *OAuth2Handler) checkState(r *http.Request) (string, error) {
+func CheckState(r *http.Request, sec *secret.Secret) (string, error) {
 	state := r.URL.Query().Get("state")
 	if state == "" {
 		return "", errors.New("empty state param")
@@ -287,7 +220,7 @@ func (c *OAuth2Handler) checkState(r *http.Request) (string, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return "", fmt.Errorf("unexpected signing method %v", t.Header["redirect_url"])
 		}
-		return c.Secret.GetPublicKey(), nil
+		return sec.GetPublicKey(), nil
 	})
 
 	if err != nil {

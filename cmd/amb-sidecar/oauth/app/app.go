@@ -23,7 +23,7 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 	n := negroni.New()
 
 	// Middleware (most-outer is listed first, most-inner is listed last)
-	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "http")})
+	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "logger")})
 	n.Use(&negroni.Recovery{
 		Logger:     logger.WithField("MIDDLEWARE", "recovery"),
 		PrintStack: false,
@@ -32,15 +32,14 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
 	// Final handler (most-inner of all)
-	n.UseHandler(&OAuth2Handler{
+	n.UseHandler(&MiddlewareHandler{
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
-		Config: config,
-		Ctrl:   controller,
-		Logger: logger.WithField("HANDLER", "oauth2"),
-		Secret: secret,
+		Controller:   controller,
+		Logger:       logger.WithField("HANDLER", "middleware_handler"),
+		OAuth2Secret: secret,
 	})
 
 	return n, nil
