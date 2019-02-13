@@ -12,17 +12,17 @@ import (
 // Rest is a generic rest HTTP client.
 type Rest struct {
 	AuthorizationEndpoint *url.URL
-	TokenEndpoint *url.URL
-	client  *http.Client
-	token   string
+	TokenEndpoint         *url.URL
+	client                *http.Client
+	token                 string
 }
 
 // NewRestClient creates an instance of a rest client.
 func NewRestClient(authorizationEndpoint *url.URL, tokenEndpoint *url.URL) *Rest {
 	return &Rest{
-		client:  http.DefaultClient,
+		client:                http.DefaultClient,
 		AuthorizationEndpoint: authorizationEndpoint,
-		TokenEndpoint: tokenEndpoint,
+		TokenEndpoint:         tokenEndpoint,
 	}
 }
 
@@ -76,7 +76,7 @@ func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error
 	return rs, nil
 }
 
-func (c *Rest) request(method string, url *url.URL, params url.Values, body interface{}) (*http.Request, error) {
+func (c *Rest) request(method string, url fmt.Stringer, params url.Values, body interface{}) (*http.Request, error) {
 	rq, err := http.NewRequest(method, url.String(), strings.NewReader(params.Encode()))
 	if err != nil {
 		return nil, err

@@ -2,9 +2,10 @@ package handler
 
 import (
 	"fmt"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"net/http"
 	"time"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	uuid "github.com/satori/go.uuid"
@@ -22,10 +23,10 @@ const (
 
 // Authorize is the last handler in the chain of the authorization server.
 type Authorize struct {
-	Config types.Config
-	Logger types.Logger
-	Ctrl   *controller.Controller
-	Secret *secret.Secret
+	Config    types.Config
+	Logger    types.Logger
+	Ctrl      *controller.Controller
+	Secret    *secret.Secret
 	Discovery *discovery.Discovery
 }
 

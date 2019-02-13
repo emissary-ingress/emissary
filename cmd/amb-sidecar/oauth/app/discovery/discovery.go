@@ -9,11 +9,12 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"math/big"
 	"net/http"
 	"sync"
+
+	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
@@ -121,16 +122,22 @@ func (d *Discovery) getCert(kid string) string {
 		// It seems there can be multiple entries in the x5c field (at least theoretically), but I haven't seen it or
 		// run into it... so let's assume the first entry is valid and use that until something breaks.
 		//
-		if jwk.X5c != nil && len(jwk.X5c) >= 1 {
+		switch {
+		case jwk.X5c != nil && len(jwk.X5c) >= 1:
 			log.WithField("KeyFormat", "x509 certificate").Debug("JWK found")
 			return fmt.Sprintf(certFMT, jwk.X5c[0])
-		} else if jwk.E != "" && jwk.N != "" {
+		case jwk.E != "" && jwk.N != "":
 			log.WithField("KeyFormat", "public key").
 				WithField("n", jwk.N).
 				WithField("e", jwk.E).
 				Debug("JWK found")
 
 			rsaPubKey, err := assemblePubKeyFromNandE(jwk)
+			if err != nil {
+				log.Error(err)
+				return ""
+			}
+
 			pubKey, err := x509.MarshalPKIXPublicKey(&rsaPubKey)
 			if err != nil {
 				log.Error(err)
@@ -139,15 +146,14 @@ func (d *Discovery) getCert(kid string) string {
 
 			var keyPEM = &pem.Block{
 				Type:    "RSA PUBLIC KEY",
-				Headers: make(map[string]string, 0),
+				Headers: make(map[string]string),
 				Bytes:   pubKey,
 			}
 
 			keyPEMString := string(pem.EncodeToMemory(keyPEM))
 			return keyPEMString
-		} else {
-			log.Error("JWK does not have required 'x5c', or 'n' and 'e' values")
-			return ""
+		default:
+			log.Error("JWK not found")
 		}
 	} else {
 		log.Error("JWK not found")

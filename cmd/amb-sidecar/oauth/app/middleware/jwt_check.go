@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
@@ -72,12 +72,12 @@ func (j *JWTCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.H
 
 		// Verifies 'aud' claim.
 		if !claims.VerifyAudience(tenant.Audience, false) {
-			return "", errors.New(fmt.Sprintf("invalid audience %s", tenant.Audience))
+			return "", fmt.Errorf("invalid audience %s", tenant.Audience)
 		}
 
 		// Verifies 'iss' claim.
 		if !claims.VerifyIssuer(j.Config.IssuerURL, false) {
-			return "", errors.New(fmt.Sprintf("invalid issuer %s", j.Config.IssuerURL))
+			return "", fmt.Errorf("invalid issuer %s", j.Config.IssuerURL)
 		}
 
 		// Validates time based claims "exp, iat, nbf".
