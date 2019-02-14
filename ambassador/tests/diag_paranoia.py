@@ -26,11 +26,12 @@ def mark_referenced_by(obj, refby):
 Uniqifiers = {
     'admin': lambda x: x['admin_port'],
     'breakers': lambda x: x['name'],
+    'clusters': lambda x: ( x['_source'], x['name'] ),
     'outliers': lambda x: x['name'],
     'filters': lambda x: x['name'],
     'grpc_services': lambda x: x['name'],
     'tls': lambda x: "TLS",
-    'tls': lambda x: "cors_default",    
+    # 'tls': lambda x: "cors_default",
     'listeners': lambda x: '%s-%s' % (x['service_port'], x.get('require_tls', False)),
     'routes': lambda x: x['_group_id'],
     'sources': lambda x: '%s.%d' % (x['filename'], x['index']) if (('index' in x) and (x['filename'] != "--internal--")) else x['filename'],
@@ -68,7 +69,7 @@ def filtered_overview(ov):
 
             filtered[key] = [ obj ]
 
-    return sanitize_errors(filtered)
+    return filtered
 
 def sanitize_errors(ov):
     sources = ov.get('sources', {})
@@ -207,14 +208,14 @@ def diag_paranoia(configdir, outputdir):
 
                 s['count'] += 1
                 s['objects'][source_key] = {
-                    'errors': obj['errors'],
+                    '_errors': obj['_errors'],
                     'key': source_key,
                     'kind': obj['kind']
                 }
-                s['error_count'] += len(obj['errors'])
+                s['error_count'] += len(obj['_errors'])
 
             for s in sources.values():
-                s['error_plural'] = "error" if (s['error_count'] == 1) else "errors"
+                s['error_plural'] = "error" if (s['error_count'] == 1) else "_errors"
                 s['plural'] = "object" if (s['count'] == 1) else "objects"
 
             # Finally, sort 'em all.
@@ -266,7 +267,7 @@ def diag_paranoia(configdir, outputdir):
                        "\n".join(udiff)))
 
     return {
-        'errors': errors,
+        '_errors': errors,
         'warnings': warnings,
         'overview': pretty_filtered_overview,
         'reconstituted': pretty_reconstituted_lists
@@ -281,8 +282,8 @@ if __name__ == "__main__":
     if (results['warnings']):
         print("\n".join(['WARNING: %s' % x for x in results['warnings']]))
 
-    if (results['errors']):
-        print("\n".join(['ERROR: %s' % x for x in results['errors']]))
+    if (results['_errors']):
+        print("\n".join(['ERROR: %s' % x for x in results['_errors']]))
         sys.exit(1)
     else:
         sys.exit(0)

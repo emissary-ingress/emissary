@@ -13,6 +13,8 @@
                 ],
                 "_service": "127.0.0.1:8877",
                 "_source": "--internal--",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -24,14 +26,15 @@
                 "_referenced_by": [
                     "tracing-service.yaml.1"
                 ],
-                "_service": "exttracing",
+                "_service": "example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000",
                 "_source": "tracing-service.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
-                "name": "cluster_ext_tracing",
+                "name": "cluster_tracing_example_tracing_with_a_r-0",
                 "type": "strict_dns",
                 "urls": [
-                    "tcp://example-tracing:5000"
-                ]
+                    "tcp://example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000"                ]
             },
             {
                 "_referenced_by": [
@@ -39,6 +42,8 @@
                 ],
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_qotm",
                 "type": "strict_dns",
@@ -67,7 +72,9 @@
                 "_source": "--internal--",
                 "require_tls": false,
                 "service_port": 80,
-                "use_proxy_proto": false
+                "redirect_listener": false,
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [
@@ -93,7 +100,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -117,7 +126,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -165,16 +176,15 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            }
-        ],
+                "prefix_rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+            }        ],
         "tracing": [
             {
                 "_source": "tracing-service.yaml.1",
-                "cluster_name": "cluster_ext_tracing",
+                "cluster_name": "cluster_tracing_example_tracing_with_a_r-0",
                 "config": {
-                    "collector_cluster": "cluster_ext_tracing"
-                },
+                    "collector_cluster": "cluster_tracing_example_tracing_with_a_r-0"                },
                 "driver": "zipkin",
                 "tag_headers": [
                     ":authority",
@@ -230,7 +240,6 @@
             "kind": "TracingService",
             "name": "tracing",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing:5000\ntag_headers:\n- :authority\n- :path\n"
-        }
+            "yaml": "apiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000\ntag_headers:\n- :authority\n- :path\n"        }
     }
 }

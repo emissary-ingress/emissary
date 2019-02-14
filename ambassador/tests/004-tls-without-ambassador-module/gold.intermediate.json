@@ -2,17 +2,19 @@
     "envoy_config": {
         "admin": [
             {
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "admin_port": 8001
             }
         ],
         "clusters": [
             {
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
                 "_service": "127.0.0.1:8877",
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -26,6 +28,8 @@
                 ],
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_qotm",
                 "type": "strict_dns",
@@ -51,16 +55,18 @@
             {
                 "_source": "tls.yaml.1",
                 "require_tls": false,
+                "redirect_listener": false,
                 "service_port": 443,
                 "tls": {
                     "_source": "tls.yaml.1",
                     "cacert_chain_file": "/etc/ambassador-config/ca_cert_chain/tls.crt",
-                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "cert_required": true,
+                    "cert_chain_file": "/etc/ambassador-config/certs/tls.crt",
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [
@@ -76,9 +82,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -86,7 +92,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -100,9 +108,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -110,7 +118,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -148,9 +158,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "tls.yaml.1"
+                    "--internal--"
                 ],
-                "_source": "tls.yaml.1",
+                "_source": "--internal--",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -158,9 +168,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            }
-        ]
+                "prefix_rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+            }        ]
     },
     "errors": {},
     "source_map": {

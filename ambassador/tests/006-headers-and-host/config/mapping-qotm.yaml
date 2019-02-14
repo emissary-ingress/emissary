@@ -31,3 +31,5 @@ add_request_headers:
   x-test-proto: "%PROTOCOL%"
   x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
   x-test-static: testing
+add_response_headers:
+  x-response-header: testing

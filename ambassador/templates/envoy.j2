@@ -54,6 +54,7 @@
                     {% for route in routes %}
                     {
                       "timeout_ms": {{ route.timeout_ms if (route.timeout_ms == 0 or route.timeout_ms) else 3000 }},
+                      {%- if route.per_filter_config -%}"per_filter_config": {{ route.per_filter_config | tojson }},{% endif %}
                       {%- if route.prefix -%}"prefix": "{{ route.prefix }}",{% endif %}
                       {%- if route.regex -%}"regex": {{ route.regex | tojson }},{% endif %}
                       {%- if route.case_sensitive -%}"case_sensitive": {{ route.case_sensitive | tojson }},{% endif %}
@@ -75,6 +76,7 @@
                         {%- if route.host_rewrite -%}"host_rewrite": "{{ route.host_rewrite }}",{% endif %}
                         {%- if route.auto_host_rewrite -%}"auto_host_rewrite": {{ route.auto_host_rewrite | tojson }},{% endif %}
                         {%- if route.request_headers_to_add -%}"request_headers_to_add": {{ route.request_headers_to_add | tojson }},{% endif %}
+                        {%- if route.response_headers_to_add -%}"response_headers_to_add": {{ route.response_headers_to_add | tojson }},{% endif %}
                         {%- if route.use_websocket -%}
                           "cluster": "{{ route.clusters[0].name }}"
                         {%- else -%}
@@ -105,7 +107,7 @@
             },
             "filters": [
               {% for filter in filters -%}
-              { 
+              {
                 {%- if filter.type -%}"type": "{{ filter.type }}",{% endif %}
                 "name": "{{ filter.name }}",
                 "config": {{ filter.config | tojson }}
@@ -140,7 +142,7 @@
         "connect_timeout_ms": {{ cluster.timeout_ms or 3000 }},
         "type": "{{ cluster.type or 'strict_dns' }}",
         "lb_type": "{{ cluster.lb_type or 'round_robin' }}",
-        {%- if cluster.features -%}"features": "{{ cluster.features }}",{% endif %}        
+        {%- if cluster.features -%}"features": "{{ cluster.features }}",{% endif %}
         "hosts": [
           {% for url in cluster.urls -%}
           {

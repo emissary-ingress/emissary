@@ -50,6 +50,8 @@ service:
 adminService:
   create: true
   type: ClusterIP
+  # NodePort used if type is NodePort
+  #nodePort: 38877
 
 rbac:
   # Specifies whether RBAC resources should be created
@@ -60,11 +62,19 @@ serviceAccount:
   create: true
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: 
+  name:
 
 volumes: {}
 
 volumeMounts: {}
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9102"
+
+env: {}
+  # Specify any additional environment variables in format 
+  # FOO: bar
 
 resources: {}
   # If you do want to specify resources, uncomment the following
@@ -83,6 +93,7 @@ tolerations: []
 affinity: {}
 
 exporter:
+  enabled: true
   image: prom/statsd-exporter:v0.6.0
   # You can configure the statsd exporter to modify the behavior of mappings and other features.
   # See documentation: https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration

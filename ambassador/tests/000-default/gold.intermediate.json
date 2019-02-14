@@ -14,11 +14,28 @@
                 ],
                 "_service": "127.0.0.1:8877",
                 "_source": "mapping-diag.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://127.0.0.1:8877"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
+                "_service": "demo.getambassador.io",
+                "_source": "auth.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "lb_type": "round_robin",
+                "name": "cluster_extauth_demo_getambassador_io",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://demo.getambassador.io:80"
                 ]
             },
             {
@@ -29,21 +46,10 @@
                 ],
                 "_service": "demo.getambassador.io",
                 "_source": "mapping-cqrs.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_demo_getambassador_io",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://demo.getambassador.io:80"
-                ]
-            },
-            {
-                "_referenced_by": [
-                    "auth.yaml.1"
-                ],
-                "_service": "extauth",
-                "_source": "auth.yaml.1",
-                "lb_type": "round_robin",
-                "name": "cluster_ext_auth",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://demo.getambassador.io:80"
@@ -55,6 +61,9 @@
                 ],
                 "_service": "httpbin.org:80",
                 "_source": "mapping-httpbin.yaml.1",
+                "host_rewrite": "httpbin.org",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_httpbin_org_80",
                 "type": "strict_dns",
@@ -70,6 +79,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
                 "_services": [
                     "demo.getambassador.io"
                 ],
@@ -80,7 +92,7 @@
                         "x-authenticated-as",
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_ext_auth",
+                    "cluster": "cluster_extauth_demo_getambassador_io",
                     "path_prefix": "/auth/v0",
                     "timeout_ms": 5000
                 },
@@ -99,7 +111,9 @@
                 "_source": "--internal--",
                 "require_tls": false,
                 "service_port": 80,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true,
+                "redirect_listener": false
             }
         ],
         "routes": [
@@ -150,7 +164,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -206,7 +222,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -278,7 +296,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
+                "prefix_rewrite": "/ambassador/v0/",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -286,7 +306,7 @@
                     6,
                     10,
                     "/cqrs/",
-                    "GET",
+                    "PUT",
                     ":method-PUT"
                 ],
                 "_group_id": "c78d3e3dc6c4a44ace22414fd99b17305dd29a37",

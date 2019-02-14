@@ -2,15 +2,18 @@
 *~
 .cache
 .coverage
+.dmypy
+.dmypy.json
 .python-version
 .DS_Store
 venv
 __pycache__
 VERSION.py
 .pytest_cache
+.mypy_cache
 cluster.yaml
 
-ambassador.egg-info
+*.egg-info
 build
 dist
 
@@ -39,6 +42,8 @@ tags
 no-such-file
 envoy.json
 intermediate.json
+gold.no_yaml.json
+v1.json
 check-*.json
 end-to-end/forge
 stats.json
@@ -46,3 +51,5 @@ end-to-end/1-parallel/011-websocket/ambassador/service.yaml
 ambassador-deployment-*.yaml
 ambassador-secrets-deployment.yaml
 *failures.txt
+kubernaut-claim.txt
+*.swp
