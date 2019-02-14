@@ -272,6 +272,20 @@ class KubeSecretReader:
 
 
 class SecretSaver:
+    logger: logging.Logger
+    source_root: str
+    cache_dir: str
+    serialization: Optional[str]
+
+    # These are a little weird because we don't initialize them in __init__.
+    # The reason is that they don't actually exist (or need to) until a *reader
+    # method gets called, and since all the *reader methods take required values
+    # for these things, calling them Optional and setting them to None in
+    # __init__ just complicates things.
+    context: 'IRTLSContext'
+    secret_name: str
+    namespace: str
+
     def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str) -> None:
         self.logger = logger
         self.source_root = source_root

@@ -53,7 +53,7 @@ class V1Config (EnvoyConfig):
         V1GRPCService.generate(self)
 
     def as_dict(self) -> Dict[str, Any]:
-        d = {
+        d: Dict[str, Any] = {
             'admin': self.admin,
             'listeners': self.listeners,
             'cluster_manager': self.clustermgr,
@@ -62,8 +62,9 @@ class V1Config (EnvoyConfig):
         if self.tracing:
             d['tracing'] = self.tracing
 
-        for svc_name in sorted(self.grpc_services.keys()):
-            d[svc_name] = dict(self.grpc_services[svc_name])
+        if self.grpc_services:
+            for svc_name in sorted(self.grpc_services.keys()):
+                d[svc_name] = dict(self.grpc_services[svc_name])
 
         if self.statsd and self.statsd.get('enabled', False):
             d['stats_flush_interval_ms'] = 1000
