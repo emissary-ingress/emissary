@@ -12,7 +12,7 @@ all: .docker.stamp
 	date > $@
 
 example-plugin.so: FORCE
-	$(RUN) GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o $@ .
+	$(RUN) env GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o $@ .
 
 clean:
 	rm -f -- *.so .docker.stamp
