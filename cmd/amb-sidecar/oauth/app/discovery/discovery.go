@@ -23,7 +23,7 @@ const (
 	certFMT = "-----BEGIN CERTIFICATE-----\n%v\n-----END CERTIFICATE-----"
 )
 
-type openIDConfig struct {
+type OpenIDConfig struct {
 	// Issuer is signing authority for the tokens
 	Issuer string `json:"issuer"`
 
@@ -224,8 +224,8 @@ func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
 	return rsa.PublicKey{N: n, E: int(e)}, nil
 }
 
-func fetchOpenIDConfig(documentURL string) (openIDConfig, error) {
-	config := openIDConfig{}
+func fetchOpenIDConfig(documentURL string) (OpenIDConfig, error) {
+	config := OpenIDConfig{}
 
 	res, err := http.Get(documentURL)
 	if err != nil {

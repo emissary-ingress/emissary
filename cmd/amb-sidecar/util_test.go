@@ -3,19 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
@@ -23,17 +26,37 @@ import (
 
 // NewIDP returns an instance of the identity provider server.
 func NewIDP() *httptest.Server {
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/oauth/token" {
-			authREQ := &client.AuthorizationRequest{}
-			body, err := ioutil.ReadAll(r.Body)
-			r.Body.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
+	var serverURL *url.URL
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/oauth/token":
+			authREQ := client.AuthorizationRequest{}
 
-			if err = json.Unmarshal(body, authREQ); err != nil {
-				log.Fatal(err)
+			ct := r.Header.Get("Content-Type")
+			if ct == "" {
+				log.Fatal("test IDP server: No Content-Type header")
+			}
+			mt, _, err := mime.ParseMediaType(ct)
+			if err != nil {
+				log.Fatalf("test IDP server: Could not parse Content-Type header: %q", ct)
+			}
+			switch mt {
+			case "application/x-www-form-urlencoded", "multipart/form-data":
+				authREQ = client.AuthorizationRequest{
+					GrantType:    r.PostFormValue("grant_type"),
+					ClientID:     r.PostFormValue("client_id"),
+					Code:         r.PostFormValue("code"),
+					RedirectURL:  r.PostFormValue("redirect_uri"),
+					ClientSecret: r.PostFormValue("client_secret,omitempty"),
+					Audience:     r.PostFormValue("audience,omitempty"),
+				}
+			case "application/json":
+				decoder := json.NewDecoder(r.Body)
+				if err = decoder.Decode(&authREQ); err != nil {
+					log.Fatal(errors.Wrapf(err, "test IDP server: malformed JSON in POST"))
+				}
+			default:
+				log.Fatalf("test IDP server: Unsupported media type: %q", mt)
 			}
 
 			if authREQ.Code == "authorize" {
@@ -47,10 +70,25 @@ func NewIDP() *httptest.Server {
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 			}
+		case "/.well-known/openid-configuration":
+			util.ToJSONResponse(w, http.StatusOK, &discovery.OpenIDConfig{
+				Issuer:                fmt.Sprintf("%s://%s/", serverURL.Scheme, serverURL.Host),
+				AuthorizationEndpoint: "TODO://AuthorizationEndpoint",
+				TokenEndpoint:         fmt.Sprintf("%s://%s/oauth/token", serverURL.Scheme, serverURL.Host),
+				JSONWebKeyURI:         fmt.Sprintf("%s://%s/.well-known/jwks.json", serverURL.Scheme, serverURL.Host),
+			})
+		case "/.well-known/jwks.json":
+			util.ToJSONResponse(w, http.StatusOK, discovery.JWKSlice{
+				Keys: []discovery.JWK{
+					// TODO
+				},
+			})
+		default:
+			http.NotFound(w, r)
 		}
-	})
-
-	return httptest.NewServer(h)
+	}))
+	serverURL, _ = url.Parse(server.URL)
+	return server
 }
 
 // NewAPP returns an instance of the authorization server.
