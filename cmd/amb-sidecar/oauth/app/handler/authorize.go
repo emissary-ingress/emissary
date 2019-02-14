@@ -29,10 +29,10 @@ type Authorize struct {
 	Discovery *discovery.Discovery
 }
 
-// Check is a handler function that inspects the request by looking for the presence of
+// ServeHTTP is a handler function that inspects the request by looking for the presence of
 // a token and for any insvalid scope. If these validations pass, an authorization
 // header is set in a 200 OK response.
-func (h *Authorize) Check(w http.ResponseWriter, r *http.Request) {
+func (h *Authorize) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	tenant := controller.GetTenantFromContext(r.Context())
 	if tenant == nil {
 		h.Logger.Errorf("authorization handler: app request context cannot be nil")

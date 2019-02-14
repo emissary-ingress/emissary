@@ -17,7 +17,6 @@ type Config struct {
 
 	// Auth
 	AuthProviderURL string
-	IssuerURL       string
 	LogLevel        string
 	PKey            string
 	PvtKPath        string
