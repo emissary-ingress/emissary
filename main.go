@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/pkg/errors"
 )
@@ -55,22 +56,32 @@ func main() {
 		errusage(fmt.Sprintf("invalid TCP port: %q", portName))
 	}
 
-	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s/%s/%s\n", filepath.Base(os.Args[0]), runtime.GOOS, runtime.GOARCH, runtime.Version())
-	fmt.Fprintf(os.Stderr, " > apro amb-sidecar   %s/%s/%s\n", filepath.Base(os.Args[0]), "linux", "amd64", "go"+AProGoVersion)
+	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s/%s/%s\n", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	fmt.Fprintf(os.Stderr, " > apro amb-sidecar   %s/%s/%s\n", "linux", "amd64", "go"+AProGoVersion)
 
 	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" && runtime.Version() == "go"+AProGoVersion {
 		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION match, running natively\n")
 		err := mainNative(os.Args[1], os.Args[2])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: error: %v", os.Args[0], err)
+			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
 			os.Exit(1)
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION match, running in Docker\n")
+		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION do not match, running in Docker\n")
 		err := mainDocker(os.Args[1], os.Args[2])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: error: %v", os.Args[0], err)
-			os.Exit(1)
+			if ee, ok := err.(*exec.ExitError); ok {
+				ws := ee.ProcessState.Sys().(syscall.WaitStatus)
+				switch {
+				case ws.Exited():
+					os.Exit(ws.ExitStatus())
+				case ws.Signaled():
+					os.Exit(128 + int(ws.Signal()))
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
+				os.Exit(255)
+			}
 		}
 	}
 }
@@ -111,8 +122,7 @@ func mainDocker(socketName, pluginFilepath string) error {
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
 		"--expose="+strconv.Itoa(portNumber),
 		"docker.io/library/golang:"+AProGoVersion,
-		"--",
-		"sh", "-c", "go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
+		"/bin/sh", "-c", "go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
