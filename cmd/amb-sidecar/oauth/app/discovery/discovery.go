@@ -52,9 +52,10 @@ var instance *Discovery
 
 // New creates a singleton instance of the discovery client.
 func New(cfg types.Config, logger types.Logger) (*Discovery, error) {
-	config, err := fetchOpenIDConfig(cfg.AuthProviderURL + "/.well-known/openid-configuration")
+	configURL := cfg.AuthProviderURL + "/.well-known/openid-configuration"
+	config, err := fetchOpenIDConfig(configURL)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
 	}
 
 	if instance == nil {
@@ -72,7 +73,7 @@ func New(cfg types.Config, logger types.Logger) (*Discovery, error) {
 
 	err = instance.fetchWebKeys()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "fetchWebKeys")
 	}
 
 	return instance, nil
@@ -164,14 +165,14 @@ func (d *Discovery) getCert(kid string) string {
 func (d *Discovery) fetchWebKeys() error {
 	resp, err := http.Get(d.JSONWebKeysURI)
 	if err != nil {
-		return err
+		return errors.Wrap(err, d.JSONWebKeysURI)
 	}
 	defer resp.Body.Close()
 
 	jwks := JWKSlice{}
 	err = json.NewDecoder(resp.Body).Decode(&jwks)
 	if err != nil {
-		return err
+		return errors.Wrap(err, d.JSONWebKeysURI)
 	}
 
 	d.mux.Lock()
