@@ -522,6 +522,35 @@ service: {self.target.path.k8s}
 """)
 
 
+class Empty(AmbassadorTest):
+    single_namespace = True
+    namespace = "empty-namespace"
+
+    @classmethod
+    def variants(cls):
+        yield cls()
+
+    def manifests(self) -> str:
+        return """
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: empty-namespace
+""" + super().manifests()
+
+    def config(self) -> Union[str, Tuple[Node, str]]:
+        yield from ()
+
+    def queries(self):
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
+
+    def check(self):
+        # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
+        errors = self.results[0].json
+        assert(len(errors) == 0)
+
+
 class Plain(AmbassadorTest):
     single_namespace = True
     namespace = "plain-namespace"

@@ -26,16 +26,6 @@ AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
 CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
 SNAPSHOT_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
 
-# If AMBASSADOR_NO_KUBEWATCH is set, it means that we're not supposed to try
-# to watch for Kubernetes stuff at all. If it's NOT set - so we _are_ allowed
-# to watch, which is the default - then we'll use the kube-sync directory to
-# hold the configurations we find when we watch.
-#
-# The user can override AMBASSADOR_SYNC_DIR, too.
-if [ -z "${AMBASSADOR_SYNC_DIR}" ]; then
-    AMBASSADOR_SYNC_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/kube-sync"
-fi
-
 ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 export ENVOY_DIR
 
@@ -69,21 +59,29 @@ KUBEWATCH_DEBUG=$(check_debug "kubewatch")
 ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
 export ENVOY_DEBUG
 
-DIAGD_K8S=--k8s
-DEMO_MODE=
+DIAGD_CONFIGDIR=
 
 if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
-
-    # Demo mode doesn't watch for Kubernetes changes.
-    DIAGD_K8S=
-    AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-    AMBASSADOR_SYNC_DIR=
 fi
 
-mkdir -p "${CONFIG_DIR}"
+# Do we have config on the filesystem?
+
+if [ $(find "${CONFIG_DIR}" -type f 2>/dev/null | wc -l) -gt 0 ]; then
+    echo "AMBASSADOR: using $CONFIG_DIR for configuration"
+
+    # XXX This won't work if CONFIG_DIR contains a space. Sigh.
+    DIAGD_CONFIGDIR="--config-path ${CONFIG_DIR}"
+
+    # Don't watch for Kubernetes changes.
+    if [ -z "${AMBASSADOR_FORCE_KUBEWATCH}" ]; then
+        echo "AMBASSADOR: not watching for Kubernetes config"
+        AMBASSADOR_NO_KUBEWATCH=no_kubewatch
+    fi
+fi
+
 mkdir -p "${SNAPSHOT_DIR}"
 mkdir -p "${ENVOY_DIR}"
 
@@ -155,9 +153,9 @@ trap "handle_int" INT
 
 #KUBEWATCH_DEBUG="--debug"
 
-# Start by reading config from ${CONFIG_DIR} itself, to get our cluster ID.
+# Start using ancient kubewatch to get our cluster ID.
 # XXX Ditch this, really.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id /no/such/path /dev/null)
 
 STATUS=$?
 
@@ -179,26 +177,11 @@ ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
-#echo "AMBASSADOR: validation envoy configuration"
-## Envoy does not validate with @type field in there, so removing it
-#jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
-#envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
-#STATUS=$?
-#
-#if [ $STATUS -ne 0 ]; then
-#    cat "$TEMP_ENVOY_CONFIG_FILE"
-#    diediedie "envoy validation" "$STATUS"
-#fi
-
 # We can't start Envoy until the initial config happens, which means that diagd has to start it.
-#echo "AMBASSADOR: starting Envoy"
-#envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
-#pids="${pids:+${pids} }$!:envoy"
 
 echo "AMBASSADOR: starting diagd"
 
-diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_K8S \
-      --snapshot-path "${SNAPSHOT_DIR}" \
+diagd "${SNAPSHOT_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_CONFIGDIR \
       --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
