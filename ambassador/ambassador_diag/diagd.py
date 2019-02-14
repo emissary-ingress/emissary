@@ -83,7 +83,7 @@ class DiagApp (Flask):
     ambex_pid: int
     kick: Optional[str]
     estats: EnvoyStats
-    config_dir_prefix: str
+    config_path: Optional[str]
     snapshot_path: str
     bootstrap_path: str
     ads_path: str
@@ -91,10 +91,8 @@ class DiagApp (Flask):
     health_checks: bool
     debugging: bool
     verbose: bool
-    k8s: bool
     notice_path: str
     logger: logging.Logger
-    # scc: SecretSaver
     aconf: Config
     ir: Optional[IR]
     econf: EnvoyConfig
@@ -104,15 +102,15 @@ class DiagApp (Flask):
     scout_args: Dict[str, Any]
     scout_result: Dict[str, Any]
     watcher: 'AmbassadorEventWatcher'
+    stats_updater: Optional[PeriodicTrigger]
 
-    def setup(self, config_dir_path: str, bootstrap_path: str, ads_path: str, snapshot_path: str,
-              ambex_pid: int, kick: Optional[str],
-              do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
+    def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
+              config_path: Optional[str], ambex_pid: int, kick: Optional[str],
+              do_checks=False, reload=False, debug=False, verbose=False, notices=None):
         self.estats = EnvoyStats()
         self.health_checks = False
         self.debugging = reload
         self.verbose = verbose
-        self.k8s = k8s
         self.notice_path = notices
         self.notices = Notices(self.notice_path)
         self.notices.reset()
@@ -132,13 +130,13 @@ class DiagApp (Flask):
         if do_checks:
             self.health_checks = True
 
-        self.config_dir_prefix = config_dir_path
+        self.config_path = config_path
         self.bootstrap_path = bootstrap_path
         self.ads_path = ads_path
         self.snapshot_path = snapshot_path
 
         self.ir = None
-
+        self.stats_updater = None
 
 # Get the Flask app defined early. Setup happens later.
 app = DiagApp(__name__,
@@ -567,9 +565,9 @@ class AmbassadorEventWatcher(threading.Thread):
                 self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
 
     def load_config_fs(self, path: str) -> None:
-        snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
         self.logger.info("loading configuration from disk: %s" % path)
 
+        snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
         scc = SecretSaver(app.logger, path, app.snapshot_path)
 
         aconf = Config()
@@ -577,7 +575,7 @@ class AmbassadorEventWatcher(threading.Thread):
         fetcher.load_from_filesystem(path, k8s=False, recurse=True)
 
         if not fetcher.elements:
-            self.logger.info("no configuration found at %s" % path)
+            self.logger.debug("no configuration found at %s" % path)
             return
 
         self._load_ir(aconf, fetcher, scc.null_reader, snapshot)
@@ -592,8 +590,7 @@ class AmbassadorEventWatcher(threading.Thread):
         serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
 
         if not serialization:
-            self.logger.info("no data loaded from snapshot %s?" % snapshot)
-            return
+            self.logger.debug("no data loaded from snapshot %s" % snapshot)
 
         scc = SecretSaver(app.logger, url, app.snapshot_path)
 
@@ -602,8 +599,7 @@ class AmbassadorEventWatcher(threading.Thread):
         fetcher.parse_yaml(serialization, k8s=True)
 
         if not fetcher.elements:
-            self.logger.info("no configuration found in snapshot %s?" % snapshot)
-            return
+            self.logger.debug("no configuration found in snapshot %s" % snapshot)
 
         self._load_ir(aconf, fetcher, scc.url_reader, snapshot)
 
@@ -654,6 +650,11 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self.logger.info("configuration updated")
 
+        if app.health_checks and not app.stats_updater:
+            app.logger.info("starting Envoy status updater")
+            app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
+
+
     def validate_envoy_config(self, config) -> bool:
         # We want to keep the original config untouched
         validation_config = copy.deepcopy(config)
@@ -665,23 +666,23 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--config-path', app.ads_temp_path, '--mode', 'validate']
-        output = {
+        odict = {
             'exit_code': 0,
             'output': ''
         }
 
         try:
-            output['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=5)
-            output['exit_code'] = 0
+            odict['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=5)
+            odict['exit_code'] = 0
         except subprocess.CalledProcessError as e:
-            output['exit_code'] = e.returncode
-            output['output'] = e.output
+            odict['exit_code'] = e.returncode
+            odict['output'] = e.output
 
-        if output['exit_code'] == 0:
+        if odict['exit_code'] == 0:
             self.logger.info("successfully validated the resulting envoy configuration, continuing...")
             return True
 
-        self.logger.info("{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(config_json, output['output']))
+        self.logger.info("{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(config_json, odict['output']))
         return False
 
 
@@ -701,26 +702,24 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         # This is a little weird, but whatever.
         self.application.watcher = AmbassadorEventWatcher(self.application)
         self.application.watcher.start()
-        self.application.watcher.post("CONFIG_FS", self.application.config_dir_prefix)
 
-        if self.application.health_checks:
-            self.application.logger.info("Starting periodic updates")
-            self.application.stats_updater = PeriodicTrigger(self.application.watcher.update_estats, period=5)
+        if self.application.config_path:
+            self.application.watcher.post("CONFIG_FS", self.application.config_path)
 
         return self.application
 
 
-def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, snapshot_path=None, ambex_pid=0, kick=None,
+def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
+          *, config_path=None, ambex_pid=0, kick=None,
           no_checks=False, reload=False, debug=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0', k8s=False, notices=None):
+          workers=None, port=8877, host='0.0.0.0', notices=None):
     """
     Run the diagnostic daemon.
 
-    :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param snapshot_path: Path to directory in which to save configuration snapshots and dynamic secrets
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
-    :param snapshot_path: Optional path to directory in which to save configuration snapshots
+    :param config_path: Optional configuration path to scan for Ambassador YAML files
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
@@ -734,8 +733,8 @@ def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRE
     """
 
     # Create the application itself.
-    app.setup(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid, kick,
-              not no_checks, reload, debug, k8s, verbose, notices)
+    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
+              not no_checks, reload, debug, verbose, notices)
 
     if not workers:
         workers = number_of_workers()
