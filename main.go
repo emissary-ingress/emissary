@@ -120,11 +120,18 @@ func mainDocker(socketName, pluginFilepath string) error {
 	pluginFileDir := filepath.Dir(pluginFilepath)
 	cmd := exec.Command("docker", "run", "--rm", "-it",
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
-		"--expose="+strconv.Itoa(portNumber),
+		"--publish="+net.JoinHostPort(host, strconv.Itoa(portNumber))+":"+strconv.Itoa(portNumber),
 		"docker.io/library/golang:"+AProGoVersion,
-		"/bin/sh", "-c", "go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
+		"/bin/sh", "-c", "cd /tmp && go mod init example.com/bogus && GO111MODULE=on go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	eargs := make([]string, len(cmd.Args))
+	for i := range cmd.Args {
+		eargs[i] = "'"+cmd.Args[i]+"'"
+	}
+	fmt.Fprintf(os.Stderr, " $ %s\n", strings.Join(eargs, " "))
+
 	return cmd.Run()
 }
