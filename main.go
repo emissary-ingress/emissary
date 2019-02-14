@@ -2,19 +2,26 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"plugin"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
+// What compiler version amb-sidecar was compiled with
+const AProGoVersion = "1.11.4"
+
 func usage() {
 	fmt.Printf("Usage: %s TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
 	fmt.Printf("   or: %s <-h|--help>\n", os.Args[0])
-	fmt.Printf("Run an Ambassador Pro middleware plugin locally, for plugin development\n")
+	fmt.Printf("Run an Ambassador Pro middleware plugin as an Ambassador AuthService, for plugin development\n")
 	fmt.Printf("\n")
 	fmt.Printf("Example:\n")
 	fmt.Printf("    %s :8080 ./myplugin.so\n", os.Args[0])
@@ -39,15 +46,27 @@ func main() {
 	if !strings.HasSuffix(os.Args[2], ".so") {
 		errusage(fmt.Sprintf("plugin file path does not end with '.so': %s", os.Args[2]))
 	}
+	_, portName, err := net.SplitHostPort(os.Args[1])
+	if err != nil {
+		errusage(fmt.Sprintf("invalid TCP address: %v", err))
+	}
+	_, err = net.LookupPort("tcp", portName)
+	if err != nil {
+		errusage(fmt.Sprintf("invalid TCP port: %q", portName))
+	}
 
-	// this should match how amb-sidecar is compiled
-	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" && runtime.Version() == "go1.11.4" {
+	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s/%s/%s\n", filepath.Base(os.Args[0]), runtime.GOOS, runtime.GOARCH, runtime.Version())
+	fmt.Fprintf(os.Stderr, " > apro amb-sidecar   %s/%s/%s\n", filepath.Base(os.Args[0]), "linux", "amd64", "go"+AProGoVersion)
+
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" && runtime.Version() == "go"+AProGoVersion {
+		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION match, running natively\n")
 		err := mainNative(os.Args[1], os.Args[2])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: error: %v", os.Args[0], err)
 			os.Exit(1)
 		}
 	} else {
+		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION match, running in Docker\n")
 		err := mainDocker(os.Args[1], os.Args[2])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: error: %v", os.Args[0], err)
@@ -72,9 +91,30 @@ func mainNative(socketName, pluginFilepath string) error {
 		return errors.New("invalid plugin file: PluginMain has the wrong type signature")
 	}
 
-	return http.ListenAndServe(":8080", http.HandlerFunc(pluginMain))
+	return http.ListenAndServe(socketName, http.HandlerFunc(pluginMain))
 }
 
 func mainDocker(socketName, pluginFilepath string) error {
-	panic("not implemented")
+	host, portName, _ := net.SplitHostPort(socketName)
+	if host != "" {
+		return errors.New("unfortunately, it is not valid to specify a host part of the TCP address when running in Docker, you may only specify a ':PORT'")
+	}
+	portNumber, _ := net.LookupPort("tcp", portName)
+
+	pluginFilepath, err := filepath.Abs(pluginFilepath)
+	if err != nil {
+		return errors.Wrap(err, "unable to find absolute path of plugin file path")
+	}
+
+	pluginFileDir := filepath.Dir(pluginFilepath)
+	cmd := exec.Command("docker", "run", "--rm", "-it",
+		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
+		"--expose="+strconv.Itoa(portNumber),
+		"docker.io/library/golang:"+AProGoVersion,
+		"--",
+		"sh", "-c", "go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
