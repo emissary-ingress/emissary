@@ -65,6 +65,10 @@ else
 GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
 endif
 
+# This gives the _previous_ tag, plus a git delta, like
+# 0.36.0-436-g8b8c5d3
+GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
+
 # TODO: need to remove the dependency on Travis env var which means this likely needs to be arg passed to make rather
 IS_PULL_REQUEST = false
 ifdef TRAVIS_PULL_REQUEST
@@ -89,6 +93,8 @@ ifeq ($(shell [[ "$(GIT_BRANCH)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] && echo "GA"), 
 COMMIT_TYPE=GA
 else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -rc[0-9]+$$ ]] && echo "RC"), RC)
 COMMIT_TYPE=RC
+else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -ea[0-9]+$$ ]] && echo "EA"), EA)
+COMMIT_TYPE=EA
 else ifeq ($(IS_PULL_REQUEST), true)
 COMMIT_TYPE=PR
 else
@@ -111,19 +117,23 @@ DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
 
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14e2c65bb
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-1"
+AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-1"
 
 SCOUT_APP_KEY=
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
-all: version setup-develop docker-push test
+all: setup-develop docker-push test
 
 clean: clean-test
 	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
+	rm -rf venv/bin/ambassador
 	rm -rf ambassador/ambassador/VERSION.py*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
@@ -152,6 +162,7 @@ print-vars:
 	@echo "GIT_TAG                 = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION             = $(GIT_VERSION)"
+	@echo "GIT_DESCRIPTION         = $(GIT_DESCRIPTION)"
 	@echo "IS_PULL_REQUEST         = $(IS_PULL_REQUEST)"
 	@echo "COMMIT_TYPE             = $(COMMIT_TYPE)"
 	@echo "VERSION                 = $(VERSION)"
@@ -171,6 +182,7 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
+	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
 	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
 	@echo "export VERSION='$(VERSION)'"
@@ -181,8 +193,18 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
+docker-base-images:
+	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
+	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
+
+docker-push-base-images:
+	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
+	docker push $(AMBASSADOR_BASE_IMAGE)
+
+docker-update-base: docker-base-images docker-push-base-images
+
 ambassador-docker-image: version
-	docker build -q $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) ./ambassador
+	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
@@ -197,10 +219,12 @@ ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python end-to-end/linify.py push.log; \
-		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
+		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
 			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python end-to-end/linify.py push.log; \
+		fi; \
+		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python end-to-end/linify.py push.log; \
@@ -211,16 +235,25 @@ ifneq ($(DOCKER_REGISTRY), -)
 	fi
 endif
 
+# TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py:
-	# TODO: validate version is conformant to some set of rules might be a good idea to add here
 	$(call check_defined, VERSION, VERSION is not set)
+	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
+	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
+	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
 	@echo "Generating and templating version information -> $(VERSION)"
-	sed -e "s/{{VERSION}}/$(VERSION)/g" < VERSION-template.py > ambassador/ambassador/VERSION.py
+	sed \
+		-e 's!{{VERSION}}!$(VERSION)!g' \
+		-e 's!{{GITBRANCH}}!$(GIT_BRANCH)!g' \
+		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
+		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
+		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
+		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
 
 e2e-versioned-manifests: venv website-yaml
-	cd end-to-end && PATH=$(shell pwd)/venv/bin:$(PATH) bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
+	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
 website-yaml:
 	mkdir -p docs/yaml
@@ -269,33 +302,48 @@ GOARCH=$(shell go env GOARCH)
 $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
-	sudo chmod go-w $(TELEPROXY)
-	sudo chmod a+sx $(TELEPROXY)
+	sudo chmod go-w,a+sx $(TELEPROXY)
+
+CLAIM_FILE=kubernaut-claim.txt
+CLAIM_NAME=$(shell cat $(CLAIM_FILE))
 
 KUBERNAUT=venv/bin/kubernaut
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
+KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
+KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
+
+$(CLAIM_FILE):
+	@if [ -z $${CI+x} ]; then \
+		echo kat-$${USER} > $@; \
+	else \
+		echo kat-$${USER}-$(shell uuidgen) > $@; \
+	fi
 
 $(KUBERNAUT):
-	curl -o $(KUBERNAUT) https://s3.amazonaws.com/datawire-static-files/kubernaut/$(shell curl -f -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut
+	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(TELEPROXY) $(KUBERNAUT)
+setup-develop: venv $(TELEPROXY) $(KUBERNAUT) version
+	go get github.com/gorilla/websocket
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
-cluster.yaml:
-	$(KUBERNAUT) discard
-	$(KUBERNAUT) claim
-	cp ~/.kube/kubernaut cluster.yaml
-	rm -f /tmp/k8s-*.yaml
+cluster.yaml: $(CLAIM_FILE)
+	$(KUBERNAUT_DISCARD)
+	$(KUBERNAUT_CLAIM)
+	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
+	rm -rf /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	@echo "Sleeping for Teleproxy cluster"
+	sleep 10
 
 setup-test: cluster.yaml
 
 teleproxy-restart:
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	$(TELEPROXY) -kubeconfig $(shell pwd)/cluster.yaml 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
 
 teleproxy-stop:
 	$(call kill_teleproxy)
@@ -312,24 +360,27 @@ KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
-	KUBECONFIG=$(KUBECONFIG) \
+	KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
 clean-test:
 	rm -f cluster.yaml
-	test -x $(KUBERNAUT) && $(KUBERNAUT) discard || true
+	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
+	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: version setup-develop cluster.yaml
+test: setup-develop cluster.yaml
 	cd ambassador && \
-	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
-	KUBECONFIG=$(KUBECONFIG) \
-	PATH=$(shell pwd)/venv/bin:$(PATH) \
-	pytest --tb=short --cov=ambassador --cov=ambassador_diag --cov-report term-missing  $(TEST_NAME)
+	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
+	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
+	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
+	KUBECONFIG="$(KUBECONFIG)" \
+	PATH="$(shell pwd)/venv/bin:$(PATH)" \
+	sh ../releng/run-tests.sh
 
-test-list: version setup-develop
-	cd ambassador && PATH=$(shell pwd)/venv/bin:$(PATH) pytest --collect-only -q
+test-list: setup-develop
+	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 
 update-aws:
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
@@ -371,24 +422,31 @@ release:
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: version venv/bin/activate
+venv: version venv/bin/ambassador
 
-venv/bin/activate: dev-requirements.txt ambassador/.
+venv/bin/ambassador: venv/bin/activate ambassador/requirements.txt
+	@releng/install-py.sh dev requirements ambassador/requirements.txt
+	@releng/install-py.sh dev install ambassador/requirements.txt
+	@releng/fix_kube_client
+
+venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.txt
 	test -d venv || virtualenv venv --python python3
-	venv/bin/pip -v install -q -Ur dev-requirements.txt
-	venv/bin/pip -v install -q -e ambassador/.
+	@releng/install-py.sh dev requirements $^
+	@releng/install-py.sh dev install $^
 	touch venv/bin/activate
-	@if [ -d "venv/lib/python3.7/site-packages/kubernetes/client" ]; then \
-		echo "Fixing Kubernetes Client for Python 3.7"; \
-		find "venv/lib/python3.7/site-packages/kubernetes/client" \
-			-type f -name \*.py \
-			-exec perl -pi -e 's/async=/async_req=/g;' \
-						-e 's/async bool/async_req bool/g;' \
-						-e "s/'async'/'async_req'/g;" {} \; \
-						; \
-		perl -pi -e "s/if not async/if not async_req/g;" \
-			"venv/lib/python3.7/site-packages/kubernetes/client/api_client.py"; \
+	@releng/fix_kube_client
+
+mypy-server-stop:
+	dmypy stop
+
+mypy-server:
+	@if ! dmypy status >/dev/null; then \
+		dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
+		echo "Started mypy server" ;\
 	fi
+
+mypy: mypy-server
+	time dmypy check ambassador
 
 # ------------------------------------------------------------------------------
 # Website

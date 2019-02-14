@@ -17,15 +17,77 @@
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-AMBASSADOR_ROOT="/ambassador"
-CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/ambassador-config"
-ENVOY_CONFIG_FILE="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy.json"
-
-if [ "$1" == "--demo" ]; then
-    CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
+if [ -z "$AMBASSADOR_NAMESPACE" ]; then
+    AMBASSADOR_NAMESPACE=default
 fi
 
-DELAY=${AMBASSADOR_RESTART_TIME:-15}
+AMBASSADOR_ROOT="/ambassador"
+AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}"
+CONFIG_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
+SNAPSHOT_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
+
+# If AMBASSADOR_NO_KUBEWATCH is set, it means that we're not supposed to try
+# to watch for Kubernetes stuff at all. If it's NOT set - so we _are_ allowed
+# to watch, which is the default - then we'll use the kube-sync directory to
+# hold the configurations we find when we watch.
+#
+# The user can override AMBASSADOR_SYNC_DIR, too.
+if [ -z "${AMBASSADOR_SYNC_DIR}" ]; then
+    AMBASSADOR_SYNC_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/kube-sync"
+fi
+
+ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
+export ENVOY_DIR
+
+ENVOY_CONFIG_FILE="${ENVOY_DIR}/envoy.json"
+TEMP_ENVOY_CONFIG_FILE="/tmp/envoy.json"
+
+# The bootstrap file really is in the config base dir, not the Envoy dir.
+ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
+export ENVOY_BOOTSTRAP_FILE
+
+# Set AMBASSADOR_DEBUG to things separated by spaces to enable debugging.
+check_debug () {
+    word="$1"
+    args="$2"
+
+    # I'm not sure if ${x:---debug} works, but it's too weird to read anyway.
+    if [ -z "$args" ]; then
+        args="--debug"
+    fi
+
+    if [ $(echo "$AMBASSADOR_DEBUG" | grep -c "$word" || :) -gt 0 ]; then
+        echo "$args"
+    else
+        echo ""
+    fi
+}
+
+DIAGD_DEBUG=$(check_debug "diagd")
+KUBEWATCH_DEBUG=$(check_debug "kubewatch")
+
+ENVOY_DEBUG=$(check_debug "envoy" "-l debug")
+export ENVOY_DEBUG
+
+DIAGD_K8S=--k8s
+DEMO_MODE=
+
+if [ "$1" == "--demo" ]; then
+    # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
+    # It's baked into a specific location during the build process.
+    CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
+
+    # Demo mode doesn't watch for Kubernetes changes.
+    DIAGD_K8S=
+    AMBASSADOR_NO_KUBEWATCH=no_kubewatch
+    AMBASSADOR_SYNC_DIR=
+fi
+
+mkdir -p "${CONFIG_DIR}"
+mkdir -p "${SNAPSHOT_DIR}"
+mkdir -p "${ENVOY_DIR}"
+
+DELAY=${AMBASSADOR_RESTART_TIME:-1}
 
 APPDIR=${APPDIR:-"$AMBASSADOR_ROOT"}
 
@@ -59,14 +121,6 @@ diediedie() {
         echo "AMBASSADOR: $NAME exited with status $STATUS"
     fi
 
-    echo "Here's the envoy.json we were trying to run with:"
-    LATEST="$(ls -v ${AMBASSADOR_CONFIG_BASE_DIR:-$AMBASSADOR_ROOT}/envoy*.json | tail -1)"
-    if [ -e "$LATEST" ]; then
-        cat "$LATEST"
-    else
-        echo "No config generated."
-    fi
-
     ambassador_exit 1
 }
 
@@ -95,64 +149,96 @@ handle_int() {
     echo "Exiting due to Control-C"
 }
 
-wait_for_ready() {
-    host=$1
-    is_ready=1
-    sleep_for_seconds=4
-    while true; do
-        sleep ${sleep_for_seconds}
-        if getent hosts ${host}; then
-            echo "$host exists"
-            is_ready=0
-            break
-        else
-            echo "$host is not reachable, trying again in ${sleep_for_seconds} seconds ..."
-        fi
-    done
-    return ${is_ready}
-}
-
-handle_statsd() {
-    STATSD_HOST=$1
-    echo "Waiting till $STATSD_HOST is reachable"
-
-    if wait_for_ready ${STATSD_HOST}; then
-        echo "$STATSD_HOST is reachable, starting socat ..."
-        socat -d UDP-RECVFROM:8125,fork UDP-SENDTO:${STATSD_HOST}:8125
-    fi
-}
-
 # set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" sync "$CONFIG_DIR" "$ENVOY_CONFIG_FILE"
+#KUBEWATCH_DEBUG="--debug"
+
+# Start by reading config from ${CONFIG_DIR} itself, to get our cluster ID.
+# XXX Ditch this, really.
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id "${CONFIG_DIR}" "$ENVOY_CONFIG_FILE")
 
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
-    diediedie "kubewatch sync" "$STATUS"
+    diediedie "kubewatch cluster-id" "$STATUS"
 fi
 
+# Set Ambassador's cluster ID here. We can do this unconditionally because if AMBASSADOR_CLUSTER_ID was set
+# before, kubewatch sync will use it.
+AMBASSADOR_CLUSTER_ID="${cluster_id}"
+export AMBASSADOR_CLUSTER_ID
+echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
+
+# Empty Envoy directory, hence no config via ADS yet.
+mkdir -p "${ENVOY_DIR}"
+
+echo "AMBASSADOR: starting ads"
+ambex "${ENVOY_DIR}" &
+AMBEX_PID="$!"
+pids="${pids:+${pids} }${AMBEX_PID}:ambex"
+
+#echo "AMBASSADOR: validation envoy configuration"
+## Envoy does not validate with @type field in there, so removing it
+#jq 'del(."@type")' "${ENVOY_CONFIG_FILE}" > "${TEMP_ENVOY_CONFIG_FILE}"
+#envoy -c "${TEMP_ENVOY_CONFIG_FILE}" --mode validate
+#STATUS=$?
+#
+#if [ $STATUS -ne 0 ]; then
+#    cat "$TEMP_ENVOY_CONFIG_FILE"
+#    diediedie "envoy validation" "$STATUS"
+#fi
+
+# We can't start Envoy until the initial config happens, which means that diagd has to start it.
+#echo "AMBASSADOR: starting Envoy"
+#envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
+#pids="${pids:+${pids} }$!:envoy"
+
 echo "AMBASSADOR: starting diagd"
-diagd --no-debugging "$CONFIG_DIR" &
+
+diagd "${CONFIG_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_K8S \
+      --snapshot-path "${SNAPSHOT_DIR}" \
+      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
-echo "AMBASSADOR: starting Envoy"
-/usr/bin/python3 "$APPDIR/hot-restarter.py" "$APPDIR/start-envoy.sh" &
-RESTARTER_PID="$!"
-pids="${pids:+${pids} }${RESTARTER_PID}:envoy"
+# Wait for diagd to start
+tries_left=10
+delay=1
+while [ $tries_left -gt 0 ]; do
+    echo "AMBASSADOR: pinging diagd ($tries_left)..."
 
-/usr/bin/python3 "$APPDIR/kubewatch.py" watch "$CONFIG_DIR" "$ENVOY_CONFIG_FILE" -p "${RESTARTER_PID}" --delay "${DELAY}" &
-pids="${pids:+${pids} }$!:kubewatch"
+    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8877/_internal/v0/ping)
 
-if [ "$(echo ${STATSD_ENABLED} | tr "[:upper:]" "[:lower:]")" = "true" ]; then
-    echo "STATSD_ENABLED is set to true"
-    # Fallback to statsd-sink if a host isn't provided
-    STATSD_HOST="${STATSD_HOST:-statsd-sink}"
-    handle_statsd ${STATSD_HOST} &
+    if [ "$status" = "200" ]; then
+        break
+    fi
+
+    tries_left=$(( $tries_left - 1 ))
+    sleep $delay
+    delay=$(( $delay * 2 ))
+    if [ $delay -gt 10 ]; then delay=5; fi
+done
+
+if [ $tries_left -le 0 ]; then
+    echo "AMBASSADOR: giving up on diagd and hoping for the best..."
 else
-    echo "STATSD_ENABLED is not set to true, no stats will be exposed"
+    echo "AMBASSADOR: diagd running"
+fi
+
+if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
+    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
+
+    KUBEWATCH_NAMESPACE_ARG=""
+
+    if [ -n "$AMBASSADOR_SINGLE_NAMESPACE" ]; then
+        KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
+    fi
+
+    set -x
+    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    set +x
+    pids="${pids:+${pids} }$!:kubewatch"
 fi
 
 echo "AMBASSADOR: waiting"

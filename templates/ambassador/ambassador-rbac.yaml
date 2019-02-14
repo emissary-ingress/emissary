@@ -21,14 +21,8 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - namespaces
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
   - secrets
   verbs: ["get", "list", "watch"]
 ---
