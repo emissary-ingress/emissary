@@ -15,8 +15,7 @@
 from typing import List, TYPE_CHECKING
 
 from ..common import EnvoyRoute
-from ...ir import IRResource
-from ...ir.irmapping import IRMappingGroup
+from ...ir.irmappinggroup import IRMappingGroup
 
 from .v2ratelimitaction import V2RateLimitAction
 

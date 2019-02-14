@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
-from ...ir import IRResource
-from ...ir.irmapping import IRMapping, IRMappingGroup
+from ...ir.irmapping import IRMapping
+from ...ir.irmappinggroup import IRMappingGroup
 
 from .v1ratelimitaction import V1RateLimitAction
 

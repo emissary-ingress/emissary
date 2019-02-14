@@ -20,7 +20,7 @@ import logging
 import re
 
 from ..ir import IR
-from ..ir.irmapping import IRMappingGroup
+from ..ir.irmappinggroup import IRMappingGroup
 from ..envoy import EnvoyConfig
 from .envoy_stats import EnvoyStats
 

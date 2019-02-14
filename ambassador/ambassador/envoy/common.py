@@ -19,7 +19,7 @@ import json
 from abc import abstractmethod
 
 from ..ir import IR, IRResource
-from ..ir.irmapping import IRMappingGroup
+from ..ir.irmappinggroup import IRMappingGroup
 
 def sanitize_pre_json(input):
     # Removes all potential null values
