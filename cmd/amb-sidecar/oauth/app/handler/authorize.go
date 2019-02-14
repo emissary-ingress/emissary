@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -13,11 +13,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
-)
-
-const (
-	// RedirectURLFmt is a template string for redirect url.
-	RedirectURLFmt = "%s?audience=%s&response_type=code&redirect_uri=%s&client_id=%s&state=%s&scope=%s"
 )
 
 // Authorize is the last handler in the chain of the authorization server.
@@ -47,18 +42,17 @@ func (h *Authorize) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirect := fmt.Sprintf(
-		RedirectURLFmt,
-		h.Discovery.AuthorizationEndpoint,
-		tenant.Audience,
-		tenant.CallbackURL,
-		tenant.ClientID,
-		h.signState(r),
-		rule.Scope,
-	)
+	redirect, _ := h.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
+		"audience":      {tenant.Audience},
+		"response_type": {"code"},
+		"redirect_uri":  {tenant.CallbackURL},
+		"client_id":     {tenant.ClientID},
+		"state":         {h.signState(r)},
+		"scope":         {rule.Scope},
+	}.Encode())
 
 	h.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
-	http.Redirect(w, r, redirect, http.StatusSeeOther)
+	http.Redirect(w, r, redirect.String(), http.StatusSeeOther)
 }
 
 func (h *Authorize) signState(r *http.Request) string {

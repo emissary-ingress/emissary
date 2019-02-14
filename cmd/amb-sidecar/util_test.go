@@ -119,7 +119,7 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	}
 	tenants[1] = crd.TenantObject{
 		CallbackURL: fmt.Sprintf("%s/callback", idpURL),
-		Domain:      c.BaseURL.Hostname(),
+		Domain:      c.AuthProviderURL.Hostname(),
 		Audience:    "friends",
 		ClientID:    "foo",
 	}

@@ -16,10 +16,9 @@ type Config struct {
 	AmbassadorSingleNamespace bool
 
 	// Auth
-	AuthProviderURL string        // the Identity Provider's URL
+	AuthProviderURL *url.URL      // the Identity Provider's URL
 	PvtKPath        string        // the path for private key file
 	PubKPath        string        // the path for public key file
-	BaseURL         *url.URL      // (this is just AuthProviderURL, but as a *url.URL)
 	StateTTL        time.Duration // TTL (in minutes) of a signed state token
 
 	// Rate Limit
@@ -45,12 +44,10 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
 
 		// Auth
-		AuthProviderURL: os.Getenv("AUTH_PROVIDER_URL"),
-		//IssuerURL: (this is just AuthProviderURL, but as a *url.URL)
+		//AuthProviderURL: (see below),
 		PvtKPath: os.Getenv("APP_PRIVATE_KEY_PATH"),
 		PubKPath: os.Getenv("APP_PUBLIC_KEY_PATH"),
-		//BaseURL: (derived from AuthProviderURL)
-		//StateTTL: (see below)
+		//StateTTL: (see below),
 
 		// Rate Limit
 		Output: os.Getenv("RLS_RUNTIME_DIR"),
@@ -59,14 +56,22 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		LogLevel: getenvDefault("APP_LOG_LEVEL", "info"),
 	}
 
-	u, err := url.Parse(cfg.AuthProviderURL)
+	var err error
+	cfg.AuthProviderURL, err = url.Parse(os.Getenv("AUTH_PROVIDER_URL"))
 	switch {
 	case err != nil:
 		fatal = append(fatal, errors.Wrap(err, "invalid AUTH_PROVIDER_URL (aborting)"))
-	case u.Scheme == "":
-		fatal = append(fatal, errors.Errorf("invalid AUTH_PROVIDER_URL (aborting): missing scheme. Format is `SCHEME://HOST[:PORT]'. Got: %v", cfg.AuthProviderURL))
-	default:
-		cfg.BaseURL = u
+	case !cfg.AuthProviderURL.IsAbs():
+		fatal = append(fatal, errors.Errorf("invalid AUTH_PROVIDER_URL (aborting): is not absolute"))
+		cfg.AuthProviderURL = nil
+	case cfg.AuthProviderURL.Path == "":
+		// net/http doesn't normalize "" to "/" because they
+		// are different for OPTIONS requests; but for all
+		// other requests it should be normalized to "/"
+		// (RFC7230§2.7.3).  We won't be doing any OPTIONS
+		// requests, so normalize it.
+		cfg.AuthProviderURL.Path = "/"
+		cfg.AuthProviderURL.RawPath = "/"
 	}
 
 	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {

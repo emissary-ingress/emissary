@@ -2,7 +2,6 @@ package app
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/negroni"
@@ -29,17 +28,7 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		return nil, errors.Wrap(err, "discovery")
 	}
 
-	authorizationEndpointURL, err := url.Parse(disco.AuthorizationEndpoint)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery.AuthorizationEndpoint")
-	}
-
-	tokenEndpointURL, err := url.Parse(disco.TokenEndpoint)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery.TokenEndpoint")
-	}
-
-	rest := client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
+	rest := client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint)
 
 	n := negroni.New()
 
