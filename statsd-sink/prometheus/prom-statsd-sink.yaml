@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
       - name: statsd-sink
-        image: prom/statsd-exporter:v0.6.0
-        args: ["-statsd.listen-address=:8125"]
+        image: prom/statsd-exporter:v0.8.1
         resources: {}
       restartPolicy: Always
 status: {}
