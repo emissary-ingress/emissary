@@ -13,6 +13,8 @@
                 ],
                 "_service": "127.0.0.1:8877",
                 "_source": "l7-redirect.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -26,6 +28,8 @@
                 ],
                 "_service": "httpbin.org",
                 "_source": "mapping.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_httpbin_org",
                 "type": "strict_dns",
@@ -52,7 +56,9 @@
                 "_source": "l7-redirect.yaml.1",
                 "require_tls": true,
                 "service_port": 80,
-                "use_proxy_proto": false
+                "redirect_listener": false,
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [
@@ -102,7 +108,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -126,7 +134,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -150,9 +160,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            }
-        ]
+                "prefix_rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+            }        ]
     },
     "errors": {},
     "source_map": {

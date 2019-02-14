@@ -13,6 +13,8 @@
                 ],
                 "_service": "127.0.0.1:8877",
                 "_source": "ambassador.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -24,10 +26,12 @@
                 "_referenced_by": [
                     "auth-tls.yaml.1"
                 ],
-                "_service": "extauth",
+                "_service": "example-auth:3000",
                 "_source": "auth-tls.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
-                "name": "cluster_ext_auth_otls_upstream",
+                "name": "cluster_extauth_https___example_auth_3000_otls",
                 "tls_array": [
                     {
                         "key": "cert_chain_file",
@@ -41,11 +45,14 @@
                 "tls_context": {
                     "_referenced_by": [
                         "auth-tls.yaml.1",
-                        "mapping-qotm.yaml.1"
+                        "mapping-qotm.yaml.1",
+                        "tls.yaml.1"
                     ],
                     "_source": "tls.yaml.1",
-                    "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
-                    "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                    "secret_info": {
+                        "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
+                        "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                    }
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -54,10 +61,54 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-nulls.yaml.1"
+                ],
+                "_service": "qotm1",
+                "_source": "mapping-nulls.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "lb_type": "round_robin",
+                "name": "cluster_qotm1_otls_no_cert_upstream",
+                "tls_array": [],
+                "tls_context": {
+                    "_ambassador_enabled": true,
+                    "secret_info": {},
+                    "valid_tls": false
+                },
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://qotm1:443"
+                ]
+            },
+            {
+                "_referenced_by": [
+                    "mapping-nulls.yaml.2"
+                ],
+                "_service": "qotm2/",
+                "_source": "mapping-nulls.yaml.2",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "lb_type": "round_robin",
+                "name": "cluster_https___qotm2__otls",
+                "tls_array": [],
+                "tls_context": {
+                    "_ambassador_enabled": true,
+                    "secret_info": {},
+                    "valid_tls": false
+                },
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://qotm2:443"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_qotm_otls_upstream",
                 "tls_array": [
@@ -73,11 +124,14 @@
                 "tls_context": {
                     "_referenced_by": [
                         "auth-tls.yaml.1",
-                        "mapping-qotm.yaml.1"
+                        "mapping-qotm.yaml.1",
+                        "tls.yaml.1"
                     ],
                     "_source": "tls.yaml.1",
-                    "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
-                    "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                    "secret_info": {
+                        "cert_chain_file": "/etc/ambassador-config/certs/outbound.crt",
+                        "private_key_file": "/etc/ambassador-config/certs/outbound.key"
+                    }
                 },
                 "type": "strict_dns",
                 "urls": [
@@ -92,6 +146,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth-tls.yaml.1"
+                ],
                 "_services": [
                     "https://example-auth:3000"
                 ],
@@ -100,7 +157,7 @@
                     "allowed_headers": [
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_ext_auth_otls_upstream",
+                    "cluster": "cluster_extauth_https___example_auth_3000_otls",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -125,7 +182,9 @@
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },
-                "use_proxy_proto": false
+                "redirect_listener": false,
+                "use_proxy_proto": false,
+                "use_remote_address": true
             }
         ],
         "routes": [
@@ -151,7 +210,33 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
+            },
+            {
+                "__saved": [
+                    0,
+                    7,
+                    0,
+                    "/qotm2/",
+                    "GET"
+                ],
+                "_group_id": "45e96aea52380f505dabbc1977b3242711d15aea",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-nulls.yaml.2"
+                ],
+                "_source": "mapping-nulls.yaml.2",
+                "clusters": [
+                    {
+                        "name": "cluster_https___qotm2__otls",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/qotm2/",
+                "prefix_rewrite": "/"
             },
             {
                 "__saved": [
@@ -199,7 +284,33 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
+                "prefix_rewrite": "/ambassador/v0/",
+
+                "timeout_ms": 10000
+            },
+            {
+                "__saved": [
+                    0,
+                    7,
+                    0,
+                    "/qotm1/",
+                    "GET"
+                ],
+                "_group_id": "eb7e214a06e8bf65be9af7d8a065fc9560221f09",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "mapping-nulls.yaml.1"
+                ],
+                "_source": "mapping-nulls.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_qotm1_otls_no_cert_upstream",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/qotm1/",
+                "prefix_rewrite": "/"
             }
         ]
     },
@@ -213,6 +324,10 @@
         },
         "auth-tls.yaml": {
             "auth-tls.yaml.1": true
+        },
+        "mapping-nulls.yaml": {
+            "mapping-nulls.yaml.1": true,
+            "mapping-nulls.yaml.2": true
         },
         "mapping-qotm.yaml": {
             "mapping-qotm.yaml.1": true
@@ -257,6 +372,24 @@
             "name": "authentication",
             "version": "ambassador/v0",
             "yaml": "allowed_headers:\n- x-qotm-session\napiVersion: ambassador/v0\nauth_service: https://example-auth:3000\nkind: AuthService\nname: authentication\npath_prefix: /extauth\ntls: upstream\n"
+        },
+        "mapping-nulls.yaml.1": {
+            "_source": "mapping-nulls.yaml",
+            "filename": "mapping-nulls.yaml",
+            "index": 1,
+            "kind": "Mapping",
+            "name": "qotm1_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm1_mapping\nprefix: /qotm1/\nservice: qotm1\ntls: true\n"
+        },
+        "mapping-nulls.yaml.2": {
+            "_source": "mapping-nulls.yaml",
+            "filename": "mapping-nulls.yaml",
+            "index": 2,
+            "kind": "Mapping",
+            "name": "qotm2_mapping",
+            "version": "ambassador/v0",
+            "yaml": "apiVersion: ambassador/v0\nkind: Mapping\nname: qotm2_mapping\nprefix: /qotm2/\nservice: https://qotm2/\n"
         },
         "mapping-qotm.yaml.1": {
             "_source": "mapping-qotm.yaml",

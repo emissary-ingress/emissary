@@ -13,6 +13,8 @@
                 ],
                 "_service": "127.0.0.1:8877",
                 "_source": "ambassador.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -26,6 +28,8 @@
                 ],
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_qotm",
                 "type": "strict_dns",
@@ -60,7 +64,9 @@
                     "private_key_file": "/etc/ambassador-config/certs/tls.key",
                     "ssl_context": true
                 },
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true,
+                "redirect_listener": false
             }
         ],
         "routes": [
@@ -86,7 +92,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -134,9 +142,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
-            }
-        ]
+                "prefix_rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+            }        ]
     },
     "errors": {},
     "source_map": {
