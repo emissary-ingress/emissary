@@ -1,16 +1,17 @@
-Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png?branch=master)](https://travis-ci.org/datawire/ambassador) [![Docker Repository](https://quay.io/repository/datawire/ambassador/status "Docker Repository")](https://quay.io/repository/datawire/ambassador)
+Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png?branch=master)](https://travis-ci.org/datawire/ambassador) [![Docker Repository](https://quay.io/repository/datawire/ambassador/status "Docker Repository")](https://quay.io/repository/datawire/ambassador) [![Join Slack](https://img.shields.io/badge/slack-join-orange.svg)](https://d6e.co/slack)
 ==========
 
 [Ambassador](https://www.getambassador.io) is an open source Kubernetes-native API Gateway built on [Envoy](https://www.envoyproxy.io), designed for microservices. Ambassador essentially serves as an Envoy ingress controller, but with many more features.
 
-Key features include:
+Key [features](https://www.getambassador.io/features) include:
 
 * Self-service configuration, via Kubernetes annotations
 * First class [gRPC and HTTP/2 support](https://www.getambassador.io/user-guide/grpc)
 * Support for CORS, timeouts, weighted round robin ([canary](https://www.getambassador.io/reference/canary)), [rate limiting](https://www.getambassador.io/reference/services/rate-limit-service)
 * [Istio integration](https://www.getambassador.io/user-guide/with-istio)
 * [Authentication](https://www.getambassador.io/reference/services/auth-service)
-* Robust TLS support, including TLS client-certificate authentication
+* Robust TLS support, including TLS client-certificate authentication and [SNI](https://www.getambassador.io/user-guide/sni)
+* Comprehensive [metrics](https://www.getambassador.io/reference/statistics) support
 
 Architecture
 ============
@@ -42,3 +43,5 @@ If you're interested in contributing, here are some ways:
 * Write a blog post for [our blog](https://blog.getambassador.io)
 * Investigate an [open issue](https://github.com/datawire/ambassador/issues)
 * Add [more tests](https://github.com/datawire/ambassador/tree/develop/end-to-end)
+
+If you need commercial support or additional features, check out [Ambassador Pro](https://www.getambassador.io/pro/).
