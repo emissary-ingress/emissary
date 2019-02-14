@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
@@ -40,12 +41,12 @@ func (a *App) Handler() (http.Handler, error) {
 	var err error
 	a.secret, err = secret.New(a.Config, a.Logger) // RSA keys
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "secret")
 	}
 
 	disco, err := discovery.New(a.Config, a.Logger)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "discovery")
 	}
 
 	a.Config.IssuerURL = disco.Issuer
@@ -53,12 +54,12 @@ func (a *App) Handler() (http.Handler, error) {
 	a.discovery = disco
 	authorizationEndpointURL, err := url.Parse(a.discovery.AuthorizationEndpoint)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "discovery.AuthorizationEndpoint")
 	}
 
 	tokenEndpointURL, err := url.Parse(a.discovery.TokenEndpoint)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "discovery.TokenEndpoint")
 	}
 
 	a.rest = client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
