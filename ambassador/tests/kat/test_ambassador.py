@@ -559,9 +559,6 @@ class Plain(AmbassadorTest):
     def variants(cls):
         yield cls(variants(MappingTest))
 
-    def setup(self, selected):
-        super().setup(selected)
-
     def manifests(self) -> str:
         return """
 ---
