@@ -1,4 +1,4 @@
-package middleware
+package app
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
@@ -158,12 +157,12 @@ func (j *ControllerCheck) validateToken(token string, tenant *crd.TenantObject, 
 }
 
 func (j *ControllerCheck) getToken(r *http.Request) string {
-	cookie, _ := r.Cookie(handler.AccessTokenCookie)
+	cookie, _ := r.Cookie(AccessTokenCookie)
 	if cookie != nil {
 		return cookie.Value
 	}
 
-	j.Logger.Debugf("request has no %s cookie", handler.AccessTokenCookie)
+	j.Logger.Debugf("request has no %s cookie", AccessTokenCookie)
 
 	bearer := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(bearer) != 2 && strings.ToLower(bearer[0]) != "bearer" {

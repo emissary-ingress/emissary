@@ -9,7 +9,6 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
 	_secret "github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
@@ -41,7 +40,7 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
-	n.Use(&middleware.ControllerCheck{
+	n.Use(&ControllerCheck{
 		Logger: logger.WithField("MIDDLEWARE", "controller_check"),
 		Ctrl:   controller,
 		DefaultRule: &crd.Rule{
@@ -54,7 +53,7 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 	})
 
 	// Final handler (most-inner of all)
-	n.UseHandler(&handler.Handler{
+	n.UseHandler(&Handler{
 		Config:    config,
 		Logger:    logger.WithField("HANDLER", "oauth2"),
 		Ctrl:      controller,
