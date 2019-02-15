@@ -14,11 +14,11 @@ all: .docker.stamp
 	docker build -t $(DOCKER_IMAGE) .
 	date > $@
 
-%.so: %.go FORCE
+%.so: %.go
 	$(RUN) env GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o $@ $<
 
 clean:
 	rm -f -- *.so .docker.stamp
 
-.PHONY: FORCE all clean
+.PHONY: all clean
 .DELETE_ON_ERROR:
