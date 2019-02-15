@@ -172,7 +172,9 @@ class Config:
     def as_json(self):
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
-    def good_ambassador_id(self, resource: ACResource):
+    # Often good_ambassador_id will be passed an ACResource, but sometimes
+    # just a plain old dict.
+    def good_ambassador_id(self, resource: dict):
         # Is an ambassador_id present in this object?
         allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 

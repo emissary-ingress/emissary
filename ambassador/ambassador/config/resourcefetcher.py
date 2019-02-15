@@ -117,8 +117,9 @@ class ResourceFetcher:
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
                    filename: Optional[str]=None) -> None:
-        self.logger.info("%s: parsing %d byte%s of YAML" %
-                         (self.location, len(serialization), "" if (len(serialization) == 1) else "s"))
+        # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
+        #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
+        #                    serialization))
 
         try:
             objects = list(yaml.safe_load_all(serialization))
@@ -129,6 +130,9 @@ class ResourceFetcher:
                 if k8s:
                     self.extract_k8s(obj)
                 else:
+                    # if not obj:
+                    #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
+
                     self.process_object(obj, rkey=rkey)
                     self.ocount += 1
 
@@ -137,6 +141,8 @@ class ResourceFetcher:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
     def extract_k8s(self, obj: dict) -> None:
+        self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
+
         kind = obj.get('kind', None)
 
         if kind != "Service":
@@ -170,8 +176,7 @@ class ResourceFetcher:
         # self.logger.debug("annotations %s" % annotations)
 
         if not annotations:
-            # self.logger.debug("%s.%s: ignoring K8s %s without Ambassador annotation" %
-            #                   (filepath or "anonymous YAML", ocount, kind))
+            # self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
             return
 
         if self.filename and (not self.filename.endswith(":annotation")):
