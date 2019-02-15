@@ -43,9 +43,9 @@ type OAuth2Handler struct {
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	originalURL := util.OriginalURL(r)
 
-	tenant := findTenant(c.Ctrl, originalURL.Hostname())
+	tenant := findTenant(c.Ctrl, originalURL.Host)
 	if tenant == nil {
-		c.Logger.Debugf("not a registered domain: %s", originalURL.Hostname())
+		c.Logger.Debugf("not a registered domain: %s", originalURL.Host)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 		return
 	}
@@ -101,7 +101,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			GrantType:    "authorization_code", // the default grant used in for this handler
 			ClientID:     tenant.ClientID,
 			Code:         code,
-			RedirectURL:  tenant.CallbackURL,
+			RedirectURL:  tenant.CallbackURL().String(),
 			ClientSecret: tenant.Secret,
 		})
 		if err != nil {
@@ -115,7 +115,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Name:     AccessTokenCookie,
 			Value:    res.AccessToken,
 			HttpOnly: true,
-			Secure:   tenant.TLS,
+			Secure:   tenant.TLS(),
 			Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
 		})
 
@@ -129,7 +129,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		redirect, _ := c.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
 			"audience":      {tenant.Audience},
 			"response_type": {"code"},
-			"redirect_uri":  {tenant.CallbackURL},
+			"redirect_uri":  {tenant.CallbackURL().String()},
 			"client_id":     {tenant.ClientID},
 			"state":         {c.signState(r)},
 			"scope":         {rule.Scope},
@@ -144,7 +144,7 @@ func findTenant(c *controller.Controller, domain string) *crd.TenantObject {
 	apps := c.Tenants.Load()
 	if apps != nil {
 		for _, app := range apps.([]crd.TenantObject) {
-			if app.Domain == domain {
+			if app.Domain() == domain {
 				return &app
 			}
 		}

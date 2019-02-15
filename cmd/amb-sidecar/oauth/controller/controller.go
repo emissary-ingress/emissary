@@ -2,9 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
-	"net"
-	"net/url"
 	"strings"
 	"sync/atomic"
 
@@ -24,11 +21,6 @@ type Controller struct {
 	Rules   atomic.Value
 	Tenants atomic.Value
 }
-
-const (
-	// Callback is the path used to create the tenant callback url.
-	Callback = "callback"
-)
 
 // Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch(ctx context.Context) {
@@ -52,30 +44,11 @@ func (c *Controller) Watch(ctx context.Context) {
 			}
 
 			for _, t := range spec.Tenants {
-				u, err := url.Parse(t.TenantURL)
+				err := t.Validate()
 				if err != nil {
-					c.Logger.Errorln(errors.Wrap(err, "parsing tenant url"))
+					c.Logger.Errorln(err)
 					continue
 				}
-
-				if u.Scheme == "" {
-					c.Logger.Errorf("tenantUrl needs to be an absolute url: {scheme}://{host}:{port}")
-					continue
-				}
-
-				t.TLS = u.Scheme == "https"
-
-				_, port, _ := net.SplitHostPort(u.Host)
-				if port == "" {
-					t.CallbackURL = fmt.Sprintf("%s://%s/%s", u.Scheme, u.Host, Callback)
-				} else {
-					t.CallbackURL = fmt.Sprintf("%s://%s:%s/%s", u.Scheme, u.Host, port, Callback)
-				}
-
-				t.Domain = u.Host
-
-				c.Logger.Infof("loading tenant domain=%s, client_id=%s", t.Domain, t.ClientID)
-
 				tenants = append(tenants, t)
 			}
 		}
