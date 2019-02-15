@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,36 +23,24 @@ import (
 const (
 	// AccessTokenCookie cookie's name
 	AccessTokenCookie = "access_token"
-	// Code is the default grant used in for this handler.
-	Code = "authorization_code"
 )
 
-// ControllerCheck looks up the appropriate Tenant and Rule objects
-// from the CRD Controller, and validates the signed JWT tokens when
-// present in the request.  The Tenant and Rule objects are injected
-// in to the Request Context.
-type ControllerCheck struct {
+// OAuth2Handler looks up the appropriate Tenant and Rule objects from
+// the CRD Controller, and validates the signed JWT tokens when
+// present in the request.  If the request Path is "/callback", it
+// validates IDP requests and handles code exchange flow.
+type OAuth2Handler struct {
+	Config      types.Config
 	Logger      types.Logger
 	Ctrl        *controller.Controller
 	DefaultRule *crd.Rule
 	Discovery   *discovery.Discovery
-	Config      types.Config
 	IssuerURL   string
+	Secret      *secret.Secret
+	Rest        *client.Rest
 }
 
-// Handler is the last handler in the chain of the authorization
-// server.  If the request Path is "/callback", it validates IDP
-// requests and handles code exchange flow.
-type Handler struct {
-	Config    types.Config
-	Logger    types.Logger
-	Ctrl      *controller.Controller
-	Secret    *secret.Secret
-	Discovery *discovery.Discovery
-	Rest      *client.Rest
-}
-
-func (c *ControllerCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	originalURL := util.OriginalURL(r)
 
 	tenant := findTenant(c.Ctrl, originalURL.Hostname())
@@ -74,10 +61,6 @@ func (c *ControllerCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next
 		return
 	}
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, controller.TenantCTXKey, tenant)
-	ctx = context.WithValue(ctx, controller.RuleCTXKey, rule)
-
 	token := c.getToken(r)
 	var tokenErr error
 	if token == "" {
@@ -92,61 +75,42 @@ func (c *ControllerCheck) ServeHTTP(w http.ResponseWriter, r *http.Request, next
 	}
 	c.Logger.Debug(tokenErr)
 
-	next(w, r.WithContext(ctx))
-}
-
-// ServeHTTP is a handler function that inspects the request by looking for the presence of
-// a token and for any insvalid scope. If these validations pass, an authorization
-// header is set in a 200 OK response.
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
+	switch originalURL.Path {
 	case "/callback":
-		h.Logger.Debug("request received")
 		if err := r.URL.Query().Get("error"); err != "" {
 			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
 		}
-	default:
-	}
 
-	tenant := controller.GetTenantFromContext(r.Context())
-	if tenant == nil {
-		h.Logger.Errorf("authorization handler: app request context cannot be nil")
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
-
-	switch r.URL.Path {
-	case "/callback":
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			h.Logger.Error("check code failed")
+			c.Logger.Error("check code failed")
 			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
 		}
 
-		rURL, err := h.checkState(r)
+		rURL, err := c.checkState(r)
 		if err != nil {
-			h.Logger.Errorf("check state failed: %v", err)
+			c.Logger.Errorf("check state failed: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		var res *client.AuthorizationResponse
-		res, err = h.Rest.Authorize(&client.AuthorizationRequest{
-			GrantType:    Code,
+		res, err = c.Rest.Authorize(&client.AuthorizationRequest{
+			GrantType:    "authorization_code", // the default grant used in for this handler
 			ClientID:     tenant.ClientID,
 			Code:         code,
 			RedirectURL:  tenant.CallbackURL,
 			ClientSecret: tenant.Secret,
 		})
 		if err != nil {
-			h.Logger.Errorf("authorization request failed: %v", err)
+			c.Logger.Errorf("authorization request failed: %v", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		h.Logger.Debug("setting authorization cookie")
+		c.Logger.Debug("setting authorization cookie")
 		http.SetCookie(w, &http.Cookie{
 			Name:     AccessTokenCookie,
 			Value:    res.AccessToken,
@@ -158,26 +122,20 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// If the user-agent request was a POST or PUT, 307 will preserve the body
 		// and just follow the location header.
 		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		h.Logger.Debugf("redirecting user-agent to: %s", rURL)
+		c.Logger.Debugf("redirecting user-agent to: %s", rURL)
 		http.Redirect(w, r, rURL, http.StatusTemporaryRedirect)
-	default:
-		rule := controller.GetRuleFromContext(r.Context())
-		if rule == nil {
-			h.Logger.Errorf("Rule context cannot be nil")
-			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-			return
-		}
 
-		redirect, _ := h.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
+	default:
+		redirect, _ := c.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
 			"audience":      {tenant.Audience},
 			"response_type": {"code"},
 			"redirect_uri":  {tenant.CallbackURL},
 			"client_id":     {tenant.ClientID},
-			"state":         {h.signState(r)},
+			"state":         {c.signState(r)},
 			"scope":         {rule.Scope},
 		}.Encode())
 
-		h.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
+		c.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
 		http.Redirect(w, r, redirect.String(), http.StatusSeeOther)
 	}
 }
@@ -208,7 +166,7 @@ func findRule(c *controller.Controller, host, path string) *crd.Rule {
 	return nil
 }
 
-func (j *ControllerCheck) validateToken(token string, tenant *crd.TenantObject, rule *crd.Rule) error {
+func (j *OAuth2Handler) validateToken(token string, tenant *crd.TenantObject, rule *crd.Rule) error {
 	// JWT validation is performed by doing the cheap operations first.
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
@@ -267,7 +225,7 @@ func (j *ControllerCheck) validateToken(token string, tenant *crd.TenantObject, 
 	return err
 }
 
-func (j *ControllerCheck) getToken(r *http.Request) string {
+func (j *OAuth2Handler) getToken(r *http.Request) string {
 	cookie, _ := r.Cookie(AccessTokenCookie)
 	if cookie != nil {
 		return cookie.Value
@@ -284,7 +242,7 @@ func (j *ControllerCheck) getToken(r *http.Request) string {
 	return bearer[1]
 }
 
-func (h *Handler) signState(r *http.Request) string {
+func (h *OAuth2Handler) signState(r *http.Request) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(h.Config.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
@@ -302,7 +260,7 @@ func (h *Handler) signState(r *http.Request) string {
 	return k
 }
 
-func (c *Handler) checkState(r *http.Request) (string, error) {
+func (c *OAuth2Handler) checkState(r *http.Request) (string, error) {
 	state := r.URL.Query().Get("state")
 	if state == "" {
 		return "", errors.New("empty state param")

@@ -40,26 +40,19 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
-	n.Use(&ControllerCheck{
-		Logger: logger.WithField("MIDDLEWARE", "controller_check"),
-		Ctrl:   controller,
+	// Final handler (most-inner of all)
+	n.UseHandler(&OAuth2Handler{
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
-		Discovery: disco,
 		Config:    config,
-		IssuerURL: disco.Issuer,
-	})
-
-	// Final handler (most-inner of all)
-	n.UseHandler(&Handler{
-		Config:    config,
-		Logger:    logger.WithField("HANDLER", "oauth2"),
 		Ctrl:      controller,
 		Discovery: disco,
-		Secret:    secret,
+		IssuerURL: disco.Issuer,
+		Logger:    logger.WithField("HANDLER", "oauth2"),
 		Rest:      rest,
+		Secret:    secret,
 	})
 
 	return n, nil
