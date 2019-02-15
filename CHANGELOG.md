@@ -2,6 +2,10 @@
 
 ## BREAKING NEWS
 
+### AMBASSADOR 0.50.2
+
+Ambassador 0.50.2 fixes two important issues present in 0.50.1, and is highly recommended for any 0.50.1 users. Please see the notes below on 0.50.2.
+
 ### AMBASSADOR 0.50.0
 
 Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS. It also introduces the KAT suite for dramatically-faster functional testing (see `ambassador/tests/kat` for more).
@@ -110,6 +114,28 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.2] February 15, 2019
+[0.50.2]: https://github.com/datawire/ambassador/compare/0.50.1...0.50.2
+
+### Important fixes since 0.50.1
+
+- Ambassador no longer requires annotations in order to start -- with no configuration, it will launch with only the diagnostics service available. ([#1203])
+- If external auth changes headers, routing will happen based on the changed values. ([#1226])
+
+### Other changes since 0.50.1
+
+- Ambassador will no longer log errors about Envoy statistics being unavaible before startup is complete ([#1216])
+- The `tls` attribute is again available to control the client certificate offered by an `AuthService` ([#1202])
+
+### Limitations in 0.50.2
+
+At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release. 
+
+[#1202]: https://github.com/datawire/ambassador/issues/1202
+[#1203]: https://github.com/datawire/ambassador/issues/1203
+[#1216]: https://github.com/datawire/ambassador/issues/1216
+[#1226]: https://github.com/datawire/ambassador/issues/1226
 
 ## [0.50.1] February 7, 2019
 [0.50.1]: https://github.com/datawire/ambassador/compare/0.50.0...0.50.1
