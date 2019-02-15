@@ -42,7 +42,6 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	originalURL := util.OriginalURL(r)
 
 	var rule *crd.Rule
-	var tenant *crd.TenantObject
 	var redirectURL *url.URL
 	switch originalURL.Path {
 	case "/callback":
@@ -59,36 +58,23 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		rule = findRule(c.Ctrl, redirectURL.Host, redirectURL.Path)
-		tenant = findTenant(c.Ctrl, redirectURL.Host)
 	default:
 		rule = findRule(c.Ctrl, originalURL.Host, originalURL.Path)
-		tenant = findTenant(c.Ctrl, originalURL.Host)
 	}
 	if rule == nil {
 		rule = c.DefaultRule
 	}
-	c.Logger.Debugf("host=%s, path=%s, public=%v", rule.Host, rule.Path, rule.Public)
+	middlewareQName := rule.Middleware.Name + "." + rule.Middleware.Namespace
+	c.Logger.Debugf("host=%s, path=%s, public=%v, middleware=%q", rule.Host, rule.Path, rule.Public, middlewareQName)
 	if rule.Public {
 		c.Logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	if tenant == nil {
-		c.Logger.Debugf("not a registered domain: %s", originalURL.Host)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
 
-	middleware := &crd.MiddlewareOAuth2{
-		RawAuthorizationURL: c.Config.AuthProviderURL.String(),
-		RawClientURL:        tenant.TenantURL.String(),
-		RawStateTTL:         c.Config.StateTTL.String(),
-		Audience:            tenant.Audience,
-		ClientID:            tenant.ClientID,
-		Secret:              tenant.Secret,
-	}
-	if err := middleware.Validate(); err != nil {
-		c.Logger.Debugf("create middleware: %v", err)
+	middleware := findMiddleware(c.Ctrl, middlewareQName)
+	if middleware == nil {
+		c.Logger.Debugf("could not find not middleware: %q", middlewareQName)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 		return
 	}
@@ -171,13 +157,13 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findTenant(c *controller.Controller, domain string) *crd.TenantObject {
-	apps := c.Tenants.Load()
-	if apps != nil {
-		for _, app := range apps.([]crd.TenantObject) {
-			if app.Domain() == domain {
-				return &app
-			}
+func findMiddleware(c *controller.Controller, qname string) *crd.MiddlewareOAuth2 {
+	mws := c.Middlewares.Load()
+	if mws != nil {
+		middlewares := mws.(map[string]crd.MiddlewareOAuth2)
+		middleware, ok := middlewares[qname]
+		if ok {
+			return &middleware
 		}
 	}
 

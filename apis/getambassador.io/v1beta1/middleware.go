@@ -7,6 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type MiddlewareSpec struct {
+	AmbassadorID AmbassadorID      `json:"ambassador_id"`
+	OAuth2       *MiddlewareOAuth2 `json:",omitempty"`
+}
+
 type MiddlewareOAuth2 struct {
 	RawAuthorizationURL string   `json:"authorizationURL"` // formerly AUTH_PROVIDER_URL
 	AuthorizationURL    *url.URL `json:"-"`                // calculated from RawAuthorizationURL
@@ -55,6 +60,10 @@ func (m *MiddlewareOAuth2) Validate() error {
 func (m MiddlewareOAuth2) CallbackURL() *url.URL {
 	u, _ := m.ClientURL.Parse("/callback")
 	return u
+}
+
+func (m MiddlewareOAuth2) Domain() string {
+	return m.ClientURL.Host
 }
 
 func (m MiddlewareOAuth2) TLS() bool {

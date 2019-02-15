@@ -1,27 +1,14 @@
 ---
 # @TEMPLATE@
 apiVersion: getambassador.io/v1beta1
-kind: Tenant
+kind: Middleware
 metadata:
-  name: tenants
+  name: auth0
   namespace: standalone
 spec:
-  # List of app configured in your auth provider.
-  # Fields:
-  #   tenantUrl: an absolute URL must be supplied.
-  #   audience: audience information.
-  #   clientId: application's client id.
-  #   secret: application's secret token. NOTE: this is now a required field for Auth0 code exchange flow.
-  tenants:
-
-  # app 1
-  - tenantUrl: {{env "AUTH_TENANT_URL"}}
+  OAuth2:
+    authorizationURL: {{env "AUTH_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
     audience: {{env "AUTH_AUDIENCE"}}
     clientId: {{env "AUTH_CLIENT_ID"}}
     secret: {{env "AUTH_CLIENT_SECRET"}}
-
-  # app 2
-  # - tenantUrl: http://130.211.216.124
-  #   audience: friends
-  #   clientId: w2m9rWZ6sqN5Oo9pC6mBk28u1Uf
-  #   secret: zdkpvGcVsQVRm_IzM-vOnYIS5_o3JqmDepD0XdNBfKQ6YW9_Lo_W0qZ_ZhyG39Wv

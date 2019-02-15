@@ -16,48 +16,54 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  types.Logger
-	Config  types.Config
-	Rules   atomic.Value
-	Tenants atomic.Value
+	Logger      types.Logger
+	Config      types.Config
+	Rules       atomic.Value
+	Middlewares atomic.Value
 }
 
 // Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch(ctx context.Context) {
-	c.Rules.Store(make([]crd.Rule, 0))
+	c.Rules.Store([]crd.Rule{})
+	c.Middlewares.Store(map[string]crd.MiddlewareOAuth2{})
+
 	w := k8s.NewClient(nil).Watcher()
 
-	w.Watch("tenants", func(w *k8s.Watcher) {
-		tenants := make([]crd.TenantObject, 0)
-		for _, p := range w.List("tenants") {
-			var spec crd.TenantSpec
-			err := mapstructure.Convert(p.Spec(), &spec)
+	w.Watch("middlewares", func(w *k8s.Watcher) {
+		middlewares := map[string]crd.MiddlewareOAuth2{}
+		for _, mw := range w.List("middlewares") {
+			var spec crd.MiddlewareSpec
+			err := mapstructure.Convert(mw.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed tenant resource spec"))
+				c.Logger.Errorln(errors.Wrap(err, "malformed middleware resource spec"))
 				continue
 			}
-			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+			if c.Config.AmbassadorSingleNamespace && mw.Namespace() != c.Config.AmbassadorNamespace {
 				continue
 			}
 			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
 				continue
 			}
 
-			for _, t := range spec.Tenants {
-				err := t.Validate()
-				if err != nil {
-					c.Logger.Errorln(err)
-					continue
-				}
-				tenants = append(tenants, t)
+			if spec.OAuth2 == nil {
+				c.Logger.Errorf("middleware resource: must specify exactly 1 of: %q", "OAuth2")
+				continue
 			}
+
+			if err = spec.OAuth2.Validate(); err != nil {
+				c.Logger.Errorln(errors.Wrap(err, "middleware resource"))
+				continue
+			}
+
+			c.Logger.Infof("loading middleware domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
+			middlewares[mw.QName()] = *spec.OAuth2
 		}
 
-		if len(tenants) == 0 {
-			c.Logger.Error("0 tenant apps configured")
+		if len(middlewares) == 0 {
+			c.Logger.Error("0 middlewares configured")
 		}
 
-		c.Tenants.Store(tenants)
+		c.Middlewares.Store(middlewares)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
@@ -90,6 +96,10 @@ func (c *Controller) Watch(ctx context.Context) {
 				scopes := strings.Split(rule.Scope, " ")
 				for _, s := range scopes {
 					rule.Scopes[s] = true
+				}
+
+				if rule.Middleware.Namespace == "" {
+					rule.Middleware.Namespace = p.Namespace()
 				}
 
 				rules = append(rules, rule)

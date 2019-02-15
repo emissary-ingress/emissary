@@ -11,11 +11,17 @@ type PolicySpec struct {
 
 // Rule defines authorization rules object.
 type Rule struct {
-	Host   string          `json:"host"`
-	Path   string          `json:"path"`
-	Public bool            `json:"public"`
-	Scope  string          `json:"scope"`
-	Scopes map[string]bool `json:"-"` // is calculated from Scope
+	Host       string          `json:"host"`
+	Path       string          `json:"path"`
+	Public     bool            `json:"public"`
+	Middleware Reference       `json:"middleware"`
+	Scope      string          `json:"scope"`
+	Scopes     map[string]bool `json:"-"` // is calculated from Scope
+}
+
+type Reference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 //////////////////////////////////////////////////////////////////////
