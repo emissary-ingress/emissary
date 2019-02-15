@@ -113,6 +113,7 @@ build-aux/tel-pro.pid: apply proxy
 	done; echo "ERROR: Telepresence failed. See build-aux/tel-pro.log"; exit 1
 	@if [ -s pro-env.tmp ]; then \
 		echo "KUBECONFIG=$(KUBECONFIG)" >> pro-env.tmp; \
+		echo "RLS_RUNTIME_DIR=$(or $(XDG_RUNTIME_DIR),$(TMPDIR),/tmp)/amb" >> pro-env.tmp; \
 		mv -f pro-env.tmp pro-env.sh; \
 	elif ! grep -q "^KUBECONFIG=" pro-env.sh; then \
 		echo "ERROR: Telepresence did not populate pro-env.tmp"; \
@@ -154,7 +155,7 @@ help-local-dev: ## (LocalDev) Describe how to use local dev features
 .PHONY: help-local-dev
 run-auth: ## (LocalDev) Build and launch the auth service locally
 run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
-	env $$(cat pro-env.sh) bin_$(GOOS)_$(GOARCH)/amb-sidecar auth --log_level debug
+	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOOS)_$(GOARCH)/amb-sidecar main
 .PHONY: run-auth
 
 #

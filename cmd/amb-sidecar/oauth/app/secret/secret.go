@@ -57,16 +57,6 @@ func New(cfg types.Config, log types.Logger) (*Secret, error) {
 	return instance, nil
 }
 
-// GetPublicKeyPEM returns private key PEM.
-func (k *Secret) GetPublicKeyPEM() []byte {
-	return k.verifyBytes
-}
-
-// GetPrivateKeyPEM returns public key PEM.
-func (k *Secret) GetPrivateKeyPEM() []byte {
-	return k.signBytes
-}
-
 // GetPublicKey returns rsa public key object.
 func (k *Secret) GetPublicKey() *rsa.PublicKey {
 	return k.publicKey

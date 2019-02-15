@@ -13,7 +13,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
@@ -94,12 +93,16 @@ func NewIDP() *httptest.Server {
 // NewAPP returns an instance of the authorization server.
 func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	os.Setenv("AUTH_PROVIDER_URL", idpURL)
+	os.Setenv("RLS_RUNTIME_DIR", "/bogus")
 
-	flags := pflag.NewFlagSet("newapp", pflag.PanicOnError)
-	afterParse := types.InitializeFlags(flags)
-	_ = flags.Parse([]string{})
+	c, warn, fatal := types.ConfigFromEnv()
+	if len(fatal) > 0 {
+		return nil, nil, fatal[len(fatal)-1]
+	}
+	if len(warn) > 0 {
+		return nil, nil, warn[len(warn)-1]
+	}
 
-	c := afterParse()
 	l := types.WrapLogrus(logrus.New())
 
 	ct := &controller.Controller{

@@ -20,8 +20,6 @@ const (
 	AccessTokenCookie = "access_token"
 	// Code is the default grant used in for this handler.
 	Code = "authorization_code"
-	// CallbackPath is the default callback path URL
-	CallbackPath = "/callback"
 )
 
 // Callback validates IDP requests and handles code exchange flow.

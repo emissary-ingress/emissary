@@ -67,6 +67,9 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 }
 
 // Go wraps errgroup.Group.Go().
+//
+//  - `softCtx` being canceled should trigger a graceful shutdown
+//  - `hardCtx` being canceled should trigger a not-so-graceful shutdown
 func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg types.Config, logger types.Logger) error) {
 	g.inner.Go(func() error {
 		return fn(g.hardCtx, g.softCtx, g.cfg, g.loggerFactory(name))

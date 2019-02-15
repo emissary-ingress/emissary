@@ -52,9 +52,6 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
-	n.Use(&middleware.CheckConfig{
-		Config: config,
-	})
 	n.Use(&middleware.DomainCheck{
 		Logger: logger.WithField("MIDDLEWARE", "app_check"),
 		Ctrl:   controller,

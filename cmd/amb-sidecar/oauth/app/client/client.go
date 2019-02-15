@@ -45,11 +45,6 @@ type AuthorizationRequest struct {
 	Audience     string `json:"audience,omitempty"`
 }
 
-// SetBearerToken allows setting a persistent access token to the the client.
-func (c *Rest) SetBearerToken(t string) {
-	c.token = t
-}
-
 // Authorize sends a POST request to the IDP.
 func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error) {
 	var rq *http.Request
