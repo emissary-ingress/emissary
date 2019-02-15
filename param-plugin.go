@@ -24,9 +24,9 @@ func PluginMain(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if keyInt%2 == 0 {
-		w.Header().Set("Host", "even.domain2.nkrause.k736.net")
+		w.Header().Set("X-DC", "Even")
 	} else {
-		w.Header().Set("Host", "odd.domain2.nkrause.k736.net")
+		w.Header().Set("X-DC", "Odd")
 	}
 
 	w.WriteHeader(http.StatusOK)
