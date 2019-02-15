@@ -59,10 +59,11 @@ func TestAppNoToken(t *testing.T) {
 	res, _ := appClient.Do(req)
 	u, _ := url.Parse(res.Header.Get("location"))
 
+	assert.NotNil(res)
+	assert.IntEQ(303, res.StatusCode)
 	assert.StrEQ("friends", u.Query().Get("audience"))
 	assert.StrEQ("code", u.Query().Get("response_type"))
 	assert.StrEQ(fmt.Sprintf("%s/callback", idpSRV.URL), u.Query().Get("redirect_uri"))
-	assert.IntEQ(303, res.StatusCode)
 	assert.IntEQ(552, len(u.Query().Get("state")))
 }
 

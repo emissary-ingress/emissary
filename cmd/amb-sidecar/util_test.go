@@ -110,22 +110,22 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		Logger: l.WithField("test", "unit"),
 	}
 
-	tenants := make([]crd.TenantObject, 2)
-	tenants[0] = crd.TenantObject{
-		CallbackURL: "dummy-host.net/callback",
-		Domain:      "dummy-host.net",
-		Audience:    "foo",
-		ClientID:    "bar",
+	tenants := []crd.TenantObject{
+		{
+			CallbackURL: "dummy-host.net/callback",
+			Domain:      "dummy-host.net",
+			Audience:    "foo",
+			ClientID:    "bar",
+		},
+		{
+			CallbackURL: fmt.Sprintf("%s/callback", idpURL),
+			Domain:      c.AuthProviderURL.Hostname(),
+			Audience:    "friends",
+			ClientID:    "foo",
+		},
 	}
-	tenants[1] = crd.TenantObject{
-		CallbackURL: fmt.Sprintf("%s/callback", idpURL),
-		Domain:      c.AuthProviderURL.Hostname(),
-		Audience:    "friends",
-		ClientID:    "foo",
-	}
-
 	ct.Tenants.Store(tenants)
-	ct.Rules.Store(make([]crd.Rule, 0))
+	ct.Rules.Store([]crd.Rule{})
 
 	httpHandler, err := app.NewHandler(c, l, ct)
 	if err != nil {
