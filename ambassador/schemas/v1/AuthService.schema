@@ -12,16 +12,19 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        "proto": { 
+
+        "auth_service": { "type": "string" },
+        "path_prefix": { "type": "string" },
+        "tls": { "type": [ "string", "boolean" ] },
+
+        "proto": {
             "oneOf" : [
                 { "enum": [ "http" ] },
                 { "enum": [ "grpc" ] }
             ]
         },
         "allow_request_body": { "type": "boolean" },
-        "auth_service": { "type": "string" },
         "timeout_ms": { "type": "integer" },
-        "path_prefix": { "type": "string" },  
         "allowed_request_headers": {
             "type": "array",
             "items": { "type": "string" }

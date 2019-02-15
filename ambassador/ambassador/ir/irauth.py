@@ -65,6 +65,9 @@ class IRAuth (IRFilter):
         for service, params in cluster_hosts.items():
             weight, grpc, ctx_name, location = params
 
+            self.logger.debug("IRAuth: svc %s, weight %s, grpc %s, ctx_name %s, location %s" %
+                              (service, weight, grpc, ctx_name, location))
+
             cluster = IRCluster(
                 ir=ir, aconf=aconf, location=location,
                 service=service,
