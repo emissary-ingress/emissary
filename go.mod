@@ -1,6 +1,7 @@
 module github.com/datawire/apro
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.0 // indirect
 	github.com/datawire/teleproxy v0.3.16
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gobwas/glob v0.2.3
