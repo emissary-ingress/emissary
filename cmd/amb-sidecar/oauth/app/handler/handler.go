@@ -25,86 +25,32 @@ const (
 	Code = "authorization_code"
 )
 
-// Authorize is the last handler in the chain of the authorization server.
-type Authorize struct {
+// Handler is the last handler in the chain of the authorization
+// server.  If the request Path is "/callback", it validates IDP
+// requests and handles code exchange flow.
+type Handler struct {
 	Config    types.Config
 	Logger    types.Logger
 	Ctrl      *controller.Controller
 	Secret    *secret.Secret
 	Discovery *discovery.Discovery
-}
-
-// Callback validates IDP requests and handles code exchange flow.
-type Callback struct {
-	Logger types.Logger
-	Secret *secret.Secret
-	Ctrl   *controller.Controller
-	Rest   *client.Rest
-}
-
-// ServeHTTP inspects if the request contains code and signed states...
-func (c *Callback) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Debug("request received")
-	if err := r.URL.Query().Get("error"); err != "" {
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
-
-	tenant := controller.GetTenantFromContext(r.Context())
-	if tenant == nil {
-		c.Logger.Errorf("app request context cannot be nil")
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
-
-	code := r.URL.Query().Get("code")
-	if code == "" {
-		c.Logger.Error("check code failed")
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
-	}
-
-	rURL, err := c.checkState(r)
-	if err != nil {
-		c.Logger.Errorf("check state failed: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	var res *client.AuthorizationResponse
-	res, err = c.Rest.Authorize(&client.AuthorizationRequest{
-		GrantType:    Code,
-		ClientID:     tenant.ClientID,
-		Code:         code,
-		RedirectURL:  tenant.CallbackURL,
-		ClientSecret: tenant.Secret,
-	})
-	if err != nil {
-		c.Logger.Errorf("authorization request failed: %v", err)
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	c.Logger.Debug("setting authorization cookie")
-	http.SetCookie(w, &http.Cookie{
-		Name:     AccessTokenCookie,
-		Value:    res.AccessToken,
-		HttpOnly: true,
-		Secure:   tenant.TLS,
-		Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
-	})
-
-	// If the user-agent request was a POST or PUT, 307 will preserve the body
-	// and just follow the location header.
-	// https://tools.ietf.org/html/rfc7231#section-6.4.7
-	c.Logger.Debugf("redirecting user-agent to: %s", rURL)
-	http.Redirect(w, r, rURL, http.StatusTemporaryRedirect)
+	Rest      *client.Rest
 }
 
 // ServeHTTP is a handler function that inspects the request by looking for the presence of
 // a token and for any insvalid scope. If these validations pass, an authorization
 // header is set in a 200 OK response.
-func (h *Authorize) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/callback":
+		h.Logger.Debug("request received")
+		if err := r.URL.Query().Get("error"); err != "" {
+			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+			return
+		}
+	default:
+	}
+
 	tenant := controller.GetTenantFromContext(r.Context())
 	if tenant == nil {
 		h.Logger.Errorf("authorization handler: app request context cannot be nil")
@@ -112,27 +58,73 @@ func (h *Authorize) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rule := controller.GetRuleFromContext(r.Context())
-	if rule == nil {
-		h.Logger.Errorf("Rule context cannot be nil")
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
+	switch r.URL.Path {
+	case "/callback":
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			h.Logger.Error("check code failed")
+			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+			return
+		}
+
+		rURL, err := h.checkState(r)
+		if err != nil {
+			h.Logger.Errorf("check state failed: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		var res *client.AuthorizationResponse
+		res, err = h.Rest.Authorize(&client.AuthorizationRequest{
+			GrantType:    Code,
+			ClientID:     tenant.ClientID,
+			Code:         code,
+			RedirectURL:  tenant.CallbackURL,
+			ClientSecret: tenant.Secret,
+		})
+		if err != nil {
+			h.Logger.Errorf("authorization request failed: %v", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		h.Logger.Debug("setting authorization cookie")
+		http.SetCookie(w, &http.Cookie{
+			Name:     AccessTokenCookie,
+			Value:    res.AccessToken,
+			HttpOnly: true,
+			Secure:   tenant.TLS,
+			Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
+		})
+
+		// If the user-agent request was a POST or PUT, 307 will preserve the body
+		// and just follow the location header.
+		// https://tools.ietf.org/html/rfc7231#section-6.4.7
+		h.Logger.Debugf("redirecting user-agent to: %s", rURL)
+		http.Redirect(w, r, rURL, http.StatusTemporaryRedirect)
+	default:
+		rule := controller.GetRuleFromContext(r.Context())
+		if rule == nil {
+			h.Logger.Errorf("Rule context cannot be nil")
+			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+			return
+		}
+
+		redirect, _ := h.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
+			"audience":      {tenant.Audience},
+			"response_type": {"code"},
+			"redirect_uri":  {tenant.CallbackURL},
+			"client_id":     {tenant.ClientID},
+			"state":         {h.signState(r)},
+			"scope":         {rule.Scope},
+		}.Encode())
+
+		h.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
+		http.Redirect(w, r, redirect.String(), http.StatusSeeOther)
 	}
-
-	redirect, _ := h.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
-		"audience":      {tenant.Audience},
-		"response_type": {"code"},
-		"redirect_uri":  {tenant.CallbackURL},
-		"client_id":     {tenant.ClientID},
-		"state":         {h.signState(r)},
-		"scope":         {rule.Scope},
-	}.Encode())
-
-	h.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
-	http.Redirect(w, r, redirect.String(), http.StatusSeeOther)
 }
 
-func (h *Authorize) signState(r *http.Request) string {
+func (h *Handler) signState(r *http.Request) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(h.Config.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
@@ -150,7 +142,7 @@ func (h *Authorize) signState(r *http.Request) string {
 	return k
 }
 
-func (c *Callback) checkState(r *http.Request) (string, error) {
+func (c *Handler) checkState(r *http.Request) (string, error) {
 	state := r.URL.Query().Get("state")
 	if state == "" {
 		return "", errors.New("empty state param")

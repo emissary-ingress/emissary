@@ -54,21 +54,14 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 	})
 
 	// Final handler (most-inner of all)
-	r := http.NewServeMux()
-	r.Handle("/", &handler.Authorize{
+	n.UseHandler(&handler.Handler{
 		Config:    config,
-		Logger:    logger.WithField("HANDLER", "authorize"),
+		Logger:    logger.WithField("HANDLER", "oauth2"),
 		Ctrl:      controller,
-		Secret:    secret,
 		Discovery: disco,
+		Secret:    secret,
+		Rest:      rest,
 	})
-	r.Handle("/callback", &handler.Callback{
-		Logger: logger.WithField("HANDLER", "callback"),
-		Secret: secret,
-		Ctrl:   controller,
-		Rest:   rest,
-	})
-	n.UseHandler(r)
 
 	return n, nil
 }
