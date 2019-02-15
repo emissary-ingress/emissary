@@ -104,12 +104,17 @@ class IRCluster (IRResource):
         # If we have a ctx_name, does it match a real context?
         if ctx_name:
             if ctx_name is True:
+                ir.logger.debug("using null context")
                 ctx = IRTLSContext.null_context(ir=ir)
             else:
+                ir.logger.debug("seeking named context %s" % ctx_name)
                 ctx = ir.get_tls_context(typecast(str, ctx_name))
 
             if not ctx:
+                ir.logger.debug("no named context %s" % ctx_name)
                 errors.append("Originate-TLS context %s is not defined" % ctx_name)
+            else:
+                ir.logger.debug("found context %s" % ctx)
 
         # TODO: lots of duplication of here, need to replace with broken down functions
 
@@ -155,7 +160,7 @@ class IRCluster (IRResource):
         # Parse the service as a URL. Note that we have to supply a scheme to urllib's
         # parser, because it's kind of stupid.
 
-        ir.logger.debug("cluster %s service %s" % (name, service))
+        ir.logger.debug("cluster %s service %s otls %s ctx %s" % (name, service, originate_tls, ctx))
         p = urllib.parse.urlparse('random://' + service)
 
         # Is there any junk after the host?

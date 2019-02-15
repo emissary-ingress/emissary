@@ -105,6 +105,13 @@ config:
   buffer:
     max_request_bytes: 16384
     max_request_time: 5000
+
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-same-context-1
+secret: same-secret-1.secret-namespace
+
 ---
 apiVersion: ambassador/v1
 kind: AuthService
@@ -112,6 +119,7 @@ name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.k8s}"
 path_prefix: "/extauth"
 timeout_ms: 5000
+tls: {self.name}-same-context-1
 
 allowed_request_headers:
 - X-Foo
@@ -265,7 +273,7 @@ name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.k8s}
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-unauthed
 prefix: /target/unauthed/
