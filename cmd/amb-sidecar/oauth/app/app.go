@@ -7,8 +7,6 @@ import (
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
 	_secret "github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
@@ -21,13 +19,6 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 	if err != nil {
 		return nil, errors.Wrap(err, "secret")
 	}
-
-	disco, err := discovery.New(config, logger)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery")
-	}
-
-	rest := client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint)
 
 	n := negroni.New()
 
@@ -46,13 +37,10 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
-		Config:    config,
-		Ctrl:      controller,
-		Discovery: disco,
-		IssuerURL: disco.Issuer,
-		Logger:    logger.WithField("HANDLER", "oauth2"),
-		Rest:      rest,
-		Secret:    secret,
+		Config: config,
+		Ctrl:   controller,
+		Logger: logger.WithField("HANDLER", "oauth2"),
+		Secret: secret,
 	})
 
 	return n, nil

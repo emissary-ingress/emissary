@@ -31,15 +31,6 @@ func (t *TenantObject) Validate() error {
 	return nil
 }
 
-func (t TenantObject) CallbackURL() *url.URL {
-	u, _ := t.TenantURL.Parse("/callback")
-	return u
-}
-
-func (t TenantObject) TLS() bool {
-	return t.TenantURL.Scheme == "https"
-}
-
 func (t TenantObject) Domain() string {
 	return t.TenantURL.Host
 }

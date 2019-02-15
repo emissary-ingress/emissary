@@ -17,6 +17,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
@@ -52,8 +53,8 @@ type Discovery struct {
 var instance *Discovery
 
 // New creates a singleton instance of the discovery client.
-func New(cfg types.Config, logger types.Logger) (*Discovery, error) {
-	configURL, _ := cfg.AuthProviderURL.Parse("/.well-known/openid-configuration")
+func New(mw crd.MiddlewareOAuth2, logger types.Logger) (*Discovery, error) {
+	configURL, _ := mw.AuthorizationURL.Parse("/.well-known/openid-configuration")
 	config, err := fetchOpenIDConfig(configURL.String())
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)

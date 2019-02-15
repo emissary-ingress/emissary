@@ -34,10 +34,8 @@ type OAuth2Handler struct {
 	Logger      types.Logger
 	Ctrl        *controller.Controller
 	DefaultRule *crd.Rule
-	Discovery   *discovery.Discovery
 	IssuerURL   string
 	Secret      *secret.Secret
-	Rest        *client.Rest
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -81,12 +79,32 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	middleware := &crd.MiddlewareOAuth2{
+		RawAuthorizationURL: c.Config.AuthProviderURL.String(),
+		RawClientURL:        tenant.TenantURL.String(),
+		RawStateTTL:         c.Config.StateTTL.String(),
+		Audience:            tenant.Audience,
+		ClientID:            tenant.ClientID,
+		Secret:              tenant.Secret,
+	}
+	if err := middleware.Validate(); err != nil {
+		c.Logger.Debugf("create middleware: %v", err)
+		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+		return
+	}
+
+	disco, err := discovery.New(*middleware, c.Logger)
+	if err != nil {
+		c.Logger.Debugf("create discovery: %v", err)
+		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+	}
+
 	token := c.getToken(r)
 	var tokenErr error
 	if token == "" {
 		tokenErr = errors.New("token not present in the request")
 	} else {
-		tokenErr = c.validateToken(token, tenant, rule)
+		tokenErr = c.validateToken(token, middleware, rule, disco)
 	}
 	if tokenErr == nil {
 		w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
@@ -109,20 +127,13 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		rURL, err := c.checkState(r)
-		if err != nil {
-			c.Logger.Errorf("check state failed: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
 		var res *client.AuthorizationResponse
-		res, err = c.Rest.Authorize(&client.AuthorizationRequest{
+		res, err = client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&client.AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
-			ClientID:     tenant.ClientID,
+			ClientID:     middleware.ClientID,
 			Code:         code,
-			RedirectURL:  tenant.CallbackURL().String(),
-			ClientSecret: tenant.Secret,
+			RedirectURL:  middleware.CallbackURL().String(),
+			ClientSecret: middleware.Secret,
 		})
 		if err != nil {
 			c.Logger.Errorf("authorization request failed: %v", err)
@@ -135,23 +146,23 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Name:     AccessTokenCookie,
 			Value:    res.AccessToken,
 			HttpOnly: true,
-			Secure:   tenant.TLS(),
+			Secure:   middleware.TLS(),
 			Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
 		})
 
 		// If the user-agent request was a POST or PUT, 307 will preserve the body
 		// and just follow the location header.
 		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		c.Logger.Debugf("redirecting user-agent to: %s", rURL)
-		http.Redirect(w, r, rURL, http.StatusTemporaryRedirect)
+		c.Logger.Debugf("redirecting user-agent to: %s", redirectURL)
+		http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
 
 	default:
-		redirect, _ := c.Discovery.AuthorizationEndpoint.Parse("?" + url.Values{
-			"audience":      {tenant.Audience},
+		redirect, _ := disco.AuthorizationEndpoint.Parse("?" + url.Values{
+			"audience":      {middleware.Audience},
 			"response_type": {"code"},
-			"redirect_uri":  {tenant.CallbackURL().String()},
-			"client_id":     {tenant.ClientID},
-			"state":         {c.signState(r)},
+			"redirect_uri":  {middleware.CallbackURL().String()},
+			"client_id":     {middleware.ClientID},
+			"state":         {c.signState(r, middleware)},
 			"scope":         {rule.Scope},
 		}.Encode())
 
@@ -186,7 +197,7 @@ func findRule(c *controller.Controller, host, path string) *crd.Rule {
 	return nil
 }
 
-func (j *OAuth2Handler) validateToken(token string, tenant *crd.TenantObject, rule *crd.Rule) error {
+func (j *OAuth2Handler) validateToken(token string, middleware *crd.MiddlewareOAuth2, rule *crd.Rule, disco *discovery.Discovery) error {
 	// JWT validation is performed by doing the cheap operations first.
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
@@ -195,7 +206,7 @@ func (j *OAuth2Handler) validateToken(token string, tenant *crd.TenantObject, ru
 		}
 
 		// Get RSA certificate.
-		cert, err := j.Discovery.GetPemCert(t.Header["kid"].(string))
+		cert, err := disco.GetPemCert(t.Header["kid"].(string))
 		if err != nil {
 			return "", err
 		}
@@ -206,18 +217,18 @@ func (j *OAuth2Handler) validateToken(token string, tenant *crd.TenantObject, ru
 			return "", errors.New("failed to extract claims")
 		}
 
-		//fmt.Printf("Expected aud: %s\n", tenant.Audience)
+		//fmt.Printf("Expected aud: %s\n", middleware.Audience)
 		//fmt.Printf("Expected iss: %s\n", j.IssuerURL)
 		//spew.Dump(claims)
 
 		// Verifies 'aud' claim.
-		if !claims.VerifyAudience(tenant.Audience, false) {
-			return "", fmt.Errorf("invalid audience %s", tenant.Audience)
+		if !claims.VerifyAudience(middleware.Audience, false) {
+			return "", fmt.Errorf("invalid audience %s", middleware.Audience)
 		}
 
 		// Verifies 'iss' claim.
-		if !claims.VerifyIssuer(j.IssuerURL, false) {
-			return "", fmt.Errorf("invalid issuer %s", j.IssuerURL)
+		if !claims.VerifyIssuer(disco.Issuer, false) {
+			return "", fmt.Errorf("invalid issuer: %s", disco.Issuer)
 		}
 
 		// Validates time based claims "exp, iat, nbf".
@@ -262,14 +273,14 @@ func (j *OAuth2Handler) getToken(r *http.Request) string {
 	return bearer[1]
 }
 
-func (h *OAuth2Handler) signState(r *http.Request) string {
+func (h *OAuth2Handler) signState(r *http.Request, middleware *crd.MiddlewareOAuth2) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
-		"exp":          time.Now().Add(h.Config.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
-		"jti":          uuid.Must(uuid.NewV4(), nil).String(),    // a unique identifier for the token
-		"iat":          time.Now().Unix(),                        // when the token was issued/created (now)
-		"nbf":          0,                                        // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": util.OriginalURL(r).String(),             // original request url
+		"exp":          time.Now().Add(middleware.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
+		"jti":          uuid.Must(uuid.NewV4(), nil).String(),      // a unique identifier for the token
+		"iat":          time.Now().Unix(),                          // when the token was issued/created (now)
+		"nbf":          0,                                          // time before which the token is not yet valid (2 minutes ago)
+		"redirect_url": util.OriginalURL(r).String(),               // original request url
 	}
 
 	k, err := t.SignedString(h.Secret.GetPrivateKey())
