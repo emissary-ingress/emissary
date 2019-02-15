@@ -1,4 +1,5 @@
-DOCKER_IMAGE = localhost:31000/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
+DOCKER_REGISTRY ?= localhost:31000
+DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
 
 # The Go version must exactly match what was used to compile the amb-sidecar
 GO_VERSION = 1.11.4
@@ -14,11 +15,14 @@ all: .docker.stamp
 	docker build -t $(DOCKER_IMAGE) .
 	date > $@
 
+push: .docker.stamp
+	docker push $(DOCKER_REGISTRY)
+
 %.so: %.go
 	$(RUN) env GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o $@ $<
 
 clean:
 	rm -f -- *.so .docker.stamp
 
-.PHONY: all clean
+.PHONY: all push clean
 .DELETE_ON_ERROR:

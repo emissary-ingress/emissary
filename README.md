@@ -10,17 +10,25 @@ example of a middleware needing to talk to an external service.
 
 Just run
 
-	$ make
+	$ make DOCKER_REGISTRY=...
 
 It will generate a Docker image named
 
-	localhost:31000/amb-sidecar-plugin:VERSION
+	DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
 	
-where version is `git describe --tags --always --dirty`.
+where:
+
+ - VERSION is `git describe --tags --always --dirty`.
+ - DOCKER_REGISTRY is the `$DOCKER_REGISTRY` environment variable, or
+   `localhost:31000` if the variable is not set.
 
 ## Deploying
 
-Use that `amb-sidecar-plugin` Docker image instead of
+Push that `amb-sidecar-plugin` Docker image to a registry that your
+cluster has access to.  You can do this by running `make push
+DOCKER_REGISTRY=...`.
+
+Use that image you just pushed instead of
 `quay.io/datawire/ambassador_pro:amb-sidecar` when deploying
 Ambassador Pro.
 
