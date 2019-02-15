@@ -21,7 +21,7 @@ SHELL = bash
 .FORCE:
 .PHONY: \
     .FORCE clean version setup-develop print-vars \
-    docker-login docker-push docker-images publish-website helm \
+    docker-login docker-push docker-images publish-website \
     teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
@@ -271,21 +271,6 @@ website-yaml:
 website: website-yaml
 	VERSION=$(VERSION) bash docs/build-website.sh
 
-helm:
-	echo "Helm version $(VERSION)"
-	cd helm && helm package --app-version "$(VERSION)" --version "$(VERSION)" ambassador/
-	curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
-	helm repo index helm --url https://www.getambassador.io/helm --merge tmp.yaml
-
-helm-update: helm
-	aws s3api put-object --bucket datawire-static-files \
-		--key ambassador/ambassador-$(VERSION).tgz \
-		--body helm/ambassador-$(VERSION).tgz
-	aws s3api put-object --bucket datawire-static-files \
-		--key ambassador/index.yaml \
-		--body helm/index.yaml
-	rm tmp.yaml helm/index.yaml helm/ambassador-$(VERSION).tgz
-
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
 	source venv/bin/activate; \
@@ -416,7 +401,6 @@ release:
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
-		make helm-update; \
 		set +x; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
