@@ -117,11 +117,12 @@ DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
 
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14e2c65bb
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-7-g4db17d1fb
+# ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14e2c65bb
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-1"
-AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-1"
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-2-rc"
+AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-2-rc"
 
 SCOUT_APP_KEY=
 
@@ -194,10 +195,12 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 
 docker-base-images:
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
 
 docker-push-base-images:
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
 	docker push $(AMBASSADOR_BASE_IMAGE)
 
