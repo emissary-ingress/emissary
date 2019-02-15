@@ -18,8 +18,6 @@ It will generate a Docker image named
 	
 where version is `git describe --tags --always --dirty`.
 
- > Note: You may need to edit the `FROM` line in `Dockerfile`.
-
 ## Deploying
 
 Use that `amb-sidecar-plugin` Docker image instead of
