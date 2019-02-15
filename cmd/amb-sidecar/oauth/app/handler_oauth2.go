@@ -43,14 +43,29 @@ type OAuth2Handler struct {
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	originalURL := util.OriginalURL(r)
 
-	tenant := findTenant(c.Ctrl, originalURL.Host)
-	if tenant == nil {
-		c.Logger.Debugf("not a registered domain: %s", originalURL.Host)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
+	var rule *crd.Rule
+	var tenant *crd.TenantObject
+	var redirectURL *url.URL
+	switch originalURL.Path {
+	case "/callback":
+		redirectURLstr, err := c.checkState(r)
+		if err != nil {
+			c.Logger.Errorf("check state failed: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		redirectURL, err = url.Parse(redirectURLstr)
+		if err != nil {
+			c.Logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		rule = findRule(c.Ctrl, redirectURL.Host, redirectURL.Path)
+		tenant = findTenant(c.Ctrl, redirectURL.Host)
+	default:
+		rule = findRule(c.Ctrl, originalURL.Host, originalURL.Path)
+		tenant = findTenant(c.Ctrl, originalURL.Host)
 	}
-
-	rule := findRule(c.Ctrl, originalURL.Host, originalURL.Path)
 	if rule == nil {
 		rule = c.DefaultRule
 	}
@@ -58,6 +73,11 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if rule.Public {
 		c.Logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
 		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if tenant == nil {
+		c.Logger.Debugf("not a registered domain: %s", originalURL.Host)
+		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 		return
 	}
 
