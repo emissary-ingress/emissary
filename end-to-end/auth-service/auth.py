@@ -17,13 +17,14 @@
 import sys
 
 # import functools
-# import json
+import json
 import logging
+import os
 import pprint
 
 from flask import Flask, Response, jsonify, request
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 app = Flask(__name__)
 
@@ -43,21 +44,50 @@ def catch_all(path):
     if not path.startswith('/'):
         path = '/' + path
 
-    resp = Response('You want path: %s' % path)
+    if path.startswith('//'):
+        path = path[1:]
+
+    status_code = 403
+    headers = { 'X-Test': 'Should not be seen.' }
 
     if path.startswith('/ambassador/'):
-        resp.status_code = 200     
+        status_code = 200
     elif path.endswith("/good/") or path.endswith("/demo/"):
-        resp.status_code = 200
-        resp.headers['X-Hurkle'] = 'Oh baby, oh baby.'
+        status_code = 200
+        headers['X-Auth-Route'] = 'Route'
     elif path.endswith("/nohdr/"):
-        resp.status_code = 200
+        status_code = 200
         # Don't add the header.
-    else:
-        resp.status_code = 403
 
-    resp.headers['X-Test'] = 'Should not be seen.'
-    return resp
+    backend_name = os.environ.get('BACKEND')
+
+    body = 'You want path: %s' % path
+    mimetype = 'text/plain'
+
+    if backend_name:
+        body_dict = {
+            'backend': backend_name,
+            'path': path
+        }
+
+        body = json.dumps(body_dict)
+        mimetype = 'application/json'
+
+        extauth_dict = {
+            'request': {
+                'url': request.url,
+                'path': path,
+                'headers': dict(request.headers)
+            },
+            'resp_headers': headers
+        }
+
+        headers['extauth'] = extauth_dict
+
+    return Response(body,
+                    mimetype=mimetype,
+                    status=status_code,
+                    headers=headers)
 
 if __name__ == "__main__":
     ssl_context = None
@@ -68,6 +98,9 @@ if __name__ == "__main__":
         ssl_context = ('authsvc.crt', 'authsvc.key')
         conn_type = "HTTPS"
         port = 443
+
+    if os.environ.get('PORT'):
+        port = int(os.environ['PORT'])
 
     logging.basicConfig(
         # filename=logPath,
