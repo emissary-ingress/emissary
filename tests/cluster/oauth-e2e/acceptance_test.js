@@ -29,16 +29,16 @@ describe('user-agent', function () {
   it('should be able to consent and see the content headers', async function () {
     const target = `https://${env.EXTERNAL_IP}/httpbin/headers`
     const page = await global.browser.newPage()
-    const waitForNavagation = page.waitForNavigation({ waitUntil: "networkidle0" })
-  
+
     await page.goto(target)
     await page.waitForSelector('input[type="email"]', { visible: true })
     await page.type('input[type="email"]', env.TESTUSER_EMAIL)
     await page.waitForSelector('input[type="password"]', { visible: true })
     await page.type('input[type="password"]', env.TESTUSER_PASSWORD)
     await page.waitForSelector('.auth0-lock-submit', { visible: true })
+    const done = page.waitForNavigation()
     await page.click('.auth0-lock-submit')
-    await waitForNavagation
+    await done
 
     const url = await page.evaluate(function () {
       return window.location.href
@@ -66,10 +66,8 @@ describe('user-agent', function () {
   it('should access ip without cookie', async function () {
     const target = `https://${env.EXTERNAL_IP}/httpbin/ip`
     const page = await global.browser.newPage()
-    const waitForNavagation = page.waitForNavigation({ waitUntil: 'networkidle0' })
   
-    await page.goto(target)
-    await waitForNavagation
+    await page.goto(target, { waitUntil: "networkidle0" })
 
     const url = await page.evaluate(function () {
       return window.location.href
