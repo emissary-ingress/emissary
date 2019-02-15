@@ -5,6 +5,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.1.0
+	github.com/gorilla/mux v1.6.1
 	github.com/hashicorp/consul v1.4.2
 	github.com/hashicorp/go-cleanhttp v0.5.0 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.0 // indirect
