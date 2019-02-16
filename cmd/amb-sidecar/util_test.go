@@ -103,7 +103,9 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		return nil, nil, warn[len(warn)-1]
 	}
 
-	l := types.WrapLogrus(logrus.New())
+	_l := logrus.New()
+	_l.SetLevel(logrus.DebugLevel)
+	l := types.WrapLogrus(_l)
 
 	ct := &controller.Controller{
 		Config: c,
