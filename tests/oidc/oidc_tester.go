@@ -202,10 +202,16 @@ func (idp *auth0) createLoginRequest(r *http.Response, state string) (*http.Requ
 // Keycloak IdP
 // =====================================
 
-type keycloak struct{}
+type keycloak struct {
+	username string
+	password string
+	audience string
+	clientID string
+	scopes   []string
+}
 
-func (idp *keycloak) fmtLoginURL() url.URL {
-	return url.URL{}
+func (keycloak *keycloak) Authenticate(loginForm *http.Response, state string) (string, error) {
+	return "", nil
 }
 
 // returns an http client that is configured for use in OpenID Connect authentication tests. The client is configured
@@ -251,6 +257,15 @@ func CheckIfStatus(r *http.Response, expectedStatus int) {
 
 		os.Exit(1)
 	}
+}
+
+func createHTTPRequest(method string, url url.URL) (*http.Request, error) {
+	request, err := http.NewRequest(method, url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return request, nil
 }
 
 func main() {
@@ -313,25 +328,17 @@ func main() {
 	CheckIfError(err)
 
 	if accessToken == "" {
-		fmt.Println("Access Token was not returned")
+		fmt.Println("Error: Access Token was not returned by Identity Provider!")
 		os.Exit(1)
 	}
 
+	// Almost home baby!
 	unauthorizedRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	finalDestination, err := httpClient.Do(unauthorizedRequest)
 
 	data, err := httputil.DumpResponse(finalDestination, true)
 	CheckIfError(err)
-	CheckIfStatus(finalDestination, 200)
+	CheckIfStatus(finalDestination, http.StatusOK)
 
 	fmt.Println(string(data))
-}
-
-func createHTTPRequest(method string, url url.URL) (*http.Request, error) {
-	request, err := http.NewRequest(method, url.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return request, nil
 }
