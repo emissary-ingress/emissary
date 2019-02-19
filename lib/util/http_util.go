@@ -1,9 +1,9 @@
 package util
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
+	"net/url"
 )
 
 // Error is the default error response object ..
@@ -32,18 +32,18 @@ func ToJSONResponse(w http.ResponseWriter, status int, i interface{}) {
 	w.Write(jsonResponse)
 }
 
-// ToRawURL is a handy method for extracting the FQDN from the a client's request.
-func ToRawURL(r *http.Request) string {
-	var buf bytes.Buffer
-
+// OriginalURL(r) is like r.URL, but obeys `Host` and
+// `X-Forwarded-Proto`.
+//
+// TODO(lukeshu): Use RFC 7239 `Forwarded` instead of the old
+// non-standard `X-Forwarded-Proto`.
+func OriginalURL(r *http.Request) *url.URL {
+	u, _ := r.URL.Parse("")
+	u.Host = r.Host
 	if r.TLS != nil || r.Header.Get("x-forwarded-proto") == "https" {
-		buf.WriteString("https://")
+		u.Scheme = "https"
 	} else {
-		buf.WriteString("http://")
+		u.Scheme = "http"
 	}
-
-	buf.WriteString(r.Host)
-	buf.WriteString(r.RequestURI)
-
-	return buf.String()
+	return u
 }

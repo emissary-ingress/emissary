@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -40,8 +41,8 @@ type OpenIDConfig struct {
 // Discovery is used to fetch the certificate information from the IDP.
 type Discovery struct {
 	Issuer                string
-	AuthorizationEndpoint string
-	TokenEndpoint         string
+	AuthorizationEndpoint *url.URL
+	TokenEndpoint         *url.URL
 	JSONWebKeysURI        string
 	cache                 map[string]*JWK
 	mux                   *sync.RWMutex
@@ -52,8 +53,8 @@ var instance *Discovery
 
 // New creates a singleton instance of the discovery client.
 func New(cfg types.Config, logger types.Logger) (*Discovery, error) {
-	configURL := cfg.AuthProviderURL + "/.well-known/openid-configuration"
-	config, err := fetchOpenIDConfig(configURL)
+	configURL, _ := cfg.AuthProviderURL.Parse("/.well-known/openid-configuration")
+	config, err := fetchOpenIDConfig(configURL.String())
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
 	}
@@ -66,8 +67,14 @@ func New(cfg types.Config, logger types.Logger) (*Discovery, error) {
 		}
 
 		instance.Issuer = config.Issuer
-		instance.AuthorizationEndpoint = config.AuthorizationEndpoint
-		instance.TokenEndpoint = config.TokenEndpoint
+		instance.AuthorizationEndpoint, err = url.Parse(config.AuthorizationEndpoint)
+		if err != nil {
+			return nil, errors.Wrap(err, "discovery authorization_endpoint")
+		}
+		instance.TokenEndpoint, err = url.Parse(config.TokenEndpoint)
+		if err != nil {
+			return nil, errors.Wrap(err, "discovery token_endpoint")
+		}
 		instance.JSONWebKeysURI = config.JSONWebKeyURI
 	}
 

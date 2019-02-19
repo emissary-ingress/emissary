@@ -11,6 +11,7 @@ type Assert struct {
 
 // StrEQ asserts that two strings are equivalent.
 func (a *Assert) StrEQ(e string, c string) {
+	a.T.Helper()
 	if e != c {
 		a.T.Fatalf("Expected '%s' got '%s'", e, c)
 	}
@@ -18,6 +19,7 @@ func (a *Assert) StrEQ(e string, c string) {
 
 // IntEQ assert that two integers are the same.
 func (a *Assert) IntEQ(e int, c int) {
+	a.T.Helper()
 	if e != c {
 		a.T.Fatalf("Expected '%v' got '%v'", e, c)
 	}
@@ -25,6 +27,7 @@ func (a *Assert) IntEQ(e int, c int) {
 
 // NotNil asserts that the object is not nil.
 func (a *Assert) NotNil(c interface{}) {
+	a.T.Helper()
 	if c == nil {
 		a.T.Fatalf("Expected not NIL got '%v'", c)
 	}
@@ -32,6 +35,7 @@ func (a *Assert) NotNil(c interface{}) {
 
 // Nil asserts that the object is nil.
 func (a *Assert) Nil(c interface{}) {
+	a.T.Helper()
 	if c != nil {
 		a.T.Fatalf("Expected NIL got '%v'", c)
 	}
@@ -39,6 +43,7 @@ func (a *Assert) Nil(c interface{}) {
 
 // StrNotEmpty asserts that string is not empty.
 func (a *Assert) StrNotEmpty(e string) {
+	a.T.Helper()
 	if len(e) == 0 {
 		a.T.Fatalf("Expected not empty string got empty")
 	}
