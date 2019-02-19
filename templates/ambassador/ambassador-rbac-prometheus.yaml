@@ -81,7 +81,7 @@ spec:
             path: mapping-config.yaml
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.0
+        image: quay.io/datawire/ambassador:0.50.2
         resources:
           limits:
             cpu: 1
