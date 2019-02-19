@@ -57,41 +57,6 @@ There are a number of breaking changes in Ambassador 0.50.0:
    
     More information is available in `docs/reference/services/auth-service.md`.
 
-### 0.50.0-rc3
-
-- TLS client certificate authentication must be configured using a new `TLSContext` resource to work correctly in 0.50.0-rc3. This will be corrected in 0.50.0-rc4, but *note well* that TLS client certificate authentication will require a configuration change in -rc3 if you are upgrading from pre-0.50.
-
-### Microsoft Azure
-
-There is a known issue with recently-created Microsoft Azure clusters where Ambassador prior to 0.50.0-rc4
-will stop receiving service updates after running for a short time. This is fixed in 0.50.0-rc4.
-
-### AMBASSADOR 0.36.0
-
-- The Envoy dynamic value `%CLIENT_IP%` is no longer supported. Use `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` instead. (This is due to a change in Envoy 1.7.0.)
-
-### AMBASSADOR 0.35.0
-
-- **Websockets are again supported**, with the important caveat that a websocket cannot have multiple upstream services.
-  - This means that you cannot do canary deployments for websockets.
-    We're actively working on fixing this.
-  - Multiple websocket `Mapping`s are still supported.
-
-- Running as a non-root user is now supported, to improve security and work on other Kubernetes runtimes (e.g. OpenShift). **Running as non-root will become the default in a future Ambassador release; this will be a breaking change.** We recommend proactively switching to non-root now:
-    - Use a `securityContext` in your Ambassador `Deployment` to switch to a non-root user.
-    - Set the `service_port` element in the `ambassador` `Module` to a port number greater than 1024. (Ambassador's defaults will change to 8080 for cleartext and 8443 for TLS.)
-    - Make sure that incoming traffic to Ambassador routes to the `service_port`. The most likely required change is the `targetPort` in the Kubernetes `Service` resource for Ambassador.
-    - If you are using `redirect_cleartext_from`, change the value of this field to match the value you set in `service_port`.
-    - If you have modified Ambassador's behavior around TLS certificates using a custom Ambassador build, please contact Datawire for more information.
-
-### AMBASSADOR 0.34.2 and 0.34.3
-
-- **Websockets are not supported in these releases**. This bug is fixed in Ambassador 0.35.0.
-
-### AMBASSADOR 0.28.0
-
-- `use_remote_address` is now supported, as described in [the Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html). Ambassador's default is currently not to include `use_remote_address`, but **this will soon change** to a default value of `true`.
-
 ## RELEASE NOTES
 
 <!---
