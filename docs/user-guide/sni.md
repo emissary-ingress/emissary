@@ -11,10 +11,10 @@ Note: SNI is only available in the [0.50 early access release](/user-guide/early
     kubectl create secret tls <secret name> --cert <path to the certificate chain> --key <path to the private key>
     ```
 
-2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate. Typically, these would be the Subject Alternative Names you will be using. If you're using a wildcard certificate, you can put in any host values that you wish to use.
+2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate. Typically, these would be the Subject Alternative Names you will be using. If you're using a wildcard certificate, you can put in any host values that you wish to use or use `"*.domain.com"`.
 
     ```yaml
-    apiVersion: ambassador/v0
+    apiVersion: ambassador/v1
     kind: TLSContext
     name: <TLSContext name>
     hosts: # list of hosts to match against>
@@ -34,7 +34,7 @@ Note: SNI is only available in the [0.50 early access release](/user-guide/early
 SNI is designed to be configured on a per-mapping basis. This enables application developers or service owners to individually manage how their service gets exposed over TLS. To use SNI, specify your SNI host in the `mapping` resource, e.g.,
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  example-mapping
 prefix: /example/
@@ -64,7 +64,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  httpbin-internal
       prefix: /httpbin/
@@ -72,7 +72,7 @@ metadata:
       host_rewrite: httpbin.org
       host: internal.example.com
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  httpbin-external
       prefix: /httpbin/
@@ -80,14 +80,14 @@ metadata:
       host_rewrite: httpbin.org
       host: external.example.com
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: TLSContext
       name: internal-context
       hosts:
       - internal.example.com
       secret: internal-secret
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: TLSContext
       name: external-context
       hosts:
@@ -116,7 +116,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  httpbin
       prefix: /httpbin/
@@ -124,7 +124,7 @@ metadata:
       host_rewrite: httpbin.org
       host: host.httpbin.org
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  mockbin
       prefix: /mockbin/
@@ -132,14 +132,14 @@ metadata:
       host_rewrite: mockbin.org
       host: host.mockbin.org
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: TLSContext
       name: httpbin
       hosts:
       - host.httpbin.org
       secret: httpbin-secret
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: TLSContext
       name: mockbin
       hosts:
@@ -147,7 +147,7 @@ metadata:
       secret: mockbin-secret
       ---
       # This mapping gets all the available SNI configurations applied to it
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  frontend
       prefix: /

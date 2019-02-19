@@ -57,7 +57,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  httpbin_mapping
       prefix: /httpbin/
@@ -127,7 +127,7 @@ If you're seeing a similar response, then everything is working great!
 
 2. Now you are going to modify the bookinfo demo `bookinfo.yaml` manifest to include the necessary Ambassador annotations. See below.
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -137,7 +137,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: productpage_mapping
       prefix: /productpage/
@@ -191,7 +191,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.33.1
+        image: quay.io/datawire/ambassador:0.50.1
         resources:
           limits:
             cpu: 1
@@ -220,8 +220,6 @@ spec:
           - mountPath: /etc/istiocerts/
             name: istio-certs
             readOnly: true
-      - name: statsd
-        image: quay.io/datawire/statsd:0.33.1
       restartPolicy: Always
       volumes:
       - name: istio-certs
@@ -243,14 +241,14 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  httpbin_mapping
       prefix: /httpbin/
       service: httpbin.org:80
       host_rewrite: httpbin.org
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Module
       name: tls
       config:
@@ -284,7 +282,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: productpage_mapping
       prefix: /productpage/
@@ -319,7 +317,7 @@ If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingS
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: TracingService
       name: tracing
       service: "zipkin.istio-system:9411"

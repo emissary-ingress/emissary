@@ -26,9 +26,9 @@ Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured cor
 
 **Note:** Ambassador 0.40.2 and below does not support v1 `AuthService` configurations. If you are using an older version of Ambassador, replace the `AuthService` in the downloaded YAML with:
 
-```
+```yaml
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
       auth_service: ambassador-pro

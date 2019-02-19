@@ -8,7 +8,7 @@ The `tls` module defines system-wide configuration for TLS when additional confi
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Module
 name:  tls
 config:
@@ -61,7 +61,7 @@ The most common case requiring a `tls` module is redirecting cleartext traffic o
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Module
 name:  tls
 config:
@@ -79,7 +79,7 @@ This distinction between an originating HTTP request and an originating HTTPS re
 To enable this `X-FORWARDED-PROTO` based HTTP to HTTPS redirection, add a `x_forwarded_proto_redirect: true` field to the Ambassador module configuration, e.g.,
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config:
@@ -118,7 +118,7 @@ kubectl create secret generic user-secret --from-file=tls.crt=$CACERT_PATH
 And then, configure Ambassador's TLS module like the following -
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Module
 name:  tls
 config:
@@ -132,7 +132,7 @@ Note: If `ambassador-cacert` is present in the cluster and the TLS module is con
 ## TLS Origination
 Ambassador is also able to originate a TLS connection with backend services. This can be easily configured by telling Ambassador to route traffic to a service over HTTPS or setting the [tls](/reference/mappings#using-tls) attribute to `true`.
 
-```
+```yaml
 ---
 apiVersion: v1
 kind: Service
@@ -141,7 +141,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  qotm_mapping
       prefix: /qotm/
