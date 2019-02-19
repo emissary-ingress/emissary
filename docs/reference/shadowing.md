@@ -28,10 +28,10 @@ During shadowing, the host header is modified such that `-shadow` is appended.
 
 The following example may help illustrate how shadowing can be used. This first annotation sets up a basic mapping between the `myservice` Kubernetes service and the `/myservice/` prefix, as expected.
 
-```
+```yaml
   getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: myservice-mapping
       prefix: /myservice/
@@ -40,10 +40,10 @@ The following example may help illustrate how shadowing can be used. This first 
 
 What if we want to shadow the traffic to `myservice`, and send that exact same traffic to `myservice-shadow`? We can create a new mapping that does this:
 
-```
+```yaml
   getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: myservice-shadow-mapping
       prefix: /myservice/

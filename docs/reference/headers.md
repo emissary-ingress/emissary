@@ -12,7 +12,7 @@ You can also set the `value` of a header to `true` to test for the existence of 
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
@@ -28,7 +28,7 @@ will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has 
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mode_mapping
 prefix: /qotm/
@@ -36,7 +36,7 @@ headers:
   x-qotm-mode: true
 service: qotm-mode
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_regular_mapping
 prefix: /qotm/
@@ -54,7 +54,7 @@ name: mobile-ui
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  mobile_ui_mapping
       regex_headers:

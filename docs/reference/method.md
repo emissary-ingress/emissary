@@ -10,7 +10,7 @@ For example:
 
 ```yaml
 ---
-aapiVersion: ambassador/v0
+aapiVersion: ambassador/v1
 kind: Mapping
 name: get_mapping
 prefix: /get_only/

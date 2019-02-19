@@ -29,7 +29,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: TracingService
       name: tracing
       service: zipkin:9411

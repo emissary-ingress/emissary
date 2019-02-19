@@ -10,20 +10,20 @@ You may have multiple mappings listing the same resource but different `host` at
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
 service: qotm1
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
 host: qotm.datawire.io
 service: qotm2
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
@@ -48,7 +48,7 @@ An example: the default Ambassador configuration includes the following mapping 
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: httpbin_mapping
 prefix: /httpbin/
