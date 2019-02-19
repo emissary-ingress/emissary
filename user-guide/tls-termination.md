@@ -65,7 +65,7 @@ kubectl create secret tls user-secret --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
 And then, configure Ambassador's TLS module like the following -
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: tls
 config:
@@ -84,7 +84,7 @@ Ambassador will detect the presence of a Secret named `ambassador-certs` and beg
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: tls
 config:
@@ -133,7 +133,7 @@ Of these, `redirect_cleartext_from` is the most likely to be relevant: to make A
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: tls
 config:
@@ -154,7 +154,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Module
       name: tls
       config:

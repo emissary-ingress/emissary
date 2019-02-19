@@ -6,7 +6,7 @@ Ambassador makes it easy to access your services from outside your application, 
 ## Writing a WebSocket service for Ambassador
 The example configuration below demonstrates the addition of the `use_websocket` attribute.
 
-```
+```yaml
 kind: Service
 apiVersion: v1
 metadata:
@@ -14,7 +14,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-        apiVersion: ambassador/v0
+        apiVersion: ambassador/v1
         kind:  Mapping
         name:  my_service_mapping
         prefix: /my-service/
