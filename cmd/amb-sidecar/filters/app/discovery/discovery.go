@@ -235,6 +235,7 @@ func fetchOpenIDConfig(documentURL string) (OpenIDConfig, error) {
 	if err != nil {
 		return config, errors.Wrap(err, "failed to fetch remote openid-configuration")
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return config, errors.New("failed to fetch remote openid-configuration (status != 200)")
