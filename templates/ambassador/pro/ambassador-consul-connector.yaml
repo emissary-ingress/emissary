@@ -68,7 +68,7 @@ spec:
           env:
             # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
             # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
-            - name: CONSUL_HOST
+            - name: _CONSUL_HOST
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
