@@ -92,7 +92,6 @@ func NewIDP() *httptest.Server {
 
 // NewAPP returns an instance of the authorization server.
 func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
-	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 	os.Setenv("RLS_RUNTIME_DIR", "/bogus")
 
 	c, warn, fatal := types.ConfigFromEnv()
@@ -103,7 +102,9 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		return nil, nil, warn[len(warn)-1]
 	}
 
-	l := types.WrapLogrus(logrus.New())
+	_l := logrus.New()
+	_l.SetLevel(logrus.DebugLevel)
+	l := types.WrapLogrus(_l)
 
 	ct := &controller.Controller{
 		Config: c,
@@ -116,22 +117,38 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	}
 	server := httptest.NewServer(httpHandler)
 
-	tenants := []crd.TenantObject{
-		{
-			RawTenantURL: "http://dummy-host.net/",
-			Audience:     "foo",
-			ClientID:     "bar",
+	middlewares := map[string]interface{}{
+		"dummy.default": crd.MiddlewareOAuth2{
+			RawAuthorizationURL: idpURL,
+			RawClientURL:        "http://dummy-host.net",
+			Audience:            "foo",
+			ClientID:            "bar",
 		},
-		{
-			RawTenantURL: server.URL,
-			Audience:     "friends",
-			ClientID:     "foo",
+		"app.default": crd.MiddlewareOAuth2{
+			RawAuthorizationURL: idpURL,
+			RawClientURL:        server.URL,
+			Audience:            "friends",
+			ClientID:            "foo",
 		},
 	}
-	tenants[0].Validate()
-	tenants[1].Validate()
-	ct.Tenants.Store(tenants)
-	ct.Rules.Store([]crd.Rule{})
+	for k, _v := range middlewares {
+		v := _v.(crd.MiddlewareOAuth2)
+		v.Validate()
+		middlewares[k] = v
+	}
+	ct.Middlewares.Store(middlewares)
+	ct.Rules.Store([]crd.Rule{
+		{
+			Host:   "*",
+			Path:   "*",
+			Public: false,
+			Middleware: crd.Reference{
+				Name:      "app",
+				Namespace: "default",
+			},
+			Scope: "",
+		},
+	})
 
 	return server, httpHandler, nil
 }

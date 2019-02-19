@@ -2,6 +2,8 @@ package controller
 
 import (
 	"context"
+	"net/http"
+	"plugin"
 	"strings"
 	"sync/atomic"
 
@@ -16,48 +18,94 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  types.Logger
-	Config  types.Config
-	Rules   atomic.Value
-	Tenants atomic.Value
+	Logger      types.Logger
+	Config      types.Config
+	Rules       atomic.Value
+	Middlewares atomic.Value
+}
+
+func countTrue(args ...bool) int {
+	n := 0
+	for _, arg := range args {
+		if arg {
+			n++
+		}
+	}
+	return n
 }
 
 // Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch(ctx context.Context) {
-	c.Rules.Store(make([]crd.Rule, 0))
+	c.Rules.Store([]crd.Rule{})
+	c.Middlewares.Store(map[string]interface{}{})
+
 	w := k8s.NewClient(nil).Watcher()
 
-	w.Watch("tenants", func(w *k8s.Watcher) {
-		tenants := make([]crd.TenantObject, 0)
-		for _, p := range w.List("tenants") {
-			var spec crd.TenantSpec
-			err := mapstructure.Convert(p.Spec(), &spec)
+	w.Watch("middlewares", func(w *k8s.Watcher) {
+		middlewares := map[string]interface{}{}
+		for _, mw := range w.List("middlewares") {
+			var spec crd.MiddlewareSpec
+			err := mapstructure.Convert(mw.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed tenant resource spec"))
+				c.Logger.Errorln(errors.Wrap(err, "malformed middleware resource spec"))
 				continue
 			}
-			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+			if c.Config.AmbassadorSingleNamespace && mw.Namespace() != c.Config.AmbassadorNamespace {
 				continue
 			}
 			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
 				continue
 			}
 
-			for _, t := range spec.Tenants {
-				err := t.Validate()
-				if err != nil {
-					c.Logger.Errorln(err)
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil) != 1 {
+				c.Logger.Errorf("middleware resource: must specify exactly 1 of: %v",
+					[]string{"OAuth2", "Plugin"})
+				continue
+			}
+
+			switch {
+			case spec.OAuth2 != nil:
+				if err = spec.OAuth2.Validate(); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "middleware resource"))
 					continue
 				}
-				tenants = append(tenants, t)
+
+				c.Logger.Infof("loading middleware domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
+				middlewares[mw.QName()] = *spec.OAuth2
+			case spec.Plugin != nil:
+				if strings.Contains(spec.Plugin.Name, "/") {
+					c.Logger.Errorf("middleware resource: invalid Plugin.name: contains a /: %q", spec.Plugin.Name)
+					continue
+				}
+				p, err := plugin.Open("/etc/ambassador-plugins/" + spec.Plugin.Name + ".so")
+				if err != nil {
+					c.Logger.Errorln("middleware resource: could not open plugin file:", err)
+					continue
+				}
+				f, err := p.Lookup("PluginMain")
+				if err != nil {
+					c.Logger.Errorln("middleware resource: invalid plugin file:", err)
+					continue
+				}
+				h, ok := f.(func(http.ResponseWriter, *http.Request))
+				if !ok {
+					c.Logger.Errorln("middleware resource: invalid plugin file: PluginMain has the wrong type")
+					continue
+				}
+				spec.Plugin.Handler = http.HandlerFunc(h)
+
+				c.Logger.Infof("loading middleware plugin=%s", spec.Plugin.Name)
+				middlewares[mw.QName()] = *spec.Plugin
+			default:
+				panic("should not happen")
 			}
 		}
 
-		if len(tenants) == 0 {
-			c.Logger.Error("0 tenant apps configured")
+		if len(middlewares) == 0 {
+			c.Logger.Error("0 middlewares configured")
 		}
 
-		c.Tenants.Store(tenants)
+		c.Middlewares.Store(middlewares)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
@@ -90,6 +138,10 @@ func (c *Controller) Watch(ctx context.Context) {
 				scopes := strings.Split(rule.Scope, " ")
 				for _, s := range scopes {
 					rule.Scopes[s] = true
+				}
+
+				if rule.Middleware.Namespace == "" {
+					rule.Middleware.Namespace = p.Namespace()
 				}
 
 				rules = append(rules, rule)

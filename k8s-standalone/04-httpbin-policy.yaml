@@ -15,6 +15,10 @@ spec:
   - host: "*"
     path: /httpbin/user-agent
     public: false
+    middleware:
+      name: auth0
   - host: "*"
     path: /httpbin/headers
     public: false
+    middleware:
+      name: auth0

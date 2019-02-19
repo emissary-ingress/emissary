@@ -7,8 +7,6 @@ import (
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
 	_secret "github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
@@ -22,17 +20,10 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		return nil, errors.Wrap(err, "secret")
 	}
 
-	disco, err := discovery.New(config, logger)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery")
-	}
-
-	rest := client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint)
-
 	n := negroni.New()
 
 	// Middleware (most-outer is listed first, most-inner is listed last)
-	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "http")})
+	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "logger")})
 	n.Use(&negroni.Recovery{
 		Logger:     logger.WithField("MIDDLEWARE", "recovery"),
 		PrintStack: false,
@@ -41,18 +32,14 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
 	// Final handler (most-inner of all)
-	n.UseHandler(&OAuth2Handler{
+	n.UseHandler(&MiddlewareHandler{
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
-		Config:    config,
-		Ctrl:      controller,
-		Discovery: disco,
-		IssuerURL: disco.Issuer,
-		Logger:    logger.WithField("HANDLER", "oauth2"),
-		Rest:      rest,
-		Secret:    secret,
+		Controller:   controller,
+		Logger:       logger.WithField("HANDLER", "middleware_handler"),
+		OAuth2Secret: secret,
 	})
 
 	return n, nil
