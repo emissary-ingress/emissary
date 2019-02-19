@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/oauth2handler"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )

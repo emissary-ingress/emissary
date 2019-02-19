@@ -15,10 +15,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/discovery"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
