@@ -23,6 +23,8 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
+| `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
+| `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](/reference/headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | [`host`](/reference/host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
@@ -37,6 +39,8 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | `timeout_ms`              | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador that this service will use websockets |
+
+If both `enable_ipv4` and `enable_ipv6` are set, Ambassador will prefer IPv6 to IPv4. See the [Ambassador module](/reference/modules) documentation for more information.
 
 Ambassador supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service, while minimizing its impact on production users.
 
