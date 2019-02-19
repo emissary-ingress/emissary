@@ -1,4 +1,4 @@
-package client
+package oauth2handler
 
 import (
 	"encoding/json"

@@ -12,8 +12,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
@@ -39,7 +37,7 @@ type OAuth2Handler struct {
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	disco, err := discovery.New(c.Filter, c.Logger)
+	disco, err := NewDiscovery(c.Filter, c.Logger)
 	if err != nil {
 		c.Logger.Debugf("create discovery: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
@@ -73,7 +71,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		res, err := client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&client.AuthorizationRequest{
+		res, err := NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
 			ClientID:     c.Filter.ClientID,
 			Code:         code,
@@ -116,7 +114,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (j *OAuth2Handler) validateToken(token string, disco *discovery.Discovery) error {
+func (j *OAuth2Handler) validateToken(token string, disco *Discovery) error {
 	// JWT validation is performed by doing the cheap operations first.
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
