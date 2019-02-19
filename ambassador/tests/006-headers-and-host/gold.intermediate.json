@@ -2,18 +2,20 @@
     "envoy_config": {
         "admin": [
             {
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "admin_port": 8001
             }
         ],
         "clusters": [
             {
                 "_referenced_by": [
-                    "--internal--",
+                    "ambassador.yaml.1",
                     "mapping-diag.yaml.1"
                 ],
                 "_service": "127.0.0.1:8877",
                 "_source": "mapping-diag.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_127_0_0_1_8877",
                 "type": "strict_dns",
@@ -27,6 +29,8 @@
                 ],
                 "_service": "cors",
                 "_source": "mapping-cors.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_cors",
                 "type": "strict_dns",
@@ -40,7 +44,9 @@
                     "mapping-cors-array.yaml.2"
                 ],
                 "_service": "cors-array:8080",
-                "_source": "mapping-cors-array.yaml.2",
+                "_source": "mapping-cors-array.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_cors_array_8080",
                 "type": "strict_dns",
@@ -50,10 +56,29 @@
             },
             {
                 "_referenced_by": [
+                    "mapping-httpbin.yaml.1",
+                    "mapping-qotm.yaml.3"
+                ],
+                "_service": "httpbin.org:80",
+                "_source": "mapping-httpbin.yaml.1",
+                "host_rewrite": "httpbin.org",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
+                "lb_type": "round_robin",
+                "name": "cluster_httpbin_org_80",
+                "type": "strict_dns",
+                "urls": [
+                    "tcp://httpbin.org:80"
+                ]
+            },
+            {
+                "_referenced_by": [
                     "mapping-qotm.yaml.1"
                 ],
                 "_service": "demo.getambassador.io",
                 "_source": "mapping-qotm.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_demo_getambassador_io",
                 "type": "strict_dns",
@@ -65,27 +90,15 @@
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],
-                "_service": "extauth",
+                "_service": "example-auth:3000",
                 "_source": "auth.yaml.1",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
-                "name": "cluster_ext_auth",
+                "name": "cluster_extauth_example_auth_3000",
                 "type": "strict_dns",
                 "urls": [
                     "tcp://example-auth:3000"
-                ]
-            },
-            {
-                "_referenced_by": [
-                    "mapping-httpbin.yaml.1",
-                    "mapping-qotm.yaml.3"
-                ],
-                "_service": "httpbin.org:80",
-                "_source": "mapping-httpbin.yaml.1",
-                "lb_type": "round_robin",
-                "name": "cluster_httpbin_org_80",
-                "type": "strict_dns",
-                "urls": [
-                    "tcp://httpbin.org:80"
                 ]
             },
             {
@@ -94,6 +107,8 @@
                 ],
                 "_service": "qotm",
                 "_source": "mapping-qotm.yaml.2",
+                "enable_ipv4": true,
+                "enable_ipv6": false,
                 "lb_type": "round_robin",
                 "name": "cluster_qotm",
                 "type": "strict_dns",
@@ -123,6 +138,9 @@
                 "name": "cors"
             },
             {
+                "_referenced_by": [
+                    "auth.yaml.1"
+                ],
                 "_services": [
                     "example-auth:3000"
                 ],
@@ -133,7 +151,7 @@
                         "x-authenticated-as",
                         "x-qotm-session"
                     ],
-                    "cluster": "cluster_ext_auth",
+                    "cluster": "cluster_extauth_example_auth_3000",
                     "path_prefix": "/extauth",
                     "timeout_ms": 5000
                 },
@@ -149,10 +167,12 @@
         ],
         "listeners": [
             {
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "require_tls": false,
                 "service_port": 80,
-                "use_proxy_proto": false
+                "use_proxy_proto": false,
+                "use_remote_address": true,
+                "redirect_listener": false
             }
         ],
         "routes": [
@@ -168,9 +188,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -178,7 +198,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready"
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -224,9 +246,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -234,7 +256,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive"
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -374,9 +398,9 @@
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
-                    "--internal--"
+                    "ambassador.yaml.1"
                 ],
-                "_source": "--internal--",
+                "_source": "ambassador.yaml.1",
                 "clusters": [
                     {
                         "name": "cluster_127_0_0_1_8877",
@@ -384,7 +408,9 @@
                     }
                 ],
                 "prefix": "/ambassador/v0/",
-                "prefix_rewrite": "/ambassador/v0/"
+                "prefix_rewrite": "/ambassador/v0/",
+
+                "timeout_ms": 10000
             },
             {
                 "__saved": [
@@ -467,6 +493,12 @@
                     },
                     {
                         "key": "x-test-static",
+                        "value": "testing"
+                    }
+                ],
+                "response_headers_to_add": [
+                    {
+                        "key": "x-response-header",
                         "value": "testing"
                     }
                 ]
@@ -562,7 +594,7 @@
             "kind": "Module",
             "name": "ambassador",
             "version": "ambassador/v0",
-            "yaml": "apiVersion: ambassador/v0\nconfig:\n  cors:\n    credentials: true\n    exposed_headers: X-Custom-Header\n    headers: Content-Type\n    max_age: '86400'\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example,http://bar.example\nkind: Module\nname: ambassador\n"
+            "yaml": "apiVersion: ambassador/v0\nconfig:\n  cors:\n    credentials: true\n    exposed_headers: X-Custom-Header\n    headers: Content-Type\n    max_age: '86400'\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example,http://bar.example\n  statsd:\n    enabled: true\nkind: Module\nname: ambassador\n"
         },
         "auth.yaml.1": {
             "_source": "auth.yaml",
@@ -643,7 +675,7 @@
             "kind": "Mapping",
             "name": "qotm_host_mapping",
             "version": "ambassador/v0",
-            "yaml": "add_request_headers:\n  x-test-ip: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'\n  x-test-proto: '%PROTOCOL%'\n  x-test-static: testing\napiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
+            "yaml": "add_request_headers:\n  x-test-ip: '%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%'\n  x-test-proto: '%PROTOCOL%'\n  x-test-static: testing\nadd_response_headers:\n  x-response-header: testing\napiVersion: ambassador/v0\nheaders:\n  x-demo-mode: host\nhost: httpbin.org\nhost_rewrite: httpbin.org\nkind: Mapping\nname: qotm_host_mapping\nprefix: /qotm/\nrewrite: /\nservice: httpbin.org:80\n"
         }
     }
 }

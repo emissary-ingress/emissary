@@ -20,18 +20,23 @@ spec:
         app: {{ template "ambassador.name" . }}
         release: {{ .Release.Name }}
       annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9102"
+        sidecar.istio.io/inject: "false"
+      {{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+      {{- end }}
     spec:
       serviceAccountName: {{ template "ambassador.serviceAccountName" . }}
       volumes:
+      {{- if .Values.exporter.enabled }}
       - name: stats-exporter-mapping-config
         configMap:
           name: '{{ template "ambassador.fullname" . }}-config'
           items:
           - key: exporterConfiguration
             path: mapping-config.yaml
+      {{- end }}
       containers:
+        {{- if .Values.exporter.enabled }}
         - name: statsd-sink
           image: "{{ .Values.exporter.image }}"
           ports:
@@ -44,6 +49,7 @@ spec:
           - name: stats-exporter-mapping-config
             mountPath: /statsd-exporter/
             readOnly: true
+        {{- end }}
         - name: ambassador
           image: "{{ .Values.image.repository }}:{{ template "ambassador.imageTag" . }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -83,6 +89,12 @@ spec:
             value: {{ .Values.timing.shutdown | quote }}
           {{- end -}}
           {{- end }}
+          {{- if .Values.env }}          
+          {{- range $key,$value := .Values.env }}
+          - name: {{ $key | upper | quote}}
+            value: {{ $value | quote}}
+          {{- end }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /ambassador/v0/check_alive
@@ -108,9 +120,9 @@ spec:
     {{- with .Values.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
-    {{- end }}    
+    {{- end }}
      {{- with .Values.image.imagePullSecrets}}
       imagePullSecrets:
        - name : {{ toYaml . }}
      {{- end }}
-{{- end }}     
+{{- end }}

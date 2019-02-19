@@ -21,14 +21,8 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - namespaces
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
   - secrets
   verbs: ["get", "list", "watch"]
 ---
@@ -67,7 +61,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.0-rc5
+        image: quay.io/datawire/ambassador:0.50.2
         resources:
           limits:
             cpu: 1

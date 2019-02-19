@@ -59,7 +59,7 @@ env:
 
 With `AMBASSADOR_CONFIG_BASE_DIR` set as above, Ambassador will create and use the directory `/tmp/ambassador-config`
 for its generated data. (Note that, while the directory will be created if it does not exist, attempts to turn an
-existing file into a direcotry will fail.)
+existing file into a directory will fail.)
 
 ## Running as daemonset
 
@@ -177,6 +177,14 @@ Ambassador is constantly watching for changes to the service annotations. When c
 - `AMBASSADOR_SHUTDOWN_TIME` (default 10) sets the number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart. **If Envoy is not able to shut down in this time, the Ambassador pod will exit.** If this happens, it is generally indicative of issues with restarts being attempted too often.
 
 These environment variables can be set much like `AMBASSADOR_NAMESPACE`, above.
+
+## Configuration From the Filesystem
+
+If desired, Ambassador can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
+
+Note well that while Ambassador will read its initial configuration from this directory, configuration loaded from Kubernetes annotations will _replace_ this initial configuration. If this is not what you want, you will need to set the environment variable `AMBASSADOR_NO_KUBEWATCH` so that Ambassador will not try to update its configuration from Kubernetes resources.
+
+Also note that the YAML files in the configuration directory must contain Ambassador resources, not Kubernetes resources with annotations.
 
 ## Ambassador Update Checks (Scout)
 

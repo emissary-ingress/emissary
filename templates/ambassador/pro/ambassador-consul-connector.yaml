@@ -52,11 +52,11 @@ spec:
     spec:
       serviceAccountName: ambassador-pro-consul-connect
       imagePullSecrets:
-        - name: quayio-datawire
+        - name: ambassador-pro-registry-credentials
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
-          image: quay.io/datawire/ambassador-pro-consul-connect:0.0.2
+          image: quay.io/datawire/ambassador_pro:consul_connect_integration-0.1.2
           imagePullPolicy: Always
           resources:
             limits:
@@ -68,7 +68,7 @@ spec:
           env:
             # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
             # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
-            - name: CONSUL_HOST
+            - name: _CONSUL_HOST
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP

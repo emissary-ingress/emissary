@@ -13,18 +13,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
-import sys
+import copy
+import subprocess
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
 
 import datetime
 import functools
-import glob
 import json
 import logging
 import multiprocessing
 import os
+import queue
 import re
 import signal
+import threading
 import time
 import uuid
 
@@ -32,18 +34,18 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, send_from_directory, request, jsonify # Response
+from flask import Flask, render_template, send_from_directory, request, jsonify
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
-from ambassador.config import Config
-from ambassador.VERSION import Version
-from ambassador.utils import RichStatus, SystemInfo, PeriodicTrigger
+from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
+from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents
+from ambassador.config.resourcefetcher import ResourceFetcher
 
-from .envoy import EnvoyStats
+from ambassador.diagnostics import EnvoyStats
 
-def number_of_workers():
-    return (multiprocessing.cpu_count() * 2) + 1
+if TYPE_CHECKING:
+    from ambassador.ir.irtlscontext import IRTLSContext
 
 __version__ = Version
 
@@ -67,10 +69,47 @@ ambassador_targets = {
     'module': 'https://www.getambassador.io/reference/configuration#modules',
 }
 
-envoy_targets = {
-    'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
-    'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
-}
+# envoy_targets = {
+#     'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
+#     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
+# }
+
+
+def number_of_workers():
+    return (multiprocessing.cpu_count() * 2) + 1
+
+
+class DiagApp (Flask):
+    ambex_pid: int
+    kick: Optional[str]
+    estats: EnvoyStats
+    config_dir_prefix: str
+    snapshot_path: str
+    bootstrap_path: str
+    ads_path: str
+    ads_temp_path: str = '/tmp/envoy-test.json'
+    health_checks: bool
+    debugging: bool
+    verbose: bool
+    k8s: bool
+    notice_path: str
+    logger: logging.Logger
+    # scc: SecretSaver
+    aconf: Config
+    ir: Optional[IR]
+    econf: EnvoyConfig
+    diag: Diagnostics
+    notices: 'Notices'
+    scout: Scout
+    scout_args: Dict[str, Any]
+    scout_result: Dict[str, Any]
+    watcher: 'AmbassadorEventWatcher'
+
+
+# Get the Flask app defined early.
+app = DiagApp(__name__,
+              template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
+
 
 ######## DECORATORS
 
@@ -82,14 +121,17 @@ def standard_handler(f):
         reqid = str(uuid.uuid4()).upper()
         prefix = "%s: %s \"%s %s\"" % (reqid, request.remote_addr, request.method, request.path)
 
+        app.logger.info("%s START" % prefix)
+
         start = datetime.datetime.now()
 
         app.logger.debug("%s handler %s" % (prefix, func_name))
 
-        result = ("impossible error", 500)
+        # Default to the exception case
+        result_to_log = "server error"
         status_to_log = 500
-        result_to_log = "impossible error"
         result_log_level = logging.ERROR
+        result = (result_to_log, status_to_log)
 
         try:
             result = f(*args, reqid=reqid, **kwds)
@@ -99,17 +141,12 @@ def standard_handler(f):
             status_to_log = result[1]
 
             if (status_to_log // 100) == 2:
-                result_log_level = logging.DEBUG
+                result_log_level = logging.INFO
                 result_to_log = "success"
             else:
                 result_log_level = logging.ERROR
                 result_to_log = "failure"
         except Exception as e:
-            result_to_log = "server error"
-            status_to_log = 500
-            result_log_level = logging.ERROR
-            result = (result_to_log, status_to_log)
-
             app.logger.exception(e)
 
         end = datetime.datetime.now()
@@ -121,40 +158,69 @@ def standard_handler(f):
 
     return wrapper
 
-# Get the Flask app defined early.
-app = Flask(__name__,
-            template_folder=resource_filename(Requirement.parse("ambassador"), "templates"))
 
-# Next, various helpers.
-def aconf(app):
-    configs = glob.glob("%s-*" % app.config_dir_prefix)
+######## UTILITIES
 
-    # # Test crap
-    # configs.append("%s-87-envoy.json" % app.config_dir_prefix)
 
-    if configs:
-        keyfunc = lambda x: x.split("-")[-1]
-        key_match = lambda x: re.match('^\d+$', keyfunc(x))
-        key_as_int = lambda x: int(keyfunc(x))
+class Notices:
+    def __init__(self, local_config_path: str) -> None:
+        self.local_path = local_config_path
+        self.notices: List[Dict[str, str]] = []
 
-        configs = sorted(filter(key_match, configs), key=key_as_int)
+    def reset(self):
+        local_notices: List[Dict[str, str]] = []
+        local_data = ''
 
-        latest = configs[-1]
-    else:
-        latest = app.config_dir_prefix
+        try:
+            local_stream = open(self.local_path, "r")
+            local_data = local_stream.read()
+            local_notices = json.loads(local_data)
+        except OSError:
+            pass
+        except:
+            local_notices.append({ 'level': 'ERROR', 'message': 'bad local notices: %s' % local_data })
 
-    aconf = Config(latest)
+        self.notices = local_notices
+        # app.logger.info("Notices: after RESET: %s" % json.dumps(self.notices))
 
+    def post(self, notice):
+        # app.logger.debug("Notices: POST %s" % notice)
+        self.notices.append(notice)
+        # app.logger.info("Notices: after POST: %s" % json.dumps(self.notices))
+
+    def prepend(self, notice):
+        # app.logger.debug("Notices: PREPEND %s" % notice)
+        self.notices.insert(0, notice)
+        # app.logger.info("Notices: after PREPEND: %s" % json.dumps(self.notices))
+
+    def extend(self, notices):
+        for notice in notices:
+            self.post(notice)
+
+
+def check_scout(app, what: str, ir: Optional[IR]=None) -> None:
     uptime = datetime.datetime.now() - boot_time
     hr_uptime = td_format(uptime)
 
-    result = Config.scout_report(mode="diagd", runtime=Config.runtime,
-                                 uptime=int(uptime.total_seconds()),
-                                 hr_uptime=hr_uptime)
+    app.notices.reset()
 
-    app.logger.info("Scout reports %s" % json.dumps(result))
+    app.scout = Scout()
+    app.scout_args = {
+        "uptime": int(uptime.total_seconds()),
+        "hr_uptime": hr_uptime
+    }
 
-    return aconf
+    if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+        app.scout_args["features"] = ir.features()
+
+    app.scout_result = app.scout.report(mode="diagd", action=what, **app.scout_args)
+    scout_notices = app.scout_result.pop('notices', [])
+    app.notices.extend(scout_notices)
+
+    app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
+    app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
+    app.logger.info("App notices after scout: %s" % json.dumps(app.notices.notices))
+
 
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
@@ -167,10 +233,10 @@ def td_format(td_object):
         ('second', 1)
     ]
 
-    strings=[]
-    for period_name,period_seconds in periods:
+    strings = []
+    for period_name, period_seconds in periods:
         if seconds > period_seconds:
-            period_value, seconds = divmod(seconds,period_seconds)
+            period_value, seconds = divmod(seconds, period_seconds)
 
             strings.append("%d %s%s" % 
                            (period_value, period_name, "" if (period_value == 1) else "s"))
@@ -182,155 +248,24 @@ def td_format(td_object):
 
     return formatted
 
+
 def interval_format(seconds, normal_format, now_message):
     if seconds >= 1:
         return normal_format % td_format(datetime.timedelta(seconds=seconds))
     else:
         return now_message
 
+
 def system_info():
     return {
         "version": __version__,
         "hostname": SystemInfo.MyHostName,
+        "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                     os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
         "boot_time": boot_time,
         "hr_uptime": td_format(datetime.datetime.now() - boot_time)
     }
 
-def cluster_stats(clusters):
-    cluster_names = [ x['name'] for x in clusters ]
-    return { name: app.estats.cluster_stats(name) for name in cluster_names }
-
-def source_key(source):
-    return "%s.%d" % (source['filename'], source['index'])
-
-def sorted_sources(sources):
-    return sorted(sources, key=source_key)
-
-def route_cluster_info(route, route_clusters, cluster, cluster_info, type_label):
-    c_name = cluster['name']
-
-    c_info = cluster_info.get(c_name, None)
-
-    if not c_info:
-        c_info = {
-            '_service': 'unknown cluster!',
-            '_health': 'unknown cluster!',
-            '_hmetric': 'unknown',
-            '_hcolor': 'orange'
-        }
-
-        if route.get('host_redirect', None):
-            c_info['_service'] = route['host_redirect']
-            c_info['_hcolor'] = 'grey'
-
-    c_service = c_info.get('_service', 'unknown service!')
-    c_health = c_info.get('_hmetric', 'unknown')
-    c_color = c_info.get('_hcolor', 'orange')
-    c_weight = cluster['weight']
-
-    route_clusters[c_name] = {
-        'weight': c_weight,
-        '_health': c_health,
-        '_hcolor': c_color,
-        'service': c_service,
-    }
-
-    if type_label:
-        route_clusters[c_name]['type_label'] = type_label
-
-def route_and_cluster_info(request, overview, clusters, cstats):
-    request_host = request.headers.get('Host', '*')
-    request_scheme = request.headers.get('X-Forwarded-Proto', 'http').lower()
-    tls_active = request_scheme == 'https'
-
-    cluster_info = { cluster['name']: cluster for cluster in clusters }
-
-    for cluster_name, cstat in cstats.items():
-        c_info = cluster_info.setdefault(cluster_name, {
-            '_service': 'unknown service!',
-        })
-
-        c_info['_health'] = cstat['health']
-        c_info['_hmetric'] = cstat['hmetric']
-        c_info['_hcolor'] = cstat['hcolor']
-
-    route_info = []
-
-    if 'routes' in overview:
-        for route in overview['routes']:
-            prefix = route['prefix'] if 'prefix' in route else route['regex']
-            rewrite = route.get('prefix_rewrite', "/")
-            method = '*'
-            host = None
-
-            route_clusters = {}
-
-            for cluster in route['clusters']:
-                route_cluster_info(route, route_clusters, cluster, cluster_info, None)
-
-            if 'host_redirect' in route:
-                    # XXX Stupid hackery here. redirect_cluster should be a real 
-                    # Cluster object.
-                    redirect_cluster = {
-                        'name': route['host_redirect'],
-                        'weight': 100
-                    }
-
-                    route_cluster_info(route, route_clusters, redirect_cluster, cluster_info, "redirect")
-                    app.logger.info("host_redirect route: %s" % route)
-                    app.logger.info("host_redirect clusters: %s" % route_clusters)
-
-            if 'shadow' in route:
-                shadow_info = route['shadow']
-                shadow_name = shadow_info.get('name', None)
-
-                if shadow_name:
-                    # XXX Stupid hackery here. shadow_cluster should be a real
-                    # Cluster object.
-                    shadow_cluster = {
-                        'name': shadow_name,
-                        'weight': 100
-                    }
-
-                    route_cluster_info(route, route_clusters, shadow_cluster, cluster_info, "shadow")
-
-            headers = []
-
-            for header in route.get('headers', []):
-                hdr_name = header.get('name', None)
-                hdr_value = header.get('value', None)
-
-                if hdr_name == ':authority':
-                    host = hdr_value
-                elif hdr_name == ':method':
-                    method = hdr_value
-                else:
-                    headers.append(header)
-
-            sep = "" if prefix.startswith("/") else "/"
-
-            route_key = "%s://%s%s%s" % (request_scheme, host if host else request_host, sep, prefix)
-
-            route_info.append({
-                '_route': route,
-                '_source': route['_source'],
-                '_group_id': route['_group_id'],
-                'key': route_key,
-                'prefix': prefix,
-                'rewrite': rewrite,
-                'method': method,
-                'headers': headers,
-                'clusters': route_clusters,
-                'host': host if host else '*'
-            })
-
-        # app.logger.info("route_info")
-        # app.logger.info(json.dumps(route_info, indent=4, sort_keys=True))
-
-        # app.logger.info("cstats")
-        # app.logger.info(json.dumps(cstats, indent=4, sort_keys=True))
-
-    return route_info, cluster_info
 
 def envoy_status(estats):
     since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
@@ -347,30 +282,32 @@ def envoy_status(estats):
         "since_update": since_update
     }
 
-def clean_notices(notices):
-    cleaned = []
 
-    for notice in notices:
-        try:
-            if isinstance(notice, str):
-                cleaned.append({ "level": "WARNING", "message": notice })
-            else:
-                lvl = notice['level'].upper()
-                msg = notice['message']
+@app.route('/_internal/v0/ping', methods=[ 'GET' ])
+def handle_ping():
+    return "ACK", 200
 
-                cleaned.append({ "level": lvl, "message": msg })
-        except KeyError:
-            cleaned.append({ "level": "WARNING", "message": json.dumps(notice) })
-        except:
-            cleaned.append({ "level": "ERROR", "message": json.dumps(notice) })
 
-    return cleaned
+@app.route('/_internal/v0/update', methods=[ 'POST' ])
+def handle_update():
+    url = request.args.get('url', None)
+
+    if not url:
+        app.logger.error("error: update requested with no URL")
+        return "error: update requested with no URL", 400
+
+    app.logger.info("Update requested from %s" % url)
+    app.watcher.post('CONFIG', url)
+
+    return "update requested", 200
+
 
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
 def favicon():
     template_path = resource_filename(Requirement.parse("ambassador"), "templates")
 
     return send_from_directory(template_path, "favicon.ico")
+
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
@@ -381,8 +318,12 @@ def check_alive():
     else:
         return "ambassador seems to have died (%s)" % status['uptime'], 503
 
+
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
+    if not app.ir:
+        return "ambassador waiting for config", 503
+
     status = envoy_status(app.estats)
 
     if status['ready']:
@@ -390,103 +331,135 @@ def check_ready():
     else:
         return "ambassador not ready (%s)" % status['since_update'], 503
 
+
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    notices = []
-    loglevel = request.args.get('loglevel', None)
+    ir = app.ir
+    diag = app.diag
 
-    if loglevel:
-        app.logger.debug("OV %s -- requesting loglevel %s" % (reqid, loglevel))
+    check_scout(app, "overview", ir)
 
-        if not app.estats.update_log_levels(time.time(), level=loglevel):
-            notices = [ "Could not update log level!" ]
-        # else:
-        #     return redirect("/ambassador/v0/diag/", code=302)
+    if app.verbose:
+        app.logger.debug("OV %s: DIAG" % reqid)
+        app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
-    ov = aconf(app).diagnostic_overview()
-    clusters = ov['clusters']
-    cstats = cluster_stats(clusters)
+    ov = diag.overview(request, app.estats)
 
-    route_info, cluster_info = route_and_cluster_info(request, ov, clusters, cstats)
+    if app.verbose:
+        app.logger.debug("OV %s: OV" % reqid)
+        app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
+        app.logger.debug("OV %s: collecting errors" % reqid)
 
-    notices.extend(clean_notices(Config.scout_notices))
+    ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
-    errors = []
-
-    for source in ov['sources']:
-        for obj in source['objects'].values():
-            obj['target'] = ambassador_targets.get(obj['kind'].lower(), None)
-
-            if obj['errors']:
-                errors.extend([ (obj['key'], error['summary'])
-                                 for error in obj['errors'] ])
-
-    tvars = dict(system=system_info(), 
+    tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats), 
                  loginfo=app.estats.loginfo,
-                 cluster_stats=cstats,
-                 notices=notices,
-                 errors=errors,
-                 route_info=route_info,
-                 **ov)
+                 notices=app.notices.notices,
+                 **ov, **ddict)
 
     if request.args.get('json', None):
-        result = jsonify(tvars)
+        key = request.args.get('filter', None)
+
+        if key:
+            return jsonify(tvars.get(key, None))
+        else:
+            return jsonify(tvars)
     else:
         return render_template("overview.html", **tvars)
 
-    # app.logger.debug("OV %s from %s --- rendering complete" % (reqid, request.remote_addr))
 
-    return result
+def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> Dict:
+    loglevel = request.args.get('loglevel', None)
+    notice = None
+
+    if loglevel:
+        app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
+
+        if not app.estats.update_log_levels(time.time(), level=loglevel):
+            notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
+        # else:
+        #     return redirect("/ambassador/v0/diag/", code=302)
+
+    # We need to grab errors and notices from diag.as_dict(), process the errors so
+    # they work for the HTML rendering, and post the notices to app.notices. Then we
+    # return the dict representation that our caller should work with.
+
+    ddict = diag.as_dict()
+
+    # app.logger.debug("ddict %s" % json.dumps(ddict, indent=4, sort_keys=True))
+
+    derrors = ddict.pop('errors', {})
+
+    errors = []
+
+    for err_key, err_list in derrors.items():
+        if err_key == "-global-":
+            err_key = ""
+
+        for err in err_list:
+            errors.append((err_key, err[ 'error' ]))
+
+    dnotices = ddict.pop('notices', {})
+
+    # Make sure that anything about the loglevel gets folded into this set.
+    if notice:
+        app.notices.prepend(notice)
+
+    for notice_key, notice_list in dnotices.items():
+        for notice in notice_list:
+            app.notices.post({'level': 'NOTICE', 'message': "%s: %s" % (notice_key, notice)})
+
+    ddict['errors'] = errors
+
+    return ddict
+
 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    result = aconf(app).get_intermediate_for(source)
+    ir = app.ir
+    diag = app.diag
 
-    # app.logger.debug("result\n%s" % json.dumps(result, indent=4, sort_keys=True))
+    check_scout(app, "detail: %s" % source, ir)
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
-    route_info = None
-    errors = []
 
-    if "error" not in result:
-        clusters = result['clusters']
-        cstats = cluster_stats(clusters)
+    result = diag.lookup(request, source, app.estats)
 
-        route_info, cluster_info = route_and_cluster_info(request, result, clusters, cstats)
+    if app.verbose:
+        app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
 
-        result['cluster_stats'] = cstats
-        result['sources'] = sorted_sources(result['sources'])
-        result['source_dict'] = { source_key(source): source 
-                                  for source in result['sources']}
-
-        for source in result['sources']:
-            source['target'] = ambassador_targets.get(source['kind'].lower(), None)
-
-            if source['errors']:
-                errors.extend([ (source['filename'], error['summary'])
-                                 for error in source['errors'] ])
+    ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
     tvars = dict(system=system_info(),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
+                 notices=app.notices.notices,
                  method=method, resource=resource,
-                 route_info=route_info,
-                 errors=errors,
-                 notices=clean_notices(Config.scout_notices),
-                 **result)
+                 **result, **ddict)
 
     if request.args.get('json', None):
-        return jsonify(tvars)
+        key = request.args.get('filter', None)
+
+        if key:
+            return jsonify(tvars.get(key, None))
+        else:
+            return jsonify(tvars)
     else:
         return render_template("diag.html", **tvars)
+
+
+@app.template_filter('sort_by_key')
+def sort_by_key(objects):
+    return sorted(objects, key=lambda x: x['key'])
+
 
 @app.template_filter('pretty_json')
 def pretty_json(obj):
@@ -498,17 +471,14 @@ def pretty_json(obj):
         for key in keys_to_drop:
             del(obj[key])
 
-        # if '_source' in obj:
-        #     del(obj['_source'])
-
-        # if '_referenced_by' in obj:
-        #     del(obj['_referenced_by'])
-
     return json.dumps(obj, indent=4, sort_keys=True)
+
 
 @app.template_filter('sort_clusters_by_service')
 def sort_clusters_by_service(clusters):
-    return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
+    return sorted(clusters, key=lambda x: x['service'])
+    # return sorted([ c for c in clusters.values() ], key=lambda x: x['service'])
+
 
 @app.template_filter('source_lookup')
 def source_lookup(name, sources):
@@ -520,27 +490,202 @@ def source_lookup(name, sources):
 
     return source.get('_source', name)
 
-def create_diag_app(config_dir_path, do_checks=False, debug=False, verbose=False):
+
+def create_diag_app(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid: int, kick: Optional[str],
+                    do_checks=False, reload=False, debug=False, k8s=True, verbose=False, notices=None):
     app.estats = EnvoyStats()
     app.health_checks = False
-    app.debugging = debug
+    app.debugging = reload
+    app.verbose = verbose
+    app.k8s = k8s
+    app.notice_path = notices
+    app.notices = Notices(app.notice_path)
+    app.notices.reset()
+
+    # This will raise an exception and crash if you pass it a string. That's intentional.
+    app.ambex_pid = int(ambex_pid)
+    app.kick = kick
 
     # This feels like overkill.
-    app._logger = logging.getLogger(app.logger_name)
+    app.logger = logging.getLogger("ambassador.diagd")
     app.logger.setLevel(logging.INFO)
 
-    if app.debugging or verbose:
+    if debug:
         app.logger.setLevel(logging.DEBUG)
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger("ambassador.config").setLevel(logging.INFO)
+        logging.getLogger('ambassador').setLevel(logging.DEBUG)
 
     if do_checks:
         app.health_checks = True
 
     app.config_dir_prefix = config_dir_path
+    app.bootstrap_path = bootstrap_path
+    app.ads_path = ads_path
+    app.snapshot_path = snapshot_path
+
+    app.ir = None
 
     return app
+
+
+class AmbassadorEventWatcher(threading.Thread):
+    def __init__(self, app: DiagApp) -> None:
+        super().__init__(name="AmbassadorEventWatcher", daemon=True)
+        self.app = app
+        self.logger = self.app.logger
+        self.events: queue.Queue = queue.Queue()
+
+    def post(self, cmd: str, arg: str) -> None:
+        self.events.put((cmd, arg))
+
+    def update_estats(self) -> None:
+        self.post('ESTATS', '')
+
+    def run(self):
+        self.logger.info("starting event watcher")
+
+        while True:
+            cmd, arg = self.events.get()
+
+            if cmd == 'ESTATS':
+                # self.logger.info("updating estats")
+                try:
+                    self.app.estats.update()
+                except Exception as e:
+                    self.logger.error("could not update estats: %s" % e)
+                    self.logger.exception(e)
+            elif cmd == 'CONFIG_FS':
+                try:
+                    self.load_config_fs(arg)
+                except Exception as e:
+                    self.logger.error("could not reconfigure: %s" % e)
+                    self.logger.exception(e)
+            elif cmd == 'CONFIG':
+                try:
+                    self.load_config(arg)
+                except Exception as e:
+                    self.logger.error("could not reconfigure: %s" % e)
+                    self.logger.exception(e)
+            else:
+                self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
+
+    def load_config_fs(self, path: str) -> None:
+        snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
+        self.logger.info("loading configuration from disk: %s" % path)
+
+        scc = SecretSaver(app.logger, path, app.snapshot_path)
+
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+        fetcher.load_from_filesystem(path, k8s=False, recurse=True)
+
+        if not fetcher.elements:
+            self.logger.info("no configuration found at %s" % path)
+            return
+
+        self._load_ir(aconf, fetcher, scc.null_reader, snapshot)
+
+    def load_config(self, url):
+        snapshot = url.split('/')[-1]
+        ss_path = os.path.join(app.snapshot_path, "snapshot-%s.yaml" % snapshot)
+
+        self.logger.info("copying configuration from %s to %s" % (url, ss_path))
+
+        # Grab the serialization, and save it to disk too.
+        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
+
+        if not serialization:
+            self.logger.info("no data loaded from snapshot %s?" % snapshot)
+            return
+
+        scc = SecretSaver(app.logger, url, app.snapshot_path)
+
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+        fetcher.parse_yaml(serialization, k8s=True)
+
+        if not fetcher.elements:
+            self.logger.info("no configuration found in snapshot %s?" % snapshot)
+            return
+
+        self._load_ir(aconf, fetcher, scc.url_reader, snapshot)
+
+    def _load_ir(self, aconf: Config, fetcher: ResourceFetcher,
+                 secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
+                 snapshot: str) -> None:
+
+        aconf.load_all(fetcher.sorted())
+
+        aconf_path = os.path.join(app.snapshot_path, "aconf-%s.json" % snapshot)
+        open(aconf_path, "w").write(aconf.as_json())
+
+        ir = IR(aconf, secret_reader=secret_reader)
+
+        ir_path = os.path.join(app.snapshot_path, "ir-%s.json" % snapshot)
+        open(ir_path, "w").write(ir.as_json())
+
+        check_scout(app, "update", ir)
+
+        econf = EnvoyConfig.generate(ir, "V2")
+        diag = Diagnostics(ir, econf)
+
+        bootstrap_config, ads_config = econf.split_config()
+
+        if not self.validate_envoy_config(config=ads_config):
+            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+            return
+
+        self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
+
+        with open(app.bootstrap_path, "w") as output:
+            output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+
+        with open(app.ads_path, "w") as output:
+            output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+
+        app.aconf = aconf
+        app.ir = ir
+        app.econf = econf
+        app.diag = diag
+
+        if app.kick:
+            self.logger.info("running '%s'" % app.kick)
+            os.system(app.kick)
+        elif app.ambex_pid != 0:
+            self.logger.info("notifying PID %d ambex" % app.ambex_pid)
+            os.kill(app.ambex_pid, signal.SIGHUP)
+
+        self.logger.info("configuration updated")
+
+    def validate_envoy_config(self, config) -> bool:
+        # We want to keep the original config untouched
+        validation_config = copy.deepcopy(config)
+        # Envoy fails to validate with @type field in envoy config, so removing that
+        validation_config.pop('@type')
+        config_json = json.dumps(validation_config, sort_keys=True, indent=4)
+
+        with open(app.ads_temp_path, "w") as output:
+            output.write(config_json)
+
+        command = ['envoy', '--config-path', app.ads_temp_path, '--mode', 'validate']
+        output = {
+            'exit_code': 0,
+            'output': ''
+        }
+
+        try:
+            output['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=5)
+            output['exit_code'] = 0
+        except subprocess.CalledProcessError as e:
+            output['exit_code'] = e.returncode
+            output['output'] = e.output
+
+        if output['exit_code'] == 0:
+            self.logger.info("successfully validated the resulting envoy configuration, continuing...")
+            return True
+
+        self.logger.info("{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(config_json, output['output']))
+        return False
+
 
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def __init__(self, app, options=None):
@@ -555,31 +700,46 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
             self.cfg.set(key.lower(), value)
 
     def load(self):
+        # This is a little weird, but whatever.
+        self.application.watcher = AmbassadorEventWatcher(self.application)
+        self.application.watcher.start()
+        self.application.watcher.post("CONFIG_FS", self.application.config_dir_prefix)
+
         if self.application.health_checks:
             self.application.logger.info("Starting periodic updates")
-            self.application.stats_updater = PeriodicTrigger(self.application.estats.update, period=5)
+            self.application.stats_updater = PeriodicTrigger(self.application.watcher.update_estats, period=5)
 
         return self.application
 
 
-def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0'):
+def _main(config_dir_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
+          *, snapshot_path=None, ambex_pid=0, kick=None,
+          no_checks=False, reload=False, debug=False, verbose=False,
+          workers=None, port=8877, host='0.0.0.0', k8s=False, notices=None):
     """
     Run the diagnostic daemon.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param bootstrap_path: Path to which to write bootstrap Envoy configuration
+    :param ads_path: Path to which to write ADS Envoy configuration
+    :param snapshot_path: Optional path to directory in which to save configuration snapshots
+    :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
+    :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
-    :param no_debugging: If True, don't run Flask in debug mode
-    :param verbose: If True, be more verbose
+    :param reload: If True, run Flask in debug mode for live reloading
+    :param debug: If True, do debug logging
+    :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
     :param host: Interface on which to listen (default 0.0.0.0)
     :param port: Port on which to listen (default 8877)
+    :param notices: Optional file to read for local notices
     """
-    
-    # Create the application itself.
-    flask_app = create_diag_app(config_dir_path, not no_checks, not no_debugging, verbose)
 
-    if workers == None:
+    # Create the application itself.
+    flask_app = create_diag_app(config_dir_path, bootstrap_path, ads_path, snapshot_path, ambex_pid, kick,
+                                not no_checks, reload, debug, k8s, verbose, notices)
+
+    if not workers:
         workers = number_of_workers()
 
     gunicorn_config = {
@@ -592,8 +752,10 @@ def _main(config_dir_path:Parameter.REQUIRED, *, no_checks=False, no_debugging=F
 
     StandaloneApplication(flask_app, gunicorn_config).run()
 
+
 def main():
     clize.run(_main)
+
 
 if __name__ == "__main__":
     main()

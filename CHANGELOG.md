@@ -9,6 +9,8 @@ Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using th
 There are a number of breaking changes in Ambassador 0.50.0:
 
    - Configuration from a `ConfigMap` is no longer supported.
+   
+   - Configuration from the filesystem is not supported in 0.50.0. It will be supported again in 0.50.1. 
      
    - **API version `ambassador/v0` is officially deprecated as of Ambassador 0.50.0-rc1.**
       - API version `ambassador/v1` is the minimum recommended version for resources in Ambassador 0.50.0.
@@ -57,8 +59,8 @@ There are a number of breaking changes in Ambassador 0.50.0:
 
 ### Microsoft Azure
 
-There is a known issue with recently-created Microsoft Azure clusters where Ambassador will stop receiving service
-updates after running for a short time. This will be fixed in 0.50.0-GA.
+There is a known issue with recently-created Microsoft Azure clusters where Ambassador prior to 0.50.0-rc4
+will stop receiving service updates after running for a short time. This is fixed in 0.50.0-rc4.
 
 ### AMBASSADOR 0.36.0
 
@@ -108,6 +110,111 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.1] February 7, 2019
+[0.50.1]: https://github.com/datawire/ambassador/compare/0.50.0...0.50.1
+
+### Changes since 0.50.0
+
+- Ambassador defaults to only doing IPv4 DNS lookups. IPv6 can be enabled in the Ambassador module or in a Mapping. ([#944])
+- An invalid Envoy configuration should not cause Ambassador to hang.
+- Testing using `docker run` and `docker compose` is supported again. ([#1160])
+- Configuration from the filesystem is supported again, but see the "Running Ambassador" documentation for more.
+- Datawire's default Ambassador YAML no longer asks for any permissions for `ConfigMap`s.
+
+[#944]: https://github.com/datawire/ambassador/issues/944
+[#1160]: https://github.com/datawire/ambassador/issues/1160
+
+## [0.50.0] January 29, 2019
+[0.50.0]: https://github.com/datawire/ambassador/compare/0.50.0-rc6...0.50.0
+
+**Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS. See the "BREAKING NEWS"
+section above for more information.**
+
+(Note that Ambassador 0.50.0-rc7 and -rc8 were internal releases.) 
+
+### Changes since 0.50.0-rc6
+
+- `AMBASSADOR_SINGLE_NAMESPACE` is finally correctly supported and properly tested ([#1098])
+- Ambassador won't throw an exception for name collisions between resources ([#1155])
+- A TLS `Module` can now coexist with SNI (the TLS `Module` effectively defines a fallback cert) ([#1156])
+- `ambassador dump --diag` no longer requires you to explicitly state `--v1` or `--v2` 
+
+### Limitations in 0.50.0 GA
+
+- Configuration from the filesystem is not supported in 0.50.0. It will be resupported in 0.50.1.
+- A `TLSContext` referencing a `secret` in another namespace will not function when `AMBASSADOR_SINGLE_NAMESPACE` is set. 
+
+[#1098]: https://github.com/datawire/ambassador/issues/1098
+[#1155]: https://github.com/datawire/ambassador/issues/1155
+[#1156]: https://github.com/datawire/ambassador/issues/1156
+
+## [0.50.0-rc6] January 28, 2019
+[0.50.0-rc6]: https://github.com/datawire/ambassador/compare/0.50.0-rc5...0.50.0-rc6
+
+**Ambassador 0.50.0-rc6 is a release candidate**.
+
+### Changes since 0.50.0-rc5
+
+- Ambassador watches certificates and automatically updates TLS on certificate changes ([#474])
+- Ambassador no longer saves secrets it hasn't been told to use to disk ([#1093])
+- Ambassador correctly honors `AMBASSADOR_SINGLE_NAMESPACE` rather than trying to access all namespaces ([#1098])
+- Ambassador correctly honors the `AMBASSADOR_CONFIG_BASE_DIR` setting again ([#1118])
+- Configuration changes take effect much more quickly than in RC5 ([#1148])
+- `redirect_cleartext_from` works with no configured secret, to support TLS termination at a downstream load balancer ([#1104])
+- `redirect_cleartext_from` works with the `PROXY` protocol ([#1115])
+- Multiple `AuthService` resources (for canary deployments) work again ([#1106])
+- `AuthService` with `allow_request_body` works correctly with an empty body and no `Content-Length` header ([#1140])
+- `Mapping` supports the `bypass_auth` attribute to bypass authentication (thanks, @patricksanders! [#174])
+- The diagnostic service no longer needs to re-parse the configuration on every page load ([#483])
+- Startup is now faster and more stable
+- The Makefile should do the right thing if your PATH has spaces in it (thanks, @er1c!)
+- Lots of Helm chart, statsd, and doc improvements (thanks, @Flydiverny, @alexgervais, @bartlett, @victortv7, and @zencircle!)
+
+[#174]: https://github.com/datawire/ambassador/issues/174
+[#474]: https://github.com/datawire/ambassador/issues/474
+[#483]: https://github.com/datawire/ambassador/issues/483
+[#1093]: https://github.com/datawire/ambassador/issues/1093
+[#1098]: https://github.com/datawire/ambassador/issues/1098
+[#1104]: https://github.com/datawire/ambassador/issues/1104
+[#1106]: https://github.com/datawire/ambassador/issues/1106
+[#1115]: https://github.com/datawire/ambassador/issues/1115
+[#1118]: https://github.com/datawire/ambassador/issues/1118
+[#1140]: https://github.com/datawire/ambassador/issues/1140
+[#1148]: https://github.com/datawire/ambassador/issues/1148
+
+## [0.50.0-rc5] January 14, 2019
+[0.50.0-rc5]: https://github.com/datawire/ambassador/compare/0.50.0-rc4...0.50.0-rc5
+
+**Ambassador 0.50.0-rc5 is a release candidate**.
+
+### Changes since 0.50.0-rc4
+
+- Websocket connections will now be authenticated if an AuthService is configured [#1026]
+- Client certificate authentication should function whether configured from a TLSContext resource or from the the old-style TLS module (this is the full fix for [#993])
+- Ambassador can now switch listening ports without a restart (e.g. switching from cleartext to TLS) [#1100]
+- TLS origination certificates (including Istio mTLS) should now function [#1071]  
+- The diagnostics service should function in all cases. [#1096]
+- The Ambassador image is significantly (~500MB) smaller than RC4.
+
+[#933]: https://github.com/datawire/ambassador/issues/993
+[#1026]: https://github.com/datawire/ambassador/issues/1026
+[#1071]: https://github.com/datawire/ambassador/issues/1071
+[#1096]: https://github.com/datawire/ambassador/issues/1096
+[#1100]: https://github.com/datawire/ambassador/issues/1100
+
+## [0.50.0-rc4] January 9, 2019
+[0.50.0-rc4]: https://github.com/datawire/ambassador/compare/0.50.0-rc3...0.50.0-rc4
+
+**Ambassador 0.50.0-rc4 is a release candidate**, and fully supports running under Microsoft Azure.
+
+### Changes since 0.50.0-rc3
+
+- Ambassador fully supports running under Azure [#1039]
+- The `proto` attribute of a v1 `AuthService` is now optional, and defaults to `http`
+- Ambassador will warn about the use of v0 configuration resources.
+
+[#1039]: https://github.com/datawire/ambassador/issues/1039
 
 ## [0.50.0-rc3] January 3, 2019
 [0.50.0-rc3]: https://github.com/datawire/ambassador/compare/0.50.0-rc2...0.50.0-rc3

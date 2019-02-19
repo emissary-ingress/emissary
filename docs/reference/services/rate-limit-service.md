@@ -7,7 +7,7 @@ Rate limiting is a powerful technique to improve the [availability and resilienc
 Ambassador lets users add one or more labels to a given request. These labels are added as part of a `Mapping` object. For example:
 
 ```
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: catalog
 prefix: /catalog/
@@ -16,16 +16,28 @@ request_labels:
   - service: catalog
 ```
 
-Ambassador supports several special labels:
-
-* `remote_address` automatically populates the remote IP address using the trusted IP address from `X-Forwarded-For`
-* `request_headers: HEADER` will extract the value from a given HTTP header
-
-Note: In Envoy, labels are referred to as descriptors.
+For more information on request labels, see the [Rate Limit reference](/reference/rate-limits).
 
 ## Domains
 
 In Ambassador, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
+
+## Default labels
+
+Ambassador allows setting a default label on every request. A default label is set on the `ambassador` module. For example:
+
+```
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  default_label_domain: ambassador
+  default_labels:
+    ambassador:
+      defaults:
+      - remote_address
+```
 
 ## External Rate Limit Service
 
