@@ -50,8 +50,6 @@ type Discovery struct {
 	logger                types.Logger
 }
 
-var instance *Discovery
-
 // New creates a singleton instance of the discovery client.
 func New(mw crd.FilterOAuth2, logger types.Logger) (*Discovery, error) {
 	configURL, _ := mw.AuthorizationURL.Parse("/.well-known/openid-configuration")
@@ -60,24 +58,22 @@ func New(mw crd.FilterOAuth2, logger types.Logger) (*Discovery, error) {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
 	}
 
-	if instance == nil {
-		instance = &Discovery{
-			cache:  make(map[string]*JWK),
-			mux:    &sync.RWMutex{},
-			logger: logger,
-		}
-
-		instance.Issuer = config.Issuer
-		instance.AuthorizationEndpoint, err = url.Parse(config.AuthorizationEndpoint)
-		if err != nil {
-			return nil, errors.Wrap(err, "discovery authorization_endpoint")
-		}
-		instance.TokenEndpoint, err = url.Parse(config.TokenEndpoint)
-		if err != nil {
-			return nil, errors.Wrap(err, "discovery token_endpoint")
-		}
-		instance.JSONWebKeysURI = config.JSONWebKeyURI
+	instance := &Discovery{
+		cache:  make(map[string]*JWK),
+		mux:    &sync.RWMutex{},
+		logger: logger,
 	}
+
+	instance.Issuer = config.Issuer
+	instance.AuthorizationEndpoint, err = url.Parse(config.AuthorizationEndpoint)
+	if err != nil {
+		return nil, errors.Wrap(err, "discovery authorization_endpoint")
+	}
+	instance.TokenEndpoint, err = url.Parse(config.TokenEndpoint)
+	if err != nil {
+		return nil, errors.Wrap(err, "discovery token_endpoint")
+	}
+	instance.JSONWebKeysURI = config.JSONWebKeyURI
 
 	err = instance.fetchWebKeys()
 	if err != nil {
