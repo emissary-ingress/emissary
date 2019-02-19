@@ -11,7 +11,7 @@ Note: SNI is only available in the [0.50 early access release](/user-guide/early
     kubectl create secret tls <secret name> --cert <path to the certificate chain> --key <path to the private key>
     ```
 
-2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate. Typically, these would be the Subject Alternative Names you will be using. If you're using a wildcard certificate, you can put in any host values that you wish to use.
+2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate. Typically, these would be the Subject Alternative Names you will be using. If you're using a wildcard certificate, you can put in any host values that you wish to use or use `"*.domain.com"`.
 
     ```yaml
     apiVersion: ambassador/v1
