@@ -11,6 +11,7 @@ K8S_ENVS        = k8s-env.sh
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
 export CGO_ENABLED = 0
+export SCOUT_DISABLE = 1
 
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
