@@ -69,7 +69,7 @@ Mapping definitions are fairly straightforward. Here's an example for a REST ser
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/
@@ -80,7 +80,7 @@ and a REST service which Ambassador will contact using HTTPS:
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  quote_mapping
 prefix: /qotm/quote/
@@ -94,14 +94,14 @@ Here's an example for a CQRS service (using HTTP):
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: cqrs_get_mapping
 prefix: /cqrs/
 method: GET
 service: getcqrs
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: cqrs_put_mapping
 prefix: /cqrs/
@@ -129,7 +129,7 @@ For example, defining a mapping with only a `/` prefix will catch all requests p
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Mapping
 name: catch-all
 prefix: /

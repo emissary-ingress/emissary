@@ -28,7 +28,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: RateLimitService
       name: ratelimit
       service: "example-rate-limit:5000"

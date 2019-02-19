@@ -73,7 +73,7 @@ The example below defines the annotations on the Ambassador Service itself, but 
 
 Ambassador Service config:
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -83,12 +83,12 @@ metadata:
  annotations:
    getambassador.io/config: |
      ---
-     apiVersion: ambassador/v0
+     apiVersion: ambassador/v1
      kind:  Mapping
      name:  payment
      prefix: /payment/
      ---
-     apiVersion: ambassador/v0
+     apiVersion: ambassador/v1
      kind:  Mapping
      name:  payment-canary
      prefix: /payment/
