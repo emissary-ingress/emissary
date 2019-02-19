@@ -1,7 +1,7 @@
 ---
 # @TEMPLATE@
 apiVersion: getambassador.io/v1beta1
-kind: Middleware
+kind: Filter
 metadata:
   name: auth0
   namespace: standalone

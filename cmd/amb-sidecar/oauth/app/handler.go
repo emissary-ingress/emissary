@@ -14,14 +14,14 @@ import (
 	"github.com/datawire/apro/lib/util"
 )
 
-type MiddlewareHandler struct {
+type FilterHandler struct {
 	Logger       types.Logger
 	Controller   *controller.Controller
 	DefaultRule  *crd.Rule
 	OAuth2Secret *secret.Secret
 }
 
-func (c *MiddlewareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	originalURL := util.OriginalURL(r)
 
 	var rule *crd.Rule
@@ -47,47 +47,47 @@ func (c *MiddlewareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if rule == nil {
 		rule = c.DefaultRule
 	}
-	middlewareQName := rule.Middleware.Name + "." + rule.Middleware.Namespace
-	c.Logger.Debugf("host=%s, path=%s, public=%v, middleware=%q", rule.Host, rule.Path, rule.Public, middlewareQName)
+	filterQName := rule.Filter.Name + "." + rule.Filter.Namespace
+	c.Logger.Debugf("host=%s, path=%s, public=%v, filter=%q", rule.Host, rule.Path, rule.Public, filterQName)
 	if rule.Public {
 		c.Logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	middleware := findMiddleware(c.Controller, middlewareQName)
-	if middleware == nil {
-		c.Logger.Debugf("could not find not middleware: %q", middlewareQName)
+	filter := findFilter(c.Controller, filterQName)
+	if filter == nil {
+		c.Logger.Debugf("could not find not filter: %q", filterQName)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 		return
 	}
 
 	var handler http.Handler
-	switch middlewareT := middleware.(type) {
-	case crd.MiddlewareOAuth2:
+	switch filterT := filter.(type) {
+	case crd.FilterOAuth2:
 		handler = &oauth2handler.OAuth2Handler{
 			Logger:      c.Logger,
 			Secret:      c.OAuth2Secret,
 			Rule:        *rule,
-			Middleware:  middlewareT,
+			Filter:      filterT,
 			OriginalURL: originalURL,
 			RedirectURL: redirectURL,
 		}
-	case crd.MiddlewarePlugin:
-		handler = middlewareT.Handler
+	case crd.FilterPlugin:
+		handler = filterT.Handler
 	default:
-		panic(errors.Errorf("unexpected middleware type %T", middleware))
+		panic(errors.Errorf("unexpected filter type %T", filter))
 	}
 	handler.ServeHTTP(w, r)
 }
 
-func findMiddleware(c *controller.Controller, qname string) interface{} {
-	mws := c.Middlewares.Load()
+func findFilter(c *controller.Controller, qname string) interface{} {
+	mws := c.Filters.Load()
 	if mws != nil {
-		middlewares := mws.(map[string]interface{})
-		middleware, ok := middlewares[qname]
+		filters := mws.(map[string]interface{})
+		filter, ok := filters[qname]
 		if ok {
-			return middleware
+			return filter
 		}
 	}
 

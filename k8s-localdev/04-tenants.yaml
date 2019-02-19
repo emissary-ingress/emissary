@@ -1,9 +1,9 @@
 ---
 # @TEMPLATE@
 apiVersion: getambassador.io/v1beta1
-kind: Middleware
+kind: Filter
 metadata:
-  name: tenants
+  name: auth0
   namespace: localdev
 spec:
   OAuth2:
