@@ -10,5 +10,5 @@ spec:
     authorizationURL: {{env "AUTH_PROVIDER_URL"}}
     clientURL: {{env "AUTH_TENANT_URL"}}
     audience: {{env "AUTH_AUDIENCE"}}
-    clientId: {{env "AUTH_CLIENT_ID"}}
+    clientID: {{env "AUTH_CLIENT_ID"}}
     secret: {{env "AUTH_CLIENT_SECRET"}}

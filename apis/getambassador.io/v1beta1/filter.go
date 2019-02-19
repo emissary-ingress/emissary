@@ -23,7 +23,7 @@ type FilterOAuth2 struct {
 	RawStateTTL string        `json:"stateTTL"`
 	StateTTL    time.Duration `json:"-"` // calculated from RawStateTTL
 	Audience    string        `json:"audience"`
-	ClientID    string        `json:"clientId"`
+	ClientID    string        `json:"clientID"`
 	Secret      string        `json:"secret"`
 }
 

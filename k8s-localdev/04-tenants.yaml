@@ -10,5 +10,5 @@ spec:
     authorizationURL: {{env "AUTH_PROVIDER_URL"}}
     clientURL: https://ambassador.localdev.svc.cluster.local
     audience: {{env "AUTH_AUDIENCE"}}
-    clientId: {{env "AUTH_CLIENT_ID"}}
+    clientID: {{env "AUTH_CLIENT_ID"}}
     secret: {{env "AUTH_CLIENT_SECRET"}}
