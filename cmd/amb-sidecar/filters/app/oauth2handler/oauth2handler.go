@@ -38,9 +38,9 @@ type OAuth2Handler struct {
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r)
 
-	disco, err := NewDiscovery(c.Filter, logger)
+	discovered, err := Discover(c.Filter, logger)
 	if err != nil {
-		logger.Debugf("create discovery: %v", err)
+		logger.Debugf("discover: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 	}
 
@@ -49,7 +49,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if token == "" {
 		tokenErr = errors.New("token not present in the request")
 	} else {
-		tokenErr = c.validateToken(token, disco, logger)
+		tokenErr = c.validateToken(token, discovered, logger)
 	}
 	if tokenErr == nil {
 		w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
@@ -72,7 +72,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		res, err := Authorize(http.DefaultClient, disco.TokenEndpoint, AuthorizationRequest{
+		res, err := Authorize(http.DefaultClient, discovered.TokenEndpoint, AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
 			ClientID:     c.Filter.ClientID,
 			Code:         code,
@@ -101,7 +101,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, c.RedirectURL.String(), http.StatusTemporaryRedirect)
 
 	default:
-		redirect, _ := disco.AuthorizationEndpoint.Parse("?" + url.Values{
+		redirect, _ := discovered.AuthorizationEndpoint.Parse("?" + url.Values{
 			"audience":      {c.Filter.Audience},
 			"response_type": {"code"},
 			"redirect_uri":  {c.Filter.CallbackURL().String()},
@@ -115,7 +115,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (j *OAuth2Handler) validateToken(token string, disco *Discovery, logger types.Logger) error {
+func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logger types.Logger) error {
 	// JWT validation is performed by doing the cheap operations first.
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
@@ -124,7 +124,7 @@ func (j *OAuth2Handler) validateToken(token string, disco *Discovery, logger typ
 		}
 
 		// Get RSA certificate.
-		cert, err := disco.GetPemCert(t.Header["kid"].(string))
+		cert, err := discovered.GetPEMCert(t.Header["kid"].(string), logger)
 		if err != nil {
 			return "", err
 		}
@@ -145,7 +145,7 @@ func (j *OAuth2Handler) validateToken(token string, disco *Discovery, logger typ
 		}
 
 		// Verifies 'iss' claim.
-		if !claims.VerifyIssuer(disco.Issuer, false) {
+		if !claims.VerifyIssuer(discovered.Issuer, false) {
 			return "", errors.New("invalid issuer")
 		}
 

@@ -13,7 +13,6 @@ import (
 	"math/big"
 	"net/http"
 	"net/url"
-	"sync"
 
 	"github.com/pkg/errors"
 
@@ -36,51 +35,47 @@ type OpenIDConfig struct {
 	TokenEndpoint string `json:"token_endpoint"`
 
 	// A set of public RSA keys used to sign the tokens
-	JSONWebKeyURI string `json:"jwks_uri"`
+	JSONWebKeySetURI string `json:"jwks_uri"`
 }
 
-// Discovery is used to fetch the certificate information from the IDP.
-type Discovery struct {
+// Discovered stors the results (well, the subset of the results that
+// we're interested in) from performing OIDC Discovery.
+type Discovered struct {
 	Issuer                string
 	AuthorizationEndpoint *url.URL
 	TokenEndpoint         *url.URL
-	JSONWebKeysURI        string
-	cache                 map[string]*JWK
-	mux                   *sync.RWMutex
-	logger                types.Logger
+	JSONWebKeySet         map[string]*JWK
 }
 
-// New creates a singleton instance of the discovery client.
-func NewDiscovery(mw crd.FilterOAuth2, logger types.Logger) (*Discovery, error) {
+// Discover fetches OpenID configuration and certificate information
+// from the IDP (per OIDC Discovery).
+func Discover(mw crd.FilterOAuth2, logger types.Logger) (*Discovered, error) {
 	configURL, _ := mw.AuthorizationURL.Parse("/.well-known/openid-configuration")
 	config, err := fetchOpenIDConfig(configURL.String())
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
 	}
 
-	instance := &Discovery{
-		cache:  make(map[string]*JWK),
-		mux:    &sync.RWMutex{},
-		logger: logger,
-	}
+	var ret Discovered
 
-	instance.Issuer = config.Issuer
-	instance.AuthorizationEndpoint, err = url.Parse(config.AuthorizationEndpoint)
+	ret.Issuer = config.Issuer
+
+	ret.AuthorizationEndpoint, err = url.Parse(config.AuthorizationEndpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery authorization_endpoint")
 	}
-	instance.TokenEndpoint, err = url.Parse(config.TokenEndpoint)
+
+	ret.TokenEndpoint, err = url.Parse(config.TokenEndpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery token_endpoint")
 	}
-	instance.JSONWebKeysURI = config.JSONWebKeyURI
 
-	err = instance.fetchWebKeys()
+	ret.JSONWebKeySet, err = fetchWebKeys(config.JSONWebKeySetURI)
 	if err != nil {
-		return nil, errors.Wrap(err, "fetchWebKeys")
+		return nil, errors.Wrap(err, "discovery jwks_uri")
 	}
 
-	return instance, nil
+	return &ret, nil
 }
 
 // JWK - JSON Web Key structure.
@@ -98,94 +93,69 @@ type JWKSlice struct {
 	Keys []JWK `json:"keys"`
 }
 
-// GetPemCert fetches the certificate from the IDP. It returns a cert string or
-// error if a problem occurs.
-func (d *Discovery) GetPemCert(kid string) (string, error) {
-	if cert := d.getCert(kid); cert != "" {
-		return cert, nil
+// GetPEMCert fetches the certificate from the IDP.  It returns a cert
+// string or error if a problem occurs.
+func (d *Discovered) GetPEMCert(kid string, logger types.Logger) (string, error) {
+	log := logger.WithField("KeyID", kid)
+	jwk := d.JSONWebKeySet[kid]
+	if jwk == nil {
+		return "", errors.Errorf("JWK for KeyID=%q not found", kid)
 	}
+	// NOTE, plombardi@datawire.io: Multiple x5c entries?
+	//
+	// It seems there can be multiple entries in the x5c field (at least theoretically), but I haven't seen it or
+	// run into it... so let's assume the first entry is valid and use that until something breaks.
+	switch {
+	case jwk.X5c != nil && len(jwk.X5c) >= 1:
+		log.WithField("KeyFormat", "x509 certificate").Debug("JWK found")
+		return fmt.Sprintf(certFMT, jwk.X5c[0]), nil
+	case jwk.E != "" && jwk.N != "":
+		log.WithField("KeyFormat", "public key").
+			WithField("n", jwk.N).
+			WithField("e", jwk.E).
+			Debug("JWK found")
 
-	if err := d.fetchWebKeys(); err != nil {
-		return "", err
-	}
-
-	if cert := d.getCert(kid); cert != "" {
-		return cert, nil
-	}
-
-	return "", errors.New("certificate not found")
-}
-
-func (d *Discovery) getCert(kid string) string {
-	d.mux.RLock()
-	defer d.mux.RUnlock()
-
-	log := d.logger.WithField("KeyID", kid)
-	if jwk := d.cache[kid]; jwk != nil {
-		// NOTE, plombardi@datawire.io: Multiple x5c entries?
-		//
-		// It seems there can be multiple entries in the x5c field (at least theoretically), but I haven't seen it or
-		// run into it... so let's assume the first entry is valid and use that until something breaks.
-		//
-		switch {
-		case jwk.X5c != nil && len(jwk.X5c) >= 1:
-			log.WithField("KeyFormat", "x509 certificate").Debug("JWK found")
-			return fmt.Sprintf(certFMT, jwk.X5c[0])
-		case jwk.E != "" && jwk.N != "":
-			log.WithField("KeyFormat", "public key").
-				WithField("n", jwk.N).
-				WithField("e", jwk.E).
-				Debug("JWK found")
-
-			rsaPubKey, err := assemblePubKeyFromNandE(jwk)
-			if err != nil {
-				log.Error(err)
-				return ""
-			}
-
-			pubKey, err := x509.MarshalPKIXPublicKey(&rsaPubKey)
-			if err != nil {
-				log.Error(err)
-				return ""
-			}
-
-			var keyPEM = &pem.Block{
-				Type:    "RSA PUBLIC KEY",
-				Headers: make(map[string]string),
-				Bytes:   pubKey,
-			}
-
-			keyPEMString := string(pem.EncodeToMemory(keyPEM))
-			return keyPEMString
-		default:
-			log.Error("JWK not found")
+		rsaPubKey, err := assemblePubKeyFromNandE(jwk)
+		if err != nil {
+			return "", err
 		}
-	} else {
-		log.Error("JWK not found")
+
+		pubKey, err := x509.MarshalPKIXPublicKey(&rsaPubKey)
+		if err != nil {
+			return "", err
+		}
+
+		var keyPEM = &pem.Block{
+			Type:    "RSA PUBLIC KEY",
+			Headers: make(map[string]string),
+			Bytes:   pubKey,
+		}
+
+		keyPEMString := string(pem.EncodeToMemory(keyPEM))
+		return keyPEMString, nil
+	default:
+		return "", errors.Errorf("JWK for KeyID=%q not found", kid)
 	}
-	return ""
 }
 
-func (d *Discovery) fetchWebKeys() error {
-	resp, err := http.Get(d.JSONWebKeysURI)
+func fetchWebKeys(jwksURI string) (map[string]*JWK, error) {
+	resp, err := http.Get(jwksURI)
 	if err != nil {
-		return errors.Wrap(err, d.JSONWebKeysURI)
+		return nil, errors.Wrapf(err, "GET %s", jwksURI)
 	}
 	defer resp.Body.Close()
 
 	jwks := JWKSlice{}
 	err = json.NewDecoder(resp.Body).Decode(&jwks)
 	if err != nil {
-		return errors.Wrap(err, d.JSONWebKeysURI)
+		return nil, errors.Wrapf(err, "GET %s", jwksURI)
 	}
 
-	d.mux.Lock()
-	defer d.mux.Unlock()
+	ret := make(map[string]*JWK, len(jwks.Keys))
 	for _, k := range jwks.Keys {
-		d.cache[k.Kid] = &k
+		ret[k.Kid] = &k
 	}
-
-	return nil
+	return ret, nil
 }
 
 func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {

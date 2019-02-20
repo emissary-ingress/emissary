@@ -73,7 +73,7 @@ func NewIDP() *httptest.Server {
 				Issuer:                fmt.Sprintf("%s://%s/", serverURL.Scheme, serverURL.Host),
 				AuthorizationEndpoint: "TODO://AuthorizationEndpoint",
 				TokenEndpoint:         fmt.Sprintf("%s://%s/oauth/token", serverURL.Scheme, serverURL.Host),
-				JSONWebKeyURI:         fmt.Sprintf("%s://%s/.well-known/jwks.json", serverURL.Scheme, serverURL.Host),
+				JSONWebKeySetURI:      fmt.Sprintf("%s://%s/.well-known/jwks.json", serverURL.Scheme, serverURL.Host),
 			})
 		case "/.well-known/jwks.json":
 			util.ToJSONResponse(w, http.StatusOK, oauth2handler.JWKSlice{
