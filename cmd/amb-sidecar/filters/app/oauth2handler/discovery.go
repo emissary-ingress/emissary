@@ -49,9 +49,9 @@ type Discovered struct {
 
 // Discover fetches OpenID configuration and certificate information
 // from the IDP (per OIDC Discovery).
-func Discover(mw crd.FilterOAuth2, logger types.Logger) (*Discovered, error) {
+func Discover(client *http.Client, mw crd.FilterOAuth2, logger types.Logger) (*Discovered, error) {
 	configURL, _ := mw.AuthorizationURL.Parse("/.well-known/openid-configuration")
-	config, err := fetchOpenIDConfig(configURL.String())
+	config, err := fetchOpenIDConfig(client, configURL.String())
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
 	}
@@ -70,7 +70,7 @@ func Discover(mw crd.FilterOAuth2, logger types.Logger) (*Discovered, error) {
 		return nil, errors.Wrap(err, "discovery token_endpoint")
 	}
 
-	ret.JSONWebKeySet, err = fetchWebKeys(config.JSONWebKeySetURI)
+	ret.JSONWebKeySet, err = fetchWebKeys(client, config.JSONWebKeySetURI)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery jwks_uri")
 	}
@@ -138,8 +138,8 @@ func (d *Discovered) GetPEMCert(kid string, logger types.Logger) (string, error)
 	}
 }
 
-func fetchWebKeys(jwksURI string) (map[string]*JWK, error) {
-	resp, err := http.Get(jwksURI)
+func fetchWebKeys(client *http.Client, jwksURI string) (map[string]*JWK, error) {
+	resp, err := client.Get(jwksURI)
 	if err != nil {
 		return nil, errors.Wrapf(err, "GET %s", jwksURI)
 	}
@@ -198,10 +198,10 @@ func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
 	return rsa.PublicKey{N: n, E: int(e)}, nil
 }
 
-func fetchOpenIDConfig(documentURL string) (OpenIDConfig, error) {
+func fetchOpenIDConfig(client *http.Client, documentURL string) (OpenIDConfig, error) {
 	config := OpenIDConfig{}
 
-	res, err := http.Get(documentURL) // #nosec G107
+	res, err := client.Get(documentURL) // #nosec G107
 	if err != nil {
 		return config, errors.Wrap(err, "failed to fetch remote openid-configuration")
 	}

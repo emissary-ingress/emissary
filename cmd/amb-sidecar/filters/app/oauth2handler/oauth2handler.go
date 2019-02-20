@@ -12,6 +12,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -37,8 +38,9 @@ type OAuth2Handler struct {
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r)
+	httpClient := httpclient.NewHTTPClient(logger)
 
-	discovered, err := Discover(c.Filter, logger)
+	discovered, err := Discover(httpClient, c.Filter, logger)
 	if err != nil {
 		logger.Debugf("discover: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
@@ -72,7 +74,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		res, err := Authorize(http.DefaultClient, discovered.TokenEndpoint, AuthorizationRequest{
+		res, err := Authorize(httpClient, discovered.TokenEndpoint, AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
 			ClientID:     c.Filter.ClientID,
 			Code:         code,

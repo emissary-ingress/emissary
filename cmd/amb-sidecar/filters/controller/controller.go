@@ -10,6 +10,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 )
@@ -88,6 +89,15 @@ func (c *Controller) Watch(ctx context.Context) {
 		}
 
 		c.Filters.Store(filters)
+
+		// I (lukeshu) measured Auth0 as using ~3.5KiB.
+		//
+		//    $ curl -is https://ambassador-oauth-e2e.auth0.com/.well-known/openid-configuration https://ambassador-oauth-e2e.auth0.com/.well-known/openid-configuration|wc --bytes
+		//    3536
+		//
+		// Let's go ahead and give each IDP 8KiB, to make sure
+		// they have room to breathe.
+		httpclient.SetHTTPCacheMaxSize(int64(len(filters)) * 8 * 1024)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
