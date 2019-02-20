@@ -145,8 +145,12 @@ func fetchWebKeys(client *http.Client, jwksURI string) (map[string]*JWK, error) 
 	}
 	defer resp.Body.Close()
 
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "GET %s", jwksURI)
+	}
 	jwks := JWKSlice{}
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
+	err = json.Unmarshal(body, &jwks)
 	if err != nil {
 		return nil, errors.Wrapf(err, "GET %s", jwksURI)
 	}
