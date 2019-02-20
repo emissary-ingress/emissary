@@ -75,7 +75,7 @@ so the URL `prefix` is `helloworld.Greeter` and the mapping would be:
 
 ```yaml
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: grpc_py_mapping
       grpc: True
@@ -100,7 +100,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: grpc_py_mapping
       grpc: True
@@ -235,7 +235,7 @@ Rebuild your docker container **making sure the certificates are included** and 
 
 Once deployed we will need to tell Ambassador to originate TLS to the application.
 
-```
+```yaml
 ---
 apiVersion: v1
 kind: Service
@@ -246,7 +246,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Mapping
       name: grpc_py_mapping
       grpc: True
@@ -264,9 +264,9 @@ spec:
     service: grpc-py
 ```
 
-```
+```yaml
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Module
       name:  tls
       config:

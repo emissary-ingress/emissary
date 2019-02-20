@@ -57,7 +57,7 @@ The `cors` attribute enables the CORS filter. The following settings are support
 ## Example
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  cors_mapping
 prefix: /cors/

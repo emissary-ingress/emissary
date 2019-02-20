@@ -77,7 +77,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
 
 3. Update the QOTM service YAML to point to the sidecar on port 9900, instead of the QOTM service directly on port 5000.
 
-   ```
+   ```yaml
    ---
    apiVersion: v1
    kind: Service
@@ -86,7 +86,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
      annotations:
        getambassador.io/config: |
          ---
-         apiVersion: ambassador/v0
+         apiVersion: ambassador/v1
          kind:  Mapping
          name:  qotm_mapping
          prefix: /qotm/

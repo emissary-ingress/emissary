@@ -19,7 +19,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Module
       name:  ambassador
       config:
@@ -45,7 +45,7 @@ The following in a sample configuration for deploying Ambassador in AWS using He
 Create a values file with the following content:
 
 `values.aws.yaml`
-```
+```yaml
 service:
   enableHttp: true 
   enableHttps: true 
@@ -64,7 +64,7 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
     getambassador.io/config: |
       --- 
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Module
       name:  ambassador
       config:
@@ -139,7 +139,7 @@ Now, we want every request on port 80 to be redirected to port 443.
 To achieve this, you need to use `redirect_cleartext_from` as follows -
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Module
 name:  tls
 config:
@@ -167,14 +167,14 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Module
       name:  ambassador
       config:
         use_remote_address: true
         use_proxy_proto: true
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Module
       name: tls
       config:
@@ -218,7 +218,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Module
       name:  ambassador
       config:
