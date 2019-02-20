@@ -137,7 +137,7 @@ status-pro-tel: status-proxy
 		exit 1; \
 	fi
 .PHONY: status-pro-tel
-clean: kill-pro-tel
+$(KUBECONFIG).clean: kill-pro-tel
 help-local-dev: ## (LocalDev) Describe how to use local dev features
 	@echo "In the localdev namespace, the pro container has been replaced with"
 	@echo "Telepresence. You will need to run the relevant binaries on your own"
