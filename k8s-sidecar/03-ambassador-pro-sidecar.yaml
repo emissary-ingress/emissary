@@ -73,9 +73,9 @@ metadata:
   name: filterpolicies.getambassador.io
 spec:
   group: getambassador.io
-  version: v1beta1
+  version: v1beta2
   versions:
-  - name: v1beta1
+  - name: v1beta2
     served: true
     storage: true
   scope: Namespaced
@@ -92,9 +92,9 @@ metadata:
   name: filters.getambassador.io
 spec:
   group: getambassador.io
-  version: v1beta1
+  version: v1beta2
   versions:
-  - name: v1beta1
+  - name: v1beta2
     served: true
     storage: true
   scope: Namespaced
@@ -111,9 +111,9 @@ metadata:
   name: ratelimits.getambassador.io
 spec:
   group: getambassador.io
-  version: v1beta1
+  version: v1beta2
   versions:
-    - name: v1beta1
+    - name: v1beta2
       served: true
       storage: true
   scope: Namespaced

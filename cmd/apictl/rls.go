@@ -12,7 +12,7 @@ import (
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 

@@ -1,6 +1,6 @@
 ---
 # @TEMPLATE@
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: auth0
