@@ -2,6 +2,9 @@ package httpclient
 
 import (
 	"net/http"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -41,11 +44,35 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 //     * mostly-RFC7234-compliant
 //     * resizable using the SetHTTPCacheMaxSize() function
 //     * LRU eviction when it gets too big
+//  - If maxStale > 0, it
+//     1. Behaves as if requests set the "max-stale=${maxStale}"
+//        Cache-Control directive.
+//     2. Ignores "no-store" Cache-Control directive on responses (in
+//        violation of RFC7234)
+//     3. Ignores "no-cache" Cache-Control directive on responses (in
+//        violation of RFC7234)
 //  - It logs all requests+responses, and whether or not they came
 //    from the network for from the cache.
-func NewHTTPClient(logger types.Logger) *http.Client {
+func NewHTTPClient(logger types.Logger, maxStale time.Duration) *http.Client {
 	return &http.Client{
 		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			if maxStale > 0 {
+				// Avoid mutating the request we
+				// received; make a shallow copy of it
+				_req := req
+				req = new(http.Request)
+				*req = *_req
+				// and a deep copy of the Header
+				req.Header = make(http.Header)
+				for k, s := range _req.Header {
+					req.Header[k] = s
+				}
+				// Set "Cache-Control: max-stale=maxStale
+				cc := parseCacheControl(req.Header.Get("Cache-Control"))
+				cc["max-stale"] = strconv.FormatInt(int64(maxStale.Seconds()), 10)
+				req.Header.Set("Cache-Control", cc.String())
+			}
+
 			cached := true
 			cacheTransport := &httpcache.Transport{
 				Cache:               httpCache,
@@ -60,6 +87,12 @@ func NewHTTPClient(logger types.Logger) *http.Client {
 					} else {
 						logger.Infof("HTTP CLIENT: NET: %s %s => HTTP %d (%v)", req.Method, req.URL, res.StatusCode, dur)
 					}
+					if res != nil && maxStale > 0 {
+						cc := parseCacheControl(res.Header.Get("Cache-Control"))
+						delete(cc, "no-store")
+						delete(cc, "no-cache")
+						res.Header.Set("Cache-Control", cc.String())
+					}
 					return res, err
 				}),
 			}
@@ -72,4 +105,37 @@ func NewHTTPClient(logger types.Logger) *http.Client {
 			return res, err
 		}),
 	}
+}
+
+type cacheControl map[string]string
+
+// parseCacheControl is borrowed from github.com/gregjones/httpcache
+func parseCacheControl(ccHeader string) cacheControl {
+	cc := cacheControl{}
+	for _, part := range strings.Split(ccHeader, ",") {
+		part = strings.Trim(part, " ")
+		if part == "" {
+			continue
+		}
+		if strings.ContainsRune(part, '=') {
+			keyval := strings.Split(part, "=")
+			cc[strings.Trim(keyval[0], " ")] = strings.Trim(keyval[1], ",")
+		} else {
+			cc[part] = ""
+		}
+	}
+	return cc
+}
+
+func (cc cacheControl) String() string {
+	directives := make([]string, 0, len(cc))
+	for k, v := range cc {
+		if v == "" {
+			directives = append(directives, k)
+		} else {
+			directives = append(directives, k+"="+v)
+		}
+	}
+	sort.Strings(directives)
+	return strings.Join(directives, ", ")
 }

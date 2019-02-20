@@ -18,6 +18,9 @@ type FilterOAuth2 struct {
 	Audience    string        `json:"audience"`
 	ClientID    string        `json:"clientID"`
 	Secret      string        `json:"secret"`
+
+	RawMaxStale string        `json:"maxStale"`
+	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
 }
 
 func (m *FilterOAuth2) Validate() error {
@@ -47,6 +50,14 @@ func (m *FilterOAuth2) Validate() error {
 			return errors.Wrapf(err, "parsing stateTTL: %q", m.RawStateTTL)
 		}
 		m.StateTTL = d
+	}
+
+	if m.RawMaxStale != "" {
+		d, err := time.ParseDuration(m.RawMaxStale)
+		if err != nil {
+			return errors.Wrapf(err, "parsing maxStale: %q", m.RawMaxStale)
+		}
+		m.MaxStale = d
 	}
 
 	return nil

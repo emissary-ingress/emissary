@@ -12,3 +12,4 @@ spec:
     audience: {{env "AUTH_AUDIENCE"}}
     clientID: {{env "AUTH_CLIENT_ID"}}
     secret: {{env "AUTH_CLIENT_SECRET"}}
+    maxStale: 12h
