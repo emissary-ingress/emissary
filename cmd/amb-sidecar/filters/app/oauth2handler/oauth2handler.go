@@ -72,7 +72,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		res, err := NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&AuthorizationRequest{
+		res, err := NewRestClient(disco.TokenEndpoint).Authorize(&AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
 			ClientID:     c.Filter.ClientID,
 			Code:         code,

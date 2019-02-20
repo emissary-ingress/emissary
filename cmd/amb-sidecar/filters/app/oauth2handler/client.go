@@ -11,18 +11,15 @@ import (
 
 // Rest is a generic rest HTTP client.
 type Rest struct {
-	AuthorizationEndpoint *url.URL
-	TokenEndpoint         *url.URL
-	client                *http.Client
-	token                 string
+	TokenEndpoint *url.URL
+	client        *http.Client
 }
 
 // NewRestClient creates an instance of a rest client.
-func NewRestClient(authorizationEndpoint *url.URL, tokenEndpoint *url.URL) *Rest {
+func NewRestClient(tokenEndpoint *url.URL) *Rest {
 	return &Rest{
-		client:                http.DefaultClient,
-		AuthorizationEndpoint: authorizationEndpoint,
-		TokenEndpoint:         tokenEndpoint,
+		client:        http.DefaultClient,
+		TokenEndpoint: tokenEndpoint,
 	}
 }
 
@@ -60,9 +57,6 @@ func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error
 		return nil, err
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	if c.token != "" {
-		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
-	}
 
 	// fire it off
 	response, err := c.client.Do(request)
