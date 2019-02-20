@@ -47,59 +47,43 @@ type AuthorizationRequest struct {
 
 // Authorize sends a POST request to the IDP.
 func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error) {
-	var rq *http.Request
-	var err error
-
-	data := url.Values{}
-	data.Set("grant_type", a.GrantType)
-	data.Set("client_id", a.ClientID)
-	data.Set("code", a.Code)
-	data.Set("redirect_uri", a.RedirectURL)
-	data.Set("client_secret", a.ClientSecret)
-	data.Set("audience", a.Audience)
-
-	rq, err = c.request("POST", c.TokenEndpoint, data, *a)
+	// build the request
+	request, err := http.NewRequest("POST", c.TokenEndpoint.String(), strings.NewReader(url.Values{
+		"grant_type":    {a.GrantType},
+		"client_id":     {a.ClientID},
+		"code":          {a.Code},
+		"redirect_uri":  {a.RedirectURL},
+		"client_secret": {a.ClientSecret},
+		"audience":      {a.Audience},
+	}.Encode()))
 	if err != nil {
 		return nil, err
 	}
-
-	rs := &AuthorizationResponse{}
-	if err := c.do(rq, rs); err != nil {
-		return nil, err
-	}
-
-	return rs, nil
-}
-
-func (c *Rest) request(method string, url fmt.Stringer, params url.Values, body interface{}) (*http.Request, error) {
-	rq, err := http.NewRequest(method, url.String(), strings.NewReader(params.Encode()))
-	if err != nil {
-		return nil, err
-	}
-
-	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if c.token != "" {
-		rq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+		request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
 	}
 
-	return rq, nil
-}
-
-func (c *Rest) do(rq *http.Request, v interface{}) error {
-	rs, err := c.client.Do(rq)
+	// fire it off
+	response, err := c.client.Do(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer rs.Body.Close()
+	defer response.Body.Close()
+	if response.StatusCode >= http.StatusBadRequest {
+		body, _ := ioutil.ReadAll(response.Body) // don't let an error here mask the HTTP error
+		return nil, fmt.Errorf("HTTP %s: %s", response.Status, string(body))
+	}
 
-	body, err := ioutil.ReadAll(rs.Body)
+	// unmarshal the response
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	ret := AuthorizationResponse{}
+	if err := json.Unmarshal(body, &ret); err != nil {
+		return nil, err
 	}
 
-	if rs.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("HTTP %s: %s", rs.Status, string(body))
-	}
-
-	return json.Unmarshal(body, v)
+	return &ret, nil
 }
