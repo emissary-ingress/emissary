@@ -49,6 +49,7 @@
       link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
 - title: Guides
+  link: /docs/guides/
   items:
     - title: Build
       items:
