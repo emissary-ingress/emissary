@@ -27,7 +27,6 @@ const (
 // present in the request.  If the request Path is "/callback", it
 // validates IDP requests and handles code exchange flow.
 type OAuth2Handler struct {
-	Config      types.Config
 	Logger      types.Logger
 	Secret      *secret.Secret
 	Rule        crd.Rule
