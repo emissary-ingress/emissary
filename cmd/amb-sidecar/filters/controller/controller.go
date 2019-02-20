@@ -100,7 +100,7 @@ func (c *Controller) Watch(ctx context.Context) {
 		httpclient.SetHTTPCacheMaxSize(int64(len(filters)) * 8 * 1024)
 	})
 
-	w.Watch("policies", func(w *k8s.Watcher) {
+	w.Watch("filterpolicies", func(w *k8s.Watcher) {
 		rules := make([]crd.Rule, 1)
 
 		// callback is always default.
@@ -108,11 +108,11 @@ func (c *Controller) Watch(ctx context.Context) {
 			Host: "*",
 			Path: "/callback",
 		})
-		for _, p := range w.List("policies") {
-			var spec crd.PolicySpec
+		for _, p := range w.List("filterpolicies") {
+			var spec crd.FilterPolicySpec
 			err := mapstructure.Convert(p.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed policy resource spec"))
+				c.Logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
 				continue
 			}
 			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {

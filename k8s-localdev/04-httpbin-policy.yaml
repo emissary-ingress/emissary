@@ -1,6 +1,6 @@
 ---
 apiVersion: getambassador.io/v1beta1
-kind: Policy
+kind: FilterPolicy
 metadata:
   name: httpbin-policy
   namespace: localdev

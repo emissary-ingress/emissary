@@ -4,7 +4,7 @@ import (
 	"github.com/gobwas/glob"
 )
 
-type PolicySpec struct {
+type FilterPolicySpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id"`
 	Rules        []Rule       `json:"rules"`
 }
