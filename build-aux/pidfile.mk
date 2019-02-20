@@ -9,7 +9,7 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 
 %.pid.clean:
-	if [ -e $*.pid ] ; then kill $$(cat $*.pid); fi
+	if [ -e $*.pid ]; then kill $$(cat $*.pid) || true; fi
 	rm -f $*.pid
 .PHONY: %.pid.clean
 
