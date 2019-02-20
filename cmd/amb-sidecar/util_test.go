@@ -92,7 +92,6 @@ func NewIDP() *httptest.Server {
 
 // NewAPP returns an instance of the authorization server.
 func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
-	os.Setenv("AUTH_PROVIDER_URL", idpURL)
 	os.Setenv("RLS_RUNTIME_DIR", "/bogus")
 
 	c, warn, fatal := types.ConfigFromEnv()
@@ -103,34 +102,53 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		return nil, nil, warn[len(warn)-1]
 	}
 
-	l := types.WrapLogrus(logrus.New())
+	_l := logrus.New()
+	_l.SetLevel(logrus.DebugLevel)
+	l := types.WrapLogrus(_l)
 
 	ct := &controller.Controller{
 		Config: c,
 		Logger: l.WithField("test", "unit"),
 	}
 
-	tenants := make([]crd.TenantObject, 2)
-	tenants[0] = crd.TenantObject{
-		CallbackURL: "dummy-host.net/callback",
-		Domain:      "dummy-host.net",
-		Audience:    "foo",
-		ClientID:    "bar",
-	}
-	tenants[1] = crd.TenantObject{
-		CallbackURL: fmt.Sprintf("%s/callback", idpURL),
-		Domain:      c.BaseURL.Hostname(),
-		Audience:    "friends",
-		ClientID:    "foo",
-	}
-
-	ct.Tenants.Store(tenants)
-	ct.Rules.Store(make([]crd.Rule, 0))
-
 	httpHandler, err := app.NewHandler(c, l, ct)
 	if err != nil {
 		return nil, nil, err
 	}
+	server := httptest.NewServer(httpHandler)
 
-	return httptest.NewServer(httpHandler), httpHandler, nil
+	filters := map[string]interface{}{
+		"dummy.default": crd.FilterOAuth2{
+			RawAuthorizationURL: idpURL,
+			RawClientURL:        "http://dummy-host.net",
+			Audience:            "foo",
+			ClientID:            "bar",
+		},
+		"app.default": crd.FilterOAuth2{
+			RawAuthorizationURL: idpURL,
+			RawClientURL:        server.URL,
+			Audience:            "friends",
+			ClientID:            "foo",
+		},
+	}
+	for k, _v := range filters {
+		v := _v.(crd.FilterOAuth2)
+		v.Validate()
+		filters[k] = v
+	}
+	ct.Filters.Store(filters)
+	ct.Rules.Store([]crd.Rule{
+		{
+			Host:   "*",
+			Path:   "*",
+			Public: false,
+			Filter: crd.Reference{
+				Name:      "app",
+				Namespace: "default",
+			},
+			Scope: "",
+		},
+	})
+
+	return server, httpHandler, nil
 }

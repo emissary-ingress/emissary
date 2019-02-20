@@ -2,9 +2,8 @@ package controller
 
 import (
 	"context"
-	"fmt"
-	"net"
-	"net/url"
+	"net/http"
+	"plugin"
 	"strings"
 	"sync/atomic"
 
@@ -15,7 +14,6 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
-	"github.com/datawire/apro/lib/util"
 )
 
 // Controller is monitors changes in app configuration and policy custom resources.
@@ -23,75 +21,91 @@ type Controller struct {
 	Logger  types.Logger
 	Config  types.Config
 	Rules   atomic.Value
-	Tenants atomic.Value
+	Filters atomic.Value
 }
 
-const (
-	// RuleCTXKey is passed to the the request handler as a context key.
-	RuleCTXKey = util.HTTPContextKey("rule")
-
-	// TenantCTXKey is passed to the the request handler as a context key.
-	TenantCTXKey = util.HTTPContextKey("tenant")
-
-	// Callback is the path used to create the tenant callback url.
-	Callback = "callback"
-)
+func countTrue(args ...bool) int {
+	n := 0
+	for _, arg := range args {
+		if arg {
+			n++
+		}
+	}
+	return n
+}
 
 // Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch(ctx context.Context) {
-	c.Rules.Store(make([]crd.Rule, 0))
+	c.Rules.Store([]crd.Rule{})
+	c.Filters.Store(map[string]interface{}{})
+
 	w := k8s.NewClient(nil).Watcher()
 
-	w.Watch("tenants", func(w *k8s.Watcher) {
-		tenants := make([]crd.TenantObject, 0)
-		for _, p := range w.List("tenants") {
-			var spec crd.TenantSpec
-			err := mapstructure.Convert(p.Spec(), &spec)
+	w.Watch("filters", func(w *k8s.Watcher) {
+		filters := map[string]interface{}{}
+		for _, mw := range w.List("filters") {
+			var spec crd.FilterSpec
+			err := mapstructure.Convert(mw.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed tenant resource spec"))
+				c.Logger.Errorln(errors.Wrap(err, "malformed filter resource spec"))
 				continue
 			}
-			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
+			if c.Config.AmbassadorSingleNamespace && mw.Namespace() != c.Config.AmbassadorNamespace {
 				continue
 			}
 			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
 				continue
 			}
 
-			for _, t := range spec.Tenants {
-				u, err := url.Parse(t.TenantURL)
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil) != 1 {
+				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v",
+					[]string{"OAuth2", "Plugin"})
+				continue
+			}
+
+			switch {
+			case spec.OAuth2 != nil:
+				if err = spec.OAuth2.Validate(); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
+					continue
+				}
+
+				c.Logger.Infof("loading filter domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
+				filters[mw.QName()] = *spec.OAuth2
+			case spec.Plugin != nil:
+				if strings.Contains(spec.Plugin.Name, "/") {
+					c.Logger.Errorf("filter resource: invalid Plugin.name: contains a /: %q", spec.Plugin.Name)
+					continue
+				}
+				p, err := plugin.Open("/etc/ambassador-plugins/" + spec.Plugin.Name + ".so")
 				if err != nil {
-					c.Logger.Errorln(errors.Wrap(err, "parsing tenant url"))
+					c.Logger.Errorln("filter resource: could not open plugin file:", err)
 					continue
 				}
-
-				if u.Scheme == "" {
-					c.Logger.Errorf("tenantUrl needs to be an absolute url: {scheme}://{host}:{port}")
+				f, err := p.Lookup("PluginMain")
+				if err != nil {
+					c.Logger.Errorln("filter resource: invalid plugin file:", err)
 					continue
 				}
-
-				t.TLS = u.Scheme == "https"
-
-				_, port, _ := net.SplitHostPort(u.Host)
-				if port == "" {
-					t.CallbackURL = fmt.Sprintf("%s://%s/%s", u.Scheme, u.Host, Callback)
-				} else {
-					t.CallbackURL = fmt.Sprintf("%s://%s:%s/%s", u.Scheme, u.Host, port, Callback)
+				h, ok := f.(func(http.ResponseWriter, *http.Request))
+				if !ok {
+					c.Logger.Errorln("filter resource: invalid plugin file: PluginMain has the wrong type")
+					continue
 				}
+				spec.Plugin.Handler = http.HandlerFunc(h)
 
-				t.Domain = u.Host
-
-				c.Logger.Infof("loading tenant domain=%s, client_id=%s", t.Domain, t.ClientID)
-
-				tenants = append(tenants, t)
+				c.Logger.Infof("loading filter plugin=%s", spec.Plugin.Name)
+				filters[mw.QName()] = *spec.Plugin
+			default:
+				panic("should not happen")
 			}
 		}
 
-		if len(tenants) == 0 {
-			c.Logger.Error("0 tenant apps configured")
+		if len(filters) == 0 {
+			c.Logger.Error("0 filters configured")
 		}
 
-		c.Tenants.Store(tenants)
+		c.Filters.Store(filters)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
@@ -126,6 +140,10 @@ func (c *Controller) Watch(ctx context.Context) {
 					rule.Scopes[s] = true
 				}
 
+				if rule.Filter.Namespace == "" {
+					rule.Filter.Namespace = p.Namespace()
+				}
+
 				rules = append(rules, rule)
 			}
 		}
@@ -139,36 +157,4 @@ func (c *Controller) Watch(ctx context.Context) {
 	}()
 
 	w.Wait()
-}
-
-// GetRuleFromContext is a handy method for retrieving a reference of Rule from an HTTP
-// request context.
-func GetRuleFromContext(ctx context.Context) *crd.Rule {
-	if r := ctx.Value(RuleCTXKey); r != nil {
-		return r.(*crd.Rule)
-	}
-	return nil
-}
-
-// GetTenantFromContext is a handy method for retrieving a reference of App from an HTTP
-// request context.
-func GetTenantFromContext(ctx context.Context) *crd.TenantObject {
-	if a := ctx.Value(TenantCTXKey); a != nil {
-		return a.(*crd.TenantObject)
-	}
-	return nil
-}
-
-// FindTenant returns app definition resource by looking up the domain name.
-func (c *Controller) FindTenant(domain string) *crd.TenantObject {
-	apps := c.Tenants.Load()
-	if apps != nil {
-		for _, app := range apps.([]crd.TenantObject) {
-			if app.Domain == domain {
-				return &app
-			}
-		}
-	}
-
-	return nil
 }

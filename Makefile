@@ -11,6 +11,7 @@ K8S_ENVS        = k8s-env.sh
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
 export CGO_ENABLED = 0
+export SCOUT_DISABLE = 1
 
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
@@ -20,6 +21,10 @@ include build-aux/pidfile.mk
 include build-aux/help.mk
 
 .DEFAULT_GOAL = help
+
+ifeq ($(GOOS)_$(GOARCH),linux_amd64)
+bin_linux_amd64/amb-sidecar: CGO_ENABLED=1
+endif
 
 status: ## Report on the status of Kubernaut and Teleproxy
 status: status-pro-tel
@@ -55,26 +60,21 @@ build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word
 
 #
 # Docker images
-
-docker/consul_connect_integration.docker: docker/consul_connect_integration/consul_connect_integration
-docker/consul_connect_integration/%: bin_linux_amd64/%
-	cp $< $@
-
-docker/traffic-proxy.docker: docker/traffic-proxy/traffic-proxy
-docker/traffic-proxy/%: bin_linux_amd64/%
-	cp $< $@
+#
+# This assumes that each Docker image wants a binary with the same
+# name as the image.  That's a safe assumption so far, and forces us
+# to name things in a consistent manor.
+define docker.bins_rule
+$(image).docker: $(image)/$(notdir $(image))
+$(image)/%: bin_linux_amd64/%
+	cp $$< $$@
+endef
+$(foreach image,$(K8S_IMAGES),$(eval $(docker.bins_rule)))
 
 docker/app-sidecar.docker: docker/app-sidecar/ambex
-docker/app-sidecar.docker: docker/app-sidecar/app-sidecar
 docker/app-sidecar/ambex:
 	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
-docker/app-sidecar/%: bin_linux_amd64/%
-	cp $< $@
-
-docker/amb-sidecar.docker: docker/amb-sidecar/amb-sidecar
-docker/amb-sidecar/%: bin_linux_amd64/%
-	cp $< $@
 
 #
 # Deploy

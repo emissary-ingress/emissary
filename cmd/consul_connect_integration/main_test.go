@@ -3,8 +3,9 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/datawire/apro/lib/testutil"
 )
-import "github.com/datawire/apro/lib/testutil"
 
 func TestNewAgent_AmbassadorIDToConsulServiceName(t *testing.T) {
 	assert := testutil.Assert{T: t}

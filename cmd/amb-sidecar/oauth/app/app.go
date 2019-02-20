@@ -2,15 +2,11 @@ package app
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/pkg/errors"
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
 	_secret "github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
@@ -24,27 +20,10 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		return nil, errors.Wrap(err, "secret")
 	}
 
-	disco, err := discovery.New(config, logger)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery")
-	}
-
-	authorizationEndpointURL, err := url.Parse(disco.AuthorizationEndpoint)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery.AuthorizationEndpoint")
-	}
-
-	tokenEndpointURL, err := url.Parse(disco.TokenEndpoint)
-	if err != nil {
-		return nil, errors.Wrap(err, "discovery.TokenEndpoint")
-	}
-
-	rest := client.NewRestClient(authorizationEndpointURL, tokenEndpointURL)
-
 	n := negroni.New()
 
 	// Middleware (most-outer is listed first, most-inner is listed last)
-	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "http")})
+	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "logger")})
 	n.Use(&negroni.Recovery{
 		Logger:     logger.WithField("MIDDLEWARE", "recovery"),
 		PrintStack: false,
@@ -52,41 +31,16 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		StackSize:  1024 * 8,
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
-	n.Use(&middleware.DomainCheck{
-		Logger: logger.WithField("MIDDLEWARE", "app_check"),
-		Ctrl:   controller,
-	})
-	n.Use(&middleware.PolicyCheck{
-		Logger: logger.WithField("MIDDLEWARE", "policy_check"),
-		Ctrl:   controller,
+	// Final handler (most-inner of all)
+	n.UseHandler(&FilterHandler{
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
+		Controller:   controller,
+		Logger:       logger.WithField("HANDLER", "filter_handler"),
+		OAuth2Secret: secret,
 	})
-	n.Use(&middleware.JWTCheck{
-		Logger:    logger.WithField("MIDDLEWARE", "jwt_check"),
-		Discovery: disco,
-		Config:    config,
-		IssuerURL: disco.Issuer,
-	})
-
-	// Final handler (most-inner of all)
-	r := http.NewServeMux()
-	r.Handle("/", &handler.Authorize{
-		Config:    config,
-		Logger:    logger.WithField("HANDLER", "authorize"),
-		Ctrl:      controller,
-		Secret:    secret,
-		Discovery: disco,
-	})
-	r.Handle("/callback", &handler.Callback{
-		Logger: logger.WithField("HANDLER", "callback"),
-		Secret: secret,
-		Ctrl:   controller,
-		Rest:   rest,
-	})
-	n.UseHandler(r)
 
 	return n, nil
 }
