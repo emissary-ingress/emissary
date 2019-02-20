@@ -18,10 +18,10 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger      types.Logger
-	Config      types.Config
-	Rules       atomic.Value
-	Middlewares atomic.Value
+	Logger  types.Logger
+	Config  types.Config
+	Rules   atomic.Value
+	Filters atomic.Value
 }
 
 func countTrue(args ...bool) int {
@@ -37,17 +37,17 @@ func countTrue(args ...bool) int {
 // Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch(ctx context.Context) {
 	c.Rules.Store([]crd.Rule{})
-	c.Middlewares.Store(map[string]interface{}{})
+	c.Filters.Store(map[string]interface{}{})
 
 	w := k8s.NewClient(nil).Watcher()
 
-	w.Watch("middlewares", func(w *k8s.Watcher) {
-		middlewares := map[string]interface{}{}
-		for _, mw := range w.List("middlewares") {
-			var spec crd.MiddlewareSpec
+	w.Watch("filters", func(w *k8s.Watcher) {
+		filters := map[string]interface{}{}
+		for _, mw := range w.List("filters") {
+			var spec crd.FilterSpec
 			err := mapstructure.Convert(mw.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed middleware resource spec"))
+				c.Logger.Errorln(errors.Wrap(err, "malformed filter resource spec"))
 				continue
 			}
 			if c.Config.AmbassadorSingleNamespace && mw.Namespace() != c.Config.AmbassadorNamespace {
@@ -58,7 +58,7 @@ func (c *Controller) Watch(ctx context.Context) {
 			}
 
 			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil) != 1 {
-				c.Logger.Errorf("middleware resource: must specify exactly 1 of: %v",
+				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v",
 					[]string{"OAuth2", "Plugin"})
 				continue
 			}
@@ -66,46 +66,46 @@ func (c *Controller) Watch(ctx context.Context) {
 			switch {
 			case spec.OAuth2 != nil:
 				if err = spec.OAuth2.Validate(); err != nil {
-					c.Logger.Errorln(errors.Wrap(err, "middleware resource"))
+					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
 					continue
 				}
 
-				c.Logger.Infof("loading middleware domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
-				middlewares[mw.QName()] = *spec.OAuth2
+				c.Logger.Infof("loading filter domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
+				filters[mw.QName()] = *spec.OAuth2
 			case spec.Plugin != nil:
 				if strings.Contains(spec.Plugin.Name, "/") {
-					c.Logger.Errorf("middleware resource: invalid Plugin.name: contains a /: %q", spec.Plugin.Name)
+					c.Logger.Errorf("filter resource: invalid Plugin.name: contains a /: %q", spec.Plugin.Name)
 					continue
 				}
 				p, err := plugin.Open("/etc/ambassador-plugins/" + spec.Plugin.Name + ".so")
 				if err != nil {
-					c.Logger.Errorln("middleware resource: could not open plugin file:", err)
+					c.Logger.Errorln("filter resource: could not open plugin file:", err)
 					continue
 				}
 				f, err := p.Lookup("PluginMain")
 				if err != nil {
-					c.Logger.Errorln("middleware resource: invalid plugin file:", err)
+					c.Logger.Errorln("filter resource: invalid plugin file:", err)
 					continue
 				}
 				h, ok := f.(func(http.ResponseWriter, *http.Request))
 				if !ok {
-					c.Logger.Errorln("middleware resource: invalid plugin file: PluginMain has the wrong type")
+					c.Logger.Errorln("filter resource: invalid plugin file: PluginMain has the wrong type")
 					continue
 				}
 				spec.Plugin.Handler = http.HandlerFunc(h)
 
-				c.Logger.Infof("loading middleware plugin=%s", spec.Plugin.Name)
-				middlewares[mw.QName()] = *spec.Plugin
+				c.Logger.Infof("loading filter plugin=%s", spec.Plugin.Name)
+				filters[mw.QName()] = *spec.Plugin
 			default:
 				panic("should not happen")
 			}
 		}
 
-		if len(middlewares) == 0 {
-			c.Logger.Error("0 middlewares configured")
+		if len(filters) == 0 {
+			c.Logger.Error("0 filters configured")
 		}
 
-		c.Middlewares.Store(middlewares)
+		c.Filters.Store(filters)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
@@ -140,8 +140,8 @@ func (c *Controller) Watch(ctx context.Context) {
 					rule.Scopes[s] = true
 				}
 
-				if rule.Middleware.Namespace == "" {
-					rule.Middleware.Namespace = p.Namespace()
+				if rule.Filter.Namespace == "" {
+					rule.Filter.Namespace = p.Namespace()
 				}
 
 				rules = append(rules, rule)

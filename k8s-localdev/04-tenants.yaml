@@ -1,14 +1,14 @@
 ---
 # @TEMPLATE@
 apiVersion: getambassador.io/v1beta1
-kind: Middleware
+kind: Filter
 metadata:
-  name: tenants
+  name: auth0
   namespace: localdev
 spec:
   OAuth2:
     authorizationURL: {{env "AUTH_PROVIDER_URL"}}
     clientURL: https://ambassador.localdev.svc.cluster.local
     audience: {{env "AUTH_AUDIENCE"}}
-    clientId: {{env "AUTH_CLIENT_ID"}}
+    clientID: {{env "AUTH_CLIENT_ID"}}
     secret: {{env "AUTH_CLIENT_SECRET"}}

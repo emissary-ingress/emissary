@@ -33,13 +33,13 @@ type OAuth2Handler struct {
 	Logger      types.Logger
 	Secret      *secret.Secret
 	Rule        crd.Rule
-	Middleware  crd.MiddlewareOAuth2
+	Filter      crd.FilterOAuth2
 	OriginalURL *url.URL
 	RedirectURL *url.URL
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	disco, err := discovery.New(c.Middleware, c.Logger)
+	disco, err := discovery.New(c.Filter, c.Logger)
 	if err != nil {
 		c.Logger.Debugf("create discovery: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
@@ -75,10 +75,10 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		res, err := client.NewRestClient(disco.AuthorizationEndpoint, disco.TokenEndpoint).Authorize(&client.AuthorizationRequest{
 			GrantType:    "authorization_code", // the default grant used in for this handler
-			ClientID:     c.Middleware.ClientID,
+			ClientID:     c.Filter.ClientID,
 			Code:         code,
-			RedirectURL:  c.Middleware.CallbackURL().String(),
-			ClientSecret: c.Middleware.Secret,
+			RedirectURL:  c.Filter.CallbackURL().String(),
+			ClientSecret: c.Filter.Secret,
 		})
 		if err != nil {
 			c.Logger.Errorf("authorization request failed: %v", err)
@@ -91,7 +91,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Name:     AccessTokenCookie,
 			Value:    res.AccessToken,
 			HttpOnly: true,
-			Secure:   c.Middleware.TLS(),
+			Secure:   c.Filter.TLS(),
 			Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
 		})
 
@@ -103,10 +103,10 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		redirect, _ := disco.AuthorizationEndpoint.Parse("?" + url.Values{
-			"audience":      {c.Middleware.Audience},
+			"audience":      {c.Filter.Audience},
 			"response_type": {"code"},
-			"redirect_uri":  {c.Middleware.CallbackURL().String()},
-			"client_id":     {c.Middleware.ClientID},
+			"redirect_uri":  {c.Filter.CallbackURL().String()},
+			"client_id":     {c.Filter.ClientID},
 			"state":         {c.signState(r)},
 			"scope":         {c.Rule.Scope},
 		}.Encode())
@@ -136,13 +136,13 @@ func (j *OAuth2Handler) validateToken(token string, disco *discovery.Discovery) 
 			return "", errors.New("failed to extract claims")
 		}
 
-		//fmt.Printf("Expected aud: %s\n", middleware.Audience)
+		//fmt.Printf("Expected aud: %s\n", filter.Audience)
 		//fmt.Printf("Expected iss: %s\n", j.IssuerURL)
 		//spew.Dump(claims)
 
 		// Verifies 'aud' claim.
-		if !claims.VerifyAudience(j.Middleware.Audience, false) {
-			return "", fmt.Errorf("invalid audience %s", j.Middleware.Audience)
+		if !claims.VerifyAudience(j.Filter.Audience, false) {
+			return "", fmt.Errorf("invalid audience %s", j.Filter.Audience)
 		}
 
 		// Verifies 'iss' claim.
@@ -195,11 +195,11 @@ func (j *OAuth2Handler) getToken(r *http.Request) string {
 func (h *OAuth2Handler) signState(r *http.Request) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
-		"exp":          time.Now().Add(h.Middleware.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
-		"jti":          uuid.Must(uuid.NewV4(), nil).String(),        // a unique identifier for the token
-		"iat":          time.Now().Unix(),                            // when the token was issued/created (now)
-		"nbf":          0,                                            // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": h.OriginalURL.String(),                       // original request url
+		"exp":          time.Now().Add(h.Filter.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
+		"jti":          uuid.Must(uuid.NewV4(), nil).String(),    // a unique identifier for the token
+		"iat":          time.Now().Unix(),                        // when the token was issued/created (now)
+		"nbf":          0,                                        // time before which the token is not yet valid (2 minutes ago)
+		"redirect_url": h.OriginalURL.String(),                   // original request url
 	}
 
 	k, err := t.SignedString(h.Secret.GetPrivateKey())

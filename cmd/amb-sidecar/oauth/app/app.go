@@ -32,13 +32,13 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 		Formatter:  &negroni.TextPanicFormatter{},
 	})
 	// Final handler (most-inner of all)
-	n.UseHandler(&MiddlewareHandler{
+	n.UseHandler(&FilterHandler{
 		DefaultRule: &crd.Rule{
 			Scope:  crd.DefaultScope,
 			Public: false,
 		},
 		Controller:   controller,
-		Logger:       logger.WithField("HANDLER", "middleware_handler"),
+		Logger:       logger.WithField("HANDLER", "filter_handler"),
 		OAuth2Secret: secret,
 	})
 

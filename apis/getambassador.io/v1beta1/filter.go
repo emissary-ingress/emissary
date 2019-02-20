@@ -8,13 +8,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type MiddlewareSpec struct {
-	AmbassadorID AmbassadorID      `json:"ambassador_id"`
-	OAuth2       *MiddlewareOAuth2 `json:",omitempty"`
-	Plugin       *MiddlewarePlugin `json:",omitempty"`
+type FilterSpec struct {
+	AmbassadorID AmbassadorID  `json:"ambassador_id"`
+	OAuth2       *FilterOAuth2 `json:",omitempty"`
+	Plugin       *FilterPlugin `json:",omitempty"`
 }
 
-type MiddlewareOAuth2 struct {
+type FilterOAuth2 struct {
 	RawAuthorizationURL string   `json:"authorizationURL"` // formerly AUTH_PROVIDER_URL
 	AuthorizationURL    *url.URL `json:"-"`                // calculated from RawAuthorizationURL
 	RawClientURL        string   `json:"clientURL"`        // formerly tenant.tenantUrl
@@ -23,11 +23,11 @@ type MiddlewareOAuth2 struct {
 	RawStateTTL string        `json:"stateTTL"`
 	StateTTL    time.Duration `json:"-"` // calculated from RawStateTTL
 	Audience    string        `json:"audience"`
-	ClientID    string        `json:"clientId"`
+	ClientID    string        `json:"clientID"`
 	Secret      string        `json:"secret"`
 }
 
-func (m *MiddlewareOAuth2) Validate() error {
+func (m *FilterOAuth2) Validate() error {
 	u, err := url.Parse(m.RawAuthorizationURL)
 	if err != nil {
 		return errors.Wrapf(err, "parsing authorizationURL: %q", m.RawAuthorizationURL)
@@ -59,20 +59,20 @@ func (m *MiddlewareOAuth2) Validate() error {
 	return nil
 }
 
-func (m MiddlewareOAuth2) CallbackURL() *url.URL {
+func (m FilterOAuth2) CallbackURL() *url.URL {
 	u, _ := m.ClientURL.Parse("/callback")
 	return u
 }
 
-func (m MiddlewareOAuth2) Domain() string {
+func (m FilterOAuth2) Domain() string {
 	return m.ClientURL.Host
 }
 
-func (m MiddlewareOAuth2) TLS() bool {
+func (m FilterOAuth2) TLS() bool {
 	return m.ClientURL.Scheme == "https"
 }
 
-type MiddlewarePlugin struct {
+type FilterPlugin struct {
 	Name    string       `json:"name"`
 	Handler http.Handler `json:"-"`
 }
