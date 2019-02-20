@@ -10,7 +10,7 @@ The `add_request_headers` attribute is a dictionary of `header`: `value` pairs. 
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  qotm_mapping
 prefix: /qotm/

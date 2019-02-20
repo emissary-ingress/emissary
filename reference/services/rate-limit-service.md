@@ -26,7 +26,7 @@ In Ambassador, each engineer (or team) can be assigned its own *domain*. A domai
 
 Ambassador allows setting a default label on every request. A default label is set on the `ambassador` module. For example:
 
-```
+```yaml
 ---
 apiVersion: ambassador/v1
 kind: Module
@@ -69,7 +69,7 @@ A `RateLimitService` manifest configures Ambassador to use an external service t
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: RateLimitService
 name: ratelimit
 service: "example-rate-limit:5000"
