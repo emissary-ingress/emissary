@@ -12,6 +12,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
@@ -27,7 +28,6 @@ const (
 // present in the request.  If the request Path is "/callback", it
 // validates IDP requests and handles code exchange flow.
 type OAuth2Handler struct {
-	Logger      types.Logger
 	Secret      *secret.Secret
 	Rule        crd.Rule
 	Filter      crd.FilterOAuth2
@@ -36,25 +36,27 @@ type OAuth2Handler struct {
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	disco, err := NewDiscovery(c.Filter, c.Logger)
+	logger := middleware.GetLogger(r)
+
+	disco, err := NewDiscovery(c.Filter, logger)
 	if err != nil {
-		c.Logger.Debugf("create discovery: %v", err)
+		logger.Debugf("create discovery: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 	}
 
-	token := c.getToken(r)
+	token := getToken(r, logger)
 	var tokenErr error
 	if token == "" {
 		tokenErr = errors.New("token not present in the request")
 	} else {
-		tokenErr = c.validateToken(token, disco)
+		tokenErr = c.validateToken(token, disco, logger)
 	}
 	if tokenErr == nil {
 		w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	c.Logger.Debug(tokenErr)
+	logger.Debug(tokenErr)
 
 	switch c.OriginalURL.Path {
 	case "/callback":
@@ -65,7 +67,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			c.Logger.Error("check code failed")
+			logger.Error("check code failed")
 			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
 		}
@@ -78,12 +80,12 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			ClientSecret: c.Filter.Secret,
 		})
 		if err != nil {
-			c.Logger.Errorf("authorization request failed: %v", err)
+			logger.Errorf("authorization request failed: %v", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		c.Logger.Debug("setting authorization cookie")
+		logger.Debug("setting authorization cookie")
 		http.SetCookie(w, &http.Cookie{
 			Name:     AccessTokenCookie,
 			Value:    res.AccessToken,
@@ -95,7 +97,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// If the user-agent request was a POST or PUT, 307 will preserve the body
 		// and just follow the location header.
 		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		c.Logger.Debugf("redirecting user-agent to: %s", c.RedirectURL)
+		logger.Debugf("redirecting user-agent to: %s", c.RedirectURL)
 		http.Redirect(w, r, c.RedirectURL.String(), http.StatusTemporaryRedirect)
 
 	default:
@@ -104,16 +106,16 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"response_type": {"code"},
 			"redirect_uri":  {c.Filter.CallbackURL().String()},
 			"client_id":     {c.Filter.ClientID},
-			"state":         {c.signState(r)},
+			"state":         {c.signState(r, logger)},
 			"scope":         {c.Rule.Scope},
 		}.Encode())
 
-		c.Logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
+		logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
 		http.Redirect(w, r, redirect.String(), http.StatusSeeOther)
 	}
 }
 
-func (j *OAuth2Handler) validateToken(token string, disco *Discovery) error {
+func (j *OAuth2Handler) validateToken(token string, disco *Discovery, logger types.Logger) error {
 	// JWT validation is performed by doing the cheap operations first.
 	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
@@ -155,7 +157,7 @@ func (j *OAuth2Handler) validateToken(token string, disco *Discovery) error {
 		// Validate scopes.
 		if claims["scope"] != nil {
 			for _, s := range strings.Split(claims["scope"].(string), " ") {
-				j.Logger.Debugf("verifying scope %s", s)
+				logger.Debugf("verifying scope %s", s)
 				if !j.Rule.MatchScope(s) {
 					return "", fmt.Errorf("scope %v is not in the policy", s)
 				}
@@ -172,24 +174,24 @@ func (j *OAuth2Handler) validateToken(token string, disco *Discovery) error {
 	return err
 }
 
-func (j *OAuth2Handler) getToken(r *http.Request) string {
+func getToken(r *http.Request, logger types.Logger) string {
 	cookie, _ := r.Cookie(AccessTokenCookie)
 	if cookie != nil {
 		return cookie.Value
 	}
 
-	j.Logger.Debugf("request has no %s cookie", AccessTokenCookie)
+	logger.Debugf("request has no %s cookie", AccessTokenCookie)
 
 	bearer := strings.Split(r.Header.Get("Authorization"), " ")
 	if len(bearer) != 2 && strings.ToLower(bearer[0]) != "bearer" {
-		j.Logger.Debug("authorization header is not a bearer token")
+		logger.Debug("authorization header is not a bearer token")
 		return ""
 	}
 
 	return bearer[1]
 }
 
-func (h *OAuth2Handler) signState(r *http.Request) string {
+func (h *OAuth2Handler) signState(r *http.Request, logger types.Logger) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(h.Filter.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
@@ -201,7 +203,7 @@ func (h *OAuth2Handler) signState(r *http.Request) string {
 
 	k, err := t.SignedString(h.Secret.GetPrivateKey())
 	if err != nil {
-		h.Logger.Errorf("failed to sign state: %v", err)
+		logger.Errorf("failed to sign state: %v", err)
 	}
 
 	return k
