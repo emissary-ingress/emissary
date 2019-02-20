@@ -9,20 +9,6 @@ import (
 	"strings"
 )
 
-// Rest is a generic rest HTTP client.
-type Rest struct {
-	TokenEndpoint *url.URL
-	client        *http.Client
-}
-
-// NewRestClient creates an instance of a rest client.
-func NewRestClient(tokenEndpoint *url.URL) *Rest {
-	return &Rest{
-		client:        http.DefaultClient,
-		TokenEndpoint: tokenEndpoint,
-	}
-}
-
 // AuthorizationResponse is used for de-serializing an authorization response.
 type AuthorizationResponse struct {
 	AccessToken  string `json:"access_token"`
@@ -43,9 +29,9 @@ type AuthorizationRequest struct {
 }
 
 // Authorize sends a POST request to the IDP.
-func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error) {
+func Authorize(client *http.Client, tokenEndpoint *url.URL, a AuthorizationRequest) (*AuthorizationResponse, error) {
 	// build the request
-	request, err := http.NewRequest("POST", c.TokenEndpoint.String(), strings.NewReader(url.Values{
+	request, err := http.NewRequest("POST", tokenEndpoint.String(), strings.NewReader(url.Values{
 		"grant_type":    {a.GrantType},
 		"client_id":     {a.ClientID},
 		"code":          {a.Code},
@@ -59,7 +45,7 @@ func (c *Rest) Authorize(a *AuthorizationRequest) (*AuthorizationResponse, error
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// fire it off
-	response, err := c.client.Do(request)
+	response, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
