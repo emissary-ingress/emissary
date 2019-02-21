@@ -2,9 +2,9 @@
 
 ## BREAKING NEWS
 
-### AMBASSADOR 0.50.2
+### AMBASSADOR 0.50.3
 
-Ambassador 0.50.2 fixes two important issues present in 0.50.1, and is highly recommended for any 0.50.1 users. Please see the notes below on 0.50.2.
+Ambassador 0.50.3 fixes some important issues, and is highly recommended for any 0.50 users. Please see the notes below on 0.50.2.
 
 ### AMBASSADOR 0.50.0
 
@@ -79,6 +79,20 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.50.3] February 21, 2019
+[0.50.3]: https://github.com/datawire/ambassador/compare/0.50.2...0.50.3
+
+### Fixes since 0.50.2
+
+- Ambassador saves configuration snapshots as it manages configuration changes. 0.50.3 keeps only 5 snapshots,
+  to bound its disk usage. The most recent snapshot has no suffix; the `-1` suffix is the next most recent, and
+  the `-4` suffix is the oldest.
+- Ambassador will not check for available updates more often than once every four hours.
+
+### Limitations in 0.50.3
+
+At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release. 
 
 ## [0.50.2] February 15, 2019
 [0.50.2]: https://github.com/datawire/ambassador/compare/0.50.1...0.50.2
