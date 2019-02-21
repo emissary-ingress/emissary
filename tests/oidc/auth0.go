@@ -1,30 +1,32 @@
-package main
+package oidc
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/datawire/apro/lib/testutil"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 type auth0 struct {
-	*idp
-	username string
-	password string
-	tenant   string
-	csrf     string
-	state    string
+	*AuthenticationContext
+	Audience    string
+	ClientID    string
+	Tenant      string
+	cookieCSRF  string
+	cookieAuth0 string
+	state       string
 }
 
-// auth0Login is the payload sent to the Auth0 Username and Password login endpoint.
+// auth0UsernameAndPassword login is a struct that is serialized to JSON and sent to the Auth0 authentication endpoint
 type auth0UsernameAndPasswordLogin struct {
-	Audience     string                 `json:"audience"`
-	ClientID     string                 `json:"client_id"`
+	Audience     string                 `json:"audience"`  // this might be dynamically discoverable
+	ClientID     string                 `json:"client_id"` // this might be dynamically discoverable
 	Connection   string                 `json:"connection"`
-	CSRF         string                 `json:"_csrf"`
-	Intstate     string                 `json:"_intstate"`
+	CSRF         string                 `json:"_csrf"`     // this value is very important.
+	Intstate     string                 `json:"_intstate"` // should always be string literal: "deprecated"
 	Password     string                 `json:"password"`
 	PopupOptions map[string]interface{} `json:"popup_options"`
 	Protocol     string                 `json:"protocol"`
@@ -37,42 +39,60 @@ type auth0UsernameAndPasswordLogin struct {
 	Username     string                 `json:"username"`
 }
 
-func (auth0 *auth0) AuthenticateV2(authRequest *http.Request, authResponse *http.Response) (token string, err error) {
-	CheckIfStatus(authResponse, http.StatusFound)
+func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err error) {
+	assert := testutil.Assert{T: ctx.T}
+	a.AuthenticationContext = ctx
+
+	assert.HTTPResponseStatusEQ(a.initialAuthResponse, http.StatusFound)
 
 	// 3. Handle the Redirect and goto the IdP Login URL
-	loginUIRedirectURL, err := url.Parse(authResponse.Header.Get("Location"))
+	loginUIRedirectURL, err := url.Parse(a.initialAuthResponse.Header.Get("Location"))
 
 	// Auth0 hands back relative (path-only) redirects which are useless for subsequent requests. We are talking to the
 	// same endpoint as "authRequest" so just use the scheme, host and port info from that.
-	loginUIRedirectURL.Scheme = authRequest.URL.Scheme
-	loginUIRedirectURL.Host = authRequest.URL.Host
+	loginUIRedirectURL.Scheme = a.initialAuthRequest.URL.Scheme
+	loginUIRedirectURL.Host = a.initialAuthRequest.URL.Host
 	loginUIRequest, err := createHTTPRequest("GET", *loginUIRedirectURL)
-	CheckIfError(err)
+	if err != nil {
+		return
+	}
 
-	loginUIResponse, err := auth0.httpClient.Do(loginUIRequest)
-	CheckIfError(err)
-	CheckIfStatus(loginUIResponse, http.StatusOK)
+	loginUIResponse, err := a.HTTP.Do(loginUIRequest)
+	if err != nil {
+		return
+	}
+
+	assert.HTTPResponseStatusEQ(loginUIResponse, http.StatusOK)
 
 	loginForm := loginUIResponse
 
-	loginRequest, err := auth0.createLoginRequest(loginForm, loginUIRedirectURL.Query().Get("state"))
-	CheckIfError(err)
+	a.state = loginUIRedirectURL.Query().Get("state")
+	loginRequest, err := a.createLoginRequest(loginForm)
+	if err != nil {
+		return
+	}
 
 	loginRequest.Header.Add(
 		"User-Agent",
 		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.62 Safari/537.36")
 
-	loginResponse, err := auth0.idp.httpClient.Do(loginRequest)
-	CheckIfError(err)
-	CheckIfStatus(loginResponse, 200)
+	loginResponse, err := a.HTTP.Do(loginRequest)
+	if err != nil {
+		return
+	}
+
+	assert.HTTPResponseStatusEQ(loginResponse, 200)
 
 	htmlDoc, err := goquery.NewDocumentFromReader(loginResponse.Body)
-	CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	form := htmlDoc.Find("form[name=hiddenform]")
 	loginCallbackURL, err := url.Parse(form.AttrOr("action", ""))
-	CheckIfError(err)
+	if err != nil {
+		return
+	}
 
 	loginCallbackToken := htmlDoc.Find("input[name=wresult]").AttrOr("value", "")
 	loginCallbackCtx := htmlDoc.Find("input[name=wctx]").AttrOr("value", "")
@@ -82,35 +102,31 @@ func (auth0 *auth0) AuthenticateV2(authRequest *http.Request, authResponse *http
 	formData.Add("wctx", loginCallbackCtx)
 
 	loginCallbackRequest, err := http.NewRequest("POST", loginCallbackURL.String(), strings.NewReader(formData.Encode()))
+
 	// this is all stuff the browser sends so add it as well in case its needed
-	loginCallbackRequest.Header.Set("accept", "*/*")
-	loginCallbackRequest.Header.Set("accept-language", "en-US,en;q=0.9")
-	loginCallbackRequest.Header.Set("content-type", "application/x-www-form-urlencoded")
-	loginCallbackRequest.Header.Set("dnt", "1")
-	loginCallbackRequest.Header.Set("origin", fmt.Sprintf("https://%s.auth0.com/", auth0.tenant))
-	loginCallbackRequest.Header.Set("referrer", "https://ambassador-oauth-e2e.auth0.com/login")
-	loginCallbackRequest.Header.Set("cookie", fmt.Sprintf("_csrf=%s", auth0.csrf)) // VERY IMPORTANT. 403 if excluded
+	SetHeaders(loginCallbackRequest, map[string]string{
+		"accept":       "*/*",
+		"content-type": "application/x-www-form-urlencoded",
+		"cookie":       fmt.Sprintf("_csrf=%s", a.cookieCSRF),
+	})
 
-	loginCallbackResponse, err := auth0.httpClient.Do(loginCallbackRequest)
-	CheckIfError(err)
-
-	//data, err := httputil.DumpResponse(loginCallbackResponse, true)
-	//fmt.Println(string(data))
+	loginCallbackResponse, err := a.HTTP.Do(loginCallbackRequest)
+	if err != nil {
+		return
+	}
 
 	// back to our callback...
 	redirectURL, err := url.Parse(loginCallbackResponse.Header.Get("Location"))
 	callbackRequest, err := http.NewRequest("POST", redirectURL.String(), strings.NewReader(formData.Encode()))
-	callbackRequest.Header.Set("accept", "*/*")
-	callbackRequest.Header.Set("accept-language", "en-US,en;q=0.9")
-	callbackRequest.Header.Set("content-type", "application/x-www-form-urlencoded")
-	callbackRequest.Header.Set("dnt", "1")
-	callbackRequest.Header.Set("origin", fmt.Sprintf("https://%s.auth0.com/", auth0.tenant))
-	callbackRequest.Header.Set("referrer", "https://ambassador-oauth-e2e.auth0.com/login")
-	callbackRequest.Header.Set("cookie", fmt.Sprintf("_csrf=%s", auth0.csrf)) // VERY IMPORTANT. 403 if excluded
+	SetHeaders(callbackRequest, map[string]string{
+		"accept":       "*/*",
+		"content-type": "application/x-www-form-urlencoded",
+		"cookie":       fmt.Sprintf("_csrf=%s", a.cookieCSRF),
+	})
 
-	callbackResponse, err := auth0.httpClient.Do(callbackRequest)
+	callbackResponse, err := a.HTTP.Do(callbackRequest)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	for _, c := range callbackResponse.Cookies() {
@@ -123,104 +139,39 @@ func (auth0 *auth0) AuthenticateV2(authRequest *http.Request, authResponse *http
 	return
 }
 
-func (auth0 *auth0) Authenticate(loginForm *http.Response, state string) (token string, err error) {
-	loginRequest, err := auth0.createLoginRequest(loginForm, state)
-	CheckIfError(err)
+func (a *auth0) createLoginRequest(r *http.Response) (*http.Request, error) {
 
-	loginRequest.Header.Add(
-		"User-Agent",
-		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.62 Safari/537.36")
-
-	loginResponse, err := auth0.idp.httpClient.Do(loginRequest)
-	CheckIfError(err)
-	CheckIfStatus(loginResponse, 200)
-
-	htmlDoc, err := goquery.NewDocumentFromReader(loginResponse.Body)
-	CheckIfError(err)
-
-	form := htmlDoc.Find("form[name=hiddenform]")
-	loginCallbackURL, err := url.Parse(form.AttrOr("action", ""))
-	CheckIfError(err)
-
-	loginCallbackToken := htmlDoc.Find("input[name=wresult]").AttrOr("value", "")
-	loginCallbackCtx := htmlDoc.Find("input[name=wctx]").AttrOr("value", "")
-
-	formData := url.Values{}
-	formData.Add("wresult", loginCallbackToken)
-	formData.Add("wctx", loginCallbackCtx)
-
-	loginCallbackRequest, err := http.NewRequest("POST", loginCallbackURL.String(), strings.NewReader(formData.Encode()))
-	// this is all stuff the browser sends so add it as well in case its needed
-	loginCallbackRequest.Header.Set("accept", "*/*")
-	loginCallbackRequest.Header.Set("accept-language", "en-US,en;q=0.9")
-	loginCallbackRequest.Header.Set("content-type", "application/x-www-form-urlencoded")
-	loginCallbackRequest.Header.Set("dnt", "1")
-	loginCallbackRequest.Header.Set("origin", fmt.Sprintf("https://%s.auth0.com/", auth0.tenant))
-	loginCallbackRequest.Header.Set("referrer", "https://ambassador-oauth-e2e.auth0.com/login")
-	loginCallbackRequest.Header.Set("cookie", fmt.Sprintf("_csrf=%s", auth0.csrf)) // VERY IMPORTANT. 403 if excluded
-
-	loginCallbackResponse, err := auth0.httpClient.Do(loginCallbackRequest)
-	CheckIfError(err)
-
-	//data, err := httputil.DumpResponse(loginCallbackResponse, true)
-	//fmt.Println(string(data))
-
-	// back to our callback...
-	redirectURL, err := url.Parse(loginCallbackResponse.Header.Get("Location"))
-	callbackRequest, err := http.NewRequest("POST", redirectURL.String(), strings.NewReader(formData.Encode()))
-	callbackRequest.Header.Set("accept", "*/*")
-	callbackRequest.Header.Set("accept-language", "en-US,en;q=0.9")
-	callbackRequest.Header.Set("content-type", "application/x-www-form-urlencoded")
-	callbackRequest.Header.Set("dnt", "1")
-	callbackRequest.Header.Set("origin", fmt.Sprintf("https://%s.auth0.com/", auth0.tenant))
-	callbackRequest.Header.Set("referrer", "https://ambassador-oauth-e2e.auth0.com/login")
-	callbackRequest.Header.Set("cookie", fmt.Sprintf("_csrf=%s", auth0.csrf)) // VERY IMPORTANT. 403 if excluded
-
-	callbackResponse, err := auth0.httpClient.Do(callbackRequest)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, c := range callbackResponse.Cookies() {
-		if c.Name == "access_token" {
-			token = c.Value
-			break
-		}
-	}
-
-	return
-}
-
-func (auth0 *auth0) createLoginRequest(r *http.Response, state string) (*http.Request, error) {
-
-	// get the csrf token
+	// get the cookieCSRF token
 	for _, c := range r.Cookies() {
 		if c.Name == "_csrf" {
-			auth0.csrf = c.Value
+			a.cookieCSRF = c.Value
+		}
+		if c.Name == "auth0" {
+			a.cookieAuth0 = c.Value
 		}
 	}
 
-	loginEndpoint, err := url.Parse(fmt.Sprintf("https://%s.auth0.com/usernamepassword/login", auth0.tenant))
+	loginEndpoint, err := url.Parse(fmt.Sprintf("https://%s.auth0.com/usernamepassword/login", a.Tenant))
 	if err != nil {
 		return nil, err
 	}
 
 	loginParams := auth0UsernameAndPasswordLogin{
-		Audience:     auth0.audience,
-		ClientID:     auth0.clientID,
-		CSRF:         auth0.csrf,
+		Audience:     a.Audience,
+		ClientID:     a.ClientID,
+		CSRF:         a.cookieCSRF,
 		Connection:   "Username-Password-Authentication",
 		Intstate:     "deprecated",
-		Password:     auth0.password,
+		Password:     a.Password,
 		PopupOptions: make(map[string]interface{}),
 		Protocol:     "oauth2",
 		RedirectURI:  "https://ambassador.localdev.svc.cluster.local/callback",
 		ResponseType: "code",
-		Scope:        strings.Join(auth0.scopes, " "),
-		State:        state,
+		Scope:        strings.Join(a.Scopes, " "),
+		State:        a.state,
 		SSO:          true,
-		Tenant:       auth0.tenant,
-		Username:     auth0.username,
+		Tenant:       a.Tenant,
+		Username:     a.UsernameOrEmail,
 	}
 
 	loginParamsBytes, err := json.MarshalIndent(&loginParams, "", "   ")
@@ -235,16 +186,11 @@ func (auth0 *auth0) createLoginRequest(r *http.Response, state string) (*http.Re
 	}
 
 	// this is all stuff the browser sends so add it as well in case its needed
-	request.Header.Set("accept", "*/*")
-	request.Header.Set("accept-language", "en-US,en;q=0.9")
-	request.Header.Set("content-type", "application/json")
-	request.Header.Set("dnt", "1")
-	request.Header.Set("origin", fmt.Sprintf("https://%s.auth0.com/", auth0.tenant))
-	request.Header.Set("referrer", "https://ambassador-oauth-e2e.auth0.com/login")
-	request.Header.Set("cookie", fmt.Sprintf("_csrf=%s", auth0.csrf)) // VERY IMPORTANT. 403 if excluded
-
-	// this is a JSON object which carries some version info about the login UI implementation...
-	request.Header.Set("auth0-client", "eyJuYW1lIjoibG9jay5qcyIsInZlcnNpb24iOiIxMS4xMS4wIiwibGliX3ZlcnNpb24iOnsicmF3IjoiOS44LjEifX0=")
+	SetHeaders(request, map[string]string{
+		"accept":       "*/*",
+		"content-type": "application/json",
+		"cookie":       fmt.Sprintf("_csrf=%s", a.cookieCSRF),
+	})
 
 	return request, nil
 }

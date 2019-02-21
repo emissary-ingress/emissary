@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"net/http"
+	"net/http/httputil"
 	"testing"
 )
 
@@ -46,5 +48,20 @@ func (a *Assert) StrNotEmpty(e string) {
 	a.T.Helper()
 	if len(e) == 0 {
 		a.T.Fatalf("Expected not empty string got empty")
+	}
+}
+
+func (a *Assert) NotError(err error) {
+	a.T.Helper()
+	if err != nil {
+		a.T.Fatalf("Unexpected error %v", err)
+	}
+}
+
+func (a *Assert) HTTPResponseStatusEQ(r *http.Response, expected int) {
+	a.T.Helper()
+	if r.StatusCode != expected {
+		data, _ := httputil.DumpResponse(r, true)
+		a.T.Fatalf("Unexpected HTTP response status <%d> wanted <%d>\n\n%s", r.StatusCode, expected, data)
 	}
 }
