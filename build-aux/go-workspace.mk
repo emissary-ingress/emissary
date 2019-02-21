@@ -6,6 +6,7 @@
 #
 ## Inputs ##
 #  - Symlink: ./.go-workspace/src/EXAMPLE.COM/YOU/YOURREPO -> (git topdir)
+#  - Variable: go.GOBUILD ?= go build
 #  - Variable: go.DISABLE_GO_TEST ?=
 #  - Variable: go.LDFLAGS ?=
 #  - Variable: go.PLATFORMS ?= $(GOOS)_$(GOARCH)

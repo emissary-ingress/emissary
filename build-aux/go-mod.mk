@@ -4,6 +4,7 @@
 #
 ## Inputs ##
 #  - File: ./go.mod
+#  - Variable: go.GOBUILD ?= go build
 #  - Variable: go.DISABLE_GO_TEST ?=
 #  - Variable: go.LDFLAGS ?=
 #  - Variable: go.PLATFORMS ?= $(GOOS)_$(GOARCH)

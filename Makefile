@@ -51,7 +51,7 @@ lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 # This mimics _go-common.mk
 define lyft.bin.rule
 bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin))): go-get FORCE
-	go build -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
+	$$(go.GOBUILD) -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
 bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin)))
 	@{ \
 		PS4=''; set -x; \
