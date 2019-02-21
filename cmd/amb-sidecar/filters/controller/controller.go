@@ -2,8 +2,6 @@ package controller
 
 import (
 	"context"
-	"net/http"
-	"plugin"
 	"strings"
 	"sync/atomic"
 
@@ -12,6 +10,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 )
@@ -73,26 +72,10 @@ func (c *Controller) Watch(ctx context.Context) {
 				c.Logger.Infof("loading filter domain=%s, client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
 				filters[mw.QName()] = *spec.OAuth2
 			case spec.Plugin != nil:
-				if strings.Contains(spec.Plugin.Name, "/") {
-					c.Logger.Errorf("filter resource: invalid Plugin.name: contains a /: %q", spec.Plugin.Name)
+				if err = spec.Plugin.Validate(); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
 					continue
 				}
-				p, err := plugin.Open("/etc/ambassador-plugins/" + spec.Plugin.Name + ".so")
-				if err != nil {
-					c.Logger.Errorln("filter resource: could not open plugin file:", err)
-					continue
-				}
-				f, err := p.Lookup("PluginMain")
-				if err != nil {
-					c.Logger.Errorln("filter resource: invalid plugin file:", err)
-					continue
-				}
-				h, ok := f.(func(http.ResponseWriter, *http.Request))
-				if !ok {
-					c.Logger.Errorln("filter resource: invalid plugin file: PluginMain has the wrong type")
-					continue
-				}
-				spec.Plugin.Handler = http.HandlerFunc(h)
 
 				c.Logger.Infof("loading filter plugin=%s", spec.Plugin.Name)
 				filters[mw.QName()] = *spec.Plugin
@@ -106,6 +89,15 @@ func (c *Controller) Watch(ctx context.Context) {
 		}
 
 		c.Filters.Store(filters)
+
+		// I (lukeshu) measured Auth0 as using ~3.5KiB.
+		//
+		//    $ curl -is https://ambassador-oauth-e2e.auth0.com/.well-known/openid-configuration https://ambassador-oauth-e2e.auth0.com/.well-known/openid-configuration|wc --bytes
+		//    3536
+		//
+		// Let's go ahead and give each IDP 8KiB, to make sure
+		// they have room to breathe.
+		httpclient.SetHTTPCacheMaxSize(int64(len(filters)) * 8 * 1024)
 	})
 
 	w.Watch("policies", func(w *k8s.Watcher) {
