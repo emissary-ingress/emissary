@@ -47,3 +47,33 @@ func OriginalURL(r *http.Request) *url.URL {
 	}
 	return u
 }
+
+// ContextualRoundTripper provides a way to make HTTP requests that carry some
+// header context from an incoming request, the origin.
+type ContextualRoundTripper struct {
+	Origin  *http.Request
+	Headers []string
+	Inner   http.RoundTripper
+}
+
+// RoundTrip copies the relevant headers into the client request
+func (crt *ContextualRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	for _, header := range crt.Headers {
+		req.Header.Set(header, crt.Origin.Header.Get(header))
+	}
+	return crt.Inner.RoundTrip(req)
+}
+
+// NewHeaderPassingClient yields an HTTP client that passes along the specified
+// headers from the origin request.
+func NewHeaderPassingClient(origin *http.Request, headers []string) http.Client {
+	crt := ContextualRoundTripper{
+		Origin:  origin,
+		Headers: headers,
+		Inner:   http.DefaultTransport,
+	}
+	client := http.Client{
+		Transport: &crt,
+	}
+	return client
+}

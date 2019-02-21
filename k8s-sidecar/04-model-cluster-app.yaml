@@ -1,0 +1,93 @@
+# @TEMPLATE@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: users
+spec:
+  type: ClusterIP
+  selector:
+    service: mca-selector
+  ports:
+  - name: proxied
+    protocol: TCP
+    port: 80
+    targetPort: 9900
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: posts
+spec:
+  type: ClusterIP
+  selector:
+    service: mca-selector
+  ports:
+  - name: proxied
+    protocol: TCP
+    port: 80
+    targetPort: 9900
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: comments
+spec:
+  type: ClusterIP
+  selector:
+    service: mca-selector
+  ports:
+  - name: proxied
+    protocol: TCP
+    port: 80
+    targetPort: 9900
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: ClusterIP
+  selector:
+    service: mca-selector
+  ports:
+  - name: proxied
+    protocol: TCP
+    port: 80
+    targetPort: 9900
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-cluster-app
+  labels:
+    service: mca-selector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: mca-selector
+  template:
+    metadata:
+      labels:
+        service: mca-selector
+    spec:
+      containers:
+      - name: model-cluster-app
+        image: {{env "MODEL_CLUSTER_APP_IMAGE"}}
+        ports:
+        - containerPort: 8000
+        env:
+        - name: PORT
+          value: "8000"
+      - name: traffic-sidecar
+        image: {{env "SIDECAR_IMAGE"}}
+        ports:
+        - containerPort: 9900
+        env:
+        - name: APPNAME
+          value: model-cluster-app
+        - name: APPPORT
+          value: "8000"
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
