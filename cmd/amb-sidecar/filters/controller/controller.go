@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"strings"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
@@ -123,18 +122,13 @@ func (c *Controller) Watch(ctx context.Context) {
 			}
 
 			for _, rule := range spec.Rules {
-				c.Logger.Infof("loading rule host=%s, path=%s, public=%v, scope=%s",
-					rule.Host, rule.Path, rule.Public, rule.Scope)
-
-				rule.Scopes = make(map[string]bool)
-				scopes := strings.Split(rule.Scope, " ")
-				for _, s := range scopes {
-					rule.Scopes[s] = true
+				if err := rule.Validate(p.Namespace()); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
+					continue
 				}
 
-				if rule.Filter.Namespace == "" {
-					rule.Filter.Namespace = p.Namespace()
-				}
+				c.Logger.Infof("loading rule host=%s, path=%s, filter=%s",
+					rule.Host, rule.Path, rule.Filter.Name+"."+rule.Filter.Namespace)
 
 				rules = append(rules, rule)
 			}

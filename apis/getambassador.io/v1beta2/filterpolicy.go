@@ -14,14 +14,13 @@ type Rule struct {
 	Host   string          `json:"host"`
 	Path   string          `json:"path"`
 	Public bool            `json:"public"`
-	Filter Reference       `json:"filter"`
-	Scope  string          `json:"scope"`
-	Scopes map[string]bool `json:"-"` // is calculated from Scope
+	Filter FilterReference `json:"filter"`
 }
 
-type Reference struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
+type FilterReference struct {
+	Name      string      `json:"name"`
+	Namespace string      `json:"namespace"`
+	Arguments interface{} `json:"arguments"`
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -40,12 +39,9 @@ func match(pattern, input string) bool {
 	return g.Match(input)
 }
 
-const (
-	// DefaultScope is normally used for when no rule has matched the request path or host.
-	DefaultScope = "offline_access"
-)
-
-// MatchScope return true if rule scope.
-func (r Rule) MatchScope(scope string) bool {
-	return r.Scope == DefaultScope || r.Scopes[scope]
+func (r *Rule) Validate(namespace string) error {
+	if r.Filter.Namespace == "" {
+		r.Filter.Namespace = namespace
+	}
+	return nil
 }

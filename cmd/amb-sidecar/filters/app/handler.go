@@ -11,6 +11,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
+	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -65,13 +66,17 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handler http.Handler
 	switch filterT := filter.(type) {
 	case crd.FilterOAuth2:
-		handler = &oauth2handler.OAuth2Handler{
+		_handler := &oauth2handler.OAuth2Handler{
 			Secret:      c.OAuth2Secret,
-			Rule:        *rule,
 			Filter:      filterT,
 			OriginalURL: originalURL,
 			RedirectURL: redirectURL,
 		}
+		if err := mapstructure.Convert(rule.Filter.Arguments, &_handler.FilterArguments); err != nil {
+			logger.Errorln("invalid filter.argument:", err)
+			util.ToJSONResponse(w, http.StatusInternalServerError, &util.Error{Message: "unauthorized"})
+		}
+		handler = _handler
 	case crd.FilterPlugin:
 		handler = filterT.Handler
 	default:
