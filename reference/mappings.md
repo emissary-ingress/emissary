@@ -55,7 +55,6 @@ These attributes are less commonly used, but can be used to override Ambassador'
 | :------------------------ | :------------------------ |
 | `auto_host_rewrite`       | if true, forces the HTTP `Host` header to the `service` to which Ambassador routes |
 | `case_sensitive`          | determines whether `prefix` matching is case-sensitive; defaults to True |
-| [`envoy_override`](/reference/override) | supplies raw configuration data to be included with the generated Envoy route entry. |
 | [`host_redirect`](/reference/redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
 | [`path_redirect`](/reference/redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
 | [`precedence`](#a-nameprecedencea-using-precedence)           | an integer overriding Ambassador's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
