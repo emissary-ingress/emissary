@@ -260,3 +260,6 @@ _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
 release/%: %
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
+
+oidc-idp-test:
+	go test -v ./tests/oidc/...
