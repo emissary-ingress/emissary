@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"strings"
 	"sync/atomic"
 
 	"github.com/pkg/errors"
@@ -127,12 +128,12 @@ func (c *Controller) Watch(ctx context.Context) {
 					continue
 				}
 
-				filterName := "null"
-				if rule.Filter != nil {
-					filterName = rule.Filter.Name + "." + rule.Filter.Namespace
+				filterStrs := make([]string, 0, len(rule.Filters))
+				for _, filterRef := range rule.Filters {
+					filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
 				}
-				c.Logger.Infof("loading rule host=%s, path=%s, filter=%s",
-					rule.Host, rule.Path, filterName)
+				c.Logger.Infof("loading rule host=%s, path=%s, filters=[%s]",
+					rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
 				rules = append(rules, rule)
 			}

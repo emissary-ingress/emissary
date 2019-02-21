@@ -27,7 +27,7 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 	// Final handler (most-inner of all)
 	n.UseHandler(&FilterHandler{
 		DefaultRule: &crd.Rule{
-			Filter: nil,
+			Filters: nil,
 		},
 		Controller:   controller,
 		OAuth2Secret: secret,

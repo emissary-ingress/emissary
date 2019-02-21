@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"net/http"
 	"net/url"
 
@@ -19,6 +20,37 @@ type FilterHandler struct {
 	Controller   *controller.Controller
 	DefaultRule  *crd.Rule
 	OAuth2Secret *secret.Secret
+}
+
+type responseWriter struct {
+	status        int
+	header        http.Header
+	headerWritten bool
+	body          bytes.Buffer
+}
+
+func (rw *responseWriter) Header() http.Header {
+	return rw.header
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	if !rw.headerWritten {
+		rw.WriteHeader(http.StatusOK)
+	}
+	return rw.body.Write(b)
+}
+
+func (rw *responseWriter) WriteHeader(statusCode int) {
+	if rw.headerWritten {
+		return
+	}
+	rw.headerWritten = true
+	rw.status = statusCode
+}
+
+func (rw *responseWriter) reset() {
+	rw.body.Truncate(0)
+	rw.headerWritten = false
 }
 
 func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -48,41 +80,58 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if rule == nil {
 		rule = c.DefaultRule
 	}
-	if rule.Filter == nil {
-		logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	filterQName := rule.Filter.Name + "." + rule.Filter.Namespace
-	logger.Debugf("host=%s, path=%s, filter=%q", rule.Host, rule.Path, filterQName)
 
-	filter := findFilter(c.Controller, filterQName)
-	if filter == nil {
-		logger.Debugf("could not find not filter: %q", filterQName)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-		return
+	response := &responseWriter{
+		status: http.StatusOK,
+		header: http.Header{},
 	}
+	for _, filterRef := range rule.Filters {
+		filterQName := filterRef.Name + "." + filterRef.Namespace
+		logger.Debugf("host=%s, path=%s, filter=%q", rule.Host, rule.Path, filterQName)
 
-	var handler http.Handler
-	switch filterT := filter.(type) {
-	case crd.FilterOAuth2:
-		_handler := &oauth2handler.OAuth2Handler{
-			Secret:      c.OAuth2Secret,
-			Filter:      filterT,
-			OriginalURL: originalURL,
-			RedirectURL: redirectURL,
+		filter := findFilter(c.Controller, filterQName)
+		if filter == nil {
+			logger.Debugf("could not find not filter: %q", filterQName)
+			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+			return
 		}
-		if err := mapstructure.Convert(rule.Filter.Arguments, &_handler.FilterArguments); err != nil {
-			logger.Errorln("invalid filter.argument:", err)
-			util.ToJSONResponse(w, http.StatusInternalServerError, &util.Error{Message: "unauthorized"})
+
+		var handler http.Handler
+		switch filterT := filter.(type) {
+		case crd.FilterOAuth2:
+			_handler := &oauth2handler.OAuth2Handler{
+				Secret:      c.OAuth2Secret,
+				Filter:      filterT,
+				OriginalURL: originalURL,
+				RedirectURL: redirectURL,
+			}
+			if err := mapstructure.Convert(filterRef.Arguments, &_handler.FilterArguments); err != nil {
+				logger.Errorln("invalid filter.argument:", err)
+				util.ToJSONResponse(w, http.StatusInternalServerError, &util.Error{Message: "unauthorized"})
+			}
+			handler = _handler
+		case crd.FilterPlugin:
+			handler = filterT.Handler
+		default:
+			panic(errors.Errorf("unexpected filter type %T", filter))
 		}
-		handler = _handler
-	case crd.FilterPlugin:
-		handler = filterT.Handler
-	default:
-		panic(errors.Errorf("unexpected filter type %T", filter))
+
+		response.reset()
+		request := new(http.Request)
+		*request = *r
+		for k, s := range response.header {
+			request.Header[k] = s
+		}
+		handler.ServeHTTP(response, request)
+		if response.status != http.StatusOK {
+			break
+		}
 	}
-	handler.ServeHTTP(w, r)
+	for k, s := range response.header {
+		w.Header()[k] = s
+	}
+	w.WriteHeader(response.status)
+	response.body.WriteTo(w)
 }
 
 func findFilter(c *controller.Controller, qname string) interface{} {
