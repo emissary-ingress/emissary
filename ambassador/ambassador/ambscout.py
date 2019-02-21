@@ -39,7 +39,7 @@ class AmbScout:
     _latest_version: Optional[str] = None
     _latest_semver: Optional[semantic_version.Version] = None
 
-    def __init__(self, install_id=None) -> None:
+    def __init__(self, install_id=None, update_frequency=datetime.timedelta(hours=4)) -> None:
         if not install_id:
             install_id = os.environ.get('AMBASSADOR_CLUSTER_ID',
                                         os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000"))
@@ -65,7 +65,7 @@ class AmbScout:
         self._notices = None
         self._last_result = None
         self._last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
-        self._update_frequency = datetime.timedelta(hours=4)
+        self._update_frequency = update_frequency
         self._latest_version = None
         self._latest_semver = None
 
