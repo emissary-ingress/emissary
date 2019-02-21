@@ -87,7 +87,6 @@ class DiagApp (Flask):
     snapshot_path: str
     bootstrap_path: str
     ads_path: str
-    ads_temp_path: str = '/tmp/envoy-test.json'
     health_checks: bool
     no_envoy: bool
     debugging: bool
@@ -534,7 +533,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         while True:
             cmd, arg = self.events.get()
-            self.logger.info("EVENT: %s" % cmd)
+            # self.logger.info("EVENT: %s" % cmd)
 
             if cmd == 'ESTATS':
                 # self.logger.info("updating estats")
@@ -582,7 +581,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
     def load_config(self, url):
         snapshot = url.split('/')[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-%s.yaml" % snapshot)
+        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
         self.logger.info("copying configuration from %s to %s" % (url, ss_path))
 
@@ -609,12 +608,12 @@ class AmbassadorEventWatcher(threading.Thread):
 
         aconf.load_all(fetcher.sorted())
 
-        aconf_path = os.path.join(app.snapshot_path, "aconf-%s.json" % snapshot)
+        aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
         ir = IR(aconf, secret_reader=secret_reader)
 
-        ir_path = os.path.join(app.snapshot_path, "ir-%s.json" % snapshot)
+        ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
 
         econf = EnvoyConfig.generate(ir, "V2")
@@ -626,6 +625,21 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
             app.check_scout("attempted bad update")
             return
+
+        self.logger.info("rotating snapshots for snapshot %s" % snapshot)
+
+        for from_suffix, to_suffix in [ ('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '') ]:
+            for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
+                try:
+                    from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
+                    to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
+
+                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                    os.rename(from_path, to_path)
+                except IOError as e:
+                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                except Exception as e:
+                    self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
         self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
 
@@ -688,10 +702,12 @@ class AmbassadorEventWatcher(threading.Thread):
         validation_config.pop('@type')
         config_json = json.dumps(validation_config, sort_keys=True, indent=4)
 
-        with open(app.ads_temp_path, "w") as output:
+        econf_validation_path = os.path.join(app.snapshot_path, "econf-tmp.json")
+
+        with open(econf_validation_path, "w") as output:
             output.write(config_json)
 
-        command = ['envoy', '--config-path', app.ads_temp_path, '--mode', 'validate']
+        command = ['envoy', '--config-path', econf_validation_path, '--mode', 'validate']
         odict = {
             'exit_code': 0,
             'output': ''
