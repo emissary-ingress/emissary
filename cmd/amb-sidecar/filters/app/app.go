@@ -7,9 +7,9 @@ import (
 	"github.com/urfave/negroni"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/middleware"
-	_secret "github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
+	_secret "github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
@@ -23,14 +23,7 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 	n := negroni.New()
 
 	// Middleware (most-outer is listed first, most-inner is listed last)
-	n.Use(&middleware.Logger{Logger: logger.WithField("MIDDLEWARE", "logger")})
-	n.Use(&negroni.Recovery{
-		Logger:     logger.WithField("MIDDLEWARE", "recovery"),
-		PrintStack: false,
-		StackAll:   false,
-		StackSize:  1024 * 8,
-		Formatter:  &negroni.TextPanicFormatter{},
-	})
+	n.Use(&middleware.Logger{Logger: logger})
 	// Final handler (most-inner of all)
 	n.UseHandler(&FilterHandler{
 		DefaultRule: &crd.Rule{
@@ -38,7 +31,6 @@ func NewHandler(config types.Config, logger types.Logger, controller *controller
 			Public: false,
 		},
 		Controller:   controller,
-		Logger:       logger.WithField("HANDLER", "filter_handler"),
 		OAuth2Secret: secret,
 	})
 

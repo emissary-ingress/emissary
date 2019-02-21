@@ -4,9 +4,11 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/datawire/teleproxy v0.3.16
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/gobwas/glob v0.2.3
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
+	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
 	github.com/hashicorp/consul v1.4.2
 	github.com/hashicorp/go-cleanhttp v0.5.0 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.0 // indirect

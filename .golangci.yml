@@ -5,6 +5,7 @@ linters:
     - gochecknoglobals
     - gochecknoinits
     - golint
+    - interfacer # author says it's deprecated, gives very subjective advice
     - lll
     - prealloc
     - scopelint

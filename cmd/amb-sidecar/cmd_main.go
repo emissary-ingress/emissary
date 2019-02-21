@@ -8,8 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/rls"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )

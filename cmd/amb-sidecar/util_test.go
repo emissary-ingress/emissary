@@ -15,10 +15,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/client"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
@@ -29,7 +28,7 @@ func NewIDP() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/oauth/token":
-			authREQ := client.AuthorizationRequest{}
+			authREQ := oauth2handler.AuthorizationRequest{}
 
 			ct := r.Header.Get("Content-Type")
 			if ct == "" {
@@ -41,7 +40,7 @@ func NewIDP() *httptest.Server {
 			}
 			switch mt {
 			case "application/x-www-form-urlencoded", "multipart/form-data":
-				authREQ = client.AuthorizationRequest{
+				authREQ = oauth2handler.AuthorizationRequest{
 					GrantType:    r.PostFormValue("grant_type"),
 					ClientID:     r.PostFormValue("client_id"),
 					Code:         r.PostFormValue("code"),
@@ -59,7 +58,7 @@ func NewIDP() *httptest.Server {
 			}
 
 			if authREQ.Code == "authorize" {
-				util.ToJSONResponse(w, http.StatusOK, &client.AuthorizationResponse{
+				util.ToJSONResponse(w, http.StatusOK, &oauth2handler.AuthorizationResponse{
 					AccessToken:  "mocked_token_123",
 					IDToken:      "mocked_id_token_123",
 					TokenType:    "Bearer",
@@ -70,15 +69,15 @@ func NewIDP() *httptest.Server {
 				w.WriteHeader(http.StatusUnauthorized)
 			}
 		case "/.well-known/openid-configuration":
-			util.ToJSONResponse(w, http.StatusOK, &discovery.OpenIDConfig{
+			util.ToJSONResponse(w, http.StatusOK, &oauth2handler.OpenIDConfig{
 				Issuer:                fmt.Sprintf("%s://%s/", serverURL.Scheme, serverURL.Host),
 				AuthorizationEndpoint: "TODO://AuthorizationEndpoint",
 				TokenEndpoint:         fmt.Sprintf("%s://%s/oauth/token", serverURL.Scheme, serverURL.Host),
-				JSONWebKeyURI:         fmt.Sprintf("%s://%s/.well-known/jwks.json", serverURL.Scheme, serverURL.Host),
+				JSONWebKeySetURI:      fmt.Sprintf("%s://%s/.well-known/jwks.json", serverURL.Scheme, serverURL.Host),
 			})
 		case "/.well-known/jwks.json":
-			util.ToJSONResponse(w, http.StatusOK, discovery.JWKSlice{
-				Keys: []discovery.JWK{
+			util.ToJSONResponse(w, http.StatusOK, oauth2handler.JWKSlice{
+				Keys: []oauth2handler.JWK{
 					// TODO
 				},
 			})

@@ -7,21 +7,21 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/oauth2handler"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/app/secret"
-	"github.com/datawire/apro/cmd/amb-sidecar/oauth/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/lib/util"
 )
 
 type FilterHandler struct {
-	Logger       types.Logger
 	Controller   *controller.Controller
 	DefaultRule  *crd.Rule
 	OAuth2Secret *secret.Secret
 }
 
 func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	logger := middleware.GetLogger(r)
 	originalURL := util.OriginalURL(r)
 
 	var rule *crd.Rule
@@ -30,13 +30,13 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/callback":
 		redirectURLstr, err := oauth2handler.CheckState(r, c.OAuth2Secret)
 		if err != nil {
-			c.Logger.Errorf("check state failed: %v", err)
+			logger.Errorf("check state failed: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		redirectURL, err = url.Parse(redirectURLstr)
 		if err != nil {
-			c.Logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
+			logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -48,16 +48,16 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		rule = c.DefaultRule
 	}
 	filterQName := rule.Filter.Name + "." + rule.Filter.Namespace
-	c.Logger.Debugf("host=%s, path=%s, public=%v, filter=%q", rule.Host, rule.Path, rule.Public, filterQName)
+	logger.Debugf("host=%s, path=%s, public=%v, filter=%q", rule.Host, rule.Path, rule.Public, filterQName)
 	if rule.Public {
-		c.Logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
+		logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
 	filter := findFilter(c.Controller, filterQName)
 	if filter == nil {
-		c.Logger.Debugf("could not find not filter: %q", filterQName)
+		logger.Debugf("could not find not filter: %q", filterQName)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 		return
 	}
@@ -66,7 +66,6 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch filterT := filter.(type) {
 	case crd.FilterOAuth2:
 		handler = &oauth2handler.OAuth2Handler{
-			Logger:      c.Logger,
 			Secret:      c.OAuth2Secret,
 			Rule:        *rule,
 			Filter:      filterT,
