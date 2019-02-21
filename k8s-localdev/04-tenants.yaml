@@ -1,6 +1,6 @@
 # @TEMPLATE@
 ---
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: auth0
@@ -14,7 +14,7 @@ spec:
     secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
 
 ---
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: keycloak
