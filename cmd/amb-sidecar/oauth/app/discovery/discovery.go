@@ -54,7 +54,7 @@ var instance *Discovery
 
 // New creates a singleton instance of the discovery client.
 func New(mw crd.FilterOAuth2, logger types.Logger) (*Discovery, error) {
-	configURL, _ := mw.AuthorizationURL.Parse("/.well-known/openid-configuration")
+	configURL, _ := url.Parse(mw.AuthorizationURL.String() + "/.well-known/openid-configuration")
 	config, err := fetchOpenIDConfig(configURL.String())
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
