@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
-	"net/http/httputil"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -87,27 +85,6 @@ func newHTTPClient(timeout time.Duration, enableCookies bool) http.Client {
 	}
 
 	return client
-}
-
-func CheckIfError(err error) {
-	if err == nil {
-		return
-	}
-
-	fmt.Printf("Error %s", err)
-	os.Exit(1)
-}
-
-func CheckIfStatus(r *http.Response, expectedStatus int) {
-	if r.StatusCode != expectedStatus {
-		fmt.Printf("Error expected HTTP status %d but was %d\n", expectedStatus, r.StatusCode)
-
-		data, err := httputil.DumpResponse(r, true)
-		CheckIfError(err)
-		fmt.Println(string(data))
-
-		os.Exit(1)
-	}
 }
 
 func createHTTPRequest(method string, url url.URL) (*http.Request, error) {
