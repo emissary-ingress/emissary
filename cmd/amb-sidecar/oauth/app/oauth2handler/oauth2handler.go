@@ -41,7 +41,7 @@ type OAuth2Handler struct {
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	disco, err := discovery.New(c.Filter, c.Logger)
 	if err != nil {
-		c.Logger.Debugf("create discovery: %v", err)
+		c.Logger.Errorln("create discovery failed: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 	}
 
