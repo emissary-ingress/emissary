@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"

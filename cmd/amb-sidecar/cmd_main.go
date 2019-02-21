@@ -62,7 +62,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		})
 	}
 
-	// Tenant+Policy controller
+	// Filter+FilterPolicy controller
 	ct := &controller.Controller{}
 	group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		ct.Config = cfg

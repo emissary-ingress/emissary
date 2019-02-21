@@ -16,7 +16,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta1"
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
