@@ -1,6 +1,6 @@
 ---
-apiVersion: getambassador.io/v1beta1
-kind: Policy
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
 metadata:
   name: httpbin-policy
   namespace: standalone
