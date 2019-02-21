@@ -11,14 +11,12 @@ spec:
   rules:
   - host: "*"
     path: /httpbin/ip
-    public: true
+    filter: null # make this path public
   - host: "*"
     path: /httpbin/user-agent
-    public: false
     filter:
       name: auth0
   - host: "*"
     path: /httpbin/headers
-    public: false
     filter:
       name: auth0

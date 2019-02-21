@@ -140,7 +140,7 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		{
 			Host: "*",
 			Path: "*",
-			Filter: crd.FilterReference{
+			Filter: &crd.FilterReference{
 				Name:      "app",
 				Namespace: "default",
 				Arguments: crd.FilterOAuth2Arguments{

@@ -11,10 +11,9 @@ type FilterPolicySpec struct {
 
 // Rule defines authorization rules object.
 type Rule struct {
-	Host   string          `json:"host"`
-	Path   string          `json:"path"`
-	Public bool            `json:"public"`
-	Filter FilterReference `json:"filter"`
+	Host   string           `json:"host"`
+	Path   string           `json:"path"`
+	Filter *FilterReference `json:"filter"`
 }
 
 type FilterReference struct {
@@ -40,7 +39,7 @@ func match(pattern, input string) bool {
 }
 
 func (r *Rule) Validate(namespace string) error {
-	if r.Filter.Namespace == "" {
+	if r.Filter != nil && r.Filter.Namespace == "" {
 		r.Filter.Namespace = namespace
 	}
 	return nil

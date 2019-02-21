@@ -127,8 +127,12 @@ func (c *Controller) Watch(ctx context.Context) {
 					continue
 				}
 
+				filterName := "null"
+				if rule.Filter != nil {
+					filterName = rule.Filter.Name + "." + rule.Filter.Namespace
+				}
 				c.Logger.Infof("loading rule host=%s, path=%s, filter=%s",
-					rule.Host, rule.Path, rule.Filter.Name+"."+rule.Filter.Namespace)
+					rule.Host, rule.Path, filterName)
 
 				rules = append(rules, rule)
 			}

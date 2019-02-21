@@ -48,13 +48,13 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if rule == nil {
 		rule = c.DefaultRule
 	}
-	filterQName := rule.Filter.Name + "." + rule.Filter.Namespace
-	logger.Debugf("host=%s, path=%s, public=%v, filter=%q", rule.Host, rule.Path, rule.Public, filterQName)
-	if rule.Public {
+	if rule.Filter == nil {
 		logger.Debugf("%s %s is public", originalURL.Host, originalURL.Path)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
+	filterQName := rule.Filter.Name + "." + rule.Filter.Namespace
+	logger.Debugf("host=%s, path=%s, filter=%q", rule.Host, rule.Path, filterQName)
 
 	filter := findFilter(c.Controller, filterQName)
 	if filter == nil {
