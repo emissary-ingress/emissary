@@ -50,10 +50,16 @@ lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 
 # This mimics _go-common.mk
 define lyft.bin.rule
-bin_%/.tmp.$(word 1,$(subst :, ,$(lyft.bin))).tmp: go-get FORCE
+bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin))): go-get FORCE
 	go build -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
-bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.tmp.$(word 1,$(subst :, ,$(lyft.bin))).tmp
-	if cmp -s $$< $$@; then rm -f $$< || true; else $(if $(CI),test ! -e $$@ && )mv -f $$< $$@; fi
+bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin)))
+	@{ \
+		PS4=''; set -x; \
+		if ! cmp -s $$< $$@; then \
+			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
+			cp -f $$< $$@; \
+		fi; \
+	}
 endef
 $(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
 build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
