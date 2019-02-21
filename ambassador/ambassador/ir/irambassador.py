@@ -1,6 +1,7 @@
 from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
 
 # import json
+from ambassador.ir.irfilter import IRFilter
 
 from ..config import Config
 
@@ -81,7 +82,7 @@ class IRAmbassador (IRResource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # We're interested in the 'ambassador' module from the Config, if any...
         amod = aconf.get_module("ambassador")
-        
+
         # Is there a TLS module in the Ambassador module?
         if amod:
             self.sourced_by(amod)
@@ -193,8 +194,16 @@ class IRAmbassador (IRResource):
                 if not cur.get('service', None):
                     cur['service'] = diag_service
 
+        if amod and ('enable_grpc_http11_bridge' in amod):
+            self.grpc_http11_bridge = IRFilter(ir=ir, aconf=aconf,
+                                               kind='ir.grpc_http1_bridge',
+                                               name='grpc_http1_bridge',
+                                               config=dict())
+            self.grpc_http11_bridge.sourced_by(amod)
+            ir.save_filter(self.grpc_http11_bridge)
+
          # Buffer.
-        if amod and ('buffer' in amod):            
+        if amod and ('buffer' in amod):
             self.buffer = IRBuffer(ir=ir, aconf=aconf, location=self.location, **amod.buffer)
 
             if self.buffer:

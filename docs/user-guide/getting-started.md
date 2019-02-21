@@ -81,7 +81,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  httpbin_mapping
       prefix: /httpbin/
@@ -161,7 +161,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind:  Mapping
       name:  qotm_mapping
       prefix: /qotm/

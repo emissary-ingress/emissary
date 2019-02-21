@@ -10,7 +10,7 @@ A `TracingService` manifest configures Ambassador to use an external trace visua
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: TracingService
 name: tracing
 service: "example-zipkin:9411"

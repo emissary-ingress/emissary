@@ -15,7 +15,7 @@
 # limitations under the License
 import copy
 import subprocess
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import datetime
 import functools
@@ -87,8 +87,8 @@ class DiagApp (Flask):
     snapshot_path: str
     bootstrap_path: str
     ads_path: str
-    ads_temp_path: str = '/tmp/envoy-test.json'
     health_checks: bool
+    no_envoy: bool
     debugging: bool
     verbose: bool
     notice_path: str
@@ -99,16 +99,17 @@ class DiagApp (Flask):
     diag: Diagnostics
     notices: 'Notices'
     scout: Scout
-    scout_args: Dict[str, Any]
-    scout_result: Dict[str, Any]
+    # scout_args: Dict[str, Any]
+    # scout_result: Dict[str, Any]
     watcher: 'AmbassadorEventWatcher'
     stats_updater: Optional[PeriodicTrigger]
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
-              do_checks=False, reload=False, debug=False, verbose=False, notices=None):
+              do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False, notices=None):
         self.estats = EnvoyStats()
-        self.health_checks = False
+        self.health_checks = do_checks
+        self.no_envoy = no_envoy
         self.debugging = reload
         self.verbose = verbose
         self.notice_path = notices
@@ -127,9 +128,6 @@ class DiagApp (Flask):
             self.logger.setLevel(logging.DEBUG)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
 
-        if do_checks:
-            self.health_checks = True
-
         self.config_path = config_path
         self.bootstrap_path = bootstrap_path
         self.ads_path = ads_path
@@ -137,6 +135,12 @@ class DiagApp (Flask):
 
         self.ir = None
         self.stats_updater = None
+
+        # self.scout = Scout(update_frequency=datetime.timedelta(seconds=30))
+        self.scout = Scout()
+
+    def check_scout(self, what: str) -> None:
+        self.watcher.post("SCOUT", (what, self.ir))
 
 # Get the Flask app defined early. Setup happens later.
 app = DiagApp(__name__,
@@ -230,30 +234,6 @@ class Notices:
             self.post(notice)
 
 
-def check_scout(app, what: str, ir: Optional[IR]=None) -> None:
-    uptime = datetime.datetime.now() - boot_time
-    hr_uptime = td_format(uptime)
-
-    app.notices.reset()
-
-    app.scout = Scout()
-    app.scout_args = {
-        "uptime": int(uptime.total_seconds()),
-        "hr_uptime": hr_uptime
-    }
-
-    if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
-        app.scout_args["features"] = ir.features()
-
-    app.scout_result = app.scout.report(mode="diagd", action=what, **app.scout_args)
-    scout_notices = app.scout_result.pop('notices', [])
-    app.notices.extend(scout_notices)
-
-    app.logger.info("Scout reports %s" % json.dumps(app.scout_result))
-    app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
-    app.logger.info("App notices after scout: %s" % json.dumps(app.notices.notices))
-
-
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
@@ -334,6 +314,20 @@ def handle_update():
     return "update requested", 200
 
 
+# @app.route('/_internal/v0/fs', methods=[ 'POST' ])
+# def handle_fs():
+#     path = request.args.get('path', None)
+#
+#     if not path:
+#         app.logger.error("error: update requested with no PATH")
+#         return "error: update requested with no PATH", 400
+#
+#     app.logger.info("Update requested from %s" % path)
+#     app.watcher.post('CONFIG_FS', path)
+#
+#     return "update requested", 200
+
+
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
 def favicon():
     template_path = resource_filename(Requirement.parse("ambassador"), "templates")
@@ -369,10 +363,9 @@ def check_ready():
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
 
-    ir = app.ir
     diag = app.diag
 
-    check_scout(app, "overview", ir)
+    app.check_scout("overview")
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
@@ -455,10 +448,9 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
 
-    ir = app.ir
     diag = app.diag
 
-    check_scout(app, "detail: %s" % source, ir)
+    app.check_scout("detail: %s" % source)
 
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
@@ -530,7 +522,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
 
-    def post(self, cmd: str, arg: str) -> None:
+    def post(self, cmd: str, arg: Union[str, Tuple[str, IR]]) -> None:
         self.events.put((cmd, arg))
 
     def update_estats(self) -> None:
@@ -541,6 +533,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         while True:
             cmd, arg = self.events.get()
+            # self.logger.info("EVENT: %s" % cmd)
 
             if cmd == 'ESTATS':
                 # self.logger.info("updating estats")
@@ -558,6 +551,12 @@ class AmbassadorEventWatcher(threading.Thread):
             elif cmd == 'CONFIG':
                 try:
                     self.load_config(arg)
+                except Exception as e:
+                    self.logger.error("could not reconfigure: %s" % e)
+                    self.logger.exception(e)
+            elif cmd == 'SCOUT':
+                try:
+                    self.check_scout(*arg)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
@@ -582,7 +581,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
     def load_config(self, url):
         snapshot = url.split('/')[-1]
-        ss_path = os.path.join(app.snapshot_path, "snapshot-%s.yaml" % snapshot)
+        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
         self.logger.info("copying configuration from %s to %s" % (url, ss_path))
 
@@ -609,15 +608,13 @@ class AmbassadorEventWatcher(threading.Thread):
 
         aconf.load_all(fetcher.sorted())
 
-        aconf_path = os.path.join(app.snapshot_path, "aconf-%s.json" % snapshot)
+        aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
         ir = IR(aconf, secret_reader=secret_reader)
 
-        ir_path = os.path.join(app.snapshot_path, "ir-%s.json" % snapshot)
+        ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
-
-        check_scout(app, "update", ir)
 
         econf = EnvoyConfig.generate(ir, "V2")
         diag = Diagnostics(ir, econf)
@@ -626,7 +623,23 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not self.validate_envoy_config(config=ads_config):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+            app.check_scout("attempted bad update")
             return
+
+        self.logger.info("rotating snapshots for snapshot %s" % snapshot)
+
+        for from_suffix, to_suffix in [ ('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '') ]:
+            for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
+                try:
+                    from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
+                    to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
+
+                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                    os.rename(from_path, to_path)
+                except IOError as e:
+                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                except Exception as e:
+                    self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
         self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
 
@@ -641,6 +654,8 @@ class AmbassadorEventWatcher(threading.Thread):
         app.econf = econf
         app.diag = diag
 
+        app.check_scout("update")
+
         if app.kick:
             self.logger.info("running '%s'" % app.kick)
             os.system(app.kick)
@@ -654,18 +669,45 @@ class AmbassadorEventWatcher(threading.Thread):
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
 
+    def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
+        uptime = datetime.datetime.now() - boot_time
+        hr_uptime = td_format(uptime)
+
+        self.app.notices.reset()
+
+        scout_args = {
+            "uptime": int(uptime.total_seconds()),
+            "hr_uptime": hr_uptime
+        }
+
+        if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+            scout_args["features"] = ir.features()
+
+        scout_result = self.app.scout.report(mode="diagd", action=what, **scout_args)
+        scout_notices = scout_result.pop('notices', [])
+        self.app.notices.extend(scout_notices)
+
+        self.app.logger.info("Scout reports %s" % json.dumps(scout_result))
+        self.app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
+        self.app.logger.debug("App notices after scout: %s" % json.dumps(app.notices.notices))
 
     def validate_envoy_config(self, config) -> bool:
+        if self.app.no_envoy:
+            self.app.logger.debug("Skipping validation")
+            return True
+
         # We want to keep the original config untouched
         validation_config = copy.deepcopy(config)
         # Envoy fails to validate with @type field in envoy config, so removing that
         validation_config.pop('@type')
         config_json = json.dumps(validation_config, sort_keys=True, indent=4)
 
-        with open(app.ads_temp_path, "w") as output:
+        econf_validation_path = os.path.join(app.snapshot_path, "econf-tmp.json")
+
+        with open(econf_validation_path, "w") as output:
             output.write(config_json)
 
-        command = ['envoy', '--config-path', app.ads_temp_path, '--mode', 'validate']
+        command = ['envoy', '--config-path', econf_validation_path, '--mode', 'validate']
         odict = {
             'exit_code': 0,
             'output': ''
@@ -711,7 +753,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
           *, config_path=None, ambex_pid=0, kick=None,
-          no_checks=False, reload=False, debug=False, verbose=False,
+          no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', notices=None):
     """
     Run the diagnostic daemon.
@@ -723,6 +765,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
+    :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
     :param debug: If True, do debug logging
     :param verbose: If True, do really verbose debug logging
@@ -732,9 +775,12 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param notices: Optional file to read for local notices
     """
 
+    if no_envoy:
+        no_checks = True
+
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
-              not no_checks, reload, debug, verbose, notices)
+              not no_checks, no_envoy, reload, debug, verbose, notices)
 
     if not workers:
         workers = number_of_workers()
