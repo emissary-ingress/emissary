@@ -2,11 +2,13 @@ package oidc
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/datawire/apro/lib/testutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	goquery "github.com/PuerkitoBio/goquery"
+
+	testutil "github.com/datawire/apro/lib/testutil"
 )
 
 type keycloak struct {
@@ -15,7 +17,10 @@ type keycloak struct {
 	cookieKeycloakRestart string
 }
 
-func (k *keycloak) Authenticate(ctx *AuthenticationContext) (token string, err error) {
+func (k *keycloak) Authenticate(ctx *AuthenticationContext) (string, error) {
+	var token string
+	var err error
+
 	assert := testutil.Assert{T: ctx.T}
 	k.AuthenticationContext = ctx
 
@@ -23,12 +28,12 @@ func (k *keycloak) Authenticate(ctx *AuthenticationContext) (token string, err e
 
 	loginRequest, loginParams, err := k.createLoginRequest(k.initialAuthResponse)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	loginResponse, err := k.HTTP.Do(loginRequest)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	assert.HTTPResponseStatusEQ(loginResponse, http.StatusFound)
@@ -36,12 +41,12 @@ func (k *keycloak) Authenticate(ctx *AuthenticationContext) (token string, err e
 		[]string{"KC_RESTART", "KEYCLOAK_IDENTITY", "KEYCLOAK_SESSION", "KEYCLOAK_REMEMBER_ME"})
 
 	if err != nil {
-		return
+		return token, err
 	}
 
 	loginCallbackRequest, err := http.NewRequest("POST", loginResponse.Header.Get("Location"), strings.NewReader(loginParams.Encode()))
 	if err != nil {
-		return
+		return token, err
 	}
 
 	SetHeaders(loginCallbackRequest, map[string]string{
@@ -52,20 +57,24 @@ func (k *keycloak) Authenticate(ctx *AuthenticationContext) (token string, err e
 
 	loginCallbackResponse, err := k.HTTP.Do(loginCallbackRequest)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	assert.HTTPResponseStatusEQ(loginCallbackResponse, http.StatusTemporaryRedirect)
 	cookies, err = ExtractCookies(loginCallbackResponse, []string{"access_token"})
 	if err != nil {
-		return
+		return token, err
 	}
 
 	token = cookies["access_token"]
-	return
+	return token, err
 }
 
-func (k *keycloak) createLoginRequest(loginForm *http.Response) (request *http.Request, loginParams url.Values, err error) {
+func (k *keycloak) createLoginRequest(loginForm *http.Response) (*http.Request, url.Values, error) {
+	var request *http.Request
+	var loginParams url.Values
+	var err error
+
 	// extract cookies
 	for _, c := range loginForm.Cookies() {
 		if c.Name == "AUTH_SESSION_ID" {
@@ -80,13 +89,13 @@ func (k *keycloak) createLoginRequest(loginForm *http.Response) (request *http.R
 	// figure out the login form parameter values
 	htmlDoc, err := goquery.NewDocumentFromReader(loginForm.Body)
 	if err != nil {
-		return
+		return request, loginParams, err
 	}
 
 	form := htmlDoc.Find("form[id=kc-form-login]")
 	loginActionURL, err := url.Parse(form.AttrOr("action", ""))
 	if err != nil {
-		return
+		return request, loginParams, err
 	}
 
 	loginParams = url.Values{}
@@ -96,7 +105,7 @@ func (k *keycloak) createLoginRequest(loginForm *http.Response) (request *http.R
 
 	request, err = http.NewRequest("POST", loginActionURL.String(), strings.NewReader(loginParams.Encode()))
 	if err != nil {
-		return
+		return request, loginParams, err
 	}
 
 	SetHeaders(request, map[string]string{
@@ -106,5 +115,5 @@ func (k *keycloak) createLoginRequest(loginForm *http.Response) (request *http.R
 		"cookie":       fmt.Sprintf("KC_RESTART=%s; AUTH_SESSION_ID=%s", k.cookieKeycloakRestart, k.cookieAuthSessionID),
 	})
 
-	return
+	return request, loginParams, err
 }

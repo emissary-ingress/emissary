@@ -73,6 +73,7 @@ func newHTTPClient(timeout time.Duration, enableCookies bool) http.Client {
 		// Disable HTTPS certificate validation for this client because we are likely using self-signed certificates
 		// during tests.
 		Transport: &http.Transport{
+			/* #nosec */
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 

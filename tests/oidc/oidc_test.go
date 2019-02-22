@@ -2,11 +2,12 @@ package oidc
 
 import (
 	"fmt"
-	"github.com/datawire/apro/lib/testutil"
 	"net/http"
 	"net/url"
 	"testing"
 	"time"
+
+	testutil "github.com/datawire/apro/lib/testutil"
 )
 
 func TestAuth0(t *testing.T) {
@@ -58,7 +59,7 @@ func testIDP(ctx *AuthenticationContext) {
 
 	authenticator, ok := ctx.Authenticator.(AuthenticationDriver)
 	if !ok {
-		//ctx.t.Fatal("Authenticator interface is not implemented")
+		ctx.T.Fatal("Authenticator interface is not implemented")
 	}
 
 	// 1. Initiate an HTTP GET request to our protected service

@@ -3,11 +3,13 @@ package oidc
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/datawire/apro/lib/testutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	goquery "github.com/PuerkitoBio/goquery"
+
+	testutil "github.com/datawire/apro/lib/testutil"
 )
 
 type auth0 struct {
@@ -39,7 +41,10 @@ type auth0UsernameAndPasswordLogin struct {
 	Username     string                 `json:"username"`
 }
 
-func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err error) {
+func (a *auth0) Authenticate(ctx *AuthenticationContext) (string, error) {
+	var token string
+	var err error
+
 	assert := testutil.Assert{T: ctx.T}
 	a.AuthenticationContext = ctx
 
@@ -47,6 +52,9 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 
 	// 3. Handle the Redirect and goto the IdP Login URL
 	loginUIRedirectURL, err := url.Parse(a.initialAuthResponse.Header.Get("Location"))
+	if err != nil {
+		return token, err
+	}
 
 	// Auth0 hands back relative (path-only) redirects which are useless for subsequent requests. We are talking to the
 	// same endpoint as "authRequest" so just use the scheme, host and port info from that.
@@ -54,12 +62,12 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 	loginUIRedirectURL.Host = a.initialAuthRequest.URL.Host
 	loginUIRequest, err := createHTTPRequest("GET", *loginUIRedirectURL)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	loginUIResponse, err := a.HTTP.Do(loginUIRequest)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	assert.HTTPResponseStatusEQ(loginUIResponse, http.StatusOK)
@@ -69,7 +77,7 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 	a.state = loginUIRedirectURL.Query().Get("state")
 	loginRequest, err := a.createLoginRequest(loginForm)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	loginRequest.Header.Add(
@@ -78,20 +86,20 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 
 	loginResponse, err := a.HTTP.Do(loginRequest)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	assert.HTTPResponseStatusEQ(loginResponse, 200)
 
 	htmlDoc, err := goquery.NewDocumentFromReader(loginResponse.Body)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	form := htmlDoc.Find("form[name=hiddenform]")
 	loginCallbackURL, err := url.Parse(form.AttrOr("action", ""))
 	if err != nil {
-		return
+		return token, err
 	}
 
 	loginCallbackToken := htmlDoc.Find("input[name=wresult]").AttrOr("value", "")
@@ -102,6 +110,9 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 	formData.Add("wctx", loginCallbackCtx)
 
 	loginCallbackRequest, err := http.NewRequest("POST", loginCallbackURL.String(), strings.NewReader(formData.Encode()))
+	if err != nil {
+		return token, err
+	}
 
 	// this is all stuff the browser sends so add it as well in case its needed
 	SetHeaders(loginCallbackRequest, map[string]string{
@@ -112,12 +123,20 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 
 	loginCallbackResponse, err := a.HTTP.Do(loginCallbackRequest)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	// back to our callback...
 	redirectURL, err := url.Parse(loginCallbackResponse.Header.Get("Location"))
+	if err != nil {
+		return token, err
+	}
+
 	callbackRequest, err := http.NewRequest("POST", redirectURL.String(), strings.NewReader(formData.Encode()))
+	if err != nil {
+		return token, err
+	}
+
 	SetHeaders(callbackRequest, map[string]string{
 		"accept":       "*/*",
 		"content-type": "application/x-www-form-urlencoded",
@@ -126,7 +145,7 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 
 	callbackResponse, err := a.HTTP.Do(callbackRequest)
 	if err != nil {
-		return
+		return token, err
 	}
 
 	for _, c := range callbackResponse.Cookies() {
@@ -136,7 +155,7 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (token string, err erro
 		}
 	}
 
-	return
+	return token, err
 }
 
 func (a *auth0) createLoginRequest(r *http.Response) (*http.Request, error) {
