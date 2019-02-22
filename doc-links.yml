@@ -59,6 +59,8 @@
         link: /user-guide/websockets-ambassador
       - title: Integration Testing with Service Preview
         link: /docs/dev-guide/service-preview
+      - title: Adding a Custom Filter for Routing
+        link: /docs/guides/filter-guide
     - title: Secure
       link: /user-guide/security
       items:
@@ -136,6 +138,8 @@
               link: /reference/services/rate-limit-service
             - title: Tracing
               link: /reference/services/tracing-service
+        - title: Custom Filter Reference
+          link: /reference/advanced
         - title: Advanced configuration topics
           link: /reference/advanced
     - title: Running Ambassador
