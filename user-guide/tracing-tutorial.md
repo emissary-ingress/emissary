@@ -71,7 +71,7 @@ You can deploy this configuration into your Kubernetes cluster like so:
 $ kubectl apply -f zipkin.yaml
 ```
 
-The Ambassador Service will detect the annotations and reconfigure itself within a few seconds.
+**Important:** Ambassador will need to be restarted to configure itself to add the tracing header. Delete all Ambassador pods and let Kubernetes restart them.
 
 ## 2. Generate some requests
 
