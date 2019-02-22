@@ -1,4 +1,4 @@
-package oidc
+package oidctest
 
 import (
 	"net/http"
@@ -29,11 +29,11 @@ type AuthenticationContext struct {
 	// initialAuthRequest is the first request to the IDP authentication endpoint. This may seem useless but it is
 	// actually quite necessary if the IDP returns relative redirects as the scheme, host and port will need to be
 	// resolved against the URL field on this struct.
-	initialAuthRequest *http.Request
+	InitialAuthRequest *http.Request
 
 	// initialAuthResponse is the response to the first request to the IDP authentication endpoint. Depending on the
 	// IDP this may be a login form OR a redirect to some other document that needs to be retrieved.
-	initialAuthResponse *http.Response
+	InitialAuthResponse *http.Response
 }
 
 // AuthenticationDriver is an interface that needs to be implemented for each Identity Provider. The driver is

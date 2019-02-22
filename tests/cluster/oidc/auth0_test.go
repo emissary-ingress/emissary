@@ -1,3 +1,5 @@
+// +build ignore
+
 package oidc
 
 import (
@@ -6,14 +8,41 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"testing"
+	"time"
 
 	goquery "github.com/PuerkitoBio/goquery"
 
+	oidctest "github.com/datawire/apro/lib/oidctest"
 	testutil "github.com/datawire/apro/lib/testutil"
 )
 
+func TestAuth0(t *testing.T) {
+	httpClient := oidctest.NewHTTPClient(5*time.Second, true)
+
+	ctx := &oidctest.AuthenticationContext{
+		T: t,
+		Authenticator: &auth0{
+			Audience: "https://ambassador-oauth-e2e.auth0.com/api/v2/",
+			ClientID: "DOzF9q7U2OrvB7QniW9ikczS1onJgyiC",
+			Tenant:   "ambassador-oauth-e2e",
+		},
+		HTTP: &httpClient,
+		ProtectedResource: url.URL{
+			Scheme: "https",
+			Host:   "ambassador.localdev.svc.cluster.local",
+			Path:   "/auth0/httpbin/headers",
+		},
+		UsernameOrEmail: "testuser@datawire.com",
+		Password:        "TestUser321",
+		Scopes:          []string{"openid", "profile", "email"},
+	}
+
+	oidctest.TestIDP(ctx)
+}
+
 type auth0 struct {
-	*AuthenticationContext
+	*oidctest.AuthenticationContext
 	Audience    string
 	ClientID    string
 	Tenant      string
@@ -41,26 +70,26 @@ type auth0UsernameAndPasswordLogin struct {
 	Username     string                 `json:"username"`
 }
 
-func (a *auth0) Authenticate(ctx *AuthenticationContext) (string, error) {
+func (a *auth0) Authenticate(ctx *oidctest.AuthenticationContext) (string, error) {
 	var token string
 	var err error
 
 	assert := testutil.Assert{T: ctx.T}
 	a.AuthenticationContext = ctx
 
-	assert.HTTPResponseStatusEQ(a.initialAuthResponse, http.StatusFound)
+	assert.HTTPResponseStatusEQ(a.InitialAuthResponse, http.StatusFound)
 
 	// 3. Handle the Redirect and goto the IdP Login URL
-	loginUIRedirectURL, err := url.Parse(a.initialAuthResponse.Header.Get("Location"))
+	loginUIRedirectURL, err := url.Parse(a.InitialAuthResponse.Header.Get("Location"))
 	if err != nil {
 		return token, err
 	}
 
 	// Auth0 hands back relative (path-only) redirects which are useless for subsequent requests. We are talking to the
 	// same endpoint as "authRequest" so just use the scheme, host and port info from that.
-	loginUIRedirectURL.Scheme = a.initialAuthRequest.URL.Scheme
-	loginUIRedirectURL.Host = a.initialAuthRequest.URL.Host
-	loginUIRequest, err := createHTTPRequest("GET", *loginUIRedirectURL)
+	loginUIRedirectURL.Scheme = a.InitialAuthRequest.URL.Scheme
+	loginUIRedirectURL.Host = a.InitialAuthRequest.URL.Host
+	loginUIRequest, err := oidctest.CreateHTTPRequest("GET", *loginUIRedirectURL)
 	if err != nil {
 		return token, err
 	}
@@ -115,7 +144,7 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (string, error) {
 	}
 
 	// this is all stuff the browser sends so add it as well in case its needed
-	SetHeaders(loginCallbackRequest, map[string]string{
+	oidctest.SetHeaders(loginCallbackRequest, map[string]string{
 		"accept":       "*/*",
 		"content-type": "application/x-www-form-urlencoded",
 		"cookie":       fmt.Sprintf("_csrf=%s", a.cookieCSRF),
@@ -137,7 +166,7 @@ func (a *auth0) Authenticate(ctx *AuthenticationContext) (string, error) {
 		return token, err
 	}
 
-	SetHeaders(callbackRequest, map[string]string{
+	oidctest.SetHeaders(callbackRequest, map[string]string{
 		"accept":       "*/*",
 		"content-type": "application/x-www-form-urlencoded",
 		"cookie":       fmt.Sprintf("_csrf=%s", a.cookieCSRF),
@@ -205,7 +234,7 @@ func (a *auth0) createLoginRequest(r *http.Response) (*http.Request, error) {
 	}
 
 	// this is all stuff the browser sends so add it as well in case its needed
-	SetHeaders(request, map[string]string{
+	oidctest.SetHeaders(request, map[string]string{
 		"accept":       "*/*",
 		"content-type": "application/json",
 		"cookie":       fmt.Sprintf("_csrf=%s", a.cookieCSRF),
