@@ -1,4 +1,4 @@
-// +build ignore
+// +build test
 
 package oidc
 
@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	goquery "github.com/PuerkitoBio/goquery"
+	"github.com/PuerkitoBio/goquery"
 
-	oidctest "github.com/datawire/apro/lib/oidctest"
-	testutil "github.com/datawire/apro/lib/testutil"
+	"github.com/datawire/apro/lib/oidctest"
+	"github.com/datawire/apro/lib/testutil"
 )
 
 func TestAuth0(t *testing.T) {

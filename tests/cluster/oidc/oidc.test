@@ -3,5 +3,4 @@ if ! type docker &>/dev/null; then
 	exit 77
 fi
 
-go test -v ./tests/cluster/oidc/auth0_test.go "$@"
-go test -v ./tests/cluster/oidc/keycloak_test.go "$@"
+go test -tags=test -v ./tests/cluster/oidc

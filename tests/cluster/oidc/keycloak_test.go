@@ -1,19 +1,19 @@
-// +build ignore
+// +build test
 
 package oidc
 
 import (
 	"fmt"
-	"github.com/datawire/apro/lib/oidctest"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	goquery "github.com/PuerkitoBio/goquery"
+	"github.com/PuerkitoBio/goquery"
 
-	testutil "github.com/datawire/apro/lib/testutil"
+	"github.com/datawire/apro/lib/oidctest"
+	"github.com/datawire/apro/lib/testutil"
 )
 
 func TestKeycloak(t *testing.T) {
