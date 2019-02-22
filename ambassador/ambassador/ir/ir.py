@@ -27,7 +27,8 @@ from .irambassador import IRAmbassador
 from .irauth import IRAuth
 from .irfilter import IRFilter
 from .ircluster import IRCluster
-from .irhttpmapping import MappingFactory, IRHTTPMapping
+from .irbasemapping import MappingFactory
+from .irhttpmapping import IRHTTPMapping
 from .irmappinggroup import IRMappingGroup
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
