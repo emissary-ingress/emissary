@@ -3,11 +3,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# This script was adapted from https://github.com/envoyproxy/go-control-plane, so that
-# when can build from any custom repo and not only envoy upstream. It's possible
-# that some of these dependencies will be out of date or even deprecated when updating the
-# project. In this case, check if the dependencies bellow and in the glide.yaml match the
-# the dependencies from the Envoy api SHA being used.
+# This script has been adapted from https://github.com/envoyproxy/go-control-plane. It allows
+# generating go code from a fork of Envoy project. It's possible that some of the dependencies become 
+# out of date or deprecated over time. In this case, check if the required paths bellow and in the 
+# glide.yaml match the the dependencies from the specific Envoy api commit.
 
 package_path="github.com/datawire/ambassador/kat/backend/xds/"
 root="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

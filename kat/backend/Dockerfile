@@ -10,6 +10,7 @@ RUN apk add gcc make git openssl && rm /var/cache/apk/*
 
 RUN ls $GOPATH/src/
 
+COPY echo/echo-service.pb.go ./echo/echo-service.pb.go
 COPY xds/envoy ./xds/envoy
 COPY services ./services
 COPY server.go server.go

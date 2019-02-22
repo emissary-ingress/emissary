@@ -1,20 +1,24 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/textproto"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
+	grpc_echo_pb "github.com/ambassador/datawire/kat/backend/echo"
 	"github.com/gorilla/websocket"
 )
 
@@ -127,6 +131,18 @@ func (q Query) Headers() (result http.Header) {
 		}
 	}
 	return
+}
+
+// IsGrpc checks if the request is to a gRPC service.
+func (q Query) IsGrpc() bool {
+	headers := q.Headers()
+	key := textproto.CanonicalMIMEHeaderKey("content-type")
+	for _, val := range headers[key] {
+		if strings.Contains(strings.ToLower(val), "application/grpc") {
+			return true
+		}
+	}
+	return false
 }
 
 type Result map[string]interface{}
@@ -301,12 +317,55 @@ func main() {
 					}
 				}
 			} else {
-				req, err := http.NewRequest(query.Method(), url, nil)
-				if query.CheckErr(err) {
-					return
+				var req *http.Request
+
+				// Sets grpc-echo POST request.
+				//
+				// Protocol:
+				// 	. The body should be the serialized grpc body which is:
+				// 	. 1 byte of zero (not compressed).
+				// 	. network order (Bigendian) of proto message length.
+				// 	. serialized proto message.
+				if query.IsGrpc() {
+					buf := &bytes.Buffer{}
+					if err := binary.Write(buf, binary.BigEndian, uint8(0)); err != nil {
+						log.Printf("error when packing first byte: %v", err)
+						return
+					}
+
+					// Binary
+					m := &grpc_echo_pb.EchoRequest{}
+					m.Data = "foo"
+
+					mBytes := []byte(m.String())
+					if err := binary.Write(buf, binary.BigEndian, uint8(len(mBytes))); err != nil {
+						log.Printf("error when packing message length: %v", err)
+						return
+					}
+
+					for b := range mBytes {
+						if err := binary.Write(buf, binary.BigEndian, uint8(b)); err != nil {
+							log.Printf("error when packing message: %v", err)
+							return
+						}
+					}
+
+					req, err = http.NewRequest("POST", url, buf)
+					if query.CheckErr(err) {
+						log.Printf("grpc bridge request error: %v", err)
+						return
+					}
+
+					req.Header.Add("Path", "/Echo")
+					req.Header.Add("Content-Type", "application/grpc")
+				} else {
+					req, err = http.NewRequest(query.Method(), url, nil)
+					req.Header = query.Headers()
+					if query.CheckErr(err) {
+						return
+					}
 				}
 
-				req.Header = query.Headers()
 				host := req.Header.Get("Host")
 				if host != "" {
 					if query.SNI() {

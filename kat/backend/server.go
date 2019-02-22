@@ -22,15 +22,13 @@ func main() {
 	var s srv.Service
 
 	switch t := os.Getenv("KAT_BACKEND_TYPE"); t {
-	case "grpc":
-		log.Fatal("gRPC backend is not implemented")
-		return
-		// s = &srv.GRPC{
-		// 	Port:       Port,
-		// 	SecurePort: SSLPort,
-		// 	Cert:       Crt,
-		// 	Key:        Key,
-		// }
+	case "grpc_echo":
+		s = &srv.GRPC{
+			Port:       Port,
+			SecurePort: SSLPort,
+			Cert:       Crt,
+			Key:        Key,
+		}
 
 	case "grpc_auth":
 		s = &srv.GRPCAUTH{
