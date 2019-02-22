@@ -8,6 +8,8 @@ This tutorial assumes you have already followed the [Ambassador Getting Started]
 
 After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding authentication to this setup.
 
+Don't want to DIY? [Ambassador Pro](/pro) integrates with popular Identity Providers such as Auth0 to provide a seamless OAuth / OpenID Connect authentication flow for your services. Start a [free 14-day trial](/pro/free-trial) now! 
+
 ## 1. Deploy the authentication service
 
 Ambassador delegates the actual authentication logic to a third party authentication service. We've written a [simple authentication service](https://github.com/datawire/ambassador-auth-service) that:
