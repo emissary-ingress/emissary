@@ -1,7 +1,7 @@
 ---
-language: python
+language: go
 python:
-  - "3.6"
+  - "1.11.x"
 
 cache:
   directories:
@@ -22,7 +22,9 @@ env:
   global:
     - PATH=~/bin:$PATH
     - DOCKER_REGISTRY=quay.io/datawire
-    
+    - GO111MODULE="on"
+    - CGO_ENABLED=0
+  
     # Set the branch in a predictable way. Travis behavior is that when you are
     # executing due to a PR then the value of $TRAVIS_BRANCH is actually the
     # name of the base branch (e.g. "master" rather than "dev/new-feature").
