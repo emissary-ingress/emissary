@@ -61,6 +61,7 @@ describe('user-agent', function () {
     expect(content.headers, "page content contain headers not present").to.not.be.undefined
     expect(content.headers.Authorization, "page content contain Authorization headers not present").to.not.be.undefined
     expect(content.headers.Authorization, "page content contain Authorization headers not present").to.equal(`Bearer ${cookie.value}`)
+    expect(content.headers['X-Wikipedia'], "page content contain X-Wikipedia header not present").to.not.be.undefined
   });
 
   it('should access ip without cookie', async function () {

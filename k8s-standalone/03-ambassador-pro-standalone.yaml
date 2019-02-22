@@ -173,6 +173,7 @@ metadata:
       - "Authorization"
       - "Client-Id"
       - "Client-Secret"
+      - "X-Wikipedia"
       ---
       apiVersion: ambassador/v1
       kind: Mapping

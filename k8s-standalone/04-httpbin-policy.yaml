@@ -20,6 +20,7 @@ spec:
       path: /httpbin/headers
       filters:
         - name: auth0
+        - name: wiki-plugin
     - host: "*"
       path: /auth0/httpbin/headers
       filters:
@@ -28,4 +29,3 @@ spec:
       path: /keycloak/httpbin/headers
       filters:
         - name: keycloak
-

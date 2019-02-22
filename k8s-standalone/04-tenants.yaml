@@ -27,3 +27,13 @@ spec:
     audience: {{env "IDP_KEYCLOAK_AUDIENCE"}}
     clientID: {{env "IDP_KEYCLOAK_CLIENT_ID"}}
     secret: {{env "IDP_KEYCLOAK_CLIENT_SECRET"}}
+
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: wiki-plugin
+  namespace: standalone
+spec:
+  Plugin:
+    name: wiki-plugin
