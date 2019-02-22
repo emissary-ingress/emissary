@@ -139,7 +139,7 @@
             - title: Tracing
               link: /reference/services/tracing-service
         - title: Custom Filter Reference
-          link: /reference/advanced
+          link: /reference/filter-reference
         - title: Advanced configuration topics
           link: /reference/advanced
     - title: Running Ambassador
