@@ -6,7 +6,7 @@ from ..config import Config
 
 from .irresource import IRResource
 from .ircluster import IRCluster
-from .irmapping import IRMapping
+from .irhttpmapping import IRHTTPMapping
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -17,9 +17,9 @@ if TYPE_CHECKING:
 ## so the group itself ends up with some of the group-wide attributes of its Mappings.
 
 class IRMappingGroup (IRResource):
-    mappings: List[IRMapping]
-    host_redirect: Optional[IRMapping]
-    shadow: List[IRMapping]
+    mappings: List[IRHTTPMapping]
+    host_redirect: Optional[IRHTTPMapping]
+    shadow: List[IRHTTPMapping]
     group_id: str
     group_weight: List[Union[str, int]]
     rewrite: str
@@ -68,7 +68,7 @@ class IRMappingGroup (IRResource):
 
     def __init__(self, ir: 'IR', aconf: Config,
                  location: str,
-                 mapping: IRMapping,
+                 mapping: IRHTTPMapping,
                  rkey: str="ir.mappinggroup",
                  kind: str="IRMappingGroup",
                  name: str="ir.mappinggroup",
@@ -109,7 +109,7 @@ class IRMappingGroup (IRResource):
         # self.add_response_headers = {}
         # self.labels = {}
 
-    def add_mapping(self, aconf: Config, mapping: IRMapping) -> None:
+    def add_mapping(self, aconf: Config, mapping: IRHTTPMapping) -> None:
         mismatches = []
 
         for k in IRMappingGroup.CoreMappingKeys:
@@ -157,7 +157,7 @@ class IRMappingGroup (IRResource):
 
             if self.host_redirect:
                 errstr = "cannot accept %s as second host_redirect after %s" % \
-                         (mapping.name, typecast(IRMapping, self.host_redirect).name)
+                         (mapping.name, typecast(IRHTTPMapping, self.host_redirect).name)
                 aconf.post_error(RichStatus.fromError(errstr), resource=self)
             else:
                 # All good. Save it.
@@ -174,7 +174,7 @@ class IRMappingGroup (IRResource):
         # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
     @staticmethod
-    def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRMapping,
+    def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRHTTPMapping,
                                 marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
         cluster = IRCluster(ir=ir, aconf=aconf,

@@ -27,7 +27,7 @@ from .irambassador import IRAmbassador
 from .irauth import IRAuth
 from .irfilter import IRFilter
 from .ircluster import IRCluster
-from .irmapping import MappingFactory, IRMapping
+from .irhttpmapping import MappingFactory, IRHTTPMapping
 from .irmappinggroup import IRMappingGroup
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
@@ -270,7 +270,7 @@ class IR:
         primary_listener = 'ir.listener'
         return self.add_to_listener(primary_listener, **kwargs)
 
-    def add_mapping(self, aconf: Config, mapping: IRMapping) -> Optional[IRMappingGroup]:
+    def add_mapping(self, aconf: Config, mapping: IRHTTPMapping) -> Optional[IRMappingGroup]:
         group: Optional[IRMappingGroup] = None
 
         if mapping.is_active():

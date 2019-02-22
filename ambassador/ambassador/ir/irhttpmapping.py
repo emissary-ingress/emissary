@@ -36,7 +36,7 @@ class Header (dict):
         return self.name + '-' + self._get_value()
 
 
-class IRMapping (IRResource):
+class IRHTTPMapping (IRResource):
     prefix: str
     headers: List[Header]
     method: Optional[str]
@@ -101,7 +101,7 @@ class IRMapping (IRResource):
         # such here, unlike most kinds of IRResource. So. Shallow copy the keys
         # we're going to allow from the incoming kwargs...
 
-        new_args = { x: kwargs[x] for x in kwargs.keys() if x in IRMapping.AllowedKeys }
+        new_args = {x: kwargs[x] for x in kwargs.keys() if x in IRHTTPMapping.AllowedKeys}
 
         # ...then set up the headers (since we need them to compute our group ID).
         hdrs = []
@@ -266,7 +266,7 @@ class MappingFactory:
         for config in config_info.values():
             # ir.logger.debug("creating mapping for %s" % repr(config))
 
-            mapping = IRMapping(ir, aconf, **config)
+            mapping = IRHTTPMapping(ir, aconf, **config)
             ir.add_mapping(aconf, mapping)
 
     @classmethod

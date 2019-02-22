@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
-from ...ir.irmapping import IRMapping
+from ...ir.irhttpmapping import IRHTTPMapping
 from ...ir.irmappinggroup import IRMappingGroup
 
 from .v1ratelimitaction import V1RateLimitAction
@@ -87,7 +87,7 @@ class V1Route(dict):
         # print(len(group.get('headers', [])) > 0)
 
         if group.get("host_redirect", None):
-            hr: IRMapping = typecast(IRMapping, group.host_redirect)
+            hr: IRHTTPMapping = typecast(IRHTTPMapping, group.host_redirect)
 
             self["host_redirect"] = hr.service
 
