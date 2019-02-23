@@ -8,10 +8,10 @@ Filters are registered with the `Filter` custom resource definition.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: param-filter
+  name: param-filter # This is the name used in FilterPolicy
   namespace: standalone
 spec:
   Plugin:
