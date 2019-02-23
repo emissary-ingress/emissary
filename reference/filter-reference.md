@@ -24,27 +24,36 @@ The `FilterPolicy` custom resource definition specifies which filters are run, a
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta1
-kind: Policy
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
 metadata:
   name: httpbin-policy
-  namespace: default
+  namespace: standalone
 spec:
   # everything defaults to private; you can create rules to make stuff
   # public, and you can create rules to require additional scopes
   # which will be automatically checked
   rules:
   - host: "*"
-    path: /test/*
-    public: false # must be false if using a middleware
-    middleware:
-      name: param-filter
+    path: /httpbin/ip
+    filters: null # make this path public
   - host: "*"
-    path: /httpbin/*
-    public: false # must be false if using a middleware
-    middleware:
-      name: param-filter
+    path: /httpbin/user-agent
+    filters:
+    - name: param-filter
+  - host: "*"
+    path: /httpbin/headers
+    filters:
+    - name: param-filter
+    - name: auth0
 ```
+
+When multiple `Filter`s are specified in a rule:
+
+* The filters are gone through in order
+* Later filters have access to _all_ headers inserted by earlier filters.
+* The final backend service (i.e., the service where the request will ultimately be routed) will only have access to inserted headers if they are listed in `allowed_authorization_headers` in the Ambassador annotation.
+* Filter processing is aborted by the first filter to return a non-200 status.
 
 ## The Filter interface
 
