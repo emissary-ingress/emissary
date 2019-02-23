@@ -312,7 +312,8 @@ $(KUBERNAUT):
 	chmod +x $(KUBERNAUT)
 
 setup-develop: venv $(TELEPROXY) $(KUBERNAUT) version
-	cd kat/kat/client && rm -rf bin && GO111MODULE="on" CGO_ENABLED=0 go build -o bin/kat-client
+	go get github.com/gorilla/websocket
+	cp -rf $(PWD)/kat/client/client_$(GOOS)_$(GOARCH) $(PWD)/kat/kat/client
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
