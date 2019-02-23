@@ -6,7 +6,7 @@ Sometimes you may want Ambassador to manipulate an incoming request. Some exampl
 * Add custom Authorization headers
 * Validate an incoming request fits an OpenAPI specification before passing the request to a target service
 
-Ambassador support these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Pro.
+Ambassador supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Pro.
 
 ## A sample filter
 
