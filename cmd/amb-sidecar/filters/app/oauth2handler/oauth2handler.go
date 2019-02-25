@@ -161,11 +161,13 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 			// TODO(lukeshu): Verify that this check is
 			// correct; it seems backwards to me.
 			for _, s := range strings.Split(claims["scope"].(string), " ") {
-				logger.Debugf("verifying scope %s", s)
-				if !inArray(s, j.FilterArguments.Scopes) {
+				logger.Debugf("verifying scope '%s'", s)
+				if s != "" && !inArray(s, j.FilterArguments.Scopes) {
 					return "", fmt.Errorf("scope %v is not in the policy", s)
 				}
 			}
+		} else {
+			logger.Debugf("No scopes to verify")
 		}
 
 		// Validate method for last since it's the most expensive operation.

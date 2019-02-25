@@ -140,7 +140,7 @@ func TestIDP(ctx *AuthenticationContext) {
 	// Almost home baby!
 	ctx.HTTP.Jar = nil
 
-	unauthorizedRequest.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	unauthorizedRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 
 	// Create a new HTTP client that is entirely unused. This ensures the CookieJar is not re-used. A problem that was
 	// discovered during development is that auth0 sets the "access_token" cookie which means the "Authorization"
