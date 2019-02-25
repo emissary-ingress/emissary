@@ -38,7 +38,7 @@ The `cors` attribute enables the CORS filter. The following settings are support
       ```
     - YAML array, e.g.
       ```yaml
-      header:
+      headers:
       - Content-Type
       ```
 - `credentials`: if present with a true value (boolean), will send a `true` value for the `Access-Control-Allow-Credentials` header.
