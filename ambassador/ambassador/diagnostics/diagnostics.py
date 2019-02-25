@@ -20,7 +20,7 @@ import logging
 import re
 
 from ..ir import IR
-from ..ir.irmappinggroup import IRMappingGroup
+from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ..envoy import EnvoyConfig
 from .envoy_stats import EnvoyStats
 
@@ -191,16 +191,16 @@ class DiagResult:
 
         return self.clusters[c_name]
 
-    def include_group(self, group: IRMappingGroup) -> None:
+    def include_group(self, group: IRHTTPMappingGroup) -> None:
         """
-        Note that a particular IRMappingGroup, all of the clusters it uses for upstream
+        Note that a particular IRHTTPMappingGroup, all of the clusters it uses for upstream
         traffic, and everything that references it are relevant to this result.
 
         This method actually does a fair amount of work around handling clusters, shadow
         clusters, and host_redirects. It would be a horrible mistake to duplicate this
         elsewhere.
 
-        :param group: IRMappingGroup to include
+        :param group: IRHTTPMappingGroup to include
         """
 
         # self.logger.debug("GROUP %s" % group.as_json())

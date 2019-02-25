@@ -17,7 +17,7 @@ from typing import cast as typecast
 
 from ..common import EnvoyRoute
 from ...ir.irhttpmapping import IRHTTPMapping
-from ...ir.irmappinggroup import IRMappingGroup
+from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 
 from .v1ratelimitaction import V1RateLimitAction
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class V1Route(dict):
-    def __init__(self, config: 'V1Config', group: IRMappingGroup) -> None:
+    def __init__(self, config: 'V1Config', group: IRHTTPMappingGroup) -> None:
         super().__init__()
 
         self["timeout_ms"] = group.get("timeout_ms", 3000)

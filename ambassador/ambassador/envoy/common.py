@@ -19,7 +19,7 @@ import json
 from abc import abstractmethod
 
 from ..ir import IR, IRResource
-from ..ir.irmappinggroup import IRMappingGroup
+from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 
 def sanitize_pre_json(input):
     # Removes all potential null values
@@ -85,13 +85,13 @@ class EnvoyConfig:
             return V2Config(ir)
 
 class EnvoyRoute:
-    def __init__(self, group: IRMappingGroup):
+    def __init__(self, group: IRHTTPMappingGroup):
         self.prefix = 'prefix'
         self.path = 'path'
         self.regex = 'regex'
         self.envoy_route = self._get_envoy_route(group)
 
-    def _get_envoy_route(self, group: IRMappingGroup) -> str:
+    def _get_envoy_route(self, group: IRHTTPMappingGroup) -> str:
         if group.get('prefix_regex', False):
             return self.regex
         else:

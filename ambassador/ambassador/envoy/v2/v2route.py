@@ -15,7 +15,7 @@
 from typing import List, TYPE_CHECKING
 
 from ..common import EnvoyRoute
-from ...ir.irmappinggroup import IRMappingGroup
+from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 
 from .v2ratelimitaction import V2RateLimitAction
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class V2Route(dict):
-    def __init__(self, config: 'V2Config', group: IRMappingGroup) -> None:
+    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup) -> None:
         super().__init__()
 
         envoy_route = EnvoyRoute(group).envoy_route
@@ -177,7 +177,7 @@ class V2Route(dict):
                 config.routes.append(route)
 
     @staticmethod
-    def generate_headers(mapping_group: IRMappingGroup) -> List[dict]:
+    def generate_headers(mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
 
         group_headers = mapping_group.get('headers', [])

@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 
 ########
-## IRMappingGroup is a collection of Mappings. We'll use it to build Envoy routes later,
+## IRHTTPMappingGroup is a collection of Mappings. We'll use it to build Envoy routes later,
 ## so the group itself ends up with some of the group-wide attributes of its Mappings.
 
-class IRMappingGroup (IRResource):
+class IRHTTPMappingGroup (IRResource):
     mappings: List[IRBaseMapping]
     host_redirect: Optional[IRBaseMapping]
     shadow: List[IRBaseMapping]
@@ -33,7 +33,7 @@ class IRMappingGroup (IRResource):
         'headers': True,
         'host_rewrite': True,
         # 'labels' doesn't appear in the TransparentKeys list for IRMapping, but it's still
-        # a CoreMappingKey -- if it appears, it can't have multiple values within an IRMappingGroup.
+        # a CoreMappingKey -- if it appears, it can't have multiple values within an IRHTTPMappingGroup.
         'labels': True,
         'method': True,
         'prefix': True,
@@ -71,28 +71,28 @@ class IRMappingGroup (IRResource):
                  location: str,
                  mapping: IRBaseMapping,
                  rkey: str="ir.mappinggroup",
-                 kind: str="IRMappingGroup",
+                 kind: str="IRHTTPMappingGroup",
                  name: str="ir.mappinggroup",
                  **kwargs) -> None:
-        # print("IRMappingGroup __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRHTTPMappingGroup __init__ (%s %s %s)" % (kind, name, kwargs))
         del rkey    # silence unused-variable warning
 
         if 'host_redirect' in kwargs:
-            raise Exception("IRMappingGroup cannot accept a host_redirect as a keyword argument")
+            raise Exception("IRHTTPMappingGroup cannot accept a host_redirect as a keyword argument")
 
         if 'path_redirect' in kwargs:
-            raise Exception("IRMappingGroup cannot accept a path_redirect as a keyword argument")
+            raise Exception("IRHTTPMappingGroup cannot accept a path_redirect as a keyword argument")
 
         if ('shadow' in kwargs) or ('shadows' in kwargs):
-            raise Exception("IRMappingGroup cannot accept shadow or shadows as a keyword argument")
+            raise Exception("IRHTTPMappingGroup cannot accept shadow or shadows as a keyword argument")
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name,
             mappings=[], host_redirect=None, shadows=[], **kwargs
         )
 
-        self.add_dict_helper('mappings', IRMappingGroup.helper_mappings)
-        self.add_dict_helper('shadows', IRMappingGroup.helper_shadows)
+        self.add_dict_helper('mappings', IRHTTPMappingGroup.helper_mappings)
+        self.add_dict_helper('shadows', IRHTTPMappingGroup.helper_shadows)
 
         # Time to lift a bunch of core stuff from the first mapping up into the
         # group.
@@ -100,7 +100,7 @@ class IRMappingGroup (IRResource):
         if ('group_weight' not in self) and ('route_weight' in mapping):
             self.group_weight = mapping.route_weight
 
-        for k in IRMappingGroup.CoreMappingKeys:
+        for k in IRHTTPMappingGroup.CoreMappingKeys:
             if (k not in self) and (k in mapping):
                 self[k] = mapping[k]
 
@@ -113,7 +113,7 @@ class IRMappingGroup (IRResource):
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> None:
         mismatches = []
 
-        for k in IRMappingGroup.CoreMappingKeys:
+        for k in IRHTTPMappingGroup.CoreMappingKeys:
             if (k in mapping) and ((k not in self) or
                                    (mapping[k] != self[k])):
                 mismatches.append((k, mapping[k], self.get(k, '-unset-')))
@@ -212,7 +212,7 @@ class IRMappingGroup (IRResource):
             #     self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
 
             for k in mapping.keys():
-                if k.startswith('_') or mapping.skip_key(k) or (k in IRMappingGroup.DoNotFlattenKeys):
+                if k.startswith('_') or mapping.skip_key(k) or (k in IRHTTPMappingGroup.DoNotFlattenKeys):
                     # if verbose:
                     #     self.ir.logger.debug("%s: don't flatten %s" % (self, k))
                     continue
