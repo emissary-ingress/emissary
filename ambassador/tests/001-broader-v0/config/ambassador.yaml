@@ -33,6 +33,14 @@ config:
   use_proxy_proto: True
   use_remote_address: True
   enable_grpc_http11_bridge: True
+
+  lua_scripts: |
+    function envoy_on_request(request_handle)
+      request_handle:headers():add("", "")
+    end
+    function envoy_on_response(response_handle)
+      response_handle:headers():add("", "")
+    end
   
   # TLS defaults to unconfigured. Here's the simplest way.
   tls:
