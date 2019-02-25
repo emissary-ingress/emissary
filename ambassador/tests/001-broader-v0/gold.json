@@ -300,6 +300,10 @@
                 "name": "grpc_http1_bridge",
                 "config": {}
               },
+              {
+                "name": "lua_scripts",
+                "config": {"inline_code": "function envoy_on_request(request_handle)\n  request_handle:headers():add(\"\", \"\")\nend\nfunction envoy_on_response(response_handle)\n  response_handle:headers():add(\"\", \"\")\nend\n"}
+              },
               {"type": "decoder",
                 "name": "extauth",
                 "config": {"allowed_headers": ["x-qotm-session"], "cluster": "cluster_extauth_http___canary_auth_3000", "path_prefix": "/extauth", "timeout_ms": 5000}
