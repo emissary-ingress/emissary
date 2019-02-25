@@ -42,7 +42,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	discovered, err := Discover(httpClient, c.Filter, logger)
 	if err != nil {
-		logger.Debugf("discover: %v", err)
+		logger.Errorln("create discovery failed: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 	}
 
@@ -161,11 +161,13 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 			// TODO(lukeshu): Verify that this check is
 			// correct; it seems backwards to me.
 			for _, s := range strings.Split(claims["scope"].(string), " ") {
-				logger.Debugf("verifying scope %s", s)
-				if !inArray(s, j.FilterArguments.Scopes) {
+				logger.Debugf("verifying scope '%s'", s)
+				if s != "" && !inArray(s, j.FilterArguments.Scopes) {
 					return "", fmt.Errorf("scope %v is not in the policy", s)
 				}
 			}
+		} else {
+			logger.Debugf("No scopes to verify")
 		}
 
 		// Validate method for last since it's the most expensive operation.

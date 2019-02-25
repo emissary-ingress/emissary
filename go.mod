@@ -1,6 +1,7 @@
 module github.com/datawire/apro
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/datawire/teleproxy v0.3.16
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
@@ -22,6 +23,7 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/urfave/negroni v1.0.0
+	golang.org/dl v0.0.0-20190211212633-b8d278adca9c // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	gopkg.in/yaml.v2 v2.2.2
 )

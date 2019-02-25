@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+if ! type docker &>/dev/null; then
+	exit 77
+fi
+
+go test -tags=test -v ./tests/cluster/oidc

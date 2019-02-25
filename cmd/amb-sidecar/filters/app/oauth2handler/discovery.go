@@ -50,7 +50,7 @@ type Discovered struct {
 // Discover fetches OpenID configuration and certificate information
 // from the IDP (per OIDC Discovery).
 func Discover(client *http.Client, mw crd.FilterOAuth2, logger types.Logger) (*Discovered, error) {
-	configURL, _ := mw.AuthorizationURL.Parse("/.well-known/openid-configuration")
+	configURL, _ := url.Parse(mw.AuthorizationURL.String() + "/.well-known/openid-configuration")
 	config, err := fetchOpenIDConfig(client, configURL.String())
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetchOpenIDConfig(%q)", configURL)
