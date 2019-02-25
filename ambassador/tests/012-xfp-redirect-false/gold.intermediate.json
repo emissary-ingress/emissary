@@ -54,9 +54,9 @@
         "listeners": [
             {
                 "_source": "l7-redirect.yaml.1",
+                "redirect_listener": false,
                 "require_tls": false,
                 "service_port": 80,
-                "redirect_listener": false,
                 "use_proxy_proto": false,
                 "use_remote_address": true
             }
@@ -70,7 +70,7 @@
                     "/httpbin/",
                     "GET"
                 ],
-                "_group_id": "0a0b4a3c06d5d92984505f097c69498d038c5737",
+                "_group_id": "c4ada926d9d7864b666698db04169283442dce24",
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
@@ -89,64 +89,12 @@
             {
                 "__saved": [
                     0,
-                    26,
-                    0,
-                    "/ambassador/v0/check_ready",
-                    "GET"
-                ],
-                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "l7-redirect.yaml.1"
-                ],
-                "_source": "l7-redirect.yaml.1",
-                "clusters": [
-                    {
-                        "name": "cluster_127_0_0_1_8877",
-                        "weight": 100.0
-                    }
-                ],
-                "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready",
-
-                "timeout_ms": 10000
-            },
-            {
-                "__saved": [
-                    0,
-                    26,
-                    0,
-                    "/ambassador/v0/check_alive",
-                    "GET"
-                ],
-                "_group_id": "6151893fbc2f1f730a1bb946b2eefac391f0d2ec",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "l7-redirect.yaml.1"
-                ],
-                "_source": "l7-redirect.yaml.1",
-                "clusters": [
-                    {
-                        "name": "cluster_127_0_0_1_8877",
-                        "weight": 100.0
-                    }
-                ],
-                "prefix": "/ambassador/v0/check_alive",
-                "prefix_rewrite": "/ambassador/v0/check_alive",
-
-                "timeout_ms": 10000
-            },
-            {
-                "__saved": [
-                    0,
                     15,
                     0,
                     "/ambassador/v0/",
                     "GET"
                 ],
-                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
@@ -161,8 +109,59 @@
                 ],
                 "prefix": "/ambassador/v0/",
                 "prefix_rewrite": "/ambassador/v0/",
-            "timeout_ms": 10000
-            }        ]
+                "timeout_ms": 10000
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_alive",
+                    "GET"
+                ],
+                "_group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "l7-redirect.yaml.1"
+                ],
+                "_source": "l7-redirect.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_alive",
+                "prefix_rewrite": "/ambassador/v0/check_alive",
+                "timeout_ms": 10000
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
+                "_group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "l7-redirect.yaml.1"
+                ],
+                "_source": "l7-redirect.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+                "timeout_ms": 10000
+            }
+        ]
     },
     "errors": {},
     "source_map": {

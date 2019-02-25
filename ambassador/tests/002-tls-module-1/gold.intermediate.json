@@ -54,8 +54,8 @@
         "listeners": [
             {
                 "_source": "ambassador.yaml.1",
-                "require_tls": false,
                 "redirect_listener": false,
+                "require_tls": false,
                 "service_port": 443,
                 "tls": {
                     "_source": "tls.yaml.1",
@@ -67,37 +67,10 @@
                     "ssl_context": true
                 },
                 "use_proxy_proto": false,
-                "use_remote_address": true,
                 "use_remote_address": false
             }
         ],
         "routes": [
-            {
-                "__saved": [
-                    0,
-                    26,
-                    0,
-                    "/ambassador/v0/check_ready",
-                    "GET"
-                ],
-                "_group_id": "0a42187b7b3d283e0079ddab01825e1c71fad9f6",
-                "_method": "GET",
-                "_precedence": 0,
-                "_referenced_by": [
-                    "ambassador.yaml.1"
-                ],
-                "_source": "ambassador.yaml.1",
-                "clusters": [
-                    {
-                        "name": "cluster_127_0_0_1_8877",
-                        "weight": 100.0
-                    }
-                ],
-                "prefix": "/ambassador/v0/check_ready",
-                "prefix_rewrite": "/ambassador/v0/check_ready",
-
-                "timeout_ms": 10000
-            },
             {
                 "__saved": [
                     0,
@@ -106,7 +79,7 @@
                     "/qotm/",
                     "GET"
                 ],
-                "_group_id": "9fda39523fe03a3c6aac9c21098375764ec0822d",
+                "_group_id": "467077fe5e44a0ca9d4eb415fa9cd501266c3eea",
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
@@ -130,7 +103,7 @@
                     "/ambassador/v0/",
                     "GET"
                 ],
-                "_group_id": "b69eeb747b38f5e5fd3955d044ea7797d67d024f",
+                "_group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                 "_method": "GET",
                 "_precedence": 0,
                 "_referenced_by": [
@@ -145,8 +118,34 @@
                 ],
                 "prefix": "/ambassador/v0/",
                 "prefix_rewrite": "/ambassador/v0/",
-            "timeout_ms": 10000
-            }        ]
+                "timeout_ms": 10000
+            },
+            {
+                "__saved": [
+                    0,
+                    26,
+                    0,
+                    "/ambassador/v0/check_ready",
+                    "GET"
+                ],
+                "_group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                "_method": "GET",
+                "_precedence": 0,
+                "_referenced_by": [
+                    "ambassador.yaml.1"
+                ],
+                "_source": "ambassador.yaml.1",
+                "clusters": [
+                    {
+                        "name": "cluster_127_0_0_1_8877",
+                        "weight": 100.0
+                    }
+                ],
+                "prefix": "/ambassador/v0/check_ready",
+                "prefix_rewrite": "/ambassador/v0/check_ready",
+                "timeout_ms": 10000
+            }
+        ]
     },
     "errors": {},
     "source_map": {

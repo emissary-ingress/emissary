@@ -220,7 +220,7 @@ class old_ir (dict):
 
                 del(listener['tls_contexts'])
 
-        for group in sorted(ir['groups'], key=lambda g: g['group_id']):
+        for group in sorted(ir['groups'], key=lambda g: g['group_weight']):
             route = as_sourceddict(group)
 
             for from_name, to_name in [
@@ -516,6 +516,9 @@ def normalize_gold(gold: dict) -> dict:
         if 'clusters' in normalized['envoy_config']:
             normalized['envoy_config']['clusters'].sort(key=cluster_sort_key)
 
+        if 'routes' in normalized['envoy_config']:
+            normalized['envoy_config']['routes'].sort(key=lambda r: r['__saved'])
+
         for route in normalized['envoy_config'].get('routes', []):
             if 'clusters' in route:
                 route['clusters'].sort(key=cluster_sort_key)
@@ -523,6 +526,19 @@ def normalize_gold(gold: dict) -> dict:
     return normalized
 
 #### Test functions
+
+def route_keys(obj):
+    if not 'envoy_config' in obj:
+        return ""
+
+    if not 'routes' in obj['envoy_config']:
+        return ""
+
+    routes = obj['envoy_config']['routes']
+
+    keys = [ '-'.join(map(str, r['__saved'])) for r in routes ]
+
+    return "; ".join(keys)
 
 @pytest.mark.parametrize("directory", MATCHES)
 @standard_setup
@@ -550,7 +566,7 @@ def test_config(testname, dirpath, configdir):
 
     current = get_old_intermediate(aconf, ir, v1config)
     current['envoy_config'] = filtered_overview(current['envoy_config'])
-    current = sanitize_errors(current)
+    current = normalize_gold(sanitize_errors(current))
 
     current_path = os.path.join(dirpath, "intermediate.json")
     json.dump(current, open(current_path, "w"), sort_keys=True, indent=4)
@@ -573,7 +589,11 @@ def test_config(testname, dirpath, configdir):
         udiff = unified_diff(gold_no_yaml_path, current_path)
 
         if udiff:
-            errors.append("gold.intermediate.json and intermediate.json do not match!\n\n%s" % "\n".join(udiff))
+            current_route_keys = route_keys(current)
+            gold_route_keys = route_keys(gold_no_yaml)
+
+            errors.append("gold.intermediate.json and intermediate.json do not match!\n\ncurrent: %s\ngold: %s\n\n%s" %
+                          ( current_route_keys, gold_route_keys, "\n".join(udiff)))
 
     print("==== checking V1")
 

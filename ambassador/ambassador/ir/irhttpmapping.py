@@ -3,6 +3,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
 
 from ..config import Config
 
+from .irbasemapping import IRBaseMapping
 from .irresource import IRResource
 from .ircors import IRCORS
 
@@ -36,7 +37,7 @@ class Header (dict):
         return self.name + '-' + self._get_value()
 
 
-class IRHTTPMapping (IRResource):
+class IRHTTPMapping (IRBaseMapping):
     prefix: str
     headers: List[Header]
     method: Optional[str]
@@ -132,18 +133,14 @@ class IRHTTPMapping (IRResource):
             **new_args
         )
 
-        # OK. After all that we can compute the group ID...
-        self.group_id = self._group_id()
-
-        # ...and the route weight.
-        self.route_weight = self._route_weight()
-
         if ('circuit_breaker' in kwargs) or ('outlier_detection' in kwargs):
             self.post_error(RichStatus.fromError("circuit_breaker and outlier_detection are not supported"))
 
-    # self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        if not super().setup(ir, aconf):
+            return False
+
         # If we have CORS stuff, normalize it.
         if 'cors' in self:
             self.cors = IRCORS(ir=ir, aconf=aconf, location=self.location, **self.cors)
@@ -212,6 +209,9 @@ class IRHTTPMapping (IRResource):
 
         h = hashlib.new('sha1')
 
+        # This is an HTTP mapping.
+        h.update('HTTP-'.encode('utf-8'))
+
         # method first, but of course method might be None. For calculating the
         # group_id, 'method' defaults to 'GET' (for historical reasons).
 
@@ -239,15 +239,3 @@ class IRHTTPMapping (IRResource):
         weight += [ hdr.key() for hdr in self.headers ]
 
         return tuple(weight)
-
-    def match_tls_context(self, host: str, ir: 'IR'):
-        for context in ir.get_tls_contexts():
-            hosts = context.get('hosts') or []
-
-            for context_host in hosts:
-                if context_host == host:
-                    ir.logger.info("Matched host {} with TLSContext {}".format(host, context.get('name')))
-                    self.sni = True
-                    return context
-
-        return None
