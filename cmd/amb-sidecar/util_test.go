@@ -138,14 +138,17 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	ct.Filters.Store(filters)
 	ct.Rules.Store([]crd.Rule{
 		{
-			Host:   "*",
-			Path:   "*",
-			Public: false,
-			Filter: crd.Reference{
-				Name:      "app",
-				Namespace: "default",
+			Host: "*",
+			Path: "*",
+			Filters: []crd.FilterReference{
+				{
+					Name:      "app",
+					Namespace: "default",
+					Arguments: crd.FilterOAuth2Arguments{
+						Scopes: []string{},
+					},
+				},
 			},
-			Scope: "",
 		},
 	})
 

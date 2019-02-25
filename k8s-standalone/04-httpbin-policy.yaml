@@ -9,26 +9,26 @@ spec:
   # public, and you can create rules to require additional scopes
   # which will be automatically checked
   rules:
-  - host: "*"
-    path: /httpbin/ip
-    public: true
-  - host: "*"
-    path: /httpbin/user-agent
-    public: false
-    filter:
-      name: auth0
-  - host: "*"
-    path: /httpbin/headers
-    public: false
-    filter:
-      name: auth0
-  - host: "*"
-    path: /auth0/httpbin/headers
-    public: false
-    filter:
-      name: auth0
-  - host: "*"
-    path: /keycloak/httpbin/headers
-    public: false
-    filter:
-      name: keycloak
+    - host: "*"
+      path: /httpbin/ip
+      filters: null # make this path public
+    - host: "*"
+      path: /httpbin/user-agent
+      filters:
+        - name: auth0
+    - host: "*"
+      path: /httpbin/headers
+      public: false
+      filters:
+        - name: auth0
+    - host: "*"
+      path: /auth0/httpbin/headers
+      public: false
+      filters:
+        - name: auth0
+    - host: "*"
+      path: /keycloak/httpbin/headers
+      public: false
+      filters:
+        - name: keycloak
+

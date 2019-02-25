@@ -75,3 +75,9 @@ func (m FilterOAuth2) Domain() string {
 func (m FilterOAuth2) TLS() bool {
 	return m.ClientURL.Scheme == "https"
 }
+
+//////////////////////////////////////////////////////////////////////
+
+type FilterOAuth2Arguments struct {
+	Scopes []string `json:"scopes"`
+}

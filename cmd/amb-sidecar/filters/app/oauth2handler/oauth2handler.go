@@ -29,11 +29,11 @@ const (
 // present in the request.  If the request Path is "/callback", it
 // validates IDP requests and handles code exchange flow.
 type OAuth2Handler struct {
-	Secret      *secret.Secret
-	Rule        crd.Rule
-	Filter      crd.FilterOAuth2
-	OriginalURL *url.URL
-	RedirectURL *url.URL
+	Secret          *secret.Secret
+	Filter          crd.FilterOAuth2
+	FilterArguments crd.FilterOAuth2Arguments
+	OriginalURL     *url.URL
+	RedirectURL     *url.URL
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +109,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"redirect_uri":  {c.Filter.CallbackURL().String()},
 			"client_id":     {c.Filter.ClientID},
 			"state":         {c.signState(r, logger)},
-			"scope":         {c.Rule.Scope},
+			"scope":         {strings.Join(c.FilterArguments.Scopes, " ")},
 		}.Encode())
 
 		logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
@@ -158,9 +158,11 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 
 		// Validate scopes.
 		if claims["scope"] != nil {
+			// TODO(lukeshu): Verify that this check is
+			// correct; it seems backwards to me.
 			for _, s := range strings.Split(claims["scope"].(string), " ") {
 				logger.Debugf("verifying scope %s", s)
-				if !j.Rule.MatchScope(s) {
+				if !inArray(s, j.FilterArguments.Scopes) {
 					return "", fmt.Errorf("scope %v is not in the policy", s)
 				}
 			}
@@ -174,6 +176,15 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 	})
 	return err
+}
+
+func inArray(needle string, haystack []string) bool {
+	for _, straw := range haystack {
+		if straw == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func getToken(r *http.Request, logger types.Logger) string {
