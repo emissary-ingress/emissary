@@ -30,7 +30,7 @@ func TestAuth0(t *testing.T) {
 		HTTP: &httpClient,
 		ProtectedResource: url.URL{
 			Scheme: "https",
-			Host:   "ambassador.localdev.svc.cluster.local",
+			Host:   "ambassador.standalone.svc.cluster.local", // TODO: $namespace needs to be configurable
 			Path:   "/auth0/httpbin/headers",
 		},
 		UsernameOrEmail: "testuser@datawire.com",

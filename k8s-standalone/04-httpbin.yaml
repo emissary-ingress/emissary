@@ -14,6 +14,24 @@ metadata:
       service: httpbin.org:80
       host_rewrite: httpbin.org
       timeout_ms: 5000
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: auth0_httpbin_mapping
+      prefix: /auth0/httpbin/
+      rewrite: /
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+      timeout_ms: 5000
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: keycloak_httpbin_mapping
+      prefix: /keycloak/httpbin/
+      rewrite: /
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+      timeout_ms: 5000
 spec:
   type: ClusterIP
   ports:

@@ -25,7 +25,7 @@ func TestKeycloak(t *testing.T) {
 		HTTP:          &httpClient,
 		ProtectedResource: url.URL{
 			Scheme: "https",
-			Host:   "ambassador.localdev.svc.cluster.local",
+			Host:   "ambassador.standalone.svc.cluster.local",
 			Path:   "/keycloak/httpbin/headers",
 		},
 		UsernameOrEmail: "developer",
