@@ -18,7 +18,7 @@ Then make sure `$(go env GOPATH)/bin` is in your `$PATH`.
 	Run an Ambassador Pro filter as an Ambassador AuthService, for plugin development
 	
 
-    You can then use `curl` to create an HTTP request, and examine the subsequent response.
+You can then use `curl` to create an HTTP request, and examine the subsequent response.
 
 ## Example:
 
