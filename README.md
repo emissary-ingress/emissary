@@ -1,6 +1,6 @@
-# Ambassador Pro example middleware
+# Ambassador Pro example filters
 
-This is an example middleware for Ambassador Pro that injects an
+This is an example filter for Ambassador Pro that injects an
 `X-Wikipedia` header with the URL for a random Wikipedia article
 before passing the request off to the backend service.  It uses
 https://en.wikipedia.org/wiki/Special:Random to obtain the URL; as an
@@ -30,77 +30,7 @@ DOCKER_REGISTRY=...`.
 
 Use that image you just pushed instead of
 `quay.io/datawire/ambassador_pro:amb-sidecar` when deploying
-Ambassador Pro.
-
-Tell Ambassador Pro about the plugin:
-
-```yaml
----
-apiVersion: getambassador.io/v1beta1
-kind: Middleware
-metadata:
-  name: wikiplugin # how we'll refer to the plugin in our Policy (below)
-  namespace: standalone
-spec:
-  Plugin:
-    name: example-plugin # The plugin's `.so` file's base name
-```
-
-Tell Ambassador Pro when to use that middleware:
-
-```yaml
----
-apiVersion: getambassador.io/v1beta1
-kind: Policy
-metadata:
-  name: httpbin-policy
-  namespace: standalone
-spec:
-  # everything defaults to private; you can create rules to make stuff
-  # public, and you can create rules to require additional scopes
-  # which will be automatically checked
-  rules:
-  - host: "*"
-    path: /httpbin/ip
-    public: true
-  - host: "*"
-    path: /httpbin/headers
-    public: false # must be false if using a middleware
-    middleware:
-      name: wikiplugin
-```
-
-Finally, edit the Ambassador Pro manifest to (1) use the image with
-the plugin, and (2) allow the plugin to inject the `X-Wikipedia`
-header:
-
-```patch
-@ -171,10 +171,11 @@ metadata:
-       - "Client-Secret"
-       allowed_authorization_headers:
-       - "Authorization"
-       - "Client-Id"
-       - "Client-Secret"
-+      - "X-Wikipedia"
-       ---
-       apiVersion: ambassador/v1
-       kind: Mapping
-       name: callback_mapping
-       prefix: /callback
-@@ -210,11 +211,11 @@ spec:
-         service: ambassador-pro
-     spec:
-       serviceAccountName: ambassador-pro
-       containers:
-       - name: ambassador-pro
--        image: {{env "AMB_SIDECAR_IMAGE"}}
-+        image: localhost:31000/amb-sidecar-plugin:3
-         ports:
-         - name: ratelimit-grpc
-           containerPort: 8081
-         - name: ratelimit-debug
-           containerPort: 6070
-```
+Ambassador Pro. For more details on deployment, consult the Filter documentation.
 
 ## How a plugin works
 
