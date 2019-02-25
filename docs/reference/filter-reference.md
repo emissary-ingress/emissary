@@ -79,7 +79,7 @@ We've created an example filter that you can customize for your particular use c
 
 3. Run `make DOCKER_REGISTRY=...`, setting `DOCKER_REGISTRY` to point to a registry you have access to. This will generate a Docker image named `$DOCKER_REGISTRY/amb-sidecar-plugin:VERSION`.
 
-4. Push the image to your Docker registry.
+4. Push the image to your Docker registry: `docker push $DOCKER_REGISTRY/amb-sidecar-plugin:VERSION`.
 
 5. Configure Ambassador Pro to use the plugin by creating a `Filter` and `FilterPolicy` CRD, as per above.
 
