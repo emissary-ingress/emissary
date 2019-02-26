@@ -18,17 +18,14 @@ spec:
         - name: auth0
     - host: "*"
       path: /httpbin/headers
-      public: false
       filters:
         - name: auth0
     - host: "*"
       path: /auth0/httpbin/headers
-      public: false
       filters:
         - name: auth0
     - host: "*"
       path: /keycloak/httpbin/headers
-      public: false
       filters:
         - name: keycloak
 
