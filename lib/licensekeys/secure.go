@@ -28,14 +28,14 @@ func PhoneHome(claims jwt.MapClaims, component, version string) error {
 	if err != nil {
 		panic(err)
 	}
-	install_id := uuid.NewSHA1(space, []byte(id))
-	data := make(map[string]interface{})
-	data["application"] = "ambassador-pro"
-	data["install_id"] = install_id.String()
-	data["version"] = version
-	data["metadata"] = map[string]string{
-		"id":        id,
-		"component": component,
+	data := map[string]interface{}{
+		"application": "ambassador-pro",
+		"install_id":  uuid.NewSHA1(space, []byte(id)).String(),
+		"version":     version,
+		"metadata": map[string]string{
+			"id":        id,
+			"component": component,
+		},
 	}
 	body, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
