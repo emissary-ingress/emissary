@@ -6,8 +6,9 @@ from ..config import Config
 
 from .irresource import IRResource
 from .ircluster import IRCluster
+from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
-from .irhttpmapping import IRHTTPMapping
+# from .irhttpmapping import IRHTTPMapping
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 ## IRHTTPMappingGroup is a collection of Mappings. We'll use it to build Envoy routes later,
 ## so the group itself ends up with some of the group-wide attributes of its Mappings.
 
-class IRHTTPMappingGroup (IRResource):
+class IRHTTPMappingGroup (IRBaseMappingGroup):
     mappings: List[IRBaseMapping]
     host_redirect: Optional[IRBaseMapping]
     shadow: List[IRBaseMapping]

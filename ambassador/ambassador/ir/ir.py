@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union, ValuesView
+from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
 import json
@@ -27,6 +27,7 @@ from .irambassador import IRAmbassador
 from .irauth import IRAuth
 from .irfilter import IRFilter
 from .ircluster import IRCluster
+from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
 # from .irhttpmapping import IRHTTPMapping
 from .irmappingfactory import MappingFactory
@@ -272,16 +273,17 @@ class IR:
         primary_listener = 'ir.listener'
         return self.add_to_listener(primary_listener, **kwargs)
 
-    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRHTTPMappingGroup]:
+    def add_mapping(self, aconf: Config, mapping: IRBaseMapping,
+                    group_class: Type[IRBaseMappingGroup]) -> Optional[IRHTTPMappingGroup]:
         group: Optional[IRHTTPMappingGroup] = None
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name
-                group = IRHTTPMappingGroup(ir=self, aconf=aconf,
-                                           location=mapping.location,
-                                           name=group_name,
-                                           mapping=mapping)
+                group = group_class(ir=self, aconf=aconf,
+                                    location=mapping.location,
+                                    name=group_name,
+                                    mapping=mapping)
 
                 self.groups[group.group_id] = group
             else:
