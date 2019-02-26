@@ -7,18 +7,18 @@
         "method": "POST",
         "headers": {
             "content-type": "application/grpc",
-            "requested-status": "0"
+            "requested-status": "7"
         }
     },
     {
         "test": "GrpcBridge", 
-        "id": 1, 
+        "id": 2, 
         "url": "http://localhost:61892/echo.EchoService/Echo",
         "insecure": false,
         "method": "POST",
         "headers": {
             "content-type": "application/grpc",
-            "requested-status": "12"
+            "requested-status": "0"
         }
     }
 ]

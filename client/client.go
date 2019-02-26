@@ -124,14 +124,14 @@ func (q Query) Method() string {
 }
 
 func (q Query) Headers() (result http.Header) {
+	result = make(http.Header)
 	headers, ok := q["headers"]
 	if ok {
-		result = make(http.Header)
 		for key, val := range headers.(map[string]interface{}) {
 			result.Add(key, val.(string))
 		}
 	}
-	return
+	return result
 }
 
 // IsGrpc checks if the request is to a gRPC service.
@@ -342,8 +342,6 @@ func main() {
 						return
 					}
 
-					log.Printf("gRPC message: %v", pbuf.Bytes())
-
 					if err := binary.Write(buf, binary.BigEndian, uint32(len(pbuf.Bytes()))); err != nil {
 						log.Printf("error when packing message length: %v", err)
 						return
@@ -356,17 +354,18 @@ func main() {
 						}
 					}
 
-					log.Println("GRPC Bytes SENT:", buf.Bytes())
-
 					req, err = http.NewRequest("POST", url, buf)
 					if query.CheckErr(err) {
 						log.Printf("grpc bridge request error: %v", err)
 						return
 					}
 
-					log.Println("GRPC calling:", url)
-
-					req.Header.Add("Content-Type", "application/grpc")
+					for k, h := range query.Headers() {
+						for _, v := range h {
+							log.Printf("setting request header [ %s : %s ]", k, v)
+							req.Header.Add(http.CanonicalHeaderKey(k), v)
+						}
+					}
 				} else {
 					req, err = http.NewRequest(query.Method(), url, nil)
 					req.Header = query.Headers()

@@ -92,7 +92,7 @@ func (s *EchoService) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResp
 		return nil, status.Error(codes.Code(13), "request has not valid context metadata")
 	}
 
-	log.Printf("call received: %v", md)
+	log.Printf("rpc metadata received: %v", md)
 
 	request := &pb.Request{
 		Headers: make(map[string]string),
@@ -140,7 +140,7 @@ func (s *EchoService) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResp
 	}
 
 	// Checks if requested-status is a valid and not OK gRPC status.
-	if len(md["requested-status"]) == 1 {
+	if len(md["requested-status"]) > 0 {
 		val, err := strconv.Atoi(md["requested-status"][0])
 		if err == nil {
 			if val < 18 || val > 0 {
