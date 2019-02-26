@@ -28,6 +28,37 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
   ![](/images/Auth0_none.png)
 
 
+## Keycloak
+
+With Auth0 as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Pro. The below instructions are known to work for Keycloak 4.8.
+
+1. Navigate to Clients and select "Create"
+
+2. Configure the following options:
+    
+    - Client ID: Any value you want
+    - Client Protocol: "openid-connect"
+    - Root URL: Leave Blank
+    
+3. Click save.
+
+4. On the next screen configure the following options:
+
+    - Access Type: "confidential"
+    - Valid Redirect URIs: `*`
+    
+5. Click save.
+6. Navigate to the "Mappers" tab in your Client and click "Create".
+7. Configure the following options:
+    
+    - Protocol: "openid-connect".
+    - Name: "audience" (though it can be anything).
+    - Mapper Type: select "Audience"
+    - Included Client Audience: select from the dropdown the name of your Client.
+    
+8. Configure client scopes as desired in "Client Scopes". It's possible to setup Keycloak to not use scopes by removing all of them from "Assigned Default Client Scopes".
+
+
 ## Configure your Authentication Tenants
 
 **Note:** Ensure your [authentication provider](/user-guide/ambassador-pro-install/#5-single-sign-on) is set in your Ambassador Pro deployment before configuring authentication tenants.
