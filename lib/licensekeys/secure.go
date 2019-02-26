@@ -11,9 +11,13 @@ import (
 )
 
 func ParseKey(licenseKey string) (jwt.MapClaims, *jwt.Token, error) {
+	// these details should match the details in apictl-key
+	jwtParser := &jwt.Parser{ValidMethods: []string{"HS256"}} // HS256 is symmetric
+	privateKey := []byte("1234")
+
 	var claims jwt.MapClaims
-	token, err := jwt.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("1234"), nil
+	token, err := jwtParser.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
+		return privateKey, nil
 	})
 	return claims, token, err
 }
