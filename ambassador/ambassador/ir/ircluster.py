@@ -66,6 +66,7 @@ class IRCluster (IRResource):
                  lb_type: str="round_robin",
                  grpc: Optional[bool] = False,
                  allow_scheme: Optional[bool] = True,
+                 load_balancer: Optional[dict] = None,
 
                  cb_name: Optional[str]=None,
                  od_name: Optional[str]=None,
@@ -100,6 +101,8 @@ class IRCluster (IRResource):
         # Do we have a marker?
         if marker:
             name_fields.append(marker)
+
+        self.logger = ir.logger
 
         # Toss in the original service before we mess with it, too.
         name_fields.append(service)
@@ -193,6 +196,19 @@ class IRCluster (IRResource):
         # TLS. Kind of odd, but there we go.)
         url = "tcp://%s:%d" % (hostname, port)
 
+        if load_balancer is None:
+            global_load_balancer = ir.ambassador_module.get('load_balancer', None)
+            if global_load_balancer is None:
+                self.post_error(RichStatus.fromError("no global load_balancer found in ambassador module"))
+            load_balancer = global_load_balancer
+
+        self.logger.info("Load balancer for {} is {}".format(url, load_balancer))
+
+        endpoint = {}
+        if self.endpoints_required(load_balancer):
+            self.logger.debug("fetching endpoint information for {}".format(hostname))
+            endpoint = self.get_endpoint(hostname, port, ir.service_info.get(service, None), ir.endpoints.get(hostname, None))
+
         # OK. Build our default args.
         #
         # XXX We should really save the hostname and the port, not the URL.
@@ -209,6 +225,8 @@ class IRCluster (IRResource):
             "type": dns_type,
             "lb_type": lb_type,
             "urls": [ url ],
+            "endpoint": endpoint,
+            "load_balancer": load_balancer,
             "service": service,
             'enable_ipv4': enable_ipv4,
             'enable_ipv6': enable_ipv6
@@ -238,6 +256,79 @@ class IRCluster (IRResource):
         if errors:
             for error in errors:
                 ir.post_error(error, resource=self)
+
+    def endpoints_required(self, load_balancer) -> bool:
+        required = False
+        lb_type = load_balancer.get('type')
+        if lb_type == 'envoy':
+            lb_policy = load_balancer.get('policy')
+            if lb_policy == 'round_robin':
+                self.logger.debug("Endpoints are required for {} load balancer with policy {}".format(lb_type, lb_policy))
+                required = True
+        return required
+
+    def get_endpoint(self, hostname, port, service_info, endpoint):
+        if endpoint is None:
+            self.logger.debug("no relevant endpoint found for hostname {}".format(hostname))
+            return {}
+
+        if service_info is None:
+            self.logger.debug("no service found for hostname {}".format(hostname))
+            return {}
+
+        ip = []
+        for address in endpoint['addresses']:
+            ip.append(address['ip'])
+
+        ep_port = None
+
+        # service_port_name  is only required if there are multiple ports in a given service, to match
+        # the port in Endpoint resource
+        service_port_name = ""
+        service_ports = service_info.get('ports', [])
+        num_service_ports = len(service_ports)
+        if num_service_ports > 1:
+            for service_port in service_ports:
+                if port == service_port.get('port'):
+                    service_port_name = service_port.get('name')
+                    break
+        elif num_service_ports == 0:
+            self.logger.debug("no service port found for service: {}".format(service_info))
+            return {}
+
+        self.logger.debug("service port name is '{}'".format(service_port_name))
+
+        if len(service_port_name) == 0:
+            # this means there is only one port
+            endpoint_ports = endpoint.get('ports', [])
+            if len(endpoint_ports) != 1:
+                self.logger.debug("no or more than one endpoint ports found {}, not enabling endpoint routing".format(endpoint_ports))
+                return {}
+            ep_port = endpoint_ports[0].get('port', None)
+        else:
+            # there are more than one service ports, so we need to match on name
+            endpoint_ports = endpoint.get('ports', [])
+            for ep in endpoint_ports:
+                name = ep.get('name', "")
+                if name == service_port_name:
+                    ep_port = ep.get('port', None)
+                    break
+
+        if ep_port is None:
+            self.logger.debug("could not discover any relevant endpoint port for hostname {}, not enabling endpoint routing".format(hostname))
+            return {}
+
+        if len(ip) == 0:
+            self.logger.debug("no IP addresses found for endpoint for hostname {}, not enabling endpoint routing".format(hostname))
+            return {}
+
+        generated_endpoint = {
+            'ip': ip,
+            'port': ep_port
+        }
+        self.logger.debug("generated endpoint for hostname {}: {}".format(hostname, generated_endpoint))
+
+        return generated_endpoint
 
     def add_url(self, url: str) -> List[str]:
         self.urls.append(url)

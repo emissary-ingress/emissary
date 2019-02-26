@@ -74,6 +74,14 @@ config:
   # requests to HTTPS if this field is set to true.
   # x_forwarded_proto_redirect: false
 
+  # load_balancer sets the global load balancing type and policy that
+  # Ambassador will use for all mappings, unless overridden in a
+  # mapping. Defaults to round robin with Kubernetes.
+  # More information at the [load balancer reference](/reference/load-balancer)
+  # load_balancer:
+  #   type: kubernetes/envoy
+  #   policy: round_robin
+
   # Set default CORS configuration for all mappings in the cluster. See 
   # CORS syntax at https://www.getambassador.io/reference/cors.html
   # cors:

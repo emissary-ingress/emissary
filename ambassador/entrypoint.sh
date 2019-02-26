@@ -219,7 +219,7 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
     fi
 
     set -x
-    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services endpoints &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi

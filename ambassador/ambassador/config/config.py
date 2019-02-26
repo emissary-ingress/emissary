@@ -521,6 +521,20 @@ class Config:
 
         self.safe_store("tls_contexts", resource)
 
+    def handle_endpoints(self, resource: ACResource) -> None:
+        """
+        Handles an Endpoints resource.
+        """
+
+        self.safe_store("endpoints", resource)
+
+    def handle_serviceinfo(self, resource: ACResource) -> None:
+        """
+        Handles an ServiceInfo resource.
+        """
+
+        self.safe_store("service_info", resource)
+
     def handle_mapping(self, resource: ACMapping) -> None:
         """
         Handles a ACMapping resource.
