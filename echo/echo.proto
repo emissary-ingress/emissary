@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "echo_service";
+package echo;
 
 service EchoService {
     rpc Echo(EchoRequest) returns (EchoResponse) {}

@@ -26,20 +26,28 @@ type GRPC struct {
 	Key        string
 }
 
+// DefaultOpts sets gRPC service options.
+func DefaultOpts() []grpc.ServerOption {
+	return []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(1024 * 1024 * 5),
+		grpc.MaxSendMsgSize(1024 * 1024 * 5),
+	}
+}
+
 // Start initializes the gRPC server.
 func (g *GRPC) Start() <-chan bool {
 	exited := make(chan bool)
 	proto := "tcp"
 
 	go func() {
-		port := fmt.Sprintf(":%v", g.Port)
+		port := fmt.Sprintf(":%d", g.Port)
 
 		ln, err := net.Listen(proto, port)
 		if err != nil {
 			log.Fatal()
 		}
 
-		s := grpc.NewServer()
+		s := grpc.NewServer(DefaultOpts()...)
 		pb.RegisterEchoServiceServer(s, &EchoService{})
 		s.Serve(ln)
 
@@ -55,14 +63,14 @@ func (g *GRPC) Start() <-chan bool {
 		}
 
 		config := &tls.Config{Certificates: []tls.Certificate{cer}}
-		port := fmt.Sprintf(":%v", g.SecurePort)
+		port := fmt.Sprintf(":%d", g.SecurePort)
 		ln, err := tls.Listen(proto, port, config)
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
 
-		s := grpc.NewServer()
+		s := grpc.NewServer(DefaultOpts()...)
 		pb.RegisterEchoServiceServer(s, &EchoService{})
 		s.Serve(ln)
 
@@ -83,6 +91,8 @@ func (s *EchoService) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResp
 	if !ok {
 		return nil, status.Error(codes.Code(13), "request has not valid context metadata")
 	}
+
+	log.Printf("call received: %v", md)
 
 	request := &pb.Request{
 		Headers: make(map[string]string),

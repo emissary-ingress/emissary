@@ -1,6 +1,6 @@
 FROM golang:1.11
 
-ENV PROTOC_VERSION="3.6.1"
+ENV PROTOC_VERSION="3.5.1"
 
 WORKDIR $GOPATH/src/github.com/datawire/kat-backend/echo
 

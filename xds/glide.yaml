@@ -1,4 +1,4 @@
-package: github.com/datawire/ambassador/kat/backend/xds
+package: github.com/datawire/kat-backend/xds
 
 excludeDirs:
 - services

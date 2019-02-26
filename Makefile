@@ -1,20 +1,19 @@
 TAG=9
 
-.PHONY: backend 
+all: xds echo backend client
 
-all: xds echo backend
+.PHONY: backend 
 
 backend: backend.build backend.push
 
 backend.build:
 	@echo " ---> building kat-backend image"
-	@GO111MODULE=on CGO_ENABLED=0 go build -o bin/kat-server
 	@docker build . -t quay.io/datawire/kat-backend:${TAG}
-	@rm -rf bin
 	
 backend.push:
 	@echo " ---> pushing kat-backend image"
 	@docker push quay.io/datawire/kat-backend:${TAG}
+
 
 .PHONY: xds 
 
@@ -29,15 +28,45 @@ xds.generate:
 	@docker build -f ${PWD}/xds/Dockerfile -t envoy-api-build .
 	@docker run -it -v ${PWD}/xds/envoy:/envoy envoy-api-build:latest
 
+
 .PHONY: echo 
 
- echo: echo.clean echo.generate 
+echo: echo.clean echo.generate 
 
- echo.clean:
+echo.clean:
 	@echo " ---> deleting generated service code"
 	@rm -rf $(PWD)/echo/echo.pb.go
 
- echo.generate:	
+echo.generate:	
 	@echo " ---> generating echo service code"
 	@docker build -f $(PWD)/echo/Dockerfile -t echo-api-build .
 	@docker run -it -v $(PWD)/echo/:/echo echo-api-build:latest
+
+
+.PHONY: client 
+
+client: client.clean client.build-docker client.build 
+
+client.clean:
+	@echo " ---> deleting binaries"
+	@rm -rf bin && mkdir bin
+
+client.build-docker:
+	@docker build -f $(PWD)/client/Dockerfile -t kat-client-build .	
+
+client.build:	
+	@echo " ---> building code"
+	@docker run -it --rm -v $(PWD)/client/bin/:/usr/local/tmp/ kat-client-build:latest
+
+
+.PHONY: sandbox
+
+sandbox: sandbox.clean sandbox.up
+
+sandbox.clean:
+	@echo " ---> cleaning sandbox"
+	@cd sandbox && docker-compose stop && docker-compose rm -f
+
+sandbox.up:
+	@echo " ---> starting sandbox"
+	@cd sandbox && docker-compose up --force-recreate --abort-on-container-exit --build

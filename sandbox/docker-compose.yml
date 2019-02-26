@@ -1,0 +1,32 @@
+version: '2'
+services:
+
+  proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile-proxy
+    volumes:
+      - ./config.yaml:/etc/config.yaml
+    networks:
+      - envoy
+    expose:
+      - "80"
+      - "8001"
+    ports:
+      - "61892:8000"
+      - "61893:8001"
+
+  grpc1bridge:
+    image: quay.io/datawire/kat-backend:9
+    environment:
+    - DEBUG=1
+    - KAT_BACKEND_TYPE=grpc_echo
+    networks:
+      envoy:
+        aliases:
+          - envoy
+    expose:
+      - "8080"
+
+networks:
+  envoy: {}

@@ -1,7 +1,7 @@
 FROM golang:1.11
 
 ENV PROTOC_URL=https://github.com/protocolbuffers/protobuf/releases/download
-ENV PROTOC_VERSION=3.6.1
+ENV PROTOC_VERSION=3.5.1
 
 ENV ENVOY_REPO=https://github.com/datawire/envoy.git
 ENV ENVOY_REMOTE=origin/buffered-auth

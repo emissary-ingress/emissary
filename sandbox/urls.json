@@ -1,0 +1,25 @@
+[
+    {
+        "test": "GrpcBridge", 
+        "id": 1, 
+        "url": "http://localhost:61892/echo.EchoService/Echo",
+        "insecure": false,
+        "method": "POST",
+        "headers": {
+            "content-type": "application/grpc",
+            "requested-status": "0"
+        }
+    },
+    {
+        "test": "GrpcBridge", 
+        "id": 1, 
+        "url": "http://localhost:61892/echo.EchoService/Echo",
+        "insecure": false,
+        "method": "POST",
+        "headers": {
+            "content-type": "application/grpc",
+            "requested-status": "12"
+        }
+    }
+]
+
