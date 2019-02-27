@@ -66,7 +66,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping
 prefix: /target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
         # For self.with_tracing, we want to configure the TracingService.

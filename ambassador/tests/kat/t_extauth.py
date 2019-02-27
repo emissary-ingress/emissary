@@ -19,7 +19,7 @@ class AuthenticationGRPCTest(AmbassadorTest):
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+auth_service: "{self.auth.path.fqdn}"
 timeout_ms: 5000
 proto: grpc
 """)
@@ -29,7 +29,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -116,7 +116,7 @@ secret: same-secret-1.secret-namespace
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 timeout_ms: 5000
 tls: {self.name}-same-context-1
@@ -139,7 +139,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -229,7 +229,7 @@ class AuthenticationTestV1(AmbassadorTest):
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth1.path.k8s}
-auth_service: "{self.auth1.path.k8s}"
+auth_service: "{self.auth1.path.fqdn}"
 proto: http
 path_prefix: "/extauth"
 timeout_ms: 5000
@@ -249,7 +249,7 @@ allowed_authorization_headers:
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth2.path.k8s}
-auth_service: "{self.auth2.path.k8s}"
+auth_service: "{self.auth2.path.fqdn}"
 proto: http
 path_prefix: "/extauth"
 timeout_ms: 5000
@@ -271,13 +271,13 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.target.path.k8s}-unauthed
+name:  {self.target.path.fqdn}-unauthed
 prefix: /target/unauthed/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 bypass_auth: true
 """)
 
@@ -417,7 +417,7 @@ class AuthenticationTest(AmbassadorTest):
 apiVersion: ambassador/v0
 kind: AuthService
 name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 
 allowed_headers:
@@ -436,7 +436,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -548,7 +548,7 @@ class AuthenticationWebsocketTest(AmbassadorTest):
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 timeout_ms: 10000
 allowed_request_headers:
@@ -604,7 +604,7 @@ config:
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 timeout_ms: 10000
 allowed_request_headers:
