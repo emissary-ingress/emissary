@@ -8,9 +8,9 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: AuthService
-      name: authentication
+      name: ambassador-pro-auth
       proto: http
-      auth_service: ambassador-pro-auth
+      auth_service: ambassador-pro
       allowed_request_headers:
       - "Client-Id"
       - "Client-Secret"

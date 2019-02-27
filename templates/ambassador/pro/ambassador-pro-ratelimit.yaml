@@ -9,7 +9,7 @@ metadata:
       apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro-ratelimit
-      service: "ambassador-pro-ratelimit:8081"
+      service: "ambassador-pro:8081"
 spec:
   type: ClusterIP
   selector:
