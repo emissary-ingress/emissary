@@ -10,7 +10,7 @@ global arguments to that filter.  Which Filter(s) to use for which
 HTTP requests is then configured in `FilterPolicy` resources, which
 may contain path-specific arguments to the filter.
 
-For more information about developing filters, see the [Filter Development Guide]()
+For more information about developing filters, see the [Filter Development Guide](/docs/guides/filter-dev-guide).
 
 ## `Filter` Definition
 
@@ -78,9 +78,7 @@ spec:
 numbers, each with optional fraction and a unit suffix, such as
 "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or
 "µs"), "ms", "s", "m", "h".  See [Go
-`time.ParseDuration`][time.ParseDuration].
-
-time.ParseDuration: https://golang.org/pkg/time/#ParseDuration
+`time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
 
 #### `OAuth2` Path-Specific Arguments
 
@@ -111,7 +109,7 @@ The `Plugin` filter type allows you to plug in your own custom code.
 This code is compiled to a `.so` file, which you load in to the
 Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
 
-###$ The Plugin Interface
+#### The Plugin Interface
 
 This code is written in Golang, and must be compiled with the exact
 compiler settings as Ambassador Pro.  As of Ambassador Pro v0.2.0-rc1,
