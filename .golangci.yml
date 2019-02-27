@@ -7,6 +7,7 @@ linters:
     - golint
     - interfacer # author says it's deprecated, gives very subjective advice
     - lll
+    - maligned
     - prealloc
     - scopelint
     - stylecheck
