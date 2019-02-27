@@ -24,7 +24,7 @@ We've created an example filter that you can customize for your particular use c
 4. Push the image to your Docker registry: `docker push $DOCKER_REGISTRY/amb-sidecar-plugin:VERSION`.
 
 5. Configure Ambassador Pro to use the plugin by creating a `Filter`
-   and `FilterPolicy` CRD, as per above.
+   and `FilterPolicy` CRD, as per the [filter reference](/reference/filter-reference).
 
 6. If you're adding additional headers, configure the `AuthService`
    configuration to allow the filter to inject the new header, e.g.,
@@ -90,4 +90,4 @@ Now, you can quickly test and develop your filter.
 
 ## Further reading
 
-For more details about configuring filters and the `plugin` interface, see the [filter reference guide](/reference/filter-reference).
+For more details about configuring filters and the `plugin` interface, see the [filter reference](/reference/filter-reference).
