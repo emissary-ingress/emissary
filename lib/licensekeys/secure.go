@@ -10,16 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParseKey(licenseKey string) (jwt.MapClaims, *jwt.Token, error) {
+func ParseKey(licenseKey string) (jwt.MapClaims, error) {
 	// these details should match the details in apictl-key
 	jwtParser := &jwt.Parser{ValidMethods: []string{"HS256"}} // HS256 is symmetric
 	privateKey := []byte("1234")
 
 	var claims jwt.MapClaims
-	token, err := jwtParser.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwtParser.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
 		return privateKey, nil
 	})
-	return claims, token, err
+	return claims, err
 }
 
 func PhoneHome(claims jwt.MapClaims, component, version string) error {
