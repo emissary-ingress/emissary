@@ -547,8 +547,7 @@ def label(yaml, scope):
     return yaml
 
 
-CLIENT_GO = os.path.join(os.path.dirname(__file__), "client.go")
-
+CLIENT_GO = os.path.join(os.path.dirname(__file__), "client")
 
 def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
@@ -561,7 +560,7 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
     with open("/tmp/urls.json", "w") as f:
         json.dump(jsonified, f)
 
-    run("go run \"%s\" -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
+    run("%s -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
 
     with open("/tmp/results.json") as f:
         json_results = json.load(f)
