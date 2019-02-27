@@ -32,7 +32,7 @@ func (h *JWTHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r)
 	httpClient := httpclient.NewHTTPClient(logger, 0)
 
-	token := strings.TrimPrefix(r.Header.Get("Authorization"), "bearer ")
+	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
 	if err := validateToken(token, h.Filter, httpClient); err != nil {
 		logger.Infoln(err)
