@@ -20,6 +20,7 @@ _go-common.mk := $(lastword $(MAKEFILE_LIST))
 
 NAME ?= $(notdir $(go.module))
 
+go.GOBUILD ?= go build
 go.DISABLE_GO_TEST ?=
 go.LDFLAGS ?=
 go.PLATFORMS ?= $(GOOS)_$(GOARCH)
@@ -53,7 +54,7 @@ go-get: ## (Go) Download Go dependencies
 
 define _go.bin.rule
 bin_%/.cache.$(notdir $(go.bin)): go-get FORCE
-	go build $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $(go.bin)
+	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $(go.bin)
 bin_%/$(notdir $(go.bin)): bin_%/.cache.$(notdir $(go.bin))
 	@{ \
 		PS4=''; set -x; \

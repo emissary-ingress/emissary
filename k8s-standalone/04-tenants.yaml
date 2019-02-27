@@ -8,10 +8,11 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
-    clientURL: https://ambassador.standalone.svc.cluster.local
+    clientURL: {{env "AUTH_TENANT_URL"}}
     audience: {{env "IDP_AUTH0_AUDIENCE"}}
     clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
     secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
+    maxStale: 12h
 
 ---
 apiVersion: getambassador.io/v1beta2
@@ -22,7 +23,17 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_KEYCLOAK_PROVIDER_URL"}}
-    clientURL: https://ambassador.standalone.svc.cluster.local
+    clientURL: {{env "AUTH_TENANT_URL"}}
     audience: {{env "IDP_KEYCLOAK_AUDIENCE"}}
     clientID: {{env "IDP_KEYCLOAK_CLIENT_ID"}}
     secret: {{env "IDP_KEYCLOAK_CLIENT_SECRET"}}
+
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: wiki-plugin
+  namespace: standalone
+spec:
+  Plugin:
+    name: wiki-plugin

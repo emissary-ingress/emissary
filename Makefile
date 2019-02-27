@@ -4,7 +4,7 @@ NAME            = ambassador-pro
 # names in `cmd/apictl/traffic.go`.
 DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For k8s.mk
-K8S_IMAGES      = $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile))
+K8S_IMAGES      = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
 K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
@@ -22,9 +22,7 @@ include build-aux/help.mk
 
 .DEFAULT_GOAL = help
 
-ifeq ($(GOOS)_$(GOARCH),linux_amd64)
-bin_linux_amd64/amb-sidecar: CGO_ENABLED=1
-endif
+HAVE_DOCKER := $(shell which docker 2>/dev/null)
 
 status: ## Report on the status of Kubernaut and Teleproxy
 status: status-pro-tel
@@ -51,7 +49,7 @@ lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 # This mimics _go-common.mk
 define lyft.bin.rule
 bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin))): go-get FORCE
-	go build -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
+	$$(go.GOBUILD) -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
 bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin)))
 	@{ \
 		PS4=''; set -x; \
@@ -65,13 +63,88 @@ $(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
 build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
 
 #
+# Plugins
+
+plugins = $(patsubst plugins/%/go.mod,%,$(wildcard plugins/*/go.mod))
+
+define plugin.rule
+# We use $(shell find ...) instead of FORCE here because not even the
+# .cache trick will enable linker caching for -buildmode=plugin on
+# macOS (verified with go 1.11.4 and 1.11.5).
+bin_%/.cache.$(plugin.name).so: plugins/$(plugin.name)/go.mod $$(shell find plugins/$(plugin.name))
+	cd $$(<D) && $$(go.GOBUILD) -buildmode=plugin -o $(abspath $$@) .
+bin_%/$(plugin.name).so: bin_%/.cache.$(plugin.name).so
+	@{ \
+		PS4=''; set -x; \
+		if ! cmp -s $$< $$@; then \
+			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
+			cp -f $$< $$@; \
+		fi; \
+	}
+endef
+$(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
+
+# This is gross.  There are several use-cases this aims to keep happy:
+#
+#                          |   amb-sidecar: plugins?    |    compile test plugins?   |
+#          host            | linux_amd64 | darwin_amd64 | linux_amd64 | darwin_amd64 |
+# +------------------------+-------------+--------------+-------------+--------------|
+# | linux                  |     yes(A,B)|     no       |     yes(A,B)|     no       |
+# | darwin w/ Docker (dev) |     yes(A)  |     yes(B)   |     yes(A)  |     yes(B)   |
+# | darwin w/o Docker (CI) |     no      |     yes      |     no      |     yes      |
+#
+# A: Needed for in-cluster
+# B: Needed for Telepresence local-dev
+
+# always do plugins on native-builds
+go-build: $(foreach p,$(plugins),bin_$(GOOS)_$(GOARCH)/$p.so)
+_cgo_files = amb-sidecar $(addsuffix .so,$(plugins))
+$(addprefix bin_$(GOOS)_$(GOARCH)/,$(_cgo_files)): CGO_ENABLED=1
+
+# but cross-builds are the complex story
+ifneq ($(GOOS)_$(GOARCH),linux_amd64)
+ifneq ($(HAVE_DOCKER),)
+
+go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
+
+# For cross-compiled CGO binaries, we'll compile them in Docker.
+$(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
+_cgo_GOBUILD  = docker run --rm
+_cgo_GOBUILD += --env GOOS
+_cgo_GOBUILD += --env GOARCH
+_cgo_GOBUILD += --env GO111MODULE
+_cgo_GOBUILD += --env CGO_ENABLED
+# Map this directory in to the container.  Except for $@, it should be
+# read-only, so it should be safe to speed things up with "delegated".
+_cgo_GOBUILD += --volume $(CURDIR):$(CURDIR):rw,delegated
+# We could map in $(shell go env GOPATH) and $(shell go env GOCACHE),
+# but osxfs is slow enough that it's worth it to just maintain
+# separate in-Docker caches.
+_cgo_GOBUILD += --volume apro-gocache:/mnt/gocache:rw
+_cgo_GOBUILD += --env GOPATH=/mnt/gocache/go-workspace
+_cgo_GOBUILD += --env GOCACHE=/mnt/gocache/go-build
+# We use $$PWD here instead of $(CURDIR) so that the shell (not Make)
+# expands it, so that it behaves correctly if the command `cd`s to a
+# subdirectory first.
+_cgo_GOBUILD += --workdir $$PWD
+# It doesn't really matter which version of docker.io/library/golang
+# we choose, but matching the host's Go version seems more future-safe
+# than hard-coding a version.
+_cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
+_cgo_GOBUILD += go build
+
+endif
+endif
+
+#
 # Docker images
 #
-# This assumes that each Docker image wants a binary with the same
-# name as the image.  That's a safe assumption so far, and forces us
-# to name things in a consistent manor.
+# This assumes that if there's a Go binary with the same name as the
+# Docker image, then the image wants that binary.  That's a safe
+# assumption so far, and forces us to name things in a consistent
+# manor.
 define docker.bins_rule
-$(image).docker: $(image)/$(notdir $(image))
+$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)))
 $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
 endef
@@ -81,6 +154,11 @@ docker/app-sidecar.docker: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
 	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
+
+docker/amb-sidecar-plugins/Dockerfile: docker/amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
+	$^ > $@
+docker/amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
+docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plugins/$p.so)
 
 #
 # Deploy
@@ -167,8 +245,6 @@ run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
 #
 # Check
 
-HAVE_DOCKER := $(shell which docker 2>/dev/null)
-
 check: $(if $(HAVE_DOCKER),deploy proxy)
 test-suite.tap: tests/local.tap tests/cluster.tap
 
@@ -202,6 +278,7 @@ clean:
 	rm -f docker/traffic-proxy/traffic-proxy
 	rm -f docker/app-sidecar/app-sidecar
 	rm -f docker/amb-sidecar/amb-sidecar
+	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
 	rm -f docker/consul_connect_integration/consul_connect_integration
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 # Files made by older versions.  Remove the tail of this list when the
@@ -254,7 +331,7 @@ release-bin: ## Upload binaries to S3
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl     )
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key )
 release-docker: ## Upload Docker images to Quay
-release-docker: $(addsuffix .docker.push,$(K8S_IMAGES))
+release-docker: $(addsuffix .docker.push,$(filter-out docker/amb-sidecar-plugins,$(K8S_IMAGES)))
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
