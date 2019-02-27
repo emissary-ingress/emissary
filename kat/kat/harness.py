@@ -223,6 +223,12 @@ class Node(ABC):
     def format(self, st, **kwargs):
         return st.format(self=self, **kwargs)
 
+    def get_fqdn(self, name: str) -> str:
+        if self.namespace and (self.namespace != 'default'):
+            return f'{name}.{self.namespace}'
+        else:
+            return name
+
     @functools.lru_cache()
     def matches(self, pattern):
         if fnmatch.fnmatch(self.path, "*%s*" % pattern):

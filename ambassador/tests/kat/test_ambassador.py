@@ -1026,10 +1026,7 @@ class AutoHostRewrite(OptionTest):
     def check(self):
         for r in self.parent.results:
             request_host = r.backend.request.host
-            response_host = r.backend.name
-
-            if self.parent.namespace and (self.parent.namespace != 'default'):
-                response_host += '.' + self.parent.namespace
+            response_host = self.parent.get_fqdn(r.backend.name)
 
             assert response_host == request_host, f'backend {response_host} != request host {request_host}'
 
