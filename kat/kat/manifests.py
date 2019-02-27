@@ -26,7 +26,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:8
+    image: quay.io/datawire/kat-backend:9
     ports:
     - containerPort: 8080
     env:
@@ -62,7 +62,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:8
+    image: quay.io/datawire/kat-backend:9
     ports:
     - containerPort: 8080
     env:
@@ -100,7 +100,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:8
+    image: quay.io/datawire/kat-backend:9
     ports:
     - containerPort: 8080
     env:
@@ -108,6 +108,44 @@ spec:
       value: {self.path.k8s}
     - name: KAT_BACKEND_TYPE
       value: grpc_auth
+"""
+
+GRPC_ECHO_BACKEND = """
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {self.path.k8s}
+spec:
+  selector:
+    backend: {self.path.k8s}
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+--- 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {self.path.k8s}
+  labels:
+    backend: {self.path.k8s}
+spec:
+  containers:
+  - name: backend
+    image: quay.io/datawire/kat-backend:9
+    ports:
+    - containerPort: 8080
+    env:
+    - name: BACKEND
+      value: {self.path.k8s}
+    - name: KAT_BACKEND_TYPE
+      value: grpc_echo
 """
 
 RBAC_CLUSTER_SCOPE = """
