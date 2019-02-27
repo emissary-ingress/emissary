@@ -46,7 +46,7 @@ class IRBaseMapping (IRResource):
         """ Compute the group ID for this Mapping. Must be defined by subclasses. """
         raise NotImplementedError("%s._group_id is not implemented?" %  self.__class__.__name__)
 
-    def _route_weight(self) -> Tuple[Union[str, int]]:
+    def _route_weight(self) -> List[Union[str, int]]:
         """ Compute the route weight for this Mapping. Must be defined by subclasses. """
         raise NotImplementedError("%s._route_weight is not implemented?" %  self.__class__.__name__)
 

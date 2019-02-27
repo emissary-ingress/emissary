@@ -8,7 +8,6 @@ from .irresource import IRResource
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
-# from .irhttpmapping import IRHTTPMapping
 
 if TYPE_CHECKING:
     from .ir import IR

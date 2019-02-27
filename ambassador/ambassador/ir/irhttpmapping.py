@@ -1,10 +1,11 @@
 from ambassador.utils import RichStatus
-from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 from ..config import Config
 
 from .irbasemapping import IRBaseMapping
-from .irresource import IRResource
+from .irbasemappinggroup import IRBaseMappingGroup
+from .irhttpmappinggroup import IRHTTPMappingGroup
 from .ircors import IRCORS
 
 import hashlib
@@ -136,6 +137,9 @@ class IRHTTPMapping (IRBaseMapping):
         if ('circuit_breaker' in kwargs) or ('outlier_detection' in kwargs):
             self.post_error(RichStatus.fromError("circuit_breaker and outlier_detection are not supported"))
 
+    @staticmethod
+    def group_class() -> Type[IRBaseMappingGroup]:
+        return IRHTTPMappingGroup
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         if not super().setup(ir, aconf):
@@ -227,7 +231,7 @@ class IRHTTPMapping (IRBaseMapping):
 
         return h.hexdigest()
 
-    def _route_weight(self):
+    def _route_weight(self) -> List[Union[str, int]]:
         len_headers = 0
 
         for hdr in self.headers:
@@ -238,4 +242,4 @@ class IRHTTPMapping (IRBaseMapping):
         weight = [ self.precedence, len(self.prefix), len_headers, self.prefix, self.get('method', 'GET') ]
         weight += [ hdr.key() for hdr in self.headers ]
 
-        return tuple(weight)
+        return weight

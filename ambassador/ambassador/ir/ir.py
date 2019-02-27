@@ -29,9 +29,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
-# from .irhttpmapping import IRHTTPMapping
 from .irmappingfactory import MappingFactory
-from .irhttpmappinggroup import IRHTTPMappingGroup
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
@@ -59,7 +57,7 @@ class IR:
     router_config: Dict[str, Any]
     filters: List[IRFilter]
     listeners: List[IRListener]
-    groups: Dict[str, IRHTTPMappingGroup]
+    groups: Dict[str, IRBaseMappingGroup]
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
@@ -273,13 +271,13 @@ class IR:
         primary_listener = 'ir.listener'
         return self.add_to_listener(primary_listener, **kwargs)
 
-    def add_mapping(self, aconf: Config, mapping: IRBaseMapping,
-                    group_class: Type[IRBaseMappingGroup]) -> Optional[IRHTTPMappingGroup]:
-        group: Optional[IRHTTPMappingGroup] = None
+    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
+        group: IRBaseMappingGroup
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name
+                group_class = mapping.group_class()
                 group = group_class(ir=self, aconf=aconf,
                                     location=mapping.location,
                                     name=group_name,
@@ -292,7 +290,7 @@ class IR:
 
         return group
 
-    def ordered_groups(self) -> Iterable[IRHTTPMappingGroup]:
+    def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
 
     def has_cluster(self, name: str) -> bool:

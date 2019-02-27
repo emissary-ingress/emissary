@@ -147,5 +147,10 @@ class V1Route(dict):
         config.routes = []
 
         for irgroup in config.ir.ordered_groups():
+            if not isinstance(irgroup, IRHTTPMappingGroup):
+                # Can't happen yet.
+                config.ir.post_error("group %s is not an HTTPMappingGroup, ignoring" % irgroup.name, resource=irgroup)
+                continue
+
             route = config.save_element('route', irgroup, V1Route(config, irgroup))
             config.routes.append(route)

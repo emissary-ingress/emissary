@@ -191,7 +191,7 @@ class DiagResult:
 
         return self.clusters[c_name]
 
-    def include_group(self, group: IRHTTPMappingGroup) -> None:
+    def include_httpgroup(self, group: IRHTTPMappingGroup) -> None:
         """
         Note that a particular IRHTTPMappingGroup, all of the clusters it uses for upstream
         traffic, and everything that references it are relevant to this result.
@@ -537,7 +537,11 @@ class Diagnostics:
         result = DiagResult(self, estat, request)
 
         for group in self.ir.ordered_groups():
-            result.include_group(group)
+            if isinstance(group, IRHTTPMappingGroup):
+                result.include_httpgroup(group)
+            else:
+                # Can't happen yet.
+                self.logger.warning("group %s is not an HTTPMappingGroup, ignoring" % group.name)
 
         return result.as_dict()
 
@@ -564,7 +568,14 @@ class Diagnostics:
 
         if key in self.groups:
             # Yup, group ID.
-            result.include_group(self.groups[key])
+            group = self.groups[key]
+
+            if isinstance(group, IRHTTPMappingGroup):
+                result.include_httpgroup(group)
+            else:
+                # Can't happen yet.
+                self.logger.warning("group %s is not an HTTPMappingGroup, ignoring" % group.name)
+
             found = True
         elif key in self.clusters:
             result.include_cluster(self.clusters[key].as_dict())

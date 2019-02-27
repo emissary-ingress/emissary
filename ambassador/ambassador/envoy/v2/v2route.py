@@ -166,7 +166,15 @@ class V2Route(dict):
         config.routes = []
 
         for irgroup in config.ir.ordered_groups():
+            if not isinstance(irgroup, IRHTTPMappingGroup):
+                # Can't happen yet.
+                config.ir.post_error("group %s is not an HTTPMappingGroup, ignoring" % irgroup.name,
+                                     resource=irgroup)
+                continue
+
+            # It's an HTTP group. Great.
             route = config.save_element('route', irgroup, V2Route(config, irgroup))
+
             if irgroup.get('sni'):
                 info = {
                     'hosts': irgroup['tls_context']['hosts'],
