@@ -40,7 +40,7 @@
     - title: Microservices API Gateways
       link: /about/microservices-api-gateways
     - title: Rate Limiting Concepts
-      link: /user-guide/rate-limiting 
+      link: /user-guide/rate-limiting
     - title: Self-Service Routing and Deployment Control
       link: /concepts/developers
     - title: Safely Testing in Production
@@ -70,6 +70,8 @@
         link: /user-guide/cert-manager
       - title: Basic Authentication
         link: /user-guide/auth-tutorial
+      - title: OAuth & OIDC Overview
+        link: /user-guide/auth-overview
       - title: Single Sign-On with OAuth & OIDC
         link: /user-guide/oauth-oidc-auth
       - title: Basic Rate Limiting
