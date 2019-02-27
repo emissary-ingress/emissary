@@ -126,6 +126,10 @@ AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-2-rc"
 
 SCOUT_APP_KEY=
 
+# Sets the kat-backend release which contains the kat-client use for E2e testing.
+# For details https://github.com/datawire/kat-backend
+KAT_BACKEND_RELEASE = 1.0.1
+
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
 all: setup-develop docker-push test
@@ -173,6 +177,7 @@ print-vars:
 	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
+	@echo "KAT_BACKEND_RELEASE = $(KAT_BACKEND_RELEASE)"
 
 export-vars:
 	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
@@ -193,6 +198,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
+	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
@@ -312,7 +318,11 @@ $(KUBERNAUT):
 	chmod +x $(KUBERNAUT)
 
 setup-develop: venv $(TELEPROXY) $(KUBERNAUT) version
-	go get github.com/gorilla/websocket
+	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz 
+	tar xzf v$(KAT_BACKEND_RELEASE).tar.gz
+	chmod +x kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
+	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/kat/kat/client
+	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 

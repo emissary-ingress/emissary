@@ -276,6 +276,14 @@ class HTTP(ServiceType):
 class GRPC(ServiceType):
     pass
 
+class EGRPC(ServiceType):
+    skip_variant: ClassVar[bool] = True
+    
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, service_manifests=manifests.GRPC_ECHO_BACKEND, **kwargs)
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
 
 class AHTTP(ServiceType):
     skip_variant: ClassVar[bool] = True
