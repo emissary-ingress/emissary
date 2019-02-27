@@ -28,7 +28,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target1
 prefix: /{self.name}/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
@@ -36,7 +36,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target2
 prefix: /{self.name}/
-service: http://{self.target2.path.k8s}
+service: http://{self.target2.path.fqdn}
 headers:
     X-Route: target2
 """)
@@ -92,7 +92,7 @@ spec:
         super().__init__(*args, service_manifests=manifests, **kwargs)
 
     def requirements(self):
-        yield ("url", Query("http://%s/ambassador/check/" % self.path.k8s))
+        yield ("url", Query("http://%s/ambassador/check/" % self.path.fqdn))
 
 class AuthenticationHeaderRouting(AmbassadorTest):
     debug = True
@@ -118,7 +118,7 @@ class AuthenticationHeaderRouting(AmbassadorTest):
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
-auth_service: "{self.auth.path.k8s}"
+auth_service: "{self.auth.path.fqdn}"
 proto: http
 path_prefix: ""
 timeout_ms: 5000
@@ -133,7 +133,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target1
 prefix: /target/
-service: http://{self.target1.path.k8s}
+service: http://{self.target1.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
@@ -141,7 +141,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target2
 prefix: /target/
-service: http://{self.target2.path.k8s}
+service: http://{self.target2.path.fqdn}
 headers:
     X-Auth-Route: Route
 """)

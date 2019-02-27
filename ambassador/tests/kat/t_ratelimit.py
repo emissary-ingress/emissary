@@ -62,7 +62,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  ratelimit_target_mapping
 prefix: /target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 rate_limits:
 - descriptor: A test case
   headers:
@@ -72,7 +72,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  ratelimit_label_mapping
 prefix: /labels/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 labels:
   ambassador:
     - host_and_user:
