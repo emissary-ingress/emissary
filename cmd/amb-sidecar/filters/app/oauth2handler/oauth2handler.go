@@ -140,7 +140,7 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 		}
 
 		// Get RSA public key
-		return discovered.GetKey(kid, logger)
+		return discovered.JSONWebKeySet.GetKey(kid)
 	})
 	if err != nil {
 		return err
