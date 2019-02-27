@@ -73,12 +73,16 @@ func validateToken(token string, filter crd.FilterJWT, httpClient *http.Client) 
 
 	now := time.Now().Unix()
 
-	if !claims.VerifyAudience(filter.Audience, filter.RequireAudience) {
-		return errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience)
+	if filter.RequireAudience || filter.Audience != "" {
+		if !claims.VerifyAudience(filter.Audience, filter.RequireAudience) {
+			return errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience)
+		}
 	}
 
-	if !claims.VerifyIssuer(filter.Issuer, filter.RequireIssuer) {
-		return errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer)
+	if filter.RequireIssuer || filter.Issuer != "" {
+		if !claims.VerifyIssuer(filter.Issuer, filter.RequireIssuer) {
+			return errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer)
+		}
 	}
 
 	if !claims.VerifyExpiresAt(now, filter.RequireExpiresAt) {
