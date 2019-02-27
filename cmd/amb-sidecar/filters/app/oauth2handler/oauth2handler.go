@@ -139,13 +139,8 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 			return nil, errors.New("kid is not a string")
 		}
 
-		// Get RSA certificate.
-		cert, err := discovered.GetPEMCert(kid, logger)
-		if err != nil {
-			return nil, err
-		}
-
-		return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
+		// Get RSA public key
+		return discovered.GetKey(kid, logger)
 	})
 	if err != nil {
 		return err

@@ -3,17 +3,16 @@ package oauth2handler
 import (
 	"bytes"
 	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
 	"net/url"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -93,13 +92,13 @@ type JWKSlice struct {
 	Keys []JWK `json:"keys"`
 }
 
-// GetPEMCert fetches the certificate from the IDP.  It returns a cert
-// string or error if a problem occurs.
-func (d *Discovered) GetPEMCert(kid string, logger types.Logger) (string, error) {
+// GetKey fetches the certificate from the IDP.  It returns an RSA
+// public key or error if a problem occurs.
+func (d *Discovered) GetKey(kid string, logger types.Logger) (*rsa.PublicKey, error) {
 	log := logger.WithField("KeyID", kid)
 	jwk := d.JSONWebKeySet[kid]
 	if jwk == nil {
-		return "", errors.Errorf("JWK for KeyID=%q not found", kid)
+		return nil, errors.Errorf("JWK for KeyID=%q not found", kid)
 	}
 	// NOTE, plombardi@datawire.io: Multiple x5c entries?
 	//
@@ -108,7 +107,8 @@ func (d *Discovered) GetPEMCert(kid string, logger types.Logger) (string, error)
 	switch {
 	case jwk.X5c != nil && len(jwk.X5c) >= 1:
 		log.WithField("KeyFormat", "x509 certificate").Debug("JWK found")
-		return fmt.Sprintf(certFMT, jwk.X5c[0]), nil
+		cert := fmt.Sprintf(certFMT, jwk.X5c[0])
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 	case jwk.E != "" && jwk.N != "":
 		log.WithField("KeyFormat", "public key").
 			WithField("n", jwk.N).
@@ -117,24 +117,11 @@ func (d *Discovered) GetPEMCert(kid string, logger types.Logger) (string, error)
 
 		rsaPubKey, err := assemblePubKeyFromNandE(jwk)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
-
-		pubKey, err := x509.MarshalPKIXPublicKey(&rsaPubKey)
-		if err != nil {
-			return "", err
-		}
-
-		var keyPEM = &pem.Block{
-			Type:    "RSA PUBLIC KEY",
-			Headers: make(map[string]string),
-			Bytes:   pubKey,
-		}
-
-		keyPEMString := string(pem.EncodeToMemory(keyPEM))
-		return keyPEMString, nil
+		return &rsaPubKey, nil
 	default:
-		return "", errors.Errorf("JWK for KeyID=%q not found", kid)
+		return nil, errors.Errorf("JWK for KeyID=%q not found", kid)
 	}
 }
 
