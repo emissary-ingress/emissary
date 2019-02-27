@@ -10,6 +10,8 @@ global arguments to that filter.  Which Filter(s) to use for which
 HTTP requests is then configured in `FilterPolicy` resources, which
 may contain path-specific arguments to the filter.
 
+For more information about developing filters, see the [Filter Development Guide]()
+
 ## `Filter` Definition
 
 Filters are created as `Filter` resources.  The body of the resource
@@ -57,17 +59,15 @@ spec:
 
  - `authorizationURL` identifies where to look for the
    `/.well-known/openid-configuration` descriptor to figure out how to
-   talk to the OAuth2 provider. (Is this equivalent to what the OIDC
-   Discovery spec calls the "Issuer"?  If so, should we rename it to
-   Issuer?)
- - `clientURL` identifies a hostname that can appropriate set cookies
+   talk to the OAuth2 provider.
+ - `clientURL` identifies a hostname that can appropriately set cookies
    for the application.  Only the scheme (`https://`) and authority
    (`example.com:1234`) parts are used; the path part of the URL is
    ignored.
- - stateTTL: TODO
- - audience: TODO
- - clientID: The client ID you got from your IDP.
- - secret: The client secret you got from your IDP.
+ - stateTTL: How long Ambassador will wait for the user to submit credentials to the IDP and receive a response to that effect from the IDP
+ - audience: the OIDC audience
+ - clientID: The client ID you get from your IDP.
+ - secret: The client secret you get from your IDP.
  - `maxStale`: How long to keep stale cache OIDC replies for.  This
    sets the `max-stale` Cache-Control directive on requests, and also
    ignores the `no-store` and `no-cache` Cache-Control directives on
