@@ -3,17 +3,7 @@
 
 Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, and more. Ambassador Pro also uses a certified version of Ambassador OSS that undergoes additional testing and validation. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
 
-## 1. Create the Ambassador Pro registry credentials secret.
-Your credentials to pull the image from the Ambassador Pro registry were given in the sign up email. If you have lost this email, please contact us at support@datawire.io.
-
-```
-kubectl create secret docker-registry ambassador-pro-registry-credentials --docker-server=quay.io --docker-username=<CREDENTIALS USERNAME> --docker-password=<CREDENTIALS PASSWORD> --docker-email=<YOUR EMAIL>
-```
-- `<CREDENTIALS USERNAME>`: Username given in sign up email
-- `<CREDENTIALS PASSWORD>`: Password given in sign up email
-- `<YOUR EMAIL>`: Your email address
-
-## 2. Download the Ambassador Pro Deployment File 
+## 1. Download the Ambassador Pro Deployment File 
 Ambassador Pro consists of a series of modules that communicate with Ambassador. The core Pro module is typically deployed as a sidecar to Ambassador. This means it is an additional process that runs on the same pod as Ambassador. Ambassador communicates with the Pro sidecar locally. Pro thus scales in parallel with Ambassador. Ambassador Pro also relies on a Redis instance for its rate limit service and several Custom Resource Definitions (CRDs) for configuration.
 
 The full configuration for Ambassador Pro is available at https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml. Download this file locally:
@@ -38,13 +28,13 @@ Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured cor
       - "Authorization"
 ```
 
-## 3. License Key
+## 2. License Key
 
 In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
 
 **Note:** The Ambassador Pro will not start without your license key.
 
-## 4. Deploy Ambassador Pro
+## 3. Deploy Ambassador Pro
 
 Once you have fully configured Ambassador Pro, deploy your updated configuration. Note that the default configuration will also redeploy your current Ambassador configuration, so verify that you have the correct Ambassador version before deploying Pro.
 
@@ -60,7 +50,7 @@ ambassador-79494c799f-vj2dv            2/2       Running            0         1h
 ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 ```
 
-## 5. Defining the Ambassador Service
+## 4. Defining the Ambassador Service
 
 After deploying Ambassador Pro, you will need to expose the service to the internet. This is done with a Kubernetes Service.
 
@@ -87,7 +77,7 @@ This will create a `LoadBalancer` service listening on and forwarding traffic to
 **Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change this to a different service type (e.g. `NodePort`).
 
 
-## 6. Configure Ambassador Pro services
+## 5. Configure Ambassador Pro services
 
 Ambassador should now be running, along with the Pro modules. To enable rate limiting and authentication, some additional configuration is required.
 
