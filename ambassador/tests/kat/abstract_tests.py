@@ -84,7 +84,6 @@ class AmbassadorTest(Test):
     name: Name
     path: Name
 
-    namespace = "default"
     env = []
 
     def manifests(self) -> str:
@@ -219,11 +218,12 @@ class AmbassadorTest(Test):
     def url(self, prefix, scheme=None) -> str:
         if scheme is None:
             scheme = self.scheme()
+
         if DEV:
             port = 8443 if scheme == 'https' else 8080
             return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
         else:
-            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
+            return "%s://%s/%s" % (scheme, self.path.fqdn, prefix)
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready")))
@@ -245,8 +245,8 @@ class ServiceType(Node):
         return self.format(self._manifests)
 
     def requirements(self):
-        yield ("url", Query("http://%s" % self.path.k8s))
-        yield ("url", Query("https://%s" % self.path.k8s))
+        yield ("url", Query("http://%s" % self.path.fqdn))
+        yield ("url", Query("https://%s" % self.path.fqdn))
 
 
 @abstract_test
@@ -265,8 +265,8 @@ class ServiceTypeGrpc(Node):
         return self.format(self._manifests)
 
     def requirements(self):
-        yield ("url", Query("http://%s" % self.path.k8s))
-        yield ("url", Query("https://%s" % self.path.k8s))
+        yield ("url", Query("http://%s" % self.path.fqdn))
+        yield ("url", Query("https://%s" % self.path.fqdn))
 
 
 class HTTP(ServiceType):

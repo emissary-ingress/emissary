@@ -67,14 +67,14 @@ kind:  Mapping
 name:  {self.name}-target
 prefix: /{self.name}/mark/
 rewrite: /mark/
-service: https://{self.target.path.k8s}
+service: https://{self.target.path.fqdn}
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-shadow
 prefix: /{self.name}/mark/
 rewrite: /mark/
-service: shadow
+service: shadow.plain-namespace
 shadow: true
 ---
 apiVersion: ambassador/v0
@@ -82,12 +82,12 @@ kind:  Mapping
 name:  {self.name}-checkshadow
 prefix: /{self.name}/check/
 rewrite: /check/
-service: shadow
+service: shadow.plain-namespace
 """)
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", Query("http://shadow/clear/"))
+        yield ("url", Query("http://shadow.plain-namespace/clear/"))
 
     def queries(self):
         for i in range(100):

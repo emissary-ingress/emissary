@@ -287,7 +287,8 @@ e2e: e2e-versioned-manifests
 	fi
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.1.1
+TELEPROXY_VERSION=0.3.16
+
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
 GOOS=$(shell go env GOOS)

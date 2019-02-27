@@ -94,7 +94,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def scheme(self) -> str:
@@ -234,7 +234,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def scheme(self) -> str:
@@ -282,7 +282,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 tls: upstream
 """)
 
@@ -292,7 +292,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}-files
 prefix: /{self.name}-files/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 tls: upstream-files
 """)
 
@@ -363,7 +363,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def scheme(self) -> str:
@@ -403,7 +403,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def scheme(self) -> str:
@@ -466,7 +466,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -521,7 +521,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 """)
 
 
@@ -659,7 +659,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -727,7 +727,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 host: inspector.external
 """)
 
@@ -778,7 +778,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 host: tls-context-host-1
 """)
         yield self, self.format("""
@@ -796,7 +796,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-same-prefix-2
 prefix: /tls-context-same/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 host: tls-context-host-2
 """)
         yield self, self.format("""
@@ -826,7 +826,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
-service: https://{self.target.path.k8s}
+service: https://{self.target.path.fqdn}
 """)
 
     def scheme(self) -> str:
@@ -926,16 +926,6 @@ service: https://{self.target.path.k8s}
                 assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
 
             idx += 1
-
-
-    def url(self, prefix, scheme=None) -> str:
-        if scheme is None:
-            scheme = self.scheme()
-        if DEV:
-            port = 8443
-            return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
-        else:
-            return "%s://%s/%s" % (scheme, self.path.k8s, prefix)
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
@@ -1037,8 +1027,10 @@ class AutoHostRewrite(OptionTest):
 
     def check(self):
         for r in self.parent.results:
-            host = r.backend.request.host
-            assert r.backend.name == host, (r.backend.name, host)
+            request_host = r.backend.request.host
+            response_host = self.parent.get_fqdn(r.backend.name)
+
+            assert response_host == request_host, f'backend {response_host} != request host {request_host}'
 
 
 class Rewrite(OptionTest):
@@ -1076,7 +1068,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: https://{self.target.path.k8s}
+service: https://{self.target.path.fqdn}
 """
 
     EXPLICIT = """
@@ -1085,7 +1077,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 tls: true
 """
 
@@ -1162,7 +1154,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 """)
         yield self.canary, self.format("""
 ---
@@ -1170,7 +1162,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-canary
 prefix: /{self.name}/
-service: http://{self.canary.path.k8s}
+service: http://{self.canary.path.fqdn}
 weight: {self.weight}
 """)
 
@@ -1216,7 +1208,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.path.k8s}-{prefix}
 prefix: /{prefix}/
-service: {self.target.path.k8s}
+service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
             """, prefix=self.format(prefix), amb_id=self.format(amb_id))
 
@@ -1249,7 +1241,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://{self.target.path.k8s}
+service: http://{self.target.path.fqdn}
 """)
 
     def queries(self):
