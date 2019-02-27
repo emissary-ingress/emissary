@@ -44,6 +44,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Errorln("create discovery failed: %v", err)
 		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+		return
 	}
 
 	token := getToken(r, logger)
