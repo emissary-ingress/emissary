@@ -1,7 +1,6 @@
 package oauth2handler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -118,8 +118,17 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logger types.Logger) error {
-	// JWT validation is performed by doing the cheap operations first.
-	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+	jwtParser := jwt.Parser{
+		ValidMethods: []string{
+			// Any of the RSA algs supported by jwt-go
+			"RS256",
+			"RS384",
+			"RS512",
+		},
+	}
+
+	var claims jwt.MapClaims
+	_, err := jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
 		if t.Header["kid"] == nil {
 			return "", errors.New("missing kid")
@@ -131,53 +140,46 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 			return "", err
 		}
 
-		// Get map of claims.
-		claims, ok := t.Claims.(jwt.MapClaims)
-		if !ok {
-			return "", errors.New("failed to extract claims")
-		}
-
-		//fmt.Printf("Expected aud: %s\n", filter.Audience)
-		//fmt.Printf("Expected iss: %s\n", j.IssuerURL)
-		//spew.Dump(claims)
-
-		// Verifies 'aud' claim.
-		if !claims.VerifyAudience(j.Filter.Audience, false) {
-			return "", fmt.Errorf("invalid audience %s", j.Filter.Audience)
-		}
-
-		// Verifies 'iss' claim.
-		if !claims.VerifyIssuer(discovered.Issuer, false) {
-			return "", errors.New("invalid issuer")
-		}
-
-		// Validates time based claims "exp, iat, nbf".
-		if err := t.Claims.Valid(); err != nil {
-			return "", err
-		}
-
-		// Validate scopes.
-		if claims["scope"] != nil {
-			// TODO(lukeshu): Verify that this check is
-			// correct; it seems backwards to me.
-			for _, s := range strings.Split(claims["scope"].(string), " ") {
-				logger.Debugf("verifying scope '%s'", s)
-				if s != "" && !inArray(s, j.FilterArguments.Scopes) {
-					return "", fmt.Errorf("scope %v is not in the policy", s)
-				}
-			}
-		} else {
-			logger.Debugf("No scopes to verify")
-		}
-
-		// Validate method for last since it's the most expensive operation.
-		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-			return "", errors.New("unexpected signing method")
-		}
-
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// ParseWithClaims calls claims.Valid(), so
+	// jwt.MapClaims.Valid() has already validated 'exp', 'iat',
+	// and 'nbf' for us.
+	//
+	// We _could_ make our own implementation of the jwt.Claims
+	// interface that also validates the following things when
+	// ParseWithClaims calls claims.Valid(), but that seems like
+	// more trouble than it's worth.
+
+	// Verifies 'aud' claim.
+	if !claims.VerifyAudience(j.Filter.Audience, false) {
+		return errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], j.Filter.Audience)
+	}
+
+	// Verifies 'iss' claim.
+	if !claims.VerifyIssuer(discovered.Issuer, false) {
+		return errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], discovered.Issuer)
+	}
+
+	// Validate scopes.
+	if claims["scope"] != nil {
+		// TODO(lukeshu): Verify that this check is
+		// correct; it seems backwards to me.
+		for _, s := range strings.Split(claims["scope"].(string), " ") {
+			logger.Debugf("verifying scope '%s'", s)
+			if s != "" && !inArray(s, j.FilterArguments.Scopes) {
+				return errors.Errorf("Token scope %v is not in the policy", s)
+			}
+		}
+	} else {
+		logger.Debugf("No scopes to verify")
+	}
+
+	return nil
 }
 
 func inArray(needle string, haystack []string) bool {
