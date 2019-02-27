@@ -131,13 +131,18 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 	_, err := jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
 		if t.Header["kid"] == nil {
-			return "", errors.New("missing kid")
+			return nil, errors.New("missing kid")
+		}
+
+		kid, ok := t.Header["kid"].(string)
+		if !ok {
+			return nil, errors.New("kid is not a string")
 		}
 
 		// Get RSA certificate.
-		cert, err := discovered.GetPEMCert(t.Header["kid"].(string), logger)
+		cert, err := discovered.GetPEMCert(kid, logger)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
