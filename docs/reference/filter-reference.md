@@ -181,7 +181,7 @@ metadata:
 spec:
   rules:
   - host: "glob-string"
-    path: "glob-string
+    path: "glob-string"
     filters:                 # optional; omit or set to `null` to apply no filters to this request
     - name: "exampe-filter"  # required
       namespace: "string"    # optional; default is the same namespace as the FilterPolicy
