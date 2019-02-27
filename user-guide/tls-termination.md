@@ -5,7 +5,7 @@ To enable TLS termination for Ambassador you'll need a few things:
 1. You'll need a TLS certificate.
 2. For any production use, you'll need a DNS record that matches your TLS certificate's `Common Name`.
 3. You'll need to store the certificate in a Kubernetes `secret`.
-4. Configure other Ambassador TLS options using the `tls` module.
+4. You'll need a basic `tls` module configuration in Ambassador.
 
 All these requirements mean that it's easiest to decide to enable TLS _before_ you configure Ambassador the first time. It's possible to switch after setting up Ambassador, but it's annoying.
 
@@ -41,18 +41,6 @@ When Ambassador starts, it will notice the `ambassador-certs` secret and turn TL
 
 **Important.** Note that the `ambassador-certs` Secret _must_ be in the same Kubernetes namespace as the Ambassador Service.
 
-**Important.** If you've already created the `ambassador` deployment in step 2 or you're adding TLS termination to an existing deployment, you **MUST** restart it. Ambassador looks for the `ambassador-certs` when it starts and only watches service changes later on ([#474](https://github.com/datawire/ambassador/issues/474)). If high availability is not an issue, simply delete the `ambassador` pods (after a short downtime, the deployment will start new pods for you):
-
-```shell
-kubectl delete pods -l service=ambassador
-```
-
-To ensure high availability, you can force a no-op rolling update (https://github.com/kubernetes/kubernetes/issues/27081):
-
-```shell
-kubectl patch deployment ambassador -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
-```
-
 ##### Configuring using a user defined secret
 
 If you do not wish to use a secret named `ambassador-certs`, then you can tell Ambassador to use your own secret. This can be particularly useful if you want to use different secrets for different Ambassador deployments.
@@ -80,7 +68,19 @@ Note: If `ambassador-certs` is present in the cluster and the TLS module is conf
 
 ## 4. Configure other Ambassador TLS options using the `tls` module.
 
-Ambassador will detect the presence of a Secret named `ambassador-certs` and begin serving traffic over HTTPS automatically. However, there are additional options that you may wish to configure via Ambassador's `tls` Module:
+You'll need a minimal `tls` module to configure Ambassador TLS, e.g.,
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: tls
+config:
+  server:
+    secret: ambassador-certs
+```
+
+The `tls` module supports additional configuration options.
 
 ```yaml
 ---
@@ -129,7 +129,7 @@ config:
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
-Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443, you _must_ use the `tls` module:
+Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443:
 
 ```yaml
 ---
@@ -140,11 +140,12 @@ config:
   server:
     enabled: True
     redirect_cleartext_from: 80
+    secret: ambassador-certs
 ```
 
 is the minimal YAML to do this.
 
-If you need a `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
+In terms of the `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
 
 ```yaml
 apiVersion: v1
@@ -161,6 +162,7 @@ metadata:
         server:
           enabled: True
           redirect_cleartext_from: 80
+          secret: ambassador-certs
 spec:
   ports:
     - name: http
