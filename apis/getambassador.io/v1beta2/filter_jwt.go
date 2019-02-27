@@ -50,14 +50,20 @@ type FilterJWT struct {
 }
 
 func (m *FilterJWT) Validate() error {
-	u, err := url.Parse(m.RawJSONWebKeySetURI)
-	if err != nil {
-		return errors.Wrapf(err, "parsing jwksURI: %q", m.RawJSONWebKeySetURI)
+	if m.RawJSONWebKeySetURI == "" {
+		if !(len(m.ValidAlgorithms) == 1 && m.ValidAlgorithms[0] == "none") {
+			return errors.New("jwksURI is required unless validAlgorithms=[\"none\"]")
+		}
+	} else {
+		u, err := url.Parse(m.RawJSONWebKeySetURI)
+		if err != nil {
+			return errors.Wrapf(err, "parsing jwksURI: %q", m.RawJSONWebKeySetURI)
+		}
+		if !u.IsAbs() {
+			return errors.New("jwksURI is not an absolute URI")
+		}
+		m.JSONWebKeySetURI = u
 	}
-	if !u.IsAbs() {
-		return errors.New("jwksURI is not an absolute URI")
-	}
-	m.JSONWebKeySetURI = u
 
 	return nil
 }
