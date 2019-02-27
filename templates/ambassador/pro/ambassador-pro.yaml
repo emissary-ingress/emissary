@@ -215,9 +215,6 @@ spec:
         - name: auth-http
           containerPort: 8080
         env:
-        # For auth: Auth provider's absolute url: {scheme}://{host}
-        - name: AUTH_PROVIDER_URL 
-          value: https://example.auth0.com
         - name: REDIS_SOCKET_TYPE 
           value: tcp
         - name: REDIS_URL 
