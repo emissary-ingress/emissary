@@ -91,31 +91,11 @@ kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro
 
 ### Enabling Single Sign-On
 
-Ambassador Pro's authentication service requires a URL for your authentication provider. This will be the URL Ambassador Pro will direct to for authentication.
-
-If you are using Auth0, this will be the name of the tenant you created (e.g `datawire-ambassador`). To create an Auth0 tenant, go to auth0.com and sign up for a free account. Once you have created an Auth0 tenant, the full `AUTH_PROVIDER_URL` is `https://<auth0-tenant-name>.auth0.com`. 
-
-You can also find this as the domain for your application.
-
-![](/images/Auth0_domain_clientID.png)
-
-Add this as the `AUTH_PROVIDER_URL` in your Ambassador Pro deployment manifest.
-
-```
-  env:
-  # Auth provider's absolute url: {scheme}://{host}
-    - name: AUTH_PROVIDER_URL
-      value: https://datawire-ambassador.auth0.com
-```
-
-Redeploy the Ambassador Pro deployment manifest, along with the Ambassador Pro auth service:
+Deploy the Kubernetes service that enables authentication. You will then want to review the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) to finalize configuration. 
 
 ```bash
-kubectl apply -f ambassador-pro.yaml
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml
 ```
-
-Finally, you will need to configure a tenant resource for Ambassador Pro to authenticate against. Details on how to configure this can be found in the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth#configure-your-authentication-tenants) documentation.
 
 ### Enabling Service Preview
 
