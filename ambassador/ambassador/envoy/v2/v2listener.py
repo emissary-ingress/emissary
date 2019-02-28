@@ -27,6 +27,7 @@ from ...ir.irfilter import IRFilter
 from ...ir.irratelimit import IRRateLimit
 from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
+from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 
 from .v2tls import V2TLSContext
 # from .v2route import V2Route
@@ -248,6 +249,60 @@ def v2filter_router(router: IRFilter):
     return od
 
 
+class V2TCPListener(dict):
+    def __init__(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
+        super().__init__()
+
+        # Use the actual listener name & port number
+        self.name = "ambassador-listener-%s" % group.port
+
+        # # Use a sane access log spec
+        # self.access_log = [ {
+        #     'name': 'envoy.file_access_log',
+        #     'config': {
+        #         'path': '/dev/fd/1',
+        #         'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
+        #     }
+        # } ]
+
+        clusters = [{
+            'name': mapping.cluster.name,
+            'weight': mapping.weight
+        } for mapping in group.mappings]
+
+        config = {
+            'stat_prefix': 'ingress_tcp_%d' % group.port,
+            'weighted_clusters': {
+                'clusters': clusters
+            }
+        }
+
+        tcp_filter = {
+            'name': 'envoy.tcp_proxy',
+            'config': config
+        }
+
+        filter_chains = [
+            {
+                'filters': [
+                    tcp_filter
+                ]
+            }
+        ]
+
+        self.update({
+            'name': self.name,
+            'address': {
+                'socket_address': {
+                    'address': '0.0.0.0',
+                    'port_value': group.port,
+                    'protocol': 'TCP'
+                }
+            },
+            'filter_chains': filter_chains
+        })
+
+
 class V2Listener(dict):
     def __init__(self, config: 'V2Config', listener: IRListener) -> None:
         super().__init__()
@@ -387,14 +442,6 @@ class V2Listener(dict):
         if self.listener_filters:
             self['listener_filters'] = self.listener_filters
 
-    @classmethod
-    def generate(cls, config: 'V2Config') -> None:
-        config.listeners = []
-
-        for irlistener in config.ir.listeners:
-            listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
-            config.listeners.append(listener)
-
     def handle_sni(self, config: 'V2Config') -> None:
         """
         Manage filter chains, etc., for SNI.
@@ -475,3 +522,20 @@ class V2Listener(dict):
 
             chain['routes'] = routes
             self.filter_chains.append(chain)
+
+    @classmethod
+    def generate(cls, config: 'V2Config') -> None:
+        config.listeners = []
+
+        for irlistener in config.ir.listeners:
+            listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
+            config.listeners.append(listener)
+
+        # We need listeners for the TCPMappingGroups too.
+        for irgroup in config.ir.ordered_groups():
+            if not isinstance(irgroup, IRTCPMappingGroup):
+                continue
+
+            # OK, good to go.
+            listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
+            config.listeners.append(listener)

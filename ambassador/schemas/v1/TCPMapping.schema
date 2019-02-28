@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "id": "https://getambassador.io/schemas/mapping.json",
+
+    "type": "object",
+    "properties": {
+        "apiVersion": { "enum": ["ambassador/v1"] },
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "ambassador_id": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
+
+        "port": { "type": "integer" },
+        "host": { "type": "string" },
+        "address": { "type": "string" },
+        "idle_timeout_ms": { "type": "string" },
+        "weight": { "type": "integer" },
+        "enable_ipv4": { "type": "boolean" },
+        "enable_ipv6": { "type": "boolean" },
+
+        "service": { "type": "string" }
+    },
+
+    "required": [ "apiVersion", "kind", "name", "service", "port" ],
+    "additionalProperties": false
+}

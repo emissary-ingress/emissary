@@ -12,7 +12,7 @@ from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
 from t_grpc_bridge import AcceptanceGrpcBridgeTest
-
+from t_tcpmapping import TCPMappingTest
 from t_headerrouting import HeaderRoutingTest
 from t_ratelimit import RateLimitTest
 from t_tracing import TracingTest
@@ -561,6 +561,7 @@ class Plain(AmbassadorTest):
     @classmethod
     def variants(cls):
         yield cls(variants(MappingTest))
+        yield cls(variants(TCPMappingTest), name="tcp")
 
     def manifests(self) -> str:
         return """

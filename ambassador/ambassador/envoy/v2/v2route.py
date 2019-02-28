@@ -167,9 +167,7 @@ class V2Route(dict):
 
         for irgroup in config.ir.ordered_groups():
             if not isinstance(irgroup, IRHTTPMappingGroup):
-                # Can't happen yet.
-                config.ir.post_error("group %s is not an HTTPMappingGroup, ignoring" % irgroup.name,
-                                     resource=irgroup)
+                # We only want HTTP mapping groups here.
                 continue
 
             # It's an HTTP group. Great.

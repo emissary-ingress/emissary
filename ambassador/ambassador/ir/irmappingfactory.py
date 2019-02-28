@@ -4,6 +4,7 @@ from ..config import Config
 
 from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
+from .irtcpmapping import IRTCPMapping
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -13,6 +14,7 @@ class MappingFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
         cls.load_config(ir, aconf, "mappings", IRHTTPMapping)
+        cls.load_config(ir, aconf, "tcpmappings", IRTCPMapping)
 
     @classmethod
     def load_config(cls, ir: 'IR', aconf: Config, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
