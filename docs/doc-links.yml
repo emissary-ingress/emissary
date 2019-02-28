@@ -107,8 +107,6 @@
               link: /reference/canary
             - title: Cross Origin Resource Sharing
               link: /reference/cors
-            - title: Custom Envoy config
-              link: /reference/override
             - title: Header-based routing
               link: /reference/headers
             - title: Host Header
