@@ -1,8 +1,0 @@
-linters:
-  enable-all: true
-  disable:
-    - unparam
-linters-settings:
-  unused:
-    # treat code as a program (not a library) and report unused exported identifiers
-    check-exported: true
