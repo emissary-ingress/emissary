@@ -14,8 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// What compiler version amb-sidecar was compiled with
-const AProGoVersion = "1.11.4"
+var mainNative func(socketName, pluginFilepath string) error = nil
 
 func usage() {
 	fmt.Printf("Usage: %s TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
@@ -55,17 +54,16 @@ func main() {
 	}
 
 	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s/%s/%s\n", runtime.GOOS, runtime.GOARCH, runtime.Version())
-	fmt.Fprintf(os.Stderr, " > apro amb-sidecar   %s/%s/%s\n", "linux", "amd64", "go"+AProGoVersion)
 
-	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" && runtime.Version() == "go"+AProGoVersion {
-		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION match, running natively\n")
+	if mainNative != nil {
+		fmt.Fprintf(os.Stderr, " > running natively\n")
 		err := mainNative(os.Args[1], os.Args[2])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
 			os.Exit(1)
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, " > GOOS/GOARCH/GOVERSION do not match, running in Docker\n")
+		fmt.Fprintf(os.Stderr, " > running in Docker\n")
 		err := mainDocker(os.Args[1], os.Args[2])
 		if err != nil {
 			if ee, ok := err.(*exec.ExitError); ok {
@@ -100,7 +98,7 @@ func mainDocker(socketName, pluginFilepath string) error {
 	cmd := exec.Command("docker", "run", "--rm", "-it",
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
 		"--publish="+net.JoinHostPort(host, strconv.Itoa(portNumber))+":"+strconv.Itoa(portNumber),
-		"docker.io/library/golang:"+AProGoVersion,
+		"docker.io/library/golang:"+strings.TrimPrefix(runtime.Version(), "go"),
 		"/bin/sh", "-c", "cd /tmp && go mod init example.com/bogus && GO111MODULE=on go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
