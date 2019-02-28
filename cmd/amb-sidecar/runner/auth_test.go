@@ -1,4 +1,4 @@
-package main
+package runner
 
 // TODO(gagula): Missing the following tests.
 // 1. Authorization token is expired.
