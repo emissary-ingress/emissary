@@ -56,9 +56,12 @@ func (c *Controller) Watch(ctx context.Context) {
 				continue
 			}
 
-			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil) != 1 {
-				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v",
-					[]string{"OAuth2", "Plugin"})
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil) != 1 {
+				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v", []string{
+					"OAuth2",
+					"Plugin",
+					"JWT",
+				})
 				continue
 			}
 
@@ -79,6 +82,14 @@ func (c *Controller) Watch(ctx context.Context) {
 
 				c.Logger.Infof("loading filter plugin=%s", spec.Plugin.Name)
 				filters[mw.QName()] = *spec.Plugin
+			case spec.JWT != nil:
+				if err = spec.JWT.Validate(); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
+					continue
+				}
+
+				c.Logger.Infoln("loading filter jwt")
+				filters[mw.QName()] = *spec.JWT
 			default:
 				panic("should not happen")
 			}

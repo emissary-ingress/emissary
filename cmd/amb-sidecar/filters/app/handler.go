@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
@@ -112,6 +113,10 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			handler = _handler
 		case crd.FilterPlugin:
 			handler = filterT.Handler
+		case crd.FilterJWT:
+			handler = &jwthandler.JWTHandler{
+				Filter: filterT,
+			}
 		default:
 			panic(errors.Errorf("unexpected filter type %T", filter))
 		}

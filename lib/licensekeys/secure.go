@@ -10,12 +10,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func ParseKey(licenseKey string) (jwt.MapClaims, *jwt.Token, error) {
+func ParseKey(licenseKey string) (jwt.MapClaims, error) {
+	// these details should match the details in apictl-key
+	jwtParser := &jwt.Parser{ValidMethods: []string{"HS256"}} // HS256 is symmetric
+	privateKey := []byte("1234")
+
 	var claims jwt.MapClaims
-	token, err := jwt.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte("1234"), nil
+	_, err := jwtParser.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
+		return privateKey, nil
 	})
-	return claims, token, err
+	return claims, err
 }
 
 func PhoneHome(claims jwt.MapClaims, component, version string) error {
@@ -24,14 +28,14 @@ func PhoneHome(claims jwt.MapClaims, component, version string) error {
 	if err != nil {
 		panic(err)
 	}
-	install_id := uuid.NewSHA1(space, []byte(id))
-	data := make(map[string]interface{})
-	data["application"] = "ambassador-pro"
-	data["install_id"] = install_id.String()
-	data["version"] = version
-	data["metadata"] = map[string]string{
-		"id":        id,
-		"component": component,
+	data := map[string]interface{}{
+		"application": "ambassador-pro",
+		"install_id":  uuid.NewSHA1(space, []byte(id)).String(),
+		"version":     version,
+		"metadata": map[string]string{
+			"id":        id,
+			"component": component,
+		},
 	}
 	body, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {

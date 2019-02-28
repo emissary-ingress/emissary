@@ -19,6 +19,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -76,8 +77,8 @@ func NewIDP() *httptest.Server {
 				JSONWebKeySetURI:      fmt.Sprintf("%s://%s/.well-known/jwks.json", serverURL.Scheme, serverURL.Host),
 			})
 		case "/.well-known/jwks.json":
-			util.ToJSONResponse(w, http.StatusOK, oauth2handler.JWKSlice{
-				Keys: []oauth2handler.JWK{
+			util.ToJSONResponse(w, http.StatusOK, map[string]interface{}{
+				"keys": []jwks.JWK{
 					// TODO
 				},
 			})

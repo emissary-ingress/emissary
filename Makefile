@@ -150,7 +150,7 @@ endif
 # This assumes that if there's a Go binary with the same name as the
 # Docker image, then the image wants that binary.  That's a safe
 # assumption so far, and forces us to name things in a consistent
-# manor.
+# manner.
 define docker.bins_rule
 $(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)))
 $(image)/%: bin_linux_amd64/%

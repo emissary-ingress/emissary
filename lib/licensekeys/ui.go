@@ -117,7 +117,7 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
 		}
 	}
 
-	claims, token, err := ParseKey(ctx.key)
+	claims, err := ParseKey(ctx.key)
 
 	go func() {
 		err := PhoneHome(claims, ctx.application, ctx.version)
@@ -128,12 +128,6 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
 
 	if err != nil {
 		return errors.Wrapf(err, "error validating %s", keysource)
-	}
-	if !token.Valid {
-		// Can this even happen if err == nil?  IDK, that kind
-		// of useful thing is missing from the
-		// github.com/dgrijalva/jwt-go docs.
-		return errors.Errorf("%s is not valid", keysource)
 	}
 
 	return nil
