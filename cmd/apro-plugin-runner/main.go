@@ -12,14 +12,25 @@ import (
 	"syscall"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
 )
 
 var mainNative func(socketName, pluginFilepath string) error = nil
 
+// Version is inserted at build using --ldflags -X
+var Version = "(unknown version)"
+
 func usage() {
-	fmt.Printf("Usage: %s TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
+	fmt.Printf("Usage: %s [OPTIONS] TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
 	fmt.Printf("   or: %s <-h|--help>\n", os.Args[0])
+	fmt.Printf("   or: %s --version\n", os.Args[0])
 	fmt.Printf("Run an Ambassador Pro middleware plugin as an Ambassador AuthService, for plugin development\n")
+	fmt.Printf("\n")
+	fmt.Printf("OPTIONS:\n")
+	fmt.Printf("  --docker   Force the use Docker, for increased realism\n")
+	if mainNative == nil {
+		fmt.Printf("             (no-op; this build of apro-plugin-runner always uses Docker)\n")
+	}
 	fmt.Printf("\n")
 	fmt.Printf("Example:\n")
 	fmt.Printf("    %s :8080 ./myplugin.so\n", os.Args[0])
@@ -32,19 +43,28 @@ func errusage(msg string) {
 }
 
 func main() {
-	for _, arg := range os.Args[1:] {
-		if arg == "-h" || arg == "--help" {
+	argparser := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+	argparser.Usage = func() {}
+	flagVersion := argparser.Bool("version", false, "")
+	flagDocker := argparser.Bool("docker", mainNative == nil, "")
+
+	if err := argparser.Parse(os.Args[1:]); err != nil {
+		if err == pflag.ErrHelp {
 			usage()
-			os.Exit(0)
+			return
 		}
+		errusage(err.Error())
 	}
-	if len(os.Args) != 3 {
-		errusage(fmt.Sprintf("expected exactly 2 arguments, but got %d", len(os.Args)-1))
+	if *flagVersion {
+		fmt.Printf("apro-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 	}
-	if !strings.HasSuffix(os.Args[2], ".so") {
-		errusage(fmt.Sprintf("plugin file path does not end with '.so': %s", os.Args[2]))
+	if argparser.NArg() != 2 {
+		errusage(fmt.Sprintf("expected exactly 2 arguments, but got %d", argparser.NArg()))
 	}
-	_, portName, err := net.SplitHostPort(os.Args[1])
+	if !strings.HasSuffix(argparser.Arg(1), ".so") {
+		errusage(fmt.Sprintf("plugin file path does not end with '.so': %s", argparser.Arg(1)))
+	}
+	_, portName, err := net.SplitHostPort(argparser.Arg(0))
 	if err != nil {
 		errusage(fmt.Sprintf("invalid TCP address: %v", err))
 	}
@@ -53,18 +73,18 @@ func main() {
 		errusage(fmt.Sprintf("invalid TCP port: %q", portName))
 	}
 
-	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s/%s/%s\n", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 
-	if mainNative != nil {
+	if !*flagDocker && mainNative != nil {
 		fmt.Fprintf(os.Stderr, " > running natively\n")
-		err := mainNative(os.Args[1], os.Args[2])
+		err := mainNative(argparser.Arg(0), argparser.Arg(1))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
 			os.Exit(1)
 		}
 	} else {
 		fmt.Fprintf(os.Stderr, " > running in Docker\n")
-		err := mainDocker(os.Args[1], os.Args[2])
+		err := mainDocker(argparser.Arg(0), argparser.Arg(1))
 		if err != nil {
 			if ee, ok := err.(*exec.ExitError); ok {
 				ws := ee.ProcessState.Sys().(syscall.WaitStatus)
