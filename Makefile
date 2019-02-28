@@ -67,10 +67,10 @@ build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word
 
 plugins = $(patsubst plugins/%/go.mod,%,$(wildcard plugins/*/go.mod))
 
-define plugin.rule
 # We use $(shell find ...) instead of FORCE here because not even the
 # .cache trick will enable linker caching for -buildmode=plugin on
 # macOS (verified with go 1.11.4 and 1.11.5).
+define plugin.rule
 bin_%/.cache.$(plugin.name).so: plugins/$(plugin.name)/go.mod $$(shell find plugins/$(plugin.name))
 	cd $$(<D) && $$(go.GOBUILD) -buildmode=plugin -o $(abspath $$@) .
 bin_%/$(plugin.name).so: bin_%/.cache.$(plugin.name).so
