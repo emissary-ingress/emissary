@@ -1,5 +1,7 @@
 module github.com/datawire/apro
 
+go 1.12
+
 require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/datawire/teleproxy v0.3.16
@@ -23,9 +25,13 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
 	github.com/urfave/negroni v1.0.0
-	golang.org/dl v0.0.0-20190211212633-b8d278adca9c // indirect
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	gopkg.in/yaml.v2 v2.2.2
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
+
+// Stupid hack for dependencies that both (1) erroneously include
+// golint in their go.sum, and (2) erroneously refer to it as
+// github.com/golang/lint instead of golang.org/x/lint
+replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a55c961

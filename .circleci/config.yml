@@ -32,7 +32,7 @@ commands:
       # pipe the curl straight to tar.
       - run: |
           sudo rm -rf /usr/local/go
-          curl https://dl.google.com/go/go1.11.4.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz
+          curl https://dl.google.com/go/go1.12.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz
           sudo tar -C /usr/local -xzf /tmp/go.tgz
 
       # Golang paths

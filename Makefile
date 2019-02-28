@@ -13,6 +13,14 @@ go.PLATFORMS    = linux_amd64 darwin_amd64
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
 
+# In order to work with Alpine's musl libc6-compat, things must be
+# compiled for compatibility with LSB 3. Setting _FORTIFY_SOURCE=2
+# with GNU libc causes the CGO 1.12 runtime to require LSB 4.
+#
+# Ubuntu 14.04 (which we use in CircleCI) patches their GCC to define
+# _FORTIFY_SOURCE=2 by default.
+export CGO_CPPFLAGS += -U_FORTIFY_SOURCE
+
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/k8s.mk
