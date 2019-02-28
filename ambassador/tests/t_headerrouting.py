@@ -95,8 +95,6 @@ spec:
         yield ("url", Query("http://%s/ambassador/check/" % self.path.fqdn))
 
 class AuthenticationHeaderRouting(AmbassadorTest):
-    debug = True
-
     target: ServiceType
     target2: ServiceType
     auth: ServiceType
