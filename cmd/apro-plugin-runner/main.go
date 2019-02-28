@@ -114,19 +114,24 @@ func mainDocker(socketName, pluginFilepath string) error {
 		return errors.Wrap(err, "unable to find absolute path of plugin file path")
 	}
 
+	apro_plugin_runner_image := os.Getenv("APRO_PLUGIN_RUNNER_IMAGE")
+	if apro_plugin_runner_image == "" {
+		apro_plugin_runner_image = "quay.io/datawire/ambassador_pro:apro-plugin-runner-" + Version
+	}
+
 	pluginFileDir := filepath.Dir(pluginFilepath)
 	cmd := exec.Command("docker", "run", "--rm", "-it",
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
 		"--publish="+net.JoinHostPort(host, strconv.Itoa(portNumber))+":"+strconv.Itoa(portNumber),
-		"docker.io/library/golang:"+strings.TrimPrefix(runtime.Version(), "go"),
-		"/bin/sh", "-c", "cd /tmp && go mod init example.com/bogus && GO111MODULE=on go get github.com/datawire/apro-plugin-runner && apro-plugin-runner $@", "--", fmt.Sprintf(":%d", portNumber), pluginFilepath)
+		apro_plugin_runner_image,
+		"apro-plugin-runner", fmt.Sprintf(":%d", portNumber), pluginFilepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	eargs := make([]string, len(cmd.Args))
 	for i := range cmd.Args {
-		eargs[i] = "'"+cmd.Args[i]+"'"
+		eargs[i] = "'" + cmd.Args[i] + "'"
 	}
 	fmt.Fprintf(os.Stderr, " $ %s\n", strings.Join(eargs, " "))
 
