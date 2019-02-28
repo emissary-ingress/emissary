@@ -34,9 +34,7 @@ spec:
 ### Filter Type: `OAuth2`
 
 The `OAuth2` filter type performs OAuth2 authorization against an
-identity provider implementing [OIDC Discovery][].
-
-[OIDC Discovery]: https://openid.net/specs/openid-connect-discovery-1_0.html
+identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
 #### `OAuth2` Global Arguments
 
