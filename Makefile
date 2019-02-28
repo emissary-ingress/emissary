@@ -106,7 +106,7 @@ $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 
 # always do plugins on native-builds
 go-build: $(foreach p,$(plugins),bin_$(GOOS)_$(GOARCH)/$p.so)
-_cgo_files = amb-sidecar $(addsuffix .so,$(plugins))
+_cgo_files = amb-sidecar apro-plugin-runner $(addsuffix .so,$(plugins))
 $(addprefix bin_$(GOOS)_$(GOARCH)/,$(_cgo_files)): CGO_ENABLED=1
 
 # but cross-builds are the complex story
