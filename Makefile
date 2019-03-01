@@ -2,7 +2,15 @@ DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
 
 # The Go version must exactly match what was used to compile the amb-sidecar
-GO_VERSION = 1.11.4
+GO_VERSION = 1.12
+
+# In order to work with Alpine's musl libc6-compat, things must be
+# compiled for compatibility with LSB 3. Setting _FORTIFY_SOURCE=2
+# with GNU libc causes the CGO 1.12 runtime to require LSB 4.
+#
+# Some distros (including Ubuntu 14.04) patch their GCC to define
+# _FORTIFY_SOURCE=2 by default.
+export CGO_CPPFLAGS += -U_FORTIFY_SOURCE
 
 ifeq ($(shell go version),go version go$(GO_VERSION) linux/amd64)
 RUN =
