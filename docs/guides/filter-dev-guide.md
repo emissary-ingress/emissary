@@ -54,13 +54,14 @@ We've created an example filter that you can customize for your particular use c
 
 ## Rapid development of a custom filter
 
-During development, you may want to sidestep the deployment process for a faster development loop. The [apro-plugin-runner](https://github.com/datawire/apro-plugin-runner) helps you rapidly develop Ambassador filters.
+During development, you may want to sidestep the deployment process for a faster development loop. The `apro-plugin-runner` helps you rapidly develop Ambassador filters locally.
 
-To install the runner, follow these steps:
+To install the runner, download the latest version:
 
-1. Clone the repository: `git clone https://github.com/datawire/apro-plugin-runner`.
-2. Install the repository: `go get github.com/datawire/apro-plugin-runner`.
-3. The binary is in placed in `$(go env GOPATH/bin)`. Make sure to update your `$PATH` to include this directory.
+<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/%aproVersion%/darwin/amd64/apro-plugin-runner">Mac 64-bit</a> |
+<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/%aproVersion%/linux/amd64/apro-plugin-runner">Linux 64-bit</a>
+
+Note that the plugin runner must match the version of Ambassador Pro that you are running. Place the binary somewhere in your `$PATH`.
 
 Now, you can quickly test and develop your filter.
 
