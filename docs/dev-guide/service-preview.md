@@ -8,8 +8,8 @@ How do you verify that the code you've written actually works? Ambassador Pro's 
 
 Download the latest version of the client:
 
-<a class="apictl-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/0.1.2/darwin/amd64/apictl">Mac 64-bit</a> |
-<a class="apictl-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/0.1.2/linux/amd64/apictl">Linux 64-bit</a>
+<a class="apictl-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/%aproVersion%/darwin/amd64/apictl">Mac 64-bit</a> |
+<a class="apictl-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/%aproVersion%/linux/amd64/apictl">Linux 64-bit</a>
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.ambassador.key`.
 
@@ -67,7 +67,7 @@ In this quick start, we're going to preview a change we make to the QOTM service
              value: qotm
            - name: APPPORT
              value: "5000"
-           image: quay.io/datawire/ambassador-pro:app-sidecar-0.1.2
+           image: quay.io/datawire/ambassador-pro:app-sidecar-%aproVersion%
            name: traffic-sidecar
            ports:
            - containerPort: 9900
