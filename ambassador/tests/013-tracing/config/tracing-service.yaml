@@ -1,9 +1,0 @@
----
-apiVersion: ambassador/v0
-kind: TracingService
-name: tracing
-service: "example-tracing-with-a-really-really-long-name-omfg-baby-baby:5000"
-tag_headers:
-- ":authority"
-- ":path"
-driver: zipkin
