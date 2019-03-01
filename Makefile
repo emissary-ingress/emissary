@@ -10,6 +10,8 @@ K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
 
+release.dont    = docker/amb-sidecar-plugins docker/model-cluster-app
+
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
 
@@ -339,7 +341,7 @@ release-bin: ## Upload binaries to S3
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl     )
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key )
 release-docker: ## Upload Docker images to Quay
-release-docker: $(addsuffix .docker.push,$(filter-out docker/amb-sidecar-plugins,$(K8S_IMAGES)))
+release-docker: $(addsuffix .docker.push,$(filter-out $(release.dont),$(K8S_IMAGES)))
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
