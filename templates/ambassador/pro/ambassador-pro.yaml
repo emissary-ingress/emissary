@@ -222,3 +222,37 @@ spec:
         - name: AMBASSADOR_LICENSE_KEY 
           value: ""
       restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-auth
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      name: ambassador-pro-auth
+      proto: http
+      auth_service: ambassador-pro
+      allowed_request_headers:
+      - "Client-Id"
+      - "Client-Secret"
+      allowed_authorization_headers:
+      - "Authorization"
+      - "Client-Id"
+      - "Client-Secret"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: ambassador-pro-auth
+spec:
+  type: ClusterIP
+  selector:
+    service: ambassador
+  ports:
+  - name: auth-http
+    port: 80
+    targetPort: 8080
