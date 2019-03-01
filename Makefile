@@ -155,6 +155,10 @@ define docker.bins_rule
 $(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)))
 $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
+$(image)/clean:
+	rm -f $(image)/$(notdir $(image))
+.PHONY: $(image)/clean
+clean: $(image)/clean
 endef
 $(foreach image,$(K8S_IMAGES),$(eval $(docker.bins_rule)))
 
@@ -283,11 +287,7 @@ check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 
 clean:
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
-	rm -f docker/traffic-proxy/traffic-proxy
-	rm -f docker/app-sidecar/app-sidecar
-	rm -f docker/amb-sidecar/amb-sidecar
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
-	rm -f docker/consul_connect_integration/consul_connect_integration
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
