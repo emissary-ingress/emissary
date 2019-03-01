@@ -19,7 +19,7 @@ push: .docker.stamp
 	docker push $(DOCKER_REGISTRY)
 
 %.so: %.go
-	$(RUN) env GOOS=linux GOARCH=amd64 go build -buildmode=plugin -o $@ $<
+	$(RUN) env GOOS=linux GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on go build -buildmode=plugin -o $@ $<
 
 clean:
 	rm -f -- *.so .docker.stamp
