@@ -31,6 +31,35 @@ spec:
     GLOBAL_FILTER_ARGUMENTS
 ```
 
+Currently, Ambassador supports three filter types: `JWT`, `OAuth2`, and `Plugin`.
+
+### Filter Type: `JWT`
+
+The `JWT` filter type performs JWT validation. The list of acceptable signing keys is loaded from a JWK Set that is loaded over HTTP, as specified in `jwksURI`. Only RSA and `none` algorithms are supported.
+
+```yaml
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: my-jwt-filter
+spec:
+  JWT:
+    jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json" # required, unless the only validAlgorithm is "none"
+    validAlgorithms: # omitting this means "all supported algos except for 'none'"
+      - "RS256"
+      - "RS384"
+      - "RS512"
+      - "none"
+    audience: "myapp" # optional unless requireAudience: true
+    requireAudience: true # optional, default is false
+    issuer: "https://ambassador-oauth-e2e.auth0.com/" # optional unless requireIssuer: true
+    requireIssuer: true # optional, default is false
+    requireIssuedAt: true # optional, default is false
+    requireExpiresAt: true # optional, default is false
+    requireNotBefore: true # optional, default is false
+```
+
 ### Filter Type: `OAuth2`
 
 The `OAuth2` filter type performs OAuth2 authorization against an
