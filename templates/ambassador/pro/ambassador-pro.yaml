@@ -234,7 +234,7 @@ metadata:
       kind: AuthService
       name: ambassador-pro-auth
       proto: http
-      auth_service: ambassador-pro
+      auth_service: ambassador-pro-auth
       allowed_request_headers:
       - "Client-Id"
       - "Client-Secret"
