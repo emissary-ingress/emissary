@@ -136,7 +136,7 @@ class AmbassadorTest(Test):
 
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
-            context = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+            context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             print("Starting docker build...", end="")
             sys.stdout.flush()
             result = run("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)

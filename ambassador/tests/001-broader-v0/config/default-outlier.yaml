@@ -1,4 +1,0 @@
----
-apiVersion: ambassador/v0
-kind:  OutlierDetection
-name:  default
