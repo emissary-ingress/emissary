@@ -1,8 +1,0 @@
----
-apiVersion: ambassador/v1
-kind: RateLimitService
-name: ratelimit
-service: "example-rate-limit:5000"
-# "ambassador" is the default so you don't actually need this next line.
-domain: ambassador
-

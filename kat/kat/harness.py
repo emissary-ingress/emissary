@@ -80,11 +80,23 @@ def variants(cls, *args, **kwargs) -> Tuple[Any]:
 
 
 class Name(str):
+    def __new__(cls, value, namespace=None):
+        s = super().__new__(cls, value)
+        s.namespace = namespace
+        return s
 
     @property
     def k8s(self):
         return self.replace(".", "-").lower()
 
+    @property
+    def fqdn(self):
+        r = self.k8s
+
+        if self.namespace and (self.namespace != 'default'):
+            r += '.' + self.namespace
+
+        return r
 
 class NodeLocal(threading.local):
 
@@ -114,6 +126,7 @@ class Node(ABC):
     children: List['Node']
     name: Name
     ambassador_id: str
+    namespace: str = None
 
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
@@ -141,6 +154,15 @@ class Node(ABC):
 
         saved = _local.current
         self.parent = _local.current
+
+        if not self.namespace:
+            if self.parent and self.parent.namespace:
+                # We have no namespace assigned, but our parent does have a namespace
+                # defined. Copy the namespace down from our parent.
+                self.namespace = self.parent.namespace
+            else:
+                self.namespace = "default"
+
         _local.current = self
         self.children = []
         if self.parent is not None:
@@ -173,13 +195,9 @@ class Node(ABC):
 
     def relpath(self, ancestor):
         if self.parent is ancestor:
-            return Name(self.name)
+            return Name(self.name, namespace=self.namespace)
         else:
-            return Name(self.parent.relpath(ancestor) + "." + self.name)
-
-    @property
-    def k8s_path(self) -> str:
-        return self.relpath(None).replace(".", "-").lower()
+            return Name(self.parent.relpath(ancestor) + "." + self.name, namespace=self.namespace)
 
     @property
     def traversal(self):
@@ -204,6 +222,12 @@ class Node(ABC):
 
     def format(self, st, **kwargs):
         return st.format(self=self, **kwargs)
+
+    def get_fqdn(self, name: str) -> str:
+        if self.namespace and (self.namespace != 'default'):
+            return f'{name}.{self.namespace}'
+        else:
+            return name
 
     @functools.lru_cache()
     def matches(self, pattern):
@@ -523,8 +547,7 @@ def label(yaml, scope):
     return yaml
 
 
-CLIENT_GO = os.path.join(os.path.dirname(__file__), "client.go")
-
+CLIENT_GO = os.path.join(os.path.dirname(__file__), "client")
 
 def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
@@ -537,7 +560,7 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
     with open("/tmp/urls.json", "w") as f:
         json.dump(jsonified, f)
 
-    run("go run \"%s\" -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
+    run("%s -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
 
     with open("/tmp/results.json") as f:
         json_results = json.load(f)

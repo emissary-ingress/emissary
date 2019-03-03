@@ -40,11 +40,13 @@
     - title: Microservices API Gateways
       link: /about/microservices-api-gateways
     - title: Rate Limiting Concepts
-      link: /user-guide/rate-limiting 
+      link: /user-guide/rate-limiting
     - title: Self-Service Routing and Deployment Control
       link: /concepts/developers
     - title: Safely Testing in Production
       link: /docs/dev-guide/test-in-prod
+    - title: OAuth & OIDC Overview
+      link: /concepts/auth-overview
     - title: Why Ambassador Uses Envoy Proxy (External Link)
       link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
@@ -107,8 +109,6 @@
               link: /reference/canary
             - title: Cross Origin Resource Sharing
               link: /reference/cors
-            - title: Custom Envoy config
-              link: /reference/override
             - title: Header-based routing
               link: /reference/headers
             - title: Host Header
