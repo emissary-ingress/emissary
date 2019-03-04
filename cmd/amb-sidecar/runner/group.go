@@ -2,7 +2,6 @@ package runner
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -79,25 +78,4 @@ func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg ty
 // Go wraps errgroup.Group.Wait().
 func (g *Group) Wait() error {
 	return g.inner.Wait()
-}
-
-// listenAndServeWithContext runs server.ListenAndServe() on an
-// http.Server(), but properly calls server.Shutdown when the context
-// is canceled.
-//
-// softCtx should be a child context of hardCtx.  softCtx being
-// canceled triggers server.Shutdown().  If hardCtx being cacneled
-// triggers that .Shutdown() to kill any live requests and return,
-// instead of waiting for them to be completed gracefully.
-func listenAndServeWithContext(hardCtx, softCtx context.Context, server *http.Server) error {
-	serverCh := make(chan error)
-	go func() {
-		serverCh <- server.ListenAndServe()
-	}()
-	select {
-	case err := <-serverCh:
-		return err
-	case <-softCtx.Done():
-		return server.Shutdown(hardCtx)
-	}
 }

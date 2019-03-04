@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/rls"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/util"
 )
 
 func init() {
@@ -82,7 +83,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 			Handler:  httpHandler,
 			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
 		}
-		return listenAndServeWithContext(hardCtx, softCtx, server)
+		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
 
 	// And now we wait.
