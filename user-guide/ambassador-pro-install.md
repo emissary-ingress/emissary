@@ -1,36 +1,20 @@
 # Installing Ambassador Pro
 ---
 
-Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, and more. Ambassador Pro also uses a certified version of Ambassador OSS that undergoes additional testing and validation. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes.
+Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, custom filters, and more. Ambassador Pro also uses a certified version of Ambassador OSS that undergoes additional testing and validation. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes and show the JWT filter in action.
 
-## 1. Download the Ambassador Pro Deployment File 
+## 1. Clone the Ambassador Pro configuration repository
 Ambassador Pro consists of a series of modules that communicate with Ambassador. The core Pro module is typically deployed as a sidecar to Ambassador. This means it is an additional process that runs on the same pod as Ambassador. Ambassador communicates with the Pro sidecar locally. Pro thus scales in parallel with Ambassador. Ambassador Pro also relies on a Redis instance for its rate limit service and several Custom Resource Definitions (CRDs) for configuration.
 
-The full configuration for Ambassador Pro is available at https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml. Download this file locally:
+For this installation, we'll start with a standard set of Ambassador Pro configuration files.
 
 ```
-curl -O "https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml"
-```
-
-Next, ensure the `namespace` field in the `ClusterRoleBinding` is configured correctly for your particular deployment. If you are not installing Ambassador into the `default` namespace, you will need to update this file accordingly.
-
-**Note:** Ambassador 0.40.2 and below does not support v1 `AuthService` configurations. If you are using an older version of Ambassador, replace the `AuthService` in the downloaded YAML with:
-
-```yaml
-      ---
-      apiVersion: ambassador/v1
-      kind: AuthService
-      name: authentication
-      auth_service: ambassador-pro
-      allowed_headers:
-      - "Client-Id"
-      - "Client-Secret"
-      - "Authorization"
+git clone https://github.com/datawire/pro-ref-arch
 ```
 
 ## 2. License Key
 
-In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
+In the `ambassador/ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
 
 **Note:** The Ambassador Pro will not start without your license key.
 
@@ -38,8 +22,16 @@ In the `ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environme
 
 Once you have fully configured Ambassador Pro, deploy your updated configuration. Note that the default configuration will also redeploy your current Ambassador configuration, so verify that you have the correct Ambassador version before deploying Pro.
 
+If you're on GKE, first, create the following `ClusterRoleBinding`:
+
 ```
-kubectl apply -f ambassador-pro.yaml
+kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
+```
+
+Then, deploy Ambassador Pro and related dependencies:
+
+```
+kubectl apply -f ambassador/
 ```
 
 Verify that Ambassador Pro is running:
@@ -50,44 +42,81 @@ ambassador-79494c799f-vj2dv            2/2       Running            0         1h
 ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 ```
 
-## 4. Defining the Ambassador Service
+**Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change the `ambassador/ambassador-service.yaml` to a different service type (e.g., `NodePort`).
 
-After deploying Ambassador Pro, you will need to expose the service to the internet. This is done with a Kubernetes Service.
+## 4. Configure JWT authentication
 
-Create the following YAML and put it in a file called `ambassador-service.yaml:
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ambassador
-spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
-  ports:
-   - name: http
-     port: 80
-     targetPort: 80
-  selector:
-    service: ambassador
+Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
+
+```
+kubectl apply -f jwt/
 ```
 
-This will create a `LoadBalancer` service listening on and forwarding traffic to Ambassador on port `80`. `externalTrafficPolicy: Local` will configure the load balancer to to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client to Ambassador.
+This will configure the following `FilterPolicy`:
 
-**Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change this to a different service type (e.g. `NodePort`).
+```
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: httpbin-filterpolicy
+  namespace: default
+spec:
+  # everything defaults to private; you can create rules to make stuff
+  # public, and you can create rules to require additional scopes
+  # which will be automatically checked
+  rules:
+  - host: "*"
+    path: /jwt-httpbin/*
+    filters:
+    - name: jwt-filter
+  - host: "*"
+    path: /httpbin/*
+    filters: null
+```
 
+Get the External IP address of your Ambassador service:
 
-## 5. Configure Ambassador Pro services
+```
+kubectl get svc ambassador
+```
 
-Ambassador should now be running, along with the Pro modules. To enable rate limiting and authentication, some additional configuration is required.
+Now, test out Ambassador Pro. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
+
+```
+$ curl $AMBASSADOR_IP/httpbin/ip # No authentication token
+{
+  "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
+}
+```
+
+Send a request to the `jwt-httpbin` URL, which is protected by the JWT filter. This URL is not public, so it returns a 401.
+
+```
+$ curl -i $AMBASSADOR_IP/jwt-httpbin/ip # No authentication token
+HTTP/1.1 401 Unauthorized
+content-length: 58
+content-type: text/plain
+date: Mon, 04 Mar 2019 21:18:17 GMT
+server: envoy
+```
+
+Finally, send a request with a valid JWT to the `jwt-httpbin` URL, which will return successfully.
+
+```
+$ curl --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." $AMBASSADOR_IP/jwt-httpbin/ip
+{
+  "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
+}
+```
+
+## 5. Configure additional Ambassador Pro services
+
+Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 
 ### Enabling Rate limiting
 
-Deploy the Kubernetes service that enables rate limiting. You will then want to review the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
-
-```bash
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-ratelimit.yaml
-```
+For more information on configuring rate limiting, cnosult the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
 
 ### Enabling Single Sign-On
 
