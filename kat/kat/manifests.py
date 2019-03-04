@@ -232,6 +232,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 443
+  {extra_ports}
   selector:
     service: {self.path.k8s}
 ---

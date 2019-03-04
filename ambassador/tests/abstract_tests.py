@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import yaml
 
-from typing import Any, ClassVar, Optional, Sequence
+from typing import Any, ClassVar, List, Optional, Sequence
 from typing import cast as typecast
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
@@ -30,6 +30,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 443
+  {extra_ports}
   selector:
     service: {self.path.k8s}
 ---
@@ -83,6 +84,7 @@ class AmbassadorTest(Test):
     single_namespace: bool = False
     name: Name
     path: Name
+    extra_ports: Optional[List[int]] = None
 
     env = []
 
@@ -97,10 +99,22 @@ class AmbassadorTest(Test):
 """
             rbac = manifests.RBAC_NAMESPACE_SCOPE
 
+        eports = ""
+
+        if self.extra_ports:
+            for port in self.extra_ports:
+                eports += f"""
+  - name: extra-{port}
+    protocol: TCP
+    port: {port}
+    targetPort: {port}
+"""
+
         if DEV:
-            return self.format(rbac + AMBASSADOR_LOCAL)
+            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
-            return self.format(rbac + manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs)
+            return self.format(rbac + manifests.AMBASSADOR,
+                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs, extra_ports=eports)
 
     # Will tear this out of the harness shortly
     @property
@@ -191,6 +205,11 @@ class AmbassadorTest(Test):
         [command.extend(["-e", env]) for env in envs]
 
         ports = ["%s:8877" % (8877 + self.index), "%s:80" % (8080 + self.index), "%s:443" % (8443 + self.index)]
+
+        if self.extra_ports:
+            for port in self.extra_ports:
+                ports.append(f'{port}:{port}')
+
         [command.extend(["-p", port]) for port in ports]
 
         volumes = ["%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir]
