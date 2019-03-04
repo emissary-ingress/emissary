@@ -256,6 +256,8 @@ class V2TCPListener(dict):
         # Use the actual listener name & port number
         self.name = "ambassador-listener-%s" % group.port
 
+        self.tls_context: Optional[V2TLSContext] = None
+
         # # Use a sane access log spec
         # self.access_log = [ {
         #     'name': 'envoy.file_access_log',
@@ -265,31 +267,7 @@ class V2TCPListener(dict):
         #     }
         # } ]
 
-        clusters = [{
-            'name': mapping.cluster.name,
-            'weight': mapping.weight
-        } for mapping in group.mappings]
-
-        config = {
-            'stat_prefix': 'ingress_tcp_%d' % group.port,
-            'weighted_clusters': {
-                'clusters': clusters
-            }
-        }
-
-        tcp_filter = {
-            'name': 'envoy.tcp_proxy',
-            'config': config
-        }
-
-        filter_chains = [
-            {
-                'filters': [
-                    tcp_filter
-                ]
-            }
-        ]
-
+        # Set the basics like our name and listening address.
         self.update({
             'name': self.name,
             'address': {
@@ -299,8 +277,61 @@ class V2TCPListener(dict):
                     'protocol': 'TCP'
                 }
             },
-            'filter_chains': filter_chains
+            'filter_chains': []
         })
+
+        # Next: is SNI a thing?
+        if group.get('tls_context', None):
+            # Yup. We need the TLS inspector here...
+            self['listener_filters'] = [ {
+                'name': 'envoy.listener.tls_inspector',
+                'config': {}
+            } ]
+
+            # ...and we need to save the TLS context we'll be using.
+            self.tls_context = V2TLSContext(group.tls_context)
+
+    def add_group(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
+        # First up, which clusters do we need to talk to?
+        clusters = [{
+            'name': mapping.cluster.name,
+            'weight': mapping.weight
+        } for mapping in group.mappings]
+
+        # From that, we can sort out a basic tcp_proxy filter config.
+        tcp_filter = {
+            'name': 'envoy.tcp_proxy',
+            'config': {
+                'stat_prefix': 'ingress_tcp_%d' % group.port,
+                'weighted_clusters': {
+                    'clusters': clusters
+                }
+            }
+        }
+
+        # OK. Basic filter chain entry next.
+        chain_entry: Dict[str, Any] = {
+            'filters': [
+                tcp_filter
+            ]
+        }
+
+        # Then, if SNI is a thing, update the chain entry with the appropriate chain match.
+        if self.tls_context:
+            # Apply the context to the chain...
+            chain_entry['tls_context'] = self.tls_context
+
+            # Do we have a host match?
+            host_wanted = group.get('host') or '*'
+
+            if host_wanted != '*':
+                # Yup. Hook it in.
+                chain_entry['filter_chain_match'] = {
+                    'server_names': [ host_wanted ]
+                }
+
+        # OK, once that's done, stick this into our filter chains.
+        self['filter_chains'].append(chain_entry)
 
 
 class V2Listener(dict):
@@ -532,10 +563,20 @@ class V2Listener(dict):
             config.listeners.append(listener)
 
         # We need listeners for the TCPMappingGroups too.
+        tcplisteners: Dict[int, V2TCPListener] = {}
+
         for irgroup in config.ir.ordered_groups():
             if not isinstance(irgroup, IRTCPMappingGroup):
                 continue
 
-            # OK, good to go.
-            listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
-            config.listeners.append(listener)
+            # OK, good to go. Do we already have a TCP listener on this port?
+            listener = tcplisteners.get(irgroup.port, None)
+
+            if not listener:
+                # Nope. Make a new one and save it.
+                listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
+                config.listeners.append(listener)
+                tcplisteners[irgroup.port] = listener
+
+            # Whether we just created this listener or not, add this irgroup to it.
+            listener.add_group(config, irgroup)

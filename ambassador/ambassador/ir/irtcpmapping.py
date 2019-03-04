@@ -57,6 +57,9 @@ class IRTCPMapping (IRBaseMapping):
             **new_args
         )
 
+        if 'host' in kwargs:
+            self.tls_context = self.match_tls_context(kwargs['host'], ir)
+
     @staticmethod
     def group_class() -> Type[IRBaseMappingGroup]:
         return IRTCPMappingGroup
