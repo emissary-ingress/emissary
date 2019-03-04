@@ -120,11 +120,7 @@ For more information on configuring rate limiting, cnosult the [Advanced Rate Li
 
 ### Enabling Single Sign-On
 
-Deploy the Kubernetes service that enables authentication. You will then want to review the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) to finalize configuration. 
-
-```bash
-kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/ambassador-pro-auth.yaml
-```
+ For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) documentation.
 
 ### Enabling Service Preview
 
