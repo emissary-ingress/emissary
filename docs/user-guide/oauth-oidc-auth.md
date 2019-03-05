@@ -6,20 +6,20 @@ Ambassador Pro adds native support for the OAuth and OIDC authentication schemes
 
 First, configure an OAuth2 filter for your identity provider. For information on how to configure your IDP, see the IDP configuration section below.
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: PROVIDER_NAME
+  name: auth_filter
   namespace: default
 spec:
   OAuth2:
-    authorizationURL: PROVIDER_URL
-    clientURL: https://ambassador.default.svc.cluster.local
-    audience: AUDIENCE
-    clientID: CLIENT_ID
-    secret: CLIENT_SECRET
+    authorizationURL: PROVIDER_URL ## URL where Ambassador Pro can find OAuth2 descriptor
+    clientURL: AMBASSADOR_URL ## URL your IDP will redirect back to. Typically the same as the requests host.
+    audience: AUDIENCE ## OIDC Audience
+    clientID: CLIENT_ID ## OAuth2 client from your IDP
+    secret: CLIENT_SECRET ## Secret used to access OAuth2 client
 ```
 
 Save the configuration to a file and apply it to the cluster: `kubectl apply -f oauth-filter.yaml`.
@@ -28,7 +28,7 @@ Save the configuration to a file and apply it to the cluster: `kubectl apply -f 
 
 Once we have a properly configured OAuth2 filter, create a FilterPolicy that applies the filter.
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
@@ -41,6 +41,10 @@ spec:
       path: /httpbin/ip
       filters:
         - name: auth_filter ## Enter the Filter name from above
+          arguments:
+            scopes:
+            - "scope1"
+            - "scope2"
 ```
 
 Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](/reference/filter-reference).
@@ -55,11 +59,11 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
   ![](/images/create-application.png)
 
-2. In the pop-up window, give the application a name and create a "Machine to Machine App"
+2. In the pop-up window, give the application a name (this will be the `authorizationURL` in your `Filter`) and create a "Machine to Machine App"
 
   ![](/images/machine-machine.png)
 
-3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.)
+3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.) 
 
   ![](/images/scopes.png)
   
@@ -67,20 +71,58 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
   ![](/images/Auth0_none.png)
 
-5. Update the Auth0 Filter with values for `clientID`, `audience`, and `secret`. You can get the `Client ID` and `Client Secret` from your application settings:
+5. Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `secret` from your application settings:
 
-![](/images/Auth0_secret.png)
+   ![](/images/Auth0_secret.png)
 
-The `audience` is the API Audience of your Auth0 Management API:
+   The `audience` is the API Audience of your Auth0 Management API:
 
-![](/images/Auth0_audience.png)
+   ![](/images/Auth0_audience.png)
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: Filter
+   metadata:
+     name: auth0_filter
+     namespace: default
+   spec:
+     OAuth2:
+       authorizationURL: https://datawire-ambassador.auth0.com
+       clientURL: https://datawire-ambassador.com
+       audience: https://datawire-ambassador.auth0.com/api/v2/
+       clientID: fCRAI7svzesD6p8Pv22wezyYXNg80Ho8
+       secret: CLIENT_SECRET
+   ```
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: FilterPolicy
+   metadata:
+     name: httpbin-policy
+     namespace: default
+   spec:
+     rules:
+       - host: "*"
+         path: /httpbin/ip
+         filters:
+           - name: auth0_filter ## Enter the Filter name from above
+             arguments:
+               scopes:
+               - "openid"
+   ```
+
+  **Note:** By default, Auth0 requires the `openid` scope. 
 
 ### Keycloak
 
 With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Pro. The below instructions are known to work for Keycloak 4.8.
 
-1. Create a new client: navigate to Clients and select `Create`. Use the following settings: 
-   - Client ID: Any value; this value will be used in the `clientID` field of the Keycloak filter
+1. Under "Realm Settings", record the "Name" of the realm your client is in. This will be needed to configure your `authorizationURL`.
+
+2. Create a new client: navigate to Clients and select `Create`. Use the following settings: 
+   - Client ID: Any value (e.g. `ambassador`); this value will be used in the `clientID` field of the Keycloak filter
    - Client Protocol: "openid-connect"
    - Root URL: Leave Blank
 
@@ -94,15 +136,51 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
 6. Navigate to the `Mappers` tab in your Client and click `Create`.
 7. Configure the following options:
    - Protocol: "openid-connect".
-   - Name: Any value; this value will be used in the `audience` field of the Keycloak filter
+   - Name: Any string. This is just a name for the Mapper
    - Mapper Type: select "Audience"
-   - Included Client Audience: select from the dropdown the name of your Client.
+   - Included Client Audience: select from the dropdown the name of your Client. This will be used as the `audience` in the Keycloak `Filter`.
 
-7. Click Save.
+8. Click Save.
 
-8. Configure client scopes as desired in "Client Scopes". It's possible to setup Keycloak to not use scopes by removing all of them from "Assigned Default Client Scopes".
+9. Configure client scopes as desired in "Client Scopes" (e.g. `offline_access`). It's possible to setup Keycloak to not use scopes by removing all of them from "Assigned Default Client Scopes". 
+   
+   **Note:** All "Assigned Default Client Scopes" must be included in the `FilterPolicy` scopes argument. 
 
-9. Add the values for `clientID`, `audience`, and `secret` to your Keycloak filter. The value for `secret` can be obtained from the credentials tab.
+10. Update the Keycloak `Filter` and `FilterPolicy`
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: Filter
+   metadata:
+     name: keycloak_filter
+     namespace: default
+   spec:
+     OAuth2:
+       authorizationURL: https://{KEYCLOAK_URL}/auth/realms/{KEYCLOAK_REALM}
+       clientURL: https://datawire-ambassador.com
+       audience: ambassador
+       clientID: ambassador
+       secret: CLIENT_SECRET
+   ```
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: FilterPolicy
+   metadata:
+     name: httpbin-policy
+     namespace: default
+   spec:
+     rules:
+       - host: "*"
+         path: /httpbin/ip
+         filters:
+           - name: keycloak_filter ## Enter the Filter name from above
+             arguments:
+               scopes:
+               - "offline_access"
+   ```
 
 ## Configure Authentication Across Multiple Domains (Optional)
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
