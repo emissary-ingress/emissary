@@ -14,9 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import copy
-import subprocess
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
-
 import datetime
 import functools
 import json
@@ -26,23 +23,24 @@ import os
 import queue
 import re
 import signal
+import subprocess
 import threading
 import time
 import uuid
-
-from pkg_resources import Requirement, resource_filename
+from typing import Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import clize
+import gunicorn.app.base
+from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
+from ambassador.config.resourcefetcher import ResourceFetcher
+from ambassador.diagnostics import EnvoyStats
+from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents, kube_v1
 from clize import Parameter
 from flask import Flask, render_template, send_from_directory, request, jsonify
-import gunicorn.app.base
 from gunicorn.six import iteritems
-
-from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents
-from ambassador.config.resourcefetcher import ResourceFetcher
-
-from ambassador.diagnostics import EnvoyStats
+from kubernetes.client import V1Event, V1ObjectReference, V1ObjectMeta, V1EventSource
+from kubernetes.client.rest import ApiException
+from pkg_resources import Requirement, resource_filename
 
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext
@@ -69,6 +67,7 @@ ambassador_targets = {
     'module': 'https://www.getambassador.io/reference/configuration#modules',
 }
 
+
 # envoy_targets = {
 #     'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
 #     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
@@ -79,7 +78,7 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
-class DiagApp (Flask):
+class DiagApp(Flask):
     ambex_pid: int
     kick: Optional[str]
     estats: EnvoyStats
@@ -141,6 +140,7 @@ class DiagApp (Flask):
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
+
 
 # Get the Flask app defined early. Setup happens later.
 app = DiagApp(__name__,
@@ -250,7 +250,7 @@ def td_format(td_object):
         if seconds > period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
 
-            strings.append("%d %s%s" % 
+            strings.append("%d %s%s" %
                            (period_value, period_name, "" if (period_value == 1) else "s"))
 
     formatted = ", ".join(strings)
@@ -381,7 +381,7 @@ def show_overview(reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     tvars = dict(system=system_info(),
-                 envoy_status=envoy_status(app.estats), 
+                 envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
                  **ov, **ddict)
@@ -518,6 +518,10 @@ def source_lookup(name, sources):
 class AmbassadorEventWatcher(threading.Thread):
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AmbassadorEventWatcher", daemon=True)
+        self.client = kube_v1()
+        self.ambassador_namespace = Config.ambassador_namespace
+        self.ambassador_pod_name = Config.ambassador_pod_name
+        self.ambassador_pod_uid = Config.ambassador_pod_uid
         self.app = app
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
@@ -622,14 +626,15 @@ class AmbassadorEventWatcher(threading.Thread):
         bootstrap_config, ads_config = econf.split_config()
 
         if not self.validate_envoy_config(config=ads_config):
-            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+            self.logger.info(
+                "no updates were performed due to invalid envoy configuration, continuing with current configuration...")
             app.check_scout("attempted bad update")
             return
 
         self.logger.info("rotating snapshots for snapshot %s" % snapshot)
 
-        for from_suffix, to_suffix in [ ('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '') ]:
-            for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
+        for from_suffix, to_suffix in [('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '')]:
+            for fmt in ["aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml"]:
                 try:
                     from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
                     to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
@@ -663,11 +668,46 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
+        self.notify_config_changed(snapshot)
         self.logger.info("configuration updated")
 
         if app.health_checks and not app.stats_updater:
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
+
+    def notify_config_changed(self, snapshot):
+        timestamp = datetime.datetime.now().replace(microsecond=0).isoformat() + 'Z'
+
+        new_event = V1Event(
+            count=int(snapshot),
+            first_timestamp=timestamp,
+            involved_object=V1ObjectReference(
+                kind="Pod",
+                name=self.ambassador_pod_name,
+                namespace=self.ambassador_namespace,
+                uid=self.ambassador_pod_uid,
+            ),
+            last_timestamp=timestamp,
+            message="Pod: %s Config snapshot applied, version: %s" % (self.ambassador_pod_name, snapshot),
+            metadata=V1ObjectMeta(
+                name="%s.config-change.%s.%s" % (self.ambassador_pod_name, snapshot, uuid.uuid4()),
+                labels={'event': 'ambassador-cfg'}
+            ),
+            reason="ConfigChange",
+            source=V1EventSource(
+                component=self.ambassador_pod_name,
+            ),
+            type="Normal",
+        )
+        try:
+            output = self.client.create_namespaced_event(self.ambassador_namespace, new_event)
+        except ApiException as e:
+            if e.status == 409:
+                self.logger.debug("Event already published by another pod:\n%s" % e)
+            else:
+                self.logger.error("Problems communicating with kube api. Received error:\n%s" % e)
+        else:
+            self.logger.debug("Config snapshot notification output:%s" % output)
 
     def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
         uptime = datetime.datetime.now() - boot_time

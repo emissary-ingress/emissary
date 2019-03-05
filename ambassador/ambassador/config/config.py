@@ -49,6 +49,8 @@ class Config:
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+    ambassador_pod_name: ClassVar[str] = os.environ.get('AMBASSADOR_POD_NAME', 'default')
+    ambassador_pod_uid: ClassVar[str] = os.environ.get('AMBASSADOR_POD_UID', 'default')
 
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
