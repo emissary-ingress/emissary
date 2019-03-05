@@ -1229,7 +1229,8 @@ class StatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs) + GRAPHITE_CONFIG.format('statsd-sink')
+        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('statsd-sink')
 
     def config(self):
         yield self.target, self.format("""
