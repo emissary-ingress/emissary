@@ -14,14 +14,16 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
 
-type FilterHandler struct {
+type FilterMux struct {
 	Controller   *controller.Controller
 	DefaultRule  *crd.Rule
 	OAuth2Secret *secret.Secret
+	Logger       types.Logger
 }
 
 type responseWriter struct {
@@ -55,7 +57,31 @@ func (rw *responseWriter) reset() {
 	rw.headerWritten = false
 }
 
-func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (rw *responseWriter) Status() int {
+	return rw.status
+}
+
+func (src *responseWriter) writeToResponseWriter(dst http.ResponseWriter) {
+	for k, s := range src.header {
+		dst.Header()[k] = s
+	}
+	dst.WriteHeader(src.status)
+	io.WriteString(dst, src.body.String())
+}
+
+func (c *FilterMux) ServeHTTP(hw http.ResponseWriter, hr *http.Request) {
+	// middleware.Logger needs a ResponseWriter implementing
+	// .Status()
+	w := &responseWriter{
+		status: http.StatusOK,
+		header: http.Header{},
+	}
+	mw := &middleware.Logger{Logger: c.Logger}
+	mw.ServeHTTP(w, hr, c.serveHTTP)
+	w.writeToResponseWriter(hw)
+}
+
+func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r)
 	originalURL := util.OriginalURL(r)
 
@@ -133,11 +159,7 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	for k, s := range response.header {
-		w.Header()[k] = s
-	}
-	w.WriteHeader(response.status)
-	io.WriteString(w, response.body.String())
+	response.writeToResponseWriter(w)
 }
 
 func findFilter(c *controller.Controller, qname string) interface{} {

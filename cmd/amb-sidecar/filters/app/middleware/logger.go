@@ -8,7 +8,6 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/urfave/negroni"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
@@ -53,7 +52,7 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 		next(rw, r.WithContext(context.WithValue(r.Context(), loggerContextKey{}, sublogger)))
 	}()
 
-	status := rw.(negroni.ResponseWriter).Status()
+	status := rw.(interface{ Status() int }).Status()
 	sublogger.Infof("[HTTP %v] %s %s (%v)", status, r.Method, r.URL.Path, time.Since(start))
 }
 

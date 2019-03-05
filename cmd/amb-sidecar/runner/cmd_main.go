@@ -74,7 +74,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 
 	// Auth HTTP server
 	group.Go("auth_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		httpHandler, err := app.NewHandler(cfg, l.WithField("SUB", "http-handler"), ct)
+		httpHandler, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct)
 		if err != nil {
 			return err
 		}
