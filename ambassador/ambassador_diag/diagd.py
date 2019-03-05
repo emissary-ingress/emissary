@@ -518,7 +518,6 @@ def source_lookup(name, sources):
 class AmbassadorEventWatcher(threading.Thread):
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AmbassadorEventWatcher", daemon=True)
-        self.client = kube_v1()
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_pod_name = Config.ambassador_pod_name
         self.ambassador_pod_uid = Config.ambassador_pod_uid
@@ -700,7 +699,8 @@ class AmbassadorEventWatcher(threading.Thread):
             type="Normal",
         )
         try:
-            output = self.client.create_namespaced_event(self.ambassador_namespace, new_event)
+            client = kube_v1()
+            output = client.create_namespaced_event(self.ambassador_namespace, new_event)
         except ApiException as e:
             if e.status == 409:
                 self.logger.debug("Event already published by another pod:\n%s" % e)
