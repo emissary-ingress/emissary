@@ -186,6 +186,10 @@ Note well that while Ambassador will read its initial configuration from this di
 
 Also note that the YAML files in the configuration directory must contain Ambassador resources, not Kubernetes resources with annotations.
 
+## Log levels and debugging
+
+Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis. If using Ambassador Pro, you can increase the log levels by setting the `APP_LOG_LEVEL` environment variable to `debug`.
+
 ## Ambassador Update Checks (Scout)
 
 Ambassador integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
