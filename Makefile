@@ -274,7 +274,6 @@ website-yaml:
 			{} \;
 
 website: website-yaml
-	VERSION=$(VERSION) bash docs/build-website.sh
 
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
