@@ -47,15 +47,15 @@ Create a values file with the following content:
 `values.aws.yaml`
 ```yaml
 service:
-  enableHttp: true 
-  enableHttps: true 
+  http:
+    enabled: true
+    port: 80
+    targetPort: 8080
 
-  targetPorts:
-    http: 80
-    https: 80
-
-  httpPort: 80
-  httpsPort: 443 
+  https:
+    enabled: true
+    port: 443
+    targetPort: 8443
 
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{ tls certificate arn }}"
