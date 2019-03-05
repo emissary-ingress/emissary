@@ -561,7 +561,6 @@ class Plain(AmbassadorTest):
     @classmethod
     def variants(cls):
         yield cls(variants(MappingTest))
-        yield cls(variants(TCPMappingTest), name="tcp")
 
     def manifests(self) -> str:
         return """
