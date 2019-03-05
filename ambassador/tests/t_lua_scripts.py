@@ -1,4 +1,4 @@
-from ambassador.tests.kat.abstract_tests import AmbassadorTest, ServiceType, HTTP
+from ambassador.tests.abstract_tests import AmbassadorTest, ServiceType, HTTP
 from kat.kat.harness import Query
 
 
