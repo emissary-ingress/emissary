@@ -1,9 +1,10 @@
 package app
 
 import (
-	"bytes"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -27,7 +28,7 @@ type responseWriter struct {
 	status        int
 	header        http.Header
 	headerWritten bool
-	body          bytes.Buffer
+	body          strings.Builder
 }
 
 func (rw *responseWriter) Header() http.Header {
@@ -50,7 +51,7 @@ func (rw *responseWriter) WriteHeader(statusCode int) {
 }
 
 func (rw *responseWriter) reset() {
-	rw.body.Truncate(0)
+	rw.body.Reset()
 	rw.headerWritten = false
 }
 
@@ -136,7 +137,7 @@ func (c *FilterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header()[k] = s
 	}
 	w.WriteHeader(response.status)
-	response.body.WriteTo(w)
+	io.WriteString(w, response.body.String())
 }
 
 func findFilter(c *controller.Controller, qname string) interface{} {
