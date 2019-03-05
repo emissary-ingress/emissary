@@ -21,8 +21,7 @@ from t_extauth import (
     AuthenticationTest,	
     AuthenticationTestV1,	
     AuthenticationHTTPBufferedTest,	
-    AuthenticationWebsocketTest,	
-    AuthenticationWebsocketTest,	
+    AuthenticationWebsocketTest,
     AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
