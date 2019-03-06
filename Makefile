@@ -184,11 +184,11 @@ docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plu
 # Generate the TLS secret
 %/cert.pem %/key.pem: %/namespace.txt
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.$$(cat $<).svc.cluster.local"
-%/02-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
+%/04-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
 	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
-apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
+deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS))
+apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS))
 
 #
 # Local Dev
