@@ -142,8 +142,8 @@ spec:
               containerPort: 8080
             - name: https
               containerPort: 8443
-#          readinessProbe:
-#            httpGet:
-#              path: /auth/realms/master
-#              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: 8080
 #            initialDelaySeconds: 30 # Keycloak is based on JBoss which takes 30 or so seconds to "boot up" (gross)
