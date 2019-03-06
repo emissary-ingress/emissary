@@ -139,17 +139,16 @@ spec:
           containerPort: 443
         - name: admin
           containerPort: 8877
-# XXX: Kubernaut
-#        livenessProbe:
-#          httpGet:
-#            path: /ambassador/v0/check_alive
-#            port: 8877
-#          initialDelaySeconds: 30
-#          periodSeconds: 3
-#        readinessProbe:
-#          httpGet:
-#            path: /ambassador/v0/check_ready
-#            port: 8877
-#          initialDelaySeconds: 30
-#          periodSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
       restartPolicy: Always
