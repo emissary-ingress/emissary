@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import yaml
 
-from typing import Any, ClassVar, List, Optional, Sequence
+from typing import Any, ClassVar, Dict, List, Optional, Sequence
 from typing import cast as typecast
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
@@ -256,14 +256,15 @@ class AmbassadorTest(Test):
         yield ("url", Query(self.url("ambassador/v0/check_ready")))
         yield ("url", Query(self.url("ambassador/v0/check_alive")))
 
+
 @abstract_test
-class ServiceType(Node):
+class IsolatedServiceType(Node):
 
     path: Name
 
     def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or manifests.BACKEND
+        self._manifests = service_manifests or manifests.ISOLATED_BACKEND
 
     def config(self):
         yield from ()
@@ -272,6 +273,37 @@ class ServiceType(Node):
         return self.format(self._manifests)
 
     def requirements(self):
+        yield ("url", Query("http://%s" % self.path.fqdn))
+        yield ("url", Query("https://%s" % self.path.fqdn))
+
+
+@abstract_test
+class ServiceType(Node):
+
+    path: Name
+    _manifests: Optional[str]
+    use_superpod: bool = True
+ 
+    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._manifests = service_manifests
+
+        if self._manifests:
+            self.use_superpod = False
+
+    def config(self):
+        yield from ()
+
+    def manifests(self):
+        if self.use_superpod:
+            return None
+
+        return self.format(self._manifests)
+
+    def requirements(self):
+        if self.use_superpod:
+            yield from ()
+
         yield ("url", Query("http://%s" % self.path.fqdn))
         yield ("url", Query("https://%s" % self.path.fqdn))
 
