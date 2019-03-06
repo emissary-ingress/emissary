@@ -40,6 +40,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 #  line 1: local tag name (version-based)
 #  line 2: image hash
 #  line 3: local tag name (hash-based)
+#  line 4: local tag name (latest, optional)
 #
 # Note: We test for changes for CI early, but test for changes for
 # cleanup late.  If we did the cleanup test early because of :latest,
@@ -49,15 +50,15 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest)' > $(@D)/.tmp.$(@F).tmp
 	docker build -t "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" $*
 	docker image inspect "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" --format='{{.Id}}' >> $(@D)/.tmp.$(@F).tmp
-	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*)':"id-$$(sed -n '2{ s/:/-/g; p; }' $(@D)/.tmp.$(@F).tmp)" >> $(@D)/.tmp.$(@F).tmp
+	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*)':"id-$$(sed -n '2{ s/:/-/g; p; }' $(@D)/.tmp.$(@F).tmp)" $(if $(VERSION),'$(docker.LOCALHOST):31000/$(notdir $*):latest') >> $(@D)/.tmp.$(@F).tmp
 	@{ \
 		PS4=''; set -x; \
 		if cmp -s $(@D)/.tmp.$(@F).tmp $@; then \
 			rm -f $(@D)/.tmp.$(@F).tmp || true; \
 		else \
 			$(if $(CI),if test -e $@; then false This should not happen in CI: $@ should not change; fi &&) \
-			docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" "$$(sed -n 3p $(@D)/.tmp.$(@F).tmp)" && \
-			$(if $(VERSION),docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" '$(docker.LOCALHOST):31000/$(notdir $*):latest' &&) \
+			                docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" "$$(sed -n 3p $(@D)/.tmp.$(@F).tmp)" && \
+			$(if $(VERSION),docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" "$$(sed -n 4p $(@D)/.tmp.$(@F).tmp)" &&) \
 			if test -e $@; then docker image rm $$(grep -vFx -f $(@D)/.tmp.$(@F).tmp $@) || true; fi && \
 			mv -f $(@D)/.tmp.$(@F).tmp $@; \
 		fi; \
