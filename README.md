@@ -98,7 +98,7 @@ information on what this does, and on the format of the tag names.
    the individual READMEs.
 
 5. Once tests pass on the official build, land the documentation PR onto
-   `stable`.
+   `stable`, and land the YAML changes in `pro-ref-arch` onto `master`.
 
 ## How users get this
 
