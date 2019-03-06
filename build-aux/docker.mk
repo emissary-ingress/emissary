@@ -79,6 +79,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	    docker push "$$(sed -n 3p $<)"; \
 	}
 	sed -n '3{ s/^host\.docker\.internal:/localhost:/; p; }' $< > $@
+.NOTPARALLEL: # work around https://github.com/datawire/teleproxy/issues/77
 
 %.docker.push: %.docker
 	docker tag "$$(sed -n 2p $<)" '$(DOCKER_IMAGE)'
