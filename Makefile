@@ -1,4 +1,4 @@
-TAG=9
+TAG=10
 
 all: xds echo backend client
 
