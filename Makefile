@@ -37,7 +37,9 @@ push: .docker.stamp
 
 download-go:
 	go list ./...
-.PHONY: download-go
+download-docker:
+	docker pull golang:$(APRO_GOVERSION)
+.PHONY: download-go download-docker
 
 .common-pkgs.txt: $(APRO_PKGFILE) download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
@@ -48,7 +50,7 @@ version-check: .common-pkgs.txt $(APRO_PKGFILE)
 	}
 .PHONY: version-check
 
-%.so: %.go download-go version-check
+%.so: %.go download-go download-docker version-check
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
 
 clean:
