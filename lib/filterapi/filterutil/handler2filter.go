@@ -84,9 +84,10 @@ func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Cont
 		ProtoMinor:       httpVerMinor,
 		Header:           http.Header{}, // see below
 		Body:             ioutil.NopCloser(strings.NewReader(body)),
+		GetBody:          nil, // ignored for server requests
 		ContentLength:    int64(len(body)),
 		TransferEncoding: nil,   // supporting this seems like a pain
-		Close:            false, // ignored for server requests)
+		Close:            false, // ignored for server requests
 		Host:             g.GetRequest().GetHttp().GetHost(),
 		Form:             nil,
 		PostForm:         nil,

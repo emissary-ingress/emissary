@@ -5,7 +5,7 @@ NAME            = ambassador-pro
 DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
-image.norelease = docker/amb-sidecar-plugins docker/model-cluster-app
+image.norelease = docker/amb-sidecar-plugins $(filter docker/model-cluster-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))

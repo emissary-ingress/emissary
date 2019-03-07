@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/delegatehandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
@@ -154,6 +155,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 			filterImpl = filterutil.HandlerToFilter(&jwthandler.JWTHandler{
 				Filter: filterCRD,
 			})
+		case crd.FilterDelegate:
+			filterImpl = &delegatehandler.DelegateFilter{
+				Spec: filterCRD,
+			}
 		default:
 			panic(errors.Errorf("unexpected filter type %T", filterCRD))
 		}
