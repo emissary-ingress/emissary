@@ -1,2 +1,3 @@
 *.so
 .docker.stamp
+.common-pkgs.txt
