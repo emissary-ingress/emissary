@@ -106,6 +106,10 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
         self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
+    def bind_to(self) -> str:
+        bind_addr = self.get('address') or '0.0.0.0'
+        return "%s-%s" % (bind_addr, self.port)
+
     @staticmethod
     def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:

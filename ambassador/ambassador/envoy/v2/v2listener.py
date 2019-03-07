@@ -254,7 +254,8 @@ class V2TCPListener(dict):
         super().__init__()
 
         # Use the actual listener name & port number
-        self.name = "ambassador-listener-%s" % group.port
+        self.bind_address = group.get('address') or '0.0.0.0'
+        self.name = "listener-%s-%s" % (self.bind_address, group.port)
 
         self.tls_context: Optional[V2TLSContext] = None
 
@@ -272,7 +273,7 @@ class V2TCPListener(dict):
             'name': self.name,
             'address': {
                 'socket_address': {
-                    'address': '0.0.0.0',
+                    'address': self.bind_address,
                     'port_value': group.port,
                     'protocol': 'TCP'
                 }
@@ -563,20 +564,24 @@ class V2Listener(dict):
             config.listeners.append(listener)
 
         # We need listeners for the TCPMappingGroups too.
-        tcplisteners: Dict[int, V2TCPListener] = {}
+        tcplisteners: Dict[str, V2TCPListener] = {}
 
         for irgroup in config.ir.ordered_groups():
             if not isinstance(irgroup, IRTCPMappingGroup):
                 continue
 
-            # OK, good to go. Do we already have a TCP listener on this port?
-            listener = tcplisteners.get(irgroup.port, None)
+            # OK, good to go. Do we already have a TCP listener binding where this one does?
+            group_key = irgroup.bind_to()
+            listener = tcplisteners.get(group_key, None)
+
+            config.ir.logger.info("V2TCPListener: group at %s found %s listener" %
+                                  (group_key, "extant" if listener else "no"))
 
             if not listener:
                 # Nope. Make a new one and save it.
                 listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
                 config.listeners.append(listener)
-                tcplisteners[irgroup.port] = listener
+                tcplisteners[group_key] = listener
 
             # Whether we just created this listener or not, add this irgroup to it.
             listener.add_group(config, irgroup)

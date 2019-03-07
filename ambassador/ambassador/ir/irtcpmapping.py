@@ -64,9 +64,9 @@ class IRTCPMapping (IRBaseMapping):
     def group_class() -> Type[IRBaseMappingGroup]:
         return IRTCPMappingGroup
 
-    # def setup(self, ir: 'IR', aconf: Config) -> bool:
-    #     super().setup(ir, aconf)
-    #     return True
+    def bind_to(self) -> str:
+        bind_addr = self.get('address') or '0.0.0.0'
+        return "%s-%s" % (bind_addr, self.port)
 
     def _group_id(self) -> str:
         # Yes, we're using a cryptographic hash here. Cope. [ :) ]

@@ -7,7 +7,7 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 class TCPMapping(AmbassadorTest):
     single_namespace = True
     namespace = "tcp-namespace"
-    extra_ports = [ 6789, 9876 ]
+    extra_ports = [ 6789, 8765, 9876 ] # 7654
 
     def manifests(self) -> str:
         return """
@@ -80,6 +80,27 @@ service: {self.target1.path.fqdn}:443
 ---
 apiVersion: ambassador/v1
 kind:  TCPMapping
+name:  {self.name}-local-only
+address: 127.0.0.1
+port: 8765
+service: {self.target1.path.fqdn}:443
+# ---
+# apiVersion: ambassador/v1
+# kind:  TCPMapping
+# name:  {self.name}-collider-1
+# address: 172.17.0.1 # This needs to be a local, non-loopback, IP address. Hmmmm.
+# port: 7654
+# service: {self.target1.path.fqdn}:443
+# ---
+# apiVersion: ambassador/v1
+# kind:  TCPMapping
+# name:  {self.name}-collider-2
+# address: 127.0.0.1
+# port: 7654
+# service: {self.target2.path.fqdn}:443
+---
+apiVersion: ambassador/v1
+kind:  TCPMapping
 name:  {self.name}-1
 port: 6789
 host: tls-context-host-1
@@ -101,18 +122,30 @@ service: {self.target2.path.fqdn}:80
     #     yield Query(self.parent.url(self.name + "/wtfo", scheme='https'))
 
     def queries(self):
+        # 0: should hit target1
         yield Query(self.parent.url(self.name + "/wtfo/", port=9876),
                     insecure=True)
 
+        # 1: should hit target1 via SNI
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-1"},
                     insecure=True,
                     sni=True)
 
+        # 2: should hit target2 via SNI
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-2"},
                     insecure=True,
                     sni=True)
+
+        # 3: should error since port 8765 is bound only to localhost
+        yield Query(self.parent.url(self.name + "/wtfo/", port=8765),
+                    error=['connection reset by peer', 'EOF'],
+                    insecure=True)
+
+        # # 4: should hit target1, since the target2 route is localhost-only
+        # yield Query(self.parent.url(self.name + "/wtfo/", port=7654),
+        #             insecure=True)
 
 
     def check(self):
@@ -120,6 +153,7 @@ service: {self.target2.path.fqdn}:80
             ( 0, self.target1.path.fqdn ),
             ( 1, self.target1.path.fqdn ),
             ( 2, self.target2.path.fqdn )
+            # ( 4, self.target1.path.fqdn),
         ]:
             r = self.results[idx]
             backend_fqdn = self.parent.get_fqdn(r.backend.name)
