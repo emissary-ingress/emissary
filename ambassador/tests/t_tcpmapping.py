@@ -7,7 +7,7 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 class TCPMapping(AmbassadorTest):
     single_namespace = True
     namespace = "tcp-namespace"
-    extra_ports = [ 6789, 8765, 9876 ] # 7654
+    extra_ports = [ 6789, 8765, 9876 ]
 
     def manifests(self) -> str:
         return """
@@ -84,20 +84,6 @@ name:  {self.name}-local-only
 address: 127.0.0.1
 port: 8765
 service: {self.target1.path.fqdn}:443
-# ---
-# apiVersion: ambassador/v1
-# kind:  TCPMapping
-# name:  {self.name}-collider-1
-# address: 172.17.0.1 # This needs to be a local, non-loopback, IP address. Hmmmm.
-# port: 7654
-# service: {self.target1.path.fqdn}:443
-# ---
-# apiVersion: ambassador/v1
-# kind:  TCPMapping
-# name:  {self.name}-collider-2
-# address: 127.0.0.1
-# port: 7654
-# service: {self.target2.path.fqdn}:443
 ---
 apiVersion: ambassador/v1
 kind:  TCPMapping
@@ -115,7 +101,7 @@ kind:  TCPMapping
 name:  {self.name}-2
 port: 6789
 host: tls-context-host-2
-service: {self.target2.path.fqdn}:80
+service: https://{self.target2.path.fqdn}
 """)
 
     # def requirements(self):
