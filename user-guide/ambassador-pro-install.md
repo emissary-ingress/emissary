@@ -16,7 +16,7 @@ git clone https://github.com/datawire/pro-ref-arch
 
 In the `ambassador/ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
 
-**Note:** The Ambassador Pro will not start without your license key.
+**Note:** Ambassador Pro will not start without a valid license key.
 
 ## 3. Deploy Ambassador Pro
 
@@ -81,7 +81,7 @@ Get the External IP address of your Ambassador service:
 kubectl get svc ambassador
 ```
 
-Now, test out Ambassador Pro. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
+We'll now test Ambassador Pro with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
 
 ```
 $ curl $AMBASSADOR_IP/httpbin/ip # No authentication token
@@ -116,7 +116,7 @@ Ambassador Pro has many more features such as rate limiting, OAuth integration, 
 
 ### Enabling Rate limiting
 
-For more information on configuring rate limiting, cnosult the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
+For more information on configuring rate limiting, consult the [Advanced Rate Limiting tutorial ](/user-guide/advanced-rate-limiting) for information on configuring rate limits.
 
 ### Enabling Single Sign-On
 
