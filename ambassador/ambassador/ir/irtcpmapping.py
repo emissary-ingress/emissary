@@ -25,9 +25,10 @@ class IRTCPMapping (IRBaseMapping):
         "enable_ipv4": True,
         "enable_ipv6": True,
         "host": True,
+        "idle_timeout_ms": True,
         "port": True,
         "service": True,
-        "idle_timeout_ms": True,
+        "tls": True,
         "weight": True,
 
         # Include the serialization, too.

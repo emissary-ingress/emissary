@@ -34,6 +34,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         # a CoreMappingKey -- if it appears, it can't have multiple values within an IRTCPMappingGroup.
         'labels': True,
         'port': True,
+        'tls': True,
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
@@ -121,7 +122,8 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                             host_rewrite=mapping.get('host_rewrite', False),
                             enable_ipv4=mapping.get('enable_ipv4', None),
                             enable_ipv6=mapping.get('enable_ipv6', None),
-                            marker=marker)
+                            marker=marker,
+                            allow_scheme=False)
 
         stored = ir.add_cluster(cluster)
         stored.referenced_by(mapping)

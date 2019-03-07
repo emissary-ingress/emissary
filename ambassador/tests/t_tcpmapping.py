@@ -36,6 +36,7 @@ name: {self.name}-tlscontext
 hosts:
 - tls-context-host-1
 - tls-context-host-2
+- tls-context-host-3
 secret: supersecret
 """)
 
@@ -50,23 +51,21 @@ class TCPMappingTest(Test):
 
     target1: ServiceType
     target2: ServiceType
+    target3: ServiceType
     parent: AmbassadorTest
 
     @classmethod
     def variants(cls):
-        yield cls(HTTP(name="target1"), HTTP(name="target2"), name="{self.target1.name}")
+        yield cls(HTTP(name="target1"), HTTP(name="target2"), HTTP(name="target3"), name="{self.target1.name}")
 
-    def init(self, target1: ServiceType, target2: ServiceType) -> None:
+    def init(self, target1: ServiceType, target2: ServiceType, target3: ServiceType) -> None:
         self.target1 = target1
         self.target2 = target2
+        self.target3 = target3
 
 class TCPPortMapping(TCPMappingTest):
 
     parent: AmbassadorTest
-    #
-    # @classmethod
-    # def variants(cls):
-    #     yield cls(HTTP(), name="{self.target.name}")
 
     def config(self):
         # Any host. Does this even need TLS?
@@ -101,47 +100,72 @@ kind:  TCPMapping
 name:  {self.name}-2
 port: 6789
 host: tls-context-host-2
-service: https://{self.target2.path.fqdn}
+service: {self.target2.path.fqdn}
+tls: {self.parent.name}-tlscontext
+""")
+
+        # Host-differentiated.
+        yield self.target3, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  TCPMapping
+name:  {self.name}-3
+port: 6789
+host: tls-context-host-3
+service: {self.target3.path.fqdn}
+tls: true
 """)
 
     # def requirements(self):
     #     yield Query(self.parent.url(self.name + "/wtfo", scheme='https'))
 
     def queries(self):
-        # 0: should hit target1
+        # 0: should hit target1, and use TLS
         yield Query(self.parent.url(self.name + "/wtfo/", port=9876),
                     insecure=True)
 
-        # 1: should hit target1 via SNI
+        # 1: should hit target1 via SNI, and use cleartext
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-1"},
                     insecure=True,
-                    sni=True)
+                    sni=True,
+                    debug=True)
 
-        # 2: should hit target2 via SNI
+        # 2: should hit target2 via SNI, and use TLS
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-2"},
                     insecure=True,
-                    sni=True)
+                    sni=True,
+                    debug=True)
 
-        # 3: should error since port 8765 is bound only to localhost
+        # 3: should hit target3 via SNI, and use TLS
+        yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
+                    headers={"Host": "tls-context-host-3"},
+                    insecure=True,
+                    sni=True,
+                    debug=True)
+
+        # 4: should error since port 8765 is bound only to localhost
         yield Query(self.parent.url(self.name + "/wtfo/", port=8765),
                     error=['connection reset by peer', 'EOF'],
                     insecure=True)
 
-        # # 4: should hit target1, since the target2 route is localhost-only
+        # # 5: should hit target1, since the target2 route is localhost-only
         # yield Query(self.parent.url(self.name + "/wtfo/", port=7654),
         #             insecure=True)
 
 
     def check(self):
-        for idx, wanted in [
-            ( 0, self.target1.path.fqdn ),
-            ( 1, self.target1.path.fqdn ),
-            ( 2, self.target2.path.fqdn )
-            # ( 4, self.target1.path.fqdn),
+        for idx, wanted, tls_wanted in [
+            ( 0, self.target1.path.fqdn, True ),
+            ( 1, self.target1.path.fqdn, False ),
+            ( 2, self.target2.path.fqdn, True ),
+            ( 3, self.target3.path.fqdn, True ),
+            # ( 5, self.target1.path.fqdn ),
         ]:
             r = self.results[idx]
             backend_fqdn = self.parent.get_fqdn(r.backend.name)
+            tls_enabled = r.backend.request.tls.enabled
 
             assert backend_fqdn == wanted, f'{idx}: backend {backend_fqdn} != expected {wanted}'
+            assert tls_enabled == tls_wanted, f'{idx}: TLS status {tls_enabled} != wanted {tls_wanted}'
