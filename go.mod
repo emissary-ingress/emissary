@@ -3,6 +3,7 @@ module github.com/datawire/apro
 go 1.12
 
 require (
+	github.com/Jeffail/gabs v1.2.0
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect

@@ -86,7 +86,7 @@ ROOT
 	}
 
 	for _, table := range tables {
-		chain := createCertificateChain(table.root, table.leaf, table.intermediate)
+		chain := createCertificateChain(table.root, table.leaf)
 		assert.StrEQ(table.expected, chain)
 	}
 }

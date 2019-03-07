@@ -158,13 +158,18 @@ func Main(flags *cobra.Command, args []string) {
 
 	// TODO: this can probably be removed in the future or modified somehow
 	agent := NewAgent(os.Getenv(EnvAmbassadorID), os.Getenv(EnvSecretNamespace), os.Getenv(EnvSecretName), consul)
+	//err = agent.registerConsulService()
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 
 	caRootWatcher, err := consulwatch.NewConnectCARootsWatcher(consul, stdLogger)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	leafWatcher, err := consulwatch.NewConnectLeafWatcher(consul, stdLogger, agent.AmbassadorID)
+	log.Printf("Watching CA leaf for %s\n", agent.ConsulServiceName)
+	leafWatcher, err := consulwatch.NewConnectLeafWatcher(consul, stdLogger, agent.ConsulServiceName)
 
 	caRootChanged := make(chan *consulwatch.CARoots)
 	leafChanged := make(chan *consulwatch.Certificate)
@@ -210,7 +215,7 @@ func Main(flags *cobra.Command, args []string) {
 		}
 
 		if caRoot != nil && leafCert != nil {
-			chain := createCertificateChain(caRoot, leafCert)
+			chain := createCertificateChain(caRoot.PEM, leafCert.PEM)
 			secret := formatKubernetesSecretYAML(agent.SecretName, chain, leafCert.PrivateKeyPEM)
 
 			err := applySecret(agent.SecretNamespace, secret)
@@ -231,6 +236,10 @@ func Main(flags *cobra.Command, args []string) {
 	//go agent.WatchConsulLeafCertificateChanges()
 
 	//agent.Run()
+}
+
+func (a *Agent) registerConsulService() error {
+	return a.consul.Agent().ServiceRegister(&consulapi.AgentServiceRegistration{Name: a.ConsulServiceName, Address: "127.0.0.1", Port: 0})
 }
 
 //func (a *Agent) Run() {
@@ -346,10 +355,10 @@ func getEnvOrFallback(name string, fallback string) string {
 	}
 }
 
-func createCertificateChain(root *consulwatch.CARoot, leaf *consulwatch.Certificate) string {
+func createCertificateChain(rootPEM string, leafPEM string) string {
 	result := make([]string, 0)
-	result = append(result, root.PEM)
-	result = append([]string{leaf.PEM}, result...)
+	result = append(result, rootPEM)
+	result = append([]string{leafPEM}, result...)
 	return strings.Join(result, "")
 }
 

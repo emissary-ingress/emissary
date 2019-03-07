@@ -9,11 +9,6 @@ spec:
   containers:
     - name: consul
       image: "consul:latest"
-      env:
-        - name: HOST_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
       ports:
         - name: http-api
           containerPort: 8500
