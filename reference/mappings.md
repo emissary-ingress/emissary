@@ -1,10 +1,12 @@
 # Configuring Services
 
-Ambassador is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`.
+Ambassador is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`, which can apply to HTTP, GRPC, and Websockets at layer 7 via a `Mapping` resource, or to raw TCP connections at layer 4 via a `TCPMapping`.
 
-## Mappings
+Ambassador _must_ have one or more mappings defined to provide access to any services at all.
 
-Mappings associate REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. Ambassador _must_ have one or more mappings defined to provide access to any services at all.
+## `Mapping`
+
+An Ambassador `Mapping` associates REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. 
 
 Each mapping can also specify, among other things:
 
