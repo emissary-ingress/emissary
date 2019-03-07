@@ -82,7 +82,7 @@ func (c *FilterMux) ServeHTTP(hw http.ResponseWriter, hr *http.Request) {
 }
 
 func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
-	logger := middleware.GetLogger(r)
+	logger := middleware.GetLogger(r.Context())
 	originalURL := util.OriginalURL(r)
 
 	var rule *crd.Rule

@@ -56,8 +56,8 @@ func (l *Logger) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 	sublogger.Infof("[HTTP %v] %s %s (%v)", status, r.Method, r.URL.Path, time.Since(start))
 }
 
-func GetLogger(r *http.Request) types.Logger {
-	return r.Context().Value(loggerContextKey{}).(types.Logger)
+func GetLogger(ctx context.Context) types.Logger {
+	return ctx.Value(loggerContextKey{}).(types.Logger)
 }
 
 type loggerContextKey struct{}
