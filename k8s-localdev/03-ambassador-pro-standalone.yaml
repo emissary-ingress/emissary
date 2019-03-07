@@ -178,7 +178,7 @@ metadata:
       kind: Mapping
       name: callback_mapping
       prefix: /callback
-      service: ambassador-pro
+      service: NoTaReAlSeRvIcE
 spec:
   type: ClusterIP
   selector:
