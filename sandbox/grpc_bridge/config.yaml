@@ -17,14 +17,14 @@ static_resources:
           route_config:
             name: local_route
             virtual_hosts:
-            - name: grpc1bridge
+            - name: grpc_echo
               domains:
               - "*"
               routes:
               - match:
                   prefix: "/echo.EchoService/Echo"
                 route:
-                  cluster: grpc1bridge
+                  cluster: grpc_echo
                   prefix_rewrite: "echo.EchoService/Echo"
           http_filters:
           - name: envoy.grpc_http1_bridge
@@ -33,14 +33,14 @@ static_resources:
             config: {}
   
   clusters:
-  - name: grpc1bridge
+  - name: grpc_echo
     connect_timeout: 1s
     type: strict_dns
     lb_policy: round_robin
     http2_protocol_options: {}
     hosts:
     - socket_address:
-        address: grpc1bridge
+        address: grpc_echo
         port_value: 8080
 
 admin:

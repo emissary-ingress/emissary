@@ -32,7 +32,7 @@ func main() {
 	log.Printf("Running as type %s", t)
 
 	switch t {
-	case "grpc_bridge":
+	case "grpc_echo":
 		s = &srv.GRPC{
 			Port:          Port,
 			Backend:       os.Getenv("BACKEND"),

@@ -16,11 +16,11 @@ services:
       - "61892:8000"
       - "61893:8001"
 
-  grpc1bridge:
+  grpc_echo:
     image: quay.io/datawire/kat-backend:10
     environment:
     - DEBUG=1
-    - KAT_BACKEND_TYPE=grpc_bridge
+    - KAT_BACKEND_TYPE=grpc_echo
     networks:
       envoy:
         aliases:
