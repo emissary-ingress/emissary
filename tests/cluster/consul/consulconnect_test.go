@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -91,7 +92,7 @@ func TestConsulConnectTLSCertificateChainIsUpdatedWhenConnectRootCAChanges(t *te
 
 	assert := testutil.Assert{T: t}
 
-	timeout := time.After(30 * time.Second)
+	timeout := time.After(10 * time.Second)
 	tick := time.Tick(1 * time.Second)
 
 	config := api.DefaultConfig()
@@ -124,6 +125,7 @@ Loop1:
 		}
 	}
 
+	t.Log(os.Getenv("PATH"))
 	if err := consulKubeRotate("default"); err != nil {
 		t.Fatal(err)
 	}
