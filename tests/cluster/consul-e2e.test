@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-if ! type docker &>/dev/null; then
-	exit 77
-fi
-GO111MODULE=off go run "${0%.test}.go" "$@"
+
+virtualenv venv --python python3
+venv/bin/pip install git+https://github.com/tradel/consul-kube
+
+PATH=$(pwd)/venv/bin:$PATH go test -tags=test -v ./tests/cluster/consul

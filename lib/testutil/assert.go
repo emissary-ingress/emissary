@@ -19,6 +19,14 @@ func (a *Assert) StrEQ(e string, c string) {
 	}
 }
 
+// StrEQ asserts that two strings are not equivalent.
+func (a *Assert) StrNotEQ(e string, c string) {
+	a.T.Helper()
+	if e == c {
+		a.T.Fatalf("Expected '%s' got '%s'", e, c)
+	}
+}
+
 // IntEQ assert that two integers are the same.
 func (a *Assert) IntEQ(e int, c int) {
 	a.T.Helper()

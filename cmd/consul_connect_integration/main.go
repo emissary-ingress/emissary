@@ -238,9 +238,9 @@ func Main(flags *cobra.Command, args []string) {
 	//agent.Run()
 }
 
-func (a *Agent) registerConsulService() error {
-	return a.consul.Agent().ServiceRegister(&consulapi.AgentServiceRegistration{Name: a.ConsulServiceName, Address: "127.0.0.1", Port: 0})
-}
+//func (a *Agent) registerConsulService() error {
+//	return a.consul.Agent().ServiceRegister(&consulapi.AgentServiceRegistration{Name: a.ConsulServiceName, Address: "127.0.0.1", Port: 0})
+//}
 
 //func (a *Agent) Run() {
 //	for {
