@@ -125,6 +125,8 @@
               link: /reference/add_response_headers
             - title: Rewrites
               link: /reference/rewrites
+            - title: Routing TCP Connections
+              link: /reference/tcpmappings
             - title: Traffic Shadowing
               link: /reference/shadowing
         - title: Plugins
