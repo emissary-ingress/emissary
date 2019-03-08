@@ -1,13 +1,17 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strings"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
@@ -58,10 +62,6 @@ func (rw *responseWriter) reset() {
 	rw.headerWritten = false
 }
 
-func (rw *responseWriter) Status() int {
-	return rw.status
-}
-
 func (src *responseWriter) writeToResponseWriter(dst http.ResponseWriter) {
 	for k, s := range src.header {
 		dst.Header()[k] = s
@@ -70,30 +70,52 @@ func (src *responseWriter) writeToResponseWriter(dst http.ResponseWriter) {
 	io.WriteString(dst, src.body.String())
 }
 
-func (c *FilterMux) ServeHTTP(hw http.ResponseWriter, hr *http.Request) {
-	// middleware.Logger needs a ResponseWriter implementing
-	// .Status()
-	w := &responseWriter{
+func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	requestID := uuid.NewV4().String()
+	logger := c.Logger.WithField("REQUEST_ID", requestID)
+
+	logger.Infof("[HTTP %s] %s %s", r.Method, r.Host, r.URL.Path)
+
+	response := &responseWriter{
 		status: http.StatusOK,
 		header: http.Header{},
 	}
-	mw := &middleware.Logger{Logger: c.Logger}
-	mw.ServeHTTP(w, hr, c.serveHTTP)
-	w.writeToResponseWriter(hw)
-}
+	defer func() {
+		var status int
+		if err := recover(); err != nil {
+			// catch
+			const stacksize = 64 << 10 // net/http uses 64<<10, negroni.Recovery uses 1024*8 by default
+			stack := make([]byte, stacksize)
+			stack = stack[:runtime.Stack(stack, false)]
+			logger.Errorf("[HTTP] panic: %v\n%s", err, stack)
 
-func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
-	logger := middleware.GetLogger(r.Context())
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, `
+<html>
+  <head>
+    <title>HTTP 500: Internal Server Error</title>
+  <head>
+  <body>
+    <h1>HTTP 500: Internal Server Error</h1>
+    <p><code>REQUEST_ID=%s</code></p>
+  </body>
+</html>`, requestID)
+			status = 500
+		} else {
+			response.writeToResponseWriter(w)
+			status = response.status
+		}
+		logger.Infof("[HTTP %v] %s %s (%v)", status, r.Method, r.URL.Path, time.Since(start))
+	}()
+	r = r.WithContext(middleware.WithLogger(r.Context(), logger))
 
 	rule := ruleForURL(c.Controller, util.OriginalURL(r))
 	if rule == nil {
 		rule = c.DefaultRule
 	}
 
-	response := &responseWriter{
-		status: http.StatusOK,
-		header: http.Header{},
-	}
 	for _, filterRef := range rule.Filters {
 		filterQName := filterRef.Name + "." + filterRef.Namespace
 		logger.Debugf("host=%s, path=%s, filter=%q", rule.Host, rule.Path, filterQName)
@@ -138,7 +160,6 @@ func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	response.writeToResponseWriter(w)
 }
 
 func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
