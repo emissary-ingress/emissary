@@ -40,7 +40,7 @@ class IRTLSContext(IRResource):
         )
 
     def setup(self, ir: 'IR', config) -> bool:
-        ir.logger.debug("IRTLSContext incoming config: %s" % config.as_json())
+        # ir.logger.debug("IRTLSContext incoming config: %s" % config.as_json())
 
         if config.get('_ambassador_enabled', False):
             # Null context.
@@ -72,7 +72,7 @@ class IRTLSContext(IRResource):
             if key in config:
                 self.secret_info[key] = config[key]
 
-        ir.logger.debug("IRTLSContext at setup: %s" % self.as_json())
+        # ir.logger.debug("IRTLSContext at setup: %s" % self.as_json())
 
         rc = False
 
@@ -142,7 +142,7 @@ class IRTLSContext(IRResource):
         if not self.secret_info:
             self.logger.info("TLSContext %s has no certificate information at all?" % self.name)
 
-        self.ir.logger.info("resolve_secrets working on: %s" % self.as_json())
+        # self.ir.logger.debug("resolve_secrets working on: %s" % self.as_json())
 
         # OK. Do we have a secret name?
         secret_name = self.secret_info.get('secret')
@@ -226,7 +226,7 @@ class IRTLSContext(IRResource):
         # OK. Check paths.
         errors = 0
 
-        self.ir.logger.info("resolve_secrets before path checks: %s" % self.as_json())
+        # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
 
         for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
             path = self.secret_info.get(key, None)

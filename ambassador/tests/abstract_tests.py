@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import yaml
 
-from typing import Any, ClassVar, Optional, Sequence
+from typing import Any, ClassVar, Dict, List, Optional, Sequence
 from typing import cast as typecast
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
@@ -30,6 +30,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 443
+  {extra_ports}
   selector:
     service: {self.path.k8s}
 ---
@@ -83,6 +84,7 @@ class AmbassadorTest(Test):
     single_namespace: bool = False
     name: Name
     path: Name
+    extra_ports: Optional[List[int]] = None
 
     env = []
 
@@ -97,10 +99,22 @@ class AmbassadorTest(Test):
 """
             rbac = manifests.RBAC_NAMESPACE_SCOPE
 
+        eports = ""
+
+        if self.extra_ports:
+            for port in self.extra_ports:
+                eports += f"""
+  - name: extra-{port}
+    protocol: TCP
+    port: {port}
+    targetPort: {port}
+"""
+
         if DEV:
-            return self.format(rbac + AMBASSADOR_LOCAL)
+            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
-            return self.format(rbac + manifests.AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs)
+            return self.format(rbac + manifests.AMBASSADOR,
+                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs, extra_ports=eports)
 
     # Will tear this out of the harness shortly
     @property
@@ -191,6 +205,11 @@ class AmbassadorTest(Test):
         [command.extend(["-e", env]) for env in envs]
 
         ports = ["%s:8877" % (8877 + self.index), "%s:80" % (8080 + self.index), "%s:443" % (8443 + self.index)]
+
+        if self.extra_ports:
+            for port in self.extra_ports:
+                ports.append(f'{port}:{port}')
+
         [command.extend(["-p", port]) for port in ports]
 
         volumes = ["%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir]
@@ -215,28 +234,37 @@ class AmbassadorTest(Test):
     def scheme(self) -> str:
         return "http"
 
-    def url(self, prefix, scheme=None) -> str:
+    def url(self, prefix, scheme=None, port=None) -> str:
         if scheme is None:
             scheme = self.scheme()
 
         if DEV:
-            port = 8443 if scheme == 'https' else 8080
-            return "%s://%s/%s" % (scheme, "localhost:%s" % (port + self.index), prefix)
+            if not port:
+                port = 8443 if scheme == 'https' else 8080
+                port += self.index
+
+            return "%s://%s/%s" % (scheme, "localhost:%s" % port, prefix)
         else:
-            return "%s://%s/%s" % (scheme, self.path.fqdn, prefix)
+            host_and_port = self.path.fqdn
+
+            if port:
+                host_and_port += f':{port}'
+
+            return "%s://%s/%s" % (scheme, host_and_port, prefix)
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready")))
         yield ("url", Query(self.url("ambassador/v0/check_alive")))
 
+
 @abstract_test
-class ServiceType(Node):
+class IsolatedServiceType(Node):
 
     path: Name
 
     def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or manifests.BACKEND
+        self._manifests = service_manifests or manifests.ISOLATED_BACKEND
 
     def config(self):
         yield from ()
@@ -245,6 +273,37 @@ class ServiceType(Node):
         return self.format(self._manifests)
 
     def requirements(self):
+        yield ("url", Query("http://%s" % self.path.fqdn))
+        yield ("url", Query("https://%s" % self.path.fqdn))
+
+
+@abstract_test
+class ServiceType(Node):
+
+    path: Name
+    _manifests: Optional[str]
+    use_superpod: bool = True
+ 
+    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._manifests = service_manifests
+
+        if self._manifests:
+            self.use_superpod = False
+
+    def config(self):
+        yield from ()
+
+    def manifests(self):
+        if self.use_superpod:
+            return None
+
+        return self.format(self._manifests)
+
+    def requirements(self):
+        if self.use_superpod:
+            yield from ()
+
         yield ("url", Query("http://%s" % self.path.fqdn))
         yield ("url", Query("https://%s" % self.path.fqdn))
 

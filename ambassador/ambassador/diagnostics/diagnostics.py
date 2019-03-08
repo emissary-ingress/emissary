@@ -20,7 +20,7 @@ import logging
 import re
 
 from ..ir import IR
-from ..ir.irmapping import IRMappingGroup
+from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ..envoy import EnvoyConfig
 from .envoy_stats import EnvoyStats
 
@@ -191,16 +191,16 @@ class DiagResult:
 
         return self.clusters[c_name]
 
-    def include_group(self, group: IRMappingGroup) -> None:
+    def include_httpgroup(self, group: IRHTTPMappingGroup) -> None:
         """
-        Note that a particular IRMappingGroup, all of the clusters it uses for upstream
+        Note that a particular IRHTTPMappingGroup, all of the clusters it uses for upstream
         traffic, and everything that references it are relevant to this result.
 
         This method actually does a fair amount of work around handling clusters, shadow
         clusters, and host_redirects. It would be a horrible mistake to duplicate this
         elsewhere.
 
-        :param group: IRMappingGroup to include
+        :param group: IRHTTPMappingGroup to include
         """
 
         # self.logger.debug("GROUP %s" % group.as_json())
@@ -537,7 +537,11 @@ class Diagnostics:
         result = DiagResult(self, estat, request)
 
         for group in self.ir.ordered_groups():
-            result.include_group(group)
+            if isinstance(group, IRHTTPMappingGroup):
+                result.include_httpgroup(group)
+            else:
+                # Can't happen yet.
+                self.logger.warning("group %s is not an HTTPMappingGroup, ignoring" % group.name)
 
         return result.as_dict()
 
@@ -564,7 +568,14 @@ class Diagnostics:
 
         if key in self.groups:
             # Yup, group ID.
-            result.include_group(self.groups[key])
+            group = self.groups[key]
+
+            if isinstance(group, IRHTTPMappingGroup):
+                result.include_httpgroup(group)
+            else:
+                # Can't happen yet.
+                self.logger.warning("group %s is not an HTTPMappingGroup, ignoring" % group.name)
+
             found = True
         elif key in self.clusters:
             result.include_cluster(self.clusters[key].as_dict())
