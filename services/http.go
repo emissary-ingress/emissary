@@ -13,25 +13,29 @@ import (
 // HTTP server object (all fields are required).
 type HTTP struct {
 	Port       int16
+	Backend    string
 	SecurePort int16
+	SecureBackend string
 	Cert       string
 	Key        string
 }
 
 // Start initializes the HTTP server.
 func (h *HTTP) Start() <-chan bool {
-	log.Print("starting HTTP service")
+	log.Printf("HTTP: %s listening on %d/%d", h.Backend, h.Port, h.SecurePort)
 
-	http.HandleFunc("/", handler)
+	server := http.NewServeMux()
+	server.HandleFunc("/", h.handler)
+
 	exited := make(chan bool)
 
 	go func() {
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", h.Port), nil))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", h.Port), server))
 		close(exited)
 	}()
 
 	go func() {
-		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%v", h.SecurePort), h.Cert, h.Key, nil))
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%v", h.SecurePort), h.Cert, h.Key, server))
 		close(exited)
 	}()
 
@@ -47,7 +51,11 @@ func lower(m map[string][]string) (result map[string][]string) {
 	return result
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
+	// Assume we're the clear side of the world.
+	backend := h.Backend
+	conntype := "CLR"
+
 	var request = make(map[string]interface{})
 	var url = make(map[string]interface{})
 	request["url"] = url
@@ -71,8 +79,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	request["host"] = r.Host
 	var tls = make(map[string]interface{})
 	request["tls"] = tls
+
 	tls["enabled"] = r.TLS != nil
+
 	if r.TLS != nil {
+		// We're the secure side of the world, I guess.
+		backend = h.SecureBackend
+		conntype = "TLS"
+
 		tls["version"] = r.TLS.Version
 		tls["negotiated-protocol"] = r.TLS.NegotiatedProtocol
 		tls["server-name"] = r.TLS.ServerName
@@ -146,7 +160,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	response["headers"] = lower(w.Header())
 
 	var body = make(map[string]interface{})
-	body["backend"] = os.Getenv("BACKEND")
+	body["backend"] = backend
 	body["request"] = request
 	body["response"] = response
 
@@ -155,6 +169,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		b = []byte(fmt.Sprintf("Error: %v", err))
 	}
 
-	log.Printf("writing response HTTP %v", statusCode)
+	log.Printf("%s (%s): writing response HTTP %v", backend, conntype, statusCode)
 	w.Write(b)
 }

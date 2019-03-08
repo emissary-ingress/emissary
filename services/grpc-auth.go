@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
+	// "os"
 	"strconv"
 	"strings"
 
@@ -24,13 +24,17 @@ import (
 // GRPCAUTH server object (all fields are required).
 type GRPCAUTH struct {
 	Port       int16
+	Backend    string
 	SecurePort int16
+	SecureBackend string
 	Cert       string
 	Key        string
 }
 
 // Start initializes the HTTP server.
 func (g *GRPCAUTH) Start() <-chan bool {
+	log.Printf("GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+
 	exited := make(chan bool)
 	proto := "tcp"
 
@@ -43,7 +47,8 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb.RegisterAuthorizationServer(s, &AuthService{})
+		// pb.RegisterAuthorizationServer(s, &AuthService{})
+		pb.RegisterAuthorizationServer(s, g)
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -66,7 +71,8 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb.RegisterAuthorizationServer(s, &AuthService{})
+		// pb.RegisterAuthorizationServer(s, &AuthService{})
+		pb.RegisterAuthorizationServer(s, g)
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -77,11 +83,11 @@ func (g *GRPCAUTH) Start() <-chan bool {
 	return exited
 }
 
-// AuthService implements envoy.service.auth.external_auth.
-type AuthService struct{}
+// // AuthService implements envoy.service.auth.external_auth.
+// type AuthService struct{}
 
 // Check checks the request object.
-func (s *AuthService) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
+func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {
 	rs := &Response{}
 
 	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
@@ -139,7 +145,7 @@ func (s *AuthService) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckR
 
 	// Sets results body.
 	results := make(map[string]interface{})
-	results["backend"] = os.Getenv("BACKEND")
+	results["backend"] = g.Backend
 	results["status"] = rs.GetStatus()
 	if len(request) > 0 {
 		results["request"] = request

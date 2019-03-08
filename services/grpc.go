@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
+	// "os"
 	"strconv"
 	"strings"
 
@@ -21,7 +21,9 @@ import (
 // GRPC server object (all fields are required).
 type GRPC struct {
 	Port       int16
+	Backend    string
 	SecurePort int16
+	SecureBackend string
 	Cert       string
 	Key        string
 }
@@ -36,6 +38,8 @@ func DefaultOpts() []grpc.ServerOption {
 
 // Start initializes the gRPC server.
 func (g *GRPC) Start() <-chan bool {
+	log.Printf("GRPC: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+
 	exited := make(chan bool)
 	proto := "tcp"
 
@@ -48,7 +52,8 @@ func (g *GRPC) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer(DefaultOpts()...)
-		pb.RegisterEchoServiceServer(s, &EchoService{})
+		// pb.RegisterEchoServiceServer(s, &EchoService{})
+		pb.RegisterEchoServiceServer(s, g)
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -71,7 +76,8 @@ func (g *GRPC) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer(DefaultOpts()...)
-		pb.RegisterEchoServiceServer(s, &EchoService{})
+		// pb.RegisterEchoServiceServer(s, &EchoService{})
+		pb.RegisterEchoServiceServer(s, g)
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -82,11 +88,14 @@ func (g *GRPC) Start() <-chan bool {
 	return exited
 }
 
-// EchoService implements envoy.service.auth.external_auth.
-type EchoService struct{}
+// // EchoService implements envoy.service.auth.external_auth.
+// type EchoService struct{}
 
 // Echo returns the an object with the HTTP context of the request.
-func (s *EchoService) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, error) {
+func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, error) {
+	// Assume we're the clear side of the world.
+	backend := g.Backend
+
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Code(13), "request has not valid context metadata")
@@ -110,6 +119,9 @@ func (s *EchoService) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResp
 
 	// Checks scheme and set TLS info.
 	if len(md[":scheme"]) > 0 && md[":scheme"][0] == "https" {
+		// We're the secure side of the world, I guess.
+		backend = g.SecureBackend
+
 		request.Tls = &pb.TLS{
 			Enabled: true,
 		}
@@ -129,7 +141,7 @@ func (s *EchoService) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResp
 
 	// Sets grpc response.
 	echoRES := &pb.EchoResponse{
-		Backend:  os.Getenv("BACKEND"),
+		Backend:  backend,
 		Request:  request,
 		Response: response,
 	}
