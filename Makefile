@@ -21,7 +21,7 @@ SHELL = bash
 .FORCE:
 .PHONY: \
     .FORCE clean version setup-develop print-vars \
-    docker-login docker-push docker-images publish-website helm \
+    docker-login docker-push docker-images publish-website \
     teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
@@ -117,13 +117,17 @@ DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
 
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14e2c65bb
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-1"
-AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-1"
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-2-rc"
+AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-2-rc"
 
 SCOUT_APP_KEY=
+
+# Sets the kat-backend release which contains the kat-client use for E2e testing.
+# For details https://github.com/datawire/kat-backend
+KAT_BACKEND_RELEASE = 1.1.0
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -172,6 +176,7 @@ print-vars:
 	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
+	@echo "KAT_BACKEND_RELEASE = $(KAT_BACKEND_RELEASE)"
 
 export-vars:
 	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
@@ -192,12 +197,15 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
+	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 
 docker-base-images:
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
 
 docker-push-base-images:
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
 	docker push $(AMBASSADOR_BASE_IMAGE)
 
@@ -266,22 +274,6 @@ website-yaml:
 			{} \;
 
 website: website-yaml
-	VERSION=$(VERSION) bash docs/build-website.sh
-
-helm:
-	echo "Helm version $(VERSION)"
-	cd helm && helm package --app-version "$(VERSION)" --version "$(VERSION)" ambassador/
-	curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
-	helm repo index helm --url https://www.getambassador.io/helm --merge tmp.yaml
-
-helm-update: helm
-	aws s3api put-object --bucket datawire-static-files \
-		--key ambassador/ambassador-$(VERSION).tgz \
-		--body helm/ambassador-$(VERSION).tgz
-	aws s3api put-object --bucket datawire-static-files \
-		--key ambassador/index.yaml \
-		--body helm/index.yaml
-	rm tmp.yaml helm/index.yaml helm/ambassador-$(VERSION).tgz
 
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
@@ -293,7 +285,8 @@ e2e: e2e-versioned-manifests
 	fi
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.1.1
+TELEPROXY_VERSION=0.3.16
+
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
 GOOS=$(shell go env GOOS)
@@ -323,8 +316,14 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(TELEPROXY) $(KUBERNAUT) version
-	go get github.com/gorilla/websocket
+setup-develop: venv $(PWD)/kat/kat/client $(TELEPROXY) $(KUBERNAUT) version
+
+$(PWD)/kat/kat/client:
+	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz 
+	tar xzf v$(KAT_BACKEND_RELEASE).tar.gz
+	chmod +x kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
+	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/kat/kat/client
+	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
@@ -360,6 +359,8 @@ KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
+	AMBASSADOR_DOCKER_IMAGE_CACHED=$(AMBASSADOR_DOCKER_IMAGE_CACHED) \
+	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
@@ -411,7 +412,6 @@ release:
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		DOC_RELEASE_TYPE=stable make website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
-		make helm-update; \
 		set +x; \
 	else \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
