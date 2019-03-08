@@ -1,5 +1,9 @@
 pro-env.sh
 
+tests/cluster/consul/new_root.crt
+tests/cluster/consul/new_root.key
+venv
+
 /bin_*/
 /vendor/
 
@@ -58,8 +62,3 @@ node_modules/
 /docker/ambassador-ratelimit/ratelimit_client
 /docker/ambassador-oauth/ambassador-oauth
 /docker/traffic-sidecar/ambex
-
-# 2019-03-08 consul-kube creates files on disk
-tests/cluster/consul/new_root.crt
-tests/cluster/consul/new_root.key
-venv

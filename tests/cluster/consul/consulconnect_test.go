@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"testing"
 	"time"
 
@@ -185,8 +184,7 @@ Loop2:
 }
 
 func fmtCertificateChain(leafCertificate string, rootCerts string) string {
-	chain := []string{leafCertificate, rootCerts}
-	return strings.Join(chain, "")
+	return leafCertificate + rootCerts
 }
 
 func consulGetRoot(consul *api.Client) (*api.CARoot, error) {
@@ -218,13 +216,8 @@ func consulGetLeafCert(consul *api.Client, service string) (*api.LeafCert, error
 }
 
 func consulKubeRotate(namespace string) error {
-	consulKube, err := exec.LookPath("consul-kube")
-	if err != nil {
-		return err
-	}
-
 	args := []string{"-namespace=" + namespace, "rotate"}
-	cmd := exec.Command(consulKube, args...)
+	cmd := exec.Command("consul-kube", args...)
 
 	out, err := cmd.Output()
 	fmt.Println(out)
@@ -232,19 +225,14 @@ func consulKubeRotate(namespace string) error {
 }
 
 func kubectlGetSecret(namespace string, name string) (string, error) {
-	kubectl, err := exec.LookPath("kubectl")
-	if err != nil {
-		return "", err
-	}
-
 	namespaceArg := make([]string, 0)
-	if namespace == "" {
+	if namespace != "" {
 		namespaceArg = append(namespaceArg, "--namespace="+namespace)
 	}
 
 	args := []string{"get", "secret", name, "--output=json", "--ignore-not-found"}
 	args = append(args, namespaceArg...)
-	cmd := exec.Command(kubectl, args...)
+	cmd := exec.Command("kubectl", args...)
 
 	out, err := cmd.Output()
 	return string(out), err

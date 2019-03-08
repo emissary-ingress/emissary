@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	consulapi "github.com/hashicorp/consul/api"
@@ -234,10 +233,7 @@ func getEnvOrFallback(name string, fallback string) string {
 }
 
 func createCertificateChain(rootPEM string, leafPEM string) string {
-	result := make([]string, 0)
-	result = append(result, rootPEM)
-	result = append([]string{leafPEM}, result...)
-	return strings.Join(result, "")
+	return leafPEM + rootPEM
 }
 
 func formatKubernetesSecretYAML(name string, chain string, key string) string {
