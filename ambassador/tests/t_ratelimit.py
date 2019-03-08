@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
       - name: rate-limit
-        image: agervais/ambassador-ratelimit-service:1.0.0
+        image: dwflynn/ratelimit-service:0.0.1
         imagePullPolicy: Always
         ports:
         - name: grpc

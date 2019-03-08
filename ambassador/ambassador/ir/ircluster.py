@@ -65,6 +65,7 @@ class IRCluster (IRResource):
                  enable_ipv6: Optional[bool]=None,
                  lb_type: str="round_robin",
                  grpc: Optional[bool] = False,
+                 allow_scheme: Optional[bool] = True,
 
                  cb_name: Optional[str]=None,
                  od_name: Optional[str]=None,
@@ -77,8 +78,10 @@ class IRCluster (IRResource):
         # and TLS origination info.
 
         # Here's how it goes:
-        # - If the service starts with https://, it is forced to originate TLS.
-        # - Else, if it starts with http://, it is forced to _not_ originate TLS.
+        # - If allow_scheme is True and the service starts with https://, it is forced
+        #   to originate TLS.
+        # - Else, if allow_scheme is True and the service starts with http://, it is
+        #   forced to _not_ originate TLS.
         # - Else, if we have a context (either a string that names a valid context,
         #   or the boolean value True), it will originate TLS.
         #
@@ -118,24 +121,25 @@ class IRCluster (IRResource):
 
         # TODO: lots of duplication of here, need to replace with broken down functions
 
-        if service.lower().startswith("https://"):
+        if allow_scheme and service.lower().startswith("https://"):
             service = service[len("https://"):]
 
             originate_tls = True
             name_fields.append('otls')
 
-        elif service.lower().startswith("http://"):
+        elif allow_scheme and service.lower().startswith("http://"):
             service = service[ len("http://"): ]
 
             if ctx:
-                errors.append("Originate-TLS context %s being used even though service %s lists HTTP" % (ctx_name, service))
+                errors.append("Originate-TLS context %s being used even though service %s lists HTTP" %
+                              (ctx_name, service))
                 originate_tls = True
                 name_fields.append('otls')
             else:
                 originate_tls = False
 
         elif ctx:
-            # No scheme, but we have a context.
+            # No scheme (or schemes are ignored), but we have a context.
             originate_tls = True
             name_fields.append('otls')
             name_fields.append(ctx.name)
@@ -145,8 +149,12 @@ class IRCluster (IRResource):
             idx = service.index('://')
             scheme = service[0:idx]
 
-            errors.append("service %s has unknown scheme %s, assuming %s" %
-                          (service, scheme, "HTTPS" if originate_tls else "HTTP"))
+            if allow_scheme:
+                errors.append("service %s has unknown scheme %s, assuming %s" %
+                              (service, scheme, "HTTPS" if originate_tls else "HTTP"))
+            else:
+                errors.append("ignoring scheme %s for service %s, since it is being used for a non-HTTP mapping" %
+                              (scheme, service))
 
             service = service[idx + 3:]
 
@@ -226,6 +234,10 @@ class IRCluster (IRResource):
 
         if ctx:
             ctx.referenced_by(self)
+
+        if errors:
+            for error in errors:
+                ir.post_error(error, resource=self)
 
     def add_url(self, url: str) -> List[str]:
         self.urls.append(url)

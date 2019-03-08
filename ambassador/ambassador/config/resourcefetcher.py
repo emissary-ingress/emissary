@@ -141,48 +141,57 @@ class ResourceFetcher:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
     def extract_k8s(self, obj: dict) -> None:
-        self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
+        # self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
         kind = obj.get('kind', None)
-
-        if kind != "Service":
-            self.logger.debug("%s: ignoring K8s %s object" % (self.location, kind))
-            return
-
         metadata = obj.get('metadata', None)
+        resource_name = metadata.get('name') if metadata else None
+        resource_namespace = metadata.get('namespace', 'default') if metadata else None
+        resource_identifier = self.filename
 
-        if not metadata:
-            self.logger.debug("%s: ignoring unannotated K8s %s" % (self.location, kind))
-            return
+        if resource_name and resource_namespace:
+            # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
+            resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+            self.push_location(resource_identifier, 1)
 
-        # Use metadata to build a unique resource identifier
-        resource_name = metadata.get('name')
-
-        # This should never happen as the name field is required in metadata for Service
-        if not resource_name:
-            self.logger.debug("%s: ignoring unnamed K8s %s" % (self.location, kind))
-            return
-
-        resource_namespace = metadata.get('namespace', 'default')
-
-        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
-        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
-
-        annotations = metadata.get('annotations', None)
+        annotations = metadata.get('annotations', None) if metadata else None
 
         if annotations:
             annotations = annotations.get('getambassador.io/config', None)
+            # self.logger.debug("annotations %s" % annotations)
 
-        # self.logger.debug("annotations %s" % annotations)
+        skip = False
 
-        if not annotations:
+        if kind != "Service":
+            # self.logger.debug("%s: ignoring K8s %s object" % (self.location, kind))
+            skip = True
+
+        if not skip and not metadata:
+            # self.logger.debug("%s: ignoring unannotated K8s %s" % (self.location, kind))
+            skip = True
+
+        if not skip and not resource_name:
+            # This should never happen as the name field is required in metadata for Service
+            # self.logger.debug("%s: ignoring unnamed K8s %s" % (self.location, kind))
+            skip = True
+
+        if not skip and not annotations:
             # self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
-            return
+            skip = True
 
-        if self.filename and (not self.filename.endswith(":annotation")):
-            self.filename += ":annotation"
+        if not skip and (resource_namespace != self.aconf.ambassador_namespace):
+            # This should never happen in actual usage, since we shouldn't be given things
+            # in the wrong namespace. However, in development, this can happen a lot.
+            # self.logger.debug("%s: ignoring K8s %s in wrong namespace" % (self.location, kind))
+            skip = True
 
-        self.parse_yaml(annotations, filename=self.filename, rkey=resource_identifier)
+        if not skip:
+            if not self.filename.endswith(":annotation"):
+                self.filename += ":annotation"
+
+            self.parse_yaml(annotations, filename=self.filename, rkey=resource_identifier)
+
+        self.pop_location()
 
     def process_object(self, obj: dict, rkey: Optional[str]=None) -> None:
         if not isinstance(obj, dict):
@@ -195,7 +204,7 @@ class ResourceFetcher:
             return
 
         if not self.aconf.good_ambassador_id(obj):
-            self.logger.debug("%s SKIP for ambassador_id mismatch" % self.location)
+            # self.logger.debug("%s ignoring K8s Service with mismatched ambassador_id" % self.location)
             return
 
         if 'kind' not in obj:
@@ -204,7 +213,7 @@ class ResourceFetcher:
                                   (self.location, json.dumps(obj, indent=4, sort_keys=True)))
             return
 
-        self.logger.debug("%s PROCESS %s initial rkey %s" % (self.location, obj['kind'], rkey))
+        # self.logger.debug("%s PROCESS %s initial rkey %s" % (self.location, obj['kind'], rkey))
 
         # Is this a pragma object?
         if obj['kind'] == 'Pragma':
@@ -225,7 +234,7 @@ class ResourceFetcher:
 
         rkey = "%s.%d" % (rkey, self.ocount)
 
-        self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
+        # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
         # Fine. Fine fine fine.
         serialization = yaml.safe_dump(obj, default_flow_style=False)
@@ -234,7 +243,6 @@ class ResourceFetcher:
         self.elements.append(r)
 
         self.logger.debug("%s PROCESS %s save %s" % (self.location, obj['kind'], rkey))
-
 
     def sorted(self, key=lambda x: x.rkey): # returns an iterator, probably
         return sorted(self.elements, key=key)
