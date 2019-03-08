@@ -7,7 +7,7 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 class TCPMapping(AmbassadorTest):
     single_namespace = True
     namespace = "tcp-namespace"
-    extra_ports = [ 6789, 8765, 9876 ]
+    extra_ports = [ 6789, 7654, 8765, 9876 ]
 
     def manifests(self) -> str:
         return """
@@ -86,6 +86,13 @@ service: {self.target1.path.fqdn}:443
 ---
 apiVersion: ambassador/v1
 kind:  TCPMapping
+name:  {self.name}-clear-to-tls
+port: 7654
+tls: true
+service: {self.target2.path.fqdn}:443
+---
+apiVersion: ambassador/v1
+kind:  TCPMapping
 name:  {self.name}-1
 port: 6789
 host: tls-context-host-1
@@ -124,43 +131,42 @@ tls: true
         yield Query(self.parent.url(self.name + "/wtfo/", port=9876),
                     insecure=True)
 
-        # 1: should hit target1 via SNI, and use cleartext
+        # 1: should hit target2, and use TLS
+        yield Query(self.parent.url(self.name + "/wtfo/", port=7654, scheme='http'),
+                    insecure=True,
+                    debug=True)
+
+        # 2: should hit target1 via SNI, and use cleartext
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-1"},
                     insecure=True,
-                    sni=True,
-                    debug=True)
+                    sni=True)
 
-        # 2: should hit target2 via SNI, and use TLS
+        # 3: should hit target2 via SNI, and use TLS
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-2"},
                     insecure=True,
-                    sni=True,
-                    debug=True)
+                    sni=True)
 
-        # 3: should hit target3 via SNI, and use TLS
+        # 4: should hit target3 via SNI, and use TLS
         yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-3"},
                     insecure=True,
-                    sni=True,
-                    debug=True)
+                    sni=True)
 
-        # 4: should error since port 8765 is bound only to localhost
+        # 5: should error since port 8765 is bound only to localhost
         yield Query(self.parent.url(self.name + "/wtfo/", port=8765),
                     error=['connection reset by peer', 'EOF'],
                     insecure=True)
-
-        # # 5: should hit target1, since the target2 route is localhost-only
-        # yield Query(self.parent.url(self.name + "/wtfo/", port=7654),
-        #             insecure=True)
 
 
     def check(self):
         for idx, wanted, tls_wanted in [
             ( 0, self.target1.path.fqdn, True ),
-            ( 1, self.target1.path.fqdn, False ),
-            ( 2, self.target2.path.fqdn, True ),
-            ( 3, self.target3.path.fqdn, True ),
+            ( 1, self.target2.path.fqdn, True ),
+            ( 2, self.target1.path.fqdn, False ),
+            ( 3, self.target2.path.fqdn, True ),
+            ( 4, self.target3.path.fqdn, True ),
             # ( 5, self.target1.path.fqdn ),
         ]:
             r = self.results[idx]
