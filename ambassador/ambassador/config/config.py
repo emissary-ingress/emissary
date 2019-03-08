@@ -530,3 +530,10 @@ class Config:
         """
 
         self.safe_store("mappings", resource)
+
+    def handle_tcpmapping(self, resource: ACResource) -> None:
+        """
+        Handles a TCPMapping resource.
+        """
+
+        self.safe_store("tcpmappings", resource)
