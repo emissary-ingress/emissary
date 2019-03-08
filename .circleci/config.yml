@@ -99,6 +99,19 @@ jobs:
           os: linux
       - kubectl-install
       - node-install
+      - restore_cache:
+          key: "pyenv-201711-01-3.6.3"
+      - run:
+          name: "Install Python 3.6"
+          command: |
+            pyenv versions
+            pyenv install --skip-existing 3.6.3
+            pyenv global 2.7.12 3.6.3
+            pyenv versions
+      - save_cache:
+          key: "pyenv-201711-01-3.6.3"
+          paths:
+            - "/opt/circleci/.pyenv"
       - main
       - release
 
