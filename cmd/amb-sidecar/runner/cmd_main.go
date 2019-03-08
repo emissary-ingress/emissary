@@ -78,7 +78,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		server := &http.Server{
-			Addr:     ":8082",
+			Addr:     ":" + cfg.AuthPort,
 			Handler:  httpHandler,
 			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
 		}
