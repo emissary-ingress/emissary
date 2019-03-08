@@ -62,3 +62,4 @@ node_modules/
 # 2019-03-08 consul-kube creates files on disk
 tests/cluster/consul/new_root.crt
 tests/cluster/consul/new_root.key
+venv
