@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union, ValuesView
+from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
 import json
@@ -27,7 +27,9 @@ from .irambassador import IRAmbassador
 from .irauth import IRAuth
 from .irfilter import IRFilter
 from .ircluster import IRCluster
-from .irmapping import MappingFactory, IRMapping, IRMappingGroup
+from .irbasemappinggroup import IRBaseMappingGroup
+from .irbasemapping import IRBaseMapping
+from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
@@ -55,7 +57,7 @@ class IR:
     router_config: Dict[str, Any]
     filters: List[IRFilter]
     listeners: List[IRListener]
-    groups: Dict[str, IRMappingGroup]
+    groups: Dict[str, IRBaseMappingGroup]
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
@@ -269,16 +271,17 @@ class IR:
         primary_listener = 'ir.listener'
         return self.add_to_listener(primary_listener, **kwargs)
 
-    def add_mapping(self, aconf: Config, mapping: IRMapping) -> Optional[IRMappingGroup]:
-        group: Optional[IRMappingGroup] = None
+    def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
+        group: IRBaseMappingGroup
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name
-                group = IRMappingGroup(ir=self, aconf=aconf,
-                                       location=mapping.location,
-                                       name=group_name,
-                                       mapping=mapping)
+                group_class = mapping.group_class()
+                group = group_class(ir=self, aconf=aconf,
+                                    location=mapping.location,
+                                    name=group_name,
+                                    mapping=mapping)
 
                 self.groups[group.group_id] = group
             else:
@@ -287,7 +290,7 @@ class IR:
 
         return group
 
-    def ordered_groups(self) -> Iterable[IRMappingGroup]:
+    def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
 
     def has_cluster(self, name: str) -> bool:

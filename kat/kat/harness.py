@@ -2,7 +2,7 @@ import sys
 
 from abc import ABC
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Sequence, Tuple, Type
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Type, Union
 
 import base64
 import fnmatch
@@ -14,6 +14,9 @@ import pytest
 import time
 import threading
 import traceback
+
+from .manifests import BACKEND_SERVICE, SUPERPOD_POD
+
 from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
@@ -579,6 +582,58 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
 DOCTEST = False
 
 
+class Superpod:
+    def __init__(self, namespace: str) -> None:
+        self.namespace = namespace
+        self.next_clear = 8080
+        self.next_tls = 8443
+        self.service_names: Dict[int, str] = {}
+        self.name = 'superpod-%s' % (self.namespace or 'default')
+
+    def allocate(self, service_name) -> List[int]:
+        ports = [ self.next_clear, self.next_tls ]
+        self.service_names[self.next_clear] = service_name
+        self.service_names[self.next_tls] = service_name
+
+        self.next_clear += 1
+        self.next_tls += 1
+
+        return ports
+
+    def get_manifest_list(self) -> List[Dict[str, Any]]:
+        manifest = load('superpod', SUPERPOD_POD, Tag.MAPPING)
+
+        assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
+
+        m = manifest[0]
+
+        ports: List[Dict[str, int]] = []
+        envs: List[Dict[str, Union[str, int]]] = m['spec']['containers'][0]['env']
+
+        for p in sorted(self.service_names.keys()):
+            ports.append({ 'containerPort': p })
+            envs.append({ 'name': f'BACKEND_{p}', 'value': self.service_names[p] })
+
+        m['spec']['containers'][0]['ports'] = ports
+
+        if 'metadata' not in m:
+            m['metadata'] = {}
+
+        metadata = m['metadata']
+        metadata['name'] = self.name
+
+        if 'labels' not in metadata:
+            metadata['labels'] = {}
+
+        metadata['labels']['backend'] = self.name
+
+        if self.namespace:
+            # Fix up the namespace.
+            if 'namespace' not in metadata:
+                metadata['namespace'] = self.namespace
+
+        return list(manifest)
+
 class Runner:
 
     def __init__(self, *classes, scope=None):
@@ -657,24 +712,61 @@ class Runner:
             finally:
                 self.done = True
 
-    def _setup_k8s(self):
+    def get_manifests(self) -> OrderedDict:
         manifests = OrderedDict()
+        superpods: Dict[str, Superpod] = {}
+
         for n in self.nodes:
-            yaml = n.manifests()
-            if yaml is not None:
+            # What namespace is this node in?
+            nsp = None
+            cur = n
+            manifest = None
+
+            while cur:
+                nsp = getattr(cur, 'namespace', None)
+
+                if nsp:
+                    break
+                else:
+                    cur = cur.parent
+
+            # OK. Does this node want to use a superpod?
+            if getattr(n, 'use_superpod', False):
+                # Yup. OK. Do we already have a superpod for this namespace?
+                superpod = superpods.get(nsp, None)
+
+                if not superpod:
+                    # We don't have one, so we need to create one.
+                    superpod = Superpod(nsp)
+                    superpods[nsp] = superpod
+
+                # Next up: use the BACKEND_SERVICE manifest as a template...
+                yaml = n.format(BACKEND_SERVICE)
                 manifest = load(n.path, yaml, Tag.MAPPING)
 
-                nsp = None
-                cur = n
+                assert len(manifest) == 1, "BACKEND_SERVICE manifest must have exactly one object"
 
-                while cur:
-                    nsp = getattr(cur, 'namespace', None)
+                m = manifest[0]
 
-                    if nsp:
-                        break
-                    else:
-                      cur = cur.parent
+                # Update the manifest's selector...
+                m['spec']['selector']['backend'] = superpod.name
 
+                # ...and target ports.
+                superpod_ports = superpod.allocate(n.path.k8s)
+
+                m['spec']['ports'][0]['targetPort'] = superpod_ports[0]
+                m['spec']['ports'][1]['targetPort'] = superpod_ports[1]
+            else:
+                # The non-superpod case...
+                yaml = n.manifests()
+
+                if yaml is not None:
+                    manifest = load(n.path, yaml, Tag.MAPPING)
+
+            if manifest:
+                # print(manifest)
+
+                # Make sure namespaces are properly set.
                 if nsp:
                     for m in manifest:
                         if 'metadata' not in m:
@@ -683,7 +775,16 @@ class Runner:
                         if 'namespace' not in m['metadata']:
                             m['metadata']['namespace'] = nsp
 
+                # ...and, finally, save the manifest list.
                 manifests[n] = manifest
+
+        for superpod in superpods.values():
+            manifests[superpod] = superpod.get_manifest_list()
+
+        return manifests
+
+    def _setup_k8s(self):
+        manifests = self.get_manifests()
 
         configs = OrderedDict()
         for n in self.nodes:

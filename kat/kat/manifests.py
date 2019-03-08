@@ -1,4 +1,4 @@
-BACKEND = """
+BACKEND_SERVICE = """
 ---
 kind: Service
 apiVersion: v1
@@ -16,6 +16,9 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 8443
+"""
+
+BACKEND = BACKEND_SERVICE + """
 ---
 apiVersion: v1
 kind: Pod
@@ -32,6 +35,26 @@ spec:
     env:
     - name: BACKEND
       value: {self.path.k8s}
+"""
+
+SUPERPOD_POD = """
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: superpod
+  labels:
+    backend: superpod
+spec:
+  containers:
+  - name: backend
+    image: quay.io/datawire/kat-backend:10
+    # ports:
+    # {ports}
+    env:
+    - name: INCLUDE_EXTAUTH_HEADER
+      value: "yes"
+    # {envs} 
 """
 
 AUTH_BACKEND = """
@@ -232,6 +255,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 443
+  {extra_ports}
   selector:
     service: {self.path.k8s}
 ---

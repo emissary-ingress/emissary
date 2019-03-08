@@ -15,8 +15,7 @@
 from typing import List, TYPE_CHECKING
 
 from ..common import EnvoyRoute
-from ...ir import IRResource
-from ...ir.irmapping import IRMappingGroup
+from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 
 from .v2ratelimitaction import V2RateLimitAction
 
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class V2Route(dict):
-    def __init__(self, config: 'V2Config', group: IRMappingGroup) -> None:
+    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup) -> None:
         super().__init__()
 
         envoy_route = EnvoyRoute(group).envoy_route
@@ -167,7 +166,13 @@ class V2Route(dict):
         config.routes = []
 
         for irgroup in config.ir.ordered_groups():
+            if not isinstance(irgroup, IRHTTPMappingGroup):
+                # We only want HTTP mapping groups here.
+                continue
+
+            # It's an HTTP group. Great.
             route = config.save_element('route', irgroup, V2Route(config, irgroup))
+
             if irgroup.get('sni'):
                 info = {
                     'hosts': irgroup['tls_context']['hosts'],
@@ -178,7 +183,7 @@ class V2Route(dict):
                 config.routes.append(route)
 
     @staticmethod
-    def generate_headers(mapping_group: IRMappingGroup) -> List[dict]:
+    def generate_headers(mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
 
         group_headers = mapping_group.get('headers', [])
