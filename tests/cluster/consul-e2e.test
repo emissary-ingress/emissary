@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-virtualenv venv --python python3
-venv/bin/pip install git+https://github.com/tradel/consul-kube
+virtualenv $(pwd)/venv --python python3
+$(pwd)/venv/bin/pip install git+https://github.com/tradel/consul-kube
 
-PATH=$(pwd)/venv/bin:$PATH go test -tags=test -v ./tests/cluster/consul
+export PATH=$(pwd)/venv/bin:$PATH
+go test -tags=test -v ./tests/cluster/consul

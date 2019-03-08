@@ -216,7 +216,10 @@ func consulGetLeafCert(consul *api.Client, service string) (*api.LeafCert, error
 }
 
 func consulKubeRotate(namespace string) error {
-	consulKube := "/home/plombardi/workspace/19/apro/venv/bin/consul-kube"
+	consulKube, err := exec.LookPath("consul-kube")
+	if err != nil {
+		return err
+	}
 
 	args := []string{"-namespace=" + namespace, "rotate"}
 	cmd := exec.Command(consulKube, args...)
