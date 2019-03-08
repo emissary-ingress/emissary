@@ -193,7 +193,7 @@ spec:
     targetPort: 6070
   - name: auth-http
     port: 80
-    targetPort: 8080
+    targetPort: 8082
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -221,7 +221,7 @@ spec:
         - name: ratelimit-debug
           containerPort: 6070
         - name: auth-http
-          containerPort: 8080
+          containerPort: 8082
         env:
         - name: APP_LOG_LEVEL
           value: DEBUG
