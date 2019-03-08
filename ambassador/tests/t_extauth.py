@@ -38,7 +38,7 @@ service: {self.target.path.fqdn}
                                                   "baz": "baz",
                                                   "request-header": "baz"}, expected=401)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "302",
+        yield Query(self.url("target/"), headers={"requested-status": "302", 
                                                   "requested-location": "foo"}, expected=302)
         
         # [2]
@@ -126,10 +126,12 @@ allowed_request_headers:
 - X-Bar
 - Requested-Status
 - Requested-Header
+- Requested-Cookie
 - Location
 
 allowed_authorization_headers:
 - X-Foo
+- Set-Cookie
 
 allow_request_body: True
 """)
@@ -150,6 +152,7 @@ service: {self.target.path.fqdn}
         # [1]
         yield Query(self.url("target/"), headers={"requested-status": "302",
                                                   "location": "foo",
+                                                  "requested-cookie": "foo, bar, baz", 
                                                   "requested-header": "location"}, expected=302)
         # [2]
         yield Query(self.url("target/"), headers={"Requested-Status": "401",
@@ -181,10 +184,11 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
+        assert self.results[1].backend.response.headers["set-cookie"] == ["foo=foo", "bar=bar", "baz=baz"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Server"] == ["envoy"]
         assert self.results[1].headers["Location"] == ["foo"]
-
+        
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend.name == self.auth.path.k8s
         assert self.results[2].backend.request.headers["requested-status"] == ["401"]
