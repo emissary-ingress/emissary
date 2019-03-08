@@ -1,0 +1,69 @@
+static_resources:
+  listeners:
+  - address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 8000
+    
+    filter_chains:
+    - filters:
+      - name: envoy.http_connection_manager
+        config:
+          codec_type: auto
+          add_user_agent: true
+          idle_timeout: 0.840s
+          stat_prefix: egress_http
+          use_remote_address: true
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: echo-service
+              domains:
+              - "*"
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: echo-service
+          http_filters:
+          - name: envoy.ext_authz
+            config:
+              http_service:
+                server_uri:
+                  uri: auth-service:8080
+                  timeout: 0.25s
+                  cluster: auth-service
+                
+                allowed_request_headers:
+                - requested-status
+                - requested-cookie
+
+                allowed_authorization_headers:
+                - set-cookie
+
+          - name: envoy.router
+            config: {}
+  
+  clusters:
+  - name: auth-service
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    hosts:
+    - socket_address:
+        address: auth-service
+        port_value: 8080
+  
+  - name: echo-service
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    connect_timeout: 10s
+    lb_policy: ROUND_ROBIN
+    hosts: [{ socket_address: { address: echo.websocket.org, port_value: 80 }}]
+
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 61893

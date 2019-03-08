@@ -100,6 +100,12 @@ func (s *AuthService) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckR
 		}
 	}
 
+	// Sets requested Cookies.
+	for _, v := range strings.Split(rheader["requested-cookie"], ",") {
+		val := strings.Trim(v, " ")
+		rs.AddHeader(false, "Set-Cookie", fmt.Sprintf("%s=%s", val, val))
+	}
+
 	// Sets requested location.
 	if len(rheader["requested-location"]) > 0 {
 		rs.AddHeader(false, "Location", rheader["requested-location"])

@@ -1,4 +1,4 @@
-TAG=9
+TAG=10
 
 all: xds echo backend client
 
@@ -61,12 +61,14 @@ client.build:
 
 .PHONY: sandbox
 
-sandbox: sandbox.clean sandbox.up
+sandbox.bridge:
+	@echo " ---> cleaning gRPC-Bridge sandbox"
+	@cd sandbox/grpc_bridge && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC-Bridge sandbox"
+	@cd sandbox/grpc_bridge && docker-compose up --force-recreate --abort-on-container-exit --build
 
-sandbox.clean:
-	@echo " ---> cleaning sandbox"
-	@cd sandbox && docker-compose stop && docker-compose rm -f
-
-sandbox.up:
-	@echo " ---> starting sandbox"
-	@cd sandbox && docker-compose up --force-recreate --abort-on-container-exit --build
+sandbox.http-auth:
+	@echo " ---> cleaning HTTP auth sandbox"
+	@cd sandbox/http_auth && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting HTTP auth sandbox"
+	@cd sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build

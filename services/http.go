@@ -102,6 +102,17 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	cookies, ok := r.Header["Requested-Cookie"]
+	if ok {
+		for _, v := range strings.Split(cookies[0], ",") {
+			val := strings.Trim(v, " ")
+			http.SetCookie(w, &http.Cookie{
+				Name:  val,
+				Value: val,
+			})
+		}
+	}
+
 	// If they asked for a specific location to be returned, handle that too.
 	location, ok := r.Header["Requested-Location"]
 
