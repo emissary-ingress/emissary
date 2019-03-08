@@ -141,7 +141,6 @@ func Main(flags *cobra.Command, args []string) {
 
 	stdLogger := log.New(logger.WriterLevel(logrus.DebugLevel), "", 0)
 
-	// TODO: This really should log the integration version as well. But how?
 	logger.WithFields(logrus.Fields{
 		"consul_host": consulAPIHost,
 		"consul_port": consulAPIPort,
@@ -158,10 +157,6 @@ func Main(flags *cobra.Command, args []string) {
 
 	// TODO: this can probably be removed in the future or modified somehow
 	agent := NewAgent(os.Getenv(EnvAmbassadorID), os.Getenv(EnvSecretNamespace), os.Getenv(EnvSecretName), consul)
-	//err = agent.registerConsulService()
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
 
 	caRootWatcher, err := consulwatch.NewConnectCARootsWatcher(consul, stdLogger)
 	if err != nil {
@@ -228,124 +223,7 @@ func Main(flags *cobra.Command, args []string) {
 				Info("Updating TLS certificate secret")
 		}
 	}
-
-	//agent.RootCertChange = make(chan ConsulRootCert)
-	//agent.LeafCertChange = make(chan ConsulLeafCert)
-	//
-	//go agent.WatchConsulRootCertificateChanges()
-	//go agent.WatchConsulLeafCertificateChanges()
-
-	//agent.Run()
 }
-
-//func (a *Agent) registerConsulService() error {
-//	return a.consul.Agent().ServiceRegister(&consulapi.AgentServiceRegistration{Name: a.ConsulServiceName, Address: "127.0.0.1", Port: 0})
-//}
-
-//func (a *Agent) Run() {
-//	for {
-//		select {
-//		case cert := <-a.RootCertChange:
-//			a.ConsulRootCert = &cert
-//		case cert := <-a.LeafCertChange:
-//			a.ConsulLeafCert = &cert
-//		}
-//
-//		if a.ConsulRootCert != nil && a.ConsulLeafCert != nil {
-//			log.WithFields(log.Fields{
-//				"namespace": a.SecretNamespace,
-//				"secret":    a.SecretName,
-//			}).Info("Updating TLS certificate secret")
-//
-//			chain := createCertificateChain(
-//				a.ConsulRootCert.Certificate,
-//				a.ConsulLeafCert.Certificate,
-//				a.ConsulRootCert.IntermediateCertificates)
-//
-//			secret := formatKubernetesSecretYAML(a.SecretName, chain, a.ConsulLeafCert.PrivateKey)
-//			err := applySecret(a.SecretNamespace, secret)
-//			if err != nil {
-//				log.Error(err)
-//			} else {
-//				log.WithFields(log.Fields{
-//					"namespace": a.SecretNamespace,
-//					"secret":    a.SecretName,
-//				}).Info("Updating TLS certificate secret")
-//			}
-//		}
-//	}
-//}
-
-//func (a *Agent) WatchConsulRootCertificateChanges() {
-//	currentIndex := uint64(0)
-//
-//	for {
-//		log.WithFields(log.Fields{"current-index": currentIndex}).Info("Waiting for Root CA certificate to change")
-//		res, meta, err := a.consul.Agent().ConnectCARoots(&consulapi.QueryOptions{
-//			WaitIndex: currentIndex,
-//		})
-//
-//		if err != nil {
-//			log.Fatalln(err)
-//		}
-//
-//		if res == nil || meta == nil {
-//			time.Sleep(1 * time.Second)
-//		} else {
-//			for _, root := range res.Roots {
-//
-//				// NOTE: Philip Lombardi - 2019-01
-//				// ===============================
-//				//
-//				// The Consul CA HTTP API docs say there should be intermediate certificates. The Go API does not seem
-//				// to expose the intermediate certificates at all however.
-//				//
-//				// API Docs: https://www.consul.io/docs/connect/ca.html
-//				//
-//				if root.Active {
-//					a.RootCertChange <- ConsulRootCert{
-//						Certificate:              root.RootCertPEM,
-//						IntermediateCertificates: []string{},
-//					}
-//
-//					break
-//				}
-//			}
-//
-//			currentIndex = meta.LastIndex
-//		}
-//	}
-//}
-//
-//func (a *Agent) WatchConsulLeafCertificateChanges() {
-//	currentIndex := uint64(0)
-//
-//	for {
-//		log.WithFields(log.Fields{
-//			"service":       a.ConsulServiceName,
-//			"current-index": currentIndex,
-//		}).Info("Fetching Leaf ")
-//
-//		res, meta, err := a.consul.Agent().ConnectCALeaf(a.ConsulServiceName, &consulapi.QueryOptions{
-//			WaitIndex: currentIndex,
-//		})
-//
-//		if err != nil {
-//			log.Fatalln(err)
-//		}
-//
-//		if res == nil || meta == nil {
-//			time.Sleep(1 * time.Second)
-//		} else {
-//			a.LeafCertChange <- ConsulLeafCert{
-//				Certificate: res.CertPEM,
-//				PrivateKey:  res.PrivateKeyPEM,
-//			}
-//
-//			currentIndex = meta.LastIndex
-//		}
-//	}
-//}
 
 func getEnvOrFallback(name string, fallback string) string {
 	if result := os.Getenv(name); result != "" {
@@ -368,20 +246,6 @@ func formatKubernetesSecretYAML(name string, chain string, key string) string {
 
 	return fmt.Sprintf(secretTemplate, name, chain64, key64)
 }
-
-//func createCertificateChain(root string, leaf string, intermediaries []string) string {
-//	result := intermediaries
-//	result = append(result, root)
-//	result = append([]string{leaf}, result...)
-//	return strings.Join(result, "")
-//}
-//
-//func formatKubernetesSecretYAML(name string, chain string, key string) string {
-//	chain64 := base64.StdEncoding.EncodeToString([]byte(chain))
-//	key64 := base64.StdEncoding.EncodeToString([]byte(key))
-//
-//	return fmt.Sprintf(secretTemplate, name, chain64, key64)
-//}
 
 func applySecret(namespace string, yaml string) error {
 	args := []string{"apply", "-f", "-"}
