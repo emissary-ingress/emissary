@@ -32,7 +32,7 @@ func main() {
 	log.Printf("Running as type %s", t)
 
 	switch t {
-	case "grpc_echo":
+	case "grpc_bridge":
 		s = &srv.GRPC{
 			Port:          Port,
 			Backend:       os.Getenv("BACKEND"),
@@ -58,84 +58,83 @@ func main() {
 
 	default:
 		port := Port
-		secure_port := SSLPort
+		securePort := SSLPort
 
 		for {
-			ename := fmt.Sprintf("BACKEND_%d", port)
-			clear_backend := os.Getenv(ename)
+			eName := fmt.Sprintf("BACKEND_%d", port)
+			clearBackend := os.Getenv(eName)
 
-			log.Printf("clear: checking %s -- %s", ename, clear_backend)
+			log.Printf("clear: checking %s -- %s", eName, clearBackend)
 
-			if len(clear_backend) <= 0 {
+			if len(clearBackend) <= 0 {
 				if port == 8080 {
 					// Default for backwards compatibility.
-					clear_backend = os.Getenv("BACKEND")
+					clearBackend = os.Getenv("BACKEND")
 
-					log.Printf("clear: fallback to BACKEND -- %s", clear_backend)
+					log.Printf("clear: fallback to BACKEND -- %s", clearBackend)
 				}
 			}
 
-			if len(clear_backend) <= 0 {
+			if len(clearBackend) <= 0 {
 				log.Printf("clear: bailing, no backend")
 				break
 			}
 
-			ename = fmt.Sprintf("BACKEND_%d", secure_port)
-			secure_backend := os.Getenv(ename)
+			eName = fmt.Sprintf("BACKEND_%d", securePort)
+			secureBackend := os.Getenv(eName)
 
-			log.Printf("secure: checking %s -- %s", ename, secure_backend)
+			log.Printf("secure: checking %s -- %s", eName, secureBackend)
 
-			if len(secure_backend) <= 0 {
-				if secure_port == 8443 {
+			if len(secureBackend) <= 0 {
+				if securePort == 8443 {
 					// Default for backwards compatibility.
-					secure_backend = os.Getenv("BACKEND")
+					secureBackend = os.Getenv("BACKEND")
 
-					log.Printf("secure: fallback to BACKEND -- %s", clear_backend)
+					log.Printf("secure: fallback to BACKEND -- %s", clearBackend)
 				}
 			}
 
-			if len(secure_backend) <= 0 {
+			if len(secureBackend) <= 0 {
 				log.Printf("secure: bailing, no backend")
 				break
 			}
 
-			if clear_backend != secure_backend {
-				log.Printf("BACKEND_%d and BACKEND_%d do not match", port, secure_port)
+			if clearBackend != secureBackend {
+				log.Printf("BACKEND_%d and BACKEND_%d do not match", port, securePort)
 			} else {
-				log.Printf("creating HTTP listener for %s on ports %d/%d", clear_backend, port, secure_port)
+				log.Printf("creating HTTP listener for %s on ports %d/%d", clearBackend, port, securePort)
 
 				s = &srv.HTTP{
 					Port:          port,
-					Backend:       clear_backend,
-					SecurePort:    secure_port,
-					SecureBackend: secure_backend,
+					Backend:       clearBackend,
+					SecurePort:    securePort,
+					SecureBackend: secureBackend,
 					Cert:          Crt,
 					Key:           Key,
 				}
-		
+
 				listeners = append(listeners, s)
 			}
 
 			port++
-			secure_port++
+			securePort++
 		}
 	}
 
 	if len(listeners) > 0 {
-		var wait_for <-chan bool
+		var waitFor <-chan bool
 		first := true
-		
+
 		for _, s := range listeners {
-			// log.Printf("listening on ports: %v, %v", s.Port, s.SecurePort)
-			c := s.Start()	
-			
+			c := s.Start()
+
 			if first {
-				wait_for = c
+				waitFor = c
 				first = false
 			}
 		}
 
-		<- wait_for
+		<-waitFor
 	} else {
 		log.Fatal("no listeners, exiting")
 	}

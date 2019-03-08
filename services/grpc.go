@@ -1,12 +1,14 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+
 	// "os"
 	"strconv"
 	"strings"
@@ -20,12 +22,12 @@ import (
 
 // GRPC server object (all fields are required).
 type GRPC struct {
-	Port       int16
-	Backend    string
-	SecurePort int16
+	Port          int16
+	Backend       string
+	SecurePort    int16
 	SecureBackend string
-	Cert       string
-	Key        string
+	Cert          string
+	Key           string
 }
 
 // DefaultOpts sets gRPC service options.
@@ -52,7 +54,6 @@ func (g *GRPC) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer(DefaultOpts()...)
-		// pb.RegisterEchoServiceServer(s, &EchoService{})
 		pb.RegisterEchoServiceServer(s, g)
 		s.Serve(ln)
 
@@ -76,7 +77,6 @@ func (g *GRPC) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer(DefaultOpts()...)
-		// pb.RegisterEchoServiceServer(s, &EchoService{})
 		pb.RegisterEchoServiceServer(s, g)
 		s.Serve(ln)
 
@@ -88,20 +88,19 @@ func (g *GRPC) Start() <-chan bool {
 	return exited
 }
 
-// // EchoService implements envoy.service.auth.external_auth.
-// type EchoService struct{}
-
 // Echo returns the an object with the HTTP context of the request.
 func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, error) {
-	// Assume we're the clear side of the world.
-	backend := g.Backend
-
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Code(13), "request has not valid context metadata")
 	}
 
-	log.Printf("rpc metadata received: %v", md)
+	buf := bytes.Buffer{}
+	buf.WriteString("metadata received: \n")
+	for k, v := range md {
+		buf.WriteString(fmt.Sprintf("%v : %s\n", k, strings.Join(v, ",")))
+	}
+	log.Println(buf.String())
 
 	request := &pb.Request{
 		Headers: make(map[string]string),
@@ -117,11 +116,13 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 		response.Headers[k] = strings.Join(v, ",")
 	}
 
+	// Set default backend and assume we're the clear side of the world.
+	backend := g.Backend
+
 	// Checks scheme and set TLS info.
-	if len(md[":scheme"]) > 0 && md[":scheme"][0] == "https" {
+	if len(md["x-forwarded-proto"]) > 0 && md["x-forwarded-proto"][0] == "https" {
 		// We're the secure side of the world, I guess.
 		backend = g.SecureBackend
-
 		request.Tls = &pb.TLS{
 			Enabled: true,
 		}
@@ -131,10 +132,10 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 	if len(md["requested-headers"]) > 0 {
 		for _, v := range md["requested-headers"] {
 			if len(md[v]) > 0 {
-				strval := strings.Join(md[v], ",")
-				response.Headers[v] = strval
-				header := metadata.Pairs(v, strval)
-				grpc.SendHeader(ctx, header)
+				s := strings.Join(md[v], ",")
+				response.Headers[v] = s
+				p := metadata.Pairs(v, s)
+				grpc.SendHeader(ctx, p)
 			}
 		}
 	}
@@ -147,8 +148,8 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 	}
 
 	// Set a log message.
-	if body, err := json.MarshalIndent(echoRES, "", "  "); err == nil {
-		log.Printf("setting response: %s", string(body))
+	if data, err := json.MarshalIndent(echoRES, "", "  "); err == nil {
+		log.Printf("setting response: %s\n", string(data))
 	}
 
 	// Checks if requested-status is a valid and not OK gRPC status.

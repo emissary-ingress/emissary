@@ -12,12 +12,12 @@ import (
 
 // HTTP server object (all fields are required).
 type HTTP struct {
-	Port       int16
-	Backend    string
-	SecurePort int16
+	Port          int16
+	Backend       string
+	SecurePort    int16
 	SecureBackend string
-	Cert       string
-	Key        string
+	Cert          string
+	Key           string
 }
 
 // Start initializes the HTTP server.
@@ -134,23 +134,23 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		w.Header()[http.CanonicalHeaderKey("Location")] = location
 	}
 
-	add_extauth := os.Getenv("INCLUDE_EXTAUTH_HEADER")
+	addExtauth := os.Getenv("INCLUDE_EXTAUTH_HEADER")
 
-	if len(add_extauth) > 0 {
+	if len(addExtauth) > 0 {
 		extauth := make(map[string]interface{})
 		extauth["request"] = request
 		extauth["resp_headers"] = lower(w.Header())
 
-		ea_json, err := json.Marshal(extauth)
+		eaJSON, err := json.Marshal(extauth)
 
 		if err != nil {
-			ea_json = []byte(fmt.Sprintf("err: %v", err))
+			eaJSON = []byte(fmt.Sprintf("err: %v", err))
 		}
 
-		ea_array := make([]string, 1, 1)
-		ea_array[0] = string(ea_json)
+		eaArray := make([]string, 1, 1)
+		eaArray[0] = string(eaJSON)
 
-		w.Header()[http.CanonicalHeaderKey("extauth")] = ea_array
+		w.Header()[http.CanonicalHeaderKey("extauth")] = eaArray
 	}
 
 	w.WriteHeader(statusCode)

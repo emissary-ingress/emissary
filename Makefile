@@ -59,7 +59,10 @@ client.build:
 	@docker run -it --rm -v $(PWD)/client/bin/:/usr/local/tmp/ kat-client-build:latest
 
 
+
 .PHONY: sandbox
+
+# For calling the services with kat-client: $ client/bin/client_{OS}_amd64 --input urls.json
 
 sandbox.bridge:
 	@echo " ---> cleaning gRPC-Bridge sandbox"

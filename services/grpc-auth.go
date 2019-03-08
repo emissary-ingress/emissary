@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+
 	// "os"
 	"strconv"
 	"strings"
@@ -23,12 +24,12 @@ import (
 
 // GRPCAUTH server object (all fields are required).
 type GRPCAUTH struct {
-	Port       int16
-	Backend    string
-	SecurePort int16
+	Port          int16
+	Backend       string
+	SecurePort    int16
 	SecureBackend string
-	Cert       string
-	Key        string
+	Cert          string
+	Key           string
 }
 
 // Start initializes the HTTP server.
@@ -47,7 +48,6 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		// pb.RegisterAuthorizationServer(s, &AuthService{})
 		pb.RegisterAuthorizationServer(s, g)
 		s.Serve(ln)
 
@@ -71,7 +71,6 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		// pb.RegisterAuthorizationServer(s, &AuthService{})
 		pb.RegisterAuthorizationServer(s, g)
 		s.Serve(ln)
 
@@ -82,9 +81,6 @@ func (g *GRPCAUTH) Start() <-chan bool {
 	log.Print("starting gRPC authorization service")
 	return exited
 }
-
-// // AuthService implements envoy.service.auth.external_auth.
-// type AuthService struct{}
 
 // Check checks the request object.
 func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResponse, error) {

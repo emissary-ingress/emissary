@@ -3,7 +3,7 @@
         "test": "GrpcBridge", 
         "id": 1, 
         "url": "http://localhost:61892/echo.EchoService/Echo",
-        "insecure": false,
+        "insecure": true,
         "method": "POST",
         "headers": {
             "content-type": "application/grpc",
@@ -14,11 +14,13 @@
         "test": "GrpcBridge", 
         "id": 2, 
         "url": "http://localhost:61892/echo.EchoService/Echo",
-        "insecure": false,
+        "insecure": true,
         "method": "POST",
         "headers": {
             "content-type": "application/grpc",
-            "requested-status": "0"
+            "requested-status": "0",
+            "x-requested-header": "ok",
+            "requested-headers": "x-requested-header"
         }
     }
 ]
