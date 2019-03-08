@@ -3,14 +3,16 @@ NAME            = ambassador-pro
 # If you change DOCKER_IMAGE, you'll also need to change the image
 # names in `cmd/apictl/traffic.go`.
 DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+# For Makefile
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
+image.norelease = docker/amb-sidecar-plugins docker/model-cluster-app
+image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
-K8S_IMAGES      = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
+K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
 K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
-
-release.dont    = docker/amb-sidecar-plugins docker/model-cluster-app
 
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
@@ -148,7 +150,9 @@ endif
 
 #
 # Docker images
-#
+
+build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
+
 # This assumes that if there's a Go binary with the same name as the
 # Docker image, then the image wants that binary.  That's a safe
 # assumption so far, and forces us to name things in a consistent
@@ -162,7 +166,7 @@ $(image)/clean:
 .PHONY: $(image)/clean
 clean: $(image)/clean
 endef
-$(foreach image,$(K8S_IMAGES),$(eval $(docker.bins_rule)))
+$(foreach image,$(image.all),$(eval $(docker.bins_rule)))
 
 docker/app-sidecar.docker: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
@@ -180,11 +184,11 @@ docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plu
 # Generate the TLS secret
 %/cert.pem %/key.pem: %/namespace.txt
 	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.$$(cat $<).svc.cluster.local"
-%/02-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
+%/04-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
 	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
-apply: $(addsuffix /02-ambassador-certs.yaml,$(K8S_DIRS))
+deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS))
+apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS))
 
 #
 # Local Dev
@@ -287,10 +291,11 @@ check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 #
 # Clean
 
-clean:
+clean: $(addsuffix .clean,$(wildcard docker/*.docker))
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
+	rm -f docker/*.knaut-push
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
@@ -342,7 +347,7 @@ release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl 
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key         )
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apro-plugin-runner )
 release-docker: ## Upload Docker images to Quay
-release-docker: $(addsuffix .docker.push,$(filter-out $(release.dont),$(K8S_IMAGES)))
+release-docker: $(addsuffix .docker.push,$(filter-out $(image.norelease),$(image.all)))
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
