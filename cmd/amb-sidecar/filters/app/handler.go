@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -83,28 +84,8 @@ func (c *FilterMux) ServeHTTP(hw http.ResponseWriter, hr *http.Request) {
 
 func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r.Context())
-	originalURL := util.OriginalURL(r)
 
-	var rule *crd.Rule
-	var redirectURL *url.URL
-	switch originalURL.Path {
-	case "/callback":
-		redirectURLstr, err := oauth2handler.CheckState(r, c.OAuth2Secret)
-		if err != nil {
-			logger.Errorf("check state failed: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		redirectURL, err = url.Parse(redirectURLstr)
-		if err != nil {
-			logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		rule = findRule(c.Controller, redirectURL.Host, redirectURL.Path)
-	default:
-		rule = findRule(c.Controller, originalURL.Host, originalURL.Path)
-	}
+	rule := ruleForURL(c.Controller, util.OriginalURL(r))
 	if rule == nil {
 		rule = c.DefaultRule
 	}
@@ -128,10 +109,8 @@ func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		switch filterT := filter.(type) {
 		case crd.FilterOAuth2:
 			_handler := &oauth2handler.OAuth2Handler{
-				Secret:      c.OAuth2Secret,
-				Filter:      filterT,
-				OriginalURL: originalURL,
-				RedirectURL: redirectURL,
+				Secret: c.OAuth2Secret,
+				Filter: filterT,
 			}
 			if err := mapstructure.Convert(filterRef.Arguments, &_handler.FilterArguments); err != nil {
 				logger.Errorln("invalid filter.argument:", err)
@@ -160,6 +139,22 @@ func (c *FilterMux) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	response.writeToResponseWriter(w)
+}
+
+func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
+	if u.Path == "/callback" {
+		claims := jwt.MapClaims{}
+		_, _, err := new(jwt.Parser).ParseUnverified(u.Query().Get("state"), claims)
+		if err == nil {
+			if redirectURLstr, ok := claims["redirect_url"].(string); ok {
+				_u, err := url.Parse(redirectURLstr)
+				if err == nil {
+					u = _u
+				}
+			}
+		}
+	}
+	return findRule(c, u.Host, u.Path)
 }
 
 func findFilter(c *controller.Controller, qname string) interface{} {

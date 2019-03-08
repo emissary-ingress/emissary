@@ -32,11 +32,10 @@ type OAuth2Handler struct {
 	Secret          *secret.Secret
 	Filter          crd.FilterOAuth2
 	FilterArguments crd.FilterOAuth2Arguments
-	OriginalURL     *url.URL
-	RedirectURL     *url.URL
 }
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	originalURL := util.OriginalURL(r)
 	logger := middleware.GetLogger(r.Context())
 	httpClient := httpclient.NewHTTPClient(logger, c.Filter.MaxStale, c.Filter.InsecureTLS)
 
@@ -61,8 +60,20 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Debug(tokenErr)
 
-	switch c.OriginalURL.Path {
+	switch originalURL.Path {
 	case "/callback":
+		redirectURLstr, err := checkState(r, c.Secret)
+		if err != nil {
+			logger.Errorf("check state failed: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		redirectURL, err := url.Parse(redirectURLstr)
+		if err != nil {
+			logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		if err := r.URL.Query().Get("error"); err != "" {
 			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
@@ -100,8 +111,8 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// If the user-agent request was a POST or PUT, 307 will preserve the body
 		// and just follow the location header.
 		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		logger.Debugf("redirecting user-agent to: %s", c.RedirectURL)
-		http.Redirect(w, r, c.RedirectURL.String(), http.StatusTemporaryRedirect)
+		logger.Debugf("redirecting user-agent to: %s", redirectURL)
+		http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
 
 	default:
 		redirect, _ := discovered.AuthorizationEndpoint.Parse("?" + url.Values{
@@ -109,7 +120,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			"response_type": {"code"},
 			"redirect_uri":  {c.Filter.CallbackURL().String()},
 			"client_id":     {c.Filter.ClientID},
-			"state":         {c.signState(r, logger)},
+			"state":         {c.signState(originalURL, logger)},
 			"scope":         {strings.Join(c.FilterArguments.Scopes, " ")},
 		}.Encode())
 
@@ -230,14 +241,14 @@ func getToken(r *http.Request, logger types.Logger) string {
 	return bearer[1]
 }
 
-func (h *OAuth2Handler) signState(r *http.Request, logger types.Logger) string {
+func (h *OAuth2Handler) signState(originalURL *url.URL, logger types.Logger) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(h.Filter.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
 		"jti":          uuid.Must(uuid.NewV4(), nil).String(),    // a unique identifier for the token
 		"iat":          time.Now().Unix(),                        // when the token was issued/created (now)
 		"nbf":          0,                                        // time before which the token is not yet valid (2 minutes ago)
-		"redirect_url": h.OriginalURL.String(),                   // original request url
+		"redirect_url": originalURL.String(),                     // original request url
 	}
 
 	k, err := t.SignedString(h.Secret.GetPrivateKey())
@@ -248,7 +259,7 @@ func (h *OAuth2Handler) signState(r *http.Request, logger types.Logger) string {
 	return k
 }
 
-func CheckState(r *http.Request, sec *secret.Secret) (string, error) {
+func checkState(r *http.Request, sec *secret.Secret) (string, error) {
 	state := r.URL.Query().Get("state")
 	if state == "" {
 		return "", errors.New("empty state param")
