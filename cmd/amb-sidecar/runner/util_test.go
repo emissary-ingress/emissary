@@ -1,24 +1,35 @@
 package runner
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
+	"math/big"
 	"mime"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
+	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc"
+
+	envoyCoreV2 "github.com/datawire/kat-backend/xds/envoy/api/v2/core"
+	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
+	pbTypes "github.com/gogo/protobuf/types"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/util"
 )
@@ -91,7 +102,7 @@ func NewIDP() *httptest.Server {
 }
 
 // NewAPP returns an instance of the authorization server.
-func NewAPP(idpURL string, tb testing.TB) (*httptest.Server, http.Handler) {
+func NewAPP(idpURL string, tb testing.TB) (*httptest.Server, filterapi.FilterClient) {
 	os.Setenv("RLS_RUNTIME_DIR", "/bogus")
 
 	c, warn, fatal := types.ConfigFromEnv()
@@ -124,7 +135,7 @@ func NewAPP(idpURL string, tb testing.TB) (*httptest.Server, http.Handler) {
 		},
 		"app.default": crd.FilterOAuth2{
 			RawAuthorizationURL: idpURL,
-			RawClientURL:        server.URL,
+			RawClientURL:        "http://lukeshu.com/",
 			Audience:            "friends",
 			ClientID:            "foo",
 		},
@@ -151,5 +162,72 @@ func NewAPP(idpURL string, tb testing.TB) (*httptest.Server, http.Handler) {
 		},
 	})
 
-	return server, httpHandler
+	grpcClientConn, err := grpc.Dial(strings.TrimPrefix(server.URL, "http://"), grpc.WithInsecure())
+	if err != nil {
+		tb.Fatal(err)
+	}
+	client := filterapi.NewFilterClient(grpcClientConn)
+
+	return server, client
+}
+
+// picks a random "remote client port"; this doesn't have to really be
+// available on this system.  Returns a random port in the range
+// (1024, UINT32_MAX].
+func pickAPort() uint32 {
+	bigPort, _ := rand.Int(rand.Reader, big.NewInt(math.MaxUint32-1024))
+	return uint32(bigPort.Int64()) + 1024
+}
+
+func newFilterRequest(method string, path string, header http.Header) *filterapi.FilterRequest {
+	ret := &filterapi.FilterRequest{
+		Source: &envoyAuthV2.AttributeContext_Peer{
+			Address: &envoyCoreV2.Address{
+				Address: &envoyCoreV2.Address_SocketAddress{
+					SocketAddress: &envoyCoreV2.SocketAddress{
+						Protocol: envoyCoreV2.TCP,
+						Address:  "73.168.135.4", // A "user IP", c-73-168-135-4.hsd1.in.comcast.net, LukeShu's current IP
+						PortSpecifier: &envoyCoreV2.SocketAddress_PortValue{
+							PortValue: pickAPort(),
+						},
+					},
+				},
+			},
+		},
+		Destination: &envoyAuthV2.AttributeContext_Peer{
+			Address: &envoyCoreV2.Address{
+				Address: &envoyCoreV2.Address_SocketAddress{
+					SocketAddress: &envoyCoreV2.SocketAddress{
+						Protocol: envoyCoreV2.TCP,
+						Address:  "45.76.26.79", // A "server IP", lukeshu.com
+						PortSpecifier: &envoyCoreV2.SocketAddress_PortValue{
+							PortValue: 80,
+						},
+					},
+				},
+			},
+		},
+		Request: &envoyAuthV2.AttributeContext_Request{
+			Time: pbTypes.TimestampNow(),
+			Http: &envoyAuthV2.AttributeContext_HttpRequest{
+				Id:       uuid.NewV4().String(),
+				Method:   method,
+				Headers:  map[string]string{},
+				Path:     path,
+				Host:     "lukeshu.com",
+				Scheme:   "http",
+				Query:    "",
+				Fragment: "",
+				Size_:    -1,
+				Protocol: "HTTP/1.1",
+				Body:     nil,
+			},
+		},
+	}
+	if header != nil {
+		for k, vs := range header {
+			ret.Request.Http.Headers[k] = strings.Join(vs, ",")
+		}
+	}
+	return ret
 }

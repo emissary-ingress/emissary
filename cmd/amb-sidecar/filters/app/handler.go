@@ -1,8 +1,8 @@
 package app
 
 import (
-	"fmt"
-	"io"
+	"context"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -11,7 +11,6 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	uuid "github.com/satori/go.uuid"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
@@ -20,8 +19,9 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/filterapi"
+	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/mapstructure"
-	"github.com/datawire/apro/lib/util"
 )
 
 type FilterMux struct {
@@ -31,133 +31,156 @@ type FilterMux struct {
 	Logger       types.Logger
 }
 
-type responseWriter struct {
-	status        int
-	header        http.Header
-	headerWritten bool
-	body          strings.Builder
-}
-
-func (rw *responseWriter) Header() http.Header {
-	return rw.header
-}
-
-func (rw *responseWriter) Write(b []byte) (int, error) {
-	if !rw.headerWritten {
-		rw.WriteHeader(http.StatusOK)
+func errorResponse(httpStatus int, err error, requestID string, logger types.Logger) *filterapi.HTTPResponse {
+	body := map[string]interface{}{
+		"status_code": httpStatus,
+		"message":     err.Error(),
 	}
-	return rw.body.Write(b)
-}
-
-func (rw *responseWriter) WriteHeader(statusCode int) {
-	if rw.headerWritten {
-		return
+	if httpStatus/100 == 5 {
+		body["request_id"] = requestID
 	}
-	rw.headerWritten = true
-	rw.status = statusCode
-}
-
-func (rw *responseWriter) reset() {
-	rw.body.Reset()
-	rw.headerWritten = false
-}
-
-func (src *responseWriter) writeToResponseWriter(dst http.ResponseWriter) {
-	for k, s := range src.header {
-		dst.Header()[k] = s
+	bodyBytes, _ := json.Marshal(body)
+	logger.Infoln(httpStatus, err)
+	return &filterapi.HTTPResponse{
+		StatusCode: httpStatus,
+		Header: http.Header{
+			"Content-Type": {"application/json"},
+		},
+		Body: string(bodyBytes),
 	}
-	dst.WriteHeader(src.status)
-	io.WriteString(dst, src.body.String())
 }
 
-func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest) (ret filterapi.FilterResponse, err error) {
 	start := time.Now()
-	requestID := uuid.NewV4().String()
+	requestID := request.GetRequest().GetHttp().GetId()
 	logger := c.Logger.WithField("REQUEST_ID", requestID)
-
-	logger.Infof("[HTTP %s] %s %s", r.Method, r.Host, r.URL.Path)
-
-	response := &responseWriter{
-		status: http.StatusOK,
-		header: http.Header{},
-	}
+	logger.Infof("[gRPC] %s %s %s %s",
+		request.GetRequest().GetHttp().GetProtocol(),
+		request.GetRequest().GetHttp().GetMethod(),
+		request.GetRequest().GetHttp().GetHost(),
+		request.GetRequest().GetHttp().GetPath())
 	defer func() {
-		var status int
-		if err := recover(); err != nil {
-			// catch
+		if rec := recover(); rec != nil {
 			const stacksize = 64 << 10 // net/http uses 64<<10, negroni.Recovery uses 1024*8 by default
 			stack := make([]byte, stacksize)
 			stack = stack[:runtime.Stack(stack, false)]
-			logger.Errorf("[HTTP] panic: %v\n%s", err, stack)
+			logger.Errorf("PANIC: %v\n%s", rec, stack)
 
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(w, `
-<html>
-  <head>
-    <title>HTTP 500: Internal Server Error</title>
-  <head>
-  <body>
-    <h1>HTTP 500: Internal Server Error</h1>
-    <p><code>REQUEST_ID=%s</code></p>
-  </body>
-</html>`, requestID)
-			status = 500
-		} else {
-			response.writeToResponseWriter(w)
-			status = response.status
+			err = errors.Errorf("PANIC: %v", rec)
 		}
-		logger.Infof("[HTTP %v] %s %s (%v)", status, r.Method, r.URL.Path, time.Since(start))
+		if err != nil {
+			ret = errorResponse(http.StatusInternalServerError, err, requestID, logger)
+			err = nil
+		}
+		switch _ret := ret.(type) {
+		case *filterapi.HTTPResponse:
+			logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, time.Since(start))
+		case *filterapi.HTTPRequestModification:
+			logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), time.Since(start))
+		default:
+			logger.Infof("[gRPC] %T : unexpected response type (%v)", _ret, time.Since(start))
+		}
 	}()
-	r = r.WithContext(middleware.WithLogger(r.Context(), logger))
+	ret, err = c.filter(middleware.WithLogger(ctx, logger), request, requestID)
+	return
+}
 
-	rule := ruleForURL(c.Controller, util.OriginalURL(r))
+func requestURL(request *filterapi.FilterRequest) (*url.URL, error) {
+	var u *url.URL
+	var err error
+
+	str := request.GetRequest().GetHttp().GetPath()
+	if request.GetRequest().GetHttp().GetMethod() == "CONNECT" && !strings.HasPrefix(str, "/") {
+		u, err = url.ParseRequestURI("http://" + str)
+		u.Scheme = ""
+	} else {
+		u, err = url.ParseRequestURI(str)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if u.Host == "" {
+		u.Host = request.GetRequest().GetHttp().GetHost()
+	}
+	u.Scheme = request.GetRequest().GetHttp().GetScheme()
+
+	return u, nil
+}
+
+func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest, requestID string) (filterapi.FilterResponse, error) {
+	logger := middleware.GetLogger(ctx)
+
+	originalURL, err := requestURL(request)
+	if err != nil {
+		return nil, err
+	}
+
+	rule := ruleForURL(c.Controller, originalURL)
 	if rule == nil {
 		rule = c.DefaultRule
 	}
 
+	sumResponse := &filterapi.HTTPRequestModification{}
 	for _, filterRef := range rule.Filters {
 		filterQName := filterRef.Name + "." + filterRef.Namespace
 		logger.Debugf("host=%s, path=%s, filter=%q", rule.Host, rule.Path, filterQName)
 
-		filter := findFilter(c.Controller, filterQName)
-		if filter == nil {
-			logger.Debugf("could not find not filter: %q", filterQName)
-			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-			return
+		filterCRD := findFilter(c.Controller, filterQName)
+		if filterCRD == nil {
+			return errorResponse(http.StatusInternalServerError, errors.Errorf("could not find not filter: %q", filterQName), requestID, logger), nil
 		}
 
-		var handler http.Handler
-		switch filterT := filter.(type) {
+		var filterImpl filterapi.Filter
+		switch filterCRD := filterCRD.(type) {
 		case crd.FilterOAuth2:
-			_handler := &oauth2handler.OAuth2Handler{
+			handler := &oauth2handler.OAuth2Handler{
 				Secret: c.OAuth2Secret,
-				Filter: filterT,
+				Filter: filterCRD,
 			}
-			if err := mapstructure.Convert(filterRef.Arguments, &_handler.FilterArguments); err != nil {
-				logger.Errorln("invalid filter.argument:", err)
-				util.ToJSONResponse(w, http.StatusInternalServerError, &util.Error{Message: "unauthorized"})
+			if err := mapstructure.Convert(filterRef.Arguments, &handler.FilterArguments); err != nil {
+				return errorResponse(http.StatusInternalServerError, errors.Wrap(err, "invalid filter.argument"), requestID, logger), nil
 			}
-			handler = _handler
+			filterImpl = filterutil.HandlerToFilter(handler)
 		case crd.FilterPlugin:
-			handler = filterT.Handler
+			filterImpl = filterutil.HandlerToFilter(filterCRD.Handler)
 		case crd.FilterJWT:
-			handler = &jwthandler.JWTHandler{
-				Filter: filterT,
-			}
+			filterImpl = filterutil.HandlerToFilter(&jwthandler.JWTHandler{
+				Filter: filterCRD,
+			})
 		default:
-			panic(errors.Errorf("unexpected filter type %T", filter))
+			panic(errors.Errorf("unexpected filter type %T", filterCRD))
 		}
 
-		response.reset()
-		request := new(http.Request)
-		*request = *r
-		for k, s := range response.header {
-			request.Header[k] = s
+		response, err := filterImpl.Filter(middleware.WithLogger(ctx, logger.WithField("FILTER", filterQName)), request)
+		if err != nil {
+			return nil, err
 		}
-		handler.ServeHTTP(response, request)
-		if response.status != http.StatusOK {
-			break
+		switch response := response.(type) {
+		case *filterapi.HTTPResponse:
+			return response, nil
+		case *filterapi.HTTPRequestModification:
+			handleRequestModification(request, response)
+			sumResponse.Header = append(sumResponse.Header, response.Header...)
+		default:
+			panic(errors.Errorf("unexpexted filter response type %T", response))
+		}
+	}
+	return sumResponse, nil
+}
+
+func handleRequestModification(req *filterapi.FilterRequest, mod *filterapi.HTTPRequestModification) {
+	for _, hmod := range mod.Header {
+		switch hmod := hmod.(type) {
+		case *filterapi.HTTPHeaderAppendValue:
+			if cur, ok := req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)]; ok {
+				req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)] = cur + "," + hmod.Value
+			} else {
+				req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)] = hmod.Value
+			}
+		case *filterapi.HTTPHeaderReplaceValue:
+			req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)] = hmod.Value
+		default:
+			panic(errors.Errorf("unexpected header modification type %T", hmod))
 		}
 	}
 }
