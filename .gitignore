@@ -1,4 +1,5 @@
 pro-env.sh
+/apro-abi.txt
 
 tests/cluster/consul/new_root.crt
 tests/cluster/consul/new_root.key

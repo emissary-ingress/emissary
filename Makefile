@@ -77,6 +77,18 @@ build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word
 #
 # Plugins
 
+apro-abi.txt: go-get
+	{ \
+		echo '# _GOVERSION=$(patsubst go%,%,$(filter go1%,$(shell go version)))'; \
+		echo "# GOPATH=$$(go env GOPATH)"; \
+		echo '# GOOS=linux'; \
+		echo '# GOARCH=amd64'; \
+		echo '# CGO_ENABLED=1'; \
+		echo '# GO111MODULE=on'; \
+		GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go list -deps -f='{{if not .Standard}}{{.Module}}{{end}}' ./cmd/amb-sidecar | sort -u | grep -v -e '=>' -e '/apro$$'; \
+	} > $@
+build: apro-abi.txt
+
 plugins = $(patsubst plugins/%/go.mod,%,$(wildcard plugins/*/go.mod))
 
 # We use $(shell find ...) instead of FORCE here because not even the
@@ -346,6 +358,7 @@ release-bin: ## Upload binaries to S3
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl             )
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key         )
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apro-plugin-runner )
+release-bin: release/apro-abi.txt
 release-docker: ## Upload Docker images to Quay
 release-docker: $(addsuffix .docker.push,$(filter-out $(image.norelease),$(image.all)))
 
@@ -354,3 +367,5 @@ _release_arch = $(word 3,$(subst _, ,$(@D)))
 release/%: %
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
 
+release/apro-abi.txt: release/%: %
+	aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'
