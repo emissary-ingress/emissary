@@ -4,7 +4,7 @@
 
 ### AMBASSADOR 0.51
 
-The current recommended version of Ambassador is 0.51.0. 
+The current recommended version of Ambassador is 0.51.1.
 
 ### AMBASSADOR 0.50+
 
@@ -80,8 +80,17 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
+## [0.51.1] March 11, 2019
+[0.51.1]: https://github.com/datawire/ambassador/compare/0.51.0...0.51.1
+
+### Changes since 0.51.0
+
+- Ambassador correctly handles services in namespaces other than the one Ambassador is running in.
+
 ## [0.51.0] March 8, 2019
 [0.51.0]: https://github.com/datawire/ambassador/compare/0.50.3...0.51.0
+
+**0.51.0 is not recommended: upgrade to 0.51.1.**
 
 ### Changes since 0.50.3
 
