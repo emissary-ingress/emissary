@@ -157,5 +157,5 @@ workflows:
               only: /.*/
       - macos-build:
           filters:
-            tags:
-              only: /.*/
+            branches:
+              only: master
