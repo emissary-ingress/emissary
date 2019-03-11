@@ -19,11 +19,12 @@ apro-abi@%.txt:
 go.GOBUILD  = docker run --rm
 # Map in the Go module cache so that we don't need to re-download
 # things every time.
-go.GOBUILD += --volume=$$(go env GOPATH)/pkg/mod:$(APRO_GOPATH)/pkg/mod:ro
+go.GOBUILD += --volume=$$(go env GOPATH)/pkg/mod/cache/download:/mnt/goproxy:ro --env=GOPROXY=file:///mnt/goproxy
 # Simulate running in the current directory as the current user.  That
 # UID probably doesn't have access to the container's default
 # GOCACHE=/.cache/go-build.
 go.GOBUILD += --volume $(CURDIR):$(CURDIR):rw --workdir=$(CURDIR) --user=$$(id -u) --env=GOCACHE=/tmp/go-cache
+go.GOBUILD += --tmpfs=$(APRO_GOPATH):uid=$$(id -u),gid=$$(id -g),mode=0755,rw
 # Run `go build` mimicking the APro build
 go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) golang:$(APRO_GOVERSION) go build
 
