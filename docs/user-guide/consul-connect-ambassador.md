@@ -168,8 +168,8 @@ Additional configuration for the Ambassador Consul Connector is done with enviro
 
 | Environment Variable | Description | Default |
 | -------------------- | ----------- | ------- |
-| _AMBASSADOR_ID        | Set the Ambassador ID so multiple instances of this integration can run per-Cluster when there are multiple Ambassadors (Required if `AMBASSADOR_ID` is set in your Ambassador deployment) | `""` |
-| _CONSUL_HOST          | Set the IP or DNS name of the target Consul HTTP API server | `127.0.0.1` |
-| _CONSUL_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
-| _AMBASSADOR_TLS_SECRET_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
-| _AMBASSADOR_TLS_SECRET_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
+| \_AMBASSADOR\_ID        | Set the Ambassador ID so multiple instances of this integration can run per-Cluster when there are multiple Ambassadors (Required if `AMBASSADOR_ID` is set in your Ambassador deployment) | `""` |
+| \_CONSUL\_HOST          | Set the IP or DNS name of the target Consul HTTP API server | `127.0.0.1` |
+| \_CONSUL\_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
+| \_AMBASSADOR\_TLS\_SECRET\_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
+| \_AMBASSADOR\_TLS\_SECRET\_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
