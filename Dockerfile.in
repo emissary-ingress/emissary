@@ -1,0 +1,3 @@
+FROM quay.io/datawire/ambassador_pro:amb-sidecar-@APRO_VERSION@
+
+COPY ./*.so /etc/ambassador-plugins/
