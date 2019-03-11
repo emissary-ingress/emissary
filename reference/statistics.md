@@ -138,7 +138,7 @@ If you are a user of the [Datadog](https://www.datadoghq.com/) monitoring system
 
 This sets up the `statsd-sink` service and a deployment of the DogStatsD agent that automatically forwards Ambassador stats to your Datadog account.
 
-Next, add the `DOGSTATSD` environment variable to your deployment to tell Envoy to emit stats with DogStasD-compliant tags:
+Next, add the `DOGSTATSD` environment variable to your deployment to tell Envoy to emit stats with DogStatsD-compliant tags:
 
 ```yaml
 <redacted>
