@@ -94,13 +94,13 @@ spec:
 Get the External IP address of your Ambassador service:
 
 ```
-kubectl get svc ambassador
+AMBASSADOR_IP=$(kubectl get svc ambassador -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
 We'll now test Ambassador Pro with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
 
 ```
-$ curl $AMBASSADOR_IP/httpbin/ip # No authentication token
+$ curl -k https://$AMBASSADOR_IP/httpbin/ip # No authentication token
 {
   "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
 }
@@ -109,7 +109,7 @@ $ curl $AMBASSADOR_IP/httpbin/ip # No authentication token
 Send a request to the `jwt-httpbin` URL, which is protected by the JWT filter. This URL is not public, so it returns a 401.
 
 ```
-$ curl -i $AMBASSADOR_IP/jwt-httpbin/ip # No authentication token
+$ curl -i -k https://$AMBASSADOR_IP/jwt-httpbin/ip # No authentication token
 HTTP/1.1 401 Unauthorized
 content-length: 58
 content-type: text/plain
@@ -120,7 +120,7 @@ server: envoy
 Finally, send a request with a valid JWT to the `jwt-httpbin` URL, which will return successfully.
 
 ```
-$ curl --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." $AMBASSADOR_IP/jwt-httpbin/ip
+$ curl -k --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." https://$AMBASSADOR_IP/jwt-httpbin/ip
 {
   "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
 }
