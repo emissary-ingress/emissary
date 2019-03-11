@@ -44,6 +44,17 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 
 **Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change the `ambassador/ambassador-service.yaml` to a different service type (e.g., `NodePort`).
 
+By default, Ambassador Pro uses ports 8081 and 8082 for rate-limiting
+and filtering, respectively.  If for whatever reason those assignments
+are problematic (perhaps you [set
+`service_port`](/reference/running/#running-as-non-root) to one of
+those), you can set adjust these by setting environment variables:
+
+  - `GRPC_PORT`: Which port to serve the RateLimitService on; `8081`
+    by default.
+  - `APRO_AUTH_PORT`: Which port to serve the filtering AuthService
+    on; `8082` by default.
+
 If you have deployed Ambassador with
 [`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
 [`AMBASSADOR_ID`](/reference/running/#multiple-ambassadors-in-one-cluster)
