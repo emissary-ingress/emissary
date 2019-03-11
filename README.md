@@ -71,7 +71,7 @@ Docker's list of "Insecure registries":
 
 ## Cutting a release
 
-When you've identified a commit that you believe should be a release
+1. When you've identified a commit that you believe should be a release
 (preferably on `master` that CI has already identified as passing),
 simply create a Git tag, and push that Git tag.  e.g.:
 
@@ -80,6 +80,25 @@ simply create a Git tag, and push that Git tag.  e.g.:
 
 See [Continuous Deployment](#continuous-deployment) above for
 information on what this does, and on the format of the tag names.
+
+2. Prepare a documentation PR for any doc changes with the release. There are
+   three parts to this:
+
+   * Write functional documentation, committed to the public Ambassador repo in `/docs`.
+   * In the same repo, update [versions.yml](https://github.com/datawire/ambassador/blob/master/docs/versions.yml) to reflect the 
+   new version.  This is the version string used in the docs.
+   * Update `[pro-pages.yml](https://github.com/datawire/getambassador.io/blob/master/content/pro-pages.yml)` with
+   the URLs of the Pro documentation.
+
+3. Update the YAML in https://github.com/datawire/pro-ref-arch to
+   reflect the new version of Pro. If there are changes required
+   for new CRDs, RBAC, etc, make those here as well.
+
+4. Test the different modules in `pro-ref-arch` by following
+   the individual READMEs.
+
+5. Once tests pass on the official build, land the documentation PR onto
+   `stable`, and land the YAML changes in `pro-ref-arch` onto `master`.
 
 ## How users get this
 
