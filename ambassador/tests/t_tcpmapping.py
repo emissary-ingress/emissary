@@ -4,10 +4,24 @@ from kat.harness import Query, Test, variants
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
-class TCPMapping(AmbassadorTest):
-    single_namespace = True
+class TCPMappingTest(AmbassadorTest):
+    # single_namespace = True
     namespace = "tcp-namespace"
     extra_ports = [ 6789, 7654, 8765, 9876 ]
+
+    target1: ServiceType
+    target2: ServiceType
+    target3: ServiceType
+
+    def init(self):
+        self.target1 = HTTP(name="target1")
+        print("TCP target1 %s" % self.target1.namespace)
+
+        self.target2 = HTTP(name="target2", namespace="other-namespace")
+        print("TCP target2 %s" % self.target2.namespace)
+
+        self.target3 = HTTP(name="target3")
+        print("TCP target3 %s" % self.target3.namespace)
 
     def manifests(self) -> str:
         return """
@@ -16,6 +30,11 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: tcp-namespace
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: other-namespace
 ---
 apiVersion: v1
 kind: Secret
@@ -40,34 +59,6 @@ hosts:
 secret: supersecret
 """)
 
-    def scheme(self):
-        return "https"
-
-    @classmethod
-    def variants(cls):
-        yield cls(variants(TCPMappingTest))
-
-class TCPMappingTest(Test):
-
-    target1: ServiceType
-    target2: ServiceType
-    target3: ServiceType
-    parent: AmbassadorTest
-
-    @classmethod
-    def variants(cls):
-        yield cls(HTTP(name="target1"), HTTP(name="target2"), HTTP(name="target3"), name="{self.target1.name}")
-
-    def init(self, target1: ServiceType, target2: ServiceType, target3: ServiceType) -> None:
-        self.target1 = target1
-        self.target2 = target2
-        self.target3 = target3
-
-class TCPPortMapping(TCPMappingTest):
-
-    parent: AmbassadorTest
-
-    def config(self):
         # Any host. Does this even need TLS?
         yield self.target1, self.format("""
 ---
@@ -108,7 +99,7 @@ name:  {self.name}-2
 port: 6789
 host: tls-context-host-2
 service: {self.target2.path.fqdn}
-tls: {self.parent.name}-tlscontext
+tls: {self.name}-tlscontext
 """)
 
         # Host-differentiated.
@@ -123,55 +114,56 @@ service: {self.target3.path.fqdn}
 tls: true
 """)
 
-    # def requirements(self):
-    #     yield Query(self.parent.url(self.name + "/wtfo", scheme='https'))
+    def scheme(self):
+        return "https"
 
     def queries(self):
         # 0: should hit target1, and use TLS
-        yield Query(self.parent.url(self.name + "/wtfo/", port=9876),
+        yield Query(self.url(self.name + "/wtfo/", port=9876),
                     insecure=True)
 
         # 1: should hit target2, and use TLS
-        yield Query(self.parent.url(self.name + "/wtfo/", port=7654, scheme='http'),
+        yield Query(self.url(self.name + "/wtfo/", port=7654, scheme='http'),
                     insecure=True,
                     debug=True)
 
         # 2: should hit target1 via SNI, and use cleartext
-        yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
+        yield Query(self.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-1"},
                     insecure=True,
                     sni=True)
 
         # 3: should hit target2 via SNI, and use TLS
-        yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
+        yield Query(self.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-2"},
                     insecure=True,
                     sni=True)
 
         # 4: should hit target3 via SNI, and use TLS
-        yield Query(self.parent.url(self.name + "/wtfo/", port=6789),
+        yield Query(self.url(self.name + "/wtfo/", port=6789),
                     headers={"Host": "tls-context-host-3"},
                     insecure=True,
                     sni=True)
 
         # 5: should error since port 8765 is bound only to localhost
-        yield Query(self.parent.url(self.name + "/wtfo/", port=8765),
+        yield Query(self.url(self.name + "/wtfo/", port=8765),
                     error=['connection reset by peer', 'EOF'],
                     insecure=True)
 
 
     def check(self):
-        for idx, wanted, tls_wanted in [
-            ( 0, self.target1.path.fqdn, True ),
-            ( 1, self.target2.path.fqdn, True ),
-            ( 2, self.target1.path.fqdn, False ),
-            ( 3, self.target2.path.fqdn, True ),
-            ( 4, self.target3.path.fqdn, True ),
-            # ( 5, self.target1.path.fqdn ),
+        for idx, target, tls_wanted in [
+            ( 0, self.target1, True ),
+            ( 1, self.target2, True ),
+            ( 2, self.target1, False ),
+            ( 3, self.target2, True ),
+            ( 4, self.target3, True ),
+            # ( 5, self.target1 ),
         ]:
             r = self.results[idx]
-            backend_fqdn = self.parent.get_fqdn(r.backend.name)
+            wanted_fqdn = target.path.fqdn
+            backend_fqdn = target.get_fqdn(r.backend.name)
             tls_enabled = r.backend.request.tls.enabled
 
-            assert backend_fqdn == wanted, f'{idx}: backend {backend_fqdn} != expected {wanted}'
+            assert backend_fqdn == wanted_fqdn, f'{idx}: backend {backend_fqdn} != expected {wanted_fqdn}'
             assert tls_enabled == tls_wanted, f'{idx}: TLS status {tls_enabled} != wanted {tls_wanted}'
