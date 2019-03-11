@@ -7,7 +7,7 @@ rules:
   - apiGroups: [""]
     resources:
       - secrets
-    verbs: ["get", "list", "create", "delete"]
+    verbs: ["get", "list", "create", "delete", "patch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -56,7 +56,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
-          image: quay.io/datawire/ambassador_pro:consul_connect_integration-0.1.2
+          image: quay.io/datawire/ambassador_pro:consul_connect_integration-0.2.2
           imagePullPolicy: Always
           resources:
             limits:
