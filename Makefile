@@ -203,7 +203,7 @@ build-aux/tel-pro.pid: apply proxy
 		telepresence \
 			--logfile build-aux/tel-pro.log --env-file pro-env.tmp \
 			--namespace localdev -d ambassador-pro -m inject-tcp --mount false \
-			--expose 6070 --expose 8080 --expose 8081 --expose 38888 \
+			--expose 6070 --expose 8081 --expose 8082 --expose 38888 \
 			--run python3 -m http.server --bind 127.0.0.1 38888 \
 			> /dev/null 2>&1 & echo $$! > build-aux/tel-pro.pid ; \
 	fi

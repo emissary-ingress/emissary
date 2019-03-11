@@ -192,7 +192,7 @@ spec:
     targetPort: 6070
   - name: auth-http
     port: 80
-    targetPort: 8080
+    targetPort: 8082
   - name: tel-check
     port: 38888
     targetPort: 38888
@@ -222,7 +222,7 @@ spec:
         - name: ratelimit-debug
           containerPort: 6070
         - name: auth-http
-          containerPort: 8080
+          containerPort: 8082
         - name: tel-check
           containerPort: 38888
         env:

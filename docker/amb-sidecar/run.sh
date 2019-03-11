@@ -18,7 +18,8 @@ if test -z "$REDIS_URL"; then
 	echo 'Warning: ${REDIS_URL} is not set; not starting ratelimit service'
 else
 	# Setting the PORT is important only because the default PORT
-	# is 8080, which would clash with auth.
+	# is 8080, which would clash with non-root-Ambassador when
+	# running as a sidecar.
 	launch USE_STATSD=false RUNTIME_ROOT=/run/amb/config RUNTIME_SUBDIRECTORY=config PORT=7000 "$exe" ratelimit
 fi
 launch "$exe" main
