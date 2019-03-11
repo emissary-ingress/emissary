@@ -25,6 +25,8 @@ RUN protoc -I echo/ echo/echo.proto --go_out=plugins=grpc:echo
 
 RUN protoc -I echo/ echo/echo.proto --grpc-web_out=import_style=commonjs,mode=grpcwebtext:echo
 
+RUN protoc -I echo/ echo/echo.proto --js_out=import_style=commonjs:echo
+
 RUN ls echo/ 
 
-ENTRYPOINT ["mv", "echo/echo.pb.go", "echo/echo_grpc_web_pb.js", "/echo"]
+ENTRYPOINT ["mv", "echo/echo.pb.go", "echo/echo_grpc_web_pb.js", "echo/echo_pb.js", "/echo"]
