@@ -77,16 +77,10 @@ func TestCreateCertificateChain(t *testing.T) {
 		{"ROOT\n", "LEAF\n", []string{}, `LEAF
 ROOT
 `},
-		{"ROOT\n", "LEAF\n", []string{"INT0\n", "INT1\n", "INT2\n"}, `LEAF
-INT0
-INT1
-INT2
-ROOT
-`},
 	}
 
 	for _, table := range tables {
-		chain := createCertificateChain(table.root, table.leaf, table.intermediate)
+		chain := createCertificateChain(table.root, table.leaf)
 		assert.StrEQ(table.expected, chain)
 	}
 }

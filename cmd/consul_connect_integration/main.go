@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	consulapi "github.com/hashicorp/consul/api"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/consul-x/pkg/consulwatch"
 )
+
+var logger = logrus.New()
 
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
@@ -104,8 +107,8 @@ data:
 `
 
 func init() {
-	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
+	logger.SetOutput(os.Stdout)
+	logger.SetLevel(logrus.DebugLevel)
 }
 
 func main() {
@@ -135,8 +138,9 @@ func Main(flags *cobra.Command, args []string) {
 	consulAPIPort := getEnvOrFallback(EnvConsulAPIPort, "8500")
 	consulAddress := fmt.Sprintf("%s:%s", consulAPIHost, consulAPIPort)
 
-	// TODO: This really should log the integration version as well. But how?
-	log.WithFields(log.Fields{
+	stdLogger := log.New(logger.WriterLevel(logrus.DebugLevel), "", 0)
+
+	logger.WithFields(logrus.Fields{
 		"consul_host": consulAPIHost,
 		"consul_port": consulAPIPort,
 		"version":     Version,
@@ -150,117 +154,72 @@ func Main(flags *cobra.Command, args []string) {
 		log.Fatalln(err)
 	}
 
+	// TODO: this can probably be removed in the future or modified somehow
 	agent := NewAgent(os.Getenv(EnvAmbassadorID), os.Getenv(EnvSecretNamespace), os.Getenv(EnvSecretName), consul)
-	agent.RootCertChange = make(chan ConsulRootCert)
-	agent.LeafCertChange = make(chan ConsulLeafCert)
 
-	go agent.WatchConsulRootCertificateChanges()
-	go agent.WatchConsulLeafCertificateChanges()
+	caRootWatcher, err := consulwatch.NewConnectCARootsWatcher(consul, stdLogger)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	agent.Run()
-}
+	log.Printf("Watching CA leaf for %s\n", agent.ConsulServiceName)
+	leafWatcher, err := consulwatch.NewConnectLeafWatcher(consul, stdLogger, agent.ConsulServiceName)
 
-func (a *Agent) Run() {
+	caRootChanged := make(chan *consulwatch.CARoots)
+	leafChanged := make(chan *consulwatch.Certificate)
+
+	caRootWatcher.Watch(func(roots *consulwatch.CARoots, e error) {
+		if e != nil {
+			logger.Errorf("Error watching root CA: %v\n", err)
+		}
+
+		caRootChanged <- roots
+	})
+	leafWatcher.Watch(func(certificate *consulwatch.Certificate, e error) {
+		if e != nil {
+			logger.Errorf("Error watching certificates: %v\n", err)
+		}
+
+		leafChanged <- certificate
+	})
+
+	// TODO: this is probably wrong, but whatever
+	go func() {
+		if err := caRootWatcher.Start(); err != nil {
+			logger.Fatalln(err)
+		}
+	}()
+
+	go func() {
+		if err := leafWatcher.Start(); err != nil {
+			logger.Fatalln(err)
+		}
+	}()
+
+	var caRoot *consulwatch.CARoot
+	var leafCert *consulwatch.Certificate
+
 	for {
 		select {
-		case cert := <-a.RootCertChange:
-			a.ConsulRootCert = &cert
-		case cert := <-a.LeafCertChange:
-			a.ConsulLeafCert = &cert
+		case cert := <-caRootChanged:
+			temp := cert.Roots[cert.ActiveRootID]
+			caRoot = &temp
+		case cert := <-leafChanged:
+			leafCert = cert
 		}
 
-		if a.ConsulRootCert != nil && a.ConsulLeafCert != nil {
-			log.WithFields(log.Fields{
-				"namespace": a.SecretNamespace,
-				"secret":    a.SecretName,
-			}).Info("Updating TLS certificate secret")
+		if caRoot != nil && leafCert != nil {
+			chain := createCertificateChain(caRoot.PEM, leafCert.PEM)
+			secret := formatKubernetesSecretYAML(agent.SecretName, chain, leafCert.PrivateKeyPEM)
 
-			chain := createCertificateChain(
-				a.ConsulRootCert.Certificate,
-				a.ConsulLeafCert.Certificate,
-				a.ConsulRootCert.IntermediateCertificates)
-
-			secret := formatKubernetesSecretYAML(a.SecretName, chain, a.ConsulLeafCert.PrivateKey)
-			err := applySecret(a.SecretNamespace, secret)
+			err := applySecret(agent.SecretNamespace, secret)
 			if err != nil {
-				log.Error(err)
-			} else {
-				log.WithFields(log.Fields{
-					"namespace": a.SecretNamespace,
-					"secret":    a.SecretName,
-				}).Info("Updating TLS certificate secret")
-			}
-		}
-	}
-}
-
-func (a *Agent) WatchConsulRootCertificateChanges() {
-	currentIndex := uint64(0)
-
-	for {
-		log.WithFields(log.Fields{"current-index": currentIndex}).Info("Waiting for Root CA certificate to change")
-		res, meta, err := a.consul.Agent().ConnectCARoots(&consulapi.QueryOptions{
-			WaitIndex: currentIndex,
-		})
-
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		if res == nil || meta == nil {
-			time.Sleep(1 * time.Second)
-		} else {
-			for _, root := range res.Roots {
-
-				// NOTE: Philip Lombardi - 2019-01
-				// ===============================
-				//
-				// The Consul CA HTTP API docs say there should be intermediate certificates. The Go API does not seem
-				// to expose the intermediate certificates at all however.
-				//
-				// API Docs: https://www.consul.io/docs/connect/ca.html
-				//
-				if root.Active {
-					a.RootCertChange <- ConsulRootCert{
-						Certificate:              root.RootCertPEM,
-						IntermediateCertificates: []string{},
-					}
-
-					break
-				}
+				logger.Error(err)
+				continue
 			}
 
-			currentIndex = meta.LastIndex
-		}
-	}
-}
-
-func (a *Agent) WatchConsulLeafCertificateChanges() {
-	currentIndex := uint64(0)
-
-	for {
-		log.WithFields(log.Fields{
-			"service":       a.ConsulServiceName,
-			"current-index": currentIndex,
-		}).Info("Fetching Leaf ")
-
-		res, meta, err := a.consul.Agent().ConnectCALeaf(a.ConsulServiceName, &consulapi.QueryOptions{
-			WaitIndex: currentIndex,
-		})
-
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		if res == nil || meta == nil {
-			time.Sleep(1 * time.Second)
-		} else {
-			a.LeafCertChange <- ConsulLeafCert{
-				Certificate: res.CertPEM,
-				PrivateKey:  res.PrivateKeyPEM,
-			}
-
-			currentIndex = meta.LastIndex
+			logger.WithFields(logrus.Fields{"namespace": agent.SecretNamespace, "secret": agent.SecretName}).
+				Info("Updating TLS certificate secret")
 		}
 	}
 }
@@ -273,11 +232,8 @@ func getEnvOrFallback(name string, fallback string) string {
 	}
 }
 
-func createCertificateChain(root string, leaf string, intermediaries []string) string {
-	result := intermediaries
-	result = append(result, root)
-	result = append([]string{leaf}, result...)
-	return strings.Join(result, "")
+func createCertificateChain(rootPEM string, leafPEM string) string {
+	return leafPEM + rootPEM
 }
 
 func formatKubernetesSecretYAML(name string, chain string, key string) string {
@@ -295,7 +251,7 @@ func applySecret(namespace string, yaml string) error {
 	}
 
 	cmd := exec.Command("kubectl", args...)
-	log.WithFields(log.Fields{"args": cmd.Args}).Debug("Computed kubectl command and arguments")
+	logger.WithFields(logrus.Fields{"args": cmd.Args}).Debug("Computed kubectl command and arguments")
 
 	var errBuffer bytes.Buffer
 	cmd.Stderr = &errBuffer

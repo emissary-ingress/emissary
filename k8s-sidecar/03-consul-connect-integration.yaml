@@ -9,7 +9,7 @@ rules:
   - apiGroups: [""]
     resources:
       - secrets
-    verbs: ["get", "list", "create", "delete"]
+    verbs: ["get", "list", "create", "delete", "patch"]
 
 ---
 apiVersion: v1
@@ -32,30 +32,41 @@ subjects:
     namespace: default
 
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: consul-connect-integration
   labels:
     component: consul-connect-integration
 spec:
-  serviceAccountName: consul-connect-integration
-  terminationGracePeriodSeconds: 0
-  containers:
-  - name: consul-connect-integration
-    image: {{env "CONSUL_CONNECT_INTEGRATION_IMAGE"}}
-    imagePullPolicy: Always
-    resources:
-      limits:
-        cpu: 200m
-        memory: 200Mi
-      requests:
-        cpu: 100m
-        memory: 50Mi
-    env:
-      # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
-      # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
-      - name: _CONSUL_HOST
-        value: consul
-      - name: AMBASSADOR_LICENSE_KEY
-        value: {{env "AMBASSADOR_LICENSE_KEY"}}
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      component: consul-connect-integration
+  template:
+    metadata:
+      labels:
+        component: consul-connect-integration
+    spec:
+      serviceAccountName: consul-connect-integration
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: consul-connect-integration
+          image: {{env "CONSUL_CONNECT_INTEGRATION_IMAGE"}}
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          env:
+            # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
+            # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
+            - name: _CONSUL_HOST
+              value: consul
+            - name: AMBASSADOR_LICENSE_KEY
+              value: {{env "AMBASSADOR_LICENSE_KEY"}}
