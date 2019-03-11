@@ -78,6 +78,8 @@ sandbox.http-auth:
 
 sandbox.web:
 	@echo " ---> cleaning gRPC web sandbox"
+	@cp -R echo/*.js sandbox/grpc_web/
+	@cd sandbox/grpc_web && npm install && npx webpack
 	@cd sandbox/grpc_web && docker-compose stop && docker-compose rm -f
 	@echo " ---> starting gRPC web sandbox"
 	@cd sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build

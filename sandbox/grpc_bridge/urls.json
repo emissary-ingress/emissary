@@ -2,7 +2,7 @@
     {
         "test": "GrpcBridge", 
         "id": 1, 
-        "url": "http://localhost:61892/echo.EchoService/Echo",
+        "url": "http://localhost:7080/echo.EchoService/Echo",
         "insecure": true,
         "method": "POST",
         "headers": {
@@ -13,7 +13,7 @@
     {
         "test": "GrpcBridge", 
         "id": 2, 
-        "url": "http://localhost:61892/echo.EchoService/Echo",
+        "url": "http://localhost:7080/echo.EchoService/Echo",
         "insecure": true,
         "method": "POST",
         "headers": {
