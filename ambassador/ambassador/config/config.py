@@ -80,7 +80,8 @@ class Config:
             schema_dir_path = resource_filename(Requirement.parse("ambassador"), "schemas")
 
         self.statsd: Dict[str, Any] = {
-            'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true')
+            'enabled': (os.environ.get('STATSD_ENABLED', '').lower() == 'true'),
+            'dogstatsd': (os.environ.get('DOGSTATSD', '').lower() == 'true')
         }
 
         if self.statsd['enabled']:

@@ -63,9 +63,10 @@ class V2Bootstrap(dict):
             clusters.append(V2Cluster(config, ratelimit.cluster))
 
         if config.ir.statsd['enabled']:
+            name = 'envoy.dog_statsd' if config.ir.statsd['dogstatsd'] else 'envoy.statsd'
             self['stats_sinks'] = [
                 {
-                    'name': 'envoy.statsd',
+                    'name': name,
                     'config': {
                         'address': {
                             'socket_address': {
