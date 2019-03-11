@@ -87,7 +87,7 @@ information on what this does, and on the format of the tag names.
    * Write functional documentation, committed to the public Ambassador repo in `/docs`.
    * In the same repo, update [versions.yml](https://github.com/datawire/ambassador/blob/master/docs/versions.yml) to reflect the 
    new version.  This is the version string used in the docs.
-   * Update `[pro-pages.yml](https://github.com/datawire/getambassador.io/blob/master/content/pro-pages.yml)` with
+   * Update [pro-pages.yml](https://github.com/datawire/getambassador.io/blob/master/content/pro-pages.yml) with
    the URLs of the Pro documentation.
 
 3. Update the YAML in https://github.com/datawire/pro-ref-arch to
