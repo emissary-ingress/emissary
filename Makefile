@@ -75,3 +75,9 @@ sandbox.http-auth:
 	@cd sandbox/http_auth && docker-compose stop && docker-compose rm -f
 	@echo " ---> starting HTTP auth sandbox"
 	@cd sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+
+sandbox.web:
+	@echo " ---> cleaning gRPC web sandbox"
+	@cd sandbox/grpc_web && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC web sandbox"
+	@cd sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build

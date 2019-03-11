@@ -1,0 +1,3 @@
+FROM quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
+
+CMD ["/usr/local/bin/envoy", "-c", "/etc/config.yaml", "-l", "trace"]
