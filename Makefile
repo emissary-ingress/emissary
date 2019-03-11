@@ -1,15 +1,18 @@
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
 
-# These details must match how amb-sidecar was compiled
-APRO_GOVERSION = 1.12
-APRO_GOPATH = /home/circleci/go
-APRO_GOENV = GOPATH=$(APRO_GOPATH) GOOS=linux GOARCH=amd64 CGO_ENABLED=1 GO111MODULE=on
-# APRO_PKGFILE stores the output of the following command run from the
-# APro source directory:
-#
-#    GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go list -deps -f='{{if not .Standard}}{{.Module}}{{end}}' ./cmd/amb-sidecar | sort -u | grep -v -e '=>' -e '/apro$'
-APRO_PKGFILE = apro-pkgs.txt
+APRO_VERSION = 0.2.2
+
+apro-abi@%.txt:
+	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$(APRO_VERSION).txt
+%.mk: %.txt
+	{ \
+		sed -n 's/^# *_*/APRO_/p' < $<; \
+		echo APRO_GOENV = $$(sed -En 's/^# *([A-Z])/\1/p' < $<); \
+	} > $@
+%.pkgs.txt: %.txt
+	grep -v '^#' < $< > $@
+-include apro-abi@$(APRO_VERSION).mk
 
 # Since the GOPATH must match amb-sidecar, we *always* compile in
 # Docker, so that we can put it at an arbitrary path without fuss.
@@ -27,6 +30,10 @@ go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) golang:$(APRO_GOVERSION) go buil
 all: .docker.stamp
 .PHONY: all
 
+.var.APRO_VERSION: .var.%: FORCE
+	@echo $($*) > .tmp$@ && if cmp -s $@ .tmp$@; then cp -f .tmp$@ $@; else rm -f .tmp$@ || true; fi
+Dockerfile: Dockerfile.in .var.APRO_VERSION
+	sed 's,@APRO_VERSION@,$(APRO_VERSION),' < $< > $@
 .docker.stamp: $(patsubst %.go,%.so,$(wildcard *.go)) Dockerfile
 	docker build -t $(DOCKER_IMAGE) .
 	date > $@
@@ -41,10 +48,10 @@ download-docker:
 	docker pull golang:$(APRO_GOVERSION)
 .PHONY: download-go download-docker
 
-.common-pkgs.txt: $(APRO_PKGFILE) download-go
+.common-pkgs.txt: apro-abi@$(APRO_VERSION).pkgs.txt download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
-version-check: .common-pkgs.txt $(APRO_PKGFILE)
-	@bash -c 'diff -u <(grep -F -f $< $(APRO_PKGFILE)) <(go list -m all | grep -F -f $<)' || { \
+version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
+	@bash -c 'diff -u <(grep -F -f $< apro-abi@$(APRO_VERSION).pkgs.txt) <(go list -m all | grep -F -f $<)' || { \
 		printf '\nKey:\n  -APro version\n  +Plugin version\n\nERROR: dependency versions do not match APro\n\n'; \
 		false; \
 	}
@@ -54,7 +61,8 @@ version-check: .common-pkgs.txt $(APRO_PKGFILE)
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
 
 clean:
-	rm -f -- *.so .docker.stamp .common-pkgs.txt
+	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile apro-abi@*
 .PHONY: clean
 
 .DELETE_ON_ERROR:
+.PHONY: FORCE

@@ -1,3 +1,8 @@
 *.so
 .docker.stamp
 .common-pkgs.txt
+
+.tmp.*
+.var.*
+/Dockerfile
+apro-abi@*

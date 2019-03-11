@@ -22,6 +22,13 @@ where:
  - DOCKER_REGISTRY is the `$DOCKER_REGISTRY` environment variable, or
    `localhost:31000` if the variable is not set.
 
+To compile for a specific version of Ambassador Pro, set `APRO_VERSION`:
+
+	$ make APRO_VERSION=0.2.2-rc2 DOCKER_REGISTRY=...
+
+When switching Ambassador Pro versions, it may be nescessary to edit
+the `go.mod` file.
+
 ## Deploying
 
 Push that `amb-sidecar-plugin` Docker image to a registry that your
