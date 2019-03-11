@@ -572,6 +572,11 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: other-namespace
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: evil-namespace
 ---
 kind: Service
@@ -710,6 +715,7 @@ class AddResponseHeaders(OptionTest):
 class HostHeaderMapping(MappingTest):
 
     parent: AmbassadorTest
+    namespace = "other-namespace"
 
     @classmethod
     def variants(cls):

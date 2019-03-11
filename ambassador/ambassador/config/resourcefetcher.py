@@ -6,28 +6,8 @@ import logging
 import os
 import yaml
 
-# from collections import namedtuple
-
+from .config import Config
 from .acresource import ACResource
-# from ..utils import RichStatus
-
-if TYPE_CHECKING:
-    from .config import Config
-
-# StringOrList is either a string or a list of strings.
-# StringOrList = Union[str, List[str]]
-
-
-# class YAMLElement (dict):
-#     def __init__(self, obj: dict, serialization: str, rkey: Optional[str]=None,
-#                  filename: Optional[str]=None, filepath: Optional[str]=None, ocount=1):
-#
-#         if filename and not rkey:
-#             rkey = filename
-#
-#         super().__init__(obj=obj, serialization=serialization, rkey=rkey,
-#                          filename=filename, filepath=filepath, ocount=ocount)
-
 
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
@@ -176,13 +156,13 @@ class ResourceFetcher:
             skip = True
 
         if not skip and not annotations:
-            # self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
+            self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
             skip = True
 
-        if not skip and (resource_namespace != self.aconf.ambassador_namespace):
+        if not skip and (Config.single_namespace and (resource_namespace != self.aconf.ambassador_namespace)):
             # This should never happen in actual usage, since we shouldn't be given things
             # in the wrong namespace. However, in development, this can happen a lot.
-            # self.logger.debug("%s: ignoring K8s %s in wrong namespace" % (self.location, kind))
+            self.logger.debug("%s: ignoring K8s %s in wrong namespace" % (self.location, kind))
             skip = True
 
         if not skip:
