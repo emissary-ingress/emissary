@@ -284,8 +284,15 @@ class ServiceType(Node):
     _manifests: Optional[str]
     use_superpod: bool = True
  
-    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, service_manifests: str=None, namespace: str=None, *args, **kwargs) -> None:
+        if namespace is not None:
+            print("%s init %s" % (type(self), namespace))
+
+        super().__init__(namespace=namespace, *args, **kwargs)
+
+        if namespace is not None:
+            print("%s %s after super %s" % (type(self), self.name, self.namespace))
+
         self._manifests = service_manifests
 
         if self._manifests:
