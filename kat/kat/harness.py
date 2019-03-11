@@ -136,6 +136,10 @@ class Node(ABC):
         self.skip_node = False
 
         name = kwargs.pop("name", None)
+
+        if 'namespace' in kwargs:
+            self.namespace = kwargs.pop('namespace', None)
+
         _clone: Node = kwargs.pop("_clone", None)
 
         if _clone:

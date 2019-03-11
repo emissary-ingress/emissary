@@ -30,7 +30,6 @@ from ..utils import RichStatus
 from ..resource import Resource
 from .acresource import ACResource
 from .acmapping import ACMapping
-from .resourcefetcher import ResourceFetcher
 
 
 #############################################################################
@@ -49,6 +48,7 @@ class Config:
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
+    single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
 
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
