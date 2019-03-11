@@ -35,7 +35,7 @@ WORKDIR ${AMBASSADOR_ROOT}
 RUN apk --no-cache add curl python3 jq
 
 # Grab kubewatch
-RUN curl -o /usr/bin/kubewatch -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.16/linux/amd64/kubewatch
+RUN curl -o /usr/bin/kubewatch -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.17/linux/amd64/kubewatch
 RUN chmod +x /usr/bin/kubewatch
 
 # Grab ambex

@@ -6,7 +6,7 @@ from ambassador.ir.irfilter import IRFilter
 from ..config import Config
 
 from .irresource import IRResource
-from .irmapping import IRMapping
+from .irhttpmapping import IRHTTPMapping
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
@@ -237,8 +237,8 @@ class IRAmbassador (IRResource):
             if cur and cur.get("enabled", False):
                 name = "internal_%s_probe_mapping" % name
 
-                mapping = IRMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location,
-                                    timeout_ms=10000, **cur)
+                mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location,
+                                        timeout_ms=10000, **cur)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 

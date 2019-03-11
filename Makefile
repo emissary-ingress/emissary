@@ -117,8 +117,7 @@ DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
 
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-7-g4db17d1fb
-# ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-g14e2c65bb
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-2-rc"
@@ -128,7 +127,7 @@ SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.0.1
+KAT_BACKEND_RELEASE = 1.1.0
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -275,7 +274,6 @@ website-yaml:
 			{} \;
 
 website: website-yaml
-	VERSION=$(VERSION) bash docs/build-website.sh
 
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
@@ -318,7 +316,9 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(TELEPROXY) $(KUBERNAUT) version
+setup-develop: venv $(PWD)/kat/kat/client $(TELEPROXY) $(KUBERNAUT) version
+
+$(PWD)/kat/kat/client:
 	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz 
 	tar xzf v$(KAT_BACKEND_RELEASE).tar.gz
 	chmod +x kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)

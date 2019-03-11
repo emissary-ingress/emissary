@@ -12,7 +12,7 @@ from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
 from t_grpc_bridge import AcceptanceGrpcBridgeTest
-
+from t_tcpmapping import TCPMappingTest
 from t_headerrouting import HeaderRoutingTest
 from t_ratelimit import RateLimitTest
 from t_tracing import TracingTest
@@ -21,8 +21,7 @@ from t_extauth import (
     AuthenticationTest,	
     AuthenticationTestV1,	
     AuthenticationHTTPBufferedTest,	
-    AuthenticationWebsocketTest,	
-    AuthenticationWebsocketTest,	
+    AuthenticationWebsocketTest,
     AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
@@ -562,9 +561,6 @@ class Plain(AmbassadorTest):
     @classmethod
     def variants(cls):
         yield cls(variants(MappingTest))
-
-    def setup(self, selected):
-        super().setup(selected)
 
     def manifests(self) -> str:
         return """
@@ -1233,7 +1229,8 @@ class StatsdTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs) + GRAPHITE_CONFIG.format('statsd-sink')
+        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('statsd-sink')
 
     def config(self):
         yield self.target, self.format("""

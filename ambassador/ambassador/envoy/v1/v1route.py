@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
-from ...ir import IRResource
-from ...ir.irmapping import IRMapping, IRMappingGroup
+from ...ir.irhttpmapping import IRHTTPMapping
+from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 
 from .v1ratelimitaction import V1RateLimitAction
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class V1Route(dict):
-    def __init__(self, config: 'V1Config', group: IRMappingGroup) -> None:
+    def __init__(self, config: 'V1Config', group: IRHTTPMappingGroup) -> None:
         super().__init__()
 
         self["timeout_ms"] = group.get("timeout_ms", 3000)
@@ -87,7 +87,7 @@ class V1Route(dict):
         # print(len(group.get('headers', [])) > 0)
 
         if group.get("host_redirect", None):
-            hr: IRMapping = typecast(IRMapping, group.host_redirect)
+            hr: IRHTTPMapping = typecast(IRHTTPMapping, group.host_redirect)
 
             self["host_redirect"] = hr.service
 
@@ -147,5 +147,10 @@ class V1Route(dict):
         config.routes = []
 
         for irgroup in config.ir.ordered_groups():
+            if not isinstance(irgroup, IRHTTPMappingGroup):
+                # Can't happen yet.
+                config.ir.post_error("group %s is not an HTTPMappingGroup, ignoring" % irgroup.name, resource=irgroup)
+                continue
+
             route = config.save_element('route', irgroup, V1Route(config, irgroup))
             config.routes.append(route)
