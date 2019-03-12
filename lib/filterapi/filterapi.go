@@ -99,7 +99,7 @@ type HTTPRequestModification struct {
 	Header []HTTPHeaderModification
 }
 
-var _ FilterResponse = HTTPRequestModification{}
+var _ FilterResponse = &HTTPRequestModification{}
 
 type HTTPHeaderModification interface {
 	toHeaderValueOption() *envoyCoreV2.HeaderValueOption
@@ -110,9 +110,12 @@ type HTTPHeaderAppendValue struct {
 	Value string
 }
 
-var _ HTTPHeaderModification = HTTPHeaderAppendValue{}
+var _ HTTPHeaderModification = &HTTPHeaderAppendValue{}
 
-func (h HTTPHeaderAppendValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (h *HTTPHeaderAppendValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
 	return &envoyCoreV2.HeaderValueOption{
 		Header: &envoyCoreV2.HeaderValue{
 			Key:   h.Key,
@@ -127,9 +130,12 @@ type HTTPHeaderReplaceValue struct {
 	Value string
 }
 
-var _ HTTPHeaderModification = HTTPHeaderReplaceValue{}
+var _ HTTPHeaderModification = &HTTPHeaderReplaceValue{}
 
-func (h HTTPHeaderReplaceValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (h *HTTPHeaderReplaceValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
 	return &envoyCoreV2.HeaderValueOption{
 		Header: &envoyCoreV2.HeaderValue{
 			Key:   h.Key,
@@ -139,7 +145,10 @@ func (h HTTPHeaderReplaceValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOp
 	}
 }
 
-func (r HTTPRequestModification) toCheckResponse() *envoyAuthV2.CheckResponse {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (r *HTTPRequestModification) toCheckResponse() *envoyAuthV2.CheckResponse {
 	headers := make([]*envoyCoreV2.HeaderValueOption, len(r.Header))
 	for i := range r.Header {
 		headers[i] = r.Header[i].toHeaderValueOption()
@@ -163,9 +172,12 @@ type HTTPResponse struct {
 	Body       string
 }
 
-var _ = HTTPResponse{}
+var _ FilterResponse = &HTTPResponse{}
 
-func (r HTTPResponse) toCheckResponse() *envoyAuthV2.CheckResponse {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (r *HTTPResponse) toCheckResponse() *envoyAuthV2.CheckResponse {
 	var headers []*envoyCoreV2.HeaderValueOption
 	for k, vs := range r.Header {
 		for _, v := range vs {
