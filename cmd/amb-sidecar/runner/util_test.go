@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
@@ -103,9 +102,7 @@ func NewAPP(idpURL string, tb testing.TB) (*httptest.Server, http.Handler) {
 		tb.Fatal(warn[len(warn)-1])
 	}
 
-	_l := logrus.New()
-	_l.SetLevel(logrus.DebugLevel)
-	l := types.WrapLogrus(_l)
+	l := types.WrapTB(tb)
 
 	ct := &controller.Controller{
 		Config: c,

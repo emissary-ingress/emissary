@@ -81,7 +81,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			logger.Error("check code failed")
+			logger.Info("check code failed")
 			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
 			return
 		}
