@@ -4,7 +4,7 @@
 
 ### AMBASSADOR 0.51
 
-The current recommended version of Ambassador is 0.51.1.
+The current recommended version of Ambassador is 0.51.2.
 
 ### AMBASSADOR 0.50+
 
@@ -79,6 +79,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.51.2] March 12, 2019
+[0.51.2]: https://github.com/datawire/ambassador/compare/0.51.1...0.51.2
+
+### Changes since 0.51.1
+
+- Cookies are now correctly handled when using external auth services... really. ([#1211])
+
+[#1211]: https://github.com/datawire/ambassador/issues/1211
 
 ## [0.51.1] March 11, 2019
 [0.51.1]: https://github.com/datawire/ambassador/compare/0.51.0...0.51.1
