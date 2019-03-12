@@ -8,7 +8,14 @@ import (
 
 // Assert has convenient functions for doing test assertions.
 type Assert struct {
-	T *testing.T
+	T testing.TB
+}
+
+func (a *Assert) Bool(b bool) {
+	a.T.Helper()
+	if !b {
+		a.T.Fatal("Assertion failed")
+	}
 }
 
 // StrEQ asserts that two strings are equivalent.
@@ -32,22 +39,6 @@ func (a *Assert) IntEQ(e int, c int) {
 	a.T.Helper()
 	if e != c {
 		a.T.Fatalf("Expected '%v' got '%v'", e, c)
-	}
-}
-
-// NotNil asserts that the object is not nil.
-func (a *Assert) NotNil(c interface{}) {
-	a.T.Helper()
-	if c == nil {
-		a.T.Fatalf("Expected not NIL got '%v'", c)
-	}
-}
-
-// Nil asserts that the object is nil.
-func (a *Assert) Nil(c interface{}) {
-	a.T.Helper()
-	if c != nil {
-		a.T.Fatalf("Expected NIL got '%v'", c)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/pkg/errors"
@@ -91,15 +92,15 @@ func NewIDP() *httptest.Server {
 }
 
 // NewAPP returns an instance of the authorization server.
-func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
+func NewAPP(idpURL string, tb testing.TB) (*httptest.Server, http.Handler) {
 	os.Setenv("RLS_RUNTIME_DIR", "/bogus")
 
 	c, warn, fatal := types.ConfigFromEnv()
 	if len(fatal) > 0 {
-		return nil, nil, fatal[len(fatal)-1]
+		tb.Fatal(fatal[len(fatal)-1])
 	}
 	if len(warn) > 0 {
-		return nil, nil, warn[len(warn)-1]
+		tb.Fatal(warn[len(warn)-1])
 	}
 
 	_l := logrus.New()
@@ -113,7 +114,7 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 
 	httpHandler, err := app.NewFilterMux(c, l, ct)
 	if err != nil {
-		return nil, nil, err
+		tb.Fatal(err)
 	}
 	server := httptest.NewServer(httpHandler)
 
@@ -153,5 +154,5 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		},
 	})
 
-	return server, httpHandler, nil
+	return server, httpHandler
 }
