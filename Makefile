@@ -157,6 +157,7 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf docs/node_modules
+	-rm -rf kat/kat/client
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
