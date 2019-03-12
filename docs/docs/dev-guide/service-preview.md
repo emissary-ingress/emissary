@@ -67,12 +67,10 @@ In this quick start, we're going to preview a change we make to the QOTM service
              value: qotm
            - name: APPPORT
              value: "5000"
-           image: quay.io/datawire/ambassador-pro:app-sidecar-%aproVersion%
+           image: quay.io/datawire/ambassador_pro:app-sidecar-%aproVersion%
            name: traffic-sidecar
            ports:
            - containerPort: 9900
-         imagePullSecrets:
-          - name: ambassador-pro-registry-credentials
    ```
 
 3. Update the QOTM service YAML to point to the sidecar on port 9900, instead of the QOTM service directly on port 5000.
