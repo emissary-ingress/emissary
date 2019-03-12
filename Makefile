@@ -304,6 +304,7 @@ check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 # Clean
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker))
+	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
