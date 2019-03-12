@@ -444,7 +444,12 @@ class V2Listener(dict):
                 vhost['require_tls'] = self.require_tls
 
             http_config = dict(base_http_config)    # Shallow copy is enough.
-
+            
+            # Fix for cloud load balancers
+            http_config['http_protocol_options'] = {
+                'accept_http_10': True
+            }
+            
             http_config['route_config'] = {
                 'virtual_hosts': [ vhost ]
             }
