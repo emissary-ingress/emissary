@@ -1,7 +1,7 @@
 version: '2'
 services:
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:201"  http://localhost:61880/echo-service/get
-  
+
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61880/echo-service/get  
   ambassador:
     image: quay.io/datawire/ambassador:0.51.1
     ports:
@@ -13,8 +13,7 @@ services:
     networks:
     - ambassador
 
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:201"  http://localhost:61892/echo-service/get
-
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61892/echo-service/get
   envoy:
     build:
       context: .
@@ -30,8 +29,7 @@ services:
       - "61892:8000"
       - "61893:8001"
   
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:201"  http://localhost:61898/echo-service/get
-
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61898/echo-service/get
   auth-service:
     image: quay.io/datawire/kat-backend:10
     environment:

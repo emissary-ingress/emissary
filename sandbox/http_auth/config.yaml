@@ -5,8 +5,10 @@ static_resources:
         address: 0.0.0.0
         port_value: 8000
     
+    
     filter_chains:
-    - filters:
+      use_proxy_proto: False
+      filters:
       - name: envoy.http_connection_manager
         config:
           codec_type: auto
@@ -14,6 +16,9 @@ static_resources:
           idle_timeout: 0.840s
           stat_prefix: egress_http
           use_remote_address: true
+          upgrade_configs:
+          - upgrade_type: websocket
+          
           route_config:
             name: local_route
             virtual_hosts:
@@ -25,6 +30,7 @@ static_resources:
                   prefix: "/"
                 route:
                   cluster: echo-service
+              
           http_filters:
           - name: envoy.ext_authz
             config:
@@ -33,6 +39,8 @@ static_resources:
                   uri: auth-service:8080
                   timeout: 0.25s
                   cluster: auth-service
+
+                path_prefix: /extauth
                 
                 allowed_request_headers:
                 - requested-status
@@ -42,8 +50,8 @@ static_resources:
                 - set-cookie
 
           - name: envoy.router
-            config: {}
-  
+            config: {} 
+
   clusters:
   - name: auth-service
     connect_timeout: 1s
