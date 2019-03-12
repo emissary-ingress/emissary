@@ -1,14 +1,28 @@
 version: '2'
 services:
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:201"  http://localhost:61880/echo-service/get
+  
+  ambassador:
+    image: quay.io/datawire/ambassador:0.51.1
+    ports:
+    - 61880:80
+    volumes:
+    - ./config:/ambassador/ambassador-config
+    environment:
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
+    networks:
+    - ambassador
 
-  proxy:
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:201"  http://localhost:61892/echo-service/get
+
+  envoy:
     build:
       context: .
       dockerfile: Dockerfile-proxy
     volumes:
       - ./config.yaml:/etc/config.yaml
     networks:
-      - envoy
+      - ambassador
     expose:
       - "80"
       - "8001"
@@ -16,18 +30,21 @@ services:
       - "61892:8000"
       - "61893:8001"
   
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:201"  http://localhost:61898/echo-service/get
+
   auth-service:
     image: quay.io/datawire/kat-backend:10
     environment:
     - DEBUG=1
+    - BACKEND=true
     networks:
-      envoy:
+      ambassador:
         aliases:
-          - envoy
+          - ambassador
     expose:
       - "8080"
     ports:
       - "61898:8080"
 
 networks:
-  envoy: {}
+  ambassador: {}
