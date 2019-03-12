@@ -184,10 +184,10 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend.request.headers["requested-status"] == ["302"]
         assert self.results[1].backend.request.headers["requested-header"] == ["location"]
         assert self.results[1].backend.request.headers["location"] == ["foo"]
-        assert self.results[1].backend.response.headers["set-cookie"] == ["foo=foo", "bar=bar", "baz=baz"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Server"] == ["envoy"]
         assert self.results[1].headers["Location"] == ["foo"]
+        assert self.results[1].headers["Set-Cookie"] == ["foo=foo", "bar=bar", "baz=baz"]
         
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend.name == self.auth.path.k8s
