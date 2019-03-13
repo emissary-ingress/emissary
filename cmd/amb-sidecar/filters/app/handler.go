@@ -117,13 +117,20 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 
 	rule := ruleForURL(c.Controller, originalURL)
 	if rule == nil {
+		logger.Info("using default rule")
 		rule = c.DefaultRule
 	}
+	filterStrs := make([]string, 0, len(rule.Filters))
+	for _, filterRef := range rule.Filters {
+		filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
+	}
+	logger.Infof("selected rule host=%q, path=%q, filters=[%s]",
+		rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
 	sumResponse := &filterapi.HTTPRequestModification{}
 	for _, filterRef := range rule.Filters {
 		filterQName := filterRef.Name + "." + filterRef.Namespace
-		logger.Debugf("host=%s, path=%s, filter=%q", rule.Host, rule.Path, filterQName)
+		logger.Debugf("applying filter=%q", filterQName)
 
 		filterCRD := findFilter(c.Controller, filterQName)
 		if filterCRD == nil {
