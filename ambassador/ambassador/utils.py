@@ -79,21 +79,21 @@ def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO
 
 
 class SystemInfo:
-    MyHostName = 'localhost'
-    MyResolvedName = '127.0.0.1'
+    MyHostName = os.environ.get('HOSTNAME', None)
 
-    try:
-        MyHostName = socket.gethostname()
-        MyResolvedName = socket.gethostbyname(socket.gethostname())
-    except:
-        pass
+    if not MyHostName:
+        MyHostName = 'localhost'
+
+        try:
+            MyHostName = socket.gethostname()
+        except:
+            pass
 
 class RichStatus:
     def __init__(self, ok, **kwargs):
         self.ok = ok
         self.info = kwargs
         self.info['hostname'] = SystemInfo.MyHostName
-        self.info['resolvedname'] = SystemInfo.MyResolvedName
         self.info['version'] = Version
 
     # Remember that __getattr__ is called only as a last resort if the key
