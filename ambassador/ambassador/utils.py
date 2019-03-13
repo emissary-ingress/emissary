@@ -26,8 +26,6 @@ import logging
 import requests
 import yaml
 
-from kubernetes import client, config
-
 from .VERSION import Version
 
 if TYPE_CHECKING:
@@ -214,63 +212,6 @@ class SavedSecret:
                 )
 
 
-class KubeSecretReader:
-    def __init__(self, secret_root: str) -> None:
-        self.v1 = None
-        self.__name__ = 'KubeSecretReader'
-        self.secret_root = secret_root
-
-    def __call__(self, context: 'IRTLSContext', secret_name: str, namespace: str):
-        # Make sure we have a Kube connection.
-        if not self.v1:
-            self.v1 = kube_v1()
-
-        cert_data = None
-        cert = None
-        key = None
-
-        if self.v1:
-            try:
-                cert_data = self.v1.read_namespaced_secret(secret_name, namespace)
-            except client.rest.ApiException as e:
-                if e.reason == "Not Found":
-                    logger.info("secret {} not found".format(secret_name))
-                else:
-                    logger.info("secret %s/%s could not be read: %s" % (namespace, secret_name, e))
-
-        if cert_data and cert_data.data:
-            cert_data = cert_data.data
-            cert = cert_data.get('tls.crt', None)
-
-            if cert:
-                cert = binascii.a2b_base64(cert)
-
-            key = cert_data.get('tls.key', None)
-
-            if key:
-                key = binascii.a2b_base64(key)
-
-        secret_dir = os.path.join(self.secret_root, namespace, "secrets", secret_name)
-
-        cert_path = None
-        key_path = None
-
-        if cert:
-            try:
-                os.makedirs(secret_dir)
-            except FileExistsError:
-                pass
-
-            cert_path = os.path.join(secret_dir, "tls.crt")
-            open(cert_path, "w").write(cert.decode("utf-8"))
-
-            if key:
-                key_path = os.path.join(secret_dir, "tls.key")
-                open(key_path, "w").write(key.decode("utf-8"))
-
-        return SavedSecret(secret_name, namespace, cert_path, key_path, cert_data)
-
-
 class SecretSaver:
     logger: logging.Logger
     source_root: str
@@ -418,32 +359,3 @@ class SecretSaver:
                 open(key_path, "w").write(key.decode("utf-8"))
 
         return SavedSecret(self.secret_name, self.namespace, cert_path, key_path, cert_data)
-
-
-def kube_v1():
-    # Assume we got nothin'.
-    k8s_api = None
-
-    # XXX: is there a better way to check if we are inside a cluster or not?
-    if "KUBERNETES_SERVICE_HOST" in os.environ:
-        # If this goes horribly wrong and raises an exception (it shouldn't),
-        # we'll crash, and Kubernetes will kill the pod. That's probably not an
-        # unreasonable response.
-        config.load_incluster_config()
-        if "AMBASSADOR_VERIFY_SSL_FALSE" in os.environ:
-            configuration = client.Configuration()
-            configuration.verify_ssl=False
-            client.Configuration.set_default(configuration)
-        k8s_api = client.CoreV1Api()
-    else:
-        # Here, we might be running in docker, in which case we'll likely not
-        # have any Kube secrets, and that's OK.
-        try:
-            config.load_kube_config()
-            k8s_api = client.CoreV1Api()
-        except FileNotFoundError:
-            # Meh, just ride through.
-            logger.info("No K8s")
-            pass
-
-    return k8s_api
