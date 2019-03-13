@@ -4,14 +4,24 @@ from kat.harness import Query, Test, variants
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
+# An AmbassadorTest subclass will actually create a running Ambassador.
+# "self" in this class will refer to the Ambassador.
+
 class TCPMappingTest(AmbassadorTest):
     # single_namespace = True
     namespace = "tcp-namespace"
     extra_ports = [ 6789, 7654, 8765, 9876 ]
 
+    # If you set debug = True here, the results of every Query will be printed
+    # when the test is run.
+    # debug = True
+
     target1: ServiceType
     target2: ServiceType
     target3: ServiceType
+
+    # init (not __init__) is the method that initializes a KAT Node (including
+    # Test, AmbassadorTest, etc.).
 
     def init(self):
         self.target1 = HTTP(name="target1")
@@ -22,6 +32,9 @@ class TCPMappingTest(AmbassadorTest):
 
         self.target3 = HTTP(name="target3")
         print("TCP target3 %s" % self.target3.namespace)
+
+    # manifests returns a string of Kubernetes YAML that will be applied to the
+    # Kubernetes cluster before running any tests.
 
     def manifests(self) -> str:
         return """
@@ -46,6 +59,9 @@ data:
   tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2d0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktrd2dnU2xBZ0VBQW9JQkFRRGNBOFl0aC9QV2FPR1MKb05tdkVIWjI0alE3UEtOK0Q0b3dMSFdlaXVSZG1oQTBZT3ZVM3dxRzNWcVk0WnBsWkFWMFBLbEQvKzJaU0YxNAp6OHcxZUY0UVR6WmFZeHd5OSt3ZkhOa1RERXBNalA4Sk0yT0VieWtVUnhVUnZXNCs3RDMwRTJFejVPUGx4bWMwCk1ZTS8vSkg1RURRaGNpRHJsWXFlMVNSTVJBTFplVm1rYUF5dTZOSEpUQnVqMFNJUHVkTFRjaCs5MHErcmR3bnkKZmtUMXgzT1RhbmJXam5vbUVKZTdNdnk0bXZ2cXFJSHU0OFM5QzhaZDFCR1ZQYnU4Vi9VRHJTV1E5ellDWDRTRwpPYXNsOEMwWG1INmtlbWhQRGxEL1R2MHh2eUg1cTVNVWNIaTRtSnROK2d6b2I1NER3elZHRWplZjVMZVMxVjVGCjBUQVAwZCtYQWdNQkFBRUNnZ0VCQUk2U3I0anYwZForanJhN0gzVnZ3S1RYZnl0bjV6YVlrVjhZWUh3RjIyakEKbm9HaTBSQllIUFU2V2l3NS9oaDRFWVM2anFHdkptUXZYY3NkTldMdEJsK2hSVUtiZVRtYUtWd2NFSnRrV24xeQozUTQwUytnVk5OU2NINDRvYUZuRU0zMklWWFFRZnBKMjJJZ2RFY1dVUVcvWnpUNWpPK3dPTXc4c1plSTZMSEtLCkdoOENsVDkrRGUvdXFqbjNCRnQwelZ3cnFLbllKSU1DSWFrb2lDRmtIcGhVTURFNVkyU1NLaGFGWndxMWtLd0sKdHFvWFpKQnlzYXhnUTFRa21mS1RnRkx5WlpXT01mRzVzb1VrU1RTeURFRzFsYnVYcHpUbTlVSTlKU2lsK01yaAp1LzVTeXBLOHBCSHhBdFg5VXdiTjFiRGw3Sng1SWJyMnNoM0F1UDF4OUpFQ2dZRUE4dGNTM09URXNOUFpQZlptCk9jaUduOW9STTdHVmVGdjMrL05iL3JodHp1L1RQUWJBSzhWZ3FrS0dPazNGN1krY2txS1NTWjFnUkF2SHBsZEIKaTY0Y0daT1dpK01jMWZVcEdVV2sxdnZXbG1nTUlQVjVtbFpvOHowMlNTdXhLZTI1Y2VNb09oenFlay9vRmFtdgoyTmxFeTh0dEhOMUxMS3grZllhMkpGcWVycThDZ1lFQTUvQUxHSXVrU3J0K0dkektJLzV5cjdSREpTVzIzUTJ4CkM5ZklUTUFSL1Q4dzNsWGhyUnRXcmlHL3l0QkVPNXdTMVIwdDkydW1nVkhIRTA5eFFXbzZ0Tm16QVBNb1RSekMKd08yYnJqQktBdUJkQ0RISjZsMlFnOEhPQWovUncrK2x4bEN0VEI2YS8xWEZIZnNHUGhqMEQrWlJiWVZzaE00UgpnSVVmdmpmQ1Y1a0NnWUVBMzdzL2FieHJhdThEaTQ3a0NBQ3o1N3FsZHBiNk92V2d0OFF5MGE5aG0vSmhFQ3lVCkNML0VtNWpHeWhpMWJuV05yNXVRWTdwVzR0cG5pdDJCU2d1VFlBMFYrck8zOFhmNThZcTBvRTFPR3l5cFlBUkoKa09SanRSYUVXVTJqNEJsaGJZZjNtL0xnSk9oUnp3T1RPNXFSUTZHY1dhZVlod1ExVmJrelByTXUxNGtDZ1lCbwp4dEhjWnNqelVidm5wd3hTTWxKUStaZ1RvZlAzN0lWOG1pQk1POEJrclRWQVczKzFtZElRbkFKdWRxTThZb2RICmF3VW03cVNyYXV3SjF5dU1wNWFadUhiYkNQMjl5QzVheFh3OHRtZlk0TTVtTTBmSjdqYW9ydGFId1pqYmNObHMKdTJsdUo2MVJoOGVpZ1pJU1gyZHgvMVB0ckFhWUFCZDcvYWVYWU0wVWtRS0JnUUNVbkFIdmRQUGhIVnJDWU1rTgpOOFBEK0t0YmhPRks2S3MvdlgyUkcyRnFmQkJPQWV3bEo1d0xWeFBLT1RpdytKS2FSeHhYMkcvREZVNzduOEQvCkR5V2RjM2ZCQWQ0a1lJamZVaGRGa1hHNEFMUDZBNVFIZVN4NzNScTFLNWxMVWhPbEZqc3VPZ0NKS28wVlFmRC8KT05paDB6SzN5Wmc3aDVQamZ1TUdGb09OQWc9PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==
 """ + super().manifests()
 
+    # config() must _yield_ tuples of Node, Ambassador-YAML where the
+    # Ambassador-YAML will be annotated onto the Node.
+
     def config(self):
         yield self, self.format("""
 ---
@@ -59,7 +75,6 @@ hosts:
 secret: supersecret
 """)
 
-        # Any host. Does this even need TLS?
         yield self.target1, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -114,8 +129,12 @@ service: {self.target3.path.fqdn}
 tls: true
 """)
 
+    # scheme defaults to HTTP; if you need to use HTTPS, have it return
+    # "https"...
     def scheme(self):
         return "https"
+
+    # Any Query object yielded from queries() will be run as a test...
 
     def queries(self):
         # 0: should hit target1, and use TLS
@@ -150,6 +169,9 @@ tls: true
                     error=['connection reset by peer', 'EOF'],
                     insecure=True)
 
+    # Once in check(), self.results is an ordered list of results from your
+    # Queries. (You can also look at self.parent.results if you really want
+    # to.)
 
     def check(self):
         for idx, target, tls_wanted in [
