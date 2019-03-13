@@ -32,7 +32,8 @@ class IRAmbassador (IRResource):
         'statsd',
         'use_proxy_proto',
         'use_remote_address',
-        'x_forwarded_proto_redirect'
+        'x_forwarded_proto_redirect',
+        'xff_num_trusted_hops'
     ]
 
     service_port: int
@@ -76,6 +77,7 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
+            xff_num_trusted_hops=0,
             **kwargs
         )
 

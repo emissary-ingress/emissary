@@ -418,6 +418,9 @@ class V2Listener(dict):
         if 'use_remote_address' in config.ir.ambassador_module:
             base_http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
+        if 'xff_num_trusted_hops' in config.ir.ambassador_module:
+            base_http_config["xff_num_trusted_hops"] = config.ir.ambassador_module.xff_num_trusted_hops
+
         if config.ir.tracing:
             base_http_config["generate_request_id"] = True
 
