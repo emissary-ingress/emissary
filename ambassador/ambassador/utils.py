@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, Optional, TextIO, TYPE_CHECKING
+from typing import Any, Dict, Optional, TextIO, TYPE_CHECKING
 
 import binascii
 import io
@@ -33,6 +33,37 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
+
+yaml_loader = yaml.SafeLoader
+yaml_dumper = yaml.SafeDumper
+
+try:
+    yaml_loader = yaml.CSafeLoader
+except AttributeError:
+    pass
+
+try:
+    yaml_dumper = yaml.CSafeDumper
+except AttributeError:
+    pass
+
+
+def parse_yaml(serialization: str, **kwargs) -> Any:
+    if not getattr(parse_yaml, 'logged_info', False):
+        parse_yaml.logged_info = True
+
+        logger.info("YAML: using %s parser" % ("Python" if (yaml_loader == yaml.SafeLoader) else "C"))
+
+    return list(yaml.load_all(serialization, Loader=yaml_loader, **kwargs))
+
+
+def dump_yaml(obj: Any, **kwargs) -> str:
+    if not getattr(dump_yaml, 'logged_info', False):
+        dump_yaml.logged_info = True
+
+        logger.info("YAML: using %s dumper" % ("Python" if (yaml_dumper == yaml.SafeDumper) else "C"))
+
+    return yaml.dump(obj, Dumper=yaml_dumper, **kwargs)
 
 
 def _load_url_contents(logger: logging.Logger, url: str, stream1: TextIO, stream2: Optional[TextIO]=None) -> bool:
@@ -285,7 +316,7 @@ class SecretSaver:
 
         if self.serialization:
             try:
-                objects.extend(list(yaml.safe_load_all(self.serialization)))
+                objects.extend(parse_yaml(self.serialization))
             except yaml.error.YAMLError as e:
                 self.logger.error("TLSContext %s: SCC.secret_reader could not parse %s: %s" %
                                   (self.context.name, self.source, e))
