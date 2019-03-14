@@ -117,6 +117,8 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 
 Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for) for some detailed examples on this interaction.
 
+**NOTE:** This value is not dynamically configurable in Envoy therefor, a restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
+
 ### `use_proxy_proto`
 
 Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
