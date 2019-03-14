@@ -209,11 +209,13 @@ docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
+	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
 	docker push $(AMBASSADOR_BASE_IMAGE)
+	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base: docker-base-images docker-push-base-images
 
