@@ -17,10 +17,10 @@ allowed_authorization_headers:
 - set-cookie
 allow_request_body: false    
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name: echo-service
 prefix: /
 service: http://echo.websocket.org
 host_rewrite: echo.websocket.org
-use_websocket: true
+use_websocket: false
