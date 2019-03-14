@@ -54,7 +54,7 @@ def parse_yaml(serialization: str, **kwargs) -> Any:
 
         logger.info("YAML: using %s parser" % ("Python" if (yaml_loader == yaml.SafeLoader) else "C"))
 
-    return list(yaml.load_all(serialization, Loader=yaml_loader, **kwargs))
+    return list(yaml.load_all(serialization, Loader=yaml_loader))
 
 
 def dump_yaml(obj: Any, **kwargs) -> str:
