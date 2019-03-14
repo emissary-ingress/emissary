@@ -89,6 +89,7 @@ information on what this does, and on the format of the tag names.
    new version.  This is the version string used in the docs.
    * Update [pro-pages.yml](https://github.com/datawire/getambassador.io/blob/master/content/pro-pages.yml) with
    the URLs of the Pro documentation.
+   * Update the YAML for [ambassador-consul-connector.yaml](https://github.com/datawire/ambassador/blob/master/templates/ambassador/pro/ambassador-consul-connector.yaml).
 
 3. Update the YAML in https://github.com/datawire/pro-ref-arch to
    reflect the new version of Pro. If there are changes required
