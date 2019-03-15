@@ -50,7 +50,7 @@ Create the secret -
 kubectl create secret tls user-secret --cert=$FULLCHAIN_PATH --key=$PRIVKEY_PATH
 ```
 
-And then, configure Ambassador's TLS module like the following -
+And then, configure Ambassador's TLS module like the following and put into annotations in your service definition-
 
 ```yaml
 apiVersion: ambassador/v1
