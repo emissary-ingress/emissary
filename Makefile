@@ -119,14 +119,14 @@ NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
 # BELOW AND THEN RUN make docker-update-base
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-10-gcaf359314
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-4"
-AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-4"
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-5"
+AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-5"
 
 SCOUT_APP_KEY=
 
