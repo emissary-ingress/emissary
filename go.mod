@@ -49,6 +49,25 @@ require (
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
 
+// Lock the k8s.io dependencies together to the same version.
+//
+// The "v0.0.0-2019…" versions are the tag "kubernetes-1.13.4", but
+// `go build` (in its infinite wisdom) wants to edit the file to not
+// be useful to humans.  <https://github.com/golang/go/issues/27271>
+// <https://github.com/golang/go/issues/25898>
+//
+// client-go v10 is the version corresponding to Kubernetes 1.13.
+// These 4 packages should all be upgraded together (for example,
+// client-go v10 won't build with the other packages using
+// v1.14.0-alpha versions
+// <https://github.com/kubernetes/client-go/issues/551>)
+replace (
+	k8s.io/api => k8s.io/api kubernetes-1.13.4
+	k8s.io/apimachinery => k8s.io/apimachinery kubernetes-1.13.4
+	k8s.io/cli-runtime => k8s.io/cli-runtime kubernetes-1.13.4
+	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
+)
+
 // Stupid hack for dependencies that both (1) erroneously include
 // golint in their go.sum, and (2) erroneously refer to it as
 // github.com/golang/lint instead of golang.org/x/lint
