@@ -102,6 +102,15 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 		}
 	}
 
+	// Append requested headers.
+	for _, token := range strings.Split(rheader["x-grpc-auth-append"], ";") {
+		header := strings.Split(strings.TrimSpace(token), "=")
+		if len(header) > 1 {
+			log.Printf("appending header %s : %s", header[0], header[1])
+			rs.AddHeader(true, header[0], header[1])
+		}
+	}
+
 	// Sets requested Cookies.
 	for _, v := range strings.Split(rheader["requested-cookie"], ",") {
 		val := strings.Trim(v, " ")

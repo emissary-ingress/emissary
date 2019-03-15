@@ -1,0 +1,70 @@
+static_resources:
+  listeners:
+  - address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 8000
+    
+    
+    filter_chains:
+      use_proxy_proto: False
+      filters:
+      - name: envoy.http_connection_manager
+        config:
+          codec_type: auto
+          add_user_agent: true
+          idle_timeout: 0.840s
+          stat_prefix: egress_http
+          use_remote_address: true
+          upgrade_configs:
+          - upgrade_type: websocket
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: echo-service
+              domains:
+              - "*"
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: echo-service
+              
+          http_filters:
+          - name: envoy.ext_authz
+            config:
+              grpc_service:
+                envoy_grpc:
+                  cluster_name: auth-service
+                timeout: 0.5s
+
+          - name: envoy.router
+            config: {} 
+
+  clusters:
+  - name: auth-service
+    connect_timeout: 1s
+    type: strict_dns
+    lb_policy: round_robin
+    http2_protocol_options: {}
+    hosts:
+    - socket_address:
+        address: auth-service
+        port_value: 8080
+
+  - name: echo-service
+    type: strict_dns
+    dns_lookup_family: V4_ONLY
+    connect_timeout: 1s
+    lb_policy: round_robin
+    hosts:
+    - socket_address:
+        address: echo-service
+        port_value: 80
+
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 61893

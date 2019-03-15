@@ -31,7 +31,7 @@ services:
   
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61898/echo-service/get
   auth-service:
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     environment:
     - DEBUG=1
     - BACKEND=true

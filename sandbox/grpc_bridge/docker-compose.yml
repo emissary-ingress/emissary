@@ -17,7 +17,7 @@ services:
       - "61893:8001"
 
   grpc_echo:
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     environment:
     - DEBUG=1
     - KAT_BACKEND_TYPE=grpc_echo

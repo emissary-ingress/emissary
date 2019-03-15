@@ -1,4 +1,4 @@
-TAG=10
+TAG=11
 
 all: xds echo backend client
 
@@ -75,6 +75,12 @@ sandbox.http-auth:
 	@cd sandbox/http_auth && docker-compose stop && docker-compose rm -f
 	@echo " ---> starting HTTP auth sandbox"
 	@cd sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+
+sandbox.grpc-auth:
+	@echo " ---> cleaning gRPC auth sandbox"
+	@cd sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC auth sandbox"
+	@cd sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
 
 sandbox.web:
 	@echo " ---> cleaning gRPC web sandbox"

@@ -66,12 +66,18 @@ This will pass through Envoy filter, hit the HTTP-Echo service and return a HTTP
 ```
 
 This will be exactly the same mechanics used by the Kat tests in Ambassador. It will produce and output with the json response for each call. For running the other sandboxes:
+
+gRPC-bridge
 ```
 $ make sandbox.bridge
 ```
 
-or
-
+gRPC-web
 ```
 $ make sandbox.web
+```
+
+gRPC-auth
+```
+$ make sandbox.grpc_auth
 ```
