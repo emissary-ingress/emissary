@@ -24,12 +24,13 @@ spec:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
     spec:
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.40.0
+        image: quay.io/datawire/ambassador:0.51.2
         resources:
           limits:
             cpu: 1
