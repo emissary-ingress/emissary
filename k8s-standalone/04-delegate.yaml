@@ -53,8 +53,6 @@ metadata:
   namespace: standalone
 spec:
   Delegate:
-    # https://github.com/golang/go/issues/27546
-    #auth_service: "http-auth:hauth"
     auth_service: "http-auth:4000"
     path_prefix: "/frobnitz"
     proto: http

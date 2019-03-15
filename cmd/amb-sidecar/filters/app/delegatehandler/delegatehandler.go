@@ -129,14 +129,7 @@ func (f *DelegateFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 			servicePort = "80"
 		}
 	} else if _, err := strconv.Atoi(servicePort); err != nil {
-		_, addrs, err := net.LookupSRV(servicePort, "tcp", serviceHost)
-		if err != nil {
-			return nil, errors.Wrapf(err, "resolving \"_%s._tcp.%s IN SRV\"", servicePort, serviceHost)
-		}
-		if len(addrs) == 0 {
-			return nil, errors.Errorf("got 0 responses when resolving \"_%s._tcp.%s IN SRV\"", servicePort, serviceHost)
-		}
-		servicePort = strconv.Itoa(int(addrs[len(addrs)-1].Port))
+		return nil, errors.Wrap(err, "bad port number")
 	}
 	serviceAuthority := net.JoinHostPort(serviceHost, servicePort)
 
