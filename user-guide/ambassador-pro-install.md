@@ -44,6 +44,22 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 
 **Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change the `ambassador/ambassador-service.yaml` to a different service type (e.g., `NodePort`).
 
+By default, Ambassador Pro uses ports 8081 and 8082 for rate-limiting
+and filtering, respectively.  If for whatever reason those assignments
+are problematic (perhaps you [set
+`service_port`](/reference/running/#running-as-non-root) to one of
+those), you can set adjust these by setting environment variables:
+
+  - `GRPC_PORT`: Which port to serve the RateLimitService on; `8081`
+    by default.
+  - `APRO_AUTH_PORT`: Which port to serve the filtering AuthService
+    on; `8082` by default.
+
+If you have deployed Ambassador with
+[`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
+[`AMBASSADOR_ID`](/reference/running/#multiple-ambassadors-in-one-cluster)
+set, you will also need to set them in the Pro container.
+
 ## 4. Configure JWT authentication
 
 Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
@@ -78,13 +94,13 @@ spec:
 Get the External IP address of your Ambassador service:
 
 ```
-kubectl get svc ambassador
+AMBASSADOR_IP=$(kubectl get svc ambassador -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
 We'll now test Ambassador Pro with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
 
 ```
-$ curl $AMBASSADOR_IP/httpbin/ip # No authentication token
+$ curl -k https://$AMBASSADOR_IP/httpbin/ip # No authentication token
 {
   "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
 }
@@ -93,7 +109,7 @@ $ curl $AMBASSADOR_IP/httpbin/ip # No authentication token
 Send a request to the `jwt-httpbin` URL, which is protected by the JWT filter. This URL is not public, so it returns a 401.
 
 ```
-$ curl -i $AMBASSADOR_IP/jwt-httpbin/ip # No authentication token
+$ curl -i -k https://$AMBASSADOR_IP/jwt-httpbin/ip # No authentication token
 HTTP/1.1 401 Unauthorized
 content-length: 58
 content-type: text/plain
@@ -104,7 +120,7 @@ server: envoy
 Finally, send a request with a valid JWT to the `jwt-httpbin` URL, which will return successfully.
 
 ```
-$ curl --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." $AMBASSADOR_IP/jwt-httpbin/ip
+$ curl -k --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." https://$AMBASSADOR_IP/jwt-httpbin/ip
 {
   "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
 }
