@@ -59,15 +59,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         if [[ $VERSION =~ '^v' ]]; then
             VERSION=$(echo "$VERSION" | cut -c2-)
         fi
-
-        echo "making stable docs for $VERSION"
-        make VERSION="$VERSION" DOC_RELEASE_TYPE=stable website
-    else
-        # Anything else, push staging.
-
-        echo "making draft docs for $VERSION"
-        make website
-    fi        
+    fi
 
     # XXX FOR RIGHT NOW DO NOT EVER RUN OLD E2E TESTS.
     # XXX This is wrong in general, since the E2E tests still provide coverage
