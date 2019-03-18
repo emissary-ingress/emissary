@@ -47,6 +47,8 @@ type FilterJWT struct {
 	RequireIssuedAt  bool `json:"requireIssuedAt"`
 	RequireExpiresAt bool `json:"requireExpiresAt"`
 	RequireNotBefore bool `json:"requireNotBefore"`
+
+	InsecureTLS bool `json:"insecureTLS"`
 }
 
 func (m *FilterJWT) Validate() error {

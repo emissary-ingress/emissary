@@ -1,6 +1,8 @@
 package httpclient
 
 import (
+	"crypto/tls"
+	"net"
 	"net/http"
 	"sort"
 	"strconv"
@@ -53,7 +55,7 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 //        violation of RFC7234)
 //  - It logs all requests+responses, and whether or not they came
 //    from the network for from the cache.
-func NewHTTPClient(logger types.Logger, maxStale time.Duration) *http.Client {
+func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool) *http.Client {
 	return &http.Client{
 		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 			if maxStale > 0 {
@@ -80,7 +82,26 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration) *http.Client {
 				Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 					cached = false
 					start := time.Now()
-					res, err := http.DefaultTransport.RoundTrip(req)
+					transport := http.DefaultTransport
+					if insecure {
+						// this is the definition of http.DefaultTransport,
+						// but with TLSClientConfig added.
+						transport = &http.Transport{
+							Proxy: http.ProxyFromEnvironment,
+							DialContext: (&net.Dialer{
+								Timeout:   30 * time.Second,
+								KeepAlive: 30 * time.Second,
+								DualStack: true,
+							}).DialContext,
+							MaxIdleConns:          100,
+							IdleConnTimeout:       90 * time.Second,
+							TLSHandshakeTimeout:   10 * time.Second,
+							ExpectContinueTimeout: 1 * time.Second,
+							// #nosec G402
+							TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+						}
+					}
+					res, err := transport.RoundTrip(req)
 					dur := time.Since(start)
 					if err != nil {
 						logger.Infof("HTTP CLIENT: NET: %s %s => ERR %v (%v)", req.Method, req.URL, err, dur)

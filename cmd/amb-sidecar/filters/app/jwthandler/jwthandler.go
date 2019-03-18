@@ -30,7 +30,7 @@ type JWTHandler struct {
 
 func (h *JWTHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r)
-	httpClient := httpclient.NewHTTPClient(logger, 0)
+	httpClient := httpclient.NewHTTPClient(logger, 0, h.Filter.InsecureTLS)
 
 	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 
