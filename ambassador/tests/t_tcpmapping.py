@@ -134,7 +134,9 @@ tls: true
     def scheme(self):
         return "https"
 
-    # Any Query object yielded from queries() will be run as a test...
+    # Any Query object yielded from queries() will be run as a test. Also,
+    # you can add a keyword argument debug=True to any Query() call and the
+    # complete response object will be dumped.
 
     def queries(self):
         # 0: should hit target1, and use TLS
@@ -143,8 +145,7 @@ tls: true
 
         # 1: should hit target2, and use TLS
         yield Query(self.url(self.name + "/wtfo/", port=7654, scheme='http'),
-                    insecure=True,
-                    debug=True)
+                    insecure=True)
 
         # 2: should hit target1 via SNI, and use cleartext
         yield Query(self.url(self.name + "/wtfo/", port=6789),

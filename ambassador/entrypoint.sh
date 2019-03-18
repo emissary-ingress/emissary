@@ -155,7 +155,7 @@ trap "handle_int" INT
 
 # Start using ancient kubewatch to get our cluster ID.
 # XXX Ditch this, really.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id /no/such/path /dev/null)
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug) #$KUBEWATCH_DEBUG)
 
 STATUS=$?
 
