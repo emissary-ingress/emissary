@@ -29,8 +29,7 @@ git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@
 
 cd docs
 cp -RL yaml ${CONTENT_DIR}
-cp doc-links.yml ${CONTENT_DIR}
-cp versions.yml ${CONTENT_DIR}
+cp *.yml ${CONTENT_DIR}
 cp -r images/ ${STATIC_DIR}
 find . \
     -not \( -path ./node_modules -prune \) \
