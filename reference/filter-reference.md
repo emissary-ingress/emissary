@@ -268,3 +268,23 @@ spec:
     path: /httpbin/ip
     filters: null
 ```
+
+## Installing self-signed certificates
+
+The JWT and OAuth2 filters speak to other servers over HTTP or HTTPS.
+If those servers are condifured to speak HTTPS using a self-signed
+certificate, attempting to talk to them will result in a error
+mentioning `ERR x509: certificate signed by unknown authority`.  You
+can fix this by installing that self-signed certificate in to the Pro
+container following the standard procedure for Alpine Linux 3.8: Copy
+the certificate to `/usr/local/share/ca-certificates/` and then run
+`update-ca-certificates`.
+
+```Dockerfile
+FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
+RUN update-ca-certificates
+```
+
+When deploying Ambassador Pro, refer to that Docker image, rather than
+to `quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
