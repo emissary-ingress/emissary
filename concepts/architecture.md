@@ -4,7 +4,7 @@
 
 Ambassador is a specialized [control plane for Envoy Proxy](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d). In this architecture, Ambassador translates configuration (in the form of Kubernetes annotations) to Envoy configuration. All actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
 
-![Architecture](/images/ambassador-arch.png)
+![Architecture](/doc-images/ambassador-arch.png)
 
 ## Details
 
