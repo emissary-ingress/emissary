@@ -574,6 +574,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
 
     def _respond(self, rqueue: queue.Queue, status: int, info='') -> None:
+        self.logger.debug("responding to query with %s %s" % (status, info))
         rqueue.put((status, info))
 
     def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:
@@ -615,8 +616,11 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not fetcher.elements:
             self.logger.debug("no configuration found in snapshot %s" % snapshot)
-            self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
-            return
+
+            # Don't actually bail here. If they send over a valid config that happens
+            # to have nothing for us, it's still a legit config.
+            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
+            # return
 
         self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
 
@@ -673,8 +677,6 @@ class AmbassadorEventWatcher(threading.Thread):
         app.econf = econf
         app.diag = diag
 
-        app.check_scout("update")
-
         if app.kick:
             self.logger.info("running '%s'" % app.kick)
             os.system(app.kick)
@@ -688,6 +690,10 @@ class AmbassadorEventWatcher(threading.Thread):
         if app.health_checks and not app.stats_updater:
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
+
+        # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
+        # update until after we've taken care of Envoy.
+        self.check_scout("update")
 
     def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
         uptime = datetime.datetime.now() - boot_time
