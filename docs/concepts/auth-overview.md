@@ -10,7 +10,7 @@ This article is focused on implementing authentication at the edge with the Kube
 
 This is what the authentication process looks like at a high level when using Ambassador with Auth0 as an identity provider. The use case is an end-user accessing a secured app service.
 
-![Ambassador Authentication OAuth/OIDC](../../images/ambassador_oidc_flow.jpg)
+![Ambassador Authentication OAuth/OIDC](../../doc-images/ambassador_oidc_flow.jpg)
 
 There is quite a bit happening in this diagram, and so it will be useful to provide an overview of all of the moving parts.
 

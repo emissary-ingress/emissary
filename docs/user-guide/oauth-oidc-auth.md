@@ -57,27 +57,27 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
 1. Navigate to Applications and Select "CREATE APPLICATION"
 
-  ![](/images/create-application.png)
+  ![](/doc-images/create-application.png)
 
 2. In the pop-up window, give the application a name (this will be the `authorizationURL` in your `Filter`) and create a "Machine to Machine App"
 
-  ![](/images/machine-machine.png)
+  ![](/doc-images/machine-machine.png)
 
 3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.) 
 
-  ![](/images/scopes.png)
+  ![](/doc-images/scopes.png)
   
 4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `Post`. The default YAML installation of Ambassador Pro uses `/callback` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/callback` and `example.com`.
 
-  ![](/images/Auth0_none.png)
+  ![](/doc-images/Auth0_none.png)
 
 5. Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `secret` from your application settings:
 
-   ![](/images/Auth0_secret.png)
+   ![](/doc-images/Auth0_secret.png)
 
    The `audience` is the API Audience of your Auth0 Management API:
 
-   ![](/images/Auth0_audience.png)
+   ![](/doc-images/Auth0_audience.png)
 
    ```yaml
    ---
