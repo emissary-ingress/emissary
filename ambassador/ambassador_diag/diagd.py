@@ -523,8 +523,6 @@ class AmbassadorEventWatcher(threading.Thread):
         self.app = app
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
-        self.active_config_cmd: Optional[str] = None
-        self.pending_config_cmd: Optional[str] = None
 
     def post(self, cmd: str, arg: Union[str, Tuple[str, IR]]) -> Tuple[int, str]:
         rqueue = queue.Queue()
