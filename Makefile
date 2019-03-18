@@ -271,18 +271,6 @@ version: ambassador/ambassador/VERSION.py
 e2e-versioned-manifests: venv website-yaml
 	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
-website-yaml:
-	mkdir -p docs/yaml
-	cp -R templates/* docs/yaml
-	find ./docs/yaml \
-		-type f \
-		-exec sed \
-			-i''\
-			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g" \
-			{} \;
-
-website: website-yaml
-
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
 	source venv/bin/activate; \
