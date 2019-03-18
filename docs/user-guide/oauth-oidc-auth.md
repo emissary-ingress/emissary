@@ -264,11 +264,11 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
      OAuth2:
        authorizationURL: {UAA_DOMAIN}/{ZONE}
        clientURL: https://datawire-ambassador.com
-       audience: {UAA_DOMAIN}
+       audience: {UAA_DOMAIN}/{ZONE}
        clientID: ambassador
        secret: CLIENT_SECRET
    ```
-   **Note:** The `authorizationURL` and `audience` are the same for UAA configuration. 
+   **Note:** The `authorizationURL` and `audience` are the same for UAA configuration. Since UAA is designed for mult-tenancy, the value for `{ZONE}` is the [UAA Identity Zone](https://docs.cloudfoundry.org/uaa/uaa-concepts.html#iz) you created the client in.
 
    ```yaml
    ---
@@ -289,7 +289,6 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
    ```
 
    **Note:** The `scopes` field was set when creating the client in step 1. You can add any scopes you would like when creating the client.
-
 
 ## Configure Authentication Across Multiple Domains (Optional)
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
