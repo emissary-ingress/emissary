@@ -28,7 +28,7 @@ rm -rf /tmp/getambassador.io
 git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
 
 cd docs
-cp -R yaml ${STATIC_DIR}
+cp -RL yaml ${CONTENT_DIR}
 cp doc-links.yml ${CONTENT_DIR}
 cp versions.yml ${CONTENT_DIR}
 cp -r images/ ${STATIC_DIR}
