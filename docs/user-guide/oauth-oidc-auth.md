@@ -182,6 +182,63 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
                - "offline_access"
    ```
 
+### Okta
+
+1. Create an an OIDC application
+
+   - Select `Applications`
+   - Select `Add Application`
+   - Choose `Web` and click next
+   - Give it a name, enter the URL of your Ambassador load balancer in `Base URIs` and the callback URL `{AMBASSADOR_URL}/callback` as the `Login redirect URIs
+
+2. Copy the `Client ID` and `Client Secret` and use them to fill in the `ClientID` and `Secret` of you Okta OAuth `Filter`.
+
+3. Get the `audience` configuration
+
+   - Select `API` and `Authorization Servers`
+   - You can use the default `Authorization Server` or create your own.
+   - If you are using the default, the `audience` of your Okta OAuth `Filter` is `api://default`
+   - The value of the `authorizationURL` is the `Issuer URI` of the `Authorization Server`
+
+4. Configure your OAuth `Filter` and `FilterPolicy`
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: Filter
+   metadata:
+     name: okta_filter
+     namespace: default
+   spec:
+     OAuth2:
+       authorizationURL: https://{OKTA_DOMAIN}.okta.com/oauth2/default
+       clientURL: https://datawire-ambassador.com
+       audience: api://default
+       clientID: CLIENT_ID
+       secret: CLIENT_SECRET
+   ```
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: FilterPolicy
+   metadata:
+     name: httpbin-policy
+     namespace: default
+   spec:
+     rules:
+       - host: "*"
+         path: /httpbin/ip
+         filters:
+           - name: okta_filter ## Enter the Filter name from above
+             arguments:
+               scopes:
+               - "openid"
+               - "profile"
+   ```
+
+   **Note:** Scopes `openid` and `profile` are required at a minimum. Other scopes can be added to the `Authorization Server`
+
 ## Configure Authentication Across Multiple Domains (Optional)
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
 
