@@ -237,7 +237,7 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
                - "profile"
    ```
 
-   **Note:** Scopes `openid` and `profile` are required at minimum. Other scopes can be added to the `Authorization Server`
+   **Note:** Scopes `openid` and `profile` are required at a minimum. Other scopes can be added to the `Authorization Server`
 
 ## Configure Authentication Across Multiple Domains (Optional)
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
