@@ -173,7 +173,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.51.1
+        image: quay.io/datawire/ambassador:%version%
         resources:
           limits:
             cpu: 1
@@ -206,7 +206,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: ambassador-pro
-        image: quay.io/datawire/ambassador_pro:amb-sidecar-0.2.2
+        image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
         ports:
         - name: ratelimit-grpc
           containerPort: 8081
