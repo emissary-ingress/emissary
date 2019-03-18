@@ -2,13 +2,13 @@
 
 ## BREAKING NEWS
 
-### AMBASSADOR 0.50.3
+### AMBASSADOR 0.51
 
-Ambassador 0.50.3 fixes some important issues, and is highly recommended for any 0.50 users. Please see the notes below on 0.50.2.
+The current recommended version of Ambassador is 0.51.2.
 
-### AMBASSADOR 0.50.0
+### AMBASSADOR 0.50+
 
-Ambassador 0.50.0 is a major rearchitecture of Ambassador onto Envoy V2 using the ADS. It also introduces the KAT suite for dramatically-faster functional testing (see `ambassador/tests/kat` for more).
+Ambassador 0.50.0 introduces a major rearchitecture of Ambassador onto Envoy V2 using the ADS. It also introduces the KAT suite for dramatically-faster functional testing (see `ambassador/tests/kat` for more).
 
 There are a number of breaking changes in Ambassador 0.50.0:
 
@@ -55,7 +55,7 @@ There are a number of breaking changes in Ambassador 0.50.0:
         `docs/reference/services/auth-service.md`, but you may very well find that you need to shift to API version
         `ambassador/v1` to fully support your authentication system.
    
-    More information is available in `docs/reference/services/auth-service.md`.
+      - More information is available in `docs/reference/services/auth-service.md`.
 
 ## RELEASE NOTES
 
@@ -79,6 +79,40 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.51.2] March 12, 2019
+[0.51.2]: https://github.com/datawire/ambassador/compare/0.51.1...0.51.2
+
+### Changes since 0.51.1
+
+- Cookies are now correctly handled when using external auth services... really. ([#1211])
+
+[#1211]: https://github.com/datawire/ambassador/issues/1211
+
+## [0.51.1] March 11, 2019
+[0.51.1]: https://github.com/datawire/ambassador/compare/0.51.0...0.51.1
+
+### Changes since 0.51.0
+
+- Ambassador correctly handles services in namespaces other than the one Ambassador is running in.
+
+## [0.51.0] March 8, 2019
+[0.51.0]: https://github.com/datawire/ambassador/compare/0.50.3...0.51.0
+
+**0.51.0 is not recommended: upgrade to 0.51.1.**
+
+### Changes since 0.50.3
+
+- Ambassador can now route any TCP connection, using the new `TCPMapping` resource. ([#420])
+- Cookies are now correctly handled when using external auth services ([#1211])
+- Lots of work in docs and testing under the hood
+
+[#420]: https://github.com/datawire/ambassador/issues/420
+[#1211]: https://github.com/datawire/ambassador/issues/1211
+
+### Limitations in 0.51.0
+
+At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador resource. This restriction will be lifted in a future Ambassador release. 
 
 ## [0.50.3] February 21, 2019
 [0.50.3]: https://github.com/datawire/ambassador/compare/0.50.2...0.50.3

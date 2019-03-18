@@ -117,11 +117,16 @@ DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
 
+# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
+# BELOW AND THEN RUN make docker-update-base
 ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-2-rc"
-AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-2-rc"
+
+# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
+# RUN make docker-update-base.
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-4
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-4
 
 SCOUT_APP_KEY=
 
@@ -152,6 +157,7 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf docs/node_modules
+	-rm -rf kat/kat/client
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
@@ -203,11 +209,13 @@ docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
+	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
 	docker push $(AMBASSADOR_BASE_IMAGE)
+	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base: docker-base-images docker-push-base-images
 
@@ -358,8 +366,8 @@ teleproxy-stop:
 KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
-	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
-	AMBASSADOR_DOCKER_IMAGE_CACHED=$(AMBASSADOR_DOCKER_IMAGE_CACHED) \
+	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
+	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \

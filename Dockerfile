@@ -50,7 +50,9 @@ WORKDIR ${AMBASSADOR_ROOT}
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6
+COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6/
+COPY --from=cached /usr/lib/libyaml* /usr/lib/
+COPY --from=cached /usr/lib/pkgconfig /usr/lib/
 
 # Copy Ambassador binaries (built in stage one).
 COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/

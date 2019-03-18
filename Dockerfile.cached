@@ -41,6 +41,21 @@ WORKDIR ${AMBASSADOR_ROOT}
 RUN apk --no-cache add go build-base libffi-dev openssl-dev python3-dev python3 curl && \
     pip3 install -U pip
 
+# The YAML parser is... special. First, we need to install libyaml. No,
+# I don't know why it's called yaml-dev.
+RUN apk --no-cache add yaml-dev
+
+# Next, we need Cython. Sadly, we can't `apk add cython3`, so we have
+# to build the silly thing.
+RUN pip3 install cython
+
+# After that, we can download !*@&#!*@&# PyYAML...
+RUN curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-3.13.tar.gz
+RUN tar xzf PyYAML-3.13.tar.gz
+
+# ...and then install it.
+RUN cd PyYAML-3.13 && python3 setup.py --with-libyaml install
+
 COPY releng releng
 COPY multi/requirements.txt multi/
 COPY ambassador/requirements.txt ambassador/

@@ -95,6 +95,8 @@ env:
   value: "true"
 ```
 
+If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
+
 ## Multiple Ambassadors in One Cluster
 
 Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,
@@ -123,6 +125,8 @@ env:
 - name: AMBASSADOR_ID
   value: ambassador-1
 ```
+
+If you are using Ambassador Pro, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
 
 Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 
@@ -188,7 +192,9 @@ Also note that the YAML files in the configuration directory must contain Ambass
 
 ## Log levels and debugging
 
-Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis. If using Ambassador Pro, you can increase the log levels by setting the `APP_LOG_LEVEL` environment variable to `debug`.
+Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
+
+If using Ambassador Pro, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 
 ## Ambassador Update Checks (Scout)
 

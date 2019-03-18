@@ -7,6 +7,15 @@ import shutil
 import subprocess
 import yaml
 
+yaml_loader = yaml.SafeLoader
+yaml_dumper = yaml.SafeDumper
+
+try:
+    yaml_loader = yaml.CSafeLoader
+    yaml_dumper = yaml.CSafeDumper
+except AttributeError:
+    pass
+
 from typing import Any, ClassVar, Dict, List, Optional, Sequence
 from typing import cast as typecast
 
@@ -174,7 +183,7 @@ class AmbassadorTest(Test):
                 fd.write(result.stdout)
             content = result.stdout
         try:
-            secret = yaml.load(content)
+            secret = yaml.load(content, Loader=yaml_loader)
         except Exception as e:
             print("could not parse YAML:\n%s" % content)
             raise e
@@ -284,8 +293,15 @@ class ServiceType(Node):
     _manifests: Optional[str]
     use_superpod: bool = True
  
-    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, service_manifests: str=None, namespace: str=None, *args, **kwargs) -> None:
+        if namespace is not None:
+            print("%s init %s" % (type(self), namespace))
+
+        super().__init__(namespace=namespace, *args, **kwargs)
+
+        if namespace is not None:
+            print("%s %s after super %s" % (type(self), self.name, self.namespace))
+
         self._manifests = service_manifests
 
         if self._manifests:

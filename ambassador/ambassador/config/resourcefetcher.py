@@ -6,28 +6,10 @@ import logging
 import os
 import yaml
 
-# from collections import namedtuple
-
+from .config import Config
 from .acresource import ACResource
-# from ..utils import RichStatus
 
-if TYPE_CHECKING:
-    from .config import Config
-
-# StringOrList is either a string or a list of strings.
-# StringOrList = Union[str, List[str]]
-
-
-# class YAMLElement (dict):
-#     def __init__(self, obj: dict, serialization: str, rkey: Optional[str]=None,
-#                  filename: Optional[str]=None, filepath: Optional[str]=None, ocount=1):
-#
-#         if filename and not rkey:
-#             rkey = filename
-#
-#         super().__init__(obj=obj, serialization=serialization, rkey=rkey,
-#                          filename=filename, filepath=filepath, ocount=ocount)
-
+from ..utils import parse_yaml, dump_yaml
 
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
@@ -122,7 +104,7 @@ class ResourceFetcher:
         #                    serialization))
 
         try:
-            objects = list(yaml.safe_load_all(serialization))
+            objects = list(parse_yaml(serialization))
 
             self.push_location(filename, 1)
 
@@ -176,13 +158,13 @@ class ResourceFetcher:
             skip = True
 
         if not skip and not annotations:
-            # self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
+            self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
             skip = True
 
-        if not skip and (resource_namespace != self.aconf.ambassador_namespace):
+        if not skip and (Config.single_namespace and (resource_namespace != self.aconf.ambassador_namespace)):
             # This should never happen in actual usage, since we shouldn't be given things
             # in the wrong namespace. However, in development, this can happen a lot.
-            # self.logger.debug("%s: ignoring K8s %s in wrong namespace" % (self.location, kind))
+            self.logger.debug("%s: ignoring K8s %s in wrong namespace" % (self.location, kind))
             skip = True
 
         if not skip:
@@ -237,7 +219,7 @@ class ResourceFetcher:
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
         # Fine. Fine fine fine.
-        serialization = yaml.safe_dump(obj, default_flow_style=False)
+        serialization = dump_yaml(obj, default_flow_style=False)
 
         r = ACResource.from_dict(rkey, rkey, serialization, obj)
         self.elements.append(r)
