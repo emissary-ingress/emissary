@@ -1,12 +1,11 @@
 import sys
 
 from typing import Any, Dict, List, Optional, Type, TypeVar
-from typing import cast as typecast
 
 import json
-import yaml
 
-from .utils import RichStatus
+from .utils import parse_yaml
+
 
 R = TypeVar('R', bound='Resource')
 
@@ -210,6 +209,6 @@ class Resource (dict):
         :param serialization: original input serialization of obj
         """
 
-        attrs = yaml.safe_load(serialization)
+        attrs = parse_yaml(serialization)
 
         return cls.from_dict(rkey, location, serialization, attrs)

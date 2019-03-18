@@ -5,7 +5,6 @@ gunicorn==19.9.0
 jinja2==2.10
 jsonschema==2.6.0
 jwt==0.5.4
-pyyaml==3.13
 scout.py==0.5.0
 semantic-version==2.6.0
 kubernetes==8.0.0

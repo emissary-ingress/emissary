@@ -7,6 +7,15 @@ import shutil
 import subprocess
 import yaml
 
+yaml_loader = yaml.SafeLoader
+yaml_dumper = yaml.SafeDumper
+
+try:
+    yaml_loader = yaml.CSafeLoader
+    yaml_dumper = yaml.CSafeDumper
+except AttributeError:
+    pass
+
 from typing import Any, ClassVar, Dict, List, Optional, Sequence
 from typing import cast as typecast
 
@@ -174,7 +183,7 @@ class AmbassadorTest(Test):
                 fd.write(result.stdout)
             content = result.stdout
         try:
-            secret = yaml.load(content)
+            secret = yaml.load(content, Loader=yaml_loader)
         except Exception as e:
             print("could not parse YAML:\n%s" % content)
             raise e

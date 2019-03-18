@@ -9,6 +9,8 @@ import yaml
 from .config import Config
 from .acresource import ACResource
 
+from ..utils import parse_yaml, dump_yaml
+
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
 #   services, because we should assume that if we're being a fed a bunch of Ambassador
@@ -102,7 +104,7 @@ class ResourceFetcher:
         #                    serialization))
 
         try:
-            objects = list(yaml.safe_load_all(serialization))
+            objects = list(parse_yaml(serialization))
 
             self.push_location(filename, 1)
 
@@ -217,7 +219,7 @@ class ResourceFetcher:
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
         # Fine. Fine fine fine.
-        serialization = yaml.safe_dump(obj, default_flow_style=False)
+        serialization = dump_yaml(obj, default_flow_style=False)
 
         r = ACResource.from_dict(rkey, rkey, serialization, obj)
         self.elements.append(r)

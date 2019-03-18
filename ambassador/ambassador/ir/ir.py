@@ -19,7 +19,7 @@ import json
 import logging
 import os
 
-from ..utils import RichStatus, KubeSecretReader, SavedSecret
+from ..utils import RichStatus, SavedSecret
 from ..config import Config
 
 from .irresource import IRResource
@@ -44,6 +44,11 @@ from ..VERSION import Version, Build
 ## After getting an ambassador.Config, you can create an ambassador.IR. The
 ## IR is the basis for everything else: you can use it to configure an Envoy
 ## or to run diagnostics.
+
+
+def error_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
+    # Failsafe only.
+    return SavedSecret(secret_name, namespace, None, None, {})
 
 
 class IR:
@@ -77,7 +82,7 @@ class IR:
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-        setattr(self, 'secret_reader', secret_reader or KubeSecretReader(secret_root))
+        setattr(self, 'secret_reader', secret_reader or error_secret_reader)
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
 
         self.logger.debug("IR __init__:")
