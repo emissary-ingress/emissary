@@ -108,6 +108,13 @@ def v2filter_buffer(buffer: IRBuffer):
 def v2filter_grpc_http1_bridge(irfilter: IRFilter):
     return {
         'name': 'envoy.grpc_http1_bridge',
+       'config': {},
+    }
+
+@v2filter.when("ir.grpc_web")
+def v2filter_grpc_web(irfilter: IRFilter):
+    return {
+        'name': 'envoy.grpc_web',
         'config': {},
     }
 
