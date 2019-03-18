@@ -603,8 +603,9 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
-            self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
-            return
+            # We never used to return here. I'm not sure if that's really correct?
+            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
+            # return
 
         scc = SecretSaver(app.logger, url, app.snapshot_path)
 
