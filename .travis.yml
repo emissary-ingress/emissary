@@ -80,7 +80,7 @@ deploy:
 
   # Perform doc publish on
   - provider: script
-    script: make publish-website
+    script: make push-docs
     skip_cleanup: true
     on:
       branch: stable

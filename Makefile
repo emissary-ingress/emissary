@@ -21,7 +21,7 @@ SHELL = bash
 .FORCE:
 .PHONY: \
     .FORCE clean version setup-develop print-vars \
-    docker-login docker-push docker-images publish-website \
+    docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
@@ -440,8 +440,11 @@ mypy: mypy-server
 # Website
 # ------------------------------------------------------------------------------
 
-publish-website:
-	bash ./releng/publish-website.sh;
+pull-docs:
+	git subtree pull --prefix=docs https://github.com/datawire/ambassador-docs.git master
+push-docs:
+	git subtree push --prefix=docs $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git master
+.PHONY: pull-docs push-docs
 
 # ------------------------------------------------------------------------------
 # CI Targets
