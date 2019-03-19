@@ -12,5 +12,5 @@ A few sentences describing what testing you've done, e.g., manual tests, automat
 - [ ] Documentation
 
 ## Other
-* If this is a documentation change, please open the pull request against the `stable` branch.
-* Code changes should occur against `stable`.
+* If this is a documentation change, please open the pull request at https://github.com/datawire/ambassador-docs instead.
+* Code changes should occur against `master`.
