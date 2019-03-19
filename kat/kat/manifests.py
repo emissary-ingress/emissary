@@ -29,7 +29,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     ports:
     - containerPort: 8080
     env:
@@ -48,7 +48,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     # ports:
     # {ports}
     env:
@@ -85,7 +85,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     ports:
     - containerPort: 8080
     env:
@@ -123,7 +123,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     ports:
     - containerPort: 8080
     env:
@@ -161,7 +161,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:10
+    image: quay.io/datawire/kat-backend:11
     ports:
     - containerPort: 8080
     env:

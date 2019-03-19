@@ -69,6 +69,15 @@ config:
   # X-Forwarded_For header. 
   # use_remote_address: true
 
+  # xff_num_trusted_hops controls the how Envoy sets the trusted 
+  # client IP address of a request. If you have a proxy in front
+  # of Ambassador, Envoy will set the trusted client IP to the
+  # address of that proxy. To preserve the orginal client IP address,
+  # setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
+  # address in X-Forwarded-For. Please see the envoy documentation for
+  # more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
+  # xff_num_trusted_hops: 0
+
   # Ambassador lets through only the HTTP requests with
   # `X-FORWARDED-PROTO: https` header set, and redirects all the other
   # requests to HTTPS if this field is set to true.
@@ -103,6 +112,20 @@ the values here are used. Most Ambassador installations will probably be able to
 ### `use_remote_address`
 
 In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
+
+### `xff_num_trusted_hops` 
+
+The value of `xff_num_trusted_hops` indicates the number of trusted proxies in front of Ambassador. The default setting is 0 which tells Envoy to use the immediate downstream connection's IP address as the trusted client address. The trusted client address is used to populate the `remote_address` field used for rate limiting and can affect which IP address Envoy will set as `X-Envoy-External-Address`. 
+
+`xff_num_trusted_hops` behavior is determined by the value of `use_remote_address` (which defaults to `true` in Ambassador).
+
+- If `use_remote_address` is `false` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the (N+1)th address from the right end of XFF. (If the XFF contains fewer than N+1 addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
+
+- If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
+
+Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for) for some detailed examples on this interaction.
+
+**NOTE:** This value is not dynamically configurable in Envoy therefor, a restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
 
 ### `use_proxy_proto`
 

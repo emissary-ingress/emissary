@@ -398,6 +398,8 @@ class IR:
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect' ]:
             od[key] = self.ambassador_module.get(key, False)
 
+        od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
+
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
         default_port = 443 if tls_termination_count else 80

@@ -256,6 +256,14 @@ def v2filter_router(router: IRFilter):
     return od
 
 
+@v2filter.when("ir.lua_scripts")
+def v2filter_lua(irfilter: IRFilter):
+    return {
+        'name': 'envoy.lua',
+        'config': irfilter.config_dict(),
+    }
+
+
 class V2TCPListener(dict):
     def __init__(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
         super().__init__()
@@ -424,6 +432,9 @@ class V2Listener(dict):
 
         if 'use_remote_address' in config.ir.ambassador_module:
             base_http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
+
+        if 'xff_num_trusted_hops' in config.ir.ambassador_module:
+            base_http_config["xff_num_trusted_hops"] = config.ir.ambassador_module.xff_num_trusted_hops
 
         if config.ir.tracing:
             base_http_config["generate_request_id"] = True

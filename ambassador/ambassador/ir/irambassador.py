@@ -34,7 +34,8 @@ class IRAmbassador (IRResource):
         'use_proxy_proto',
         'use_remote_address',
         'x_forwarded_proto_redirect',
-        'load_balancer'
+        'load_balancer',
+        'xff_num_trusted_hops'
     ]
 
     service_port: int
@@ -79,6 +80,7 @@ class IRAmbassador (IRResource):
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer={'type': 'kubernetes', 'policy': 'round_robin'},
+            xff_num_trusted_hops=0,
             **kwargs
         )
 
@@ -209,6 +211,12 @@ class IRAmbassador (IRResource):
             self.grpc_web = IRFilter(ir=ir, aconf=aconf, kind='ir.grpc_web', name='grpc_web', config=dict())
             self.grpc_web.sourced_by(amod)
             ir.save_filter(self.grpc_web)
+
+        if amod and ('lua_scripts' in amod):
+            self.lua_scripts = IRFilter(ir=ir, aconf=aconf, kind='ir.lua_scripts', name='lua_scripts',
+                                        config={'inline_code': amod.lua_scripts})
+            self.lua_scripts.sourced_by(amod)
+            ir.save_filter(self.lua_scripts)
 
          # Buffer.
         if amod and ('buffer' in amod):
