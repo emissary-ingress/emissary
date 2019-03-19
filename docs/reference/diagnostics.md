@@ -12,7 +12,7 @@ where you'll have to fill in the actual pod name of one of your Ambassador pods 
 
 for the diagnostics overview.
 
-![Diagnostics](/images/diagnostics.png)
+![Diagnostics](/doc-images/diagnostics.png)
 
  Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 

@@ -19,28 +19,15 @@ set -o nounset
 set -o verbose
 
 GH_TOKEN="${GH_TOKEN:?not set}"
-DOC_ROOT="docs"
 TARGET_BRANCH="master"
-CONTENT_DIR="/tmp/getambassador.io/content"
-STATIC_DIR="/tmp/getambassador.io/static"
 
 rm -rf /tmp/getambassador.io
 git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
 
-cd docs
-cp -RL yaml ${CONTENT_DIR}
-cp doc-links.yml ${CONTENT_DIR}
-cp versions.yml ${CONTENT_DIR}
-cp -r images/ ${STATIC_DIR}
-find . \
-    -not \( -path ./node_modules -prune \) \
-    -not \( -path ./_book -prune \) \
-    -name \*.md \
-    -exec cp --parent '{}' ${CONTENT_DIR} \;
-cd -
+rsync -a --delete docs/ /tmp/getambassador.io/content/
 
-cd ${CONTENT_DIR}/..
+cd /tmp/getambassador.io
 git add -A
 git commit -m "docs updated from datawire/ambassador"
 git push origin ${TARGET_BRANCH}
-cd -
+
