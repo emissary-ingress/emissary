@@ -180,7 +180,7 @@ Greeter client received: Hello, you!
 
 There is some extra configuration required to connect to a gRPC service through Ambassador over an encrypted channel. Currently, the gRPC call is being sent over cleartext to Ambassador which proxies it to the gRPC application.
 
-![](/images/gRPC-TLS.png)
+![](/doc-images/gRPC-TLS.png)
 
 If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS. Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador.
 
@@ -196,7 +196,7 @@ The default values of `None` tells the gRPC runtime to grab the root certificate
 
 Ambassador is now terminating TLS from the gRPC client and proxying the call to the application over cleartext.
 
-![](/images/gRPC-TLS-Ambassador.png)
+![](/doc-images/gRPC-TLS-Ambassador.png)
 
 Refer to the Ambassador [TLS termination guide](/user-guide/tls-termination) for more information on the TLS module.
 
@@ -206,7 +206,7 @@ Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the
 
 #### Originating TLS with gRPC Service
 
-![](/images/gRPC-TLS-Originate.png)
+![](/doc-images/gRPC-TLS-Originate.png)
 
 Ambassador can originate TLS with your gRPC service so the entire RPC channel is encyrpted. To configure this, first get some TLS certificates and configure the server to open a secure channel with them. Using self-signed certs this can be done with openssl and adding a couple of lines to the server code.
 

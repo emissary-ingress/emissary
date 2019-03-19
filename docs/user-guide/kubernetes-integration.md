@@ -1,4 +1,4 @@
-# Ambassador Architecture
+# Kubernetes Integration: Ambassador Architecture Overview
 
 ## Ambassador is a control plane
 
@@ -14,7 +14,7 @@ When a user applies a Kubernetes manifest containing Ambassador annotations, the
 2. Ambassador translates the configuration into an abstract intermediate representation (IR).
 3. An Envoy configuration file is generated from the IR.
 4. The Envoy configuration file is validated by Ambassador (using Envoy in validation mode).
-5. Assuming the file is valid configuration, Ambassador uses Envoy's [hot restart mechanism](https://blog.envoyproxy.io/envoy-hot-restart-1d16b14555b5) to deploy the new configuration and properly drain connections.
+5. Assuming the file is valid configuration, Ambassador uses Envoy's [Aggregated Discovery Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/v2_overview#aggregated-discovery-service) to deploy the new configuration and properly drain connections.
 
 ## Scaling and availability
 
