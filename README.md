@@ -19,7 +19,7 @@ the Kubernaut cluster).
 ### Continuous Deployment
 
 On Git tags matching `vX.Y.Z[-PRE]` (for integers `X`, `Y`, `Z`, and
-arbitrary string `PRE`), CircleCI does the the
+arbitrary string `PRE`), CircleCI does the
 [above](#continuous-integration), and (assuming the tests pass),
 proceeds to:
  - push `apictl` and `apictl-key` for Linux and Darwin to AWS S3
@@ -59,8 +59,9 @@ This will build
 This will run both unit tests and e2e tests.
 
  > *NOTE:* This will talk to the Auth0 account configured in
- > `./k8s-env.sh`.  The login credentials for that Auth0 can be found
- > in Keybase under `/datawireio/global/ambassador-oauth-ci.txt`.
+ > `./k8s-env.sh`.  The login credentials for that Auth0 account can
+ > be found in Keybase under
+ > `/datawireio/global/ambassador-oauth-ci.txt`.
 
 On macOS, you will first need to add `host.docker.internal:31000` to
 Docker's list of "Insecure registries":
@@ -100,19 +101,3 @@ information on what this does, and on the format of the tag names.
 
 5. Once tests pass on the official build, land the documentation PR onto
    `stable`, and land the YAML changes in `pro-ref-arch` onto `master`.
-
-## How users get this
-
-The installation instructions have users create a secret with
-credentials for a Quay account named `datawire+ambassador_pro` that
-has read permissions in the `quay.io/datawire/ambassador_pro`
-registry.  This secret is then used to authorize the image pull in the
-deployment.  These deployments can currently be found in the
-`/templates/ambassador` directory on the `Ambassador` repo in the
-`nkrause/AmPro/auth-docs` branch (TODO: Can we get a hyperlink in
-here?).
-
-## TODO:
-
- - Each `./k8s-*/` directory should deploy in to a different
-   namespace.
