@@ -25,6 +25,7 @@ from t_extauth import (
     AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
+from t_lua_scripts import LuaTest
 
 # XXX: should test empty ambassador config
 
