@@ -48,6 +48,8 @@ service: {self.target.path.fqdn}
         # [3]
         yield Query(self.url("target/"), headers={"requested-status": "200",
                                                   "authorization": "foo-11111",
+                                                  "foo" : "foo",
+                                                  "x-grpc-auth-append": "foo=bar;baz=bar",
                                                   "requested-header": "Authorization"}, expected=200)
 
     def check(self):
@@ -81,10 +83,11 @@ service: {self.target.path.fqdn}
         assert self.results[3].backend.request.headers["requested-status"] == ["200"]
         assert self.results[3].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[3].backend.request.headers["foo"] == ["foo,bar"]
+        assert self.results[3].backend.request.headers["baz"] == ["bar"]
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-
 
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
 

@@ -256,6 +256,14 @@ def v2filter_router(router: IRFilter):
     return od
 
 
+@v2filter.when("ir.lua_scripts")
+def v2filter_lua(irfilter: IRFilter):
+    return {
+        'name': 'envoy.lua',
+        'config': irfilter.config_dict(),
+    }
+
+
 class V2TCPListener(dict):
     def __init__(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
         super().__init__()

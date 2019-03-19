@@ -208,6 +208,12 @@ class IRAmbassador (IRResource):
             self.grpc_web.sourced_by(amod)
             ir.save_filter(self.grpc_web)
 
+        if amod and ('lua_scripts' in amod):
+            self.lua_scripts = IRFilter(ir=ir, aconf=aconf, kind='ir.lua_scripts', name='lua_scripts',
+                                        config={'inline_code': amod.lua_scripts})
+            self.lua_scripts.sourced_by(amod)
+            ir.save_filter(self.lua_scripts)
+
          # Buffer.
         if amod and ('buffer' in amod):
             self.buffer = IRBuffer(ir=ir, aconf=aconf, location=self.location, **amod.buffer)
