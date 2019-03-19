@@ -1,6 +1,6 @@
 # Configuring OAuth/OIDC Authentication
 
-Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak and Auth0, although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
+Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak, Auth0, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
 
 ## 1. Configure an OAuth2 filter
 
@@ -241,6 +241,22 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
 
 ### Cloud Foundry User Account and Authentication Service (UAA)
 
+**IMPORTANT:** Ambassador Pro requires the IDP return a JWT signed by the RS256 algorithm (asymmetric). UAA defaults to a symmetric key encryption which Ambassador Pro cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
+
+`uaa.yml`
+```yaml
+jwt:
+   token:
+      signing-key: |
+         -----BEGIN RSA PRIVATE KEY-----
+         MIIEpAIBAAKCAQEA7Z1HBM6QFqnIJ1UA3NWnYMuubt4XlfbP1/GopTWUmchKataM
+         ...
+         ...
+         QSbJdIbUBwL8BcrfNw4ebp1DgTI9F45Re+evky0A82aL0/BvBHu8og==
+         -----END RSA PRIVATE KEY-----
+```
+
+
 1. Create an OIDC Client
 
    ```shell
@@ -262,13 +278,13 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
      namespace: default
    spec:
      OAuth2:
-       authorizationURL: {UAA_DOMAIN}/{ZONE}
+       authorizationURL: {UAA_DOMAIN}
        clientURL: https://datawire-ambassador.com
-       audience: {UAA_DOMAIN}/{ZONE}
+       audience: {UAA_DOMAIN}
        clientID: ambassador
        secret: CLIENT_SECRET
    ```
-   **Note:** The `authorizationURL` and `audience` are the same for UAA configuration. Since UAA is designed for mult-tenancy, the value for `{ZONE}` is the [UAA Identity Zone](https://docs.cloudfoundry.org/uaa/uaa-concepts.html#iz) you created the client in.
+   **Note:** The `authorizationURL` and `audience` are the same for UAA configuration. 
 
    ```yaml
    ---
