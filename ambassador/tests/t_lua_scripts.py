@@ -39,4 +39,4 @@ service: {self.target.path.fqdn}
 
     def check(self):
         for r in self.results:
-            assert r.headers.get('Lua-Scripts-Enabled', None) == 'Processed'
+            assert r.headers.get('Lua-Scripts-Enabled', None) == ['Processed']
