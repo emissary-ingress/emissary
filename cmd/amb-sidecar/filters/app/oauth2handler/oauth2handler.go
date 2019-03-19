@@ -168,11 +168,32 @@ func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logg
 
 	// Validate scopes.
 	if claims["scope"] != nil {
+		var scopes []string
+		switch scope := claims["scope"].(type) {
+		case string:
+			for _, s := range strings.Split(scope, " ") {
+				if s == "" {
+					continue
+				}
+				scopes = append(scopes, s)
+			}
+		case []interface{}: // this seems to be out-of-spec, but UAA does it
+			for _, _s := range scope {
+				s, ok := _s.(string)
+				if !ok {
+					logger.Warningf("Unexpected scope[n] type: %T", _s)
+					continue
+				}
+				scopes = append(scopes, s)
+			}
+		default:
+			logger.Warningf("Unexpected scope type: %T", scope)
+		}
 		// TODO(lukeshu): Verify that this check is
 		// correct; it seems backwards to me.
-		for _, s := range strings.Split(claims["scope"].(string), " ") {
+		for _, s := range scopes {
 			logger.Debugf("verifying scope '%s'", s)
-			if s != "" && !inArray(s, j.FilterArguments.Scopes) {
+			if !inArray(s, j.FilterArguments.Scopes) {
 				return errors.Errorf("Token scope %v is not in the policy", s)
 			}
 		}
