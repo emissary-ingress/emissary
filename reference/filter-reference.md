@@ -46,6 +46,7 @@ metadata:
 spec:
   JWT:
     jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json" # required, unless the only validAlgorithm is "none"
+    insecureTLS: true # optional, default is false
     validAlgorithms: # omitting this means "all supported algos except for 'none'"
       - "RS256"
       - "RS384"
@@ -59,6 +60,11 @@ spec:
     requireExpiresAt: true # optional, default is false
     requireNotBefore: true # optional, default is false
 ```
+
+ - `insecureTLS` disables TLS verification for the cases when
+   `jwksURI` begins with `https://`.  This is discouraged in favor of
+   either using plain `http://` or [installing a self-signed
+   certificate](#installing-self-signed-certificates).
 
 ### Filter Type: `OAuth2`
 
@@ -78,6 +84,7 @@ spec:
     authorizationURL: "url-string"      # required
     clientURL:        "url-string"      # required
     stateTTL:         "duration-string" # optional; default is "5m"
+    insecureTLS:      bool              # optional; default is false
     audience:         "string"
     clientID:         "string"
     secret:           "string"
@@ -92,7 +99,11 @@ spec:
    (`example.com:1234`) parts are used; the path part of the URL is
    ignored.
  - stateTTL: How long Ambassador will wait for the user to submit credentials to the IDP and receive a response to that effect from the IDP
- - audience: the OIDC audience
+ - `insecureTLS` disables TLS verification when speeking to an
+   `https://` IDP.  This is discouraged in favor of either using plain
+   `http://` or [installing a self-signed
+   certificate](#installing-self-signed-certificates).
+ - audience: The OIDC audience.
  - clientID: The client ID you get from your IDP.
  - secret: The client secret you get from your IDP.
  - `maxStale`: How long to keep stale cache OIDC replies for.  This
