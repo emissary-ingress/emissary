@@ -150,6 +150,9 @@ class AmbassadorTest(Test):
         if not DEV:
             return
 
+        if os.environ.get('KAT_SKIP_DOCKER'):
+            return
+
         run("docker", "kill", self.path.k8s)
         run("docker", "rm", self.path.k8s)
 
@@ -225,6 +228,9 @@ class AmbassadorTest(Test):
         [command.extend(["-v", volume]) for volume in volumes]
 
         command.append(image)
+
+        if os.environ.get('KAT_SHOW_DOCKER'):
+            print(" ".join(command))
 
         result = run(*command)
         result.check_returncode()
