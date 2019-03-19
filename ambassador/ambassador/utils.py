@@ -100,8 +100,6 @@ def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO
     stream = io.StringIO()
 
     saved = _load_url_contents(logger, url, stream, stream2=stream2)
-    if stream2:
-        stream2.write("---\n")
 
     if saved:
         return stream.getvalue()

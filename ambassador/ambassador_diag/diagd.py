@@ -600,6 +600,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # Grab the serialization, and save it to disk too.
         serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w")) + \
+                        '---\n' + \
                         load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
 
         if not serialization:
