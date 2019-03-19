@@ -38,7 +38,7 @@ type OAuth2Handler struct {
 
 func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(r)
-	httpClient := httpclient.NewHTTPClient(logger, c.Filter.MaxStale)
+	httpClient := httpclient.NewHTTPClient(logger, c.Filter.MaxStale, c.Filter.InsecureTLS)
 
 	discovered, err := Discover(httpClient, c.Filter, logger)
 	if err != nil {
