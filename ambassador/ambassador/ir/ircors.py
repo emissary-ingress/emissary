@@ -27,7 +27,7 @@ class IRCORS (IRResource):
     # list, then it remains as is, but if it's a string, then it's
     # converted to a list
     # Both origins and origin_regex
-    def setup_origins(self, origins: Any, key: string  ) -> bool:
+    def setup_origins(self, origins: Any, key: str ) -> bool:
         if origins is not None:
             if type(origins) is list:
                 self[key] = origins
