@@ -182,6 +182,7 @@ metadata:
       proto: grpc
       auth_service: ambassador-pro
       ---
+      # This mapping needs to exist, but is never actually followed.
       apiVersion: ambassador/v1
       kind: Mapping
       name: callback_mapping
