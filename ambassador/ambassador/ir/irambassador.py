@@ -66,7 +66,7 @@ class IRAmbassador (IRResource):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            service_port=80,
+            service_port=8080,
             admin_port=8001,
             diag_port=8877,
             auth_enabled=None,
@@ -156,7 +156,7 @@ class IRAmbassador (IRResource):
             if ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
-                self.service_port = 443
+                self.service_port = 8443
 
                 if ctx.get('ca_cert', None):
                     # Client-side TLS is enabled.
