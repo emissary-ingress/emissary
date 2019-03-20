@@ -111,7 +111,7 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 		Logger: l.WithField("test", "unit"),
 	}
 
-	httpHandler, err := app.NewHandler(c, l, ct)
+	httpHandler, err := app.NewFilterMux(c, l, ct)
 	if err != nil {
 		return nil, nil, err
 	}

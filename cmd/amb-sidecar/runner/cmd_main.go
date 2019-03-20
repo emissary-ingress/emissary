@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/rls"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/util"
 )
 
 func init() {
@@ -73,7 +74,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 
 	// Auth HTTP server
 	group.Go("auth_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		httpHandler, err := app.NewHandler(cfg, l.WithField("SUB", "http-handler"), ct)
+		httpHandler, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct)
 		if err != nil {
 			return err
 		}
@@ -82,7 +83,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 			Handler:  httpHandler,
 			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
 		}
-		return listenAndServeWithContext(hardCtx, softCtx, server)
+		return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, server)
 	})
 
 	// And now we wait.

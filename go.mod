@@ -8,11 +8,14 @@ require (
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879
+	github.com/datawire/kat-backend v1.1.0
 	github.com/datawire/teleproxy v0.3.16
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/gobwas/glob v0.2.3
+	github.com/gogo/googleapis v1.1.0
+	github.com/gogo/protobuf v1.2.0
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
@@ -36,10 +39,11 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20190228161510-8dd112bcdc25 // indirect
-	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95 // indirect
+	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
 	golang.org/x/sys v0.0.0-20190305064518-30e92a19ae4a // indirect
 	golang.org/x/tools v0.0.0-20190308174544-00c44ba9c14f // indirect
+	google.golang.org/grpc v1.18.0
 	gopkg.in/yaml.v2 v2.2.2
 )
 

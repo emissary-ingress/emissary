@@ -179,21 +179,15 @@ metadata:
       apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
-      proto: http
+      proto: grpc
       auth_service: ambassador-pro
-      allowed_request_headers:
-      - "Client-Id"
-      - "Client-Secret"
-      allowed_authorization_headers:
-      - "Authorization"
-      - "Client-Id"
-      - "Client-Secret"
       ---
+      # This mapping needs to exist, but is never actually followed.
       apiVersion: ambassador/v1
       kind: Mapping
       name: callback_mapping
       prefix: /callback
-      service: ambassador-pro
+      service: NoTaReAlSeRvIcE
 spec:
   type: ClusterIP
   selector:
