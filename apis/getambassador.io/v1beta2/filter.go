@@ -5,5 +5,5 @@ type FilterSpec struct {
 	OAuth2       *FilterOAuth2   `json:",omitempty"`
 	Plugin       *FilterPlugin   `json:",omitempty"`
 	JWT          *FilterJWT      `json:",omitempty"`
-	Delegate     *FilterDelegate `json:",omitempty"`
+	External     *FilterExternal `json:",omitempty"`
 }

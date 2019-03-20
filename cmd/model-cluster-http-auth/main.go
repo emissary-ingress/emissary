@@ -30,7 +30,7 @@ func (s *AuthService) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		req.URL,
 	)
 	switch req.URL.Path {
-	case "/delegate-http/headers":
+	case "/external-http/headers":
 		log.Print("=> ALLOW")
 		inputHeaders := make([]string, 0, len(req.Header))
 		for k := range req.Header {

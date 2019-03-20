@@ -181,7 +181,7 @@ metadata:
       name: authentication
       proto: grpc
       auth_service: ambassador-pro
-      allow_request_body: false # setting this to 'true' allows Plugin and Delegate filters to access the body, but has performance overhead
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---
       # This mapping needs to exist, but is never actually followed.
       apiVersion: ambassador/v1

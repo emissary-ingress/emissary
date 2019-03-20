@@ -10,12 +10,12 @@ import (
 )
 
 // Based off of ambassador/schemas/v1/AuthService.schema
-type FilterDelegate struct {
+type FilterExternal struct {
 	AuthService string `json:"auth_service"` // required
 	PathPrefix  string `json:"path_prefix"`
 	// As an experimental feature, Ambassador supports setting
 	// "tls" to the name of a TLS context (rather than setting it
-	// to a boolean).  Ambassador Pro Delegate filters do NOT
+	// to a boolean).  Ambassador Pro External filters do NOT
 	// support that; if present, the "tls" field must be a
 	// boolean.
 	TLS bool `json:"tls"`
@@ -64,7 +64,7 @@ func normalizeUnion(a, b []string) []string {
 	return ret
 }
 
-func (m *FilterDelegate) Validate() error {
+func (m *FilterExternal) Validate() error {
 	// Fill in defaults
 	if m.Proto == "" {
 		m.Proto = "http"

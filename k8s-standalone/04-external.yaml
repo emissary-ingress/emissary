@@ -7,7 +7,7 @@ metadata:
   name: grpc-auth-filter
   namespace: standalone
 spec:
-  Delegate:
+  External:
     auth_service: "grpc-auth:3000"
     proto: grpc
     allow_request_body: false
@@ -52,7 +52,7 @@ metadata:
   name: http-auth-filter
   namespace: standalone
 spec:
-  Delegate:
+  External:
     auth_service: "http-auth:4000"
     path_prefix: "/frobnitz"
     proto: http
@@ -100,44 +100,44 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
-  name: delegate-policy
+  name: external-policy
   namespace: standalone
 spec:
   rules:
     - host: "*"
-      path: /delegate-grpc/*
+      path: /external-grpc/*
       filters:
         - name: grpc-auth-filter
     - host: "*"
-      path: /delegate-http/*
+      path: /external-http/*
       filters:
         - name: http-auth-filter
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: delegate-httpbin
+  name: external-httpbin
   namespace: standalone
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: delegate-grpc-mapping
-      prefix: /delegate-grpc/
+      name: external-grpc-mapping
+      prefix: /external-grpc/
       service: httpbin.org:80
       host_rewrite: httpbin.org
       timeout_ms: 5000
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: delegate-http-mapping
-      prefix: /delegate-http/
+      name: external-http-mapping
+      prefix: /external-http/
       service: httpbin.org:80
       host_rewrite: httpbin.org
       timeout_ms: 5000
 spec:
   type: ClusterIP
   ports:
-  - name: delegate-httpbin
+  - name: external-httpbin
     port: 80

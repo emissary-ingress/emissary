@@ -103,9 +103,9 @@ func inArray(needle string, haystack []string) bool {
 	return false
 }
 
-func TestHTTPDelegateModify(t *testing.T) {
+func TestHTTPExternalModify(t *testing.T) {
 	assert := &testutil.Assert{T: t}
-	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/delegate-http/headers")
+	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-http/headers")
 	// HTTP/1.1 200 OK
 	// access-control-allow-credentials: true
 	// access-control-allow-origin: *
@@ -125,7 +125,7 @@ func TestHTTPDelegateModify(t *testing.T) {
 	//     "X-Disallowed-Input-Header": "bar",
 	//     "X-Envoy-Expected-Rq-Timeout-Ms": "5000",
 	//     "X-Envoy-Internal": "true",
-	//     "X-Envoy-Original-Path": "/delegate-http/headers",
+	//     "X-Envoy-Original-Path": "/external-http/headers",
 	//     "X-Input-Headers": "Accept-Encoding,User-Agent,X-Allowed-Input-Header,X-Forwarded-For,X-Forwarded-Proto"
 	//   }
 	// }
@@ -149,9 +149,9 @@ func TestHTTPDelegateModify(t *testing.T) {
 	assert.Bool(!inArray("X-Disallowed-Input-Header", inputHeaders))
 }
 
-func TestHTTPDelegateIntercept(t *testing.T) {
+func TestHTTPExternalIntercept(t *testing.T) {
 	assert := &testutil.Assert{T: t}
-	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/delegate-http/ip")
+	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-http/ip")
 	// HTTP/1.1 404 Not Found
 	// x-allowed-output-header: baz
 	// x-disallowed-output-header: qux
@@ -171,9 +171,9 @@ func TestHTTPDelegateIntercept(t *testing.T) {
 	assert.StrEQ(*body.Msg, "intercepted")
 }
 
-func TestGRPCDelegateModify(t *testing.T) {
+func TestGRPCExternalModify(t *testing.T) {
 	assert := &testutil.Assert{T: t}
-	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/delegate-grpc/headers")
+	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-grpc/headers")
 	// HTTP/1.1 200 OK
 	// access-control-allow-credentials: true
 	// access-control-allow-origin: *
@@ -192,7 +192,7 @@ func TestGRPCDelegateModify(t *testing.T) {
 	//     "X-Disallowed-Input-Header": "bar",
 	//     "X-Envoy-Expected-Rq-Timeout-Ms": "5000",
 	//     "X-Envoy-Internal": "true",
-	//     "X-Envoy-Original-Path": "/delegate-grpc/headers"
+	//     "X-Envoy-Original-Path": "/external-grpc/headers"
 	//   }
 	// }
 
@@ -214,9 +214,9 @@ func TestGRPCDelegateModify(t *testing.T) {
 	assertJSONHeaderEq(t, body.Headers, "x-input-x-disallowed-input-header", "bar")
 }
 
-func TestGRPCDelegateIntercept(t *testing.T) {
+func TestGRPCExternalIntercept(t *testing.T) {
 	assert := &testutil.Assert{T: t}
-	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/delegate-grpc/ip")
+	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-grpc/ip")
 	// HTTP/1.1 200 OK
 	// content-length: 22
 	// content-type: application/json

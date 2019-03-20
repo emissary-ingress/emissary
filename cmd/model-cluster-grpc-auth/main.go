@@ -54,7 +54,7 @@ func (s *AuthService) Check(ctx context.Context, req *envoyAuthV2.CheckRequest) 
 		}, nil
 	}
 	switch requestURI.Path {
-	case "/delegate-grpc/headers":
+	case "/external-grpc/headers":
 		log.Print("=> ALLOW")
 		header := make([]*envoyCoreV2.HeaderValueOption, 0, 4+len(req.GetAttributes().GetRequest().GetHttp().GetHeaders()))
 		for k, v := range req.GetAttributes().GetRequest().GetHttp().GetHeaders() {

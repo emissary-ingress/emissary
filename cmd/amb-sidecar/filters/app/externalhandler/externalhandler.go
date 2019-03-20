@@ -1,4 +1,4 @@
-package delegatehandler
+package externalhandler
 
 import (
 	"context"
@@ -107,11 +107,11 @@ func httpResponseToGRPCResponse(h *http.Response, allowedHeaders []string) (filt
 	}
 }
 
-type DelegateFilter struct {
-	Spec crd.FilterDelegate
+type ExternalFilter struct {
+	Spec crd.FilterExternal
 }
 
-func (f *DelegateFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
 	ctx, ctxCancel := context.WithTimeout(ctx, f.Spec.Timeout)
 	defer ctxCancel()
