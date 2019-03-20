@@ -22,23 +22,30 @@ class IRCORS (IRResource):
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             **kwargs
         )
-
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
-        # 'origins' cannot be treated like other keys, because if it's a
-        # list, then it remains as is, but if it's a string, then it's
-        # converted to a list
-        origins = self.pop('origins', None)
-
+        
+    # 'origins' and 'origin_regex' cannot be treated like other keys, because if it's a
+    # list, then it remains as is, but if it's a string, then it's
+    # converted to a list
+    # Both origins and origin_regex
+    def setup_origins(self, origins: Any, key: string  ) -> bool:
         if origins is not None:
             if type(origins) is list:
-                self.allow_origin = origins
+                self[key] = origins
             elif type(origins) is str:
-                self.allow_origin = origins.split(',')
+                self[key] = origins.split(',')
             else:
-                self.post_error(RichStatus.fromError("invalid CORS origin - {}".format(origins),
-                                                     module=self))
+                self.post_error(RichStatus.fromError("invalid CORS origin[{}] - {}".format(key,origins), module=self))
                 return False
+        return True
+        
 
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        origins = self.setup_origins(self.pop('origins', None), "allow_origin")
+        orgin_regex = self.setup_origins(self.pop('origin_regex', None), "allow_origin_regex")
+        
+        if not (origins and orgin_regex):
+            return False
+        
         for from_key, to_key in [ ( 'max_age', 'max_age' ),
                                   ( 'credentials', 'allow_credentials' ),
                                   ( 'methods', 'allow_methods' ),
