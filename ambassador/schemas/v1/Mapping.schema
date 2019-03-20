@@ -88,6 +88,14 @@
         },
         "envoy_override": {
             "type": "object"
+        },
+        "load_balancer": {
+            "type": "object",
+            "properties": {
+                "type":  { "type": "string" },
+                "policy":  { "type": "string" }
+            },
+            "additionalProperties": false
         }
     },
     "definitions": {

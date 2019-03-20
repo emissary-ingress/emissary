@@ -601,6 +601,10 @@ class AmbassadorEventWatcher(threading.Thread):
         # Grab the serialization, and save it to disk too.
         serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
 
+        if os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'):
+            serialization += '---\n' + \
+                             load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
+
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
             # We never used to return here. I'm not sure if that's really correct?
@@ -626,7 +630,6 @@ class AmbassadorEventWatcher(threading.Thread):
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
                  secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
                  snapshot: str) -> None:
-
         aconf.load_all(fetcher.sorted())
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")

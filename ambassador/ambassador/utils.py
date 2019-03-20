@@ -83,9 +83,9 @@ def _load_url_contents(logger: logging.Logger, url: str, stream1: TextIO, stream
 
                     saved = True
                 except IOError as e:
-                    logger.error("couldn't save Kubernetes service resources: %s" % e)
+                    logger.error("couldn't save Kubernetes resources: %s" % e)
                 except Exception as e:
-                    logger.error("couldn't read Kubernetes service resources: %s" % e)
+                    logger.error("couldn't read Kubernetes resources: %s" % e)
     except requests.exceptions.RequestException as e:
         logger.error("could not load new snapshot: %s" % e)
 

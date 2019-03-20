@@ -136,6 +136,8 @@ class IR:
         # Save breaker & outlier configs.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
+        self.endpoints = aconf.get_config("endpoints") or {}
+        self.service_info = aconf.get_config("service_info") or {}
 
         # Save tracing and ratelimit settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
@@ -277,7 +279,7 @@ class IR:
         return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
-        group: IRBaseMappingGroup
+        group: IRBaseMappingGroup = None
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
