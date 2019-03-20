@@ -33,6 +33,12 @@
                         { "type": "array", "items": { "type": "string" } }
                     ]
                 },
+                "origin_regex":  {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ]
+                },
                 "methods": {
                     "anyOf": [
                         { "type": "string" },
