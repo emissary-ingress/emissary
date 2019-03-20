@@ -1,6 +1,6 @@
 # Configuring OAuth/OIDC Authentication
 
-Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak and Auth0, although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
+Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
 
 ## 1. Configure an OAuth2 filter
 
@@ -189,7 +189,7 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
    - Select `Applications`
    - Select `Add Application`
    - Choose `Web` and click next
-   - Give it a name, enter the URL of your Ambassador load balancer in `Base URIs` and the callback URL `{AMBASSADOR_URL}/callback` as the `Login redirect URIs
+   - Give it a name, enter the URL of your Ambassador load balancer in `Base URIs` and the callback URL `{AMBASSADOR_URL}/callback` as the `Login redirect URIs`
 
 2. Copy the `Client ID` and `Client Secret` and use them to fill in the `ClientID` and `Secret` of you Okta OAuth `Filter`.
 
@@ -238,6 +238,73 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
    ```
 
    **Note:** Scopes `openid` and `profile` are required at a minimum. Other scopes can be added to the `Authorization Server`
+
+### Cloud Foundry User Account and Authentication Service (UAA)
+
+**IMPORTANT:** Ambassador Pro requires the IDP return a JWT signed by the RS256 algorithm (asymmetric). UAA defaults to a symmetric key encryption which Ambassador Pro cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
+
+`uaa.yml`
+```yaml
+jwt:
+   token:
+      signing-key: |
+         -----BEGIN RSA PRIVATE KEY-----
+         MIIEpAIBAAKCAQEA7Z1HBM6QFqnIJ1UA3NWnYMuubt4XlfbP1/GopTWUmchKataM
+         ...
+         ...
+         QSbJdIbUBwL8BcrfNw4ebp1DgTI9F45Re+evky0A82aL0/BvBHu8og==
+         -----END RSA PRIVATE KEY-----
+```
+
+
+1. Create an OIDC Client
+
+   ```shell
+   uaac client add ambassador --name ambassador-client --scope openid --authorized_grant_types authorization_code,refresh_token --redirect_uri {AMBASSADOR_URL}/callback --secret CLIENT_SECRET
+   ```
+
+   **Note:** Change the value of `{AMBASSADOR_URL}` with the IP or DNS of your Ambassador load balancer.
+
+2. Configure you OAuth `Filter` and `FilterPolicy`
+
+   Use the id (ambassador) and secret (CLIENT_SECRET) from step 1 to configure the OAuth `Filter`.
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: Filter
+   metadata:
+     name: uaa_filter
+     namespace: default
+   spec:
+     OAuth2:
+       authorizationURL: {UAA_DOMAIN}
+       clientURL: https://datawire-ambassador.com
+       audience: {UAA_DOMAIN}
+       clientID: ambassador
+       secret: CLIENT_SECRET
+   ```
+   **Note:** The `authorizationURL` and `audience` are the same for UAA configuration. 
+
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v1beta2
+   kind: FilterPolicy
+   metadata:
+     name: httpbin-policy
+     namespace: default
+   spec:
+     rules:
+       - host: "*"
+         path: /httpbin/ip
+         filters:
+           - name: uaa_filter ## Enter the Filter name from above
+             arguments:
+               scopes:
+               - "openid"
+   ```
+
+   **Note:** The `scopes` field was set when creating the client in step 1. You can add any scopes you would like when creating the client.
 
 ## Configure Authentication Across Multiple Domains (Optional)
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
