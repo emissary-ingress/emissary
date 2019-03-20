@@ -110,21 +110,25 @@ class ResourceFetcher:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
     def extract_k8s(self, obj: dict) -> None:
-        self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
+        # self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
         k8s_object = ObjectKind(obj=obj, filename=self.filename, logger=self.logger, ambassador_namespace=self.aconf.ambassador_namespace)
         parsed, resource_identifier = k8s_object.parse()
         if parsed is None:
-            self.logger.debug(
-                "%s: ignoring K8s object, unable to parse kind %s" % (self.location, k8s_object.get_kind()))
+            # self.logger.debug("%s: ignoring K8s object, unable to parse kind %s" %
+            #                   (self.location, k8s_object.get_kind()))
             return
 
-        self.parse_object(parsed, filename=self.filename, rkey=resource_identifier)
+        self.parse_object(parsed, k8s=False, filename=self.filename, rkey=resource_identifier)
 
     def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
         self.push_location(filename, 1)
 
+        # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
+
         for obj in objects:
+            self.logger.debug("PARSE_OBJECT: checking %s" % obj)
+
             if k8s:
                 self.extract_k8s(obj)
             else:
@@ -185,7 +189,7 @@ class ResourceFetcher:
         r = ACResource.from_dict(rkey, rkey, serialization, obj)
         self.elements.append(r)
 
-        self.logger.debug("%s PROCESS %s save %s" % (self.location, obj['kind'], rkey))
+        # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
     def sorted(self, key=lambda x: x.rkey): # returns an iterator, probably
         return sorted(self.elements, key=key)
@@ -311,7 +315,7 @@ class ServiceKind(ObjectKind):
             skip = True
 
         if not annotations:
-            self.logger.debug("ignoring K8s %s %s without Ambassador annotation" % (kind, resource_name))
+            # self.logger.debug("ignoring K8s %s %s without Ambassador annotation" % (kind, resource_name))
             skip = True
 
         if not skip and (Config.single_namespace and (resource_namespace != self.ambassador_namespace)):
