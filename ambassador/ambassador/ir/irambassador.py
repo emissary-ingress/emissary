@@ -79,7 +79,7 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
-            load_balancer={'type': 'kubernetes', 'policy': 'round_robin'},
+            load_balancer=None,
             xff_num_trusted_hops=0,
             **kwargs
         )
@@ -236,7 +236,7 @@ class IRAmbassador (IRResource):
             else:
                 return False
 
-        if 'load_balancer' in self:
+        if self.get('load_balancer', None) is not None:
             if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
                 return False
