@@ -15,7 +15,7 @@ spec:
   ports:
   - name: http
     port: 8088
-    targetPort: 80
+    targetPort: 8080
     nodePort: 30036  # Optional: Define the port you would like exposed
     protocol: TCP
   selector:

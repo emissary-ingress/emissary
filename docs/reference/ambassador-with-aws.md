@@ -31,7 +31,7 @@ spec:
   ports:
   - name: ambassador
     port: 443
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```
@@ -128,10 +128,10 @@ spec:
   ports:
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: 8443
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: 8080
 ```
 
 Now, we want every request on port 80 to be redirected to port 443.
@@ -145,7 +145,7 @@ name:  tls
 config:
   server:
     enabled: True
-    redirect_cleartext_from: 80
+    redirect_cleartext_from: 8080
 ```
 
 **Note:** Ensure there is no `ambassador-certs` secret in Ambassador's Namespace. If present, the tls `Module` will configure Ambassador to expect HTTPS traffic.
@@ -180,17 +180,17 @@ metadata:
       config:
         server:
           enabled: true
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
 spec:
   externalTrafficPolicy: Local
   type: LoadBalancer
   ports:
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: 8443
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```
@@ -231,7 +231,7 @@ spec:
   ports:
   - name: ambassador
     port: 443
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```

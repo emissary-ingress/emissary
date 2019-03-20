@@ -55,7 +55,9 @@ spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
-   - port: 80
+  - name: http
+    port: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```

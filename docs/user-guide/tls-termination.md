@@ -96,8 +96,8 @@ config:
 
     # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
     # to that port will be redirected to HTTPS traffic. Typically you would
-    # use port 80, of course.
-    # redirect_cleartext_from: 80
+    # use port 8080, of course.
+    # redirect_cleartext_from: 8080
 
     # These are optional. They should not be present unless you are using
     # a custom Docker build to install certificates onto the container
@@ -139,7 +139,7 @@ name: tls
 config:
   server:
     enabled: True
-    redirect_cleartext_from: 80
+    redirect_cleartext_from: 8080
     secret: ambassador-certs
 ```
 
@@ -161,16 +161,18 @@ metadata:
       config:
         server:
           enabled: True
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
           secret: ambassador-certs
 spec:
   ports:
     - name: http
       protocol: TCP
       port: 80
+      targetPort: 8080
     - name: https
       protocol: TCP
       port: 443
+      targetPort: 8443
   ...
 ```
 

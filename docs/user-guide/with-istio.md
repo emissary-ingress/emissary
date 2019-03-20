@@ -68,7 +68,7 @@ spec:
   ports:
   - name: ambassador
     port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```
@@ -254,7 +254,7 @@ metadata:
       config:
         server:
           enabled: True
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
         client:
           enabled: False
         upstream:
@@ -265,7 +265,7 @@ spec:
   ports:
   - name: ambassador
     port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```

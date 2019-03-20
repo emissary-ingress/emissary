@@ -10,39 +10,15 @@ Ambassador relies on Kubernetes for reliability, availability, and scalability. 
 
 The default configuration of Ambassador includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
 
-## Running as non-root
+## Running as root
 
-Starting with Ambassador 0.35, we support running Ambassador as non-root. This is the recommended configuration, and will be the default configuration in future releases. We recommend you configure Ambassador to run as non-root as follows:
+Starting with Ambassador 0.52.0, the default YAML configuration will install Ambassador running as non-root. If you would like to run Ambassador with root privileges, remove the `securityContext` from the deployment. Running Ambassador with root privileges will allow it to listen on the standard HTTP and HTTPS ports (80 and 443). If you wish to use these ports instead of 8080 and 8443:
 
-* Have Kubernetes run Ambassador as non-root. This may happen by default (e.g., OpenShift) or you can set a `securityContext` in your Deployment as shown below in this abbreviated example:
-
-```yaml
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: ambassador
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: ambassador
-    spec:
-      containers:
-        image: quay.io/datawire/ambassador:0.50.0
-        name: ambassador
-     restartPolicy: Always
-     securityContext:
-       runAsUser: 8888
-     serviceAccountName: ambassador
-```
-
-* Set the `service_port` element in the ambassador Module to 8080 (cleartext) or 8443 (TLS). This is the port that Ambassador will use to listen to incoming traffic. Note that any port number above 1024 will work; Ambassador will use 8080/8443 as its defaults in the future.
+* Set the `service_port` element in the ambassador Module to 80 (cleartext) or 443 (TLS). This is the port that Ambassador will use to listen to incoming traffic.
 
 * Make sure that incoming traffic to Ambassador is configured to route to the `service_port`. If you're using the default Ambassador configuration, this means configuring the `targetPort` to point to the `service_port` above.
 
-* If you are using `redirect_cleartext_from`, change the value of this field to point to your cleartext port (e.g., 8080) and set `service_port` to be your TLS port (e.g., 8443).
+* If you are using `redirect_cleartext_from`, change the value of this field to point to your cleartext port (e.g., 80) and set `service_port` to be your TLS port (e.g., 443).
 
 ## Changing the configuration directory
 
