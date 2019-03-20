@@ -278,7 +278,10 @@ class EndpointsKind(ObjectKind):
 class ServiceKind(ObjectKind):
     def parse(self):
         kind = self.get_kind()
+
+        # XXX Really we shouldn't generate these unless there's a namespace match. Ugh.
         service_info = {
+            'apiVersion': 'ambassador/v1',
             'kind': 'ServiceInfo'
         }
         spec = self.object.get('spec', None)
