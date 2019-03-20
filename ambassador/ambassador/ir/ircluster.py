@@ -196,18 +196,25 @@ class IRCluster (IRResource):
         # TLS. Kind of odd, but there we go.)
         url = "tcp://%s:%d" % (hostname, port)
 
-        if load_balancer is None:
-            global_load_balancer = ir.ambassador_module.get('load_balancer', None)
-            if global_load_balancer is None:
-                self.post_error(RichStatus.fromError("no global load_balancer found in ambassador module"))
+        # The Ambassador module will always have a load_balancer.
+        global_load_balancer = ir.ambassador_module.load_balancer
+
+        if not load_balancer:
             load_balancer = global_load_balancer
 
         self.logger.info("Load balancer for {} is {}".format(url, load_balancer))
 
         endpoint = {}
+
         if self.endpoints_required(load_balancer):
-            self.logger.debug("fetching endpoint information for {}".format(hostname))
-            endpoint = self.get_endpoint(hostname, port, ir.service_info.get(service, None), ir.endpoints.get(hostname, None))
+            if not Config.enable_endpoints:
+                errors.append(f"{name}: endpoint routing is not enabled, falling back to {global_load_balancer}")
+                load_balancer = global_load_balancer
+            else:
+                self.logger.debug("fetching endpoint information for {}".format(hostname))
+                endpoint = self.get_endpoint(hostname, port,
+                                             ir.service_info.get(service, None),
+                                             ir.endpoints.get(hostname, None))
 
         # OK. Build our default args.
         #

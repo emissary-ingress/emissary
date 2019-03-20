@@ -91,6 +91,7 @@ class AmbassadorTest(Test):
     _index: Optional[int] = None
     _ambassador_id: Optional[str] = None
     single_namespace: bool = False
+    enable_endpoints: bool = False
     name: Name
     path: Name
     extra_ports: Optional[List[int]] = None
@@ -102,11 +103,17 @@ class AmbassadorTest(Test):
         rbac = manifests.RBAC_CLUSTER_SCOPE
 
         if self.single_namespace:
-            envs = """
+            envs += """
     - name: AMBASSADOR_SINGLE_NAMESPACE
       value: "yes"
 """
             rbac = manifests.RBAC_NAMESPACE_SCOPE
+
+        if self.enable_endpoints:
+            envs += """
+    - name: AMBASSADOR_ENABLE_ENDPOINTS
+      value: "yes"
+"""
 
         eports = ""
 
@@ -212,6 +219,9 @@ class AmbassadorTest(Test):
 
         if self.single_namespace:
             envs.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
+
+        if self.enable_endpoints:
+            envs.append("AMBASSADOR_ENABLE_ENDPOINTS=yes")
 
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]

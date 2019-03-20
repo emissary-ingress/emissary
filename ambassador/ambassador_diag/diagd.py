@@ -599,9 +599,11 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("copying configuration from %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
-        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w")) + \
-                        '---\n' + \
-                        load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
+        serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
+
+        if os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'):
+            serialization += '---\n' + \
+                             load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
 
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)

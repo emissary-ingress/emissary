@@ -1254,6 +1254,7 @@ service: http://{self.target.path.fqdn}
 
 class LoadBalancerTest(AmbassadorTest):
     target: ServiceType
+    enable_endpoints = True
 
     def init(self):
         self.target = HTTP()

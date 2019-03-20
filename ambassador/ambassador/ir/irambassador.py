@@ -239,6 +239,7 @@ class IRAmbassador (IRResource):
         if 'load_balancer' in self:
             if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
+                return False
 
         return True
 
