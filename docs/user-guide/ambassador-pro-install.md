@@ -47,7 +47,7 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 By default, Ambassador Pro uses ports 8081 and 8082 for rate-limiting
 and filtering, respectively.  If for whatever reason those assignments
 are problematic (perhaps you [set
-`service_port`](/reference/running/#running-as-non-root) to one of
+`service_port`](/reference/modules#the-ambassador-module) to one of
 those), you can set adjust these by setting environment variables:
 
   - `GRPC_PORT`: Which port to serve the RateLimitService on; `8081`
