@@ -223,6 +223,10 @@ class ObjectKind:
 
 class EndpointsKind(ObjectKind):
     def parse(self):
+        # Don't include Endpoints unless endpoint routing is enabled.
+        if not Config.enable_endpoints:
+            return None, ""
+
         kind = self.get_kind()
         metadata = self.object.get('metadata', None)
         resource_name = metadata.get('name')
@@ -346,6 +350,8 @@ class ServiceKind(ObjectKind):
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
-        objects.append(service_info)
+        # Don't include service_info unless endpoint routing is enabled.
+        if Config.enable_endpoints:
+            objects.append(service_info)
 
         return objects, resource_identifier
