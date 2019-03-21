@@ -99,10 +99,12 @@
     - title: Configuring Ambassador
       link: /reference/configuration
       items:
-        - title: Core Configuration
+        - title: Global Configuration
           link: /reference/modules
           items:
-            - title: TLS and X-Forwarded-Proto
+            - title: Ambassador Core Configuration
+              link: /reference/core/ambassador
+            - title: TLS
               link: /reference/core/tls
         - title: Configuring Services
           link: /reference/mappings
