@@ -180,11 +180,17 @@ ambex "${ENVOY_DIR}" &
 AMBEX_PID="$!"
 pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 
+# Option to customize diagd binding
+if [ -z "$DIAGD_SERVERBIND" ]; then
+    DIAGD_SERVERBIND=0.0.0.0
+fi
+
 # We can't start Envoy until the initial config happens, which means that diagd has to start it.
 
 echo "AMBASSADOR: starting diagd"
 
 diagd "${SNAPSHOT_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_CONFIGDIR \
+      --host "$DIAGD_SERVERBIND" \
       --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
 pids="${pids:+${pids} }$!:diagd"
 
