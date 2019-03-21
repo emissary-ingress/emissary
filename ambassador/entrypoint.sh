@@ -155,7 +155,7 @@ trap "handle_int" INT
 
 # Start using ancient kubewatch to get our cluster ID.
 # XXX Ditch this, really.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id /no/such/path /dev/null)
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug) #$KUBEWATCH_DEBUG)
 
 STATUS=$?
 
@@ -218,8 +218,14 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
+    KUBEWATCH_ENDPOINTS_ARG=""
+
+    if [ -n "$AMBASSADOR_ENABLE_ENDPOINTS" ]; then
+        KUBEWATCH_ENDPOINTS_ARG="endpoints"
+    fi
+
     set -x
-    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services $KUBEWATCH_ENDPOINTS_ARG &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi

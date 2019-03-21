@@ -89,6 +89,9 @@ class ListenerFactory:
         if 'use_remote_address' in amod:
             primary_listener.use_remote_address = amod.use_remote_address
 
+        if 'xff_num_trusted_hops' in amod:
+            primary_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
+
         ir.add_listener(primary_listener)
 
         if redirect_cleartext_from:
@@ -106,6 +109,9 @@ class ListenerFactory:
 
             if 'use_remote_address' in amod:
                 new_listener.use_remote_address = amod.use_remote_address
+
+            if 'xff_num_trusted_hops' in amod:
+                new_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
 
             ir.add_listener(new_listener)
 

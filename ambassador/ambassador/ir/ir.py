@@ -19,7 +19,7 @@ import json
 import logging
 import os
 
-from ..utils import RichStatus, KubeSecretReader, SavedSecret
+from ..utils import RichStatus, SavedSecret
 from ..config import Config
 
 from .irresource import IRResource
@@ -44,6 +44,11 @@ from ..VERSION import Version, Build
 ## After getting an ambassador.Config, you can create an ambassador.IR. The
 ## IR is the basis for everything else: you can use it to configure an Envoy
 ## or to run diagnostics.
+
+
+def error_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
+    # Failsafe only.
+    return SavedSecret(secret_name, namespace, None, None, {})
 
 
 class IR:
@@ -77,7 +82,7 @@ class IR:
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-        setattr(self, 'secret_reader', secret_reader or KubeSecretReader(secret_root))
+        setattr(self, 'secret_reader', secret_reader or error_secret_reader)
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
 
         self.logger.debug("IR __init__:")
@@ -131,6 +136,8 @@ class IR:
         # Save breaker & outlier configs.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
+        self.endpoints = aconf.get_config("endpoints") or {}
+        self.service_info = aconf.get_config("service_info") or {}
 
         # Save tracing and ratelimit settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
@@ -272,7 +279,7 @@ class IR:
         return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
-        group: IRBaseMappingGroup
+        group: IRBaseMappingGroup = None
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
@@ -390,6 +397,8 @@ class IR:
 
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect' ]:
             od[key] = self.ambassador_module.get(key, False)
+
+        od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 

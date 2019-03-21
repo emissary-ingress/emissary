@@ -186,6 +186,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             enable_ipv4=mapping.get('enable_ipv4', None),
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
+                            load_balancer=mapping.get('load_balancer', None),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)

@@ -21,15 +21,10 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - namespaces
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
   - secrets
+  - endpoints
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -50,19 +45,12 @@ subjects:
   name: ambassador
   namespace: default
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ambassador-statsd-config
-data:
-  exporterConfiguration: ''
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ambassador
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       annotations:
@@ -72,16 +60,9 @@ spec:
         service: ambassador
     spec:
       serviceAccountName: ambassador
-      volumes:
-      - name: stats-exporter-mapping-config
-        configMap:
-          name: ambassador-statsd-config
-          items:
-          - key: exporterConfiguration
-            path: mapping-config.yaml
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.51.1
+        image: quay.io/datawire/ambassador:%version%
         resources:
           limits:
             cpu: 1
@@ -94,10 +75,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: STATSD_ENABLED
-          value: "true"
-        - name: STATSD_HOST
-          value: "localhost"
         ports:
         - name: http
           containerPort: 80
@@ -117,16 +94,4 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
-      - name: statsd-sink
-        image: prom/statsd-exporter:v0.8.1
-        ports:
-        - name: metrics
-          containerPort: 9102
-        - name: listener
-          containerPort: 8125
-        args: ["--statsd.listen-udp=:8125", "--statsd.mapping-config=/statsd-exporter/mapping-config.yaml"]
-        volumeMounts:
-        - name: stats-exporter-mapping-config
-          mountPath: /statsd-exporter/
-          readOnly: true
       restartPolicy: Always
