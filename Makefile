@@ -268,7 +268,7 @@ ambassador/ambassador/VERSION.py:
 
 version: ambassador/ambassador/VERSION.py
 
-e2e-versioned-manifests: venv website-yaml
+e2e-versioned-manifests: venv
 	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
 e2e: E2E_TEST_NAME=all
