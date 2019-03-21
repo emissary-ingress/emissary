@@ -375,7 +375,7 @@ class Diagnostics:
                 # port change.
                 new_defaults = [ "port 8080 for HTTP" ]
 
-                if self.ir.get('tls_contexts', None):
+                if self.ir.tls_contexts:
                     new_defaults.append("port 8443 for HTTPS")
 
                 default_ports = " and ".join(new_defaults)
