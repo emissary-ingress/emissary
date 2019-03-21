@@ -105,8 +105,11 @@
                     },
                     "required": ["name"],
                     "additionalProperties": false
-                }
+                },
+                "header":  { "type": "string" },
+                "source_ip": {"type": "boolean"}
             },
+            "required": ["policy"],
             "additionalProperties": false
         }
     },
