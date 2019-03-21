@@ -104,7 +104,9 @@
           items:
             - title: Ambassador Core Configuration
               link: /reference/core/ambassador
-            - title: TLS
+            - title: Load Balancing Configuration
+              link: /reference/core/load-balancer
+            - title: TLS Configuration
               link: /reference/core/tls
         - title: Configuring Services
           link: /reference/mappings
