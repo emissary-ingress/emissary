@@ -103,6 +103,7 @@ will try to warn you if your configuration will be affected by this change.
 - Initial support for Envoy ring hashing and session affinity (requires endpoint routing!) 
 - Support Lua filters (thanks to [@lolletsoc](https://github.com/lolletsoc)!)
 - Support gRPC-Web (thanks to [@gertvdijk](https://github.com/gertvdijk)!) ([#456])
+- Support for gRPC HTTP 1.1 bridge (thanks to [@rotemtam](https://github.com/rotemtam)!)
 - Allow configuring `num-trusted-hosts` for `X-Forwarded-For`
 - External auth services using gRPC can now correctly add new headers ([#1313])
 - External auth services correctly add trace spans
