@@ -92,7 +92,20 @@
         "load_balancer": {
             "type": "object",
             "properties": {
-                "policy":  { "type": "string" }
+                "policy":  {
+                    "type": "string",
+                    "enum": ["round_robin", "ring_hash"]
+                },
+                "cookie":  {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "path": { "type": "string" },
+                        "ttl": { "type": "string" }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                }
             },
             "additionalProperties": false
         }

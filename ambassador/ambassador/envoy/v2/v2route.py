@@ -113,6 +113,10 @@ class V2Route(dict):
             if 'auto_host_rewrite' in group:
                 route['auto_host_rewrite'] = group['auto_host_rewrite']
 
+            hash_policy = self.generate_hash_policy(group)
+            if len(hash_policy) > 0:
+                route['hash_policy'] = [ hash_policy ]
+
             cors = None
 
             if "cors" in group:
@@ -199,3 +203,22 @@ class V2Route(dict):
             headers.append(header)
 
         return headers
+
+    @staticmethod
+    def generate_hash_policy(mapping_group: IRHTTPMappingGroup) -> dict:
+        hash_policy = {}
+        load_balancer = mapping_group.get('load_balancer', None)
+        if load_balancer is not None:
+            lb_policy = load_balancer.get('policy')
+            if lb_policy == 'ring_hash':
+                cookie = load_balancer.get('cookie')
+                if cookie is not None:
+                    hash_policy['cookie'] = {
+                        'name': cookie.get('name')
+                    }
+                    if 'path' in cookie:
+                        hash_policy['cookie']['path'] = cookie['path']
+                    if 'ttl' in cookie:
+                        hash_policy['cookie']['ttl'] = cookie['ttl']
+
+        return hash_policy

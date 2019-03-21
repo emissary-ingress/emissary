@@ -216,11 +216,18 @@ class IRHTTPMapping (IRBaseMapping):
 
     @staticmethod
     def validate_load_balancer(load_balancer) -> bool:
-        valid_policies = ['round_robin']
         lb_policy = load_balancer.get('policy', None)
-        if lb_policy in valid_policies:
-            return True
-        return False
+
+        is_valid = False
+        if lb_policy == 'round_robin':
+            is_valid = True
+        elif lb_policy == 'ring_hash':
+            if 'cookie' in load_balancer:
+                cookie = load_balancer.get('cookie')
+                if 'name' in cookie:
+                    is_valid = True
+
+        return is_valid
 
     def _group_id(self) -> str:
         # Yes, we're using a cryptographic hash here. Cope. [ :) ]
