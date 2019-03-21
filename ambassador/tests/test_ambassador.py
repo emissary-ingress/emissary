@@ -1268,7 +1268,6 @@ name:  {self.name}-1
 prefix: /{self.name}-1/
 service: {self.target.path.fqdn}
 load_balancer:
-  type: kubernetes
   policy: round_robin
 """)
 
@@ -1280,8 +1279,8 @@ name:  {self.name}-2
 prefix: /{self.name}-2/
 service: {self.target.path.fqdn}
 load_balancer:
-  type: envoy
-  policy: round_robin
+  policy: ring_hash
+  header: test-header
 """)
 
         yield self, self.format("""
@@ -1292,8 +1291,8 @@ name:  {self.name}-3
 prefix: /{self.name}-3/
 service: {self.target.path.fqdn}
 load_balancer:
-  type: k8s
-  policy: round_robin
+  policy: ring_hash
+  source_ip: True
 """)
 
         yield self, self.format("""
@@ -1304,15 +1303,58 @@ name:  {self.name}-4
 prefix: /{self.name}-4/
 service: {self.target.path.fqdn}
 load_balancer:
-  type: envoy
+  policy: ring_hash
+  cookie:
+    name: test-cookie
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-5
+prefix: /{self.name}-5/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: test-cookie
+  header: test-header
+  source_ip: True
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-6
+prefix: /{self.name}-6/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: round_robin
+  cookie:
+    name: test-cookie
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-7
+prefix: /{self.name}-7/
+service: {self.target.path.fqdn}
+load_balancer:
   policy: rr
 """)
 
     def queries(self):
         yield Query(self.url(self.name + "-1/"))
         yield Query(self.url(self.name + "-2/"))
-        yield Query(self.url(self.name + "-3/"), expected=404)
-        yield Query(self.url(self.name + "-4/"), expected=404)
+        yield Query(self.url(self.name + "-3/"))
+        yield Query(self.url(self.name + "-4/"))
+        yield Query(self.url(self.name + "-5/"), expected=404)
+        yield Query(self.url(self.name + "-6/"), expected=404)
+        yield Query(self.url(self.name + "-7/"), expected=404)
 
 
 # pytest will find this because Runner is a toplevel callable object in a file

@@ -205,16 +205,25 @@ class IRCluster (IRResource):
         self.logger.info("Load balancer for {} is {}".format(url, load_balancer))
 
         endpoint = {}
+        enable_endpoints = False
 
-        if self.endpoints_required(load_balancer):
-            if not Config.enable_endpoints:
-                errors.append(f"{name}: endpoint routing is not enabled, falling back to {global_load_balancer}")
-                load_balancer = global_load_balancer
-            else:
-                self.logger.debug("fetching endpoint information for {}".format(hostname))
-                endpoint = self.get_endpoint(hostname, port,
-                                             ir.service_info.get(service, None),
-                                             ir.endpoints.get(hostname, None))
+        if load_balancer is not None:
+            if self.endpoints_required(load_balancer):
+                if not Config.enable_endpoints:
+                    errors.append(f"{name}: endpoint routing is not enabled, falling back to {global_load_balancer}")
+                    load_balancer = global_load_balancer
+                else:
+                    self.logger.debug("fetching endpoint information for {}".format(hostname))
+                    endpoint = self.get_endpoint(hostname, port,
+                                                 ir.service_info.get(service, None),
+                                                 ir.endpoints.get(hostname, None))
+                    if len(endpoint) > 0:
+                        # We want to enable endpoints and change the load balancer policy only if endpoint routing
+                        # is configured correctly and we're getting endpoints for the given service
+                        enable_endpoints = True
+                        lb_type = load_balancer.get('policy')
+                    else:
+                        self.logger.debug("No endpoints found. Endpoint routing misconfigured, not enabling endpoint routing")
 
         # OK. Build our default args.
         #
@@ -236,7 +245,8 @@ class IRCluster (IRResource):
             "load_balancer": load_balancer,
             "service": service,
             'enable_ipv4': enable_ipv4,
-            'enable_ipv6': enable_ipv6
+            'enable_ipv6': enable_ipv6,
+            'enable_endpoints': enable_endpoints
         }
 
         if grpc:
@@ -266,12 +276,10 @@ class IRCluster (IRResource):
 
     def endpoints_required(self, load_balancer) -> bool:
         required = False
-        lb_type = load_balancer.get('type')
-        if lb_type == 'envoy':
-            lb_policy = load_balancer.get('policy')
-            if lb_policy == 'round_robin':
-                self.logger.debug("Endpoints are required for {} load balancer with policy {}".format(lb_type, lb_policy))
-                required = True
+        lb_policy = load_balancer.get('policy')
+        if lb_policy in ['round_robin', 'ring_hash']:
+            self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
+            required = True
         return required
 
     def get_endpoint(self, hostname, port, service_info, endpoint):

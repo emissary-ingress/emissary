@@ -75,7 +75,7 @@ class V2Cluster(dict):
         result = []
 
         endpoint = cluster.endpoint
-        if len(endpoint) > 0:
+        if cluster.enable_endpoints and len(endpoint) > 0:
             for ip in endpoint['ip']:
                 address = {
                     'address': ip,
