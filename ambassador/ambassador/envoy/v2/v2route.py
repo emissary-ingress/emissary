@@ -212,6 +212,9 @@ class V2Route(dict):
             lb_policy = load_balancer.get('policy')
             if lb_policy == 'ring_hash':
                 cookie = load_balancer.get('cookie')
+                header = load_balancer.get('header')
+                source_ip = load_balancer.get('source_ip')
+
                 if cookie is not None:
                     hash_policy['cookie'] = {
                         'name': cookie.get('name')
@@ -220,5 +223,13 @@ class V2Route(dict):
                         hash_policy['cookie']['path'] = cookie['path']
                     if 'ttl' in cookie:
                         hash_policy['cookie']['ttl'] = cookie['ttl']
+                elif header is not None:
+                    hash_policy['header'] = {
+                        'header_name': header
+                    }
+                elif source_ip is not None:
+                    hash_policy['connection_properties'] = {
+                        'source_ip': source_ip
+                    }
 
         return hash_policy

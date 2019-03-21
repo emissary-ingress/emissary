@@ -220,11 +220,17 @@ class IRHTTPMapping (IRBaseMapping):
 
         is_valid = False
         if lb_policy == 'round_robin':
-            is_valid = True
+            if len(load_balancer) == 1:
+                is_valid = True
         elif lb_policy == 'ring_hash':
-            if 'cookie' in load_balancer:
-                cookie = load_balancer.get('cookie')
-                if 'name' in cookie:
+            if len(load_balancer) == 2:
+                if 'cookie' in load_balancer:
+                    cookie = load_balancer.get('cookie')
+                    if 'name' in cookie:
+                        is_valid = True
+                elif 'header' in load_balancer:
+                    is_valid = True
+                elif 'source_ip' in load_balancer:
                     is_valid = True
 
         return is_valid
