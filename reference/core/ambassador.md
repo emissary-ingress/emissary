@@ -96,8 +96,8 @@ config:
 # mapping. Defaults to round robin with Kubernetes.
 # More information at the [load balancer reference](/reference/load-balancer)
 # load_balancer:
-#   type: kubernetes/envoy
-#   policy: round_robin
+#   policy: round_robin/ring_hash
+#   ...
 
 # Set default CORS configuration for all mappings in the cluster. See 
 # CORS syntax at https://www.getambassador.io/reference/cors.html
