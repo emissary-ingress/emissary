@@ -139,7 +139,7 @@ KAT_BACKEND_RELEASE = 1.1.0
 all: setup-develop docker-push test
 
 clean: clean-test
-	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
+	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
