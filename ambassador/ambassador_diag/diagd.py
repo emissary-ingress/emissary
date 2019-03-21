@@ -106,7 +106,8 @@ class DiagApp (Flask):
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
-              do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False, notices=None):
+              k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
+              notices=None):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
@@ -115,6 +116,7 @@ class DiagApp (Flask):
         self.notice_path = notices
         self.notices = Notices(self.notice_path)
         self.notices.reset()
+        self.k8s = k8s
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -583,12 +585,12 @@ class AmbassadorEventWatcher(threading.Thread):
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.load_from_filesystem(path, k8s=False, recurse=True)
+        fetcher.load_from_filesystem(path, k8s=app.k8s, recurse=True)
 
         if not fetcher.elements:
-            self.logger.debug("no configuration found at %s" % path)
-            self._respond(rqueue, 204, 'ignoring empty configuration')
-            return
+            self.logger.debug("no configuration resources found at %s" % path)
+            # self._respond(rqueue, 204, 'ignoring empty configuration')
+            # return
 
         self._load_ir(rqueue, aconf, fetcher, scc.null_reader, snapshot)
 
@@ -780,7 +782,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, config_path=None, ambex_pid=0, kick=None,
+          *, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', notices=None):
     """
@@ -790,6 +792,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
     :param config_path: Optional configuration path to scan for Ambassador YAML files
+    :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
@@ -808,7 +811,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
-              not no_checks, no_envoy, reload, debug, verbose, notices)
+              k8s, not no_checks, no_envoy, reload, debug, verbose, notices)
 
     if not workers:
         workers = number_of_workers()
