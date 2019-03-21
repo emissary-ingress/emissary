@@ -19,14 +19,14 @@ Ambassador is engineered for cloud-native applications.
 Ambassador is commonly used to route traffic to a wide variety of services. Ambassador:
 
 * Supports configuration on a *per-service* basis, enabling fine-grained control of timeouts, rate limiting, authentication policies, and more.
-* Natively supports a wide range of L7 protocols, including HTTP, HTTP/2, gRPC, gRPC-Web, and WebSockets. 
-* Can route raw TCP for services that use protocols not directly supported by Ambassador
+* Natively supports a wide range of L7 protocols, including HTTP, HTTP/2, [gRPC](/user-guide/grpc), gRPC-Web, and [WebSockets](/user-guide/websockets-ambassador). 
+* Can [route raw TCP](/reference/tcpmappings) for services that use protocols not directly supported by Ambassador
 
 ### Dynamic services
 
 Service updates result in a constantly changing application. The dynamic nature of cloud-native applications introduce new challenges around configuration updates, release, and testing. Ambassador:
 
-* Supports testing in production, with support for canary routing and traffic shadowing.
+* Supports [testing in production](/docs/dev-guide/test-in-prod), with support for [canary routing](/reference/canary) and [traffic shadowing](/reference/shadowing).
 * Exposes high resolution observability metrics, providing insight into service behavior.
 * Uses a zero downtime configuration architecture, so configuration changes have no end user impact.
 
@@ -34,7 +34,7 @@ Service updates result in a constantly changing application. The dynamic nature 
 
 Independent teams develop their own workflows for developing and releasing services that are optimized for their specific service(s). With Ambassador, teams can:
 
-* Leverage a declarative configuration model, making it easy to understand the canonical configuration and implement GitOps-style best practices.
+* Leverage a [declarative configuration model](/user-guide/cd-declarative-gitops), making it easy to understand the canonical configuration and [implement GitOps-style best practices](/user-guide/gitops-ambassador).
 * Independently configure different aspects of Ambassador, eliminating the need to request configuration changes through a central operations team.
 
 ## Ambassador is engineered for Kubernetes
