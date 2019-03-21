@@ -264,7 +264,11 @@ class EndpointsKind(ObjectKind):
 
             ports = subset.get('ports', [])
 
+            # XXX LOAD_BALANCER HACK This is horrible: we take _way_ too many endpoints this
+            # XXX way! We need to only accept `Endpoints` that match `Mappings`.
             subsets.append({
+                'apiVersion': 'ambassador/v1',
+                'ambassador_id': Config.ambassador_id,
                 'kind': kind,
                 'name': resource_name,
                 'addresses': addresses,
@@ -284,8 +288,13 @@ class ServiceKind(ObjectKind):
         kind = self.get_kind()
 
         # XXX Really we shouldn't generate these unless there's a namespace match. Ugh.
+        #
+        # XXX LOAD_BALANCER HACK This is horrible: we take _way_ too many endpoints this
+        # XXX way! We need to only generate `ServiceInfo` resources that match `Mappings`.
+
         service_info = {
             'apiVersion': 'ambassador/v1',
+            'ambassador_id': Config.ambassador_id,
             'kind': 'ServiceInfo'
         }
         spec = self.object.get('spec', None)
@@ -314,10 +323,6 @@ class ServiceKind(ObjectKind):
             self.logger.debug("ignoring unnamed K8s %s" % kind)
             skip = True
 
-        if not annotations:
-            # self.logger.debug("ignoring K8s %s %s without Ambassador annotation" % (kind, resource_name))
-            skip = True
-
         if not skip and (Config.single_namespace and (resource_namespace != self.ambassador_namespace)):
             # This should never happen in actual usage, since we shouldn't be given things
             # in the wrong namespace. However, in development, this can happen a lot.
@@ -330,14 +335,16 @@ class ServiceKind(ObjectKind):
         # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
         resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
 
-        if (self.filename is not None) and (not self.filename.endswith(":annotation")):
-            self.filename += ":annotation"
-
         objects = []
-        try:
-            objects = list(yaml.safe_load_all(annotations))
-        except yaml.error.YAMLError as e:
-            self.logger.debug("could not parse YAML: %s" % e)
+
+        if annotations:
+            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
+                self.filename += ":annotation"
+
+            try:
+                objects = list(yaml.safe_load_all(annotations))
+            except yaml.error.YAMLError as e:
+                self.logger.debug("could not parse YAML: %s" % e)
 
         objects.append(service_info)
 

@@ -90,6 +90,7 @@ class IR:
         self.logger.debug("IR: AMBASSADOR_ID   %s" % self.ambassador_id)
         self.logger.debug("IR: Namespace       %s" % self.ambassador_namespace)
         self.logger.debug("IR: Nodename        %s" % self.ambassador_nodename)
+        self.logger.debug("IR: Endpoints       %s" % "enabled" if Config.enable_endpoints else "disabled")
 
         self.logger.debug("IR: file checker:   %s" % getattr(self, 'file_checker').__name__)
         self.logger.debug("IR: secret reader:  %s" % getattr(self, 'secret_reader').__name__)
@@ -348,7 +349,8 @@ class IR:
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
-            'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ]
+            'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
+            'endpoints': self.endpoints
         }
 
         if self.tracing:
@@ -411,6 +413,7 @@ class IR:
         cluster_grpc_count = 0      # clusters using GRPC upstream
         cluster_http_count = 0      # clusters using HTTP or HTTPS upstream
         cluster_tls_count = 0       # clusters using TLS origination
+        cluster_endpoint_routing_count = 0  # clusters using endpoint routing
 
         endpoint_grpc_count = 0     # endpoints using GRPC upstream
         endpoint_http_count = 0     # endpoints using HTTP/HTTPS upstream
@@ -421,6 +424,9 @@ class IR:
             using_tls = False
             using_http = False
             using_grpc = False
+
+            if cluster.get('enable_endpoints', False):
+                cluster_endpoint_routing_count += 1
 
             if cluster.get('tls_context', None):
                 using_tls = True

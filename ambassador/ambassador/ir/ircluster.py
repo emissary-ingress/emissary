@@ -165,13 +165,10 @@ class IRCluster (IRResource):
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
 
-        name = "_".join(name_fields)
-        name = re.sub(r'[^0-9A-Za-z_]', '_', name)
-
         # Parse the service as a URL. Note that we have to supply a scheme to urllib's
         # parser, because it's kind of stupid.
 
-        ir.logger.debug("cluster %s service %s otls %s ctx %s" % (name, service, originate_tls, ctx))
+        ir.logger.debug("cluster setup: service %s otls %s ctx %s" % (service, originate_tls, ctx))
         p = urllib.parse.urlparse('random://' + service)
 
         # Is there any junk after the host?
@@ -187,9 +184,6 @@ class IRCluster (IRResource):
         # If the port is unset, fix it up.
         if not port:
             port = 443 if originate_tls else 80
-
-        if rkey == '-override-':
-            rkey = name
 
         # Rebuild the URL with the 'tcp' scheme and our changed info.
         # (Yes, really, TCP. Envoy uses the TLS context to determine whether to originate
@@ -210,13 +204,19 @@ class IRCluster (IRResource):
         if load_balancer is not None:
             if self.endpoints_required(load_balancer):
                 if not Config.enable_endpoints:
-                    errors.append(f"{name}: endpoint routing is not enabled, falling back to {global_load_balancer}")
+                    errors.append(f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}")
                     load_balancer = global_load_balancer
                 else:
-                    self.logger.debug("fetching endpoint information for {}".format(hostname))
-                    endpoint = self.get_endpoint(hostname, port,
-                                                 ir.service_info.get(service, None),
-                                                 ir.endpoints.get(hostname, None))
+                    self.logger.debug(f"fetching endpoint information for service {service} hostname {hostname}")
+
+                    service_info = ir.service_info.get(service, None)
+                    endpoint_info = ir.endpoints.get(hostname, None)
+
+                    self.logger.debug(f"service info %s" % json.dumps(service_info, indent=4, sort_keys=True))
+                    self.logger.debug(f"endpoint info %s" % json.dumps(endpoint_info, indent=4, sort_keys=True))
+
+                    endpoint = self.get_endpoint(hostname, port, service_info, endpoint_info)
+
                     if len(endpoint) > 0:
                         # We want to enable endpoints and change the load balancer policy only if endpoint routing
                         # is configured correctly and we're getting endpoints for the given service
@@ -224,6 +224,28 @@ class IRCluster (IRResource):
                         lb_type = load_balancer.get('policy')
                     else:
                         self.logger.debug("No endpoints found. Endpoint routing misconfigured, not enabling endpoint routing")
+
+        # If the lb_type isn't round_robin, toss it into the cluster name too.
+        if enable_endpoints:
+            key_fields = [ 'er', lb_type.lower() ]
+
+            # XXX LOAD_BALANCER HACK
+            if 'header' in load_balancer:
+                key_fields.append('hdr')
+                key_fields.append(load_balancer['header'])
+
+            if 'cookie' in load_balancer:
+                key_fields.append('cookie')
+                key_fields.append(load_balancer['cookie']['name'])
+
+            if 'source_ip' in load_balancer:
+                key_fields.append('srcip')
+
+            name_fields.append("-".join(key_fields))
+
+        # Finally we can construct the cluster name.
+        name = "_".join(name_fields)
+        name = re.sub(r'[^0-9A-Za-z_]', '_', name)
 
         # OK. Build our default args.
         #
@@ -260,6 +282,9 @@ class IRCluster (IRResource):
                 new_args['tls_context'] = typecast(IRTLSContext, ctx)
             else:
                 new_args['tls_context'] = IRTLSContext.null_context(ir=ir)
+
+        if rkey == '-override-':
+            rkey = name
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
