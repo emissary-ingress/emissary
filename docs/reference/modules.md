@@ -57,6 +57,9 @@ metadata:
         # liveness_probe:
         #   enabled: true
 
+        # run a custom lua script on every request. see below for more details.
+        # lua_scripts
+
         # readiness probe defaults on, but you can disable the api route.
         # It will remain accessible on diag_port.
         # readiness_probe:
@@ -115,6 +118,32 @@ spec:
   type: LoadBalancer
   # The rest of the Kubernetes service is left out here
 ```
+
+### Lua Scripts
+
+Ambassador supports the ability to inline Lua scripts that get run on every request. This is useful for simple use cases that mutate requests or responses, e.g., add a custom header. Here is a sample:
+
+```
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  lua_scripts: |
+    function envoy_on_response(response_handle)
+      response_handle:headers():add("Lua-Scripts-Enabled", "Processed")
+    end
+```
+
+For more details on the Lua API, see the [Envoy Lua filter documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/lua_filter).
+
+Some caveats around the embedded scripts:
+
+* They run in-process, so any bugs in your Lua script can break every request
+* They're inlined in the Ambassador YAML, so you likely won't want to write complex logic in here
+* They're run on every request/response to every URL
+
+If you need more flexible and configurable options, Ambassador Pro supports a [pluggable Filter system](/reference/filter-reference).
 
 ### gRPC HTTP/1.1 bridge
 
