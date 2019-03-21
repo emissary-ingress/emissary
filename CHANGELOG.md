@@ -2,9 +2,17 @@
 
 ## BREAKING NEWS
 
-### AMBASSADOR 0.51
+### DEFAULT PORTS CHANGING IN AMBASSADOR 0.60
 
-The current recommended version of Ambassador is 0.51.2.
+Ambassador 0.60 will, by default, listen for cleartext HTTP on port 8080 (rather than 80),
+and for HTTPS on port 8443 (rather than 443), in order to simplify running Ambassador without
+root privileges. If you are relying on the default port numbering in your installation, **you
+will need to change your configuration** and Ambassador 0.52 will attempt to warn you of this
+in the diagnostic service.   
+
+### AMBASSADOR 0.52
+
+The current recommended version of Ambassador is 0.52.0.
 
 ### AMBASSADOR 0.50+
 
@@ -80,6 +88,33 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
+## [0.52.0] March 21, 2019
+[0.52.0]: https://github.com/datawire/ambassador/compare/0.51.2...0.52.0
+
+### UPCOMING CHANGES
+
+Ambassador 0.60 will listen on ports 8080/8443 by default. The diagnostics service in Ambassador 0.52.0
+will try to warn you if your configuration will be affected by this change.
+
+### Changes since 0.51.2
+
+- Initial support for endpoint routing, rather than relying on `kube-proxy` ([#1031])
+   - set `AMBASSADOR_ENABLE_ENDPOINTS` in the environment to allow this
+- Initial support for Envoy ring hashing and session affinity (requires endpoint routing!) 
+- Support Lua filters (thanks to [@lolletsoc](https://github.com/lolletsoc)!)
+- Support gRPC-Web (thanks to [@gertvdijk](https://github.com/gertvdijk)!) ([#456])
+- Allow configuring `num-trusted-hosts` for `X-Forwarded-For`
+- External auth services using gRPC can now correctly add new headers ([#1313])
+- External auth services correctly add trace spans
+- Ambassador should respond to changes more quickly now ([#1294], [#1318])
+- Ambassador startup should be faster now
+
+[#456]: https://github.com/datawire/ambassador/issues/456
+[#1031]: https://github.com/datawire/ambassador/issues/1031
+[#1294]: https://github.com/datawire/ambassador/issues/1294
+[#1313]: https://github.com/datawire/ambassador/issues/1313
+[#1318]: https://github.com/datawire/ambassador/issues/1318
+
 ## [0.51.2] March 12, 2019
 [0.51.2]: https://github.com/datawire/ambassador/compare/0.51.1...0.51.2
 
@@ -152,6 +187,8 @@ At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador 
 
 ## [0.50.1] February 7, 2019
 [0.50.1]: https://github.com/datawire/ambassador/compare/0.50.0...0.50.1
+
+**0.50.1 is not recommended: upgrade to 0.52.0.**
 
 ### Changes since 0.50.0
 
