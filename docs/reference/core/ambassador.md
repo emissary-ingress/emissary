@@ -94,7 +94,7 @@ config:
 # load_balancer sets the global load balancing type and policy that
 # Ambassador will use for all mappings, unless overridden in a
 # mapping. Defaults to round robin with Kubernetes.
-# More information at the [load balancer reference](/reference/load-balancer)
+# More information at the [load balancer reference](/reference/core/load-balancer)
 # load_balancer:
 #   policy: round_robin/ring_hash
 #   ...
