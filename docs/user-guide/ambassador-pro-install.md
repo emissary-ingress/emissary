@@ -57,7 +57,7 @@ those), you can set adjust these by setting environment variables:
 
 If you have deployed Ambassador with
 [`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
-[`AMBASSADOR_ID`](/reference/running/#multiple-ambassadors-in-one-cluster)
+[`AMBASSADOR_ID`](/reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
 ## 4. Configure JWT authentication
