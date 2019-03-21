@@ -139,7 +139,7 @@ KAT_BACKEND_RELEASE = 1.1.0
 all: setup-develop docker-push test
 
 clean: clean-test
-	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
+	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
@@ -268,7 +268,7 @@ ambassador/ambassador/VERSION.py:
 
 version: ambassador/ambassador/VERSION.py
 
-e2e-versioned-manifests: venv website-yaml
+e2e-versioned-manifests: venv
 	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
 e2e: E2E_TEST_NAME=all
