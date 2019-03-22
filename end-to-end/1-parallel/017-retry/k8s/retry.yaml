@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: retry
-        image: agervais/ambassador-retry-service:1.0.0
+        image: live/ambassador-retry-service:1.0.0
         imagePullPolicy: Always
         ports:
         - name: http
