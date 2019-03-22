@@ -79,6 +79,11 @@
                 "name": "cors"
             },
             {
+                "_source": "--internal--",
+                "config": {},
+                "name": "retry_policy"
+            },
+            {
                 "_referenced_by": [
                     "auth.yaml.1"
                 ],

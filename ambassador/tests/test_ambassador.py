@@ -999,6 +999,16 @@ class CORS(OptionTest):
         assert self.results[1].headers["Access-Control-Allow-Origin"] == [ "https://www.test-cors.org" ]
 
 
+class RETRYPOLICY(OptionTest):
+    # isolated = True
+    # debug = True
+
+    parent: MappingTest
+
+    def config(self):
+        yield 'retry_policy: { retry_on: "5xx", num_retries: 3, per_try_timeout: "500ms" }'
+
+
 class CaseSensitive(OptionTest):
 
     parent: MappingTest
