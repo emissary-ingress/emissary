@@ -11,7 +11,9 @@ from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
 from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
+from t_grpc import AcceptanceGrpcTest
 from t_grpc_bridge import AcceptanceGrpcBridgeTest
+from t_grpc_web import AcceptanceGrpcWebTest
 from t_tcpmapping import TCPMappingTest
 from t_headerrouting import HeaderRoutingTest
 from t_ratelimit import RateLimitTest
