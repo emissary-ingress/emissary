@@ -126,6 +126,19 @@ class V2Route(dict):
 
                 route['cors'] = cors
 
+            retry_policy = None
+
+            if "retry_policy" in group:
+                retry_policy = group.retry_policy.as_dict()
+            elif "retry_policy" in config.ir.ambassador_module:
+                retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
+
+            if retry_policy:
+                for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+                    retry_policy.pop(key, None)
+
+                route['retry_policy'] = retry_policy
+
             # Is shadowing enabled?
             shadow = group.get("shadows", None)
 

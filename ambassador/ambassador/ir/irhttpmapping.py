@@ -7,6 +7,7 @@ from .irbasemapping import IRBaseMapping
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .ircors import IRCORS
+from .irretrypolicy import IRRETRYPOLICY
 
 import hashlib
 
@@ -46,6 +47,7 @@ class IRHTTPMapping (IRBaseMapping):
     group_id: str
     route_weight: List[Union[str, int]]
     cors: IRCORS
+    retry_policy: IRRETRYPOLICY
     sni: bool
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
@@ -55,6 +57,7 @@ class IRHTTPMapping (IRBaseMapping):
         "case_sensitive": True,
         # "circuit_breaker": True,
         "cors": True,
+        "retry_policy": True,
         "enable_ipv4": True,
         "enable_ipv6": True,
         "envoy_override": True,
@@ -151,6 +154,15 @@ class IRHTTPMapping (IRBaseMapping):
 
             if self.cors:
                 self.cors.referenced_by(self)
+            else:
+                return False
+
+        # If we have RETRY_POLICY stuff, normalize it.
+        if 'retry_policy' in self:
+            self.retry_policy = IRRETRYPOLICY(ir=ir, aconf=aconf, location=self.location, **self.retry_policy)
+
+            if self.retry_policy:
+                self.retry_policy.referenced_by(self)
             else:
                 return False
 

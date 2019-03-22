@@ -56,6 +56,15 @@
             },
             "additionalProperties": false
         },
+        "retry_policy": {
+            "type": "object",
+            "properties": {
+                "retry_on":  { "type": "string" },
+                "num_retries": { "type": "integer" },
+                "per_try_timeout": { "type": "string" }
+            },
+            "additionalProperties": false
+        },
         "grpc": { "type": "boolean" },
         "host_redirect": { "type": "boolean" },
         "host_rewrite": { "type": "string" },

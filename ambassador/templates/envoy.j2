@@ -63,6 +63,11 @@
                       {% elif cors_default %}
                         "cors": {{ cors_default | tojson }},
                       {% endif %}
+                      {%- if route.retry_policy -%}
+                        "retry_policy": {{ route.retry_policy | tojson }},
+                      {% elif retry_policy_default %}
+                        "retry_policy": {{ retry_policy_default | tojson }},
+                      {% endif %}
                       {%- if route.rate_limits -%}"rate_limits": {{ route.rate_limits | tojson }},{% endif %}
                       {%- if route.priority -%}"priority": "{{ route.priority }}",{% endif %}
                       {%- if route.use_websocket -%}"use_websocket": {{ route.use_websocket | tojson }},{% endif %}

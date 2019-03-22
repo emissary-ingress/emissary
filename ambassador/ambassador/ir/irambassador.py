@@ -10,6 +10,7 @@ from .irhttpmapping import IRHTTPMapping
 from .irtls import IRAmbassadorTLS
 from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
+from .irretrypolicy import IRRETRYPOLICY
 from .irbuffer import IRBuffer
 from .irfilter import IRFilter
 
@@ -223,6 +224,15 @@ class IRAmbassador (IRResource):
 
             if self.cors:
                 self.cors.referenced_by(self)
+            else:
+                return False
+
+        # Finally, default retry_policy stuff.
+        if amod and ('retry_policy' in amod):
+            self.retry_policy = IRRETRYPOLICY(ir=ir, aconf=aconf, location=self.location, **amod.retry_policy)
+
+            if self.retry_policy:
+                self.retry_policy.referenced_by(self)
             else:
                 return False
 
