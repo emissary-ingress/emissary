@@ -1,5 +1,3 @@
-import json
-
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, EGRPC
@@ -34,18 +32,18 @@ service: {self.target.path.k8s}
 
     def queries(self):
         # [0]
-        yield Query(self.url("echo.EchoService/Echo"), headers={ "content-type": "application/grpc", 
-                                                                    "requested-status": "0" }, expected=200)
+        yield Query(self.url("echo.EchoService/Echo"),
+                    headers={ "content-type": "application/grpc", "requested-status": "0" },
+                    expected=200)
 
-         # [1]
-        yield Query(self.url("echo.EchoService/Echo"),  headers={ "content-type": "application/grpc", 
-                                                                    "requested-status": "7" }, expected=200)
+        # [1]
+        yield Query(self.url("echo.EchoService/Echo"),
+                    headers={ "content-type": "application/grpc", "requested-status": "7" },
+                    expected=200)
 
     def check(self):
         # [0]
-        assert self.results[0].status == 200
         assert self.results[0].headers["Grpc-Status"] == ["0"]
 
-        # [0]
-        assert self.results[1].status == 200
+        # [1]
         assert self.results[1].headers["Grpc-Status"] == ["7"]
