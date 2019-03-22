@@ -101,8 +101,6 @@ else
 COMMIT_TYPE=random
 endif
 
-DOC_RELEASE_TYPE?=unstable
-
 ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
 endif
@@ -406,7 +404,6 @@ release:
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		DOC_RELEASE_TYPE=stable make website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		set +x; \
 	else \
