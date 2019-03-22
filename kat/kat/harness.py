@@ -278,7 +278,8 @@ class Test(Node):
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
-                 xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None, client_cert_required=False, ca_cert=None):
+                 xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
+                 client_cert_required=False, ca_cert=None, grpc_type=None):
         self.method = method
         self.url = url
         self.headers = headers
@@ -303,6 +304,8 @@ class Query:
         self.client_cert = client_crt
         self.client_key = client_key
         self.ca_cert = ca_cert
+        assert grpc_type in (None, "real", "bridge", "web"), grpc_type
+        self.grpc_type = grpc_type
 
     def as_json(self):
         result = {
@@ -326,6 +329,8 @@ class Query:
             result["ca_cert"] = self.ca_cert
         if self.client_cert_required:
             result["client_cert_required"] = self.client_cert_required
+        if self.grpc_type:
+            result["grpc_type"] = self.grpc_type
 
         return result
 

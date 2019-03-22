@@ -34,12 +34,14 @@ service: {self.target.path.k8s}
         # [0]
         yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc", "requested-status": "0" },
-                    expected=200)
+                    expected=200,
+                    grpc_type="bridge")
 
         # [1]
         yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc", "requested-status": "7" },
-                    expected=200)
+                    expected=200,
+                    grpc_type="bridge")
 
     def check(self):
         # [0]
