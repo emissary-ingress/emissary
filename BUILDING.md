@@ -6,6 +6,8 @@ If you just want to **use** Ambassador, check out https://www.getambassador.io/!
 TL;DR
 -----
 
+If you're making a code change:
+
 ```
 git clone https://github.com/datawire/ambassador
 cd ambassador
@@ -19,12 +21,14 @@ That will build an Ambassador Docker image for you but not push it anywhere. To 
 
 **It is important to use `make` rather than trying to just do a `docker build`.** Actually assembling a Docker image for Ambassador involves quite a few steps before the image can be built.
 
+If you want to make a doc change, see the `Making Documentation Changes` section below.
+
 Branching
 ---------
 
-* The current release of Ambassador lives on `stable`.
+* The current release of Ambassador lives on `master`.
 
-* Development on the next upcoming release of Ambassador happens on `master` (which is the default branch when you clone Ambassador).
+* Ambassador docs currently live on `stable`. If you are only updating docs, branch from `stable`.
 
 ### Making Code Changes
 
@@ -109,19 +113,12 @@ reported: that will probably be a requirement for all GA releases.
 out how to best wrangle the various third-party libraries we use, so this seems to make sense
 for right now -- suggestions welcome on this front!   
 
-Unit Tests
-----------
+Tests
+-----
 
-Unit tests for Ambassador are run on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.** 
+CI runs Ambassador's test suite on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.** 
 
-For more information on the unit tests, see [their README](ambassador/tests/README.md).
-
-End-to-End Tests
-----------------
-
-Ambassador's end-to-end tests are run by CI for pull requests, release candidates, and releases: we will not release an Ambassador for which the end-to-end tests are failing. **Again, you will be asked to add end-to-end test coverage for features you add.** 
-
-For more information on the end-to-end tests, see [their README](end-to-end/README.md).
+For more information on the test suite, see [its README](ambassador/tests/README.md).
 
 Version Numbering
 -----------------
@@ -144,13 +141,7 @@ Normal Workflow
 
 1. Use a private branch cut from `master` for your work.
 
-2. Hack away, then `make`. This will:
-
-   a. Run tests and bail if something doesn't pass.
-   b. Build Docker images, and push them if DOCKER_REGISTRY says to.
-   c. Build YAML files for you in `doc/yaml`.
-
-   You can easily `kubectl apply` the updated YAML files and see your changes in your Kubernetes cluster.
+2. Hack away, then `make`. This will build Docker images, push if needed, then run the tests.
 
 3. Commit to your feature branch.
 
@@ -164,8 +155,3 @@ What if I Don't Want to Push My Images?
 **NOTE WELL**: if you're not using Minikube, this is almost certainly a mistake.
 
 But if you are using Minikube, you can set `DOCKER_REGISTRY` to "-" to prevent pushing the images. The Makefile (deliberately) requires you to set DOCKER_REGISTRY, so you can't just unset it.
-
-Building the Documentation and Website
---------------------------------------
-
-Use `make website` to build the docs and website. See [the README](docs/README.md) for docs-specific steps. The `docs/build-website.sh` script (used by `make`) follows those steps and then performs some additional hacks for website use.

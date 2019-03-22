@@ -68,6 +68,7 @@ class IRHTTPMapping (IRBaseMapping):
         "host_regex": True,
         "host_rewrite": True,
         "labels": True,       # Only supported in v1, handled in setup
+        "load_balancer": True,
         "method": True,
         "method_regex": True,
         "modules": True,
@@ -218,7 +219,33 @@ class IRHTTPMapping (IRBaseMapping):
                 domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
                 self['labels'] = { domain: labels }
 
+        if self.get('load_balancer', None) is not None:
+            if not self.validate_load_balancer(self['load_balancer']):
+                self.post_error("Invalid load_balancer specified: {}, invalidating mapping".format(self['load_balancer']))
+                return False
+
         return True
+
+    @staticmethod
+    def validate_load_balancer(load_balancer) -> bool:
+        lb_policy = load_balancer.get('policy', None)
+
+        is_valid = False
+        if lb_policy == 'round_robin':
+            if len(load_balancer) == 1:
+                is_valid = True
+        elif lb_policy == 'ring_hash':
+            if len(load_balancer) == 2:
+                if 'cookie' in load_balancer:
+                    cookie = load_balancer.get('cookie')
+                    if 'name' in cookie:
+                        is_valid = True
+                elif 'header' in load_balancer:
+                    is_valid = True
+                elif 'source_ip' in load_balancer:
+                    is_valid = True
+
+        return is_valid
 
     def _group_id(self) -> str:
         # Yes, we're using a cryptographic hash here. Cope. [ :) ]

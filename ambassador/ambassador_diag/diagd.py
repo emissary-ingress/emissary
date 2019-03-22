@@ -106,7 +106,8 @@ class DiagApp (Flask):
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
-              do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False, notices=None):
+              k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
+              notices=None):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
@@ -115,6 +116,7 @@ class DiagApp (Flask):
         self.notice_path = notices
         self.notices = Notices(self.notice_path)
         self.notices.reset()
+        self.k8s = k8s
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -309,9 +311,10 @@ def handle_update():
         return "error: update requested with no URL", 400
 
     app.logger.info("Update requested from %s" % url)
-    app.watcher.post('CONFIG', url)
 
-    return "update requested", 200
+    status, info = app.watcher.post('CONFIG', url)
+
+    return info, status
 
 
 # @app.route('/_internal/v0/fs', methods=[ 'POST' ])
@@ -323,9 +326,10 @@ def handle_update():
 #         return "error: update requested with no PATH", 400
 #
 #     app.logger.info("Update requested from %s" % path)
-#     app.watcher.post('CONFIG_FS', path)
 #
-#     return "update requested", 200
+#     status, info = app.watcher.post('CONFIG_FS', path)
+#
+#     return info, status
 
 
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
@@ -522,8 +526,12 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
 
-    def post(self, cmd: str, arg: Union[str, Tuple[str, IR]]) -> None:
-        self.events.put((cmd, arg))
+    def post(self, cmd: str, arg: Union[str, Tuple[str, IR]]) -> Tuple[int, str]:
+        rqueue = queue.Queue()
+
+        self.events.put((cmd, arg, rqueue))
+
+        return rqueue.get()
 
     def update_estats(self) -> None:
         self.post('ESTATS', '')
@@ -532,30 +540,32 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("starting event watcher")
 
         while True:
-            cmd, arg = self.events.get()
+            cmd, arg, rqueue = self.events.get()
             # self.logger.info("EVENT: %s" % cmd)
 
             if cmd == 'ESTATS':
                 # self.logger.info("updating estats")
                 try:
+                    self._respond(rqueue, 200, 'updating')
                     self.app.estats.update()
                 except Exception as e:
                     self.logger.error("could not update estats: %s" % e)
                     self.logger.exception(e)
             elif cmd == 'CONFIG_FS':
                 try:
-                    self.load_config_fs(arg)
+                    self.load_config_fs(rqueue, arg)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
             elif cmd == 'CONFIG':
                 try:
-                    self.load_config(arg)
+                    self.load_config(rqueue, arg)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
             elif cmd == 'SCOUT':
                 try:
+                    self._respond(rqueue, 200, 'checking Scout')
                     self.check_scout(*arg)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
@@ -563,7 +573,11 @@ class AmbassadorEventWatcher(threading.Thread):
             else:
                 self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
 
-    def load_config_fs(self, path: str) -> None:
+    def _respond(self, rqueue: queue.Queue, status: int, info='') -> None:
+        self.logger.debug("responding to query with %s %s" % (status, info))
+        rqueue.put((status, info))
+
+    def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
@@ -571,15 +585,16 @@ class AmbassadorEventWatcher(threading.Thread):
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.load_from_filesystem(path, k8s=False, recurse=True)
+        fetcher.load_from_filesystem(path, k8s=app.k8s, recurse=True)
 
         if not fetcher.elements:
-            self.logger.debug("no configuration found at %s" % path)
-            return
+            self.logger.debug("no configuration resources found at %s" % path)
+            # self._respond(rqueue, 204, 'ignoring empty configuration')
+            # return
 
-        self._load_ir(aconf, fetcher, scc.null_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc.null_reader, snapshot)
 
-    def load_config(self, url):
+    def load_config(self, rqueue: queue.Queue, url):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
@@ -588,8 +603,15 @@ class AmbassadorEventWatcher(threading.Thread):
         # Grab the serialization, and save it to disk too.
         serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
 
+        if os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'):
+            serialization += '---\n' + \
+                             load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
+
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
+            # We never used to return here. I'm not sure if that's really correct?
+            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
+            # return
 
         scc = SecretSaver(app.logger, url, app.snapshot_path)
 
@@ -600,12 +622,16 @@ class AmbassadorEventWatcher(threading.Thread):
         if not fetcher.elements:
             self.logger.debug("no configuration found in snapshot %s" % snapshot)
 
-        self._load_ir(aconf, fetcher, scc.url_reader, snapshot)
+            # Don't actually bail here. If they send over a valid config that happens
+            # to have nothing for us, it's still a legit config.
+            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
+            # return
 
-    def _load_ir(self, aconf: Config, fetcher: ResourceFetcher,
+        self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
+
+    def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
                  secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
                  snapshot: str) -> None:
-
         aconf.load_all(fetcher.sorted())
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
@@ -624,6 +650,7 @@ class AmbassadorEventWatcher(threading.Thread):
         if not self.validate_envoy_config(config=ads_config):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
             app.check_scout("attempted bad update")
+            self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 
         self.logger.info("rotating snapshots for snapshot %s" % snapshot)
@@ -654,8 +681,6 @@ class AmbassadorEventWatcher(threading.Thread):
         app.econf = econf
         app.diag = diag
 
-        app.check_scout("update")
-
         if app.kick:
             self.logger.info("running '%s'" % app.kick)
             os.system(app.kick)
@@ -663,11 +688,16 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
-        self.logger.info("configuration updated")
+        self.logger.info("configuration updated from snapshot %s" % snapshot)
+        self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
 
         if app.health_checks and not app.stats_updater:
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
+
+        # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
+        # update until after we've taken care of Envoy.
+        self.check_scout("update")
 
     def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
         uptime = datetime.datetime.now() - boot_time
@@ -752,7 +782,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, config_path=None, ambex_pid=0, kick=None,
+          *, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=8877, host='0.0.0.0', notices=None):
     """
@@ -762,6 +792,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
     :param config_path: Optional configuration path to scan for Ambassador YAML files
+    :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
@@ -780,7 +811,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
-              not no_checks, no_envoy, reload, debug, verbose, notices)
+              k8s, not no_checks, no_envoy, reload, debug, verbose, notices)
 
     if not workers:
         workers = number_of_workers()

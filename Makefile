@@ -119,14 +119,14 @@ NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
 # BELOW AND THEN RUN make docker-update-base
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-15-ga0d95bafb
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-4
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-4
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
 
 SCOUT_APP_KEY=
 
@@ -139,7 +139,7 @@ KAT_BACKEND_RELEASE = 1.1.0
 all: setup-develop docker-push test
 
 clean: clean-test
-	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
+	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
@@ -268,7 +268,7 @@ ambassador/ambassador/VERSION.py:
 
 version: ambassador/ambassador/VERSION.py
 
-e2e-versioned-manifests: venv website-yaml
+e2e-versioned-manifests: venv
 	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
 
 e2e: E2E_TEST_NAME=all

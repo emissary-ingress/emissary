@@ -97,6 +97,29 @@
         },
         "envoy_override": {
             "type": "object"
+        },
+        "load_balancer": {
+            "type": "object",
+            "properties": {
+                "policy":  {
+                    "type": "string",
+                    "enum": ["round_robin", "ring_hash"]
+                },
+                "cookie":  {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "path": { "type": "string" },
+                        "ttl": { "type": "string" }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                },
+                "header":  { "type": "string" },
+                "source_ip": {"type": "boolean"}
+            },
+            "required": ["policy"],
+            "additionalProperties": false
         }
     },
     "definitions": {

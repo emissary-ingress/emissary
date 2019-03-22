@@ -40,7 +40,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'prefix_regex': True,
         'rewrite': True,
         'timeout_ms': True,
-        'bypass_auth': True
+        'bypass_auth': True,
+        'load_balancer': True
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
@@ -186,6 +187,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             enable_ipv4=mapping.get('enable_ipv4', None),
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
+                            load_balancer=mapping.get('load_balancer', None),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)
@@ -229,6 +231,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             self.add_request_headers = add_request_headers
         if add_response_headers:
             self.add_response_headers = add_response_headers
+        if self.get('load_balancer', None) is None:
+            self['load_balancer'] = ir.ambassador_module.load_balancer
 
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))

@@ -49,6 +49,7 @@ class Config:
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
+    enable_endpoints: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'))
 
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
@@ -520,6 +521,20 @@ class Config:
         """
 
         self.safe_store("tls_contexts", resource)
+
+    def handle_endpoints(self, resource: ACResource) -> None:
+        """
+        Handles an Endpoints resource.
+        """
+
+        self.safe_store("endpoints", resource)
+
+    def handle_serviceinfo(self, resource: ACResource) -> None:
+        """
+        Handles an ServiceInfo resource.
+        """
+
+        self.safe_store("service_info", resource)
 
     def handle_mapping(self, resource: ACMapping) -> None:
         """

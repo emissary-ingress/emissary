@@ -1,6 +1,0 @@
-{
-  "no-trailing-spaces": { "br_spaces": 2 },
-  "no-multiple-blanks": false,
-  "line-length": false,
-  "ol-prefix": { "style": "ordered" }
-}

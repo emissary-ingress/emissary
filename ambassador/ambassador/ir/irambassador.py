@@ -34,7 +34,9 @@ class IRAmbassador (IRResource):
         'statsd',
         'use_proxy_proto',
         'use_remote_address',
-        'x_forwarded_proto_redirect'
+        'x_forwarded_proto_redirect',
+        'load_balancer',
+        'xff_num_trusted_hops'
     ]
 
     service_port: int
@@ -78,6 +80,8 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
+            load_balancer=None,
+            xff_num_trusted_hops=0,
             **kwargs
         )
 
@@ -209,6 +213,12 @@ class IRAmbassador (IRResource):
             self.grpc_web.sourced_by(amod)
             ir.save_filter(self.grpc_web)
 
+        if amod and ('lua_scripts' in amod):
+            self.lua_scripts = IRFilter(ir=ir, aconf=aconf, kind='ir.lua_scripts', name='lua_scripts',
+                                        config={'inline_code': amod.lua_scripts})
+            self.lua_scripts.sourced_by(amod)
+            ir.save_filter(self.lua_scripts)
+
          # Buffer.
         if amod and ('buffer' in amod):
             self.buffer = IRBuffer(ir=ir, aconf=aconf, location=self.location, **amod.buffer)
@@ -227,13 +237,17 @@ class IRAmbassador (IRResource):
             else:
                 return False
 
-        # Finally, default retry_policy stuff.
         if amod and ('retry_policy' in amod):
             self.retry_policy = IRRETRYPOLICY(ir=ir, aconf=aconf, location=self.location, **amod.retry_policy)
 
             if self.retry_policy:
                 self.retry_policy.referenced_by(self)
             else:
+                return False
+
+        if self.get('load_balancer', None) is not None:
+            if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
+                self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
                 return False
 
         return True

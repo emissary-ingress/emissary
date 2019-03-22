@@ -1,4 +1,4 @@
-# Ambassador Architecture
+# Kubernetes Integration: Ambassador Architecture Overview
 
 ## Ambassador is a control plane
 
@@ -8,11 +8,13 @@ Ambassador is a specialized [control plane for Envoy Proxy](https://blog.getamba
 
 ## Details
 
-1. Service owner defines configuration in Kubernetes manifests.
-2. When the manifest is applied to the cluster, the Kubernetes API notifies Ambassador of the change.
-3. Ambassador parses the change and transforms the configuration to a semantic intermediate representation. Envoy configuration is generated from this IR.
-4. The new configuration is passed to Envoy via the gRPC-based Aggregated Discovery Service (ADS) API.
-5. Traffic flows through the reconfigured Envoy, without dropping any connections.
+When a user applies a Kubernetes manifest containing Ambassador annotations, the following steps occur:
+
+1. Ambassador is asynchronously notified by the Kubernetes API of the change.
+2. Ambassador translates the configuration into an abstract intermediate representation (IR).
+3. An Envoy configuration file is generated from the IR.
+4. The Envoy configuration file is validated by Ambassador (using Envoy in validation mode).
+5. Assuming the file is valid configuration, Ambassador uses Envoy's [Aggregated Discovery Service](https://www.envoyproxy.io/docs/envoy/latest/configuration/overview/v2_overview#aggregated-discovery-service) to deploy the new configuration and properly drain connections.
 
 ## Scaling and availability
 
