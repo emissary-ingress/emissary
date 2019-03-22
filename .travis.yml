@@ -1,0 +1,9 @@
+---
+language: generic
+
+deploy:
+  - provider: script
+    script: ./publish-website.sh
+    skip_cleanup: true
+    on:
+      branch: master
