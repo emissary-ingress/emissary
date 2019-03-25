@@ -1,0 +1,10 @@
+apiVersion: getambassador.io/v1beta1
+kind: RateLimit
+metadata:
+  name: qotm-rate-limit
+spec:
+  domain: ambassador
+  limits:
+   - pattern: [{generic_key: http}]
+     rate: 1000
+     unit: second
