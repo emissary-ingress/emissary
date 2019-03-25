@@ -139,15 +139,11 @@ Once again, restart ambassador and test the new mapping:
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service
-curl localhost:8080/qotm/quote/1
+curl localhost:8080/httpbin/ip
 
 # the response body should be a json object with a quote
 {
-  "hostname": "qotm-3716059461-47tnl",
-  "ok": true,
-  "quote": "The light at the end of the tunnel is interdependent on the relatedness of motivation, subcultures, and management.",
-  "time": "2018-08-17T21:29:24.690950",
-  "version": "1.3"
+  "origin": "65.217.185.138, 35.247.39.247, 65.217.185.138"
 }
 ```
 
