@@ -19,6 +19,10 @@
 # Besides that, alpine mirrors have been found to be inconsistent over timezones, so this seems to
 # be a better approach.
 
+########
+# Seeing weird errors copying stuff? Check .dockerignore!!
+########
+
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
@@ -61,8 +65,9 @@ COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 # if you really really need to (not recommended).
 RUN mkdir ambassador-config envoy
 
-# COPY in a default config for use with --demo.
-COPY ambassador/default-config/ ambassador-demo-config
+# COPY in the stuff for use with --demo.
+COPY demo/config/ ambassador-demo-config
+COPY demo/services/ demo-services
 
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
