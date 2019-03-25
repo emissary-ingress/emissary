@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -22,6 +23,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 )
+
+// Limit concurrency
 
 // Semaphore is a counting semaphore that can be used to limit concurrency.
 type Semaphore chan bool
@@ -70,6 +73,8 @@ func rlimit() {
 		log.Println("Final rlimit", rLimit)
 	}
 }
+
+// Query and Result manipulation
 
 // Query represents one kat query as read from the supplied input. It will be
 // mutated to include results from that query.
@@ -208,6 +213,172 @@ func (q Query) AddResponse(resp *http.Response) {
 	}
 }
 
+// Request processing
+
+// ExecuteWebsocketQuery handles Websocket queries
+func ExecuteWebsocketQuery(query Query) {
+	url := query.URL()
+	c, resp, err := websocket.DefaultDialer.Dial(url, query.Headers())
+	if query.CheckErr(err) {
+		return
+	}
+	defer c.Close()
+	query.AddResponse(resp)
+	messages := query["messages"].([]interface{})
+	for _, msg := range messages {
+		err = c.WriteMessage(websocket.TextMessage, []byte(msg.(string)))
+		if query.CheckErr(err) {
+			return
+		}
+	}
+
+	err = c.WriteMessage(websocket.CloseMessage,
+		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	if query.CheckErr(err) {
+		return
+	}
+
+	answers := []string{}
+
+	result := query.Result()
+	defer func() {
+		result["messages"] = answers
+	}()
+
+	for {
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
+				query.CheckErr(err)
+			}
+			return
+		}
+		answers = append(answers, string(message))
+	}
+}
+
+// GetGRPCBridgeReqBody returns the body of the HTTP request using the
+// HTTP/1.1-gRPC bridge format as described in the Envoy docs
+// https://www.envoyproxy.io/docs/envoy/v1.9.0/configuration/http_filters/grpc_http1_bridge_filter
+func GetGRPCBridgeReqBody() (*bytes.Buffer, error) {
+	// Protocol:
+	// 	. 1 byte of zero (not compressed).
+	// 	. network order (big-endian) of proto message length.
+	// 	. serialized proto message.
+	buf := &bytes.Buffer{}
+	if err := binary.Write(buf, binary.BigEndian, uint8(0)); err != nil {
+		log.Printf("error when packing first byte: %v", err)
+		return nil, err
+	}
+
+	m := &grpc_echo_pb.EchoRequest{}
+	m.Data = "foo"
+
+	pbuf := &proto.Buffer{}
+	if err := pbuf.Marshal(m); err != nil {
+		log.Printf("error when serializing the gRPC message: %v", err)
+		return nil, err
+	}
+
+	if err := binary.Write(buf, binary.BigEndian, uint32(len(pbuf.Bytes()))); err != nil {
+		log.Printf("error when packing message length: %v", err)
+		return nil, err
+	}
+
+	for i := 0; i < len(pbuf.Bytes()); i++ {
+		if err := binary.Write(buf, binary.BigEndian, uint8(pbuf.Bytes()[i])); err != nil {
+			log.Printf("error when packing message: %v", err)
+			return nil, err
+		}
+	}
+
+	return buf, nil
+}
+
+// ExecuteQuery constructs the appropriate request, executes it, and records the
+// response and related information in query.result.
+func ExecuteQuery(query Query, secureTransport *http.Transport) {
+	// Websocket stuff is handled elsewhere
+	if query.IsWebsocket() {
+		ExecuteWebsocketQuery(query)
+		return
+	}
+
+	// Prepare an insecure transport if necessary; otherwise use the normal
+	// transport that was passed in.
+	var transport *http.Transport
+	if query.Insecure() {
+		transport = &http.Transport{
+			MaxIdleConns:    10,
+			IdleConnTimeout: 30 * time.Second,
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+
+		caCert := query.CACert()
+		if len(caCert) > 0 {
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM([]byte(caCert))
+			clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
+			if err != nil {
+				log.Fatal(err)
+			}
+			transport.TLSClientConfig.RootCAs = caCertPool
+			transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
+		}
+	} else {
+		transport = secureTransport
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Duration(10 * time.Second),
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	// Prepare the HTTP request
+	var body io.Reader
+	method := query.Method()
+	if query.IsGrpc() { // Perform special handling for gRPC-bridge
+		buf, err := GetGRPCBridgeReqBody()
+		if query.CheckErr(err) {
+			log.Printf("gRPC-bridge buffer error: %v", err)
+			return
+		}
+		body = buf
+		method = "POST"
+	}
+	req, err := http.NewRequest(method, query.URL(), body)
+	if query.CheckErr(err) {
+		log.Printf("request error: %v", err)
+		return
+	}
+	req.Header = query.Headers()
+
+	// Handle host and SNI
+	host := req.Header.Get("Host")
+	if host != "" {
+		if query.SNI() {
+			// Modify the TLS config of the transport.
+			// FIXME I'm not sure why it's okay to do this for the global shared
+			// transport, but apparently it works. The docs say that mutating an
+			// existing tls.Config would be bad too.
+			if transport.TLSClientConfig == nil {
+				transport.TLSClientConfig = &tls.Config{}
+			}
+			transport.TLSClientConfig.ServerName = host
+		}
+		req.Host = host
+	}
+
+	// Perform the request and save the results.
+	resp, err := client.Do(req)
+	if query.CheckErr(err) {
+		return
+	}
+	query.AddResponse(resp)
+}
+
 func main() {
 	rlimit()
 
@@ -219,6 +390,7 @@ func main() {
 	var data []byte
 	var err error
 
+	// Read input file
 	if input == "" {
 		data, err = ioutil.ReadAll(os.Stdin)
 	} else {
@@ -228,36 +400,30 @@ func main() {
 		panic(err)
 	}
 
+	// Parse input file
 	var specs []Query
-
 	err = json.Unmarshal(data, &specs)
 	if err != nil {
 		panic(err)
 	}
 
+	// Prep semaphore to limit concurrency
+	limitStr := os.Getenv("KAT_QUERY_LIMIT")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 25
+	}
+	sem := NewSemaphore(limit)
+
+	// Prep global HTTP transport for connection caching/pooling
 	transport := &http.Transport{
 		MaxIdleConns:    10,
 		IdleConnTimeout: 30 * time.Second,
 	}
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   time.Duration(10 * time.Second),
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
 
+	// Launch queries concurrently
 	count := len(specs)
 	queries := make(chan bool)
-
-	limitStr := os.Getenv("KAT_QUERY_LIMIT")
-	if limitStr == "" {
-		limitStr = "25"
-	}
-	limit, err := strconv.Atoi(limitStr)
-
-	sem := NewSemaphore(limit)
-
 	for i := 0; i < count; i++ {
 		go func(idx int) {
 			sem.Acquire()
@@ -265,172 +431,16 @@ func main() {
 				queries <- true
 				sem.Release()
 			}()
-
-			query := specs[idx]
-			result := query.Result()
-			url := query.URL()
-
-			insecureTransport := &http.Transport{
-				MaxIdleConns:    10,
-				IdleConnTimeout: 30 * time.Second,
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-
-			caCert := query.CACert()
-			if len(caCert) > 0 {
-
-				caCertPool := x509.NewCertPool()
-				caCertPool.AppendCertsFromPEM([]byte(caCert))
-
-				clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				insecureTransport.TLSClientConfig.RootCAs = caCertPool
-				insecureTransport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
-			}
-
-			insecureClient := &http.Client{
-				Transport: insecureTransport,
-				Timeout:   time.Duration(10 * time.Second),
-				CheckRedirect: func(req *http.Request, via []*http.Request) error {
-					return http.ErrUseLastResponse
-				},
-			}
-
-			if query.IsWebsocket() {
-				c, resp, err := websocket.DefaultDialer.Dial(url, query.Headers())
-				if query.CheckErr(err) {
-					return
-				}
-				defer c.Close()
-				query.AddResponse(resp)
-				messages := query["messages"].([]interface{})
-				for _, msg := range messages {
-					err = c.WriteMessage(websocket.TextMessage, []byte(msg.(string)))
-					if query.CheckErr(err) {
-						return
-					}
-				}
-
-				err = c.WriteMessage(websocket.CloseMessage,
-					websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-				if query.CheckErr(err) {
-					return
-				}
-
-				answers := []string{}
-
-				defer func() {
-					result["messages"] = answers
-				}()
-
-				for {
-					_, message, err := c.ReadMessage()
-					if err != nil {
-						if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
-							query.CheckErr(err)
-						}
-						return
-					}
-					answers = append(answers, string(message))
-				}
-			} else {
-				var req *http.Request
-
-				// Sets grpc-echo POST request.
-				//
-				// Protocol:
-				// 	. 1 byte of zero (not compressed).
-				// 	. network order (big-endian) of proto message length.
-				// 	. serialized proto message.
-				if query.IsGrpc() {
-					buf := &bytes.Buffer{}
-					if err := binary.Write(buf, binary.BigEndian, uint8(0)); err != nil {
-						log.Printf("error when packing first byte: %v", err)
-						return
-					}
-
-					m := &grpc_echo_pb.EchoRequest{}
-					m.Data = "foo"
-
-					pbuf := &proto.Buffer{}
-					if err := pbuf.Marshal(m); err != nil {
-						log.Printf("error when serealizing the gRPC message: %v", err)
-						return
-					}
-
-					if err := binary.Write(buf, binary.BigEndian, uint32(len(pbuf.Bytes()))); err != nil {
-						log.Printf("error when packing message length: %v", err)
-						return
-					}
-
-					for i := 0; i < len(pbuf.Bytes()); i++ {
-						if err := binary.Write(buf, binary.BigEndian, uint8(pbuf.Bytes()[i])); err != nil {
-							log.Printf("error when packing message: %v", err)
-							return
-						}
-					}
-
-					req, err = http.NewRequest("POST", url, buf)
-					if query.CheckErr(err) {
-						log.Printf("grpc bridge request error: %v", err)
-						return
-					}
-
-					for k, h := range query.Headers() {
-						for _, v := range h {
-							log.Printf("setting request header [ %s : %s ]", k, v)
-							req.Header.Add(http.CanonicalHeaderKey(k), v)
-						}
-					}
-				} else {
-					req, err = http.NewRequest(query.Method(), url, nil)
-					req.Header = query.Headers()
-					if query.CheckErr(err) {
-						return
-					}
-				}
-
-				host := req.Header.Get("Host")
-				if host != "" {
-					if query.SNI() {
-						if transport.TLSClientConfig == nil {
-							transport.TLSClientConfig = &tls.Config{}
-						}
-
-						if insecureTransport.TLSClientConfig == nil {
-							insecureTransport.TLSClientConfig = &tls.Config{}
-						}
-
-						insecureTransport.TLSClientConfig.ServerName = host
-						transport.TLSClientConfig.ServerName = host
-					}
-					req.Host = host
-				}
-
-				var cli *http.Client
-				if query.Insecure() {
-					cli = insecureClient
-				} else {
-					cli = client
-				}
-
-				resp, err := cli.Do(req)
-				if query.CheckErr(err) {
-					return
-				}
-
-				query.AddResponse(resp)
-			}
+			ExecuteQuery(specs[idx], transport)
 		}(i)
 	}
 
+	// Wait for all the answers
 	for i := 0; i < count; i++ {
 		<-queries
 	}
 
+	// Generate the output file
 	bytes, err := json.MarshalIndent(specs, "", "  ")
 	if err != nil {
 		log.Print(err)
