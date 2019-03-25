@@ -65,6 +65,9 @@ if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
+
+    PORT=5050 python3 demo-services/auth.py &
+    python3 demo-services/qotm.py &
 fi
 
 # Do we have config on the filesystem?
