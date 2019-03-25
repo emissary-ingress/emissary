@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
@@ -13,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -22,6 +24,10 @@ import (
 	grpc_echo_pb "github.com/datawire/kat-backend/echo"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 // Limit concurrency
@@ -149,6 +155,15 @@ func (q Query) Headers() (result http.Header) {
 		}
 	}
 	return result
+}
+
+// grpcType returns the query's grpc_type field or the empty string.
+func (q Query) grpcType() string {
+	val, ok := q["grpc_type"]
+	if ok {
+		return val.(string)
+	}
+	return ""
 }
 
 // IsGrpc checks if the request is to a gRPC service.
@@ -295,12 +310,104 @@ func GetGRPCBridgeReqBody() (*bytes.Buffer, error) {
 	return buf, nil
 }
 
+// CallRealGRPC does stuff
+func CallRealGRPC(query Query) {
+	qURL, err := url.Parse(query.URL())
+	if query.CheckErr(err) {
+		log.Printf("grpc url parse failed: %v", err)
+		return
+	}
+
+	const requiredPath = "/echo.EchoService/Echo"
+	if qURL.Path != requiredPath {
+		query.Result()["error"] = fmt.Sprintf("GRPC path %s is not %s", qURL.Path, requiredPath)
+		return
+	}
+
+	if !strings.Contains(qURL.Host, ":") {
+		query.Result()["error"] = fmt.Sprintf("GRPC URL %s has no port", qURL.Host)
+		return
+	}
+
+	conn, err := grpc.Dial(qURL.Host, grpc.WithInsecure()) // FIXME: hard-coded
+	if query.CheckErr(err) {
+		log.Printf("grpc dial failed: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	client := grpc_echo_pb.NewEchoServiceClient(conn)
+	request := &grpc_echo_pb.EchoRequest{Data: "hello-ark3"}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	md := metadata.MD{}
+	headers, ok := query["headers"]
+	if ok {
+		for key, val := range headers.(map[string]interface{}) {
+			md.Set(key, val.(string))
+		}
+	}
+
+	response, err := client.Echo(ctx, request, grpc.Header(&md))
+	// It's hard to tell the difference between a failed connection and a
+	// successful connection that set an error code. We'll use the
+	// heuristic that DNS errors and Connection Refused both appear to
+	// return code 14 (Code.Unavailable).
+	code := status.Code(err)
+	if code == codes.Unknown {
+		query.CheckErr(err)
+		log.Printf("grpc echo request failed: %v", err)
+		return
+	}
+	grpcCode := int(code)
+	grpcMessage := err.Error()
+
+	// Now process the response and err objects. Save the request headers, as
+	// echoed and modified by the service, as if they were the HTTP response
+	// headers. This is bogus, but I'm not sure what else to put here. Then
+	// add/modify header values based on what occurred so that the tests can
+	// assert on that information. Also set other result fields by synthesizing
+	// what the HTTP response values might have been.
+	// Note: Don't set result.body to anything that cannot be decoded as base64,
+	// or the kat harness will fail.
+	resHeaderMap := response.GetResponse().GetHeaders()
+	resHeader := make(http.Header)
+	for key, val := range resHeaderMap {
+		resHeader.Add(key, val)
+	}
+	resHeader.Add("Grpc-Status", fmt.Sprint(grpcCode))
+	resHeader.Add("Grpc-Message", grpcMessage)
+
+	result := query.Result()
+	result["headers"] = resHeader
+	result["body"] = ""
+	result["text"] = "body/text not supported with grpc"
+	result["status"] = 200
+
+	// Stuff that's not available:
+	// - query.result.status (the HTTP status -- synthesized as 200 or 999)
+	// - query.result.headers (the HTTP response headers -- we're faking this
+	//   field by including the response object's headers, which are the same as
+	//   the request headers modulo modification via "requested-headers"
+	//   handling by the echo service)
+	// - query.result.body (the raw HTTP body)
+	// - query.result.json or query.text (the parsed HTTP body)
+}
+
 // ExecuteQuery constructs the appropriate request, executes it, and records the
 // response and related information in query.result.
 func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	// Websocket stuff is handled elsewhere
 	if query.IsWebsocket() {
 		ExecuteWebsocketQuery(query)
+		return
+	}
+
+	// Real gRPC is handled elsewhere
+	if query.grpcType() == "real" {
+		CallRealGRPC(query)
 		return
 	}
 

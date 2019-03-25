@@ -6,4 +6,5 @@ require (
 	github.com/gorilla/websocket v1.4.0
 	github.com/mitchellh/gox v0.4.0 // indirect
 	github.com/mitchellh/iochan v1.0.0 // indirect
+	google.golang.org/grpc v1.18.0
 )
