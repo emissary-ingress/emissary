@@ -118,18 +118,18 @@ Feel free to re-enable the diagnostics endpoint.
 
 ## 3. Add a route mapping
 
-Now that we have demonstrated that we can modify the configuration let's add a mapping to route to `http://demo.getambassador.io/qotm/` service.
+Now that we have demonstrated that we can modify the configuration let's add a mapping to route to `http://httpbin.org/` service.
 
-Create a new file `config/mapping-qotm.yaml` with these contents:
+Create a new file `config/mapping-httpbin.yaml` with these contents:
 
 ```yaml
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-rewrite: /qotm/
-service: demo.getambassador.io
+name:  httpbin_mapping
+prefix: /httpbin/
+service: httpbin.org
+host_rewrite: httpbin.org   
 ```
 
 Once again, restart ambassador and test the new mapping:
