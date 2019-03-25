@@ -23,24 +23,30 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type semaphore chan bool
+// Semaphore is a counting semaphore that can be used to limit concurrency.
+type Semaphore chan bool
 
-func Semaphore(n int) semaphore {
-	sem := make(semaphore, n)
+// NewSemaphore returns a new Semaphore with the specified capacity.
+func NewSemaphore(n int) Semaphore {
+	sem := make(Semaphore, n)
 	for i := 0; i < n; i++ {
 		sem.Release()
 	}
 	return sem
 }
 
-func (s semaphore) Acquire() {
+// Acquire blocks until a slot/token is available.
+func (s Semaphore) Acquire() {
 	<-s
 }
 
-func (s semaphore) Release() {
+// Release returns a slot/token to the pool.
+func (s Semaphore) Release() {
 	s <- true
 }
 
+// rlimit frobnicates the interplexing beacon. Or maybe it reverses the polarity
+// of the neutron flow. I'm not sure. FIXME.
 func rlimit() {
 	var rLimit syscall.Rlimit
 	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
@@ -65,8 +71,11 @@ func rlimit() {
 	}
 }
 
+// Query represents one kat query as read from the supplied input. It will be
+// mutated to include results from that query.
 type Query map[string]interface{}
 
+// CACert returns the "ca_cert" field as a string or returns the empty string.
 func (q Query) CACert() string {
 	val, ok := q["ca_cert"]
 	if ok {
@@ -75,6 +84,7 @@ func (q Query) CACert() string {
 	return ""
 }
 
+// ClientCert returns the "client_cert" field as a string or returns the empty string.
 func (q Query) ClientCert() string {
 	val, ok := q["client_cert"]
 	if ok {
@@ -83,6 +93,7 @@ func (q Query) ClientCert() string {
 	return ""
 }
 
+// ClientKey returns the "client_key" field as a string or returns the empty string.
 func (q Query) ClientKey() string {
 	val, ok := q["client_key"]
 	if ok {
@@ -91,38 +102,39 @@ func (q Query) ClientKey() string {
 	return ""
 }
 
-func (q Query) ClientCertRequired() bool {
-	val, ok := q[""]
-	return ok && val.(bool)
-}
-
+// Insecure returns whether the query has a field called "insecure" whose value is true.
 func (q Query) Insecure() bool {
 	val, ok := q["insecure"]
 	return ok && val.(bool)
 }
 
+// SNI returns whether the query has a field called "sni" whose value is true.
 func (q Query) SNI() bool {
 	val, ok := q["sni"]
 	return ok && val.(bool)
 }
 
+// IsWebsocket returns whether the query's URL starts with "ws:".
 func (q Query) IsWebsocket() bool {
-	return strings.HasPrefix(q.Url(), "ws:")
+	return strings.HasPrefix(q.URL(), "ws:")
 }
 
-func (q Query) Url() string {
+// URL returns the query's URL.
+func (q Query) URL() string {
 	return q["url"].(string)
 }
 
+// Method returns the query's method or "GET" if unspecified.
 func (q Query) Method() string {
 	val, ok := q["method"]
 	if ok {
 		return val.(string)
-	} else {
-		return "GET"
 	}
+	return "GET"
 }
 
+// Headers returns the an http.Header object populated with any headers passed
+// in as part of the query.
 func (q Query) Headers() (result http.Header) {
 	result = make(http.Header)
 	headers, ok := q["headers"]
@@ -146,8 +158,13 @@ func (q Query) IsGrpc() bool {
 	return false
 }
 
+// Result represents the result of one kat query. Upon first access to a query's
+// result field, the Result object will be created and added to the query.
 type Result map[string]interface{}
 
+// Result returns the query's result field as a Result object. If the field
+// doesn't exist, a new Result object is created and placed in that field. If
+// the field exists and contains something else, panic!
 func (q Query) Result() Result {
 	val, ok := q["result"]
 	if !ok {
@@ -157,16 +174,19 @@ func (q Query) Result() Result {
 	return val.(Result)
 }
 
+// CheckErr populates the query result with error information if an error is
+// passed in (and logs the error).
 func (q Query) CheckErr(err error) bool {
 	if err != nil {
-		log.Printf("%v: %v", q.Url(), err)
+		log.Printf("%v: %v", q.URL(), err)
 		q.Result()["error"] = err.Error()
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
+// AddResponse populates a query's result with data from the query's HTTP
+// response object.
 func (q Query) AddResponse(resp *http.Response) {
 	result := q.Result()
 	result["status"] = resp.StatusCode
@@ -176,7 +196,7 @@ func (q Query) AddResponse(resp *http.Response) {
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if !q.CheckErr(err) {
-		log.Printf("%v: %v", q.Url(), resp.Status)
+		log.Printf("%v: %v", q.URL(), resp.Status)
 		result["body"] = body
 		var jsonBody interface{}
 		err = json.Unmarshal(body, &jsonBody)
@@ -215,12 +235,12 @@ func main() {
 		panic(err)
 	}
 
-	tr := &http.Transport{
+	transport := &http.Transport{
 		MaxIdleConns:    10,
 		IdleConnTimeout: 30 * time.Second,
 	}
 	client := &http.Client{
-		Transport: tr,
+		Transport: transport,
 		Timeout:   time.Duration(10 * time.Second),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -236,7 +256,7 @@ func main() {
 	}
 	limit, err := strconv.Atoi(limitStr)
 
-	sem := Semaphore(limit)
+	sem := NewSemaphore(limit)
 
 	for i := 0; i < count; i++ {
 		go func(idx int) {
@@ -248,9 +268,9 @@ func main() {
 
 			query := specs[idx]
 			result := query.Result()
-			url := query.Url()
+			url := query.URL()
 
-			insecure_tr := &http.Transport{
+			insecureTransport := &http.Transport{
 				MaxIdleConns:    10,
 				IdleConnTimeout: 30 * time.Second,
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -267,12 +287,12 @@ func main() {
 					log.Fatal(err)
 				}
 
-				insecure_tr.TLSClientConfig.RootCAs = caCertPool
-				insecure_tr.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
+				insecureTransport.TLSClientConfig.RootCAs = caCertPool
+				insecureTransport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 			}
 
-			insecure_client := &http.Client{
-				Transport: insecure_tr,
+			insecureClient := &http.Client{
+				Transport: insecureTransport,
 				Timeout:   time.Duration(10 * time.Second),
 				CheckRedirect: func(req *http.Request, via []*http.Request) error {
 					return http.ErrUseLastResponse
@@ -313,9 +333,8 @@ func main() {
 							query.CheckErr(err)
 						}
 						return
-					} else {
-						answers = append(answers, string(message))
 					}
+					answers = append(answers, string(message))
 				}
 			} else {
 				var req *http.Request
@@ -377,23 +396,23 @@ func main() {
 				host := req.Header.Get("Host")
 				if host != "" {
 					if query.SNI() {
-						if tr.TLSClientConfig == nil {
-							tr.TLSClientConfig = &tls.Config{}
+						if transport.TLSClientConfig == nil {
+							transport.TLSClientConfig = &tls.Config{}
 						}
 
-						if insecure_tr.TLSClientConfig == nil {
-							insecure_tr.TLSClientConfig = &tls.Config{}
+						if insecureTransport.TLSClientConfig == nil {
+							insecureTransport.TLSClientConfig = &tls.Config{}
 						}
 
-						insecure_tr.TLSClientConfig.ServerName = host
-						tr.TLSClientConfig.ServerName = host
+						insecureTransport.TLSClientConfig.ServerName = host
+						transport.TLSClientConfig.ServerName = host
 					}
 					req.Host = host
 				}
 
 				var cli *http.Client
 				if query.Insecure() {
-					cli = insecure_client
+					cli = insecureClient
 				} else {
 					cli = client
 				}
