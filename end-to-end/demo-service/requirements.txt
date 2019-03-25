@@ -2,6 +2,6 @@ clize==4.0.1
 flask==0.12.3
 jinja2==2.9.6
 jsonschema==2.6.0
-pyyaml==4.2b1
+pyyaml==5.1
 scout.py==0.3.0
 semantic-version==2.6.0
