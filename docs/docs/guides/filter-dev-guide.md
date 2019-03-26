@@ -43,7 +43,7 @@ We've created an example filter that you can customize for your particular use c
    ```patch
       containers:
       - name: ambassador-pro
-   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-0.1.2
+   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
    +    image: DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
         ports:
         - name: ratelimit-grpc

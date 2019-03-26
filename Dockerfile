@@ -19,6 +19,10 @@
 # Besides that, alpine mirrors have been found to be inconsistent over timezones, so this seems to
 # be a better approach.
 
+########
+# Seeing weird errors copying stuff? Check .dockerignore!!
+########
+
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
@@ -50,7 +54,9 @@ WORKDIR ${AMBASSADOR_ROOT}
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6
+COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6/
+COPY --from=cached /usr/lib/libyaml* /usr/lib/
+COPY --from=cached /usr/lib/pkgconfig /usr/lib/
 
 # Copy Ambassador binaries (built in stage one).
 COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
@@ -59,8 +65,9 @@ COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 # if you really really need to (not recommended).
 RUN mkdir ambassador-config envoy
 
-# COPY in a default config for use with --demo.
-COPY ambassador/default-config/ ambassador-demo-config
+# COPY in the stuff for use with --demo.
+COPY demo/config/ ambassador-demo-config
+COPY demo/services/ demo-services
 
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \

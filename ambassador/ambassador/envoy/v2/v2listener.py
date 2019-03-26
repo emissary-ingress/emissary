@@ -108,6 +108,13 @@ def v2filter_buffer(buffer: IRBuffer):
 def v2filter_grpc_http1_bridge(irfilter: IRFilter):
     return {
         'name': 'envoy.grpc_http1_bridge',
+       'config': {},
+    }
+
+@v2filter.when("ir.grpc_web")
+def v2filter_grpc_web(irfilter: IRFilter):
+    return {
+        'name': 'envoy.grpc_web',
         'config': {},
     }
 
@@ -247,6 +254,14 @@ def v2filter_router(router: IRFilter):
         od['config'] = { 'start_child_span': True }
 
     return od
+
+
+@v2filter.when("ir.lua_scripts")
+def v2filter_lua(irfilter: IRFilter):
+    return {
+        'name': 'envoy.lua',
+        'config': irfilter.config_dict(),
+    }
 
 
 class V2TCPListener(dict):
@@ -417,6 +432,9 @@ class V2Listener(dict):
 
         if 'use_remote_address' in config.ir.ambassador_module:
             base_http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
+
+        if 'xff_num_trusted_hops' in config.ir.ambassador_module:
+            base_http_config["xff_num_trusted_hops"] = config.ir.ambassador_module.xff_num_trusted_hops
 
         if config.ir.tracing:
             base_http_config["generate_request_id"] = True

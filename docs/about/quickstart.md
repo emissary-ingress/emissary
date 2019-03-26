@@ -16,6 +16,8 @@ Ambassador provides live diagnostics viewable with a web browser. While this wou
 
 `http://localhost:8080/ambassador/v0/diag/`
 
+You'll have to authenticate to view this page: use username `admin`, password `admin` (obviously this would be a poor choice in the real world!). We'll talk more about authentication shortly.
+
 Some of the most important information - your Ambassador version, how recently Ambassador's configuration was updated, and how recently Envoy last reported status to Ambassador - is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
 
 ## 3. The Quote of the Moment Service

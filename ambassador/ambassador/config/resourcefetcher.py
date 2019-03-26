@@ -6,28 +6,10 @@ import logging
 import os
 import yaml
 
-# from collections import namedtuple
-
+from .config import Config
 from .acresource import ACResource
-# from ..utils import RichStatus
 
-if TYPE_CHECKING:
-    from .config import Config
-
-# StringOrList is either a string or a list of strings.
-# StringOrList = Union[str, List[str]]
-
-
-# class YAMLElement (dict):
-#     def __init__(self, obj: dict, serialization: str, rkey: Optional[str]=None,
-#                  filename: Optional[str]=None, filepath: Optional[str]=None, ocount=1):
-#
-#         if filename and not rkey:
-#             rkey = filename
-#
-#         super().__init__(obj=obj, serialization=serialization, rkey=rkey,
-#                          filename=filename, filepath=filepath, ocount=ocount)
-
+from ..utils import parse_yaml, dump_yaml
 
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
@@ -122,74 +104,39 @@ class ResourceFetcher:
         #                    serialization))
 
         try:
-            objects = list(yaml.safe_load_all(serialization))
-
-            self.push_location(filename, 1)
-
-            for obj in objects:
-                if k8s:
-                    self.extract_k8s(obj)
-                else:
-                    # if not obj:
-                    #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
-
-                    self.process_object(obj, rkey=rkey)
-                    self.ocount += 1
-
-            self.pop_location()
+            objects = list(parse_yaml(serialization))
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
     def extract_k8s(self, obj: dict) -> None:
         # self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
-        kind = obj.get('kind', None)
-        metadata = obj.get('metadata', None)
-        resource_name = metadata.get('name') if metadata else None
-        resource_namespace = metadata.get('namespace', 'default') if metadata else None
-        resource_identifier = self.filename
+        k8s_object = ObjectKind(obj=obj, filename=self.filename, logger=self.logger, ambassador_namespace=self.aconf.ambassador_namespace)
+        parsed, resource_identifier = k8s_object.parse()
+        if parsed is None:
+            # self.logger.debug("%s: ignoring K8s object, unable to parse kind %s" %
+            #                   (self.location, k8s_object.get_kind()))
+            return
 
-        if resource_name and resource_namespace:
-            # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
-            resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
-            self.push_location(resource_identifier, 1)
+        self.parse_object(parsed, k8s=False, filename=self.filename, rkey=resource_identifier)
 
-        annotations = metadata.get('annotations', None) if metadata else None
+    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
+        self.push_location(filename, 1)
 
-        if annotations:
-            annotations = annotations.get('getambassador.io/config', None)
-            # self.logger.debug("annotations %s" % annotations)
+        # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
 
-        skip = False
+        for obj in objects:
+            self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
-        if kind != "Service":
-            # self.logger.debug("%s: ignoring K8s %s object" % (self.location, kind))
-            skip = True
+            if k8s:
+                self.extract_k8s(obj)
+            else:
+                # if not obj:
+                #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-        if not skip and not metadata:
-            # self.logger.debug("%s: ignoring unannotated K8s %s" % (self.location, kind))
-            skip = True
-
-        if not skip and not resource_name:
-            # This should never happen as the name field is required in metadata for Service
-            # self.logger.debug("%s: ignoring unnamed K8s %s" % (self.location, kind))
-            skip = True
-
-        if not skip and not annotations:
-            # self.logger.debug("%s: ignoring K8s %s without Ambassador annotation" % (self.location, kind))
-            skip = True
-
-        if not skip and (resource_namespace != self.aconf.ambassador_namespace):
-            # This should never happen in actual usage, since we shouldn't be given things
-            # in the wrong namespace. However, in development, this can happen a lot.
-            # self.logger.debug("%s: ignoring K8s %s in wrong namespace" % (self.location, kind))
-            skip = True
-
-        if not skip:
-            if not self.filename.endswith(":annotation"):
-                self.filename += ":annotation"
-
-            self.parse_yaml(annotations, filename=self.filename, rkey=resource_identifier)
+                self.process_object(obj, rkey=rkey)
+                self.ocount += 1
 
         self.pop_location()
 
@@ -237,12 +184,174 @@ class ResourceFetcher:
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
         # Fine. Fine fine fine.
-        serialization = yaml.safe_dump(obj, default_flow_style=False)
+        serialization = dump_yaml(obj, default_flow_style=False)
 
         r = ACResource.from_dict(rkey, rkey, serialization, obj)
         self.elements.append(r)
 
-        self.logger.debug("%s PROCESS %s save %s" % (self.location, obj['kind'], rkey))
+        # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
     def sorted(self, key=lambda x: x.rkey): # returns an iterator, probably
         return sorted(self.elements, key=key)
+
+
+class ObjectKind:
+    def __init__(self, obj, filename, logger: logging.Logger, ambassador_namespace):
+        self.logger = logger
+        self.filename = filename
+        self.object = obj
+        self.ambassador_namespace = ambassador_namespace
+
+    def get_kind(self):
+        return self.object.get('kind', None)
+
+    def get_object_kind(self):
+        kind = self.get_kind()
+        if kind == "Service":
+            return ServiceKind(self.object, self.filename, self.logger, self.ambassador_namespace)
+        elif kind == "Endpoints":
+            return EndpointsKind(self.object, self.filename, self.logger, self.ambassador_namespace)
+        else:
+            return None
+
+    def parse(self):
+        parsed = self.get_object_kind()
+        if parsed is None:
+            return None, ""
+        return parsed.parse()
+
+
+class EndpointsKind(ObjectKind):
+    def parse(self):
+        # Don't include Endpoints unless endpoint routing is enabled.
+        if not Config.enable_endpoints:
+            return None, ""
+
+        kind = self.get_kind()
+        metadata = self.object.get('metadata', None)
+        resource_name = metadata.get('name')
+        resource_namespace = metadata.get('namespace', 'default')
+
+        subsets = []
+        for subset in self.object.get('subsets', []):
+            addresses = []
+            for address in subset.get('addresses', []):
+                add = {}
+
+                ip = address.get('ip', None)
+                if ip is not None:
+                    add['ip'] = ip
+
+                node = address.get('nodeName', None)
+                if node is not None:
+                    add['node'] = node
+
+                target_ref = address.get('targetRef', None)
+                if target_ref is not None:
+                    target_kind = target_ref.get('kind', None)
+                    if target_kind is not None:
+                        add['target_kind'] = target_kind
+
+                    target_name = target_ref.get('name', None)
+                    if target_name is not None:
+                        add['target_name'] = target_name
+
+                    target_namespace = target_ref.get('namespace', None)
+                    if target_namespace is not None:
+                        add['target_namespace'] = target_namespace
+
+                if len(add) > 0:
+                    addresses.append(add)
+
+            if len(addresses) == 0:
+                continue
+
+            ports = subset.get('ports', [])
+
+            # XXX LOAD_BALANCER HACK This is horrible: we take _way_ too many endpoints this
+            # XXX way! We need to only accept `Endpoints` that match `Mappings`.
+            subsets.append({
+                'apiVersion': 'ambassador/v1',
+                'ambassador_id': Config.ambassador_id,
+                'kind': kind,
+                'name': resource_name,
+                'addresses': addresses,
+                'ports': ports
+            })
+
+        if len(subsets) == 0:
+            return None, ""
+
+        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+
+        return subsets, resource_identifier
+
+
+class ServiceKind(ObjectKind):
+    def parse(self):
+        kind = self.get_kind()
+
+        # XXX Really we shouldn't generate these unless there's a namespace match. Ugh.
+        #
+        # XXX LOAD_BALANCER HACK This is horrible: we take _way_ too many endpoints this
+        # XXX way! We need to only generate `ServiceInfo` resources that match `Mappings`.
+
+        service_info = {
+            'apiVersion': 'ambassador/v1',
+            'ambassador_id': Config.ambassador_id,
+            'kind': 'ServiceInfo'
+        }
+        spec = self.object.get('spec', None)
+        if spec is not None:
+            ports = spec.get('ports', None)
+            if ports is not None:
+                service_info['ports'] = []
+                for port in ports:
+                    service_info['ports'].append(port)
+
+        metadata = self.object.get('metadata', None)
+        resource_name = metadata.get('name') if metadata else None
+        resource_namespace = metadata.get('namespace', 'default') if metadata else None
+        service_info['name'] = resource_name
+        annotations = metadata.get('annotations', None) if metadata else None
+        if annotations:
+            annotations = annotations.get('getambassador.io/config', None)
+
+        skip = False
+
+        if not metadata:
+            self.logger.debug("ignoring unannotated K8s %s" % kind)
+            skip = True
+
+        if not resource_name:
+            self.logger.debug("ignoring unnamed K8s %s" % kind)
+            skip = True
+
+        if not skip and (Config.single_namespace and (resource_namespace != self.ambassador_namespace)):
+            # This should never happen in actual usage, since we shouldn't be given things
+            # in the wrong namespace. However, in development, this can happen a lot.
+            self.logger.debug("ignoring K8s %s in wrong namespace" % kind)
+            skip = True
+
+        if skip:
+            return None, ""
+
+        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
+        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+
+        objects = []
+
+        if annotations:
+            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
+                self.filename += ":annotation"
+
+            try:
+                objects = list(yaml.safe_load_all(annotations))
+            except yaml.error.YAMLError as e:
+                self.logger.debug("could not parse YAML: %s" % e)
+
+        # Don't include service_info unless endpoint routing is enabled.
+        if Config.enable_endpoints:
+            objects.append(service_info)
+
+        return objects, resource_identifier

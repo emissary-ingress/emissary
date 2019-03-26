@@ -11,7 +11,9 @@ from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
 from abstract_tests import DEV, AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 
+from t_grpc import AcceptanceGrpcTest
 from t_grpc_bridge import AcceptanceGrpcBridgeTest
+from t_grpc_web import AcceptanceGrpcWebTest
 from t_tcpmapping import TCPMappingTest
 from t_headerrouting import HeaderRoutingTest
 from t_ratelimit import RateLimitTest
@@ -25,6 +27,7 @@ from t_extauth import (
     AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
+from t_lua_scripts import LuaTest
 
 # XXX: should test empty ambassador config
 
@@ -1249,6 +1252,111 @@ service: http://{self.target.path.fqdn}
 
     def check(self):
         assert 0 < self.results[-1].json[0]['datapoints'][0][0] <= 1000
+
+
+class LoadBalancerTest(AmbassadorTest):
+    target: ServiceType
+    enable_endpoints = True
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-1
+prefix: /{self.name}-1/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: round_robin
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-2
+prefix: /{self.name}-2/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: ring_hash
+  header: test-header
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-3
+prefix: /{self.name}-3/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: ring_hash
+  source_ip: True
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-4
+prefix: /{self.name}-4/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: test-cookie
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-5
+prefix: /{self.name}-5/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: test-cookie
+  header: test-header
+  source_ip: True
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-6
+prefix: /{self.name}-6/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: round_robin
+  cookie:
+    name: test-cookie
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-7
+prefix: /{self.name}-7/
+service: {self.target.path.fqdn}
+load_balancer:
+  policy: rr
+""")
+
+    def queries(self):
+        yield Query(self.url(self.name + "-1/"))
+        yield Query(self.url(self.name + "-2/"))
+        yield Query(self.url(self.name + "-3/"))
+        yield Query(self.url(self.name + "-4/"))
+        yield Query(self.url(self.name + "-5/"), expected=404)
+        yield Query(self.url(self.name + "-6/"), expected=404)
+        yield Query(self.url(self.name + "-7/"), expected=404)
 
 
 # pytest will find this because Runner is a toplevel callable object in a file

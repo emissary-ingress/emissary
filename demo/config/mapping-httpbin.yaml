@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  httpbin_mapping
+prefix: /httpbin/
+service: httpbin.org:80
+host_rewrite: httpbin.org

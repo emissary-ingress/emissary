@@ -4,17 +4,15 @@
 
 Ambassador is a specialized [control plane for Envoy Proxy](https://blog.getambassador.io/the-importance-of-control-planes-with-service-meshes-and-front-proxies-665f90c80b3d). In this architecture, Ambassador translates configuration (in the form of Kubernetes annotations) to Envoy configuration. All actual traffic is directly handled by the high-performance [Envoy Proxy](https://www.envoyproxy.io).
 
-![Architecture](/images/ambassador-arch.png)
+![Architecture](/doc-images/ambassador-arch.png)
 
 ## Details
 
-When a user applies a Kubernetes manifest containing Ambassador annotations, the following steps occur:
-
-1. Ambassador is asynchronously notified by the Kubernetes API of the change.
-2. Ambassador translates the configuration into an abstract intermediate representation (IR).
-3. An Envoy configuration file is generated from the IR.
-4. The Envoy configuration file is validated by Ambassador (using Envoy in validation mode).
-5. Assuming the file is valid configuration, Ambassador uses Envoy's [hot restart mechanism](https://blog.envoyproxy.io/envoy-hot-restart-1d16b14555b5) to deploy the new configuration and properly drain connections.
+1. Service owner defines configuration in Kubernetes manifests.
+2. When the manifest is applied to the cluster, the Kubernetes API notifies Ambassador of the change.
+3. Ambassador parses the change and transforms the configuration to a semantic intermediate representation. Envoy configuration is generated from this IR.
+4. The new configuration is passed to Envoy via the gRPC-based Aggregated Discovery Service (ADS) API.
+5. Traffic flows through the reconfigured Envoy, without dropping any connections.
 
 ## Scaling and availability
 

@@ -65,6 +65,9 @@ if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
+
+    PORT=5050 python3 demo-services/auth.py &
+    python3 demo-services/qotm.py &
 fi
 
 # Do we have config on the filesystem?
@@ -155,7 +158,7 @@ trap "handle_int" INT
 
 # Start using ancient kubewatch to get our cluster ID.
 # XXX Ditch this, really.
-cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" $KUBEWATCH_DEBUG cluster-id /no/such/path /dev/null)
+cluster_id=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug) #$KUBEWATCH_DEBUG)
 
 STATUS=$?
 
@@ -218,8 +221,20 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
+    KUBEWATCH_ENDPOINTS_ARG=""
+
+    if [ -n "$AMBASSADOR_ENABLE_ENDPOINTS" ]; then
+        KUBEWATCH_ENDPOINTS_ARG="endpoints"
+    fi
+
+    KUBEWATCH_SYNC_KINDS="secrets services"
+
+    if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
+        KUBEWATCH_SYNC_KINDS="services"
+    fi
+
     set -x
-    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s $KUBEWATCH_SYNC_KINDS $KUBEWATCH_ENDPOINTS_ARG &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi

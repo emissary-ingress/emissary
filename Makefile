@@ -21,7 +21,7 @@ SHELL = bash
 .FORCE:
 .PHONY: \
     .FORCE clean version setup-develop print-vars \
-    docker-login docker-push docker-images publish-website \
+    docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
@@ -101,8 +101,6 @@ else
 COMMIT_TYPE=random
 endif
 
-DOC_RELEASE_TYPE?=unstable
-
 ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
 endif
@@ -117,11 +115,16 @@ DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
 
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-9-gf60eead70
+# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
+# BELOW AND THEN RUN make docker-update-base
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-15-ga0d95bafb
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= "quay.io/datawire/ambassador-base:go-2-rc"
-AMBASSADOR_BASE_IMAGE ?= "quay.io/datawire/ambassador-base:ambassador-2-rc"
+
+# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
+# RUN make docker-update-base.
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
 
 SCOUT_APP_KEY=
 
@@ -134,7 +137,7 @@ KAT_BACKEND_RELEASE = 1.1.0
 all: setup-develop docker-push test
 
 clean: clean-test
-	rm -rf docs/yaml docs/_book docs/_site docs/package-lock.json
+	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
@@ -152,6 +155,7 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf docs/node_modules
+	-rm -rf kat/kat/client
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
@@ -203,11 +207,13 @@ docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
+	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
 	docker push $(AMBASSADOR_BASE_IMAGE)
+	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base: docker-base-images docker-push-base-images
 
@@ -260,20 +266,8 @@ ambassador/ambassador/VERSION.py:
 
 version: ambassador/ambassador/VERSION.py
 
-e2e-versioned-manifests: venv website-yaml
+e2e-versioned-manifests: venv
 	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
-
-website-yaml:
-	mkdir -p docs/yaml
-	cp -R templates/* docs/yaml
-	find ./docs/yaml \
-		-type f \
-		-exec sed \
-			-i''\
-			-e "s|{{AMBASSADOR_DOCKER_IMAGE}}|$(AMBASSADOR_DOCKER_REPO):$(VERSION)|g" \
-			{} \;
-
-website: website-yaml
 
 e2e: E2E_TEST_NAME=all
 e2e: e2e-versioned-manifests
@@ -358,8 +352,8 @@ teleproxy-stop:
 KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
-	AMBASSADOR_DOCKER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE) \
-	AMBASSADOR_DOCKER_IMAGE_CACHED=$(AMBASSADOR_DOCKER_IMAGE_CACHED) \
+	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
+	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \
@@ -410,7 +404,6 @@ release:
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		DOC_RELEASE_TYPE=stable make website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		set +x; \
 	else \
@@ -452,8 +445,11 @@ mypy: mypy-server
 # Website
 # ------------------------------------------------------------------------------
 
-publish-website:
-	bash ./releng/publish-website.sh;
+pull-docs:
+	git subtree pull --prefix=docs https://github.com/datawire/ambassador-docs.git master
+push-docs:
+	git subtree push --prefix=docs $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git master
+.PHONY: pull-docs push-docs
 
 # ------------------------------------------------------------------------------
 # CI Targets

@@ -19,7 +19,7 @@ import json
 import logging
 import os
 
-from ..utils import RichStatus, KubeSecretReader, SavedSecret
+from ..utils import RichStatus, SavedSecret
 from ..config import Config
 
 from .irresource import IRResource
@@ -44,6 +44,11 @@ from ..VERSION import Version, Build
 ## After getting an ambassador.Config, you can create an ambassador.IR. The
 ## IR is the basis for everything else: you can use it to configure an Envoy
 ## or to run diagnostics.
+
+
+def error_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
+    # Failsafe only.
+    return SavedSecret(secret_name, namespace, None, None, {})
 
 
 class IR:
@@ -77,7 +82,7 @@ class IR:
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-        setattr(self, 'secret_reader', secret_reader or KubeSecretReader(secret_root))
+        setattr(self, 'secret_reader', secret_reader or error_secret_reader)
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
 
         self.logger.debug("IR __init__:")
@@ -85,6 +90,7 @@ class IR:
         self.logger.debug("IR: AMBASSADOR_ID   %s" % self.ambassador_id)
         self.logger.debug("IR: Namespace       %s" % self.ambassador_namespace)
         self.logger.debug("IR: Nodename        %s" % self.ambassador_nodename)
+        self.logger.debug("IR: Endpoints       %s" % "enabled" if Config.enable_endpoints else "disabled")
 
         self.logger.debug("IR: file checker:   %s" % getattr(self, 'file_checker').__name__)
         self.logger.debug("IR: secret reader:  %s" % getattr(self, 'secret_reader').__name__)
@@ -131,6 +137,8 @@ class IR:
         # Save breaker & outlier configs.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
+        self.endpoints = aconf.get_config("endpoints") or {}
+        self.service_info = aconf.get_config("service_info") or {}
 
         # Save tracing and ratelimit settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
@@ -272,7 +280,7 @@ class IR:
         return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
-        group: IRBaseMappingGroup
+        group: IRBaseMappingGroup = None
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
@@ -341,7 +349,8 @@ class IR:
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
-            'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ]
+            'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
+            'endpoints': self.endpoints
         }
 
         if self.tracing:
@@ -363,6 +372,10 @@ class IR:
 
         using_tls_module = False
         using_tls_contexts = False
+
+        od['endpoint_routing'] = Config.enable_endpoints
+        od['endpoint_resource_total'] = len(self.endpoints.keys())
+        od['serviceinfo_resource_total'] = len(self.service_info.keys())
 
         for ctx in self.get_tls_contexts():
             if ctx:
@@ -391,6 +404,8 @@ class IR:
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect' ]:
             od[key] = self.ambassador_module.get(key, False)
 
+        od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
+
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
         default_port = 443 if tls_termination_count else 80
@@ -403,15 +418,35 @@ class IR:
         cluster_http_count = 0      # clusters using HTTP or HTTPS upstream
         cluster_tls_count = 0       # clusters using TLS origination
 
+        cluster_routing_kube_count = 0          # clusters routing using kube
+        cluster_routing_envoy_rr_count = 0      # clusters routing using envoy round robin
+        cluster_routing_envoy_rh_count = 0      # clusters routing using envoy ring hash
+
         endpoint_grpc_count = 0     # endpoints using GRPC upstream
         endpoint_http_count = 0     # endpoints using HTTP/HTTPS upstream
         endpoint_tls_count = 0      # endpoints using TLS origination
+
+        endpoint_routing_kube_count = 0         # endpoints Kube is routing to
+        endpoint_routing_envoy_rr_count = 0     # endpoints Envoy round robin is routing to
+        endpoint_routing_envoy_rh_count = 0     # endpoints Envoy ring hash is routing to
 
         for cluster in self.clusters.values():
             cluster_count += 1
             using_tls = False
             using_http = False
             using_grpc = False
+
+            lb_type = 'kube'
+
+            if cluster.get('enable_endpoints', False):
+                lb_type = cluster.get('lb_type', 'round_robin')
+
+            if lb_type == 'kube':
+                cluster_routing_kube_count += 1
+            elif lb_type == 'ring_hash':
+                cluster_routing_envoy_rh_count += 1
+            else:
+                cluster_routing_envoy_rr_count += 1
 
             if cluster.get('tls_context', None):
                 using_tls = True
@@ -424,23 +459,39 @@ class IR:
                 using_http = True
                 cluster_http_count += 1
 
-            for url in cluster.urls:
-                if using_tls:
-                    endpoint_tls_count += 1
+            cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.endpoint['ip']
+            num_endpoints = len(cluster_endpoints)
 
-                if using_http:
-                    endpoint_http_count += 1
+            if using_tls:
+                endpoint_tls_count += num_endpoints
 
-                if using_grpc:
-                    endpoint_grpc_count += 1
+            if using_http:
+                endpoint_http_count += num_endpoints
+
+            if using_grpc:
+                endpoint_grpc_count += num_endpoints
+
+            if lb_type == 'kube':
+                endpoint_routing_kube_count += num_endpoints
+            elif lb_type == 'ring_hash':
+                endpoint_routing_envoy_rh_count += num_endpoints
+            else:
+                endpoint_routing_envoy_rr_count += num_endpoints
 
         od['cluster_count'] = cluster_count
         od['cluster_grpc_count'] = cluster_grpc_count
         od['cluster_http_count'] = cluster_http_count
         od['cluster_tls_count'] = cluster_tls_count
+        od['cluster_routing_kube_count'] = cluster_routing_kube_count
+        od['cluster_routing_envoy_rr_count'] = cluster_routing_envoy_rr_count
+        od['cluster_routing_envoy_rh_count'] = cluster_routing_envoy_rh_count
+
         od['endpoint_grpc_count'] = endpoint_grpc_count
         od['endpoint_http_count'] = endpoint_http_count
         od['endpoint_tls_count'] = endpoint_tls_count
+        od['endpoint_routing_kube_count'] = endpoint_routing_kube_count
+        od['endpoint_routing_envoy_rr_count'] = endpoint_routing_envoy_rr_count
+        od['endpoint_routing_envoy_rh_count'] = endpoint_routing_envoy_rh_count
 
         extauth = False
         extauth_proto: Optional[str] = None
@@ -481,6 +532,8 @@ class IR:
         od['tracing_driver'] = tracing_driver
 
         group_count = 0
+        group_http_count = 0            # HTTPMappingGroups
+        group_tcp_count = 0             # TCPMappingGroups
         group_precedence_count = 0      # groups using explicit precedence
         group_header_match_count = 0    # groups using header matches
         group_regex_header_count = 0    # groups using regex header matches
@@ -493,6 +546,11 @@ class IR:
 
         for group in self.ordered_groups():
             group_count += 1
+
+            if group.get('kind', "IRHTTPMappingGroup") == 'IRTCPMappingGroup':
+                group_tcp_count += 1
+            else:
+                group_http_count += 1
 
             if group.get('precedence', 0) != 0:
                 group_precedence_count += 1
@@ -528,6 +586,8 @@ class IR:
                 group_host_rewrite_count += 1
 
         od['group_count'] = group_count
+        od['group_http_count'] = group_http_count
+        od['group_tcp_count'] = group_tcp_count
         od['group_precedence_count'] = group_precedence_count
         od['group_header_match_count'] = group_header_match_count
         od['group_regex_header_count'] = group_regex_header_count

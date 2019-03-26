@@ -95,7 +95,9 @@ env:
   value: "true"
 ```
 
-## Multiple Ambassadors in One Cluster
+If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
+
+## `AMBASSADOR_ID`
 
 Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,
 
@@ -123,6 +125,8 @@ env:
 - name: AMBASSADOR_ID
   value: ambassador-1
 ```
+
+If you are using Ambassador Pro, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
 
 Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 
@@ -188,7 +192,9 @@ Also note that the YAML files in the configuration directory must contain Ambass
 
 ## Log levels and debugging
 
-Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis. If using Ambassador Pro, you can increase the log levels by setting the `APP_LOG_LEVEL` environment variable to `debug`.
+Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
+
+If using Ambassador Pro, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 
 ## Ambassador Update Checks (Scout)
 
@@ -211,6 +217,9 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `cluster_count` | int | total count of clusters in use |
 | `cluster_grpc_count` | int | count of clusters using GRPC upstream |
 | `cluster_http_count` | int | count of clusters using HTTP or HTTPS upstream |
+| `cluster_routing_envoy_rh_count` | int | count of clusters routing using Envoy `ring_hash` |
+| `cluster_routing_envoy_rr_count` | int | count of clusters routing using Envoy `round_robin` |
+| `cluster_routing_kube_count` | int | count of clusters routing using Kubernetes |
 | `cluster_tls_count` | int | count of clusters originating TLS |
 | `custom_ambassador_id` | bool | has the `ambassador_id` been changed from 'default'? |
 | `custom_diag_port` | bool | has the diag port been changed from 8877? |
@@ -218,6 +227,11 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `diagnostics` | bool | is the diagnostics service enabled? |
 | `endpoint_grpc_count` | int | count of endpoints to which Ambassador will originate GRPC |
 | `endpoint_http_count` | int | count of endpoints to which Ambassador will originate HTTP or HTTPS |
+| `endpoint_resource_total` | int | total count of `Endpoints` resources loaded from Kubernetes |
+| `endpoint_routing` | bool | is endpoint routing enabled? |
+| `endpoint_routing_envoy_rh_count` | int | count of endpoints being routed using Envoy `ring_hash` |
+| `endpoint_routing_envoy_rr_count` | int | count of endpoints being routed using Envoy `round_robin` |
+| `endpoint_routing_kube_count` | int | count of endpoints being routed using Kubernetes |
 | `endpoint_tls_count` | int | count of endpoints to which Ambassador will originate TLS |
 | `extauth` | bool | is extauth enabled? |
 | `extauth_allow_body` | bool | will Ambassador send the body to extauth? |
@@ -228,11 +242,13 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `group_header_match_count` | int | count of groups using header matching (including `host` and `method`) |
 | `group_host_redirect_count` | int | count of groups using host_redirect |
 | `group_host_rewrite_count` | int | count of groups using host_rewrite |
+| `group_http_count` | int | count of HTTP Mapping groups |
 | `group_precedence_count` | int | count of groups that explicitly set the precedence of the group |
 | `group_regex_header_count` | int | count of groups using regex header matching |
 | `group_regex_prefix_count` | int | count of groups using regex prefix matching |
 | `group_shadow_count` | int | count of groups using shadows |
-| `listener_count` | int | count of active listeners (1 unless `redirect_cleartext_from` is in use) |
+| `group_tcp_count` | int | count of TCP Mapping groups |
+| `listener_count` | int | count of active listeners (1 unless `redirect_cleartext_from` or TCP Mappings are in use) |
 | `liveness_probe` | bool | are liveness probes enabled? |
 | `ratelimit` | bool | is rate limiting in use? |
 | `ratelimit_custom_domain` | bool | has the rate limiting domain been changed from 'ambassador'? |
@@ -248,6 +264,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `use_proxy_proto` | bool | is the `PROXY` protocol in use? |
 | `use_remote_address` | bool | is Ambassador honoring remote addresses? |
 | `x_forwarded_proto_redirect` | bool | is Ambassador redirecting based on `X-Forwarded-Proto`? |
+| `xff_num_trusted_hops` | int | what is the count of trusted hops for `X-Forwarded-For`? | 
 
 To completely disable feature reporting, set the environment variable `AMBASSADOR_DISABLE_FEATURES` to any non-empty
 value.

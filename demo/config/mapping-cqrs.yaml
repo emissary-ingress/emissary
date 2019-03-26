@@ -1,0 +1,16 @@
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: cqrs_get_mapping
+prefix: /cqrs/
+method: GET
+rewrite: /quote/
+service: 127.0.0.1:5000
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: cqrs_put_mapping
+prefix: /cqrs/
+method: PUT
+rewrite: /quote/
+service: 127.0.0.1:5000
