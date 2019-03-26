@@ -36,7 +36,6 @@ env:
 
 before_install:
   - mkdir -p ~/bin
-  - base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
   - make docker-login
 
 install:
