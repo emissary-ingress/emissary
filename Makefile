@@ -266,18 +266,6 @@ ambassador/ambassador/VERSION.py:
 
 version: ambassador/ambassador/VERSION.py
 
-e2e-versioned-manifests: venv
-	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
-
-e2e: E2E_TEST_NAME=all
-e2e: e2e-versioned-manifests
-	source venv/bin/activate; \
-	if [ "$(E2E_TEST_NAME)" == "all" ]; then \
-		bash end-to-end/testall.sh; \
-	else \
-		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
-	fi
-
 TELEPROXY=venv/bin/teleproxy
 TELEPROXY_VERSION=0.3.16
 
