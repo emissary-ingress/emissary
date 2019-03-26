@@ -42,6 +42,6 @@ If you're interested in contributing, here are some ways:
 
 * Write a blog post for [our blog](https://blog.getambassador.io)
 * Investigate an [open issue](https://github.com/datawire/ambassador/issues)
-* Add [more tests](https://github.com/datawire/ambassador/tree/develop/end-to-end)
+* Add [more tests](https://github.com/datawire/ambassador/tree/master/ambassador/tests)
 
 If you need commercial support or additional features, check out [Ambassador Pro](https://www.getambassador.io/pro/).

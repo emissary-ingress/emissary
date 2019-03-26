@@ -61,34 +61,6 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         fi
     fi
 
-    # XXX FOR RIGHT NOW DO NOT EVER RUN OLD E2E TESTS.
-    # XXX This is wrong in general, since the E2E tests still provide coverage
-    # XXX that KAT lacks. We'll reenable them once a bit more of the machinery
-    # XXX has been more-or-less vetted.
-    SKIP_E2E=yes
-
-    # We'll allow EA builds to skip E2E for right now.
-    if [[ ${COMMIT_TYPE} != "RC" ]]; then
-        SKIP_E2E=yes
-    fi
-
-    # # Run E2E if this isn't a nobuild branch, nor a doc branch, nor a random commit not on the main branch.
-    # if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
-    #     SKIP_E2E=yes
-    # fi
-
-    # if [[ ${GIT_BRANCH} =~ ^doc.* ]]; then
-    #     SKIP_E2E=yes
-    # fi
-
-    # if [[ ( ${GIT_BRANCH} != ${MAIN_BRANCH} ) && ( ${COMMIT_TYPE} == "random" ) ]]; then
-    #     SKIP_E2E=yes
-    # fi
-
-    if [ -z "$SKIP_E2E" ]; then
-        make e2e
-    fi
-
     if [[ ${COMMIT_TYPE} == "RC" ]]; then
         # For RC builds, update AWS test keys.
 		make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws

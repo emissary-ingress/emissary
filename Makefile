@@ -148,10 +148,6 @@ clean: clean-test
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -rf end-to-end/ambassador-deployment.yaml end-to-end/ambassador-deployment-mounts.yaml
-	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
-	rm -f end-to-end/1-parallel/011-websocket/ambassador/service.yaml
-	find end-to-end/1-parallel/ -type f -name 'ambassador-deployment*.yaml' -exec rm {} \;
 
 clobber: clean
 	-rm -rf docs/node_modules
@@ -232,16 +228,16 @@ docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
-		docker push $(AMBASSADOR_DOCKER_IMAGE) | python end-to-end/linify.py push.log; \
+		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python end-to-end/linify.py push.log; \
+			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
 		fi; \
 		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python end-to-end/linify.py push.log; \
+			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
@@ -265,18 +261,6 @@ ambassador/ambassador/VERSION.py:
 		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
-
-e2e-versioned-manifests: venv
-	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
-
-e2e: E2E_TEST_NAME=all
-e2e: e2e-versioned-manifests
-	source venv/bin/activate; \
-	if [ "$(E2E_TEST_NAME)" == "all" ]; then \
-		bash end-to-end/testall.sh; \
-	else \
-		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
-	fi
 
 TELEPROXY=venv/bin/teleproxy
 TELEPROXY_VERSION=0.3.16
