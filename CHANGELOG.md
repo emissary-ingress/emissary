@@ -88,6 +88,23 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
+## [0.52.1] March 26, 2019
+[0.52.1]: https://github.com/datawire/ambassador/compare/0.52.0...0.52.1
+
+### UPCOMING CHANGES
+
+Ambassador 0.60 will listen on ports 8080/8443 by default. The diagnostics service in Ambassador 0.52.0
+will try to warn you if your configuration will be affected by this change.
+
+### Changes since 0.52.0
+
+- You can specify the `AMBASSADOR_NO_SECRETS` environment variable to prevent Ambassador from 
+  watching Kubernetes secrets at all (thanks [@esmet](https://github.com/esmet)!) ([#1293])
+- The services used when you do `docker run ambassador --demo` have been moved into the Docker image,
+  to remove external dependencies from the Ambassador quickstart.  
+
+[#1293]: https://github.com/datawire/ambassador/issues/1293
+
 ## [0.52.0] March 21, 2019
 [0.52.0]: https://github.com/datawire/ambassador/compare/0.51.2...0.52.0
 
