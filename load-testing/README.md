@@ -122,3 +122,22 @@ After the attack is finished, plot the results and view the graph in a web brows
 ```sh 
 vegeta plot result-multi.txt
 ```
+
+## Find Limit Where Pro Fails
+
+max_load.go can be used to find the point where Pro starts returning 500 responses. 
+
+Simply invoke it with
+
+```
+go run max_load.go
+```
+
+and it will start issuing attacks at 100 RPS for 10 seconds. 
+
+- On success (defined as all 200 responses), it will issue another attack at 2x the rate. 
+- On failure, it will do a binary search to find the largest limit rate where it is returned a 100% success rate
+
+#### Issues
+
+It seems it does not do a good job of cleaning up open files after an attack. This needs to be resolved to get an accurate result since all attacks start to fail after some time.
