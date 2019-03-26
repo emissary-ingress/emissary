@@ -1,5 +1,5 @@
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/

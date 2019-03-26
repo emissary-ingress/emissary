@@ -1,0 +1,7 @@
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+rewrite: /
+service: 127.0.0.1:5000
