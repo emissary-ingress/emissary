@@ -227,8 +227,14 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_ENDPOINTS_ARG="endpoints"
     fi
 
+    KUBEWATCH_SYNC_KINDS="secrets services"
+
+    if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
+        KUBEWATCH_SYNC_KINDS="services"
+    fi
+
     set -x
-    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services $KUBEWATCH_ENDPOINTS_ARG &
+    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s $KUBEWATCH_SYNC_KINDS $KUBEWATCH_ENDPOINTS_ARG &
     set +x
     pids="${pids:+${pids} }$!:kubewatch"
 fi
