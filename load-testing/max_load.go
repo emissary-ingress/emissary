@@ -2,16 +2,21 @@ package main
 
 import (
 	"fmt"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/tsenart/vegeta/lib"
 )
 
+var nodeIP string
+var nodePort string
+
 func testRate(rate int) bool {
 	duration := 10 * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
-		URL:    "http://ambassador.nkrause.k736.net:31541/http-echo/",
+		URL:    "http://" + nodeIP + ":" + nodePort + "/http-echo/",
 	})
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
 	name := "atk-" + string(rate)
@@ -32,6 +37,15 @@ func testRate(rate int) bool {
 }
 
 func main() {
+	bs, _ := exec.Command("kubectl", "config", "view", "--output=go-template", "--template={{range .clusters}}{{.cluster.server}}{{end}}").Output()
+	for _, line := range strings.Split(string(bs), "\n") {
+		parts := strings.Split(strings.TrimPrefix(line, "https://"), ":")
+		nodeIP = parts[0]
+	}
+	bs, _ = exec.Command("kubectl", "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"http\"}}{{.nodePort}}{{end}}{{end}}").Output()
+	nodePort = strings.TrimSpace(string(bs))
+	fmt.Printf("ambassador = %s:%s\n", nodeIP, nodePort)
+
 	rate := 100
 	okRate := 1
 	var nokRate int
