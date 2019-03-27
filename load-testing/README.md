@@ -2,13 +2,22 @@
 
 ## Set Up
 
-1. Stand Up Ambassador Pro and Backend (in a Kubernaut cluster)
+1. Stand Up Ambassador Pro and the load-testing Backend (in a Kubernaut cluster) from the reference architecture
 
    ```sh
-   kubectl apply -f ambassador/
+   git clone https://github.com/datawire/pro-ref-arch.git
+   
+   kubectl apply -f pro-ref-arch/ambassador/
+   kubectl apply -f pro-ref-arch/scaling/http-echo.yaml
    ```
 
    This will deploy Ambassador Pro with the http-echo backend for load testing. No rate limits are applied currently.
+
+   **Note:** This README assumes you are not listening for cleartext. Using Vegeta over HTTPS is more complicated. The reference architecture deploys Ambassador secured with a self signed certificate. Apply the version of the ambassador service here to configure Ambassador to listen for cleartext.
+
+   ```
+   kubectl apply -f ambassador/ambassador-service.yaml
+   ```
 
 2. Install Vegeta
 
@@ -125,19 +134,23 @@ vegeta plot result-multi.txt
 
 ## Find Limit Where Pro Fails
 
-max_load.go can be used to find the point where Pro starts returning 500 responses. 
+max_load.go can be used to find the point where Pro starts returning 500 responses. It works by calling the `text_rate` executable which will issue attacks with the `-rate` at `-url` specified.
 
-Simply invoke it with
+First, edit the URL in line 15 to whatever IP and port you are using.
+
+Then, simply invoke it with:
 
 ```
 go run max_load.go
 ```
 
-and it will start issuing attacks at 100 RPS for 10 seconds. 
+and it will start issuing attacks at 100 RPS for 5 seconds. 
 
 - On success (defined as all 200 responses), it will issue another attack at 2x the rate. 
 - On failure, it will do a binary search to find the largest limit rate where it is returned a 100% success rate
 
 #### Issues
 
-It seems it does not do a good job of cleaning up open files after an attack. This needs to be resolved to get an accurate result since all attacks start to fail after some time.
+- ~~It seems it does not do a good job of cleaning up open files after an attack. This needs to be resolved to get an accurate result since all attacks start to fail after some time.~~ Kind of resolved by pulling out the Vegeta attack to it's own executable
+
+- The executable fails at issuing multiple Attacks over 2k RPS. For some reason, this seams to happen at 2212 RPS but I do not believe it has anything to do with this number.
