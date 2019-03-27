@@ -24,10 +24,10 @@ func testRate(rate int, sla time.Duration) bool {
 	latency := metrics.Latencies.P95
 
 	if metrics.Success < float64(1) {
-		fmt.Printf("💥  Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, metrics.Success)
+		fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, metrics.Success)
 		return false
 	}
-	fmt.Printf("✨  Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, metrics.Success)
+	fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, metrics.Success)
 	return true
 }
 
