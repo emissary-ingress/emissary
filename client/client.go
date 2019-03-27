@@ -350,7 +350,7 @@ func CallRealGRPC(query Query) {
 	defer conn.Close()
 
 	client := grpc_echo_pb.NewEchoServiceClient(conn)
-	request := &grpc_echo_pb.EchoRequest{Data: "hello-ark3"}
+	request := &grpc_echo_pb.EchoRequest{Data: "real gRPC"}
 
 	md := metadata.MD{}
 	headers, ok := query["headers"]
@@ -367,6 +367,7 @@ func CallRealGRPC(query Query) {
 		log.Printf("grpc echo request failed: %v", err)
 		return
 	}
+
 	// It's hard to tell the difference between a failed connection and a
 	// successful connection that set an error code. We'll use the
 	// heuristic that DNS errors and Connection Refused both appear to
@@ -401,13 +402,13 @@ func CallRealGRPC(query Query) {
 	result["status"] = 200
 
 	// Stuff that's not available:
-	// - query.result.status (the HTTP status -- synthesized as 200 or 999)
+	// - query.result.status (the HTTP status -- synthesized as 200)
 	// - query.result.headers (the HTTP response headers -- we're faking this
 	//   field by including the response object's headers, which are the same as
 	//   the request headers modulo modification via "requested-headers"
 	//   handling by the echo service)
 	// - query.result.body (the raw HTTP body)
-	// - query.result.json or query.text (the parsed HTTP body)
+	// - query.result.json or query.result.text (the parsed HTTP body)
 }
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
