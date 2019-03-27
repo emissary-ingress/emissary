@@ -666,10 +666,11 @@ class AmbassadorEventWatcher(threading.Thread):
                     from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
                     to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
-                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                    # self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
                 except IOError as e:
-                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    # self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
