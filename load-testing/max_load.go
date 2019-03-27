@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -15,8 +13,8 @@ var attacker = vegeta.NewAttacker()
 var nodeIP string
 var nodePort string
 
-func rawTestRate(rate int) (success float64, latency time.Duration) {
-	duration := 10 * time.Second
+func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration) {
+	duration := dur * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
 		URL:    "http://" + nodeIP + ":" + nodePort + "/http-echo/",
@@ -33,23 +31,31 @@ func rawTestRate(rate int) (success float64, latency time.Duration) {
 }
 
 func testRate(rate int) bool {
-	success, latency := rawTestRate(rate)
-	if success < 1 {
-		fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
-		// let it cool down
-		passed := 0
-		for passed < 2 {
-			s, _ := rawTestRate(1)
-			if s < 1 {
-				passed = 0
-			} else {
-				passed++
+	retry := false
+	for {
+		success, latency := rawTestRate(rate, 5)
+		if success < 1 {
+			// let it cool down
+			passed := 0
+			for passed < 2 {
+				s, _ := rawTestRate(1, 2)
+				if s < 1 {
+					passed = 0
+				} else {
+					passed++
+				}
 			}
+			if retry {
+				fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
+				return false
+			}
+			fmt.Printf("Failed at %d RPS. Will retry\n", rate)
+			retry = true
+		} else {
+			fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
+			return true
 		}
-		return false
 	}
-	fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
-	return true
 }
 
 func main() {
@@ -70,11 +76,9 @@ func main() {
 	for {
 		if testRate(rate) {
 			okRate = rate
-			fmt.Printf("!!!  Success at %d req/sec\n", rate)
 			rate *= 2
 		} else {
 			nokRate = rate
-			fmt.Printf(":(  Failed at %d req/sec\n", rate)
 			break
 		}
 	}
@@ -84,10 +88,8 @@ func main() {
 		rate = (nokRate + okRate) / 2
 		if testRate(rate) {
 			okRate = rate
-			fmt.Printf("!!!  Success at %d req/sec\n", rate)
 		} else {
 			nokRate = rate
-			fmt.Printf(":(  Failed at %d req/sec\n", rate)
 		}
 	}
 	fmt.Printf("➡️  Maximum Working Rate: %d req/sec\n", okRate)

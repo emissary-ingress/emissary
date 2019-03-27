@@ -99,7 +99,7 @@ kubectl apply -f no-pro/
 
 
 ```sh
-echo "GET http://{NODE_IP}:{NODE_PORT}/http-echo/" | vegeta attack -rate 500 -duration 5s > result-no-pro.txt
+echo "GET http://{NODE_IP}:{NODE_PORT}/http-echo/" | vegeta attack -rate 500 -duration 5s | vegeta report
 ```
 
 ### With Rate Limiting
@@ -113,7 +113,7 @@ kubectl apply -f ratelimiting/
 ```
 
 ```sh
-echo "GET http://{NODE_IP}:{NODE_PORT}/http-echo/" | vegeta attack -rate 500 -duration 5s > result-rl.txt
+echo "GET http://{NODE_IP}:{NODE_PORT}/http-echo/" | vegeta attack -rate 500 -duration 5s | vegeta report
 ```
 
 ### Multiple configurations in one graph
@@ -134,7 +134,7 @@ vegeta plot result-multi.txt
 
 ## Find Limit Where Pro Fails
 
-max_load.go can be used to find the point where Pro starts returning 500 responses. It works by calling the `text_rate` executable which will issue attacks with the `-rate` at `-url` specified.
+max_load.go can be used to find the point where Pro starts returning 500 responses.
 
 First, edit the URL in line 15 to whatever IP and port you are using.
 
@@ -149,8 +149,113 @@ and it will start issuing attacks at 100 RPS for 5 seconds.
 - On success (defined as all 200 responses), it will issue another attack at 2x the rate. 
 - On failure, it will do a binary search to find the largest limit rate where it is returned a 100% success rate
 
-#### Issues
 
-- ~~It seems it does not do a good job of cleaning up open files after an attack. This needs to be resolved to get an accurate result since all attacks start to fail after some time.~~ Kind of resolved by pulling out the Vegeta attack to it's own executable
+#Testing Scenarios
 
-- The executable fails at issuing multiple Attacks over 2k RPS. For some reason, this seams to happen at 2212 RPS but I do not believe it has anything to do with this number.
+## Testing Environment
+
+- Client Machine: 
+   
+   - 2014 MacBook Pro 
+   - macOS Sierra
+   - 2.6 GHz i5 Processor
+   - 16 GB DDR3 Memory
+
+- Kubernetes
+
+   - Kubernaut Cluster
+
+- Starting Ambassador Config
+
+   - Single Pod Ambassador Pro 
+   - No rate limiting
+   - No filters
+   - Ambassador 0.52.0
+   - Ambassador Pro 0.2.3
+
+## Base Config
+
+```
+kubectl apply -f base-config/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 1653 RPS
+Run 2: 1636 RPS
+Run 3: 1649 RPS
+
+Mean: ~1646 RPS
+
+## Per second Rate Limiting
+
+```
+k apply -f per-second/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 690 RPS
+Run 2: 681 RPS
+Run 3: 687 RPS
+
+Mean: ~686
+
+## Per second Rate Limiting Scaling
+
+Increase the number of replicas of the Ambassador Pro deployment to 4
+
+```
+kubectl apply -f scaling/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 577 RPS
+Run 2: 575 RPS
+Run 3: 573 RPS
+
+Mean: ~575 RPS
+
+## Per minute rate limiting
+
+Scale Ambassador back down to 1 pod and use a per-minute rate limit.
+
+```
+kubectl apply -f base-config/
+kubectl apply -f per-minute/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 703 RPS
+Run 2: 660 RPS
+Run 3: 665 RPS
+
+Mean: ~676 RPS
+
+## Calling out to K8s Service vs local host
+
+Configure Pro to create K8s services for calls to rate limiting.
+
+```
+kubectl apply -f k8s-service/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 
+Run 2: 
+Run 3: 
+
+Means: ~

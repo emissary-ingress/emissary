@@ -14,7 +14,7 @@ metadata:
       labels:
         ambassador:
           - request_label_group:
-            - http
+            - minute
 spec:
   selector:
     app: http-echo

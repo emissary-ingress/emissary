@@ -1,0 +1,10 @@
+apiVersion: getambassador.io/v1beta1
+kind: RateLimit
+metadata:
+  name: minute-rate-limit
+spec:
+  domain: ambassador
+  limits:
+   - pattern: [{generic_key: http}]
+     rate: 1000000
+     unit: minute

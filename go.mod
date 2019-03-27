@@ -7,6 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/c2h5oh/datasize v0.0.0-20171227191756-4eba002a5eae // indirect
 	github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879
 	github.com/datawire/kat-backend v1.1.0
 	github.com/datawire/teleproxy v0.3.16
@@ -22,9 +23,11 @@ require (
 	github.com/hashicorp/consul v1.4.2
 	github.com/hashicorp/go-sockaddr v1.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9 // indirect
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/json-iterator/go v1.1.5
 	github.com/lyft/ratelimit v1.3.0
+	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.6 // indirect
 	github.com/miekg/dns v1.1.4 // indirect
@@ -37,6 +40,8 @@ require (
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
+	github.com/tsenart/go-tsz v0.0.0-20180814235614-0bd30b3df1c3 // indirect
+	github.com/tsenart/vegeta v12.2.1+incompatible
 	github.com/urfave/negroni v1.0.0
 	golang.org/x/crypto v0.0.0-20190228161510-8dd112bcdc25 // indirect
 	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95
