@@ -22,34 +22,38 @@ Some of the most important information - your Ambassador version, how recently A
 
 ## 3. The Quote of the Moment Service
 
-Since Ambassador is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out here:
+Since Ambassador is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
+
+`http://localhost:8080/qotm/`
+
+in your browser, or from the command line as
 
 ```shell
-curl http://localhost:8080/qotm/
+curl 'http://localhost:8080/qotm/?json=true'
 ```
 
-This request will route to the `qotm` service at `demo.getambassador.io`, and return a quote in a JSON object.
+This request will route to the `qotm` service at `demo.getambassador.io`, and return a random quote for this very moment.
 
-You can also see the mapping by clicking the `mapping-qotm.yaml` link from the diagnostic overview, or by opening
-
-`http://localhost:8080/ambassador/v0/diag/mapping-qotm.yaml`
+You can see details of the mapping by clicking the blue `http://localhost:8080/qotm/ link at the very bottom of the `Ambassador Route Table` in the diagnostics overview.
 
 ## 4. Authentication
 
-On the diagnostic overview, you can also see that Ambassador is configured to do authentication -- click the `auth.yaml` link, or open
+On the diagnostic overview, you can also see that Ambassador is configured to do authentication -- in the middle fo the overview page, you'll see the `Ambassador Services In Use` section, and you can click the `tcp://127.0.0.1:5050` link for details on the `AuthService` configuration. This demo auth service is running inside the Docker container with Ambassador and the Quote of the Moment service, and Ambassador uses it to mediate access to everything behind the Ambassador.
 
-`http://localhost:8080/ambassador/v0/diag/auth.yaml`
+You saw above that access to the diagnostic overview required you to authenticate as an administrator. Getting a random Quote of the Moment does not require authentication, but to get a specific quote, you'll have to authenticate as a demo user. To see this in action, open
 
-for more here. Ambassador uses a demo authentication service at `demo.getambassador.io` to mediate access to the Quote of the Moment: simply getting a random quote is allowed without authentication, but to get a specific quote, you'll have to authenticate:
+`http://localhost:8080/qotm/quote/5` 
+
+in your brower. From the command line, you can see that 
 
 ```shell
-curl -v http://localhost:8080/qotm/quote/5
+curl -v 'http://localhost:8080/qotm/quote/5?json=true'
 ```
 
 will return a 401, but
 
 ```shell
-curl -v -u username:password http://localhost:8080/qotm/quote/5
+curl -v -u username:password 'http://localhost:8080/qotm/quote/5?json=true'
 ```
 
 will succeed. (Note that that's literally "username" and "password" -- the demo auth service is deliberately not very secure!)
@@ -58,4 +62,4 @@ Note that it's up to the auth service to decide what needs authentication -- tea
 
 ## Next steps
 
-We've just walked through some of the core features of Ambassador in a local configuration. Next, we'll walk through how to configure these features in Kubernetes.
+We've just walked through some of the core features of Ambassador in a local configuration. To see Ambassador in action on Kubernetes, check out the [Kubernetes intall guide](/user-guide/install).

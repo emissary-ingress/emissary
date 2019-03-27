@@ -221,8 +221,7 @@ def specific_quote(idx):
 
         quotes[idx] = j['quote']
 
-    return RichStatus.OK(quote=quotes[idx],
-                         json=request.args.get('json', False))
+    return RichStatus.OK(quote=quotes[idx], json=request.args.get('json', False))
 
 ####
 # POST /quote adds a new quote to our list. It requires a JSON dictionary
