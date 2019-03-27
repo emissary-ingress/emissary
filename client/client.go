@@ -331,7 +331,18 @@ func CallRealGRPC(query Query) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	conn, err := grpc.DialContext(ctx, qURL.Host, grpc.WithInsecure()) // FIXME: hard-coded
+	// Dial runs in the background and thus always appears to succeed. If you
+	// pass grpc.WithBlock() to make it wait for a connection, failures just hit
+	// the deadline rather than returning a useful error like "no such host" or
+	// "connection refused" or whatever. Perhaps they are considered "transient"
+	// and there's some retry logic we need to turn off. Anyhow, we don't pass
+	// grpc.WithBlock(), instead letting the error happen at the request below.
+	// This makes useful error messages visible in most cases.
+	var dialOptions []grpc.DialOption
+	if qURL.Scheme != "https" {
+		dialOptions = append(dialOptions, grpc.WithInsecure())
+	}
+	conn, err := grpc.DialContext(ctx, qURL.Host, dialOptions...)
 	if query.CheckErr(err) {
 		log.Printf("grpc dial failed: %v", err)
 		return
