@@ -103,6 +103,8 @@ class DiagApp (Flask):
     # scout_result: Dict[str, Any]
     watcher: 'AmbassadorEventWatcher'
     stats_updater: Optional[PeriodicTrigger]
+    last_request_info: Dict[str, int]
+    last_request_time: Optional[datetime.datetime]
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
@@ -138,7 +140,10 @@ class DiagApp (Flask):
         self.ir = None
         self.stats_updater = None
 
-        # self.scout = Scout(update_frequency=datetime.timedelta(seconds=30))
+        self.last_request_info = {}
+        self.last_request_time = None
+
+        # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout()
 
     def check_scout(self, what: str) -> None:
@@ -661,10 +666,11 @@ class AmbassadorEventWatcher(threading.Thread):
                     from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
                     to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
-                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                    # self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
                 except IOError as e:
-                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    # self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
@@ -694,14 +700,19 @@ class AmbassadorEventWatcher(threading.Thread):
         if app.health_checks and not app.stats_updater:
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
+            # app.scout_updater = PeriodicTrigger(lambda: app.watcher.check_scout("30s"), period=30)
 
         # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
         # update until after we've taken care of Envoy.
         self.check_scout("update")
 
     def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
-        uptime = datetime.datetime.now() - boot_time
+        now = datetime.datetime.now()
+        uptime = now - boot_time
         hr_uptime = td_format(uptime)
+
+        if not ir:
+            ir = app.ir
 
         self.app.notices.reset()
 
@@ -710,8 +721,35 @@ class AmbassadorEventWatcher(threading.Thread):
             "hr_uptime": hr_uptime
         }
 
-        if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
-            scout_args["features"] = ir.features()
+        if ir:
+            self.app.logger.debug("check_scout: we have an IR")
+
+            if not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+                self.app.logger.debug("check_scout: including features")
+                feat = ir.features()
+
+                request_data = app.estats.stats.get('requests', None)
+
+                if request_data:
+                    self.app.logger.debug("check_scout: including requests")
+
+                    for rkey in request_data.keys():
+                        cur = request_data[rkey]
+                        prev = app.last_request_info.get(rkey, 0)
+                        feat[f'request_{rkey}_count'] = max(cur - prev, 0)
+
+                    lrt = app.last_request_time or boot_time
+                    since_lrt = now - lrt
+                    elapsed = since_lrt.total_seconds()
+                    hr_elapsed = td_format(since_lrt)
+
+                    app.last_request_time = now
+                    app.last_request_info = request_data
+
+                    feat['request_elapsed'] = elapsed
+                    feat['request_hr_elapsed'] = hr_elapsed
+
+                scout_args["features"] = feat
 
         scout_result = self.app.scout.report(mode="diagd", action=what, **scout_args)
         scout_notices = scout_result.pop('notices', [])
