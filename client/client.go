@@ -352,6 +352,7 @@ func CallRealGRPC(query Query) {
 	client := grpc_echo_pb.NewEchoServiceClient(conn)
 	request := &grpc_echo_pb.EchoRequest{Data: "real gRPC"}
 
+	// Prepare outgoing headers, which are passed via Context
 	md := metadata.MD{}
 	headers, ok := query["headers"]
 	if ok {
@@ -359,8 +360,9 @@ func CallRealGRPC(query Query) {
 			md.Set(key, val.(string))
 		}
 	}
+	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	response, err := client.Echo(ctx, request, grpc.Header(&md))
+	response, err := client.Echo(ctx, request)
 	stat, ok := status.FromError(err)
 	if !ok { // err is not nil and not a grpc Status
 		query.CheckErr(err)
