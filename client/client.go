@@ -25,7 +25,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
@@ -351,18 +350,22 @@ func CallRealGRPC(query Query) {
 	}
 
 	response, err := client.Echo(ctx, request, grpc.Header(&md))
-	// It's hard to tell the difference between a failed connection and a
-	// successful connection that set an error code. We'll use the
-	// heuristic that DNS errors and Connection Refused both appear to
-	// return code 14 (Code.Unavailable).
-	code := status.Code(err)
-	if code == codes.Unknown {
+	stat, ok := status.FromError(err)
+	if !ok { // err is not nil and not a grpc Status
 		query.CheckErr(err)
 		log.Printf("grpc echo request failed: %v", err)
 		return
 	}
-	grpcCode := int(code)
-	grpcMessage := err.Error()
+	// It's hard to tell the difference between a failed connection and a
+	// successful connection that set an error code. We'll use the
+	// heuristic that DNS errors and Connection Refused both appear to
+	// return code 14 (Code.Unavailable).
+	grpcCode := int(stat.Code())
+	if grpcCode == 14 {
+		query.CheckErr(err)
+		log.Printf("grpc echo request connection failed: %v", err)
+		return
+	}
 
 	// Now process the response and err objects. Save the request headers, as
 	// echoed and modified by the service, as if they were the HTTP response
@@ -378,7 +381,7 @@ func CallRealGRPC(query Query) {
 		resHeader.Add(key, val)
 	}
 	resHeader.Add("Grpc-Status", fmt.Sprint(grpcCode))
-	resHeader.Add("Grpc-Message", grpcMessage)
+	resHeader.Add("Grpc-Message", stat.Message())
 
 	result := query.Result()
 	result["headers"] = resHeader
