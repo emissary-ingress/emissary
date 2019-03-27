@@ -11,6 +11,7 @@ import (
 	"github.com/tsenart/vegeta/lib"
 )
 
+var attacker = vegeta.NewAttacker()
 var nodeIP string
 var nodePort string
 
@@ -22,7 +23,6 @@ func rawTestRate(rate int) (success float64, latency time.Duration) {
 	})
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
 	name := "atk-" + string(rate)
-	attacker := vegeta.NewAttacker()
 	var metrics vegeta.Metrics
 	for res := range attacker.Attack(targeter, vegetaRate, duration, name) {
 		metrics.Add(res)
