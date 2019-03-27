@@ -7,7 +7,7 @@ import (
 	"github.com/tsenart/vegeta/lib"
 )
 
-func testRate(rate int, sla time.Duration) bool {
+func testRate(rate int) bool {
 	duration := 10 * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
@@ -35,11 +35,10 @@ func main() {
 	rate := 100
 	okRate := 1
 	var nokRate int
-	sla := 1 * time.Second
 
 	// first, find the point at which the system breaks
 	for {
-		if testRate(rate, sla) {
+		if testRate(rate) {
 			okRate = rate
 			rate *= 2
 		} else {
@@ -51,7 +50,7 @@ func main() {
 	// next, do a binary search between okRate and nokRate
 	for (nokRate - okRate) > 1 {
 		rate = (nokRate + okRate) / 2
-		if testRate(rate, sla) {
+		if testRate(rate) {
 			okRate = rate
 		} else {
 			nokRate = rate
