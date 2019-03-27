@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 import json
+import os
 
 # from copy import deepcopy
 
@@ -251,7 +252,8 @@ def v2filter_router(router: IRFilter):
     od: Dict[str, Any] = { 'name': 'envoy.router' }
 
     if router.ir.tracing:
-        od['config'] = { 'start_child_span': True }
+        no_child_span = os.environ.get('AMBASSADOR_NO_CHILD_SPAN', "")
+        od['config'] = { 'start_child_span': True if not no_child_span else False }
 
     return od
 

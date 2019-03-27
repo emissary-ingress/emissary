@@ -162,7 +162,8 @@ class IR:
         router_config = {}
 
         if self.tracing:
-            router_config['start_child_span'] = True
+            no_child_span = os.environ.get('AMBASSADOR_NO_CHILD_SPAN', "")
+            router_config['start_child_span'] = True if not no_child_span else False
 
         self.save_filter(IRFilter(ir=self, aconf=aconf,
                                   rkey="ir.router", kind="ir.router", name="router", type="decoder",
