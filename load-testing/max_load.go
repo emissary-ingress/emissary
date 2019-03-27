@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -12,7 +14,7 @@ import (
 var nodeIP string
 var nodePort string
 
-func testRate(rate int) bool {
+func rawTestRate(rate int) (success float64, latency time.Duration) {
 	duration := 10 * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
@@ -26,13 +28,27 @@ func testRate(rate int) bool {
 		metrics.Add(res)
 	}
 	metrics.Close()
-	latency := metrics.Latencies.P95
 
-	if metrics.Success < float64(1) {
-		fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, metrics.Success)
+	return metrics.Success, metrics.Latencies.P95
+}
+
+func testRate(rate int) bool {
+	success, latency := rawTestRate(rate)
+	if success < 1 {
+		fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
+		// let it cool down
+		passed := 0
+		for passed < 2 {
+			s, _ := rawTestRate(1)
+			if s < 1 {
+				passed = 0
+			} else {
+				passed++
+			}
+		}
 		return false
 	}
-	fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, metrics.Success)
+	fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
 	return true
 }
 
