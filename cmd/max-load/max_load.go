@@ -15,7 +15,7 @@ var attacker = vegeta.NewAttacker(vegeta.TLSConfig(&tls.Config{InsecureSkipVerif
 var nodeIP string
 var nodePort string
 
-func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration) {
+func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration, errs []string) {
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
 		URL:    "https://" + nodeIP + ":" + nodePort + "/http-echo/",
@@ -24,23 +24,32 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
 	name := "atk-" + string(rate)
 	var metrics vegeta.Metrics
+	var successes uint64
 	for res := range attacker.Attack(targeter, vegetaRate, dur, name) {
+		// vegeta.Metrics doesn't consider HTTP 429 Too Many
+		// Requests to be a "success", but for testing the
+		// rate limit service, we should.
+		switch res.Code {
+		case http.StatusOK, http.StatusTooManyRequests:
+			successes++
+		default:
+		}
 		metrics.Add(res)
 	}
 	metrics.Close()
 
-	return metrics.Success, metrics.Latencies.P95
+	return float64(successes) / float64(metrics.Requests), metrics.Latencies.P95, metrics.Errors
 }
 
 func testRate(rate int) bool {
 	retry := false
 	for {
-		success, latency := rawTestRate(rate, 5*time.Second)
+		success, latency, errs := rawTestRate(rate, 5*time.Second)
 		if success < 1 {
 			// let it cool down
 			passed := 0
 			for passed < 2 {
-				s, _ := rawTestRate(1, 2*time.Second)
+				s, _, _ := rawTestRate(1, 2*time.Second)
 				if s < 1 {
 					passed = 0
 				} else {
@@ -49,6 +58,9 @@ func testRate(rate int) bool {
 			}
 			if retry {
 				fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
+				for _, err := range errs {
+					fmt.Printf("  error: %s\n", err)
+				}
 				return false
 			}
 			fmt.Printf("Failed at %d RPS. Will retry\n", rate)
@@ -94,5 +106,5 @@ func main() {
 			nokRate = rate
 		}
 	}
-	fmt.Printf("➡️  Maximum Working Rate: %d req/sec\n", okRate)
+	fmt.Printf("➡️Maximum Working Rate: %d req/sec\n", okRate)
 }
