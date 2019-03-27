@@ -328,7 +328,10 @@ func CallRealGRPC(query Query) {
 		return
 	}
 
-	conn, err := grpc.Dial(qURL.Host, grpc.WithInsecure()) // FIXME: hard-coded
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, qURL.Host, grpc.WithInsecure()) // FIXME: hard-coded
 	if query.CheckErr(err) {
 		log.Printf("grpc dial failed: %v", err)
 		return
@@ -337,9 +340,6 @@ func CallRealGRPC(query Query) {
 
 	client := grpc_echo_pb.NewEchoServiceClient(conn)
 	request := &grpc_echo_pb.EchoRequest{Data: "hello-ark3"}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	md := metadata.MD{}
 	headers, ok := query["headers"]
