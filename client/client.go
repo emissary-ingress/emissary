@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/textproto"
 	"net/url"
 	"os"
 	"strconv"
@@ -156,25 +155,13 @@ func (q Query) Headers() (result http.Header) {
 	return result
 }
 
-// grpcType returns the query's grpc_type field or the empty string.
-func (q Query) grpcType() string {
+// GrpcType returns the query's grpc_type field or the empty string.
+func (q Query) GrpcType() string {
 	val, ok := q["grpc_type"]
 	if ok {
 		return val.(string)
 	}
 	return ""
-}
-
-// IsGrpc checks if the request is to a gRPC service.
-func (q Query) IsGrpc() bool {
-	headers := q.Headers()
-	key := textproto.CanonicalMIMEHeaderKey("content-type")
-	for _, val := range headers[key] {
-		if strings.Contains(strings.ToLower(val), "application/grpc") {
-			return true
-		}
-	}
-	return false
 }
 
 // Result represents the result of one kat query. Upon first access to a query's
@@ -309,7 +296,8 @@ func GetGRPCBridgeReqBody() (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-// CallRealGRPC does stuff
+// CallRealGRPC handles real gRPC queries, i.e. queries that use the normal gRPC
+// generated code and the normal HTTP/2-based transport.
 func CallRealGRPC(query Query) {
 	qURL, err := url.Parse(query.URL())
 	if query.CheckErr(err) {
@@ -423,7 +411,7 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	}
 
 	// Real gRPC is handled elsewhere
-	if query.grpcType() == "real" {
+	if query.GrpcType() == "real" {
 		CallRealGRPC(query)
 		return
 	}
@@ -463,7 +451,8 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	// Prepare the HTTP request
 	var body io.Reader
 	method := query.Method()
-	if query.IsGrpc() { // Perform special handling for gRPC-bridge
+	if query.GrpcType() == "bridge" {
+		// Perform special handling for gRPC-bridge
 		buf, err := GetGRPCBridgeReqBody()
 		if query.CheckErr(err) {
 			log.Printf("gRPC-bridge buffer error: %v", err)
