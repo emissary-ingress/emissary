@@ -26,11 +26,11 @@ func main() {
 
 		if strings.Compare(stringRate, "1.000000") == 0 {
 			okRate = rate
-			fmt.Printf("✨  Success at %d req/sec\n", rate)
+			fmt.Printf("!!!  Success at %d req/sec\n", rate)
 			rate *= 2
 		} else {
 			nokRate = rate
-			fmt.Printf("💥  Failed at %d req/sec\n", rate)
+			fmt.Printf(":(  Failed at %d req/sec\n", rate)
 			break
 		}
 	}
@@ -48,20 +48,11 @@ func main() {
 
 		if strings.Compare(stringRate, "1.000000") == 0 {
 			okRate = rate
-			fmt.Printf("✨  Success at %d req/sec\n", rate)
+			fmt.Printf("!!!  Success at %d req/sec\n", rate)
 		} else {
 			nokRate = rate
-			fmt.Printf("💥  Failed at %d req/sec\n", rate)
+			fmt.Printf(":(  Failed at %d req/sec\n", rate)
 		}
 	}
 	fmt.Printf("➡️  Maximum Working Rate: %d req/sec\n", okRate)
 }
-
-/*
-func main() {
-	out, err := exec.Command("date").Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("The date is %s\n", out)
-}*/
