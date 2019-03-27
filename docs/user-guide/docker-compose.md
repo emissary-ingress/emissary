@@ -21,7 +21,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     # expose port 80 via 8080 on the host machine
     - 8080:80
@@ -164,7 +164,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     - 8080:80
     volumes:
@@ -251,7 +251,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     - 8080:80
     volumes:
@@ -339,7 +339,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     - 8080:80
     volumes:
