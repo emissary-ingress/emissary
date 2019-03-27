@@ -4,20 +4,12 @@
 
 1. Stand Up Ambassador Pro and the load-testing Backend (in a Kubernaut cluster) from the reference architecture
 
-   ```sh
-   git clone https://github.com/datawire/pro-ref-arch.git
-   
-   kubectl apply -f pro-ref-arch/ambassador/
-   kubectl apply -f pro-ref-arch/scaling/http-echo.yaml
+   ```sh   
+   kubectl apply -f ambassador/
    ```
 
    This will deploy Ambassador Pro with the http-echo backend for load testing. No rate limits are applied currently.
-
-   **Note:** This README assumes you are not listening for cleartext. Using Vegeta over HTTPS is more complicated. The reference architecture deploys Ambassador secured with a self signed certificate. Apply the version of the ambassador service here to configure Ambassador to listen for cleartext.
-
-   ```
-   kubectl apply -f ambassador/ambassador-service.yaml
-   ```
+   
 
 2. Install Vegeta
 
@@ -106,6 +98,10 @@ echo "GET http://{NODE_IP}:{NODE_PORT}/http-echo/" | vegeta attack -rate 500 -du
 
 **Note:** Of course make sure Pro is configured 
 
+```
+kubectl apply -f ambassador/
+```
+
 Configure ratelimiting on the `http-echo` service. Apply the yaml in the `ratelimiting/` directory to add `label` `generic_key: http` to requests to `http-echo` and configure a `RateLimit` of 1000 RPS.
 
 ```sh
@@ -184,8 +180,11 @@ go run max_load.go
 ```
 
 Run 1: 1653 RPS
+
 Run 2: 1636 RPS
+
 Run 3: 1649 RPS
+
 
 Mean: ~1646 RPS
 
@@ -200,8 +199,11 @@ go run max_load.go
 ```
 
 Run 1: 690 RPS
+
 Run 2: 681 RPS
+
 Run 3: 687 RPS
+
 
 Mean: ~686
 
@@ -218,8 +220,11 @@ go run max_load.go
 ```
 
 Run 1: 577 RPS
+
 Run 2: 575 RPS
+
 Run 3: 573 RPS
+
 
 Mean: ~575 RPS
 
@@ -237,7 +242,9 @@ go run max_load.go
 ```
 
 Run 1: 703 RPS
+
 Run 2: 660 RPS
+
 Run 3: 665 RPS
 
 Mean: ~676 RPS
@@ -255,7 +262,10 @@ go run max_load.go
 ```
 
 Run 1: 
+
 Run 2: 
+
 Run 3: 
 
-Means: ~
+
+Mean: ~
