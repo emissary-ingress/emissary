@@ -70,9 +70,11 @@ func main() {
 	for {
 		if testRate(rate) {
 			okRate = rate
+			fmt.Printf("!!!  Success at %d req/sec\n", rate)
 			rate *= 2
 		} else {
 			nokRate = rate
+			fmt.Printf(":(  Failed at %d req/sec\n", rate)
 			break
 		}
 	}
@@ -82,8 +84,10 @@ func main() {
 		rate = (nokRate + okRate) / 2
 		if testRate(rate) {
 			okRate = rate
+			fmt.Printf("!!!  Success at %d req/sec\n", rate)
 		} else {
 			nokRate = rate
+			fmt.Printf(":(  Failed at %d req/sec\n", rate)
 		}
 	}
 	fmt.Printf("➡️  Maximum Working Rate: %d req/sec\n", okRate)
