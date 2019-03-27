@@ -14,13 +14,11 @@ git clone https://github.com/datawire/pro-ref-arch
 
 ## 2. License Key
 
-In the `ambassador/ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
+Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env.sh` file.
 
 **Note:** Ambassador Pro will not start without a valid license key.
 
 ## 3. Deploy Ambassador Pro
-
-Once you have fully configured Ambassador Pro, deploy your updated configuration. Note that the default configuration will also redeploy your current Ambassador configuration, so verify that you have the correct Ambassador version before deploying Pro.
 
 If you're on GKE, first, create the following `ClusterRoleBinding`:
 
@@ -28,11 +26,13 @@ If you're on GKE, first, create the following `ClusterRoleBinding`:
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-Then, deploy Ambassador Pro and related dependencies:
+Then, deploy Ambassador Pro:
 
 ```
-kubectl apply -f ambassador/
+make apply-ambassador
 ```
+
+This `make` command will use `kubectl` to deploy Ambassador Pro and a basic test configuration to the cluster.
 
 Verify that Ambassador Pro is running:
 
@@ -65,7 +65,7 @@ set, you will also need to set them in the Pro container.
 Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
 
 ```
-kubectl apply -f jwt/
+make apply-jwt
 ```
 
 This will configure the following `FilterPolicy`:
