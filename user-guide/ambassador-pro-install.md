@@ -120,7 +120,7 @@ server: envoy
 Finally, send a request with a valid JWT to the `jwt-httpbin` URL, which will return successfully.
 
 ```
-$ curl -k --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." https://$AMBASSADOR_IP/jwt-httpbin/ip
+$ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." https://$AMBASSADOR_IP/jwt-httpbin/ip
 {
   "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
 }
