@@ -28,7 +28,7 @@ from clize import Parameter
 
 from . import Scout, Config, IR, Diagnostics, Version
 from .config.resourcefetcher import ResourceFetcher
-from .envoy import EnvoyConfig, V1Config, V2Config
+from .envoy import EnvoyConfig, V2Config
 from .ir.irtlscontext import IRTLSContext
 
 from .utils import RichStatus, SavedSecret, SecretSaver
@@ -119,7 +119,7 @@ def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
          debug=False, debug_scout=False, k8s=False, recurse=False,
-         aconf=False, ir=False, v1=False, v2=False, diag=False, features=False):
+         aconf=False, ir=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -133,7 +133,6 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param recurse: If set, recurse into directories below config_dir_path
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
-    :param v1: If set, dump the Envoy V1 config
     :param v2: If set, dump the Envoy V2 config
     :param diag: If set, dump the Diagnostics overview
     :param features: If set, dump the feature set
@@ -145,17 +144,15 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     if debug_scout:
         logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
 
-    if not (aconf or ir or v1 or v2 or diag or features):
+    if not (aconf or ir or v2 or diag or features):
         aconf = True
         ir = True
-        v1 = False  # Default to NOT dumping V1 any more.
         v2 = True
         diag = False
         features = False
 
     dump_aconf = aconf
     dump_ir = ir
-    dump_v1 = v1
     dump_v2 = v2
     dump_diag = diag
     dump_features = features
@@ -179,11 +176,6 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
         if dump_ir:
             od['ir'] = ir.as_dict()
-
-        if dump_v1:
-            v1config = V1Config(ir)
-            diagconfig = v1config
-            od['v1'] = v1config.as_dict()
 
         if dump_v2:
             v2config = V2Config(ir)
@@ -233,7 +225,7 @@ def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
 
 def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQUIRED, *,
            debug=False, debug_scout=False, check=False, k8s=False, ir=None, aconf=None,
-           exit_on_error=False, v1=False, v2=False):
+           exit_on_error=False):
     """
     Generate an Envoy configuration
 
@@ -246,9 +238,8 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
     :param exit_on_error: If set, will exit with status 1 on any configuration error
     :param ir: Pathname to which to dump the IR (not dumped if not present)
     :param aconf: Pathname to which to dump the aconf (not dumped if not present)
-    :param v1: If set, output config to v1 envoy config
-    :param v2: If set, output config to v2 envoy config (default)
     """
+
     if debug:
         logger.setLevel(logging.DEBUG)
 
@@ -318,31 +309,16 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             # resulting in the logic below.
             # https://clize.readthedocs.io/en/stable/basics.html#accepting-flags
 
-            # Flag --v1 is specified, it takes precedence over default --v2.
-            # Make sure they are mutually exclusive, defaulting to v2 if both are True.
-            if v1 and not v2:
-                logger.info("Writing envoy V1 configuration")
-                v1config = V1Config(ir)
-                rc = RichStatus.OK(msg="huh")
+            logger.info("Writing envoy V2 configuration")
+            v2config = V2Config(ir)
+            rc = RichStatus.OK(msg="huh_v2")
 
-                if rc:
-                    with open(output_json_path, "w") as output:
-                        output.write(v1config.as_json())
-                        output.write("\n")
-                else:
-                    logger.error("Could not generate new Envoy configuration: %s" % rc.error)
-            # Flag --v1 is not specified generate v2 config.
+            if rc:
+                with open(output_json_path, "w") as output:
+                    output.write(v2config.as_json())
+                    output.write("\n")
             else:
-                logger.info("Writing envoy V2 configuration")
-                v2config = V2Config(ir)
-                rc = RichStatus.OK(msg="huh_v2")
-
-                if rc:
-                    with open(output_json_path, "w") as output:
-                        output.write(v2config.as_json())
-                        output.write("\n")
-                else:
-                    logger.error("Could not generate new Envoy configuration: %s" % rc.error)
+                logger.error("Could not generate new Envoy configuration: %s" % rc.error)
 
         scout = Scout()
         result = scout.report(action="config", mode="cli")

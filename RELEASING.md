@@ -11,31 +11,32 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 
 1. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.**
 
-2. Once `master` has all the release drivers, tag `master` with an RC tag, eg `0.33.0-rc1`.
+2. Once `master` has all the release drivers, tag `master` with an RC tag, e.g. `0.33.0-rc1`.
 
 3. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why.
 
-4. The RC build will be available as `quay.io/datawire/ambassador:0.33.0-rc1` and also as `quay.io/datawire/ambassador:0.33.0-rc-latest`. Any other testing you want to do against this image, rock on.
+4. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.33.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.33.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
-5. When you're happy with everything, then on `master` -
-   - Run `make release-prep`, it will update `CHANGELOG.md` and `docs/index.html`. Make sure the diff looks right.
-   - You don't need to do anything with the Helm chart; CI will tackle that later.
+5. When you're happy with everything, sync up the docs!
+   - `make pull-docs` to pull updates from the docs repo
+   - Handle conflicts as needed.
+   - Commit any conflict-resolution changes to `master`.
+
+6. After the docs are synced, use `make release-prep` to update `CHANGELOG.md` and `docs/versions.yml`.
+   - It will _commit_, but not _push_, the updated files. Make sure the diffs it shows you look correct!
+   - Do a manual `git push` to update the world with your new files.
+
+7. Now for the time-critical bit.
    - Tag `master` with a GA tag like `0.33.0` and let CI do its thing.
    - CI will retag the latest RC image as the GA image.
-   - CI will update the Helm chart during the GA deploy.
+   - `make docs-push` _after the retag_ to push new docs out to the website.
 
    **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
-   **Note** that after this CI build, `helm install` will refer to the new GA release, but the docs will not have been updated yet! So try to minimize the time you spend between this step and the next.
-
-   **Note** On the GA tag, a special build of the website from `master` is pushed to production. This updates the version number on the website, but it does *not* update the blog post URL.
-
-6. PR `master` into `stable`.
-   - CI will update the docs at this point.
-
-7. Update the `stable` branch with a link to a blog post announcing the new release.
-
-8. PR `stable` into `master` with the website changes.
+8. Finally, go submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
+   - in `Chart.yaml`, update `appVersion` with the new Ambassador version, and bump `version`.
+   - in `README.md`, update the default value of `image.tag`.
+   - in `values.yaml`, update `tag`.
 
 ----
 Updating Ambassador's Envoy
