@@ -164,6 +164,21 @@ func (q Query) GrpcType() string {
 	return ""
 }
 
+func (q Query) Cookies() (result []http.Cookie) {
+	result = []http.Cookie{}
+	cookies, ok := q["cookies"]
+	if ok {
+		for _, c := range cookies.([]interface{}) {
+			cookie := http.Cookie{
+				Name:  c.(map[string]interface{})["name"].(string),
+				Value: c.(map[string]interface{})["value"].(string),
+			}
+			result = append(result, cookie)
+		}
+	}
+	return result
+}
+
 // Result represents the result of one kat query. Upon first access to a query's
 // result field, the Result object will be created and added to the query.
 type Result map[string]interface{}
@@ -467,6 +482,9 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 		return
 	}
 	req.Header = query.Headers()
+	for _, cookie := range query.Cookies() {
+		req.AddCookie(&cookie)
+	}
 
 	// Handle host and SNI
 	host := req.Header.Get("Host")
