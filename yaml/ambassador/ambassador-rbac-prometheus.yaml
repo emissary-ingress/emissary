@@ -62,7 +62,7 @@ kind: Deployment
 metadata:
   name: ambassador
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       annotations:
@@ -71,6 +71,15 @@ spec:
       labels:
         service: ambassador
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  service: ambassador
+              topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
       volumes:
       - name: stats-exporter-mapping-config
