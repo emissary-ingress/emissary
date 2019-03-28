@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os/exec"
 	"strings"
 	"time"
@@ -18,6 +19,7 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
 		URL:    "http://" + nodeIP + ":" + nodePort + "/http-echo/",
+		Header: http.Header(map[string][]string{"Authorization": {"Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."}}),
 	})
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
 	name := "atk-" + string(rate)

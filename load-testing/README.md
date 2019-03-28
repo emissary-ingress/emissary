@@ -205,7 +205,7 @@ Run 2: 681 RPS
 Run 3: 687 RPS
 
 
-Mean: ~686
+Mean: ~686 RPS
 
 ## Per second Rate Limiting Scaling
 
@@ -261,11 +261,55 @@ kubectl apply -f k8s-service/
 go run max_load.go
 ```
 
-Run 1: 
+Run 1: 875 RPS
 
-Run 2: 
+Run 2: 853 RPS
 
-Run 3: 
+Run 3: 827 RPS
 
 
-Mean: ~
+Mean: ~852 RPS
+
+## JWT Filter
+
+Remove rate limiting configurations and revert back to base Ambassador. Then apply the JWT filter
+
+```
+kubectl delete rl --all
+kubectl apply -f base-config/
+kubectl apply -f jwt/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 927 RPS
+
+Run 2: 1000 RPS
+
+Run 3: 975 RPS
+
+
+Mean: ~967 RPS
+
+## JWT Scaling
+
+Increase the number of replicas of the Ambassador Pro deployment to 4
+
+```
+kubectl apply -f scaling/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 878 RPS
+
+Run 2: 875 RPS
+
+Run 3: 867 RPS
+
+
+Mean: ~873 RPS
