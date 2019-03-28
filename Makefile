@@ -126,6 +126,8 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
 AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
 
+KUBECONFIG?=$(shell pwd)/cluster.yaml
+
 SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
@@ -311,7 +313,7 @@ cluster.yaml: $(CLAIM_FILE)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 	rm -rf /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
@@ -320,7 +322,7 @@ setup-test: cluster.yaml
 teleproxy-restart:
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
 
 teleproxy-stop:
 	$(call kill_teleproxy)
@@ -332,8 +334,6 @@ teleproxy-stop:
 	else \
 		echo "teleproxy stopped" >&2; \
 	fi
-
-KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \

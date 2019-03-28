@@ -67,6 +67,47 @@ spec:
     service: {0}
 """
 
+BACKEND_POD = """
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {name}
+  labels:
+    backend: {backend}
+    scope: AmbassadorTest
+spec:
+  containers:
+  - name: backend
+    image: quay.io/datawire/kat-backend:11
+    ports:
+    - containerPort: 8080
+    env:
+    - name: BACKEND_8080
+      value: {backend_env}
+    - name: BACKEND_8443
+      value: {backend_env}
+"""
+
+BACKEND_SERVICE = """
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {name}
+spec:
+  selector:
+    backend: {backend}
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+"""
 
 class TLSContextsTest(AmbassadorTest):
     """
@@ -1357,6 +1398,108 @@ load_balancer:
         yield Query(self.url(self.name + "-5/"), expected=404)
         yield Query(self.url(self.name + "-6/"), expected=404)
         yield Query(self.url(self.name + "-7/"), expected=404)
+
+
+class PerMappingLoadBalancing(AmbassadorTest):
+    target: ServiceType
+    enable_endpoints = True
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        backend = self.name.lower() + '-backend'
+        return super().manifests() + \
+               BACKEND_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
+               BACKEND_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
+               BACKEND_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    scope: AmbassadorTest
+  name: permappingloadbalancing-service
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    backend: {backend}
+""".format(backend=backend)
+               # BACKEND_SERVICE.format(name='{}-service'.format(self.path.k8s), backend='{}-backend'.format(self.path.k8s))
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-header
+prefix: /{self.name}-header/
+service: permappingloadbalancing-service
+load_balancer:
+  policy: ring_hash
+  header: LB-HEADER
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-sourceip
+prefix: /{self.name}-sourceip/
+service: permappingloadbalancing-service
+load_balancer:
+  policy: ring_hash
+  source_ip: true
+""")
+
+    def queries(self):
+        # generic queries
+        for i in range(50):
+            yield Query(self.url(self.name) + '-header/')
+
+        # header queries
+        for i in range(50):
+            yield Query(self.url(self.name) + '-header/', headers={"LB-HEADER": "yes"})
+
+        # source IP queries
+        for i in range(50):
+            yield Query(self.url(self.name) + '-sourceip/')
+
+
+    def check(self):
+        assert len(self.results) == 150
+
+        generic_queries = self.results[:50]
+        header_queries = self.results[50:100]
+        source_ip_queries = self.results[100:150]
+
+        # generic queries
+        generic_dict = {}
+        for result in generic_queries:
+            if result.backend.name in generic_dict:
+                generic_dict[result.backend.name] += 1
+            else:
+                generic_dict[result.backend.name] = 1
+        assert len(generic_dict) == 3
+
+        # header queries
+        header_dict = {}
+        for result in header_queries:
+            if result.backend.name in header_dict:
+                header_dict[result.backend.name] += 1
+            else:
+                header_dict[result.backend.name] = 1
+        assert len(header_dict) == 3
+
+        # source IP queries
+        source_ip_dict = {}
+        for result in source_ip_queries:
+            if result.backend.name in source_ip_dict:
+                source_ip_dict[result.backend.name] += 1
+            else:
+                source_ip_dict[result.backend.name] = 1
+        assert len(source_ip_dict) == 1
+        assert list(source_ip_dict.values())[0] == 50
 
 
 # pytest will find this because Runner is a toplevel callable object in a file
