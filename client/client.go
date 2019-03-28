@@ -164,6 +164,8 @@ func (q Query) GrpcType() string {
 	return ""
 }
 
+// Cookies returns a slice of http.Cookie objects populated with any cookies
+// passed in as part of the query.
 func (q Query) Cookies() (result []http.Cookie) {
 	result = []http.Cookie{}
 	cookies, ok := q["cookies"]
@@ -326,9 +328,14 @@ func CallRealGRPC(query Query) {
 		return
 	}
 
-	if !strings.Contains(qURL.Host, ":") {
-		query.Result()["error"] = fmt.Sprintf("GRPC URL %s has no port", qURL.Host)
-		return
+	dialHost := qURL.Host
+	if !strings.Contains(dialHost, ":") {
+		// There is no port number in the URL, but grpc.Dial wants host:port.
+		if qURL.Scheme == "https" {
+			dialHost = dialHost + ":443"
+		} else {
+			dialHost = dialHost + ":80"
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -345,7 +352,7 @@ func CallRealGRPC(query Query) {
 	if qURL.Scheme != "https" {
 		dialOptions = append(dialOptions, grpc.WithInsecure())
 	}
-	conn, err := grpc.DialContext(ctx, qURL.Host, dialOptions...)
+	conn, err := grpc.DialContext(ctx, dialHost, dialOptions...)
 	if query.CheckErr(err) {
 		log.Printf("grpc dial failed: %v", err)
 		return
