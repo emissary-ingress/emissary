@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,7 +16,9 @@ var attacker = vegeta.NewAttacker(vegeta.TLSConfig(&tls.Config{InsecureSkipVerif
 var nodeIP string
 var nodePort string
 
-func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration, errs []string) {
+var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
+
+func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration, errs map[string]uint64) {
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
 		URL:    "https://" + nodeIP + ":" + nodePort + "/http-echo/",
@@ -25,20 +28,29 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 	name := "atk-" + string(rate)
 	var metrics vegeta.Metrics
 	var successes uint64
+	errs = make(map[string]uint64)
 	for res := range attacker.Attack(targeter, vegetaRate, dur, name) {
 		// vegeta.Metrics doesn't consider HTTP 429 Too Many
 		// Requests to be a "success", but for testing the
 		// rate limit service, we should.
 		switch res.Code {
-		case http.StatusOK, http.StatusTooManyRequests:
+		case http.StatusOK:
 			successes++
+		case http.StatusTooManyRequests:
+			successes++
+			res.Error = ""
 		default:
+		}
+		if res.Error != "" {
+			res.Error = sourcePortRE.ReplaceAllString(res.Error, ":XYZ->")
+			n := errs[res.Error]
+			errs[res.Error] = n + 1
 		}
 		metrics.Add(res)
 	}
 	metrics.Close()
 
-	return float64(successes) / float64(metrics.Requests), metrics.Latencies.P95, metrics.Errors
+	return float64(successes) / float64(metrics.Requests), metrics.Latencies.P95, errs
 }
 
 func testRate(rate int) bool {
@@ -58,8 +70,8 @@ func testRate(rate int) bool {
 			}
 			if retry {
 				fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
-				for _, err := range errs {
-					fmt.Printf("  error: %s\n", err)
+				for err, n := range errs {
+					fmt.Printf("  error (%d): %s\n", n, err)
 				}
 				return false
 			}
