@@ -5,6 +5,6 @@ metadata:
 spec:
   domain: ambassador
   limits:
-   - pattern: [{generic_key: http}]
+   - pattern: [{generic_key: second}]
      rate: 10000
      unit: second

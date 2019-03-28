@@ -198,14 +198,14 @@ k apply -f per-second/
 go run max_load.go
 ```
 
-Run 1: 690 RPS
+Run 1: 614 RPS
 
-Run 2: 681 RPS
+Run 2: 608 RPS
 
-Run 3: 687 RPS
+Run 3: 615 RPS
 
 
-Mean: ~686 RPS
+Mean: ~613 RPS
 
 ## Per second Rate Limiting Scaling
 
@@ -227,6 +227,28 @@ Run 3: 573 RPS
 
 
 Mean: ~575 RPS
+
+## Per second Rate Limiting with Reduced Log Level
+
+Use pro image with reduced log level
+
+```
+kubectl apply -f per-second-rl/
+kubectl apply -f log-level/
+```
+
+```
+go run max_load.go
+```
+
+Run 1: 634 RPS
+
+Run 2: 650 RPS
+
+Run 3: 651 RPS
+
+
+Mean: ~645 RPS
 
 ## Per minute rate limiting
 
