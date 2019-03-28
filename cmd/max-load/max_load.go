@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os/exec"
 	"regexp"
@@ -17,6 +18,11 @@ var nodeIP string
 var nodePort string
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
+
+func openFiles() int {
+	fis, _ := ioutil.ReadDir("/dev/fd/")
+	return len(fis)
+}
 
 func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration, errs map[string]uint64) {
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
@@ -69,7 +75,7 @@ func testRate(rate int) bool {
 				}
 			}
 			if retry {
-				fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
+				fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f) (open files: %d)\n", rate, latency, success, openFiles())
 				for err, n := range errs {
 					fmt.Printf("  error (%d): %s\n", n, err)
 				}
@@ -78,7 +84,7 @@ func testRate(rate int) bool {
 			fmt.Printf("Failed at %d RPS. Will retry\n", rate)
 			retry = true
 		} else {
-			fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f)\n", rate, latency, success)
+			fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f) (open files: %d)\n", rate, latency, success, openFiles())
 			return true
 		}
 	}
