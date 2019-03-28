@@ -308,16 +308,31 @@ def handle_ping():
 
 
 @app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_update():
+def handle_kubewatch_update():
     url = request.args.get('url', None)
 
     if not url:
         app.logger.error("error: update requested with no URL")
         return "error: update requested with no URL", 400
 
-    app.logger.info("Update requested from %s" % url)
+    app.logger.info("Update requested: kubewatch, %s" % url)
 
-    status, info = app.watcher.post('CONFIG', url)
+    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
+
+    return info, status
+
+
+@app.route('/_internal/v0/watt', methods=[ 'POST' ])
+def handle_watt_update():
+    url = request.args.get('url', None)
+
+    if not url:
+        app.logger.error("error: watt update requested with no URL")
+        return "error: watt update requested with no URL", 400
+
+    app.logger.info("Update requested: watt, %s" % url)
+
+    status, info = app.watcher.post('CONFIG', ( 'watt', url ))
 
     return info, status
 
@@ -563,8 +578,15 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
             elif cmd == 'CONFIG':
+                version, url = arg
+
                 try:
-                    self.load_config(rqueue, arg)
+                    if version == 'kw':
+                        self.load_config_kubewatch(rqueue, url)
+                    elif version == 'watt':
+                        self.load_config_watt(rqueue, url)
+                    else:
+                        raise RuntimeError("config from %s not supported" % version)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
@@ -599,11 +621,11 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self._load_ir(rqueue, aconf, fetcher, scc.null_reader, snapshot)
 
-    def load_config(self, rqueue: queue.Queue, url):
+    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        self.logger.info("copying configuration from %s to %s" % (url, ss_path))
+        self.logger.info("copying configuration: kubewatch, %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
         serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
@@ -623,6 +645,37 @@ class AmbassadorEventWatcher(threading.Thread):
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
         fetcher.parse_yaml(serialization, k8s=True)
+
+        if not fetcher.elements:
+            self.logger.debug("no configuration found in snapshot %s" % snapshot)
+
+            # Don't actually bail here. If they send over a valid config that happens
+            # to have nothing for us, it's still a legit config.
+            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
+            # return
+
+        self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
+
+    def load_config_watt(self, rqueue: queue.Queue, url: str):
+        snapshot = url.split('/')[-1]
+        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
+
+        self.logger.info("copying configuration: watt, %s to %s" % (url, ss_path))
+
+        # Grab the serialization, and save it to disk too.
+        serialization = load_url_contents(self.logger, url, stream2=open(ss_path, "w"))
+
+        if not serialization:
+            self.logger.debug("no data loaded from snapshot %s" % snapshot)
+            # We never used to return here. I'm not sure if that's really correct?
+            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
+            # return
+
+        scc = SecretSaver(app.logger, url, app.snapshot_path)
+
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+        fetcher.parse_watt(serialization)
 
         if not fetcher.elements:
             self.logger.debug("no configuration found in snapshot %s" % snapshot)

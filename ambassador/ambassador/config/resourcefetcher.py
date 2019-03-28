@@ -104,10 +104,23 @@ class ResourceFetcher:
         #                    serialization))
 
         try:
-            objects = list(parse_yaml(serialization))
+            objects = parse_yaml(serialization)
             self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
+
+    def parse_watt(self, serialization: str) -> None:
+        try:
+            watt_dict = parse_yaml(serialization)[0]
+
+            watt_k8s = watt_dict.get('Kubernetes', {})
+
+            for key in [ 'service', 'endpoints' ]:
+                for obj in watt_k8s[key]:
+                    self.extract_k8s(obj)
+        except yaml.error.YAMLError as e:
+            self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
+
 
     def extract_k8s(self, obj: dict) -> None:
         # self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
@@ -346,7 +359,7 @@ class ServiceKind(ObjectKind):
                 self.filename += ":annotation"
 
             try:
-                objects = list(yaml.safe_load_all(annotations))
+                objects = parse_yaml(annotations)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 

@@ -75,7 +75,11 @@ def _load_url_contents(logger: logging.Logger, url: str, stream1: TextIO, stream
 
                 # All's well, pull the config down.
                 try:
-                    for chunk in r.iter_content(chunk_size=65536, decode_unicode=True):
+                    for chunk in r.iter_content(chunk_size=65536):
+                        # We do this by hand instead of with 'decode_unicode=True'
+                        # above because setting decode_unicode only decodes text,
+                        # and WATT hands us application/json...
+                        chunk = chunk.decode('utf-8')
                         stream1.write(chunk)
 
                         if stream2:

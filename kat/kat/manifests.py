@@ -180,6 +180,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - configmaps
   - services
   - secrets
   - namespaces
@@ -215,6 +216,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - configmaps
   - services
   - secrets
   - namespaces
