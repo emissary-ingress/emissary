@@ -792,6 +792,16 @@ class AddResponseHeaders(OptionTest):
                 actual = lowercased_headers.get(k.lower())
                 assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
 
+class RemoveResponseHeaders(OptionTest):
+
+    parent: Test
+
+    def config(self):
+        yield "remove_response_headers: x-envoy-upstream-service-time"
+
+    def check(self):
+        for r in self.parent.results:
+            assert r.headers.get("x-envoy-upstream-service-time", None) == None, "x-envoy-upstream-service-time header was meant to be dropped but wasnt"
 
 class HostHeaderMapping(MappingTest):
 
