@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 # from typing import cast as typecast
 
 import json
@@ -10,6 +10,9 @@ from .config import Config
 from .acresource import ACResource
 
 from ..utils import parse_yaml, dump_yaml
+
+AnyDict = Dict[str, Any]
+HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
@@ -117,30 +120,45 @@ class ResourceFetcher:
 
             for key in [ 'service', 'endpoints' ]:
                 for obj in watt_k8s.get(key, []):
-                    self.extract_k8s(obj)
+                    self.handle_k8s(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
 
             for consul_rkey, consul_object in consul_endpoints.items():
-                cskind = ConsulServiceKind(obj=consul_object, filename=self.filename, logger=self.logger, ambassador_namespace=self.aconf.ambassador_namespace)
-                parsed, resource_identifier = cskind.parse(consul_rkey)
+                result = self.handle_consul_service(consul_rkey, consul_object)
 
-                self.parse_object(parsed, k8s=False, filename=self.filename, rkey=resource_identifier)
+                if result:
+                    rkey, parsed_objects = result
+
+                    self.parse_object(parsed_objects, k8s=False,
+                                      filename=self.filename, rkey=rkey)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
-    def extract_k8s(self, obj: dict) -> None:
-        # self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
+    def handle_k8s(self, obj: dict) -> None:
+        # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
-        k8s_object = ObjectKind(obj=obj, filename=self.filename, logger=self.logger, ambassador_namespace=self.aconf.ambassador_namespace)
-        parsed, resource_identifier = k8s_object.parse()
-        if parsed is None:
-            # self.logger.debug("%s: ignoring K8s object, unable to parse kind %s" %
-            #                   (self.location, k8s_object.get_kind()))
+        kind = obj.get('kind')
+
+        if not kind:
+            # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
             return
 
-        self.parse_object(parsed, k8s=False, filename=self.filename, rkey=resource_identifier)
+        handler_name = f'handle_k8s_{kind.lower()}'
+        handler = getattr(self, handler_name, None)
+
+        if not handler:
+            # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
+            return
+
+        result = handler(obj)
+
+        if result:
+            rkey, parsed_objects = result
+
+            self.parse_object(parsed_objects, k8s=False,
+                              filename=self.filename, rkey=rkey)
 
     def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
         self.push_location(filename, 1)
@@ -151,7 +169,7 @@ class ResourceFetcher:
             self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
             if k8s:
-                self.extract_k8s(obj)
+                self.handle_k8s(obj)
             else:
                 # if not obj:
                 #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
@@ -215,48 +233,17 @@ class ResourceFetcher:
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
 
-
-class ObjectKind:
-    def __init__(self, obj, filename, logger: logging.Logger, ambassador_namespace):
-        self.logger = logger
-        self.filename = filename
-        self.object = obj
-        self.ambassador_namespace = ambassador_namespace
-
-    def get_kind(self):
-        return self.object.get('kind', None)
-
-    def get_object_kind(self):
-        kind = self.get_kind()
-        if kind == "Service":
-            return ServiceKind(self.object, self.filename, self.logger, self.ambassador_namespace)
-        elif kind == "Endpoints":
-            return EndpointsKind(self.object, self.filename, self.logger, self.ambassador_namespace)
-        elif kind == "ConsulService":
-            return ConsulServiceKind(self.object, self.filename, self.logger, self.ambassador_namespace)
-        else:
-            return None
-
-    def parse(self):
-        parsed = self.get_object_kind()
-        if parsed is None:
-            return None, ""
-        return parsed.parse()
-
-
-class EndpointsKind(ObjectKind):
-    def parse(self):
+    def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
         if not Config.enable_endpoints:
-            return None, ""
+            return None
 
-        kind = self.get_kind()
-        metadata = self.object.get('metadata', None)
+        metadata = k8s_object.get('metadata', None)
         resource_name = metadata.get('name')
         resource_namespace = metadata.get('namespace', 'default')
 
         subsets = []
-        for subset in self.object.get('subsets', []):
+        for subset in k8s_object.get('subsets', []):
             addresses = []
             for address in subset.get('addresses', []):
                 add = {}
@@ -296,24 +283,20 @@ class EndpointsKind(ObjectKind):
             subsets.append({
                 'apiVersion': 'ambassador/v1',
                 'ambassador_id': Config.ambassador_id,
-                'kind': kind,
+                'kind': 'Endpoints',
                 'name': resource_name,
                 'addresses': addresses,
                 'ports': ports
             })
 
         if len(subsets) == 0:
-            return None, ""
+            return None
 
         resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
 
-        return subsets, resource_identifier
+        return resource_identifier, subsets
 
-
-class ServiceKind(ObjectKind):
-    def parse(self):
-        kind = self.get_kind()
-
+    def handle_k8s_service(self, k8s_object: AnyDict) -> HandlerResult:
         # XXX Really we shouldn't generate these unless there's a namespace match. Ugh.
         #
         # XXX LOAD_BALANCER HACK This is horrible: we take _way_ too many endpoints this
@@ -324,7 +307,7 @@ class ServiceKind(ObjectKind):
             'ambassador_id': Config.ambassador_id,
             'kind': 'ServiceInfo'
         }
-        spec = self.object.get('spec', None)
+        spec = k8s_object.get('spec', None)
         if spec is not None:
             ports = spec.get('ports', None)
             if ports is not None:
@@ -332,7 +315,7 @@ class ServiceKind(ObjectKind):
                 for port in ports:
                     service_info['ports'].append(port)
 
-        metadata = self.object.get('metadata', None)
+        metadata = k8s_object.get('metadata', None)
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
         service_info['name'] = resource_name
@@ -343,21 +326,21 @@ class ServiceKind(ObjectKind):
         skip = False
 
         if not metadata:
-            self.logger.debug("ignoring unannotated K8s %s" % kind)
+            self.logger.debug("ignoring unannotated K8s Service")
             skip = True
 
         if not resource_name:
-            self.logger.debug("ignoring unnamed K8s %s" % kind)
+            self.logger.debug("ignoring unnamed K8s Service")
             skip = True
 
-        if not skip and (Config.single_namespace and (resource_namespace != self.ambassador_namespace)):
+        if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace)):
             # This should never happen in actual usage, since we shouldn't be given things
             # in the wrong namespace. However, in development, this can happen a lot.
-            self.logger.debug("ignoring K8s %s in wrong namespace" % kind)
+            self.logger.debug("ignoring K8s Service in wrong namespace")
             skip = True
 
         if skip:
-            return None, ""
+            return None
 
         # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
         resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
@@ -377,20 +360,20 @@ class ServiceKind(ObjectKind):
         if Config.enable_endpoints:
             objects.append(service_info)
 
-        return objects, resource_identifier
+        return resource_identifier, objects
 
-
-class ConsulServiceKind(ObjectKind):
-    def parse(self, consul_rkey: str):
+    # Handler for Consul services
+    def handle_consul_service(self,
+                              consul_rkey: str, consul_object: AnyDict) -> HandlerResult:
         # resource_identifier = f'consul-{consul_rkey}'
 
-        endpoints = self.object.get('Endpoints', [])
-        name = self.object.get('Service', consul_rkey)
+        endpoints = consul_object.get('Endpoints', [])
+        name = consul_object.get('Service', consul_rkey)
 
         if len(endpoints) < 1:
             # Bzzt.
             self.logger.debug(f"ignoring Consul service {name} with no Endpoints")
-            return None, ""
+            return None
 
         # We need to generate a ServiceInfo object and an Endpoints object. Ew.
         #
@@ -444,4 +427,4 @@ class ConsulServiceKind(ObjectKind):
 
         objects.append(endpoint)
 
-        return objects, name
+        return name, objects
