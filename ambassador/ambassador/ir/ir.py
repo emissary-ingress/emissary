@@ -405,6 +405,7 @@ class IR:
             od[key] = self.ambassador_module.get(key, False)
 
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
+        od['server_name'] = bool(self.ambassador_module.server_name != '')
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
