@@ -116,11 +116,19 @@ class ResourceFetcher:
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             for key in [ 'service', 'endpoints' ]:
-                for obj in watt_k8s[key]:
+                for obj in watt_k8s.get(key, []):
                     self.extract_k8s(obj)
+
+            watt_consul = watt_dict.get('Consul', {})
+            consul_endpoints = watt_consul.get('Endpoints', {})
+
+            for consul_rkey, consul_object in consul_endpoints.items():
+                cskind = ConsulServiceKind(obj=consul_object, filename=self.filename, logger=self.logger, ambassador_namespace=self.aconf.ambassador_namespace)
+                parsed, resource_identifier = cskind.parse(consul_rkey)
+
+                self.parse_object(parsed, k8s=False, filename=self.filename, rkey=resource_identifier)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
-
 
     def extract_k8s(self, obj: dict) -> None:
         # self.logger.debug("extract_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
@@ -204,7 +212,7 @@ class ResourceFetcher:
 
         # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
-    def sorted(self, key=lambda x: x.rkey): # returns an iterator, probably
+    def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
 
 
@@ -224,6 +232,8 @@ class ObjectKind:
             return ServiceKind(self.object, self.filename, self.logger, self.ambassador_namespace)
         elif kind == "Endpoints":
             return EndpointsKind(self.object, self.filename, self.logger, self.ambassador_namespace)
+        elif kind == "ConsulService":
+            return ConsulServiceKind(self.object, self.filename, self.logger, self.ambassador_namespace)
         else:
             return None
 
@@ -368,3 +378,70 @@ class ServiceKind(ObjectKind):
             objects.append(service_info)
 
         return objects, resource_identifier
+
+
+class ConsulServiceKind(ObjectKind):
+    def parse(self, consul_rkey: str):
+        # resource_identifier = f'consul-{consul_rkey}'
+
+        endpoints = self.object.get('Endpoints', [])
+        name = self.object.get('Service', consul_rkey)
+
+        if len(endpoints) < 1:
+            # Bzzt.
+            self.logger.debug(f"ignoring Consul service {name} with no Endpoints")
+            return None, ""
+
+        # We need to generate a ServiceInfo object and an Endpoints object. Ew.
+        #
+        # XXX ...we need port info here, don't we? For now we'll hardcode it
+        # to port 80. <cough>
+
+        service_info = {
+            'apiVersion': 'ambassador/v1',
+            'ambassador_id': Config.ambassador_id,
+            'kind': 'ServiceInfo',
+            'name': name,
+            'ports': [
+                {
+                    'name': 'http',
+                    'port': 80,
+                    'protocol': 'TCP'
+                }
+            ]
+        }
+
+        objects = [ service_info ]
+
+        addresses = []
+        ports_dict = {}
+
+        for ep in endpoints:
+            ep_addr = ep.get('Address')
+            ep_port = ep.get('Port')
+
+            if not ep_addr or not ep_port:
+                self.logger.debug(f"ignoring Consul service {name} endpoint {ep['ID']} missing address info")
+                continue
+
+            addresses.append({
+                'ip': ep_addr,
+                'target_kind': 'Consul'
+            })
+
+            ports_dict[ep_port] = True
+
+        ports = [ { 'port': port, 'protocol': 'TCP' } for port in ports_dict.keys() ]
+
+        endpoint = {
+            'apiVersion': 'ambassador/v1',
+            'ambassador_id': Config.ambassador_id,
+            'kind': 'Endpoints',
+            'name': name,
+            'addresses': addresses,
+            'ports': ports
+        }
+
+        objects.append(endpoint)
+
+        return objects, name

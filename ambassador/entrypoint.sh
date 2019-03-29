@@ -214,7 +214,7 @@ fi
 
 if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
 #    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
-    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_watt.sh"
+    KUBEWATCH_SYNC_CMD="sh /ambassador/post_watt.sh"
 
     KUBEWATCH_NAMESPACE_ARG=""
 
@@ -228,10 +228,10 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_ENDPOINTS_ARG="-s endpoints"
     fi
 
-    KUBEWATCH_SYNC_KINDS="-s secrets -s services"
+    KUBEWATCH_SYNC_KINDS="-s secret -s service -s configmap"
 
     if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
-        KUBEWATCH_SYNC_KINDS="-s services"
+        KUBEWATCH_SYNC_KINDS="-s service -s configmap"
     fi
 
     set -x
