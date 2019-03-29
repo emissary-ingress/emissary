@@ -2,66 +2,9 @@
 
 Ambassador supports using [Consul](https://consul.io) for service discovery. In this configuration, Consul keeps track of all endpoints. Ambassador synchronizes with Consul, and uses this endpoint information for routing purposes. This architecture is particularly useful when deploying Ambassador in environments where Kubernetes is not the only platform (e.g., you're running VMs).
 
-## Configuration
+## Configuration Example:
 
-**Note:** This integration is available starting with Ambassador `0.53.0`.
-
-1. Set `AMBASSADOR_ENABLE_ENDPOINTS` in your environment. 
-
-2. Configure Ambassador to use Consul Service Discovery with a `ConfigMap`:
-
-    ```yaml
-    kind: ConfigMap
-    apiVersion: v1
-    metadata:
-      name: consul-sd
-      annotations:
-        "getambassador.io/consul-resolver": "true"
-    data:
-      consulAddress: "consul-server:8500"
-      datacenter: "dc1"
-      service: "consul-service"
-    ```
-    - `consulAddress`: The hostname and port Ambassador will use to reach Consul
-    - `datacenter`: Consul data center where to `service` is located.
-    - `service`: The Consul service you would like to route to.
-
-3. Deploy the ConfigMap to the cluster:
-
-   ```
-   kubectl apply -f  consul-cm.yaml
-   ```
-
-4. Deploy or restart Ambassador so it picks up the configuration change.
-
-5. Configure a `Mapping` to route to the `service` exposed by the `ConfigMap` above.
-
-   ```yaml
-   ---
-   apiVersion: v1
-   kind: Service
-   metadata:
-     name: consul-sd
-     annotations:
-       getambassador.io/config: |
-         ---
-         apiVersion: ambassador/v1
-         kind: Mapping
-         name: consul_search_mapping
-         prefix: /consul/
-         service: consul-service
-         load_balancer: 
-           policy: round_robin
-   spec:
-     ports:
-     - name: http
-       port: 80
-   ```
-
-Requests to http://{AMBASSADORURL}/consul/ will now be routed to the service registered in Consul.
-
-
-## Example
+**Note:** This integration is available starting with Ambassador `0.53.0`. For now, the development image of this integration is here: `quay.io/datawire/ambassador:flynn-dev-watt-f16a585`.
 
 In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we will do this with a Kubernetes Service.
 
@@ -121,7 +64,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
     kubectl apply -f qotm.yaml
     ```
 
-2. Get the IP address of the qotm service
+2. Get the IP address of the QOTM service:
 
    ```shell
    kubectl get svc qotm
@@ -163,7 +106,9 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
     kubectl apply -f consul-cm.yaml
     ```
 
-5. Set `AMBASSADOR_ENABLE_ENDPOINTS` to `true` in the Ambassador deployment and deploy Ambassador
+    Note that the `ConfigMap` will be replaced with a CRD for GA.
+
+5. Set `AMBASSADOR_ENABLE_ENDPOINTS` to `true` in the Ambassador deployment and deploy Ambassador.
 
 6. Create a `Mapping` for the `qotm-consul` service
 
@@ -178,7 +123,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
          ---
          apiVersion: ambassador/v1
          kind: Mapping
-         name: consul_search_mapping
+         name: consul_qotm_mapping
          prefix: /qotm-consul/
          service: qotm-consul
          load_balancer: 
