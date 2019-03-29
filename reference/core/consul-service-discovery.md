@@ -110,7 +110,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
 
 5. Set `AMBASSADOR_ENABLE_ENDPOINTS` to `true` in the Ambassador deployment and deploy Ambassador.
 
-6. Create a `Mapping` for the `qotm-consul` service
+6. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
 
    ```yaml
    ---
