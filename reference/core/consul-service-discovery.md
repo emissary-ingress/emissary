@@ -63,7 +63,7 @@ Requests to http://{AMBASSADORURL}/consul/ will now be routed to the service reg
 
 ## Example
 
-In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador with a Kubernetes service.
+In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we will do this with a Kubernetes Service.
 
 1. Create the QoTM API and service:
 
