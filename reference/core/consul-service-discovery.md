@@ -22,7 +22,13 @@ data:
 
 The name can be any value. but the `consulAddress` must be correct for your Consul, and the `service` name is important.
 
-3. Deploy the Ambassador image above. DO NOT TRY TO USE TLS.
+3. Deploy the ConfigMap to the cluster:
+
+```
+kubectl create configmap consul-sd --from-file=bar-service.yaml
+```
+
+3. Deploy the Ambassador image above.
 4. Register a service `bar` endpoint with Consul.
 5. Add a `Mapping` that includes
 
@@ -35,3 +41,10 @@ load_balancer:
 
 6. Try out your `Mapping`.
 7. Try registering and deregistering `bar` endpoints through Consul.
+
+## TODO
+
+Still todo:
+
+* Support TLS
+* Switch from ConfigMap to CRD
