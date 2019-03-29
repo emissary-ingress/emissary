@@ -1482,6 +1482,34 @@ load_balancer:
         yield Query(self.url(self.name + "-6/"), expected=404)
         yield Query(self.url(self.name + "-7/"), expected=404)
 
+class ServerNameTest(AmbassadorTest):
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  server_name: "test-server"
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.path.k8s}/server-name
+prefix: /server-name
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        yield Query(self.url("server-name/"), expected=301)
+
+    def check(self):
+        assert self.results[0].headers["Server"] == [ "test-server" ]
 
 class GlobalLoadBalancing(AmbassadorTest):
     target: ServiceType
@@ -1826,4 +1854,3 @@ load_balancer:
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
 main = Runner(AmbassadorTest)
-

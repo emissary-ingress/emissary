@@ -57,6 +57,10 @@ config:
 # readiness_probe:
 #   enabled: true
 
+# By default Envoy sets server_name response header to 'envoy'
+# Override it with this variable
+# server_name: envoy
+
 # If present, service_port will be the port Ambassador listens
 # on for microservice access. If not present, Ambassador will
 # use 443 if TLS is configured, 80 otherwise. In future releases
