@@ -10,7 +10,6 @@ require (
 	github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879
 	github.com/datawire/kat-backend v1.1.0
 	github.com/datawire/teleproxy v0.3.16
-	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/gobwas/glob v0.2.3
@@ -23,7 +22,6 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
-	github.com/json-iterator/go v1.1.5
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.6 // indirect
@@ -37,7 +35,7 @@ require (
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
-	github.com/urfave/negroni v1.0.0
+	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190228161510-8dd112bcdc25 // indirect
 	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
