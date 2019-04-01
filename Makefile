@@ -52,7 +52,7 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 		git fetch https://github.com/datawire/ambassador-docs master && \
 		docs_old=$$(git rev-parse FETCH_HEAD) && \
 		docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}") && \
-		git push git@github.com:datawire/ambassador-docs.git "$${docs_new}:$(or $(PUSH_BRANCH),master)"; \
+		git push git@github.com:datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
 	}
 .PHONY: pull-docs push-docs
 
