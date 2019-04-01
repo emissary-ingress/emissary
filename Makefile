@@ -309,7 +309,7 @@ $(PWD)/kat/kat/client:
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml: $(CLAIM_FILE)
-ifeq ($(USE_KUBERNAUT),"true")
+ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
