@@ -62,9 +62,9 @@ replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
 // v1.14.0-alpha versions
 // <https://github.com/kubernetes/client-go/issues/551>)
 replace (
-	k8s.io/api => k8s.io/api kubernetes-1.13.4
-	k8s.io/apimachinery => k8s.io/apimachinery kubernetes-1.13.4
-	k8s.io/cli-runtime => k8s.io/cli-runtime kubernetes-1.13.4
+	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
+	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20190228180923-a9e421a79326
 	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
 )
 
