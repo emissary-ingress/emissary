@@ -23,7 +23,8 @@ type MetadataMap map[Service]*ServiceMetadata
 // Storage for metadata about Kubernetes services. Implementations should assume
 // access from multiple goroutines.
 type ServiceStore interface {
-	// Store new metadata for a service.
+	// Store new metadata for a service. The OpenAPIDoc is presumed to
+	// already have been appropriately updated, e.g. prefixes munged.
 	set(ks Service, m ServiceMetadata)
 	// Retrieve metadata or a service, optionally loading the OpenAPI doc if
 	// there is one.
