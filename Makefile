@@ -126,7 +126,8 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
 AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
 
-KUBECONFIG?=$(shell pwd)/cluster.yaml
+KUBECONFIG ?= $(shell pwd)/cluster.yaml
+USE_KUBERNAUT ?= true
 
 SCOUT_APP_KEY=
 
@@ -308,9 +309,11 @@ $(PWD)/kat/kat/client:
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml: $(CLAIM_FILE)
+ifeq ($(USE_KUBERNAUT),"true")
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
+endif
 	rm -rf /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
 	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
