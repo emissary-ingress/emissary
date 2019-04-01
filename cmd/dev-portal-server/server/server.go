@@ -1,24 +1,40 @@
 package server
 
 import (
+	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"github.com/gorilla/mux"
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 )
 
 type server struct {
-	router *mux.Router
-	k8sstore kubernetes.ServiceStore
+	router   *mux.Router
+	K8sStore kubernetes.ServiceStore
 }
 
 func (s *server) ServeHTTP() {
-	log.Fatal(http.ListenAndServe(":8080", s.router));
+	log.Fatal(http.ListenAndServe(":8080", s.router))
+}
+
+type openAPIListing struct {
+	ServiceName      string `json:"service_name"`
+	ServiceNamespace string `json:"service_namespace"`
+	Prefix           string `json:"routing_prefix"`
+	HasDoc           bool   `json:"has_doc"`
 }
 
 func (s *server) handleOpenAPIListing() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// use thing
+		result := make([]openAPIListing, 0)
+		for service, metadata := range s.K8sStore.list() {
+			result = append(result, openAPIListing{
+				ServiceName:      service.Name,
+				ServiceNamespace: service.Namespace,
+				Prefix:           metadata.Prefix,
+				HasDoc:           metadata.HasDoc,
+			})
+		}
+
 	}
 }
 
@@ -34,10 +50,9 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 	}
 }
 
-
 func NewServer() *server {
 	router := mux.NewRouter()
-	s := &server{router: router, k8sstore: kubernetes.NewInMemoryStore()}
+	s := &server{router: router, K8sStore: kubernetes.NewInMemoryStore()}
 
 	// Static website: XXX figure out how to get static files. or maybe just
 	// hardcode raw versions on github for now?

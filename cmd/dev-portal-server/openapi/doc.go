@@ -1,8 +1,8 @@
 package openapi
 
 import (
-	"strings"
 	"github.com/Jeffail/gabs"
+	"strings"
 )
 
 type OpenAPIDoc struct {
@@ -17,7 +17,7 @@ func AddPrefix(doc *OpenAPIDoc, prefix string) *OpenAPIDoc {
 	paths, _ := doc.JSON.S("paths").ChildrenMap()
 	for key, child := range paths {
 		result.S("paths." + key).Delete()
-		result.Set(child, "paths", prefix + key)
+		result.Set(child, "paths", prefix+key)
 	}
 	return &OpenAPIDoc{JSON: result}
 }

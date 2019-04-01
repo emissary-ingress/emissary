@@ -1,12 +1,12 @@
 package kubernetes
 
 import (
-	"sync"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	"sync"
 )
 
 type Service struct {
-	Name string
+	Name      string
 	Namespace string
 }
 
@@ -35,7 +35,7 @@ type ServiceStore interface {
 
 // In-memory implementation of ServiceStore.
 type inMemoryStore struct {
-	mutex sync.RWMutex
+	mutex    sync.RWMutex
 	metadata MetadataMap
 }
 
@@ -54,15 +54,15 @@ func (s *inMemoryStore) get(ks Service, with_doc bool) *ServiceMetadata {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	metadata := s.metadata[ks]
-	if (metadata == nil) {
+	if metadata == nil {
 		return nil
 	}
 	result := &ServiceMetadata{
 		Prefix: metadata.Prefix,
-		Doc: metadata.Doc,
+		Doc:    metadata.Doc,
 		HasDoc: metadata.HasDoc,
 	}
-	if (!with_doc) {
+	if !with_doc {
 		result.Doc = nil
 	}
 	return result
@@ -76,7 +76,7 @@ func (s *inMemoryStore) list() MetadataMap {
 		result[service] = &ServiceMetadata{
 			Prefix: metadata.Prefix,
 			HasDoc: metadata.HasDoc,
-			Doc: nil,
+			Doc:    nil,
 		}
 	}
 	return result

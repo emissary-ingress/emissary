@@ -1,8 +1,6 @@
 package server
 
-import (
-
-)
+import ()
 
 func Main(version string) {
 	s := NewServer()
