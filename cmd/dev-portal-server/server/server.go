@@ -4,10 +4,12 @@ import (
 	"log"
 	"net/http"
 	"github.com/gorilla/mux"
+	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 )
 
 type server struct {
 	router *mux.Router
+	k8sstore kubernetes.ServiceStore
 }
 
 func (s *server) ServeHTTP() {
@@ -35,7 +37,7 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 
 func NewServer() *server {
 	router := mux.NewRouter()
-	s := &server{router: router}
+	s := &server{router: router, k8sstore: kubernetes.NewInMemoryStore()}
 
 	// Static website: XXX figure out how to get static files. or maybe just
 	// hardcode raw versions on github for now?
