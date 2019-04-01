@@ -1466,7 +1466,36 @@ load_balancer:
   policy: ring_hash
   cookie:
     name: lb-cookie
-    ttl: 120s
+    ttl: 125s
+    path: /foo
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-cookie-no-ttl
+prefix: /{self.name}-cookie-no-ttl/
+service: permappingloadbalancing-service
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: lb-cookie
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-cookie-path
+prefix: /{self.name}-cookie-path/
+service: permappingloadbalancing-service
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: lb-cookie
+    path: /foo
+    ttl: 124s
 """)
 
     def queries(self):
@@ -1495,14 +1524,24 @@ load_balancer:
                 }
             ])
 
+        # cookie no TTL queries
+        for i in range(50):
+            yield Query(self.url(self.name) + '-cookie-no-ttl/', cookies=[
+                {
+                    'name': 'lb-cookie',
+                    'value': 'yes'
+                }
+            ])
+
     def check(self):
-        assert len(self.results) == 250
+        assert len(self.results) == 300
 
         generic_header_queries = self.results[:50]
         header_queries = self.results[50:100]
         source_ip_queries = self.results[100:150]
         generic_cookie_queries = self.results[150:200]
         cookie_queries = self.results[200:250]
+        cookie_no_ttl_queries = self.results[250:300]
 
         # generic header queries
         generic_header_dict = {}
@@ -1532,9 +1571,15 @@ load_balancer:
         assert len(source_ip_dict) == 1
         assert list(source_ip_dict.values())[0] == 50
 
-        # generic cookie queries
+        # generic cookie queries - results must include Set-Cookie header
         generic_cookie_dict = {}
         for result in generic_cookie_queries:
+            assert 'Set-Cookie' in result.headers
+            assert len(result.headers['Set-Cookie']) == 1
+            assert 'lb-cookie=' in result.headers['Set-Cookie'][0]
+            assert 'Max-Age=125' in result.headers['Set-Cookie'][0]
+            assert 'Path=/foo' in result.headers['Set-Cookie'][0]
+
             if result.backend.name in generic_cookie_dict:
                 generic_cookie_dict[result.backend.name] += 1
             else:
@@ -1544,11 +1589,25 @@ load_balancer:
         # cookie queries
         cookie_dict = {}
         for result in cookie_queries:
+            assert 'Set-Cookie' not in result.headers
+
             if result.backend.name in cookie_dict:
                 cookie_dict[result.backend.name] += 1
             else:
                 cookie_dict[result.backend.name] = 1
         assert len(cookie_dict) == 1
+
+        # cookie no TTL queries
+        cookie_no_ttl_dict = {}
+        for result in cookie_no_ttl_queries:
+            assert 'Set-Cookie' not in result.headers
+
+            if result.backend.name in cookie_no_ttl_dict:
+                cookie_no_ttl_dict[result.backend.name] += 1
+            else:
+                cookie_no_ttl_dict[result.backend.name] = 1
+        assert len(cookie_no_ttl_dict) == 1
+
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
