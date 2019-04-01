@@ -1441,6 +1441,9 @@ service: permappingloadbalancing-service
 load_balancer:
   policy: ring_hash
   header: LB-HEADER
+""")
+
+        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -1452,8 +1455,22 @@ load_balancer:
   source_ip: true
 """)
 
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-cookie
+prefix: /{self.name}-cookie/
+service: permappingloadbalancing-service
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: lb-cookie
+    ttl: 120s
+""")
+
     def queries(self):
-        # generic queries
+        # generic header queries
         for i in range(50):
             yield Query(self.url(self.name) + '-header/')
 
@@ -1465,22 +1482,36 @@ load_balancer:
         for i in range(50):
             yield Query(self.url(self.name) + '-sourceip/')
 
+        # generic cookie queries
+        for i in range(50):
+            yield Query(self.url(self.name) + '-cookie/')
+
+        # cookie queries
+        for i in range(50):
+            yield Query(self.url(self.name) + '-cookie/', cookies=[
+                {
+                    'name': 'lb-cookie',
+                    'value': 'yes'
+                }
+            ])
 
     def check(self):
-        assert len(self.results) == 150
+        assert len(self.results) == 250
 
-        generic_queries = self.results[:50]
+        generic_header_queries = self.results[:50]
         header_queries = self.results[50:100]
         source_ip_queries = self.results[100:150]
+        generic_cookie_queries = self.results[150:200]
+        cookie_queries = self.results[200:250]
 
-        # generic queries
-        generic_dict = {}
-        for result in generic_queries:
-            if result.backend.name in generic_dict:
-                generic_dict[result.backend.name] += 1
+        # generic header queries
+        generic_header_dict = {}
+        for result in generic_header_queries:
+            if result.backend.name in generic_header_dict:
+                generic_header_dict[result.backend.name] += 1
             else:
-                generic_dict[result.backend.name] = 1
-        assert len(generic_dict) == 3
+                generic_header_dict[result.backend.name] = 1
+        assert len(generic_header_dict) == 3
 
         # header queries
         header_dict = {}
@@ -1489,7 +1520,7 @@ load_balancer:
                 header_dict[result.backend.name] += 1
             else:
                 header_dict[result.backend.name] = 1
-        assert len(header_dict) == 3
+        assert len(header_dict) == 1
 
         # source IP queries
         source_ip_dict = {}
@@ -1501,6 +1532,23 @@ load_balancer:
         assert len(source_ip_dict) == 1
         assert list(source_ip_dict.values())[0] == 50
 
+        # generic cookie queries
+        generic_cookie_dict = {}
+        for result in generic_cookie_queries:
+            if result.backend.name in generic_cookie_dict:
+                generic_cookie_dict[result.backend.name] += 1
+            else:
+                generic_cookie_dict[result.backend.name] = 1
+        assert len(generic_cookie_dict) == 3
+
+        # cookie queries
+        cookie_dict = {}
+        for result in cookie_queries:
+            if result.backend.name in cookie_dict:
+                cookie_dict[result.backend.name] += 1
+            else:
+                cookie_dict[result.backend.name] = 1
+        assert len(cookie_dict) == 1
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
