@@ -25,12 +25,12 @@ type MetadataMap map[Service]*ServiceMetadata
 type ServiceStore interface {
 	// Store new metadata for a service. The OpenAPIDoc is presumed to
 	// already have been appropriately updated, e.g. prefixes munged.
-	set(ks Service, m ServiceMetadata)
+	Set(ks Service, m ServiceMetadata)
 	// Retrieve metadata or a service, optionally loading the OpenAPI doc if
 	// there is one.
-	get(ks Service, with_doc bool) *ServiceMetadata
+	Get(ks Service, with_doc bool) *ServiceMetadata
 	// Get all services' metadata. OpenAPI docs are not loaded.
-	list() MetadataMap
+	List() MetadataMap
 }
 
 // In-memory implementation of ServiceStore.
@@ -44,13 +44,13 @@ func NewInMemoryStore() *inMemoryStore {
 	return &inMemoryStore{}
 }
 
-func (s *inMemoryStore) set(ks Service, m ServiceMetadata) {
+func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.metadata[ks] = &m
 }
 
-func (s *inMemoryStore) get(ks Service, with_doc bool) *ServiceMetadata {
+func (s *inMemoryStore) Get(ks Service, with_doc bool) *ServiceMetadata {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	metadata := s.metadata[ks]
@@ -68,7 +68,7 @@ func (s *inMemoryStore) get(ks Service, with_doc bool) *ServiceMetadata {
 	return result
 }
 
-func (s *inMemoryStore) list() MetadataMap {
+func (s *inMemoryStore) List() MetadataMap {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	result := make(MetadataMap)
