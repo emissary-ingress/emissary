@@ -26,6 +26,10 @@ spec:
       filters:
         - name: auth0
     - host: "*"
+      path: /auth0-k8s/httpbin/headers
+      filters:
+        - name: auth0-k8s
+    - host: "*"
       path: /keycloak/httpbin/headers
       filters:
         - name: keycloak

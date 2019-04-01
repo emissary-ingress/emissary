@@ -133,7 +133,7 @@ func NewAPP(idpURL string) (*httptest.Server, http.Handler, error) {
 	}
 	for k, _v := range filters {
 		v := _v.(crd.FilterOAuth2)
-		v.Validate()
+		v.Validate("default", nil)
 		filters[k] = v
 	}
 	ct.Filters.Store(filters)

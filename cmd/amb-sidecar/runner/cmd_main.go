@@ -68,8 +68,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		ct.Config = cfg
 		ct.Logger = l
-		ct.Watch(softCtx)
-		return nil
+		return ct.Watch(softCtx)
 	})
 
 	// Auth HTTP server

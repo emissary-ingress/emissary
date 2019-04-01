@@ -41,6 +41,30 @@ func TestAuth0(t *testing.T) {
 	oidctest.TestIDP(ctx)
 }
 
+func TestAuth0Secret(t *testing.T) {
+	httpClient := oidctest.NewHTTPClient(5*time.Second, true)
+
+	ctx := &oidctest.AuthenticationContext{
+		T: t,
+		Authenticator: &auth0{
+			Audience: "https://ambassador-oauth-e2e.auth0.com/api/v2/",
+			ClientID: "DOzF9q7U2OrvB7QniW9ikczS1onJgyiC",
+			Tenant:   "ambassador-oauth-e2e",
+		},
+		HTTP: &httpClient,
+		ProtectedResource: url.URL{
+			Scheme: "https",
+			Host:   "ambassador.standalone.svc.cluster.local", // TODO: $namespace needs to be configurable
+			Path:   "/auth0-k8s/httpbin/headers",
+		},
+		UsernameOrEmail: "testuser@datawire.com",
+		Password:        "TestUser321",
+		Scopes:          []string{"openid", "profile", "email"},
+	}
+
+	oidctest.TestIDP(ctx)
+}
+
 type auth0 struct {
 	*oidctest.AuthenticationContext
 	Audience    string
