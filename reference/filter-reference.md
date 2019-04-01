@@ -118,6 +118,28 @@ numbers, each with optional fraction and a unit suffix, such as
 "µs"), "ms", "s", "m", "h".  See [Go
 `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
 
+#### Using a Kubernetes secret
+
+If you don't want to store your client secret in YAML, you can also load it into a Kubernetes secret. Create a Kubernetes secret:
+
+```
+kubectl --namespace=YOUR_NAMESPACE \
+    create secret generic YOUR_SECRET_NAME \
+    --from-literal=oauth2-client-secret="YOUR_CLIENT_SECRET"
+```
+
+Note that the field name above must be `oauth2-client-secret`. In the OAuth filter YAML, use:
+
+```
+spec:
+  OAuth2:
+    ...
+    secretName: YOUR_SECRET_NAME
+    secretNamespace: YOUR_NAMESPACE
+```
+
+The `secretNamespace` is only necessary if the secret's namespace is different than the namespace of the Filter itself.
+
 #### `OAuth2` Path-Specific Arguments
 
 ```
