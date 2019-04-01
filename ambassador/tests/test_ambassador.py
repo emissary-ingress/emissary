@@ -1680,28 +1680,22 @@ load_balancer:
         # generic header queries
         generic_header_dict = {}
         for result in generic_header_queries:
-            if result.backend.name in generic_header_dict:
-                generic_header_dict[result.backend.name] += 1
-            else:
-                generic_header_dict[result.backend.name] = 1
+            generic_header_dict[result.backend.name] =\
+                generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
         assert len(generic_header_dict) == 3
 
         # header queries
         header_dict = {}
         for result in header_queries:
-            if result.backend.name in header_dict:
-                header_dict[result.backend.name] += 1
-            else:
-                header_dict[result.backend.name] = 1
+            header_dict[result.backend.name] = \
+                header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
         assert len(header_dict) == 1
 
         # source IP queries
         source_ip_dict = {}
         for result in source_ip_queries:
-            if result.backend.name in source_ip_dict:
-                source_ip_dict[result.backend.name] += 1
-            else:
-                source_ip_dict[result.backend.name] = 1
+            source_ip_dict[result.backend.name] = \
+                    source_ip_dict[result.backend.name] + 1 if result.backend.name in source_ip_dict else 1
         assert len(source_ip_dict) == 1
         assert list(source_ip_dict.values())[0] == 50
 
@@ -1714,10 +1708,8 @@ load_balancer:
             assert 'Max-Age=125' in result.headers['Set-Cookie'][0]
             assert 'Path=/foo' in result.headers['Set-Cookie'][0]
 
-            if result.backend.name in generic_cookie_dict:
-                generic_cookie_dict[result.backend.name] += 1
-            else:
-                generic_cookie_dict[result.backend.name] = 1
+            generic_cookie_dict[result.backend.name] = \
+                generic_cookie_dict[result.backend.name] + 1 if result.backend.name in generic_cookie_dict else 1
         assert len(generic_cookie_dict) == 3
 
         # cookie queries
@@ -1725,10 +1717,8 @@ load_balancer:
         for result in cookie_queries:
             assert 'Set-Cookie' not in result.headers
 
-            if result.backend.name in cookie_dict:
-                cookie_dict[result.backend.name] += 1
-            else:
-                cookie_dict[result.backend.name] = 1
+            cookie_dict[result.backend.name] = \
+                cookie_dict[result.backend.name] + 1 if result.backend.name in cookie_dict else 1
         assert len(cookie_dict) == 1
 
         # cookie no TTL queries
@@ -1736,10 +1726,8 @@ load_balancer:
         for result in cookie_no_ttl_queries:
             assert 'Set-Cookie' not in result.headers
 
-            if result.backend.name in cookie_no_ttl_dict:
-                cookie_no_ttl_dict[result.backend.name] += 1
-            else:
-                cookie_no_ttl_dict[result.backend.name] = 1
+            cookie_no_ttl_dict[result.backend.name] = \
+                cookie_no_ttl_dict[result.backend.name] + 1 if result.backend.name in cookie_no_ttl_dict else 1
         assert len(cookie_no_ttl_dict) == 1
 
 
