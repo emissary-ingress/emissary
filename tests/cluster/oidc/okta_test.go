@@ -6,16 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Jeffail/gabs"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/datawire/apro/lib/oidctest"
-	"github.com/datawire/apro/lib/testutil"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Jeffail/gabs"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/datawire/apro/lib/oidctest"
+	"github.com/datawire/apro/lib/testutil"
 )
 
 func TestOkta(t *testing.T) {
@@ -104,7 +105,14 @@ func (o *okta) Authenticate(ctx *oidctest.AuthenticationContext) (string, error)
 
 	// grab the sessionToken
 	jsonBytes, err := ioutil.ReadAll(loginResponse.Body)
+	if err != nil {
+		return token, err
+	}
+
 	jsonParsed, err := gabs.ParseJSON(jsonBytes)
+	if err != nil {
+		return token, err
+	}
 	o.SessionToken = jsonParsed.Path("sessionToken").Data().(string)
 
 	sessionCookieRequest, _, err := o.createSessionCookieRequest()
@@ -119,6 +127,10 @@ func (o *okta) Authenticate(ctx *oidctest.AuthenticationContext) (string, error)
 
 	assert.HTTPResponseStatusEQ(sessionCookieResponse, 302)
 	sessionCookieRedirectURL, err := url.Parse(sessionCookieResponse.Header.Get("Location"))
+	if err != nil {
+		return token, err
+	}
+
 	sessionCookieRedirect, err := oidctest.CreateHTTPRequest("GET", *sessionCookieRedirectURL)
 	if err != nil {
 		return token, err
@@ -131,6 +143,10 @@ func (o *okta) Authenticate(ctx *oidctest.AuthenticationContext) (string, error)
 	assert.HTTPResponseStatusEQ(sessionCookieResponse, 302)
 
 	loginCallbackRequestURL, err := url.Parse(sessionCookieRedirectResponse.Header.Get("Location"))
+	if err != nil {
+		return token, err
+	}
+
 	loginCallbackRequest, err := http.NewRequest("GET", loginCallbackRequestURL.String(), nil)
 	if err != nil {
 		return token, err
@@ -157,12 +173,6 @@ func (o *okta) createSessionCookieRequest() (*http.Request, url.Values, error) {
 	var err error
 
 	redirectUrl := fmt.Sprintf("https://%s%s", o.Tenant, o.FromURI)
-	//fmt.Println(redirectUrl)
-
-	params = url.Values{}
-	params.Set("checkAccountSetupComplete", "true")
-	params.Set("token", o.SessionToken)
-	//params.Set("redirectUrl", redirectUrl)
 
 	request, err = http.NewRequest("GET", fmt.Sprintf("https://%s/login/sessionCookieRedirect?redirectUrl=%s&token=%s", o.Tenant, redirectUrl, o.SessionToken), nil)
 	if err != nil {
