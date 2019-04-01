@@ -8,11 +8,10 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
+    clientURL: https://ambassador.standalone.svc.cluster.local
     audience: {{env "IDP_AUTH0_AUDIENCE"}}
     clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
     secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
-    maxStale: 12h
 
 ---
 apiVersion: getambassador.io/v1beta2
@@ -23,7 +22,7 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_KEYCLOAK_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
+    clientURL: https://ambassador.standalone.svc.cluster.local
     audience: {{env "IDP_KEYCLOAK_AUDIENCE"}}
     clientID: {{env "IDP_KEYCLOAK_CLIENT_ID"}}
     secret: {{env "IDP_KEYCLOAK_CLIENT_SECRET"}}
@@ -32,8 +31,13 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: wiki-plugin
+  name: okta
   namespace: standalone
 spec:
-  Plugin:
-    name: wiki-plugin
+  OAuth2:
+    authorizationURL: {{env "IDP_OKTA_PROVIDER_URL"}}
+    clientURL: https://ambassador.standalone.svc.cluster.local
+    audience: {{env "IDP_OKTA_AUDIENCE"}}
+    clientID: {{env "IDP_OKTA_CLIENT_ID"}}
+    secret: {{env "IDP_OKTA_CLIENT_SECRET"}}
+    scopes: openid
