@@ -215,8 +215,11 @@ docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plu
 %/04-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
 	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
-deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS))
-apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS))
+%/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
+	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
+
+deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
+apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
 
 #
 # Local Dev
@@ -324,6 +327,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker))
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
+	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f docker/*.knaut-push
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.

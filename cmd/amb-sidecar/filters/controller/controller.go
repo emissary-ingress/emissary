@@ -7,6 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	coreV1client "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -34,11 +36,25 @@ func countTrue(args ...bool) int {
 }
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch(ctx context.Context) {
+func (c *Controller) Watch(ctx context.Context) error {
 	c.Rules.Store([]crd.Rule{})
 	c.Filters.Store(map[string]interface{}{})
 
-	w := k8s.NewClient(nil).Watcher()
+	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
+	if err != nil {
+		return err
+	}
+
+	restconfig, err := kubeinfo.GetRestConfig()
+	if err != nil {
+		return err
+	}
+	coreClient, err := coreV1client.NewForConfig(restconfig)
+	if err != nil {
+		return err
+	}
+
+	w := k8s.NewClient(kubeinfo).Watcher()
 
 	w.Watch("filters", func(w *k8s.Watcher) {
 		filters := map[string]interface{}{}
@@ -68,7 +84,7 @@ func (c *Controller) Watch(ctx context.Context) {
 
 			switch {
 			case spec.OAuth2 != nil:
-				if err = spec.OAuth2.Validate(); err != nil {
+				if err = spec.OAuth2.Validate(mw.Namespace(), coreClient); err != nil {
 					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
 					continue
 				}
@@ -170,4 +186,5 @@ func (c *Controller) Watch(ctx context.Context) {
 	}()
 
 	w.Wait()
+	return nil
 }
