@@ -5,6 +5,7 @@ import (
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	"github.com/gorilla/mux"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -100,13 +101,78 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 	}
 }
 
+func (s *server) handleIndexHTML() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl, err := template.New("index").Parse(`
+<h1>Available services</h1>
+{{range $service, $metadata := .K8sStore.List }}
+<p>
+<strong>{{$service.Namespace}}/{{$service.Name}}</strong>
+    {{if $metadata.HasDoc}}
+    <a href="/doc/{{$service.Namespace}}/{{$service.Name}}">Docs</a>
+    {{end}}
+</p>
+{{end}}
+`)
+		if err != nil {
+			log.Fatal(err)
+		}
+		w.Header().Set("Content-Type", "text/html")
+		err = tmpl.Execute(w, s)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func (s *server) handleDocHTML() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl, err := template.New("doc").Parse(`
+<head>
+<script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@3/swagger-standalone-preset.js"></script>
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css" >
+</head>
+<body>
+<span id="swagger-ui"></span>
+<script>
+const ui = SwaggerUIBundle({
+    url: "/openapi/services/{{.namespace}}/{{.name}}/openapi.json",
+    dom_id: '#swagger-ui',
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIBundle.SwaggerUIStandalonePreset
+    ],
+  })
+</script>
+</body>
+`)
+		if err != nil {
+			log.Fatal(err)
+		}
+		vars := mux.Vars(r)
+		w.Header().Set("Content-Type", "text/html")
+		err = tmpl.Execute(w, vars)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+// Create a new HTTP server instance.
+//
+// TODO The URL scheme exposes Service names and K8s namespace names, which is
+// perhaps a security risk, and more broadly might be embarassing for some
+// organizations. So might want some better URL scheme.
 func NewServer() *server {
 	router := mux.NewRouter()
 	s := &server{router: router, K8sStore: kubernetes.NewInMemoryStore()}
 
-	// Static website: XXX figure out how to get static files. or maybe just
-	// hardcode raw versions on github for now?
-	router.Handle("/", http.FileServer(http.Dir("/tmp"))).Methods("GET")
+	// TODO in a later design iteration, we would serve static HTML, and
+	// have Javascript UI that queries the API endpoints. for this
+	// iteration, just doing it server-side.
+	router.HandleFunc("/", s.handleIndexHTML())
+	router.HandleFunc("/doc/{namespace}/{name}", s.handleDocHTML())
 
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:

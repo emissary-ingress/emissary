@@ -2,7 +2,7 @@
 
 See [Installation documentation](INSTALL.md) for install instructions.
 
-Run ambassador image in pod, but with env variable to disable (in entrypoint.sh) ambx and envory, so just run diagd. call diagd endpoint to get.
+Run ambassador image in pod, but with env variable to disable (in entrypoint.sh) ambx and envory, so just run diagd. call diagd endpoint to get. also need to add the `--no-envoy --no-checks` flags to the `diagd` command line.
 
 query diagd every 60 seconds: $AMBASSADOR_POD/ambassador/v0/diag/?json=true
 
@@ -19,6 +19,7 @@ API endpoints:
     service_name: "myservice",
     service_namespace: "default",
     routing_prefix: "/myservice",
+    routing_base_url: "https://api.example.com",
     has_doc: true
 }
 ```
@@ -37,6 +38,7 @@ POST to `/openapi/services` with:
     service_name: "myservice",
     service_namespace: "default",
     routing_prefix: "/myservice",
+    routing_base_url: "https://api.example.com",
     openapi_doc: {... openapi doc ...}
 }
 ```

@@ -1,0 +1,7 @@
+{
+    "service_name": "anotherservice",
+    "service_namespace": "default",
+    "routing_prefix": "/anotherservice",
+    "routing_base_url": "https://api.example.com",
+    "openapi_doc": null
+}
