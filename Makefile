@@ -315,17 +315,20 @@ ifeq ($(USE_KUBERNAUT), true)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 endif
 	rm -rf /tmp/k8s-*.yaml
+	@echo "Killing teleproxy"
 	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
 setup-test: cluster.yaml
 
 teleproxy-restart:
+	@echo "Killing teleproxy"
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
+	@$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
+	@echo "Done"
 
 teleproxy-stop:
 	$(call kill_teleproxy)
