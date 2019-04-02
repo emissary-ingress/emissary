@@ -1,4 +1,4 @@
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v1beta2
 kind: RateLimit
 metadata:
   name: second-rate-limit
