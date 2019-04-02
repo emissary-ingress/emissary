@@ -17,6 +17,9 @@ venv
 *.pid
 
 *.pem
+/k8s-*/*.o
+/k8s-*/??-ambassador-certs.yaml
+/k8s-*/??-auth0-secret.yaml
 node_modules/
 
 *.log

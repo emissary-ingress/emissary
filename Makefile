@@ -9,7 +9,7 @@ image.norelease = docker/amb-sidecar-plugins $(filter docker/model-cluster-%,$(i
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
-K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
+K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev k8s-no-pro
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64

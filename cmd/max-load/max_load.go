@@ -1,16 +1,17 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/tsenart/vegeta/lib"
+	vegeta "github.com/tsenart/vegeta/lib"
 )
 
-var attacker = vegeta.NewAttacker()
+var attacker = vegeta.NewAttacker(vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true})) // #nosec G402
 var nodeIP string
 var nodePort string
 
@@ -18,7 +19,7 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 	duration := dur * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
-		URL:    "http://" + nodeIP + ":" + nodePort + "/http-echo/",
+		URL:    "https://" + nodeIP + ":" + nodePort + "/http-echo/",
 		Header: http.Header(map[string][]string{"Authorization": {"Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."}}),
 	})
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
@@ -66,7 +67,7 @@ func main() {
 		parts := strings.Split(strings.TrimPrefix(line, "https://"), ":")
 		nodeIP = parts[0]
 	}
-	bs, _ = exec.Command("kubectl", "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"http\"}}{{.nodePort}}{{end}}{{end}}").Output()
+	bs, _ = exec.Command("kubectl", "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"https\"}}{{.nodePort}}{{end}}{{end}}").Output()
 	nodePort = strings.TrimSpace(string(bs))
 	fmt.Printf("ambassador = %s:%s\n", nodeIP, nodePort)
 

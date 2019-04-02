@@ -311,6 +311,10 @@ spec:
         - name: auth-http
           containerPort: 8082
         env:
+        - name: APP_LOG_LEVEL
+          value: warn
+        - name: LOG_LEVEL
+          value: warn
         - name: REDIS_SOCKET_TYPE # For ratelimit
           value: tcp
         - name: REDIS_URL # For ratelimit

@@ -2,7 +2,7 @@
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: jwt-filter
+  name: load-filter-jwt-filter
   namespace: default
 spec:
   JWT:
@@ -15,14 +15,11 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
-  name: jwt-filterpolicy
+  name: load-filter-jwt-filterpolicy
   namespace: default
 spec:
-  # everything defaults to private; you can create rules to make stuff
-  # public, and you can create rules to require additional scopes
-  # which will be automatically checked
   rules:
   - host: "*"
-    path: /http-echo/*
+    path: /load-testing/jwt-filter/*
     filters:
-    - name: jwt-filter
+    - name: loat-filter-jwt-filter

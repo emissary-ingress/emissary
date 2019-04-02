@@ -1,0 +1,23 @@
+apiVersion: getambassador.io/v1beta1
+kind: RateLimit
+metadata:
+  name: second-rate-limit
+  namespace: default
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  http_echo_mapping
+      prefix: /load-testing/rl-second/
+      service: load-http-echo
+      labels:
+        ambassador:
+          - request_label_group:
+            - second
+spec:
+  domain: ambassador
+  limits:
+   - pattern: [{generic_key: second}]
+     rate: 10000
+     unit: second

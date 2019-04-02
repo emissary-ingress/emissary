@@ -1,0 +1,23 @@
+apiVersion: getambassador.io/v1beta1
+kind: RateLimit
+metadata:
+  name: load-rl-minute
+  namespace: default
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  http_echo_mapping
+      prefix: /load-testing/rl-minute/
+      service: load-http-echo
+      labels:
+        ambassador:
+          - request_label_group:
+            - minute
+spec:
+  domain: ambassador
+  limits:
+   - pattern: [{generic_key: minute}]
+     rate: 60000
+     unit: minute
