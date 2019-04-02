@@ -14,7 +14,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
-	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
 // Handler returns an app handler that should be consumed by an HTTP server.
@@ -34,7 +33,7 @@ func NewFilterMux(config types.Config, logger types.Logger, controller *controll
 	}
 
 	grpcServer := grpc.NewServer()
-	filterapi.RegisterFilterService(grpcServer, filterutil.HandlerToFilter(filterMux))
+	filterapi.RegisterFilterService(grpcServer, filterMux)
 
 	// The net/http.Server doesn't support h2c (unencrypted
 	// HTTP/2) built-in.  Since we want to have gRPC and plain
@@ -44,7 +43,7 @@ func NewFilterMux(config types.Config, logger types.Logger, controller *controll
 		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 			grpcServer.ServeHTTP(w, r)
 		} else {
-			filterMux.ServeHTTP(w, r)
+			http.NotFound(w, r)
 		}
 	}), &http2.Server{}), nil
 }
