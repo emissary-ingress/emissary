@@ -11,11 +11,13 @@ type Service struct {
 }
 
 type ServiceMetadata struct {
+	// URL prefix, e.g. /widgets
 	Prefix string
-	HasDoc bool
+	// Base URL for service e.g. https://api.example.com
+	BaseURL string
+	HasDoc  bool
 	// May be nil even if HasDoc is true if loaded without the doc.
 	Doc *openapi.OpenAPIDoc
-	// TODO: Extend with virtual hosts, and other routing options.
 }
 
 type MetadataMap map[Service]*ServiceMetadata
@@ -58,9 +60,10 @@ func (s *inMemoryStore) Get(ks Service, with_doc bool) *ServiceMetadata {
 		return nil
 	}
 	result := &ServiceMetadata{
-		Prefix: metadata.Prefix,
-		Doc:    metadata.Doc,
-		HasDoc: metadata.HasDoc,
+		Prefix:  metadata.Prefix,
+		BaseURL: metadata.BaseURL,
+		Doc:     metadata.Doc,
+		HasDoc:  metadata.HasDoc,
 	}
 	if !with_doc {
 		result.Doc = nil
@@ -74,9 +77,10 @@ func (s *inMemoryStore) List() MetadataMap {
 	result := make(MetadataMap)
 	for service, metadata := range s.metadata {
 		result[service] = &ServiceMetadata{
-			Prefix: metadata.Prefix,
-			HasDoc: metadata.HasDoc,
-			Doc:    nil,
+			Prefix:  metadata.Prefix,
+			BaseURL: metadata.BaseURL,
+			HasDoc:  metadata.HasDoc,
+			Doc:     nil,
 		}
 	}
 	return result

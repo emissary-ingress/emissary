@@ -23,6 +23,7 @@ type openAPIListing struct {
 	ServiceName      string `json:"service_name"`
 	ServiceNamespace string `json:"service_namespace"`
 	Prefix           string `json:"routing_prefix"`
+	BaseURL          string `json:"routing_base_url"`
 	HasDoc           bool   `json:"has_doc"`
 }
 
@@ -34,6 +35,7 @@ func (s *server) handleOpenAPIListing() http.HandlerFunc {
 				ServiceName:      service.Name,
 				ServiceNamespace: service.Namespace,
 				Prefix:           metadata.Prefix,
+				BaseURL:          metadata.BaseURL,
 				HasDoc:           metadata.HasDoc,
 			})
 		}
@@ -69,6 +71,7 @@ type openAPIUpdate struct {
 	ServiceName      string      `json:"service_name"`
 	ServiceNamespace string      `json:"service_namespace"`
 	Prefix           string      `json:"routing_prefix"`
+	BaseURL          string      `json:"routing_host"`
 	Doc              interface{} `json:"openapi_doc"`
 }
 
@@ -90,7 +93,7 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 		hasdoc := (msg.Doc != nil)
 		var doc *openapi.OpenAPIDoc
 		if hasdoc {
-			doc = openapi.AddPrefix(msg.Doc, msg.Prefix)
+			doc = openapi.NewOpenAPI(msg.Doc, msg.Prefix, msg.BaseURL)
 		} else {
 			doc = nil
 		}
@@ -98,7 +101,8 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 			kubernetes.Service{
 				Name: msg.ServiceName, Namespace: msg.ServiceNamespace},
 			kubernetes.ServiceMetadata{
-				Prefix: msg.Prefix, HasDoc: hasdoc, Doc: doc})
+				Prefix: msg.Prefix, BaseURL: msg.BaseURL,
+				HasDoc: hasdoc, Doc: doc})
 	}
 }
 

@@ -2,26 +2,28 @@ package openapi
 
 import (
 	"github.com/Jeffail/gabs"
-	"strings"
 )
 
 type OpenAPIDoc struct {
 	JSON *gabs.Container
 }
 
-// Add an extra prefix to all prefixes in the OpenAPI/Swagger document.
-func AddPrefix(json_doc interface{}, prefix string) *OpenAPIDoc {
-	prefix = strings.TrimSuffix(prefix, "/")
-	// Make a copy, so we don't mutate the original:
+// Create OpenAPI 3.0 JSON spec with URL based on routing information:
+func NewOpenAPI(json_doc interface{}, base_url string, prefix string) *OpenAPIDoc {
 	container, err := gabs.Consume(json_doc)
 	if err != nil {
 		return nil
 	}
+
+	// TODO need to handle case where there's a prefix on the existing
+	// server URL, e.g. /v1.
+
+	// Make a copy, so we don't mutate the original:
 	result, _ := gabs.ParseJSON(container.EncodeJSON())
-	paths, _ := container.S("paths").ChildrenMap()
-	for key, child := range paths {
-		result.S("paths." + key).Delete()
-		result.Set(child, "paths", prefix+key)
-	}
+	result.Delete("servers")
+	result.Array("servers")
+	result.ArrayAppend(0, "servers")
+	server, _ := result.S("servers").ObjectI(0)
+	server.Set(base_url+prefix, "url")
 	return &OpenAPIDoc{JSON: result}
 }
