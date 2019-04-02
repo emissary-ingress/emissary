@@ -32,6 +32,15 @@ metadata:
       service: httpbin.org:80
       host_rewrite: httpbin.org
       timeout_ms: 5000
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: okta_httpbin_mapping
+      prefix: /okta/httpbin/
+      rewrite: /
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+      timeout_ms: 5000
 spec:
   type: ClusterIP
   ports:

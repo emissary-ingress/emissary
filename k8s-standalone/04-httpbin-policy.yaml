@@ -27,5 +27,14 @@ spec:
         - name: auth0
     - host: "*"
       path: /keycloak/httpbin/headers
+      public: false
       filters:
         - name: keycloak
+    - host: "*"
+      path: /okta/httpbin/headers
+      public: false
+      filters:
+        - name: okta
+          arguments:
+            scopes:
+              - openid

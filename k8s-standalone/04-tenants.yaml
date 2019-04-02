@@ -37,3 +37,18 @@ metadata:
 spec:
   Plugin:
     name: wiki-plugin
+
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: okta
+  namespace: standalone
+spec:
+  OAuth2:
+    authorizationURL: {{env "IDP_OKTA_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
+    audience: {{env "IDP_OKTA_AUDIENCE"}}
+    clientID: {{env "IDP_OKTA_CLIENT_ID"}}
+    secret: {{env "IDP_OKTA_CLIENT_SECRET"}}
+    scopes: openid
