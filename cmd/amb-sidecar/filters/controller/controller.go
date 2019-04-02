@@ -56,11 +56,12 @@ func (c *Controller) Watch(ctx context.Context) {
 				continue
 			}
 
-			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil) != 1 {
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil, spec.External != nil) != 1 {
 				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v", []string{
 					"OAuth2",
 					"Plugin",
 					"JWT",
+					"External",
 				})
 				continue
 			}
@@ -90,6 +91,14 @@ func (c *Controller) Watch(ctx context.Context) {
 
 				c.Logger.Infoln("loading filter jwt")
 				filters[mw.QName()] = *spec.JWT
+			case spec.External != nil:
+				if err = spec.External.Validate(); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
+					continue
+				}
+
+				c.Logger.Infoln("loading filter external=%s", spec.External.AuthService)
+				filters[mw.QName()] = *spec.External
 			default:
 				panic("should not happen")
 			}
@@ -120,10 +129,12 @@ func (c *Controller) Watch(ctx context.Context) {
 			Path: "/callback",
 		})
 		for _, p := range w.List("filterpolicies") {
+			logger := c.Logger.WithField("FILTERPOLICY", p.QName())
+
 			var spec crd.FilterPolicySpec
 			err := mapstructure.Convert(p.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
+				logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
 				continue
 			}
 			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
@@ -135,7 +146,7 @@ func (c *Controller) Watch(ctx context.Context) {
 
 			for _, rule := range spec.Rules {
 				if err := rule.Validate(p.Namespace()); err != nil {
-					c.Logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
+					logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
 					continue
 				}
 
@@ -143,7 +154,7 @@ func (c *Controller) Watch(ctx context.Context) {
 				for _, filterRef := range rule.Filters {
 					filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
 				}
-				c.Logger.Infof("loading rule host=%s, path=%s, filters=[%s]",
+				logger.Infof("loading rule host=%s, path=%s, filters=[%s]",
 					rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
 				rules = append(rules, rule)
