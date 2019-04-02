@@ -2,8 +2,8 @@
     "service_name": "myservice",
     "service_namespace": "default",
     "routing_prefix": "/myservice",
-    "routing_base_url": "http://localhost:8000",
-    "doc": {
+    "routing_base_url": "https://api.example.com",
+    "openapi_doc": {
         "openapi": "3.0.0",
         "info": {
             "title": "My API",

@@ -43,7 +43,7 @@ type inMemoryStore struct {
 
 // Create in-memory implementation of ServiceStore.
 func NewInMemoryStore() *inMemoryStore {
-	return &inMemoryStore{}
+	return &inMemoryStore{metadata: make(MetadataMap)}
 }
 
 func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) {

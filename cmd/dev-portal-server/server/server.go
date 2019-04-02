@@ -56,12 +56,7 @@ func (s *server) handleOpenAPIGet() http.HandlerFunc {
 		metadata := s.K8sStore.Get(kubernetes.Service{
 			Name: vars["name"], Namespace: vars["namespace"]},
 			true)
-		js, err := json.Marshal(metadata.Doc.JSON.EncodeJSON())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		js := metadata.Doc.JSON.EncodeJSON()
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(js)
 	}
@@ -71,7 +66,7 @@ type openAPIUpdate struct {
 	ServiceName      string      `json:"service_name"`
 	ServiceNamespace string      `json:"service_namespace"`
 	Prefix           string      `json:"routing_prefix"`
-	BaseURL          string      `json:"routing_host"`
+	BaseURL          string      `json:"routing_base_url"`
 	Doc              interface{} `json:"openapi_doc"`
 }
 
@@ -89,11 +84,10 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		hasdoc := (msg.Doc != nil)
 		var doc *openapi.OpenAPIDoc
 		if hasdoc {
-			doc = openapi.NewOpenAPI(msg.Doc, msg.Prefix, msg.BaseURL)
+			doc = openapi.NewOpenAPI(msg.Doc, msg.BaseURL, msg.Prefix)
 		} else {
 			doc = nil
 		}
