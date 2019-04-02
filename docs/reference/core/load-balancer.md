@@ -42,10 +42,13 @@ Configuring sticky sessions makes Ambassador route requests to the same backend 
 - Header
 - Source IP
 
+**NOTE:** Ambassador supports sticky sessions using 2 load balancing policies, `ring_hash` and `maglev`.
+
+
 ##### Cookie
 ```yaml
 load_balancer:
-  policy: ring_hash
+  policy: ring_hash/maglev
   cookie:
     name: <name of the cookie, required>
     ttl: <TTL to set in the generated cookie>

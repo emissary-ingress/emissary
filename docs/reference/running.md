@@ -218,6 +218,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `cluster_grpc_count` | int | count of clusters using GRPC upstream |
 | `cluster_http_count` | int | count of clusters using HTTP or HTTPS upstream |
 | `cluster_routing_envoy_rh_count` | int | count of clusters routing using Envoy `ring_hash` |
+| `cluster_routing_envoy_maglev_count` | int | count of clusters routing using Envoy `maglev` |
 | `cluster_routing_envoy_rr_count` | int | count of clusters routing using Envoy `round_robin` |
 | `cluster_routing_kube_count` | int | count of clusters routing using Kubernetes |
 | `cluster_tls_count` | int | count of clusters originating TLS |
@@ -230,6 +231,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `endpoint_resource_total` | int | total count of `Endpoints` resources loaded from Kubernetes |
 | `endpoint_routing` | bool | is endpoint routing enabled? |
 | `endpoint_routing_envoy_rh_count` | int | count of endpoints being routed using Envoy `ring_hash` |
+| `endpoint_routing_envoy_maglev_count` | int | count of endpoints being routed using Envoy `maglev` |
 | `endpoint_routing_envoy_rr_count` | int | count of endpoints being routed using Envoy `round_robin` |
 | `endpoint_routing_kube_count` | int | count of endpoints being routed using Kubernetes |
 | `endpoint_tls_count` | int | count of endpoints to which Ambassador will originate TLS |
