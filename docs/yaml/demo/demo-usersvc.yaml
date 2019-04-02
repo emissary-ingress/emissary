@@ -1,0 +1,71 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: postgres
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:9.6
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: postgres
+  name: postgres
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+  selector:
+    service: postgres
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: usersvc
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        service: usersvc
+    spec:
+      containers:
+      - name: usersvc
+        image: dwflynn/usersvc:0.2.0
+        resources: {}
+      restartPolicy: Always
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: usersvc
+  name: usersvc
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+  selector:
+    service: usersvc

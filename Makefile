@@ -40,6 +40,22 @@ status: ## Report on the status of Kubernaut and Teleproxy
 status: status-pro-tel
 .PHONY: status
 
+pull-docs: ## Update ./docs from https://github.com/datawire/ambassador-docs
+	{ \
+		git fetch https://github.com/datawire/ambassador-docs master && \
+		docs_head=$$(git rev-parse FETCH_HEAD) && \
+		git subtree merge --prefix=docs "$${docs_head}" && \
+		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
+	}
+push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
+	{ \
+		git fetch https://github.com/datawire/ambassador-docs master && \
+		docs_old=$$(git rev-parse FETCH_HEAD) && \
+		docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}") && \
+		git push git@github.com:datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
+	}
+.PHONY: pull-docs push-docs
+
 #
 # Lyft
 
