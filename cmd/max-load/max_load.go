@@ -16,7 +16,6 @@ var nodeIP string
 var nodePort string
 
 func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration) {
-	duration := dur * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
 		URL:    "https://" + nodeIP + ":" + nodePort + "/http-echo/",
@@ -25,7 +24,7 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
 	name := "atk-" + string(rate)
 	var metrics vegeta.Metrics
-	for res := range attacker.Attack(targeter, vegetaRate, duration, name) {
+	for res := range attacker.Attack(targeter, vegetaRate, dur, name) {
 		metrics.Add(res)
 	}
 	metrics.Close()
@@ -36,12 +35,12 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 func testRate(rate int) bool {
 	retry := false
 	for {
-		success, latency := rawTestRate(rate, 5)
+		success, latency := rawTestRate(rate, 5*time.Second)
 		if success < 1 {
 			// let it cool down
 			passed := 0
 			for passed < 2 {
-				s, _ := rawTestRate(1, 2)
+				s, _ := rawTestRate(1, 2*time.Second)
 				if s < 1 {
 					passed = 0
 				} else {
