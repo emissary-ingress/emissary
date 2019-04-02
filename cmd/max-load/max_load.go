@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"os"
 
 	vegeta "github.com/tsenart/vegeta/lib"
 )
@@ -16,6 +17,8 @@ import (
 var attacker = vegeta.NewAttacker(vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true})) // #nosec G402
 var nodeIP string
 var nodePort string
+var argNamespace = "default"
+var argPath = "/load-testing/"
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
 
@@ -27,7 +30,7 @@ func openFiles() int {
 func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration, errs map[string]uint64) {
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
-		URL:    "https://" + nodeIP + ":" + nodePort + "/http-echo/",
+		URL:    "https://" + nodeIP + ":" + nodePort + argPath,
 		Header: http.Header(map[string][]string{"Authorization": {"Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."}}),
 	})
 	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
@@ -90,13 +93,31 @@ func testRate(rate int) bool {
 	}
 }
 
+func usage() {
+	fmt.Printf("Usage: %s [namespace] request_path\n", os.Args[0])
+}
+
 func main() {
+	switch len(os.Args) {
+	case 1:
+		usage()
+		os.Exit(2)
+	case 2:
+		argNamespace = "default"
+		argPath = os.Args[1]
+	case 3:
+		argNamespace = os.Args[1]
+		argPath = os.Args[2]
+	default:
+		usage()
+		os.Exit(2)
+	}
 	bs, _ := exec.Command("kubectl", "config", "view", "--output=go-template", "--template={{range .clusters}}{{.cluster.server}}{{end}}").Output()
 	for _, line := range strings.Split(string(bs), "\n") {
 		parts := strings.Split(strings.TrimPrefix(line, "https://"), ":")
 		nodeIP = parts[0]
 	}
-	bs, _ = exec.Command("kubectl", "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"https\"}}{{.nodePort}}{{end}}{{end}}").Output()
+	bs, _ = exec.Command("kubectl", "--namespace="+argNamespace, "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"https\"}}{{.nodePort}}{{end}}{{end}}").Output()
 	nodePort = strings.TrimSpace(string(bs))
 	fmt.Printf("ambassador = %s:%s\n", nodeIP, nodePort)
 
