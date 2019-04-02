@@ -331,80 +331,8 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
         sys.exit(1)
 
 
-def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
-                bootstrap_path=None, ads_path=None, changes=None, gencount=None,
-                debug=False, debug_scout=False, k8s=True, ir_path=None):
-    """
-    Generate an Envoy configuration from resources that have already been pulled from Kube
-
-    :param root_path: Root of the config data. Expected to contain subdirs for namespaces
-    :param ambex_pid: PID of running Ambex to signal on config changes
-    :param bootstrap_path: Path to which to write Envoy bootstrap config
-    :param ads_path: Path to which to write Envoy ADS config for Ambex
-    :param ir_path: If set, path to which to dump the IR
-    :param changes: How many changes since the last update have happened?
-    :param gencount: Generation count of this update
-    :param debug: If set, generate debugging output
-    :param debug_scout: If set, generate debugging output when talking to Scout
-    """
-    # :param k8s: If set, assume configuration files are annotated K8s manifests
-    # """
-
-    if debug:
-        logger.setLevel(logging.DEBUG)
-
-    if debug_scout:
-        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
-
-    # root_path contains directories for each resource type: services, secrets, optional
-    # crd-whatever paths.
-    scc = SecretSaver(logger, root_path, root_path)
-
-    # Start by assuming that we're going to look at everything.
-    config_root = root_path
-
-    # ...then override that if we're running in single-namespace mode.
-    if os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'):
-        config_root = os.path.join(root_path, os.environ.get('AMBASSADOR_NAMESPACE', 'default'))
-
-    # OK. Load the Config from the config_root.
-    aconf = Config()
-    fetcher = ResourceFetcher(logger, aconf)
-    fetcher.load_from_filesystem(config_root, k8s=k8s, recurse=True)
-    aconf.load_all(fetcher.sorted())
-
-    # Use the SecretSaver to read secret from the filesystem.
-    ir = IR(aconf, secret_reader=scc.file_reader)
-
-    # Generate a V2Config from that, and grab the split bootstrap and ADS configs.
-    v2config = V2Config(ir)
-    bootstrap_config, ads_config = v2config.split_config()
-
-    if not bootstrap_path:
-        bootstrap_path="bootstrap-ads.json"
-
-    if not ads_path:
-        ads_path="envoy/envoy.json"
-
-    logger.info("SAVING CONFIG")
-
-    with open(bootstrap_path, "w") as output:
-        output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
-
-    with open(ads_path, "w") as output:
-        output.write(json.dumps(ads_config, sort_keys=True, indent=4))
-
-    if ir_path:
-        with open(ir_path, "w") as output:
-            output.write(ir.as_json())
-
-    if ambex_pid != 0:
-        logger.info("RESTARTING")
-        os.kill(ambex_pid, signal.SIGHUP)
-
-
 def main():
-    clize.run([config, splitconfig, dump, validate], alt=[version, showid],
+    clize.run([config, dump, validate], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 
