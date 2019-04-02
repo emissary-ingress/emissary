@@ -69,6 +69,17 @@ spec:
                 values:
                 - ambassador
             topologyKey: kubernetes.io/hostname
+         podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - ambassador
+              topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
       containers:
       - name: ambassador
