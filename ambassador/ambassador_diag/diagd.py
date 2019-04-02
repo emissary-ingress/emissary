@@ -39,7 +39,8 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents
+from ambassador.utils import SystemInfo, PeriodicTrigger, SavedSecret, load_url_contents
+from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.config.resourcefetcher import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
@@ -608,7 +609,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
-        scc = SecretSaver(app.logger, path, app.snapshot_path)
+        scc = FSSecretHandler(app.logger, path, app.snapshot_path)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -619,7 +620,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring empty configuration')
             # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.null_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
     def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
@@ -640,7 +641,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
             # return
 
-        scc = SecretSaver(app.logger, url, app.snapshot_path)
+        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -654,7 +655,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
             # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
     def load_config_watt(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
@@ -671,7 +672,9 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
             # return
 
-        scc = SecretSaver(app.logger, url, app.snapshot_path)
+        # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
+        # the secrets that watt sends.
+        scc = SecretHandler(app.logger, url, app.snapshot_path)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -685,17 +688,16 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
             # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
-                 secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
-                 snapshot: str) -> None:
+                 secret_handler: SecretHandler, snapshot: str) -> None:
         aconf.load_all(fetcher.sorted())
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        ir = IR(aconf, secret_reader=secret_reader)
+        ir = IR(aconf, secret_handler=secret_handler)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())

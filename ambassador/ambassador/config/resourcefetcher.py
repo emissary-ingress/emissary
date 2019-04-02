@@ -100,7 +100,7 @@ class ResourceFetcher:
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
-    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
+    def parse_yaml(self, serialization: Optional[str], k8s=False, rkey: Optional[str]=None,
                    filename: Optional[str]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
@@ -112,13 +112,13 @@ class ResourceFetcher:
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
-    def parse_watt(self, serialization: str) -> None:
+    def parse_watt(self, serialization: Optional[str]) -> None:
         try:
             watt_dict = parse_yaml(serialization)[0]
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
-            for key in [ 'service', 'endpoints' ]:
+            for key in [ 'service', 'endpoints', 'secret' ]:
                 for obj in watt_k8s.get(key, []):
                     self.handle_k8s(obj)
 
@@ -326,11 +326,11 @@ class ResourceFetcher:
         skip = False
 
         if not metadata:
-            self.logger.debug("ignoring unannotated K8s Service")
+            self.logger.debug("ignoring K8s Service with no metadata")
             skip = True
 
         if not resource_name:
-            self.logger.debug("ignoring unnamed K8s Service")
+            self.logger.debug("ignoring K8s Service with no name")
             skip = True
 
         if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace)):
@@ -361,6 +361,70 @@ class ResourceFetcher:
             objects.append(service_info)
 
         return resource_identifier, objects
+
+    # Handler for K8s Secret resources.
+    def handle_k8s_secret(self, k8s_object: AnyDict) -> HandlerResult:
+        # XXX Another one where we shouldn't be saving everything.
+
+        secret_type = k8s_object.get('type', None)
+        metadata = k8s_object.get('metadata', None)
+        resource_name = metadata.get('name') if metadata else None
+        resource_namespace = metadata.get('namespace', 'default') if metadata else None
+        data = k8s_object.get('data', None)
+
+        skip = False
+
+        if (secret_type != 'kubernetes.io/tls') and (secret_type != 'Opaque'):
+            self.logger.debug("ignoring K8s Secret with unknown type %s" % secret_type)
+            skip = True
+
+        if not data:
+            self.logger.debug("ignoring K8s Secret with no data")
+            skip = True
+
+        if not metadata:
+            self.logger.debug("ignoring K8s Secret with no metadata")
+            skip = True
+
+        if not resource_name:
+            self.logger.debug("ignoring K8s Secret with no name")
+            skip = True
+
+        if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace)):
+            # This should never happen in actual usage, since we shouldn't be given things
+            # in the wrong namespace. However, in development, this can happen a lot.
+            self.logger.debug("ignoring K8s Secret in wrong namespace")
+            skip = True
+
+        if skip:
+            return None
+
+        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
+        resource_identifier = f'{resource_name}.{resource_namespace}'
+
+        tls_crt = data.get('tls.crt', None)
+        tls_key = data.get('tls.key', None)
+
+        if not tls_crt and not tls_key:
+            # Uh. WTFO?
+            self.logger.debug(f'ignoring K8s Secret {resource_identifier} with no keys')
+            return None
+
+        secret_info = {
+            'apiVersion': 'ambassador/v1',
+            'ambassador_id': Config.ambassador_id,
+            'kind': 'Secret',
+            'name': resource_name,
+            'namespace': resource_namespace
+        }
+
+        if tls_crt:
+            secret_info['tls_crt'] = tls_crt
+
+        if tls_key:
+            secret_info['tls_key'] = tls_key
+
+        return resource_identifier, [ secret_info ]
 
     # Handler for Consul services
     def handle_consul_service(self,

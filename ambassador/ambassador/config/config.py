@@ -536,6 +536,13 @@ class Config:
 
         self.safe_store("service_info", resource)
 
+    def handle_secret(self, resource: ACResource) -> None:
+        """
+        Handles a Secret resource.
+        """
+
+        self.safe_store("secret", resource)
+
     def handle_mapping(self, resource: ACMapping) -> None:
         """
         Handles a ACMapping resource.

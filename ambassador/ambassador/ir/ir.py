@@ -19,7 +19,7 @@ import json
 import logging
 import os
 
-from ..utils import RichStatus, SavedSecret
+from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
 
 from .irresource import IRResource
@@ -46,11 +46,6 @@ from ..VERSION import Version, Build
 ## or to run diagnostics.
 
 
-def error_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
-    # Failsafe only.
-    return SavedSecret(secret_name, namespace, None, None, {})
-
-
 class IR:
     ambassador_module: IRAmbassador
     ambassador_id: str
@@ -66,13 +61,14 @@ class IR:
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
+    saved_secrets: Dict[str, SavedSecret]
     tls_contexts: Dict[str, IRTLSContext]
     aconf: Config
     secret_root: str
-    secret_reader: Callable[[IRTLSContext, str, str], SavedSecret]
+    secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
 
-    def __init__(self, aconf: Config, secret_reader=None, file_checker=None) -> None:
+    def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
@@ -82,8 +78,12 @@ class IR:
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-        setattr(self, 'secret_reader', secret_reader or error_secret_reader)
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
+
+        # The secret_handler is _required_.
+        self.secret_handler = secret_handler
+
+        assert self.secret_handler, "Ambassador.IR requires a SecretHandler at initialization"
 
         self.logger.debug("IR __init__:")
         self.logger.debug("IR: Version         %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
@@ -93,7 +93,7 @@ class IR:
         self.logger.debug("IR: Endpoints       %s" % "enabled" if Config.enable_endpoints else "disabled")
 
         self.logger.debug("IR: file checker:   %s" % getattr(self, 'file_checker').__name__)
-        self.logger.debug("IR: secret reader:  %s" % getattr(self, 'secret_reader').__name__)
+        self.logger.debug("IR: secret handler: %s" % type(self.secret_handler).__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -101,6 +101,25 @@ class IR:
         # Next, we'll want a way to keep track of resources we end up working
         # with. It starts out empty.
         self.saved_resources = {}
+
+        # Also, we have no saved secrets yet...
+        self.saved_secrets = {}
+
+        # ...but we probably do have secret_info that we'll need to use to locate saved secrets.
+        aconf_secrets = aconf.get_config("secret") or {}
+
+        self.logger.debug("IR: aconf_secrets:")
+        self.logger.debug(json.dumps(aconf_secrets, indent=4, sort_keys=True))
+
+        self.secret_info: Dict[str, SecretInfo] = {}
+
+        for secret_name, aconf_secret in aconf_secrets.items():
+            secret_namespace = aconf_secret.get('namespace', self.ambassador_namespace)
+
+            self.secret_info[f'{secret_name}.{secret_namespace}'] = SecretInfo.from_aconf_secret(aconf_secret)
+
+        self.logger.debug("IR: secret_info:")
+        self.logger.debug(json.dumps({ k: v.to_dict() for k, v in self.secret_info.items() }, indent=4, sort_keys=True))
 
         # Next, define the initial IR state -- which is empty.
         #
@@ -253,6 +272,46 @@ class IR:
 
     def get_tls_contexts(self) -> ValuesView[IRTLSContext]:
         return self.tls_contexts.values()
+
+    def resolve_secret(self, context: IRTLSContext, secret_name: str) -> SavedSecret:
+        # Start by figuring out a namespace to look in. Assume that we're
+        # in the Ambassador's namespace...
+        namespace = self.ambassador_namespace
+
+        # ...but allow secrets to override the namespace, too.
+        if "." in secret_name:
+            secret_name, namespace = secret_name.split('.', 1)
+
+        # OK. Do we already have a SavedSecret for this?
+        ss_key = f'{secret_name}.{namespace}'
+
+        ss = self.saved_secrets.get(ss_key, None)
+
+        if ss:
+            # Done. Return it.
+            self.logger.debug(f"resolve_secret {ss_key}: using cached SavedSecret")
+            return ss
+
+        # OK, do we have a secret_info for it??
+        secret_info = self.secret_info.get(ss_key, None)
+
+        if not secret_info:
+            # No secret_info, so ask the secret_handler to find us one.
+            self.logger.debug(f"resolve_secret {ss_key}: asking handler to load")
+            secret_info = self.secret_handler.load_secret(context, secret_name, namespace)
+
+        if not secret_info:
+            self.logger.error(f"Secret {ss_key} unknown")
+
+            ss = SavedSecret(secret_name, namespace, None, None, None)
+        else:
+            # OK, we got a secret_info. Cache that using the secret handler.
+            ss = self.secret_handler.cache_secret(context, secret_info)
+
+            # Save this for next time.
+            self.saved_secrets[secret_name] = ss
+
+        return ss
 
     def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():

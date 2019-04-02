@@ -31,7 +31,7 @@ from .config.resourcefetcher import ResourceFetcher
 from .envoy import EnvoyConfig, V2Config
 from .ir.irtlscontext import IRTLSContext
 
-from .utils import RichStatus, SavedSecret, SecretSaver
+from .utils import RichStatus, SecretInfo, SecretHandler
 
 __version__ = Version
 
@@ -105,16 +105,12 @@ def file_checker(path: str) -> bool:
     return True
 
 
-def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
-    # In the Real World, the secret reader should, y'know, read secrets..
-    # Here we're just gonna fake it.
+class CLISecretHandler(SecretHandler):
+    def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        # In the Real World, the secret loader should, y'know, load secrets..
+        # Here we're just gonna fake it.
 
-    secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-
-    cert_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.crt")
-    key_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.key")
-
-    return SavedSecret(secret_name, namespace, cert_path, key_path, {})
+        return SecretInfo(secret_name, namespace, "fake-tls-crt", "fake-tls-key")
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
@@ -172,7 +168,9 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
+        secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path)
+
+        ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -298,7 +296,9 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
+            secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path)
+
+            ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:
