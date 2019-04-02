@@ -17,6 +17,7 @@
 from typing import Any, Dict, List, Optional, TextIO, TYPE_CHECKING
 
 import binascii
+import hashlib
 import io
 import socket
 import threading
@@ -230,18 +231,56 @@ class PeriodicTrigger(threading.Thread):
 
 class SecretInfo:
     def __init__(self, name: str, namespace: str,
-                 tls_crt: str, tls_key: Optional[str]=None) -> None:
+                 tls_crt: str, tls_key: Optional[str]=None, decode_b64=True) -> None:
         self.name = name
         self.namespace = namespace
+
+        if decode_b64:
+            if tls_crt and not tls_crt.startswith('-----BEGIN'):
+                tls_crt = self.decode(tls_crt)
+
+            if tls_key and not tls_key.startswith('-----BEGIN'):
+                tls_key = self.decode(tls_key)
+
         self.tls_crt = tls_crt
         self.tls_key = tls_key
+
+    @staticmethod
+    def decode(b64_pem: str) -> Optional[str]:
+        utf8_pem = None
+        pem = None
+
+        try:
+            utf8_pem = binascii.a2b_base64(b64_pem)
+        except binascii.Error:
+            return None
+
+        try:
+            pem = utf8_pem.decode('utf-8')
+        except UnicodeDecodeError:
+            return None
+
+        return pem
+
+    @staticmethod
+    def fingerprint(pem: str) -> str:
+        if not pem:
+            return '<none>'
+
+        h = hashlib.new('sha1')
+        h.update(pem.encode('utf-8'))
+        hd = h.hexdigest()[0:16].upper()
+
+        keytype = 'PEM' if pem.startswith('-----BEGIN') else 'RAW'
+
+        return f'{keytype}: {hd}'
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             'name': self.name,
             'namespace': self.namespace,
-            'tls_crt': self.tls_crt,
-            'tls_key': self.tls_key
+            'tls_crt': self.fingerprint(self.tls_crt),
+            'tls_key': self.fingerprint(self.tls_key)
         }
 
     @classmethod
@@ -252,6 +291,29 @@ class SecretInfo:
             aconf_object.tls_crt,
             aconf_object.get('tls_key', None)
         )
+
+    @classmethod
+    def from_dict(cls, context: 'IRTLSContext',
+                  secret_name: str, namespace: str, source: str,
+                  cert_data: Optional[Dict[str, Any]]) -> Optional['SecretInfo']:
+        logger = context.ir.logger
+
+        if not cert_data:
+            logger.error("TLSContext %s: found no certificate in %s?" % (context.name, source))
+            return None
+
+        # OK, we have something to work with. Hopefully.
+        cert = cert_data.get('tls.crt', None)
+
+        if not cert:
+            # Having no public half is definitely an error. Having no private half given a public half
+            # might be OK, though -- that's up to our caller to decide.
+            logger.error("TLSContext %s: found data but no cert in %s?" % (context.name, source))
+            return None
+
+        key = cert_data.get('tls.key', None)
+
+        return SecretInfo(secret_name, namespace, cert, key)
 
 
 class SavedSecret:
@@ -383,35 +445,7 @@ class SecretHandler:
             # Bzzt.
             return None
 
-        return self.secret_info_from_dict(context, secret_name, source, namespace, cert_data)
-
-    def secret_info_from_dict(self, context: 'IRTLSContext',
-                              secret_name: str, namespace: str, source: str,
-                              cert_data: Optional[Dict[str, Any]]) -> Optional[SecretInfo]:
-        if not cert_data:
-            self.logger.error("TLSContext %s: found no certificate in %s?" %
-                              (context.name, source))
-            return None
-
-        # OK, we have something to work with. Hopefully.
-        cert = cert_data.get('tls.crt', None)
-
-        if cert:
-            cert = binascii.a2b_base64(cert)
-
-        if not cert:
-            # Having no public half is definitely an error. Having no private half given a public half
-            # might be OK, though -- that's up to our caller to decide.
-            self.logger.error("TLSContext %s: found data but no cert in %s?" %
-                              (context.name, source))
-            return None
-
-        key = cert_data.get('tls.key', None)
-
-        if key:
-            key = binascii.a2b_base64(key)
-
-        return SecretInfo(secret_name, namespace, cert, key)
+        return SecretInfo.from_dict(context, secret_name, source, namespace, cert_data)
 
 
 class FSSecretHandler(SecretHandler):

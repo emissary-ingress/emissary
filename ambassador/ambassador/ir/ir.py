@@ -102,26 +102,11 @@ class IR:
         # with. It starts out empty.
         self.saved_resources = {}
 
-        # Also, we have no saved secrets yet...
+        # Also, we have no saved secret stuff yet...
         self.saved_secrets = {}
-
-        # ...but we probably do have secret_info that we'll need to use to locate saved secrets.
-        aconf_secrets = aconf.get_config("secret") or {}
-
-        self.logger.debug("IR: aconf_secrets:")
-        self.logger.debug(json.dumps(aconf_secrets, indent=4, sort_keys=True))
-
         self.secret_info: Dict[str, SecretInfo] = {}
 
-        for secret_name, aconf_secret in aconf_secrets.items():
-            secret_namespace = aconf_secret.get('namespace', self.ambassador_namespace)
-
-            self.secret_info[f'{secret_name}.{secret_namespace}'] = SecretInfo.from_aconf_secret(aconf_secret)
-
-        self.logger.debug("IR: secret_info:")
-        self.logger.debug(json.dumps({ k: v.to_dict() for k, v in self.secret_info.items() }, indent=4, sort_keys=True))
-
-        # Next, define the initial IR state -- which is empty.
+        # ...and the initial IR state is empty.
         #
         # Note that we use a map for clusters, not a list -- the reason is that
         # multiple mappings can use the same service, and we don't want multiple
@@ -131,22 +116,23 @@ class IR:
         self.filters = []
         self.tracing = None
         self.tls_contexts = {}
+        self.tls_module = None
         self.ratelimit = None
         self.listeners = []
         self.groups = {}
 
-        # Set up default TLS stuff.
+        # OK, time to get this show on the road. Grab whatever information our aconf
+        # has about secrets...
+        self.save_secret_info(aconf)
+
+        # ...and then it's on to default TLS stuff, both from the TLS module and from
+        # any TLS contexts.
         #
         # XXX This feels like a hack -- shouldn't it be class-wide initialization
         # in TLSModule or TLSContext? So far it's the only place we need anything like
         # this though.
 
-        self.tls_module = None
-
-        # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)
-
-        # ...and from any TLSContext resources.
         self.save_tls_contexts(aconf)
 
         # Next, handle the "Ambassador" module. This is last so that the Ambassador module has all
@@ -244,6 +230,17 @@ class IR:
 
         return resource
 
+    # Save secrets from our aconf.
+    def save_secret_info(self, aconf):
+        # ...but we may be able to probably do have secret_info that we'll need to use to locate saved secrets.
+        aconf_secrets = aconf.get_config("secret") or {}
+
+        for secret_name, aconf_secret in aconf_secrets.items():
+            secret_info = SecretInfo.from_aconf_secret(aconf_secret)
+            secret_namespace = secret_info.namespace
+
+            self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
+
     # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
     # are just ACResources; they need to be turned into IRTLSContexts.
     def save_tls_contexts(self, aconf):
@@ -305,6 +302,8 @@ class IR:
 
             ss = SavedSecret(secret_name, namespace, None, None, None)
         else:
+            self.logger.debug(f"resolve_secret {ss_key}: asking handler to cache")
+
             # OK, we got a secret_info. Cache that using the secret handler.
             ss = self.secret_handler.cache_secret(context, secret_info)
 
