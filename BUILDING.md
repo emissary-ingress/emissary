@@ -127,6 +127,16 @@ CI runs Ambassador's test suite on every build. **You will be asked to add tests
 
 For more information on the test suite, see [its README](ambassador/tests/README.md).
 
+#### Running tests locally (in minikube)
+Tests consume quite a lot of resources, so make sure you allocate them accordingly to your minikube instance.
+
+1. Start minikube
+2. To build images directly into your minikube instance, set `DOCKER_REGISTRY=-` and point your docker client to docker daemon running inside minikube by running the command `eval $(minikube docker-env)`
+3. Point `KUBECONFIG` to minikube, generally using `export KUBECONFIG=~/.kube/config`
+4. Since everything is being run locally, you don't need a Kubernetes cluser using kubernaut. Set `USE_KUBERNAUT=false`
+
+That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
+
 Version Numbering
 -----------------
 

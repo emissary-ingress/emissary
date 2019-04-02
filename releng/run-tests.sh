@@ -9,7 +9,13 @@
 # to the pytest line, and, uh, I guess recover and merge all the .coverage 
 # files from the containers??
 
-if ! pytest --tb=short ${TEST_NAME}; then
+TEST_ARGS="--tb=short"
+
+if [ -n "${TEST_NAME}" ]; then
+    TEST_ARGS+=" -k ${TEST_NAME}"
+fi
+
+if ! pytest ${TEST_ARGS}; then
     kubectl get pods
     kubectl get svc
 

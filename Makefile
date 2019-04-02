@@ -126,11 +126,14 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
 AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
 
+KUBECONFIG ?= $(shell pwd)/cluster.yaml
+USE_KUBERNAUT ?= true
+
 SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.1.0
+KAT_BACKEND_RELEASE = 1.2.1
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -306,12 +309,14 @@ $(PWD)/kat/kat/client:
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml: $(CLAIM_FILE)
+ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
+endif
 	rm -rf /tmp/k8s-*.yaml
 	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
@@ -320,7 +325,7 @@ setup-test: cluster.yaml
 teleproxy-restart:
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
 
 teleproxy-stop:
 	$(call kill_teleproxy)
@@ -332,8 +337,6 @@ teleproxy-stop:
 	else \
 		echo "teleproxy stopped" >&2; \
 	fi
-
-KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
@@ -430,9 +433,19 @@ mypy: mypy-server
 # ------------------------------------------------------------------------------
 
 pull-docs:
-	git subtree pull --prefix=docs https://github.com/datawire/ambassador-docs.git master
+	{ \
+		git fetch https://github.com/datawire/ambassador-docs master && \
+		docs_head=$$(git rev-parse FETCH_HEAD) && \
+		git subtree merge --prefix=docs "$${docs_head}" && \
+		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
+	}
 push-docs:
-	git subtree push --prefix=docs $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git master
+	{ \
+		git fetch https://github.com/datawire/ambassador-docs master && \
+		docs_old=$$(git rev-parse FETCH_HEAD) && \
+		docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}") && \
+		git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:$(or $(PUSH_BRANCH),master)"; \
+	}
 .PHONY: pull-docs push-docs
 
 # ------------------------------------------------------------------------------
