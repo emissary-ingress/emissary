@@ -2,6 +2,10 @@
 
 See [Installation documentation](INSTALL.md) for install instructions.
 
+Run ambassador image in pod, but with env variable to disable (in entrypoint.sh) ambx and envory, so just run diagd. call diagd endpoint to get.
+
+query diagd every 60 seconds: $AMBASSADOR_POD/ambassador/v0/diag/?json=true
+
 ## Dev Portal Web Server
 
 API endpoints:
