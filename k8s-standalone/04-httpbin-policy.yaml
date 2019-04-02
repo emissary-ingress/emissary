@@ -23,7 +23,6 @@ spec:
         - name: wiki-plugin
     - host: "*"
       path: /auth0/httpbin/headers
-      public: false
       filters:
         - name: auth0
     - host: "*"
