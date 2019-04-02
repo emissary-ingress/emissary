@@ -109,7 +109,7 @@ func (this *service) shouldRateLimitWorker(
 	snappedConfig := this.GetCurrentConfig()
 	checkServiceErr(snappedConfig != nil, "no rate limit configuration loaded")
 
-	logger.Warnf("REQUEST: %s", request.String())
+	logger.Infof("REQUEST: %s", request.String())
 
 	limitsToCheck := make([]*config.RateLimit, len(request.Descriptors))
 	for i, descriptor := range request.Descriptors {
