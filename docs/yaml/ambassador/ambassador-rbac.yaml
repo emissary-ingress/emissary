@@ -61,13 +61,14 @@ spec:
     spec:
       affinity:
         podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  service: ambassador
-              topologyKey: kubernetes.io/hostname
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: service
+                operator: In
+                values:
+                - ambassador
+            topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
       containers:
       - name: ambassador
