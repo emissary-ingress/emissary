@@ -94,7 +94,7 @@
             "properties": {
                 "policy":  {
                     "type": "string",
-                    "enum": ["round_robin", "ring_hash"]
+                    "enum": ["round_robin", "ring_hash", "maglev"]
                 },
                 "cookie":  {
                     "type": "object",

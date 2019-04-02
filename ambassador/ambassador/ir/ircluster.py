@@ -302,7 +302,7 @@ class IRCluster (IRResource):
     def endpoints_required(self, load_balancer) -> bool:
         required = False
         lb_policy = load_balancer.get('policy')
-        if lb_policy in ['round_robin', 'ring_hash']:
+        if lb_policy in ['round_robin', 'ring_hash', 'maglev']:
             self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
             required = True
         return required
