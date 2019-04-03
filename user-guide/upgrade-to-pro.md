@@ -125,21 +125,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
 
    **Note:** Make sure to put your license key in the `AMBASSADOR_LICENSE_KEY` environment variable.
 
-## 3. Test the Install with JWT Authentication
-
-   - Apply the httpbin service from the [Ambassador Install document](/user-guide/getting-started#3-creating-your-first-route) if you no longer have it installed.
-
-   - Clone the reference architecture repository for example configurations
-
-      ```
-      git clone https://github.com/datawire/pro-ref-arch
-
-      cd pro-ref-arch
-      ```
-
-   - Navigate to the `jwt` directory and follow the instructions in the README to install and test JWT authentication.
-
-## 4. Configure Addition Ambassador Pro Services
+## 3. Configure Additional Ambassador Pro Services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 
