@@ -31,7 +31,40 @@ spec:
     GLOBAL_FILTER_ARGUMENTS
 ```
 
-Currently, Ambassador supports three filter types: `JWT`, `OAuth2`, and `Plugin`.
+Currently, Ambassador supports four filter types: `External`, `JWT`, `OAuth2`, and `Plugin`.
+
+### Filter Type: `External`
+
+The `External` filter type exposes the Ambassador `AuthService` interface to external authentication services. This is useful in a number of situations, e.g., if you have already written a custom `AuthService`, but also want to use other filters.
+
+The `External` filter looks very similar to an `AuthService` annotation:
+
+```
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: http-auth-filter
+  namespace: standalone
+spec:
+  External:
+    auth_service: "http-auth:4000"
+    path_prefix: "/frobnitz"
+    proto: http
+    allowed_request_headers:
+    - "x-allowed-input-header"
+    allowed_authorization_headers:
+    - "x-input-headers"
+    - "x-allowed-output-header"
+    allow_request_body: false
+```
+
+The spec is mostly identical to an `AuthService`, with the following exceptions:
+
+* It does not contain the apiVersion field
+* It does not contain the kind field
+* It does not contain the name field
+* In an AuthService, the tls field may either be a Boolean, or a string referring to a TLS context. In an `External`, it may only be a Boolean; referring to a TLS context is not supported.
 
 ### Filter Type: `JWT`
 
@@ -117,28 +150,6 @@ numbers, each with optional fraction and a unit suffix, such as
 "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or
 "µs"), "ms", "s", "m", "h".  See [Go
 `time.ParseDuration`](https://golang.org/pkg/time/#ParseDuration).
-
-#### Using a Kubernetes secret
-
-If you don't want to store your client secret in YAML, you can also load it into a Kubernetes secret. Create a Kubernetes secret:
-
-```
-kubectl --namespace=YOUR_NAMESPACE \
-    create secret generic YOUR_SECRET_NAME \
-    --from-literal=oauth2-client-secret="YOUR_CLIENT_SECRET"
-```
-
-Note that the field name above must be `oauth2-client-secret`. In the OAuth filter YAML, use:
-
-```
-spec:
-  OAuth2:
-    ...
-    secretName: YOUR_SECRET_NAME
-    secretNamespace: YOUR_NAMESPACE
-```
-
-The `secretNamespace` is only necessary if the secret's namespace is different than the namespace of the Filter itself.
 
 #### `OAuth2` Path-Specific Arguments
 
