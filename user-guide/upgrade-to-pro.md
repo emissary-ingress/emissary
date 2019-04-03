@@ -2,17 +2,17 @@
 
 If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
-## 1. Ambassador Pro Resources
+## 1. Install Ambassador Pro Resources
 
    Ambassador Pro relies on several Custom Resource Definition (CRDs) for configuration as well are requires a redis instance for rate limiting.
 
    We have published these resources for download at https://www.getambassador.io/yaml/ambassador-pro/resources.yaml or you can easily install them using `kubectl`.
 
    ```
-   kubectl apply -f https://www.getambassador.io/yaml/ambassador-pro/resources.yaml
+   kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/resources.yaml
    ```
 
-## 2. Ambassador Pro Deployment
+## 2. Modify Ambassador Deployment
 
    Ambassador Pro is typically deployed as a sidecar to Ambassador allowing Ambassador to communicate with Pro services locally.
 
@@ -49,7 +49,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
          serviceAccountName: ambassador
          containers:
          - name: ambassador
-           image: quay.io/datawire/ambassador:0.52.1
+           image: quay.io/datawire/ambassador:%version%
            resources:
              limits:
                cpu: 1
@@ -82,7 +82,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
              initialDelaySeconds: 30
              periodSeconds: 3
          - name: ambassador-pro
-           image: quay.io/datawire/ambassador_pro:amb-sidecar-0.3.0
+           image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
            ports:
            - name: ratelimit-grpc
              containerPort: 8081
@@ -106,7 +106,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
    ```yaml
          ...
          - name: ambassador-pro
-           image: quay.io/datawire/ambassador_pro:amb-sidecar-0.3.0
+           image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
            ports:
            - name: ratelimit-grpc
              containerPort: 8081
@@ -125,7 +125,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
 
    **Note:** Make sure to put your license key in the `AMBASSADOR_LICENSE_KEY` environment variable.
 
-## 3. Test the install with JWT Authentication
+## 3. Test the Install with JWT Authentication
 
    - Apply the httpbin service from the [Ambassador Install document](/user-guide/getting-started#3-creating-your-first-route) if you no longer have it installed.
 
