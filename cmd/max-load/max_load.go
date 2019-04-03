@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"regexp"
 	"sort"
 	"strings"
@@ -118,15 +119,16 @@ func RunTest(url string, rate int) bool {
 		cnt := openFiles()
 		for cnt > MaxIdleConnections+200 {
 			fmt.Printf("  cooldown: open files: %d\n", cnt)
+			runtime.GC()
 			time.Sleep(time.Second)
 			cnt = openFiles()
 		}
 		if result.Passed() {
 			return true
 		}
-		// Let Ambassador cool down; require 1000 successful requests in a row.
+		// Let Ambassador cool down; require 500 successful requests in a row.
 		var passed uint64
-		for passed < 1000 {
+		for passed < 500 {
 			// Use an RPS for which it is likely that `latency*rps < 1s`.  10ms latency
 			// seems reasonable under non-load, so 100rps, but give it a little more
 			// leeway at 75rps.
