@@ -1,6 +1,7 @@
 #!/bin/sh
 
-if [ -z "$DIAGD_ONLY" ]; then
+if [ ! -z "$DIAGD_ONLY" ]; then
+    echo "Not starting, since in diagd-only mode."
     exit 0
 fi
 
