@@ -16,12 +16,25 @@ import (
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
-var MaxIdleConnections = 3200
+const (
+	// Require TuneCooldownRequests consecutive successful requests with per-TuneCooldownPeriod
+	// p95 latency < TuneCooldownMaxLatency in order to be considered "cooled down".
+
+	TuneCooldownMaxLatency = 10*time.Millisecond
+	TuneCooldownPeriod = 2*time.Second
+	// Use an RPS for which it is likely that `latency*rps < 1.0`.  10ms latency seems
+	// reasonable under non-load, so 1.0/10ms gives us 100rps.
+	TuneCooldownRPS = 100
+	// Anecdotally, 500 seems too short for reliable client-cooldown (but maybe the newer
+	// TuneCooldownMaxLatency requirements help mitigate that?).  1000 seems too be spending too
+	// much time staring at the screen, waiting for it to move on.  800 is a decent-ish
+	// compromise?
+	TuneCooldownRequests = 800
+)
 
 var attacker = vegeta.NewAttacker(
 	vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true}), // #nosec G402
 	vegeta.HTTP2(true),
-	vegeta.Connections(MaxIdleConnections),
 )
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
@@ -60,9 +73,8 @@ func RunTestRaw(tc TestCase) TestResult {
 	errs := make(map[string]uint64)
 	filesBefore := openFiles()
 	for res := range attacker.Attack(targeter, vegetaRate, tc.Duration, name) {
-		// vegeta.Metrics doesn't consider HTTP 429 Too Many
-		// Requests to be a "success", but for testing the
-		// rate limit service, we should.
+		// vegeta.Metrics doesn't consider HTTP 429 ("Too Many Requests") to be a "success",
+		// but for testing the rate limit service, we should.
 		switch res.Code {
 		case http.StatusOK:
 			successes++
@@ -115,30 +127,23 @@ func RunTest(url string, rate int) bool {
 		result := RunTestRaw(TestCase{URL: url, RPS: rate, Duration: 5*time.Second})
 		runs++
 		fmt.Println(result)
-		// Let the client cool down; let any dangling but not keep-alive connections die.
-		cnt := openFiles()
-		for cnt > MaxIdleConnections+200 {
-			fmt.Printf("  cooldown: open files: %d\n", cnt)
-			runtime.GC()
-			time.Sleep(time.Second)
-			cnt = openFiles()
-		}
-		if result.Passed() {
-			return true
-		}
-		// Let Ambassador cool down; require 500 successful requests in a row.
+		// Let it cool down.  This is both (1) to let Ambassador cool down (after a
+		// failure), but also (2) to let the client cool down and for any dangling but not
+		// keep-alive connections die.
 		var passed uint64
-		for passed < 500 {
-			// Use an RPS for which it is likely that `latency*rps < 1s`.  10ms latency
-			// seems reasonable under non-load, so 100rps, but give it a little more
-			// leeway at 75rps.
-			cooldown := RunTestRaw(TestCase{URL: url, RPS: 75, Duration: time.Second})
-			if cooldown.Passed() {
+		for passed < TuneCooldownRequests {
+			runtime.GC()
+			cooldown := RunTestRaw(TestCase{URL: url, RPS: TuneCooldownRPS, Duration: TuneCooldownPeriod})
+			if cooldown.Passed() && cooldown.Latency < TuneCooldownMaxLatency {
 				passed += cooldown.Requests
 			} else {
 				passed = 0
 			}
-			fmt.Printf("  cooldown: %d (open files: %d→%d)\n", passed, cooldown.FilesBefore, cooldown.FilesAfter)
+			fmt.Printf("  cooldown: %d (latency %s) (open files: %d→%d)\n",
+				passed, cooldown.Latency, cooldown.FilesBefore, cooldown.FilesAfter)
+		}
+		if result.Passed() {
+			return true
 		}
 		// try it up to 3 times
 		if runs == 3 {
