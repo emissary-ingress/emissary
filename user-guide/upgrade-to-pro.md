@@ -2,7 +2,7 @@
 
 If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
-1. Ambassador Pro Resources
+## 1. Ambassador Pro Resources
 
    Ambassador Pro relies on several Custom Resource Definition (CRDs) for configuration as well are requires a redis instance for rate limiting.
 
@@ -12,7 +12,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
    kubectl apply -f https://www.getambassador.io/yaml/ambassador-pro/resources.yaml
    ```
 
-2. Ambassador Pro Deployment
+## 2. Ambassador Pro Deployment
 
    Ambassador Pro is typically deployed as a sidecar to Ambassador allowing Ambassador to communicate with Pro services locally.
 
@@ -125,7 +125,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
 
    **Note:** Make sure to put your license key in the `AMBASSADOR_LICENSE_KEY` environment variable.
 
-3. Test the install with JWT Authentication
+## 3. Test the install with JWT Authentication
 
    - Apply the httpbin service from the [Ambassador Install document](/user-guide/getting-started#3-creating-your-first-route) if you no longer have it installed.
 
@@ -139,7 +139,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
 
    - Navigate to the `jwt` directory and follow the instructions in the README to install and test JWT authentication.
 
-4. Configure Addition Ambassador Pro Services
+## 4. Configure Addition Ambassador Pro Services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 
