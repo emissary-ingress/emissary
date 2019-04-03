@@ -186,7 +186,6 @@ func (o *okta) createLoginRequest(loginForm *http.Response) (*http.Request, erro
 	var request *http.Request
 	var err error
 
-	// {"password":"QWE89pal!","username":"plombardi@datawire.io","options":{"warnBeforePasswordExpired":true,"multiOptionalFactorEnroll":true}}
 	loginOptions := struct {
 		WarnBeforePasswordExpired bool `json:"warnBeforePasswordExpired"`
 		MultiOptionalFactorEnroll bool `json:"multiOptionalFactorEnroll"`
