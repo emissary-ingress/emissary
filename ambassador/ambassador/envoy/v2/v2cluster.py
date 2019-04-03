@@ -39,11 +39,7 @@ class V2Cluster(dict):
             'name': cluster.name,
             'type': cluster.type.upper(),
             'lb_policy': cluster.lb_type.upper(),
-<<<<<<< HEAD
             'connect_timeout':"%0.3fs" % (float(auth.timeout_ms) / 1000.0) % cluster.cluster_timeout_ms,
-=======
-            'connect_timeout': "%ss" % cluster.cluster_timeout_s,
->>>>>>> ca9d0c21270af6b106913316afb2ae2497c6dce9
             'load_assignment': {
                 'cluster_name': cluster.name,
                 'endpoints': [
