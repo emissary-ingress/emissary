@@ -175,17 +175,22 @@ echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 # Empty Envoy directory, hence no config via ADS yet.
 mkdir -p "${ENVOY_DIR}"
 
-echo "AMBASSADOR: starting ads"
-ambex "${ENVOY_DIR}" &
-AMBEX_PID="$!"
-pids="${pids:+${pids} }${AMBEX_PID}:ambex"
+if [ -z "${DIAGD_ONLY}" ]; then
+    echo "AMBASSADOR: starting ads"
+    ambex "${ENVOY_DIR}" &
+    AMBEX_PID="$!"
+    pids="${pids:+${pids} }${AMBEX_PID}:ambex"
+    DIAGD_EXTRA="--kick \"sh /ambassador/kick_ads.sh $AMBEX_PID\""
+else
+    DIAGD_EXTRA="--no-checks --no-envoy"
+fi
 
 # We can't start Envoy until the initial config happens, which means that diagd has to start it.
 
 echo "AMBASSADOR: starting diagd"
 
 diagd "${SNAPSHOT_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_CONFIGDIR \
-      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+       --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" $DIAGD_EXTRA &
 pids="${pids:+${pids} }$!:diagd"
 
 # Wait for diagd to start
