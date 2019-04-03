@@ -20,6 +20,6 @@ metadata:
 spec:
   rules:
   - host: "*"
-    path: /load-testing/jwt-filter/*
+    path: /load-testing/filter-jwt/*
     filters:
-    - name: loat-filter-jwt-filter
+    - name: load-filter-jwt-filter
