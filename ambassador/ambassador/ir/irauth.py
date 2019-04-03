@@ -27,11 +27,7 @@ class IRAuth (IRFilter):
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             cluster=None,
             timeout_ms=5000,
-<<<<<<< HEAD
             cluster_timeout_ms=3000,
-=======
-            cluster_timeout_s=3,
->>>>>>> ca9d0c21270af6b106913316afb2ae2497c6dce9
             path_prefix=None,
             api_version=None,
             allowed_headers=[],
@@ -148,11 +144,7 @@ class IRAuth (IRFilter):
             "cluster": self.cluster.name
         }
 
-<<<<<<< HEAD
         for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'cluster_timeout_ms' ]:
-=======
-        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'cluster_timeout_s' ]:
->>>>>>> ca9d0c21270af6b106913316afb2ae2497c6dce9
             if self.get(key, None):
                 config[key] = self[key]
 
