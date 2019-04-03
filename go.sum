@@ -52,6 +52,8 @@ github.com/datawire/kat-backend v1.1.0/go.mod h1:pQGCrjQX4mG8cBaDldM99UH4/N9qAHi
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.3.16 h1:H9bXuDlyBQs0UR9RjOlKMFUYHTnswS4yyegVKn3LxkA=
 github.com/datawire/teleproxy v0.3.16/go.mod h1:EbUA710RQ3uxRViAj9F6TC6O1wKhX4oLYamKifKbdzM=
+github.com/datawire/vegeta v12.2.2-0.20190403143047-99c4b3221721+incompatible h1:JDVArHAPxv9N5L697E6Vtnt4DHjsLxLL+8onf6wXK+Q=
+github.com/datawire/vegeta v12.2.2-0.20190403143047-99c4b3221721+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

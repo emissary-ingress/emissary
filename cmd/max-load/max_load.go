@@ -1,13 +1,12 @@
 package main
 
 import (
+	"os/exec"
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
@@ -16,7 +15,14 @@ import (
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
-var attacker = vegeta.NewAttacker(vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true})) // #nosec G402
+var MaxIdleConnections = 3200
+
+var attacker = vegeta.NewAttacker(
+	vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true}), // #nosec G402
+	vegeta.HTTP2(true),
+	vegeta.Connections(MaxIdleConnections),
+)
+
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
 
 func openFiles() int {
@@ -36,7 +42,8 @@ type TestResult struct {
 	Requests  uint64
 	Latency   time.Duration
 	Errors    map[string]uint64
-	Files     int
+	FilesBefore     int
+	FilesAfter     int
 }
 
 func RunTestRaw(tc TestCase) TestResult {
@@ -50,6 +57,7 @@ func RunTestRaw(tc TestCase) TestResult {
 	var metrics vegeta.Metrics
 	var successes uint64
 	errs := make(map[string]uint64)
+	filesBefore := openFiles()
 	for res := range attacker.Attack(targeter, vegetaRate, tc.Duration, name) {
 		// vegeta.Metrics doesn't consider HTTP 429 Too Many
 		// Requests to be a "success", but for testing the
@@ -70,26 +78,9 @@ func RunTestRaw(tc TestCase) TestResult {
 		metrics.Add(res)
 	}
 	metrics.Close()
+	filesAfter := openFiles()
 
-	return TestResult{tc.RPS, successes, metrics.Requests, metrics.Latencies.P95, errs, openFiles()}
-}
-
-func RunTestSandboxed(tc TestCase) TestResult {
-	bIn, _ := json.Marshal(tc)
-	bOut, _ := exec.Command(os.Args[0], fmt.Sprintf("--test=%s", bIn)).Output()
-	var ret TestResult
-	json.Unmarshal(bOut, &ret)
-	return ret
-}
-
-func init() {
-	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "--test=") {
-		var tc TestCase
-		json.Unmarshal([]byte(strings.TrimPrefix(os.Args[1], "--test=")), &tc)
-		b, _ := json.Marshal(RunTestRaw(tc))
-		os.Stdout.Write(b)
-		os.Exit(0)
-	}
+	return TestResult{tc.RPS, successes, metrics.Requests, metrics.Latencies.P95, errs, filesBefore, filesAfter}
 }
 
 func (r TestResult) SuccessRate() float64 {
@@ -107,8 +98,8 @@ func (r TestResult) String() string {
 	} else {
 		prefix = "✘ Failed"
 	}
-	mainline := fmt.Sprintf("%s at rate=%drps (latency %s) (success rate=%d/%d=%f) (open files: %d)",
-		prefix, r.Rate, r.Latency, r.Successes, r.Requests, r.SuccessRate(), r.Files)
+	mainline := fmt.Sprintf("%s at rate=%drps (latency %s) (success rate=%d/%d=%f) (open files: %d→%d)",
+		prefix, r.Rate, r.Latency, r.Successes, r.Requests, r.SuccessRate(), r.FilesBefore, r.FilesAfter)
 	errs := make([]string, 0, len(r.Errors))
 	for err, n := range r.Errors {
 		errs = append(errs, fmt.Sprintf("  error (%d): %s", n, err))
@@ -120,27 +111,32 @@ func (r TestResult) String() string {
 func RunTest(url string, rate int) bool {
 	runs := 0
 	for {
-		result := RunTestSandboxed(TestCase{URL: url, RPS: rate, Duration: 5*time.Second})
+		result := RunTestRaw(TestCase{URL: url, RPS: rate, Duration: 5*time.Second})
 		runs++
 		fmt.Println(result)
-		// Let it cool down; require 1000 successful requests in a row.  Because there will
-		// be a thundering herd of connections closing and opening, cool down even after
-		// successful tests.
+		// Let the client cool down; let any dangling but not keep-alive connections die.
+		cnt := openFiles()
+		for cnt > MaxIdleConnections+200 {
+			fmt.Printf("  cooldown: open files: %d\n", cnt)
+			time.Sleep(time.Second)
+			cnt = openFiles()
+		}
+		if result.Passed() {
+			return true
+		}
+		// Let Ambassador cool down; require 1000 successful requests in a row.
 		var passed uint64
 		for passed < 1000 {
 			// Use an RPS for which it is likely that `latency*rps < 1s`.  10ms latency
 			// seems reasonable under non-load, so 100rps, but give it a little more
 			// leeway at 75rps.
-			result = RunTestRaw(TestCase{URL: url, RPS: 75, Duration: time.Second})
-			if result.Passed() {
-				passed += result.Requests
+			cooldown := RunTestRaw(TestCase{URL: url, RPS: 75, Duration: time.Second})
+			if cooldown.Passed() {
+				passed += cooldown.Requests
 			} else {
 				passed = 0
 			}
-			fmt.Printf("  cooldown: %d (open files: %d)\n", passed, result.Files)
-		}
-		if result.Passed() {
-			return true
+			fmt.Printf("  cooldown: %d (open files: %d→%d)\n", passed, cooldown.FilesBefore, cooldown.FilesAfter)
 		}
 		// try it up to 3 times
 		if runs == 3 {
