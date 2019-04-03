@@ -421,6 +421,7 @@ class IR:
         cluster_routing_kube_count = 0          # clusters routing using kube
         cluster_routing_envoy_rr_count = 0      # clusters routing using envoy round robin
         cluster_routing_envoy_rh_count = 0      # clusters routing using envoy ring hash
+        cluster_routing_envoy_maglev_count = 0  # clusters routing using envoy maglev
 
         endpoint_grpc_count = 0     # endpoints using GRPC upstream
         endpoint_http_count = 0     # endpoints using HTTP/HTTPS upstream
@@ -429,6 +430,7 @@ class IR:
         endpoint_routing_kube_count = 0         # endpoints Kube is routing to
         endpoint_routing_envoy_rr_count = 0     # endpoints Envoy round robin is routing to
         endpoint_routing_envoy_rh_count = 0     # endpoints Envoy ring hash is routing to
+        endpoint_routing_envoy_maglev_count = 0  # endpoints Envoy maglev is routing to
 
         for cluster in self.clusters.values():
             cluster_count += 1
@@ -445,6 +447,8 @@ class IR:
                 cluster_routing_kube_count += 1
             elif lb_type == 'ring_hash':
                 cluster_routing_envoy_rh_count += 1
+            elif lb_type == 'maglev':
+                cluster_routing_envoy_maglev_count += 1
             else:
                 cluster_routing_envoy_rr_count += 1
 
@@ -475,6 +479,8 @@ class IR:
                 endpoint_routing_kube_count += num_endpoints
             elif lb_type == 'ring_hash':
                 endpoint_routing_envoy_rh_count += num_endpoints
+            elif lb_type == 'maglev':
+                endpoint_routing_envoy_maglev_count += num_endpoints
             else:
                 endpoint_routing_envoy_rr_count += num_endpoints
 
@@ -485,6 +491,7 @@ class IR:
         od['cluster_routing_kube_count'] = cluster_routing_kube_count
         od['cluster_routing_envoy_rr_count'] = cluster_routing_envoy_rr_count
         od['cluster_routing_envoy_rh_count'] = cluster_routing_envoy_rh_count
+        od['cluster_routing_envoy_maglev_count'] = cluster_routing_envoy_maglev_count
 
         od['endpoint_grpc_count'] = endpoint_grpc_count
         od['endpoint_http_count'] = endpoint_http_count
@@ -492,6 +499,7 @@ class IR:
         od['endpoint_routing_kube_count'] = endpoint_routing_kube_count
         od['endpoint_routing_envoy_rr_count'] = endpoint_routing_envoy_rr_count
         od['endpoint_routing_envoy_rh_count'] = endpoint_routing_envoy_rh_count
+        od['endpoint_routing_envoy_maglev_count'] = endpoint_routing_envoy_maglev_count
 
         extauth = False
         extauth_proto: Optional[str] = None
