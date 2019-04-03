@@ -1,14 +1,14 @@
 package main
 
 import (
-	"os/exec"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"runtime"
+	"os/exec"
 	"regexp"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -20,8 +20,8 @@ const (
 	// Require TuneCooldownRequests consecutive successful requests with per-TuneCooldownPeriod
 	// p95 latency < TuneCooldownMaxLatency in order to be considered "cooled down".
 
-	TuneCooldownMaxLatency = 10*time.Millisecond
-	TuneCooldownPeriod = 2*time.Second
+	TuneCooldownMaxLatency = 10 * time.Millisecond
+	TuneCooldownPeriod     = 2 * time.Second
 	// Use an RPS for which it is likely that `latency*rps < 1.0`.  10ms latency seems
 	// reasonable under non-load, so 1.0/10ms gives us 100rps.
 	TuneCooldownRPS = 100
@@ -45,19 +45,19 @@ func openFiles() int {
 }
 
 type TestCase struct {
-	URL string
-	RPS int
+	URL      string
+	RPS      int
 	Duration time.Duration
 }
 
 type TestResult struct {
-	Rate      int
-	Successes uint64
-	Requests  uint64
-	Latency   time.Duration
-	Errors    map[string]uint64
-	FilesBefore     int
-	FilesAfter     int
+	Rate        int
+	Successes   uint64
+	Requests    uint64
+	Latency     time.Duration
+	Errors      map[string]uint64
+	FilesBefore int
+	FilesAfter  int
 }
 
 func RunTestRaw(tc TestCase) TestResult {
@@ -124,7 +124,7 @@ func (r TestResult) String() string {
 func RunTest(url string, rate int) bool {
 	runs := 0
 	for {
-		result := RunTestRaw(TestCase{URL: url, RPS: rate, Duration: 5*time.Second})
+		result := RunTestRaw(TestCase{URL: url, RPS: rate, Duration: 5 * time.Second})
 		runs++
 		fmt.Println(result)
 		// Let it cool down.  This is both (1) to let Ambassador cool down (after a
@@ -190,7 +190,7 @@ func parseArgs(args []string) string {
 func main() {
 	argURL := parseArgs(os.Args[1:])
 	fmt.Println("url =", argURL)
-	
+
 	rate := 100
 	okRate := 1
 	var nokRate int
