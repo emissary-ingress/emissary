@@ -6,7 +6,7 @@ If you are already using Ambassador open source, upgrading to using Ambassador P
 
    Ambassador Pro relies on several Custom Resource Definition (CRDs) for configuration as well are requires a redis instance for rate limiting.
 
-   We have published these resources for download at https://www.getambassador.io/yaml/ambassador-pro/upgrade.yaml or you can easily install them using `kubectl`.
+   We have published these resources for download at https://www.getambassador.io/yaml/ambassador/pro/upgrade.yaml or you can easily install them using `kubectl`.
 
    ```
    kubectl apply -f https://www.getambassador.io/yaml/ambassador/pro/upgrade.yaml
