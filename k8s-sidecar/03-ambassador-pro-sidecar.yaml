@@ -233,6 +233,7 @@ metadata:
         server:
           enabled: True
           redirect_cleartext_from: 80
+          alpn_protocols: h2
 spec:
   type: NodePort # XXX: Kubernaut
   externalTrafficPolicy: Local
