@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
@@ -11,6 +12,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 
 	vegeta "github.com/tsenart/vegeta/lib"
@@ -32,9 +34,33 @@ const (
 	TuneCooldownRequests = 800
 )
 
+func maxFiles() int {
+	var rlimit syscall.Rlimit
+	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rlimit)
+	if err != nil {
+		panic(err)
+	}
+
+	ret := rlimit.Cur
+
+	err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &syscall.Rlimit{
+		Cur: rlimit.Max,
+		Max: rlimit.Max,
+	})
+	if err == nil {
+		ret = rlimit.Max
+	}
+
+	if ret > math.MaxInt32 {
+		ret = math.MaxInt32
+	}
+	return int(ret)
+}
+
 var attacker = vegeta.NewAttacker(
 	vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true}), // #nosec G402
 	vegeta.HTTP2(true),
+	vegeta.Connections(maxFiles()), // setting -1 or 0 for no-limit doesn't seemt to work?
 )
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
@@ -154,6 +180,7 @@ func RunTest(url string, rate int) bool {
 
 func usage() {
 	fmt.Printf("Usage: %s [namespace] request_path\n", os.Args[0])
+	fmt.Printf("   Or: %s url\n", os.Args[0])
 }
 
 func parseArgs(args []string) string {
@@ -164,6 +191,9 @@ func parseArgs(args []string) string {
 		usage()
 		os.Exit(2)
 	case 1:
+		if strings.HasPrefix(args[0], "http://") || strings.HasPrefix(args[0], "https://") {
+			return args[0]
+		}
 		argNamespace = "default"
 		argPath = args[0]
 	case 2:

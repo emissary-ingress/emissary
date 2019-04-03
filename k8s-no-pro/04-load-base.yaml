@@ -13,6 +13,7 @@ metadata:
       prefix: /load-testing/
       service: load-http-echo
 spec:
+  type: NodePort
   selector:
     app: load-http-echo
   ports:
