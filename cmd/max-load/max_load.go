@@ -2,24 +2,21 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
-	"os"
 
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
 var attacker = vegeta.NewAttacker(vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true})) // #nosec G402
-var nodeIP string
-var nodePort string
-var argNamespace = "default"
-var argPath = "/load-testing/"
-
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
 
 func openFiles() int {
@@ -27,18 +24,33 @@ func openFiles() int {
 	return len(fis)
 }
 
-func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Duration, errs map[string]uint64) {
+type TestCase struct {
+	URL string
+	RPS int
+	Duration time.Duration
+}
+
+type TestResult struct {
+	Rate      int
+	Successes uint64
+	Requests  uint64
+	Latency   time.Duration
+	Errors    map[string]uint64
+	Files     int
+}
+
+func RunTestRaw(tc TestCase) TestResult {
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{
 		Method: "GET",
-		URL:    "https://" + nodeIP + ":" + nodePort + argPath,
+		URL:    tc.URL,
 		Header: http.Header(map[string][]string{"Authorization": {"Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."}}),
 	})
-	vegetaRate := vegeta.Rate{Freq: rate, Per: time.Second}
-	name := "atk-" + string(rate)
+	vegetaRate := vegeta.Rate{Freq: tc.RPS, Per: time.Second}
+	name := "atk-" + string(tc.RPS)
 	var metrics vegeta.Metrics
 	var successes uint64
-	errs = make(map[string]uint64)
-	for res := range attacker.Attack(targeter, vegetaRate, dur, name) {
+	errs := make(map[string]uint64)
+	for res := range attacker.Attack(targeter, vegetaRate, tc.Duration, name) {
 		// vegeta.Metrics doesn't consider HTTP 429 Too Many
 		// Requests to be a "success", but for testing the
 		// rate limit service, we should.
@@ -59,36 +71,80 @@ func rawTestRate(rate int, dur time.Duration) (success float64, latency time.Dur
 	}
 	metrics.Close()
 
-	return float64(successes) / float64(metrics.Requests), metrics.Latencies.P95, errs
+	return TestResult{tc.RPS, successes, metrics.Requests, metrics.Latencies.P95, errs, openFiles()}
 }
 
-func testRate(rate int) bool {
-	retry := false
+func RunTestSandboxed(tc TestCase) TestResult {
+	bIn, _ := json.Marshal(tc)
+	bOut, _ := exec.Command(os.Args[0], fmt.Sprintf("--test=%s", bIn)).Output()
+	var ret TestResult
+	json.Unmarshal(bOut, &ret)
+	return ret
+}
+
+func init() {
+	if len(os.Args) == 2 && strings.HasPrefix(os.Args[1], "--test=") {
+		var tc TestCase
+		json.Unmarshal([]byte(strings.TrimPrefix(os.Args[1], "--test=")), &tc)
+		b, _ := json.Marshal(RunTestRaw(tc))
+		os.Stdout.Write(b)
+		os.Exit(0)
+	}
+}
+
+func (r TestResult) SuccessRate() float64 {
+	return float64(r.Successes) / float64(r.Requests)
+}
+
+func (r TestResult) Passed() bool {
+	return r.Successes == r.Requests
+}
+
+func (r TestResult) String() string {
+	var prefix string
+	if r.Passed() {
+		prefix = "✔ Success"
+	} else {
+		prefix = "✘ Failed"
+	}
+	mainline := fmt.Sprintf("%s at rate=%drps (latency %s) (success rate=%d/%d=%f) (open files: %d)",
+		prefix, r.Rate, r.Latency, r.Successes, r.Requests, r.SuccessRate(), r.Files)
+	errs := make([]string, 0, len(r.Errors))
+	for err, n := range r.Errors {
+		errs = append(errs, fmt.Sprintf("  error (%d): %s", n, err))
+	}
+	sort.Strings(errs)
+	return strings.Join(append([]string{mainline}, errs...), "\n")
+}
+
+func RunTest(url string, rate int) bool {
+	runs := 0
 	for {
-		success, latency, errs := rawTestRate(rate, 5*time.Second)
-		if success < 1 {
-			// let it cool down
-			passed := 0
-			for passed < 2 {
-				s, _, _ := rawTestRate(1, 2*time.Second)
-				if s < 1 {
-					passed = 0
-				} else {
-					passed++
-				}
+		result := RunTestSandboxed(TestCase{URL: url, RPS: rate, Duration: 5*time.Second})
+		runs++
+		fmt.Println(result)
+		// Let it cool down; require 1000 successful requests in a row.  Because there will
+		// be a thundering herd of connections closing and opening, cool down even after
+		// successful tests.
+		var passed uint64
+		for passed < 1000 {
+			// Use an RPS for which it is likely that `latency*rps < 1s`.  10ms latency
+			// seems reasonable under non-load, so 100rps, but give it a little more
+			// leeway at 75rps.
+			result = RunTestRaw(TestCase{URL: url, RPS: 75, Duration: time.Second})
+			if result.Passed() {
+				passed += result.Requests
+			} else {
+				passed = 0
 			}
-			if retry {
-				fmt.Printf("✘ Failed at %d req/sec (latency %s) (success rate: %f) (open files: %d)\n", rate, latency, success, openFiles())
-				for err, n := range errs {
-					fmt.Printf("  error (%d): %s\n", n, err)
-				}
-				return false
-			}
-			fmt.Printf("Failed at %d RPS. Will retry\n", rate)
-			retry = true
-		} else {
-			fmt.Printf("✔ Success at %d req/sec (latency %s) (success rate: %f) (open files: %d)\n", rate, latency, success, openFiles())
+			fmt.Printf("  cooldown: %d (open files: %d)\n", passed, result.Files)
+		}
+		if result.Passed() {
 			return true
+		}
+		// try it up to 3 times
+		if runs == 3 {
+			return false
 		}
 	}
 }
@@ -97,37 +153,48 @@ func usage() {
 	fmt.Printf("Usage: %s [namespace] request_path\n", os.Args[0])
 }
 
-func main() {
-	switch len(os.Args) {
-	case 1:
+func parseArgs(args []string) string {
+	var argNamespace string
+	var argPath string
+	switch len(args) {
+	case 0:
 		usage()
 		os.Exit(2)
-	case 2:
+	case 1:
 		argNamespace = "default"
-		argPath = os.Args[1]
-	case 3:
-		argNamespace = os.Args[1]
-		argPath = os.Args[2]
+		argPath = args[0]
+	case 2:
+		argNamespace = args[0]
+		argPath = args[1]
 	default:
 		usage()
 		os.Exit(2)
 	}
+
+	var nodeIP string
 	bs, _ := exec.Command("kubectl", "config", "view", "--output=go-template", "--template={{range .clusters}}{{.cluster.server}}{{end}}").Output()
 	for _, line := range strings.Split(string(bs), "\n") {
 		parts := strings.Split(strings.TrimPrefix(line, "https://"), ":")
 		nodeIP = parts[0]
 	}
-	bs, _ = exec.Command("kubectl", "--namespace="+argNamespace, "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"https\"}}{{.nodePort}}{{end}}{{end}}").Output()
-	nodePort = strings.TrimSpace(string(bs))
-	fmt.Printf("ambassador = %s:%s\n", nodeIP, nodePort)
 
+	bs, _ = exec.Command("kubectl", "--namespace="+argNamespace, "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"https\"}}{{.nodePort}}{{end}}{{end}}").Output()
+	nodePort := strings.TrimSpace(string(bs))
+
+	return "https://" + nodeIP + ":" + nodePort + argPath
+}
+
+func main() {
+	argURL := parseArgs(os.Args[1:])
+	fmt.Println("url =", argURL)
+	
 	rate := 100
 	okRate := 1
 	var nokRate int
 
 	// first, find the point at which the system breaks
 	for {
-		if testRate(rate) {
+		if RunTest(argURL, rate) {
 			okRate = rate
 			rate *= 2
 		} else {
@@ -139,7 +206,7 @@ func main() {
 	// next, do a binary search between okRate and nokRate
 	for (nokRate - okRate) > 1 {
 		rate = (nokRate + okRate) / 2
-		if testRate(rate) {
+		if RunTest(argURL, rate) {
 			okRate = rate
 		} else {
 			nokRate = rate
