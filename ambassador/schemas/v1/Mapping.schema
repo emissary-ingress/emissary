@@ -67,7 +67,11 @@
         "precedence": { "type": "integer" },
         "rewrite": { "type": "string" },
         "shadow": { "type": "boolean" },
+<<<<<<< HEAD
         "cluster_timeout_ms": { "type": "integer" },
+=======
+        "cluster_timeout_s": { "type": "integer" },
+>>>>>>> ca9d0c21270af6b106913316afb2ae2497c6dce9
         "timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
