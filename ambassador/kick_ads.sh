@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ ! -z "$DIAGD_ONLY" ]; then
+    echo "Not starting, since in diagd-only mode."
+    exit 0
+fi
+
 # Is there an Envoy running?
 AMBEX_PID="$1"
 
