@@ -80,11 +80,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include rewrite.
         "service": True,
         "shadow": True,
-<<<<<<< HEAD
         "cluster_timeout_ms": True,
-=======
-        "cluster_timeout_s": True,
->>>>>>> ca9d0c21270af6b106913316afb2ae2497c6dce9
         "timeout_ms": True,
         "tls": True,
         "use_websocket": True,
