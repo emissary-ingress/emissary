@@ -180,7 +180,6 @@ if [ -z "${DIAGD_ONLY}" ]; then
     ambex "${ENVOY_DIR}" &
     AMBEX_PID="$!"
     pids="${pids:+${pids} }${AMBEX_PID}:ambex"
-    DIAGD_EXTRA="--kick \"sh /ambassador/kick_ads.sh $AMBEX_PID\""
 else
     DIAGD_EXTRA="--no-checks --no-envoy"
 fi
@@ -190,7 +189,7 @@ fi
 echo "AMBASSADOR: starting diagd"
 
 diagd "${SNAPSHOT_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_CONFIGDIR \
-       --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" $DIAGD_EXTRA &
+      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" $DIAGD_EXTRA &
 pids="${pids:+${pids} }$!:diagd"
 
 # Wait for diagd to start

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ -z "$DIAGD_ONLY" ]; then
+    exit 0
+fi
+
 # Is there an Envoy running?
 AMBEX_PID="$1"
 
