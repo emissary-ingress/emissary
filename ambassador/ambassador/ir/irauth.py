@@ -123,11 +123,7 @@ class IRAuth (IRFilter):
         self["api_version"] = module.get("apiVersion", None)
         self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
-<<<<<<< HEAD
         self["cluster_timeout_ms"] = module.get("cluster_timeout_ms", 3000)
-=======
-        self["cluster_timeout_s"] = module.get("cluster_timeout_s", 3)
->>>>>>> ca9d0c21270af6b106913316afb2ae2497c6dce9
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
