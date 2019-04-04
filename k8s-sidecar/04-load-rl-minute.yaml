@@ -7,17 +7,17 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  http_echo_mapping
+      kind: Mapping
+      name: load_testing_rl_minute
       prefix: /load-testing/rl-minute/
       service: load-http-echo
       labels:
         ambassador:
-          - request_label_group:
+          - string_request_label:
             - minute
 spec:
   domain: ambassador
   limits:
    - pattern: [{generic_key: minute}]
-     rate: 60000
+     rate: 3000
      unit: minute

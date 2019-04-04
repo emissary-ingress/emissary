@@ -79,6 +79,7 @@ type TestCase struct {
 type TestResult struct {
 	Rate        int
 	Successes   uint64
+	Limited     uint64
 	Requests    uint64
 	Latency     time.Duration
 	Errors      map[string]uint64
@@ -96,6 +97,7 @@ func RunTestRaw(tc TestCase) TestResult {
 	name := "atk-" + string(tc.RPS)
 	var metrics vegeta.Metrics
 	var successes uint64
+	var limited uint64
 	errs := make(map[string]uint64)
 	filesBefore := openFiles()
 	for res := range attacker.Attack(targeter, vegetaRate, tc.Duration, name) {
@@ -106,6 +108,7 @@ func RunTestRaw(tc TestCase) TestResult {
 			successes++
 		case http.StatusTooManyRequests:
 			successes++
+			limited++
 			res.Error = ""
 		default:
 		}
@@ -119,7 +122,7 @@ func RunTestRaw(tc TestCase) TestResult {
 	metrics.Close()
 	filesAfter := openFiles()
 
-	return TestResult{tc.RPS, successes, metrics.Requests, metrics.Latencies.P95, errs, filesBefore, filesAfter}
+	return TestResult{tc.RPS, successes, limited, metrics.Requests, metrics.Latencies.P95, errs, filesBefore, filesAfter}
 }
 
 func (r TestResult) SuccessRate() float64 {
@@ -137,8 +140,8 @@ func (r TestResult) String() string {
 	} else {
 		prefix = "✘ Failed"
 	}
-	mainline := fmt.Sprintf("%s at rate=%drps (latency %s) (success rate=%d/%d=%f) (open files: %d→%d)",
-		prefix, r.Rate, r.Latency, r.Successes, r.Requests, r.SuccessRate(), r.FilesBefore, r.FilesAfter)
+	mainline := fmt.Sprintf("%s at rate=%drps (latency %s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
+		prefix, r.Rate, r.Latency, r.Successes, r.Requests, r.SuccessRate(), r.Limited, r.FilesBefore, r.FilesAfter)
 	errs := make([]string, 0, len(r.Errors))
 	for err, n := range r.Errors {
 		errs = append(errs, fmt.Sprintf("  error (%d): %s", n, err))

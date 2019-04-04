@@ -8,16 +8,16 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: http_testing_rl_second
+      name: load_testing_rl_second
       prefix: /load-testing/rl-second/
       service: load-http-echo
       labels:
         ambassador:
-          - request_label_group:
+          - string_request_label:
             - second
 spec:
   domain: ambassador
   limits:
    - pattern: [{generic_key: second}]
-     rate: 10000
+     rate: 500
      unit: second
