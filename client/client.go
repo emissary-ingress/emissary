@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"flag"
@@ -285,10 +286,10 @@ func ExecuteWebsocketQuery(query Query) {
 	}
 }
 
-// GetGRPCBridgeReqBody returns the body of the HTTP request using the
+// GetGRPCReqBody returns the body of the HTTP request using the
 // HTTP/1.1-gRPC bridge format as described in the Envoy docs
 // https://www.envoyproxy.io/docs/envoy/v1.9.0/configuration/http_filters/grpc_http1_bridge_filter
-func GetGRPCBridgeReqBody() (*bytes.Buffer, error) {
+func GetGRPCReqBody() (*bytes.Buffer, error) {
 	// Protocol:
 	// 	. 1 byte of zero (not compressed).
 	// 	. network order (big-endian) of proto message length.
@@ -476,12 +477,17 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	// Prepare the HTTP request
 	var body io.Reader
 	method := query.Method()
-	if query.GrpcType() == "bridge" {
-		// Perform special handling for gRPC-bridge
-		buf, err := GetGRPCBridgeReqBody()
+	if query.GrpcType() != "" {
+		// Perform special handling for gRPC-bridge and gRPC-web
+		buf, err := GetGRPCReqBody()
 		if query.CheckErr(err) {
-			log.Printf("gRPC-bridge buffer error: %v", err)
+			log.Printf("gRPC buffer error: %v", err)
 			return
+		}
+		if query.GrpcType() == "web" {
+			result := make([]byte, base64.StdEncoding.EncodedLen(buf.Len()))
+			base64.StdEncoding.Encode(result, buf.Bytes())
+			buf = bytes.NewBuffer(result)
 		}
 		body = buf
 		method = "POST"
