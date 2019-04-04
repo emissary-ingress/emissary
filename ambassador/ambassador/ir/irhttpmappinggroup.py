@@ -326,16 +326,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
 
-            # There are still some things we want to flatten though, particularly the `case_sensitive` field
-            for k, v in self.host_redirect.items():
-                if k.startswith('_') or (k in ['apiVersion', 'host_redirect', 'path_redirect', 'ir', 'logger']) or (k in IRHTTPMappingGroup.DoNotFlattenKeys):
-                    # if verbose:
-                    #     self.ir.logger.debug("%s: don't flatten %s" % (self, k))
-                    continue
-
-                # if verbose:
-                #     self.ir.logger.debug("%s: flatten %s" % (self, k))
-
-                self[k] = v
+            # Flatten the case_sensitive field for host_redirect if it exists
+            if 'case_sensitive' in self.host_redirect:
+                self['case_sensitive'] = self.host_redirect['case_sensitive']
 
             return []
