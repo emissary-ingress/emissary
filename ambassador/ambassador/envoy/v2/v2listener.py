@@ -99,9 +99,8 @@ def v2filter_buffer(buffer: IRBuffer):
     return {
         'name': 'envoy.buffer',
         'config': {
-            "max_request_time": "%0.3fs" % (float(buffer.max_request_time) / 1000.0),
             "max_request_bytes": buffer.max_request_bytes
-        }        
+        }  
     }
 
 @v2filter.when("ir.grpc_http1_bridge")
@@ -152,9 +151,14 @@ def v2filter_authv0(auth: IRAuth):
     hdrs = set(auth.allowed_headers or [])      # turn list into a set
     hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
 
-    allowed_authorization_headers = sorted(hdrs)    # sorted() turns the set back into a list
-
-    allowed_request_headers = sorted(request_headers.keys())
+    allowed_authorization_headers = []
+    for key in sorted(hdrs):
+        
+        allowed_authorization_headers.append({"exact": key})
+    
+    allowed_request_headers = []  
+    for keys in sorted(request_headers.keys()):
+        allowed_request_headers.append({"exact": key})
 
     return {
         'name': 'envoy.ext_authz',
@@ -166,10 +170,23 @@ def v2filter_authv0(auth: IRAuth):
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': allowed_authorization_headers,
-                'allowed_request_headers': allowed_request_headers,
+                'authorization_request': {
+                    'allowed_headers': {
+                        'patterns': allowed_request_headers
+                    }
+                },
+                'authorization_response' : {
+                    'allowed_upstream_headers': {
+                        'patterns': allowed_authorization_headers
+                    },
+                    'allowed_client_headers': {
+                        'patterns': allowed_authorization_headers
+                    }
+                }
             },
-            'send_request_data': auth.allow_request_body
+            'with_request_body': {
+                'max_request_bytes': 10000
+            }
         }
     }
 
@@ -185,8 +202,16 @@ def v2filter_authv1(auth: IRAuth):
     assert auth.proto
 
     if auth.proto == "http":
-        allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
-        allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
+        # allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
+        # allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
+
+        allowed_authorization_headers = []
+        for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
+            allowed_authorization_headers.append({"exact": key})
+    
+        allowed_request_headers = []
+        for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
+            allowed_request_headers.append({"exact": key})
 
         return {
             'name': 'envoy.ext_authz',
@@ -198,10 +223,23 @@ def v2filter_authv1(auth: IRAuth):
                         'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                     },
                     'path_prefix': auth.path_prefix,
-                    'allowed_authorization_headers': allowed_authorization_headers,
-                    'allowed_request_headers': allowed_request_headers,
+                    'authorization_request': {
+                    'allowed_headers': {
+                            'patterns': allowed_request_headers
+                        }
+                    },
+                    'authorization_response' : {
+                        'allowed_upstream_headers': {
+                            'patterns': allowed_authorization_headers
+                        },
+                        'allowed_client_headers': {
+                            'patterns': allowed_authorization_headers
+                        }
+                    }
                 },
-                'send_request_data': auth.allow_request_body
+                'with_request_body': {
+                    'max_request_bytes': 10000
+                }
             }
         }
 
@@ -215,7 +253,10 @@ def v2filter_authv1(auth: IRAuth):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'send_request_data': auth.allow_request_body
+                'with_request_body': {
+                    'max_request_bytes': 10000,
+                    'allow_partial_message': True
+                }
             }
         }
 

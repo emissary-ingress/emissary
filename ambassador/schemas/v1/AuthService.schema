@@ -12,11 +12,9 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-
         "auth_service": { "type": "string" },
         "path_prefix": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
-
         "proto": {
             "oneOf" : [
                 { "enum": [ "http" ] },

@@ -107,7 +107,6 @@ name:  ambassador
 config:
   buffer:
     max_request_bytes: 16384
-    max_request_time: 5000
 
 ---
 apiVersion: ambassador/v1
@@ -606,14 +605,12 @@ name:  ambassador
 config:
   buffer:
     max_request_bytes: 16384
-    max_request_time: 5000
 ---
 apiVersion: ambassador/v1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
-timeout_ms: 10000
 allowed_request_headers:
 - Requested-Status
 allow_request_body: true

@@ -14,11 +14,11 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node
 from t_grpc import AcceptanceGrpcTest
 from t_grpc_bridge import AcceptanceGrpcBridgeTest
 from t_grpc_web import AcceptanceGrpcWebTest
-from t_tcpmapping import TCPMappingTest
-from t_headerrouting import HeaderRoutingTest
-from t_ratelimit import RateLimitTest
-from t_tracing import TracingTest
-from t_shadow import ShadowTest
+# from t_tcpmapping import TCPMappingTest
+# from t_headerrouting import HeaderRoutingTest
+# from t_ratelimit import RateLimitTest
+# from t_tracing import TracingTest
+# from t_shadow import ShadowTest
 from t_extauth import (
     AuthenticationTest,	
     AuthenticationTestV1,	
