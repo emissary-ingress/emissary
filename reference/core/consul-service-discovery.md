@@ -6,23 +6,11 @@ Ambassador supports using [Consul](https://consul.io) for service discovery. In 
 
 **Note:** This integration is available starting with Ambassador `0.53.0`. For now, the development image of this integration is here: `quay.io/datawire/ambassador:flynn-dev-watt-f16a585`.
 
-In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we will do this with a Kubernetes Service.
+In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we have created a QoTM API that automatically registers itself as service with Consul.
 
-1. Create the QoTM API and service:
+1. Create the QoTM API:
 
     ```yaml
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: qotm
-    spec:
-      selector:
-        app: qotm
-      ports:
-      - port: 80
-        name: http-qotm
-        targetPort: http-api
     ---
     apiVersion: extensions/v1beta1
     kind: Deployment
@@ -41,13 +29,19 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:1.4
+            image: datawire/qotm:%qotmVersion%
             ports:
             - name: http-api
               containerPort: 5000
             env:
-            - name: REQUEST_LIMIT
-              value: "5"
+            - name: CONSUL_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             readinessProbe:
               httpGet:
                 path: /health
@@ -64,30 +58,20 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
     kubectl apply -f qotm.yaml
     ```
 
-2. Get the IP address of the QOTM service:
+    This will register the qotm pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the qotm pod. 
+
+2. Verify the qotm pod has been registered with Consul
+
+   You can verify the qotm pod is registered correctly by accessing the Consul UI.
 
    ```shell
-   kubectl get svc qotm
-
-   NAME   TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-   qotm   ClusterIP   10.27.251.205   <none>        80/TCP    5h
+   kubectl port-forward service/consu-ui 8500:80
    ```
 
-3. Register the `qotm-service` endpoint with Consul
+   Go to http://localhost:8500 from a web browser and you should see a service named `qotm-XXXXXXXXXX-XXXXX-consul`. 
 
-   - Use `kubectl exec` to start a shell in the Consul server pod running in your cluster
 
-      ```
-      kubectl exec -it consul-server-0 -- sh
-      ```
-
-   - Register a service with Consul using the Consul CLI
-
-     ```
-     consul services register -name=qotm-consul -address=10.27.251.205 -port=80
-     ```
-
-4. Create the `ConfigMap` to expose `qotm-consul` to Ambassador
+3. Create the `ConfigMap` to expose `qotm-consul` to Ambassador
 
     ```yaml
     kind: ConfigMap
@@ -99,7 +83,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
     data:
       consulAddress: "consul-server:8500"
       datacenter: "dc1"
-      service: "qotm-consul"
+      service: "qotm-XXXXXXXXXX-XXXXX-consul"
     ```
 
     ```
@@ -108,9 +92,9 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
 
     Note that the `ConfigMap` will be replaced with a CRD for GA.
 
-5. Set `AMBASSADOR_ENABLE_ENDPOINTS` to `true` in the Ambassador deployment and deploy Ambassador.
+4. Set `AMBASSADOR_ENABLE_ENDPOINTS` to `true` in the Ambassador deployment and deploy Ambassador.
 
-6. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
+5. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
 
    ```yaml
    ---
@@ -125,7 +109,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
-         service: qotm-consul
+         service: qotm-XXXXXXXXXX-XXXXX-consul
          load_balancer: 
            policy: round_robin
    spec:
@@ -138,7 +122,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
    kubectl apply -f consul-sd.yaml
    ```
 
-7. Send a request to the `qotm-consul` API.
+6. Send a request to the `qotm-consul` API.
 
    ```shell
    curl http://$AMBASSADORURL/qotm-consul/
