@@ -254,6 +254,7 @@ def v2filter_authv1(auth: IRAuth):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
+                'use_alpha': True
             }
         }
 
