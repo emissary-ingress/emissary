@@ -221,6 +221,16 @@ func (q Query) AddResponse(resp *http.Response) {
 	if !q.CheckErr(err) {
 		log.Printf("%v: %v", q.URL(), resp.Status)
 		result["body"] = body
+		if q.GrpcType() == "bridge" && len(body) > 5 {
+			response := &grpc_echo_pb.EchoResponse{}
+			err := proto.Unmarshal(body[5:], response)
+			if q.CheckErr(err) {
+				log.Printf("Failed to unmarshal chunk: %v", err)
+				return
+			}
+			result["json"] = response
+			return
+		}
 		var jsonBody interface{}
 		err = json.Unmarshal(body, &jsonBody)
 		if err == nil {
