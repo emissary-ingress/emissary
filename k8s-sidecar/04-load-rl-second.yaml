@@ -1,7 +1,8 @@
-apiVersion: getambassador.io/v1beta2
-kind: RateLimit
+---
+apiVersion: v1
+kind: Service
 metadata:
-  name: second-rate-limit
+  name: load-second
   namespace: default
   annotations:
     getambassador.io/config: |
@@ -13,8 +14,21 @@ metadata:
       service: load-http-echo
       labels:
         ambassador:
-          - string_request_label:
+          - request_label_group:
             - second
+spec:
+  selector:
+    app: load-http-echo
+  ports:
+  - port: 80
+    name: http
+    targetPort: http-api
+---
+apiVersion: getambassador.io/v1beta2
+kind: RateLimit
+metadata:
+  name: second-rate-limit
+  namespace: default
 spec:
   domain: ambassador
   limits:
