@@ -183,9 +183,6 @@ def v2filter_authv0(auth: IRAuth):
                         'patterns': allowed_authorization_headers
                     }
                 }
-            },
-            'with_request_body': {
-                'max_request_bytes': 10000
             }
         }
     }
