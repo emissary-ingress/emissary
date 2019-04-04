@@ -391,36 +391,29 @@ func CallRealGRPC(query Query) {
 		return
 	}
 
-	// Now process the response and err objects. Save the request headers, as
-	// echoed and modified by the service, as if they were the HTTP response
-	// headers. This is bogus, but I'm not sure what else to put here. Then
-	// add/modify header values based on what occurred so that the tests can
-	// assert on that information. Also set other result fields by synthesizing
-	// what the HTTP response values might have been.
+	// Now process the response and synthesize the requisite result values.
 	// Note: Don't set result.body to anything that cannot be decoded as base64,
 	// or the kat harness will fail.
-	resHeaderMap := response.GetResponse().GetHeaders()
 	resHeader := make(http.Header)
-	for key, val := range resHeaderMap {
-		resHeader.Add(key, val)
-	}
 	resHeader.Add("Grpc-Status", fmt.Sprint(grpcCode))
 	resHeader.Add("Grpc-Message", stat.Message())
 
 	result := query.Result()
 	result["headers"] = resHeader
 	result["body"] = ""
-	result["text"] = "body/text not supported with grpc"
 	result["status"] = 200
+	if err == nil {
+		result["json"] = response
+	}
 
 	// Stuff that's not available:
 	// - query.result.status (the HTTP status -- synthesized as 200)
-	// - query.result.headers (the HTTP response headers -- we're faking this
-	//   field by including the response object's headers, which are the same as
-	//   the request headers modulo modification via "requested-headers"
-	//   handling by the echo service)
+	// - query.result.headers (the HTTP response headers -- we're just putting
+	//   in grpc-status and grpc-message as the former is required by the
+	//   tests and the latter can be handy)
 	// - query.result.body (the raw HTTP body)
-	// - query.result.json or query.result.text (the parsed HTTP body)
+	// - query.result.json or query.result.text (the parsed HTTP body -- we're
+	//   emitting the full EchoResponse object in the json field)
 }
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
