@@ -115,6 +115,7 @@ class IRAuth (IRFilter):
             self.referenced_by(module)
 
         self["allow_request_body"] = module.get("allow_request_body", False)
+        self["include_body"] = module.get("include_body", None)
         self["api_version"] = module.get("apiVersion", None)
         self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
@@ -129,6 +130,10 @@ class IRAuth (IRFilter):
 
         if self["api_version"] == "ambassador/v1" and self["proto"] == None:
             self.post_error(RichStatus.fromError("AuthService v1 config requires proto field."))
+
+        if self.get("include_body") and self.get("allow_request_body"):
+            self.post_error('AuthService ignoring allow_request_body since include_body is present')
+            del(self['allow_request_body'])
 
         auth_service = module.get("auth_service", None)
         weight = 100    # Can't support arbitrary weights right now.

@@ -198,10 +198,17 @@ def v2filter_authv1(auth: IRAuth):
 
     assert auth.proto
 
-    if auth.proto == "http":
-        # allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
-        # allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
+    body_info = auth.get('include_body')
 
+    if not body_info and auth.get('allow_request_body', False):
+        body_info = {
+            'max_request_bytes': 4096,
+            'allow_partial_message': True
+        }
+
+    auth_info: Dict[str, Any] = {}
+
+    if auth.proto == "http":
         allowed_authorization_headers = []
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key})
@@ -210,7 +217,7 @@ def v2filter_authv1(auth: IRAuth):
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
             allowed_request_headers.append({"exact": key})
 
-        return {
+        auth_info = {
             'name': 'envoy.ext_authz',
             'config': {
                 'http_service': {
@@ -234,14 +241,11 @@ def v2filter_authv1(auth: IRAuth):
                         }
                     }
                 },
-                'with_request_body': {
-                    'max_request_bytes': 10000
-                }
             }
         }
 
     if auth.proto == "grpc":
-        return {
+        auth_info = {
             'name': 'envoy.ext_authz',
             'config': {
                 'grpc_service': {
@@ -250,13 +254,15 @@ def v2filter_authv1(auth: IRAuth):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'with_request_body': {
-                    'max_request_bytes': 10000,
-                    'allow_partial_message': True
-                },
-                "use_alpha" : True
+                'use_alpha': True
             }
         }
+
+    if auth_info:
+        if body_info:
+            auth_info['config']['with_request_body'] = body_info
+
+        return auth_info
 
     # If here, something's gone horribly wrong.
     auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
