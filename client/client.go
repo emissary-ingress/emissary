@@ -209,6 +209,58 @@ func (q Query) CheckErr(err error) bool {
 	return false
 }
 
+// DecodeGrpcWebTextBody treats the body as a series of base64-encode chunks. It
+// returns the decoded proto and trailers.
+func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
+	// Process base64 blob into gRPC chunks
+	var chunks [][]byte
+	for {
+		if len(body) <= 0 {
+			break
+		}
+		buf := make([]byte, base64.StdEncoding.DecodedLen(len(body)))
+		n, err := base64.StdEncoding.Decode(buf, body)
+		if err != nil && n <= 0 {
+			log.Printf("Failed to process body: %v\n", err)
+			return nil, nil, err
+		}
+		chunk := buf[:n]
+		chunks = append(chunks, chunk)
+		consumed := base64.StdEncoding.EncodedLen(n)
+		body = body[consumed:]
+	}
+
+	trailers := make(http.Header)
+	var proto []byte
+
+	// Segregate chunks into protos and trailer. Either the body is empty or
+	// there should be exactly one of each. We assume that but do not verify it.
+	for _, chunk := range chunks {
+		if len(chunk) == 0 {
+			// Not sure why this would happen...
+			continue
+		}
+		if (chunk[0] & 128) > 0 {
+			// Trailers chunk
+			data := string(chunk[5:])
+			lines := strings.Split(data, "\n")
+			for _, line := range lines {
+				split := strings.SplitN(strings.TrimSpace(line), ":", 2)
+				if len(split) == 2 {
+					key := strings.TrimSpace(split[0])
+					value := strings.TrimSpace(split[1])
+					trailers.Add(key, value)
+				}
+			}
+		} else {
+			// Message chunk
+			proto = chunk
+		}
+	}
+
+	return proto, trailers, nil
+}
+
 // AddResponse populates a query's result with data from the query's HTTP
 // response object.
 func (q Query) AddResponse(resp *http.Response) {
@@ -222,11 +274,26 @@ func (q Query) AddResponse(resp *http.Response) {
 	if !q.CheckErr(err) {
 		log.Printf("%v: %v", q.URL(), resp.Status)
 		result["body"] = body
-		if q.GrpcType() == "bridge" && len(body) > 5 {
+		if q.GrpcType() != "" && len(body) > 5 {
+			if q.GrpcType() == "web" {
+				decodedBody, trailers, err := DecodeGrpcWebTextBody(body)
+				if q.CheckErr(err) {
+					log.Printf("Failed to decode grpc-web-text body: %v", err)
+					return
+				}
+				body = decodedBody
+				headers := result["headers"].(http.Header)
+				for key, values := range trailers {
+					for _, value := range values {
+						headers.Add(key, value)
+					}
+				}
+
+			}
 			response := &grpc_echo_pb.EchoResponse{}
 			err := proto.Unmarshal(body[5:], response)
 			if q.CheckErr(err) {
-				log.Printf("Failed to unmarshal chunk: %v", err)
+				log.Printf("Failed to unmarshal proto: %v", err)
 				return
 			}
 			result["json"] = response
