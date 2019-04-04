@@ -1,6 +1,8 @@
 package server
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Jeffail/gabs"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"io/ioutil"
@@ -108,6 +110,10 @@ func httpGet(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if response.StatusCode != 200 {
+		return nil, errors.New(
+			fmt.Sprintf("HTTP error %d from %s", response.StatusCode, url))
+	}
 	buf, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
@@ -135,7 +141,12 @@ func (f *fetcher) retrieve() {
 		return
 	}
 	for _, child := range children {
+		// We don't consider inactive services:
 		if !child.S("_active").Data().(bool) {
+			continue
+		}
+		// We don't consider non-HTTP services:
+		if getString(child, "kind") != "IRHTTPMappingGroup" {
 			continue
 		}
 		mappings, err := child.S("mappings").Children()
@@ -149,6 +160,8 @@ func (f *fetcher) retrieve() {
 			prefix = strings.TrimRight(prefix, "/")
 			name := location_parts[0]
 			namespace := location_parts[1]
+
+			// Get the OpenAPI documentation:
 			var doc []byte
 			docBuf, err := httpGet(f.ambassadorURL + prefix + "/.well-known/opendocs-api")
 			if err == nil {
