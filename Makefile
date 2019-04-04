@@ -390,32 +390,34 @@ ifeq ($(USE_KUBERNAUT), true)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 endif
 
-cluster-and-teleproxy: cluster.yaml
+cluster-and-teleproxy: cluster.yaml teleproxy-restart
 	rm -rf /tmp/k8s-*.yaml
-	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
-	@echo "Sleeping for Teleproxy cluster"
-	sleep 10
 
 setup-test: cluster-and-teleproxy
 
-teleproxy-restart:
-	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
-	sleep 0.25 # wait for exit...
+teleproxy-start:
+	@echo "Starting teleproxy"
 	@$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
-	@echo "Done"
+	@echo "Waiting for teleproxy to start..."
+	@sleep 5
+	@if ! pgrep -x "teleproxy" > /dev/null; then \
+		echo "Teleproxy crashed, exiting..."; \
+		exit 1; \
+	fi
+	@echo "Started teleproxy"
+
+teleproxy-restart: teleproxy-stop teleproxy-start
 
 teleproxy-stop:
+	@echo "Killing teleproxy"
 	$(call kill_teleproxy)
-	sleep 0.25 # wait for exit...
+	@sleep 0.25 # wait for exit...
 	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
 		echo "teleproxy still running" >&2; \
 		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
 		false; \
 	else \
-		echo "teleproxy stopped" >&2; \
+		echo "Killed teleproxy" >&2; \
 	fi
 
 shell: setup-develop cluster-and-teleproxy
