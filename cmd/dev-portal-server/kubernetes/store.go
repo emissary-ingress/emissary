@@ -33,6 +33,8 @@ type ServiceStore interface {
 	Get(ks Service, with_doc bool) *ServiceMetadata
 	// Get all services' metadata. OpenAPI docs are not loaded.
 	List() MetadataMap
+	// Delete a service
+	Delete(ks Service)
 }
 
 // In-memory implementation of ServiceStore.
@@ -50,6 +52,12 @@ func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.metadata[ks] = &m
+}
+
+func (s *inMemoryStore) Delete(ks Service) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	delete(s.metadata, ks)
 }
 
 func (s *inMemoryStore) Get(ks Service, with_doc bool) *ServiceMetadata {

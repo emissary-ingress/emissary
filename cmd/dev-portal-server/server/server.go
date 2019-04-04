@@ -16,6 +16,28 @@ type server struct {
 	K8sStore kubernetes.ServiceStore
 }
 
+func (s *server) getServiceAdd() AddServiceFunc {
+	return func(
+		service kubernetes.Service, prefix string, baseURL string,
+		openAPIDoc []byte) {
+		hasDoc := (openAPIDoc != nil)
+		var doc *openapi.OpenAPIDoc = nil
+		if hasDoc {
+			doc = openapi.NewOpenAPI(openAPIDoc, prefix, baseURL)
+		}
+		s.K8sStore.Set(
+			service, kubernetes.ServiceMetadata{
+				Prefix: prefix, BaseURL: baseURL,
+				HasDoc: hasDoc, Doc: doc})
+	}
+}
+
+func (s *server) getServiceDelete() DeleteServiceFunc {
+	return func(service kubernetes.Service) {
+		s.K8sStore.Delete(service)
+	}
+}
+
 func (s *server) ServeHTTP() {
 	log.Fatal(http.ListenAndServe(":8080", s.router))
 }
@@ -72,6 +94,8 @@ type openAPIUpdate struct {
 }
 
 func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
+	addService := s.getServiceAdd()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		b, err := ioutil.ReadAll(r.Body)
 		defer r.Body.Close()
@@ -86,19 +110,16 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 			return
 		}
 		hasdoc := (msg.Doc != nil)
-		var doc *openapi.OpenAPIDoc
+		var buf []byte
 		if hasdoc {
-			buf, _ := json.Marshal(msg.Doc)
-			doc = openapi.NewOpenAPI(buf, msg.BaseURL, msg.Prefix)
+			buf, _ = json.Marshal(msg.Doc)
 		} else {
-			doc = nil
+			buf = nil
 		}
-		s.K8sStore.Set(
+		addService(
 			kubernetes.Service{
 				Name: msg.ServiceName, Namespace: msg.ServiceNamespace},
-			kubernetes.ServiceMetadata{
-				Prefix: msg.Prefix, BaseURL: msg.BaseURL,
-				HasDoc: hasdoc, Doc: doc})
+			msg.Prefix, msg.BaseURL, buf)
 	}
 }
 

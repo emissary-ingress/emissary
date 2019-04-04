@@ -14,7 +14,7 @@ import (
 
 // Add a new/updated service.
 type AddServiceFunc func(
-	service kubernetes.Service, prefix string,
+	service kubernetes.Service, prefix string, baseURL string,
 	openAPIDoc []byte)
 
 // Delete a service.
@@ -56,20 +56,24 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 }
 
 type fetcher struct {
-	add           AddServiceFunc
-	delete        DeleteServiceFunc
-	done          chan bool
-	ticker        *time.Ticker
-	diff          *diffCalculator
-	diagURL       string
+	add    AddServiceFunc
+	delete DeleteServiceFunc
+	done   chan bool
+	ticker *time.Ticker
+	diff   *diffCalculator
+	// diagd's URL
+	diagURL string
+	// ambassador's URL
 	ambassadorURL string
+	// The public default base URL for the APIs, e.g. https://api.example.com
+	publicBaseURL string
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc,
-	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration) *fetcher {
+	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
 	f := &fetcher{
 		add:           add,
 		delete:        delete,
@@ -78,6 +82,7 @@ func NewFetcher(
 		diff:          NewDiffCalculator(known),
 		diagURL:       strings.TrimRight(diagURL, "/"),
 		ambassadorURL: strings.TrimRight(ambassadorURL, "/"),
+		publicBaseURL: strings.TrimRight(publicBaseURL, "/"),
 	}
 	go func() {
 		for {
@@ -160,7 +165,13 @@ func (f *fetcher) retrieve() {
 			prefix = strings.TrimRight(prefix, "/")
 			name := location_parts[0]
 			namespace := location_parts[1]
-
+			var baseURL string
+			if mapping.Exists("host") {
+				// TODO what if it's http? (arguably it should never be)
+				baseURL = "https://" + getString(mapping, "host")
+			} else {
+				baseURL = f.publicBaseURL
+			}
 			// Get the OpenAPI documentation:
 			var doc []byte
 			docBuf, err := httpGet(f.ambassadorURL + prefix + "/.well-known/opendocs-api")
@@ -170,7 +181,7 @@ func (f *fetcher) retrieve() {
 				doc = nil
 			}
 			service := kubernetes.Service{Namespace: namespace, Name: name}
-			f.add(service, prefix, doc)
+			f.add(service, prefix, baseURL, doc)
 			f.diff.Add(service)
 		}
 	}
