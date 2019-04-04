@@ -19,6 +19,7 @@ from t_headerrouting import HeaderRoutingTest
 from t_ratelimit import RateLimitTest
 from t_tracing import TracingTest
 from t_shadow import ShadowTest
+from t_retrypolicy import RetryPolicyTest
 from t_extauth import (
     AuthenticationTest,	
     AuthenticationTestV1,	
@@ -1041,16 +1042,6 @@ class CORS(OptionTest):
         assert self.results[1].backend.name == self.parent.target.path.k8s
         # Uh. Is it OK that this is case-sensitive?
         assert self.results[1].headers["Access-Control-Allow-Origin"] == [ "https://www.test-cors.org" ]
-
-
-class RETRYPOLICY(OptionTest):
-    # isolated = True
-    # debug = True
-
-    parent: MappingTest
-
-    def config(self):
-        yield 'retry_policy: { retry_on: "5xx", num_retries: 3, per_try_timeout: "500ms" }'
 
 
 class CaseSensitive(OptionTest):
