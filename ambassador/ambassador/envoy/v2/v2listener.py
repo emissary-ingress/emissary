@@ -256,7 +256,8 @@ def v2filter_authv1(auth: IRAuth):
                 'with_request_body': {
                     'max_request_bytes': 10000,
                     'allow_partial_message': True
-                }
+                },
+                "use_alpha" : True
             }
         }
 
