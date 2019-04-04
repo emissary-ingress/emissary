@@ -18,12 +18,12 @@ type server struct {
 
 func (s *server) getServiceAdd() AddServiceFunc {
 	return func(
-		service kubernetes.Service, prefix string, baseURL string,
+		service kubernetes.Service, baseURL string, prefix string,
 		openAPIDoc []byte) {
 		hasDoc := (openAPIDoc != nil)
 		var doc *openapi.OpenAPIDoc = nil
 		if hasDoc {
-			doc = openapi.NewOpenAPI(openAPIDoc, prefix, baseURL)
+			doc = openapi.NewOpenAPI(openAPIDoc, baseURL, prefix)
 		}
 		s.K8sStore.Set(
 			service, kubernetes.ServiceMetadata{
@@ -119,7 +119,7 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 		addService(
 			kubernetes.Service{
 				Name: msg.ServiceName, Namespace: msg.ServiceNamespace},
-			msg.Prefix, msg.BaseURL, buf)
+			msg.BaseURL, msg.Prefix, buf)
 	}
 }
 

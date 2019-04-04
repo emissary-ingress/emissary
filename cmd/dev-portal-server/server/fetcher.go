@@ -14,7 +14,7 @@ import (
 
 // Add a new/updated service.
 type AddServiceFunc func(
-	service kubernetes.Service, prefix string, baseURL string,
+	service kubernetes.Service, baseURL string, prefix string,
 	openAPIDoc []byte)
 
 // Delete a service.
@@ -160,6 +160,9 @@ func (f *fetcher) retrieve() {
 			return
 		}
 		for _, mapping := range mappings {
+			if getString(mapping, "location") == "--internal--" {
+				continue
+			}
 			location_parts := strings.Split(getString(mapping, "location"), ".")
 			prefix := getString(mapping, "prefix")
 			prefix = strings.TrimRight(prefix, "/")
@@ -174,14 +177,14 @@ func (f *fetcher) retrieve() {
 			}
 			// Get the OpenAPI documentation:
 			var doc []byte
-			docBuf, err := httpGet(f.ambassadorURL + prefix + "/.well-known/opendocs-api")
+			docBuf, err := httpGet(f.ambassadorURL + prefix + "/.well-known/openapi-docs")
 			if err == nil {
 				doc = docBuf
 			} else {
 				doc = nil
 			}
 			service := kubernetes.Service{Namespace: namespace, Name: name}
-			f.add(service, prefix, baseURL, doc)
+			f.add(service, baseURL, prefix, doc)
 			f.diff.Add(service)
 		}
 	}
