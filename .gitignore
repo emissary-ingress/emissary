@@ -27,6 +27,7 @@ docs/node_modules
 package-lock.json
 .netlify
 node_modules
+unused-e2e
 
 .forge
 forge.yaml
@@ -44,9 +45,7 @@ intermediate.json
 gold.no_yaml.json
 v1.json
 check-*.json
-end-to-end/forge
 stats.json
-end-to-end/1-parallel/011-websocket/ambassador/service.yaml
 ambassador-deployment-*.yaml
 ambassador-secrets-deployment.yaml
 *failures.txt

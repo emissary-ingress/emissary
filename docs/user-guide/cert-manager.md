@@ -19,9 +19,6 @@ helm install -n cert-manager --set webhook.enabled=false stable/cert-manager
 ## Issuing Certificates
 cert-manager issues certificates from a CA such as [Let's Encrypt](https://letsencrypt.org/). It does this using the ACME protocol which supports various challenge mechanisms for verifying ownership of the domain. 
 
-### HTTP-01 Challenge 
-One challenge mechanism is the HTTP-01 challenge which verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by creating a temporary pod and service and sending a request to that pod with the prefix `/.well-known/acme-challenge`. 
-
 ### Issuer
 An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manager will use to issue a certificate. `Issuer` is a namespaced resource allowing for you to use different CAs in each namespace, a `ClusterIssuer` is used to issue certificates in any namespace. Configuration depends on which ACME [challenge](/user-guide/cert-manager#challenge) you are using.
 

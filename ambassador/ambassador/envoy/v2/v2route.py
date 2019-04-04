@@ -223,7 +223,7 @@ class V2Route(dict):
         load_balancer = mapping_group.get('load_balancer', None)
         if load_balancer is not None:
             lb_policy = load_balancer.get('policy')
-            if lb_policy == 'ring_hash':
+            if lb_policy in ['ring_hash', 'maglev']:
                 cookie = load_balancer.get('cookie')
                 header = load_balancer.get('header')
                 source_ip = load_balancer.get('source_ip')

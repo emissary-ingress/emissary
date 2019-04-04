@@ -23,11 +23,6 @@ TARGET_BRANCH="master"
 
 rm -rf /tmp/getambassador.io
 git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
-
-rsync -a --delete docs/ /tmp/getambassador.io/content/
-
 cd /tmp/getambassador.io
-git add -A
-git commit -m "docs updated from datawire/ambassador"
+npm run pull-docs
 git push origin ${TARGET_BRANCH}
-

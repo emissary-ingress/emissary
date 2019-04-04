@@ -21,7 +21,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     # expose port 80 via 8080 on the host machine
     - 8080:80
@@ -118,18 +118,18 @@ Feel free to re-enable the diagnostics endpoint.
 
 ## 3. Add a route mapping
 
-Now that we have demonstrated that we can modify the configuration let's add a mapping to route to `http://demo.getambassador.io/qotm/` service.
+Now that we have demonstrated that we can modify the configuration let's add a mapping to route to `http://httpbin.org/` service.
 
-Create a new file `config/mapping-qotm.yaml` with these contents:
+Create a new file `config/mapping-httpbin.yaml` with these contents:
 
 ```yaml
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-rewrite: /qotm/
-service: demo.getambassador.io
+name:  httpbin_mapping
+prefix: /httpbin/
+service: httpbin.org
+host_rewrite: httpbin.org   
 ```
 
 Once again, restart ambassador and test the new mapping:
@@ -139,15 +139,11 @@ Once again, restart ambassador and test the new mapping:
 docker-compose up -d -V ambassador
 
 # curl the quote-of-the-moment service
-curl localhost:8080/qotm/quote/1
+curl localhost:8080/httpbin/ip
 
 # the response body should be a json object with a quote
 {
-  "hostname": "qotm-3716059461-47tnl",
-  "ok": true,
-  "quote": "The light at the end of the tunnel is interdependent on the relatedness of motivation, subcultures, and management.",
-  "time": "2018-08-17T21:29:24.690950",
-  "version": "1.3"
+  "origin": "65.217.185.138, 35.247.39.247, 65.217.185.138"
 }
 ```
 
@@ -164,7 +160,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     - 8080:80
     volumes:
@@ -251,7 +247,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     - 8080:80
     volumes:
@@ -339,7 +335,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:0.50.1
+    image: quay.io/datawire/ambassador:%version%
     ports:
     - 8080:80
     volumes:

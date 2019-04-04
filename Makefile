@@ -21,7 +21,7 @@ SHELL = bash
 .FORCE:
 .PHONY: \
     .FORCE clean version setup-develop print-vars \
-    docker-login docker-push docker-images publish-website \
+    docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
 
 # MAIN_BRANCH
@@ -101,8 +101,6 @@ else
 COMMIT_TYPE=random
 endif
 
-DOC_RELEASE_TYPE?=unstable
-
 ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
 endif
@@ -128,11 +126,14 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
 AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
 
+KUBECONFIG ?= $(shell pwd)/cluster.yaml
+USE_KUBERNAUT ?= true
+
 SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.1.0
+KAT_BACKEND_RELEASE = 1.2.1
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -150,10 +151,6 @@ clean: clean-test
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -rf end-to-end/ambassador-deployment.yaml end-to-end/ambassador-deployment-mounts.yaml
-	find end-to-end \( -name 'check-*.json' -o -name 'envoy.json' \) -print0 | xargs -0 rm -f
-	rm -f end-to-end/1-parallel/011-websocket/ambassador/service.yaml
-	find end-to-end/1-parallel/ -type f -name 'ambassador-deployment*.yaml' -exec rm {} \;
 
 clobber: clean
 	-rm -rf docs/node_modules
@@ -234,16 +231,16 @@ docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
-		docker push $(AMBASSADOR_DOCKER_IMAGE) | python end-to-end/linify.py push.log; \
+		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python end-to-end/linify.py push.log; \
+			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
 		fi; \
 		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
 			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python end-to-end/linify.py push.log; \
+			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
@@ -267,18 +264,6 @@ ambassador/ambassador/VERSION.py:
 		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
-
-e2e-versioned-manifests: venv
-	cd end-to-end && PATH="$(shell pwd)/venv/bin:$(PATH)" bash create-manifests.sh $(AMBASSADOR_DOCKER_IMAGE)
-
-e2e: E2E_TEST_NAME=all
-e2e: e2e-versioned-manifests
-	source venv/bin/activate; \
-	if [ "$(E2E_TEST_NAME)" == "all" ]; then \
-		bash end-to-end/testall.sh; \
-	else \
-		E2E_TEST_NAME=$(E2E_TEST_NAME) bash end-to-end/testall.sh; \
-	fi
 
 TELEPROXY=venv/bin/teleproxy
 TELEPROXY_VERSION=0.3.16
@@ -324,21 +309,26 @@ $(PWD)/kat/kat/client:
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
 cluster.yaml: $(CLAIM_FILE)
+ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
+endif
 	rm -rf /tmp/k8s-*.yaml
+	@echo "Killing teleproxy"
 	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
 setup-test: cluster.yaml
 
 teleproxy-restart:
+	@echo "Killing teleproxy"
 	$(call kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	$(TELEPROXY) -kubeconfig "$(shell pwd)/cluster.yaml" 2> /tmp/teleproxy.log &
+	@$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
+	@echo "Done"
 
 teleproxy-stop:
 	$(call kill_teleproxy)
@@ -350,8 +340,6 @@ teleproxy-stop:
 	else \
 		echo "teleproxy stopped" >&2; \
 	fi
-
-KUBECONFIG=$(shell pwd)/cluster.yaml
 
 shell: setup-develop cluster.yaml
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
@@ -406,7 +394,6 @@ release:
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		DOC_RELEASE_TYPE=stable make website; \
 		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
 		set +x; \
 	else \
@@ -448,8 +435,21 @@ mypy: mypy-server
 # Website
 # ------------------------------------------------------------------------------
 
-publish-website:
-	bash ./releng/publish-website.sh;
+pull-docs:
+	{ \
+		git fetch https://github.com/datawire/ambassador-docs master && \
+		docs_head=$$(git rev-parse FETCH_HEAD) && \
+		git subtree merge --prefix=docs "$${docs_head}" && \
+		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
+	}
+push-docs:
+	{ \
+		git fetch https://github.com/datawire/ambassador-docs master && \
+		docs_old=$$(git rev-parse FETCH_HEAD) && \
+		docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}") && \
+		git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:$(or $(PUSH_BRANCH),master)"; \
+	}
+.PHONY: pull-docs push-docs
 
 # ------------------------------------------------------------------------------
 # CI Targets

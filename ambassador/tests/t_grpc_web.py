@@ -2,7 +2,7 @@ from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, EGRPC
 
-class AcceptanceGrpcBridgeTest(AmbassadorTest):
+class AcceptanceGrpcWebTest(AmbassadorTest):
 
     target: ServiceType
 
@@ -16,7 +16,7 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config:
-    enable_grpc_http11_bridge: True
+    enable_grpc_web: True
 """)
 
         yield self, self.format("""
@@ -33,15 +33,17 @@ service: {self.target.path.k8s}
     def queries(self):
         # [0]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "0" },
+                    headers={ "content-type": "application/grpc-web-text", "requested-status": "0" },
                     expected=200,
-                    grpc_type="bridge")
+                    xfail="The kat client does not support grpc-web (yet)",
+                    grpc_type="web")
 
         # [1]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc", "requested-status": "7" },
+                    headers={ "content-type": "application/grpc-web-text", "requested-status": "7" },
                     expected=200,
-                    grpc_type="bridge")
+                    xfail="The kat client does not support grpc-web (yet)",
+                    grpc_type="web")
 
     def check(self):
         # [0]

@@ -3,8 +3,8 @@ Building Ambassador
 
 If you just want to **use** Ambassador, check out https://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
 
-TL;DR
------
+TL;DR for Code Changes
+----------------------
 
 If you're making a code change:
 
@@ -21,14 +21,15 @@ That will build an Ambassador Docker image for you but not push it anywhere. To 
 
 **It is important to use `make` rather than trying to just do a `docker build`.** Actually assembling a Docker image for Ambassador involves quite a few steps before the image can be built.
 
-If you want to make a doc change, see the `Making Documentation Changes` section below.
+If you want to make a doc change, see the `Making Documentation-Only Changes` section below.
 
-Branching
----------
+### Structure and Branches
 
-* The current release of Ambassador lives on `master`.
+The current shipping release of Ambassador lives here on the `master` branch. It is tagged with its version (e.g. `0.52.0`). 
 
-* Ambassador docs currently live on `stable`. If you are only updating docs, branch from `stable`.
+Changes on `master` after the last tag have not been released yet, but will be included in the next release of Ambassador.
+
+The documentation in the `docs` directory is actually a Git subtree from the `ambassador-docs` repo. See the `Making Documentation-Only Changes` section below if you just want to change docs.
 
 ### Making Code Changes
 
@@ -39,34 +40,40 @@ Branching
 2. If your development takes any significant time, **merge master back into your branch regularly**.
    - Think "every morning" and "right before submitting a pull request."
 
-3. When you have things working and tested, **submit a pull request back to `master`**.
+3. **Code changes must include relevant documentation updates.** Make changes in
+   the `docs` directory as necessary, and commit them to your branch so that they
+   can be incorporated when the feature is merged into `master`.
+
+4. **Code changes must include tests.** See `tests/README.md` for more here.
+   Your test **must** actually test the change you're making, and it **must**
+   pass in order for your change to be accepted.
+
+5. When you have things working and tested, **submit a pull request back to `master`**.
    - Make sure you merge `master` _into_ your branch right before submitting the PR!
    - The PR will trigger CI to perform a build and run tests.
-   - Tests **must** be passing for the PR to be merged.
+   - CI tests **must** be passing for the PR to be merged.
 
-4. When all is well, maintainers will merge the PR into `master`.
+6. When all is well, maintainers will merge the PR into `master`, accepting your
+   change for the next Ambassador release. Thanks!
 
-5. Maintainers will PR from `master` into `stable` for releases.
+### Making Documentation-Only Changes
 
-### Making Documentation Changes
+If you want to make a change that **only** affects documentation, and is not 
+tied to a future feature, you'll need to make your change directly in the
+`datawire/ambassador-docs` repository. Clone that repository and check out
+its `README.md`. 
 
-1. Documentation changes happen on branches cut from **`stable`**, not `master`.
-
-2. It's OK for minor doc changes (fixing typos, etc) to use a `nobuild.` branch. If you're doing significant changes, let CI run so you can preview the docs -- use a branch name like `doc/major-doc-changes` or the like.
-
-3. **If you have a doc change open when we do a release, it's your job to merge from `stable` into your doc branch.** You should avoid this.
-
-4. When you have things edited as you like them, **submit a PR back to `stable`**.
-
-5. Maintainers (code or doc) will merge the PR to `stable`, then merge the changes from `stable` back into `master`.
+(It is technically possible to make these changes from the `ambassador` repo. Please don't, unless you're fixing docs for an upcoming feature that hasn't yet
+shipped.)
 
 Developer Quickstart/Inner Loop
 -------------------------------
 
 ### Quickstart:
 
-1. git clone ...
-2. From git root type `make shell`
+1. `git clone https://github.com/datawire/ambassador`
+2. `cd ambassador`
+2. `make shell`
 3. Run `py.test -k tests_i_care_about`
 4. Edit code.
 5. Go back to 3.
@@ -79,8 +86,8 @@ runs, but subsequent runs should be instantaneous.
 You can create as many dev shells as you want. They will all share the
 same kubernaut cluster and teleproxy session behind the scenes.
 
-The first time you run the test_ambassador suite it will apply a bunch
-of yaml to kubernaut cluster used by your dev session. Be patient,
+The first time you run the `test_ambassador` suite it will apply a bunch
+of YAML to the kubernaut cluster used by your dev session. Be patient,
 this will be much faster the second time.
 
 If you want to release the kubernaut cluster and kill teleproxy, then
@@ -107,7 +114,7 @@ opening a PR. The easy way to do that is simply
 
 after you've done `make shell`. This will start the [mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html)
 and then do a check of all the Ambassador code. There _should_ be no errors and no warnings
-reported: that will probably be a requirement for all GA releases.
+reported: that will probably become a requirement for all GA releases later.
  
 **Note well** that at present, `make mypy` will ignore missing imports. We're still sorting
 out how to best wrangle the various third-party libraries we use, so this seems to make sense
@@ -119,6 +126,16 @@ Tests
 CI runs Ambassador's test suite on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.** 
 
 For more information on the test suite, see [its README](ambassador/tests/README.md).
+
+#### Running tests locally (in minikube)
+Tests consume quite a lot of resources, so make sure you allocate them accordingly to your minikube instance.
+
+1. Start minikube
+2. To build images directly into your minikube instance, set `DOCKER_REGISTRY=-` and point your docker client to docker daemon running inside minikube by running the command `eval $(minikube docker-env)`
+3. Point `KUBECONFIG` to minikube, generally using `export KUBECONFIG=~/.kube/config`
+4. Since everything is being run locally, you don't need a Kubernetes cluser using kubernaut. Set `USE_KUBERNAUT=false`
+
+That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
 
 Version Numbering
 -----------------

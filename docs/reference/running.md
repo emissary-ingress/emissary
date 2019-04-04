@@ -218,6 +218,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `cluster_grpc_count` | int | count of clusters using GRPC upstream |
 | `cluster_http_count` | int | count of clusters using HTTP or HTTPS upstream |
 | `cluster_routing_envoy_rh_count` | int | count of clusters routing using Envoy `ring_hash` |
+| `cluster_routing_envoy_maglev_count` | int | count of clusters routing using Envoy `maglev` |
 | `cluster_routing_envoy_rr_count` | int | count of clusters routing using Envoy `round_robin` |
 | `cluster_routing_kube_count` | int | count of clusters routing using Kubernetes |
 | `cluster_tls_count` | int | count of clusters originating TLS |
@@ -230,6 +231,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `endpoint_resource_total` | int | total count of `Endpoints` resources loaded from Kubernetes |
 | `endpoint_routing` | bool | is endpoint routing enabled? |
 | `endpoint_routing_envoy_rh_count` | int | count of endpoints being routed using Envoy `ring_hash` |
+| `endpoint_routing_envoy_maglev_count` | int | count of endpoints being routed using Envoy `maglev` |
 | `endpoint_routing_envoy_rr_count` | int | count of endpoints being routed using Envoy `round_robin` |
 | `endpoint_routing_kube_count` | int | count of endpoints being routed using Kubernetes |
 | `endpoint_tls_count` | int | count of endpoints to which Ambassador will originate TLS |
@@ -254,6 +256,13 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `ratelimit_custom_domain` | bool | has the rate limiting domain been changed from 'ambassador'? |
 | `ratelimit_data_plane_proto` | bool | is rate limiting using the data plane proto? |
 | `readiness_probe` | bool | are readiness probes enabled? |
+| `request_4xx_count` | int | lower bound for how many requests have gotten a 4xx response | 
+| `request_5xx_count` | int | lower bound for how many requests have gotten a 5xx response | 
+| `request_bad_count` | int | lower bound for how many requests have failed (either 4xx or 5xx) | 
+| `request_elapsed` | float | seconds over which the request_ counts are valid | 
+| `request_hr_elapsed` | string | human-readable version of `request_elapsed` (e.g. "3 hours 35 minutes 20 seconds" | 
+| `request_ok_count` | int | lower bound for how many requests have succeeded (not a 4xx or 5xx) | 
+| `request_total_count` | int | lower bound for how many requests were handled in total | 
 | `statsd` | bool | is statsd enabled? |
 | `tls_origination_count` | int | count of TLS origination contexts |
 | `tls_termination_count` | int | count of TLS termination contexts |
@@ -265,6 +274,10 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `use_remote_address` | bool | is Ambassador honoring remote addresses? |
 | `x_forwarded_proto_redirect` | bool | is Ambassador redirecting based on `X-Forwarded-Proto`? |
 | `xff_num_trusted_hops` | int | what is the count of trusted hops for `X-Forwarded-For`? | 
+
+The `request_*` counts are always incremental: they contain only information about the last `request_elapsed` seconds.
+Additionally, they only provide a lower bound -- notably, if an Ambassador pod crashes or exits, no effort is made to
+ship out a final update, so it's very easy for counts to never be reported.   
 
 To completely disable feature reporting, set the environment variable `AMBASSADOR_DISABLE_FEATURES` to any non-empty
 value.

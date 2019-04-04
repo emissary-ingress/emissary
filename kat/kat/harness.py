@@ -278,10 +278,12 @@ class Test(Node):
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
-                 xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None, client_cert_required=False, ca_cert=None):
+                 xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
+                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None):
         self.method = method
         self.url = url
         self.headers = headers
+        self.cookies = cookies
         self.messages = messages
         self.insecure = insecure
         if expected is None:
@@ -303,6 +305,8 @@ class Query:
         self.client_cert = client_crt
         self.client_key = client_key
         self.ca_cert = ca_cert
+        assert grpc_type in (None, "real", "bridge", "web"), grpc_type
+        self.grpc_type = grpc_type
 
     def as_json(self):
         result = {
@@ -316,6 +320,8 @@ class Query:
             result["method"] = self.method
         if self.headers:
             result["headers"] = self.headers
+        if self.cookies:
+            result["cookies"] = self.cookies
         if self.messages is not None:
             result["messages"] = self.messages
         if self.client_cert is not None:
@@ -326,6 +332,8 @@ class Query:
             result["ca_cert"] = self.ca_cert
         if self.client_cert_required:
             result["client_cert_required"] = self.client_cert_required
+        if self.grpc_type:
+            result["grpc_type"] = self.grpc_type
 
         return result
 
@@ -1009,7 +1017,7 @@ class Runner:
 
         for phase in phases:
             if phase != 1:
-                phase_delay = 30
+                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 30))
                 print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
                 time.sleep(phase_delay)
 
