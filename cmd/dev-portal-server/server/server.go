@@ -88,7 +88,8 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 		hasdoc := (msg.Doc != nil)
 		var doc *openapi.OpenAPIDoc
 		if hasdoc {
-			doc = openapi.NewOpenAPI(msg.Doc, msg.BaseURL, msg.Prefix)
+			buf, _ := json.Marshal(msg.Doc)
+			doc = openapi.NewOpenAPI(buf, msg.BaseURL, msg.Prefix)
 		} else {
 			doc = nil
 		}

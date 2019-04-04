@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"github.com/Jeffail/gabs"
+	"log"
 )
 
 type OpenAPIDoc struct {
@@ -9,17 +10,15 @@ type OpenAPIDoc struct {
 }
 
 // Create OpenAPI 3.0 JSON spec with URL based on routing information:
-func NewOpenAPI(json_doc interface{}, base_url string, prefix string) *OpenAPIDoc {
-	container, err := gabs.Consume(json_doc)
+func NewOpenAPI(jsonDoc []byte, base_url string, prefix string) *OpenAPIDoc {
+	result, err := gabs.ParseJSON(jsonDoc)
 	if err != nil {
+		log.Print(err)
 		return nil
 	}
 
 	// TODO need to handle case where there's a prefix on the existing
 	// server URL, e.g. /v1.
-
-	// Make a copy, so we don't mutate the original:
-	result, _ := gabs.ParseJSON(container.EncodeJSON())
 	result.Delete("servers")
 	result.Array("servers")
 	result.ArrayAppend(0, "servers")

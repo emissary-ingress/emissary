@@ -1,14 +1,19 @@
 package server
 
 import (
+	"github.com/Jeffail/gabs"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strings"
 	"time"
 )
 
 // Add a new/updated service.
 type AddServiceFunc func(
-	service kubernetes.Service, prefix string, hasDoc bool,
-	jsonDoc interface{})
+	service kubernetes.Service, prefix string,
+	openAPIDoc []byte)
 
 // Delete a service.
 type DeleteServiceFunc func(service kubernetes.Service)
@@ -43,25 +48,34 @@ func (d *diffCalculator) NewRound() []kubernetes.Service {
 	return toDelete
 }
 
+// Add a Service that was successfully retrieved this round
+func (d *diffCalculator) Add(s kubernetes.Service) {
+	d.current[s] = true
+}
+
 type fetcher struct {
-	add    AddServiceFunc
-	delete DeleteServiceFunc
-	done   chan bool
-	ticker *time.Ticker
-	diff   *diffCalculator
+	add           AddServiceFunc
+	delete        DeleteServiceFunc
+	done          chan bool
+	ticker        *time.Ticker
+	diff          *diffCalculator
+	diagURL       string
+	ambassadorURL string
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc,
-	known []kubernetes.Service, duration time.Duration) *fetcher {
+	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration) *fetcher {
 	f := &fetcher{
-		add:    add,
-		delete: delete,
-		done:   make(chan bool),
-		ticker: time.NewTicker(duration),
-		diff:   NewDiffCalculator(known),
+		add:           add,
+		delete:        delete,
+		done:          make(chan bool),
+		ticker:        time.NewTicker(duration),
+		diff:          NewDiffCalculator(known),
+		diagURL:       strings.TrimRight(diagURL, "/"),
+		ambassadorURL: strings.TrimRight(ambassadorURL, "/"),
 	}
 	go func() {
 		for {
@@ -83,8 +97,71 @@ func NewFetcher(
 	return f
 }
 
+// Get a string attribute of a JSON object:
+func getString(o *gabs.Container, attr string) string {
+	return o.S(attr).Data().(string)
+}
+
+func httpGet(url string) ([]byte, error) {
+	client := &http.Client{Timeout: time.Second * 2}
+	response, err := client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	buf, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
 func (f *fetcher) retrieve() {
-	// XXX logic to talk diagd and get info
+	buf, err := httpGet(f.diagURL + "/ambassador/v0/diag/?json=true")
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	// Don't bother looking at error; failed queries will result in service
+	// being removed from Dev Portal.
+
+	json, err := gabs.ParseJSON(buf)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	children, err := json.S("groups").ChildrenMap()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	for _, child := range children {
+		if !child.S("_active").Data().(bool) {
+			continue
+		}
+		mappings, err := child.S("mappings").Children()
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		for _, mapping := range mappings {
+			location_parts := strings.Split(getString(mapping, "location"), ".")
+			prefix := getString(mapping, "prefix")
+			prefix = strings.TrimRight(prefix, "/")
+			name := location_parts[0]
+			namespace := location_parts[1]
+			var doc []byte
+			docBuf, err := httpGet(f.ambassadorURL + prefix + "/.well-known/opendocs-api")
+			if err == nil {
+				doc = docBuf
+			} else {
+				doc = nil
+			}
+			service := kubernetes.Service{Namespace: namespace, Name: name}
+			f.add(service, prefix, doc)
+			f.diff.Add(service)
+		}
+	}
+
 }
 
 func (f *fetcher) Stop() {
