@@ -1,9 +1,10 @@
 # Okta
 
-
-
 1. Create an an OIDC application
 
+   **Note:** If you have a [standard Okta account](https://www.okta.com) you must first navigate to your Okta Org's admin portal (step 1). [Developer accounts](https://www.developer.okta.com) can skip to step 2.
+   
+   - Go to your org and click `Admin` in the top right corner to access the admin portal
    - Select `Applications`
    - Select `Add Application`
    - Choose `Web` and `OpenID Connect`. Then click `Create`.
