@@ -222,7 +222,7 @@ class IRHTTPMapping (IRBaseMapping):
         if lb_policy == 'round_robin':
             if len(load_balancer) == 1:
                 is_valid = True
-        elif lb_policy == 'ring_hash':
+        elif lb_policy in ['ring_hash', 'maglev']:
             if len(load_balancer) == 2:
                 if 'cookie' in load_balancer:
                     cookie = load_balancer.get('cookie')

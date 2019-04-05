@@ -24,7 +24,6 @@ from t_extauth import (
     AuthenticationTestV1,	
     AuthenticationHTTPBufferedTest,	
     AuthenticationWebsocketTest,
-    AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
 from t_lua_scripts import LuaTest
@@ -1663,155 +1662,159 @@ spec:
 """.format(backend=backend)
 
     def config(self):
-        yield self, self.format("""
+        for policy in ['ring_hash', 'maglev']:
+            self.policy = policy
+            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}-header
-prefix: /{self.name}-header/
+name:  {self.name}-header-{self.policy}
+prefix: /{self.name}-header-{self.policy}/
 service: permappingloadbalancing-service
 load_balancer:
-  policy: ring_hash
+  policy: {self.policy}
   header: LB-HEADER
 """)
 
-        yield self, self.format("""
+            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}-sourceip
-prefix: /{self.name}-sourceip/
+name:  {self.name}-sourceip-{self.policy}
+prefix: /{self.name}-sourceip-{self.policy}/
 service: permappingloadbalancing-service
 load_balancer:
-  policy: ring_hash
+  policy: {self.policy}
   source_ip: true
 """)
 
-        yield self, self.format("""
+            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}-cookie
-prefix: /{self.name}-cookie/
+name:  {self.name}-cookie-{self.policy}
+prefix: /{self.name}-cookie-{self.policy}/
 service: permappingloadbalancing-service
 load_balancer:
-  policy: ring_hash
+  policy: {self.policy}
   cookie:
     name: lb-cookie
     ttl: 125s
     path: /foo
 """)
 
-        yield self, self.format("""
+            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}-cookie-no-ttl
-prefix: /{self.name}-cookie-no-ttl/
+name:  {self.name}-cookie-no-ttl-{self.policy}
+prefix: /{self.name}-cookie-no-ttl-{self.policy}/
 service: permappingloadbalancing-service
 load_balancer:
-  policy: ring_hash
+  policy: {self.policy}
   cookie:
     name: lb-cookie
 """)
 
     def queries(self):
-        # generic header queries
-        for i in range(50):
-            yield Query(self.url(self.name) + '-header/')
+        for policy in ['ring_hash', 'maglev']:
+            # generic header queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-header-{}/'.format(policy))
 
-        # header queries
-        for i in range(50):
-            yield Query(self.url(self.name) + '-header/', headers={"LB-HEADER": "yes"})
+            # header queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-header-{}/'.format(policy), headers={"LB-HEADER": "yes"})
 
-        # source IP queries
-        for i in range(50):
-            yield Query(self.url(self.name) + '-sourceip/')
+            # source IP queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-sourceip-{}/'.format(policy))
 
-        # generic cookie queries
-        for i in range(50):
-            yield Query(self.url(self.name) + '-cookie/')
+            # generic cookie queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-cookie-{}/'.format(policy))
 
-        # cookie queries
-        for i in range(50):
-            yield Query(self.url(self.name) + '-cookie/', cookies=[
-                {
-                    'name': 'lb-cookie',
-                    'value': 'yes'
-                }
-            ])
+            # cookie queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-cookie-{}/'.format(policy), cookies=[
+                    {
+                        'name': 'lb-cookie',
+                        'value': 'yes'
+                    }
+                ])
 
-        # cookie no TTL queries
-        for i in range(50):
-            yield Query(self.url(self.name) + '-cookie-no-ttl/', cookies=[
-                {
-                    'name': 'lb-cookie',
-                    'value': 'yes'
-                }
-            ])
+            # cookie no TTL queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-cookie-no-ttl-{}/'.format(policy), cookies=[
+                    {
+                        'name': 'lb-cookie',
+                        'value': 'yes'
+                    }
+                ])
 
     def check(self):
-        assert len(self.results) == 300
+        assert len(self.results) == 600
 
-        generic_header_queries = self.results[:50]
-        header_queries = self.results[50:100]
-        source_ip_queries = self.results[100:150]
-        generic_cookie_queries = self.results[150:200]
-        cookie_queries = self.results[200:250]
-        cookie_no_ttl_queries = self.results[250:300]
+        for i in [0, 300]:
+            generic_header_queries = self.results[0+i:50+i]
+            header_queries = self.results[50+i:100+i]
+            source_ip_queries = self.results[100+i:150+i]
+            generic_cookie_queries = self.results[150+i:200+i]
+            cookie_queries = self.results[200+i:250+i]
+            cookie_no_ttl_queries = self.results[250+i:300+i]
 
-        # generic header queries
-        generic_header_dict = {}
-        for result in generic_header_queries:
-            generic_header_dict[result.backend.name] =\
-                generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
-        assert len(generic_header_dict) == 3
+            # generic header queries
+            generic_header_dict = {}
+            for result in generic_header_queries:
+                generic_header_dict[result.backend.name] =\
+                    generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
+            assert len(generic_header_dict) == 3
 
-        # header queries
-        header_dict = {}
-        for result in header_queries:
-            header_dict[result.backend.name] = \
-                header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
-        assert len(header_dict) == 1
+            # header queries
+            header_dict = {}
+            for result in header_queries:
+                header_dict[result.backend.name] = \
+                    header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
+            assert len(header_dict) == 1
 
-        # source IP queries
-        source_ip_dict = {}
-        for result in source_ip_queries:
-            source_ip_dict[result.backend.name] = \
-                    source_ip_dict[result.backend.name] + 1 if result.backend.name in source_ip_dict else 1
-        assert len(source_ip_dict) == 1
-        assert list(source_ip_dict.values())[0] == 50
+            # source IP queries
+            source_ip_dict = {}
+            for result in source_ip_queries:
+                source_ip_dict[result.backend.name] = \
+                        source_ip_dict[result.backend.name] + 1 if result.backend.name in source_ip_dict else 1
+            assert len(source_ip_dict) == 1
+            assert list(source_ip_dict.values())[0] == 50
 
-        # generic cookie queries - results must include Set-Cookie header
-        generic_cookie_dict = {}
-        for result in generic_cookie_queries:
-            assert 'Set-Cookie' in result.headers
-            assert len(result.headers['Set-Cookie']) == 1
-            assert 'lb-cookie=' in result.headers['Set-Cookie'][0]
-            assert 'Max-Age=125' in result.headers['Set-Cookie'][0]
-            assert 'Path=/foo' in result.headers['Set-Cookie'][0]
+            # generic cookie queries - results must include Set-Cookie header
+            generic_cookie_dict = {}
+            for result in generic_cookie_queries:
+                assert 'Set-Cookie' in result.headers
+                assert len(result.headers['Set-Cookie']) == 1
+                assert 'lb-cookie=' in result.headers['Set-Cookie'][0]
+                assert 'Max-Age=125' in result.headers['Set-Cookie'][0]
+                assert 'Path=/foo' in result.headers['Set-Cookie'][0]
 
-            generic_cookie_dict[result.backend.name] = \
-                generic_cookie_dict[result.backend.name] + 1 if result.backend.name in generic_cookie_dict else 1
-        assert len(generic_cookie_dict) == 3
+                generic_cookie_dict[result.backend.name] = \
+                    generic_cookie_dict[result.backend.name] + 1 if result.backend.name in generic_cookie_dict else 1
+            assert len(generic_cookie_dict) == 3
 
-        # cookie queries
-        cookie_dict = {}
-        for result in cookie_queries:
-            assert 'Set-Cookie' not in result.headers
+            # cookie queries
+            cookie_dict = {}
+            for result in cookie_queries:
+                assert 'Set-Cookie' not in result.headers
 
-            cookie_dict[result.backend.name] = \
-                cookie_dict[result.backend.name] + 1 if result.backend.name in cookie_dict else 1
-        assert len(cookie_dict) == 1
+                cookie_dict[result.backend.name] = \
+                    cookie_dict[result.backend.name] + 1 if result.backend.name in cookie_dict else 1
+            assert len(cookie_dict) == 1
 
-        # cookie no TTL queries
-        cookie_no_ttl_dict = {}
-        for result in cookie_no_ttl_queries:
-            assert 'Set-Cookie' not in result.headers
+            # cookie no TTL queries
+            cookie_no_ttl_dict = {}
+            for result in cookie_no_ttl_queries:
+                assert 'Set-Cookie' not in result.headers
 
-            cookie_no_ttl_dict[result.backend.name] = \
-                cookie_no_ttl_dict[result.backend.name] + 1 if result.backend.name in cookie_no_ttl_dict else 1
-        assert len(cookie_no_ttl_dict) == 1
+                cookie_no_ttl_dict[result.backend.name] = \
+                    cookie_no_ttl_dict[result.backend.name] + 1 if result.backend.name in cookie_no_ttl_dict else 1
+            assert len(cookie_no_ttl_dict) == 1
 
 
 # pytest will find this because Runner is a toplevel callable object in a file
