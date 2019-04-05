@@ -10,9 +10,11 @@ root privileges. If you are relying on the default port numbering in your instal
 will need to change your configuration** and Ambassador 0.52 will attempt to warn you of this
 in the diagnostic service.   
 
-### AMBASSADOR 0.52
+### AMBASSADOR 0.53.1
 
-The current recommended version of Ambassador is 0.52.0.
+The current recommended version of Ambassador is 0.53.1. **This release includes fixes for two
+security issues**; as such, it is strongly recommended that you upgrade from any earlier release
+to 0.53.1. See below for more information.
 
 ### AMBASSADOR 0.50+
 
@@ -88,13 +90,34 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 
-## [0.52.1] March 26, 2019
-[0.52.1]: https://github.com/datawire/ambassador/compare/0.52.0...0.52.1
+## [0.53.1] April 5, 2019
+[0.53.1]: https://github.com/datawire/ambassador/compare/0.52.1...0.53.1
+
+(0.53.0 was immediately supplanted by 0.53.1.)
+
+## SECURITY FIXES
+
+Ambassador 0.53.1 addresses two security issues in Envoy Proxy, CVE-2019-9900 and CVE-2019-9901:
+
+- CVE-2019-9900 (Score 8.3/High). When parsing HTTP/1.x header values, Envoy 1.9 and before does not reject embedded zero characters (NUL, ASCII 0x0).
+
+- CVE-2019-9901 (Score 8.3/High). Envoy does not normalize HTTP URL paths in Envoy 1.9 and before.
+
+Since these issues can potentially allow a remote attacker to use maliciously-crafted URLs to bypass
+authentication, anyone running an Ambassador prior to 0.53.1 should upgrade. 
 
 ### UPCOMING CHANGES
 
 Ambassador 0.60 will listen on ports 8080/8443 by default. The diagnostics service in Ambassador 0.52.0
 will try to warn you if your configuration will be affected by this change.
+
+## Other changes since 0.52.1
+
+- `AuthService` version `ambassador/v1` can now explicitly configure how much body data is sent
+  to the external authentication service.
+
+## [0.52.1] March 26, 2019
+[0.52.1]: https://github.com/datawire/ambassador/compare/0.52.0...0.52.1
 
 ### Changes since 0.52.0
 
@@ -107,11 +130,6 @@ will try to warn you if your configuration will be affected by this change.
 
 ## [0.52.0] March 21, 2019
 [0.52.0]: https://github.com/datawire/ambassador/compare/0.51.2...0.52.0
-
-### UPCOMING CHANGES
-
-Ambassador 0.60 will listen on ports 8080/8443 by default. The diagnostics service in Ambassador 0.52.0
-will try to warn you if your configuration will be affected by this change.
 
 ### Changes since 0.51.2
 
