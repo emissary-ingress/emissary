@@ -152,12 +152,13 @@ def v2filter_authv0(auth: IRAuth):
     hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
 
     allowed_authorization_headers = []
+
     for key in sorted(hdrs):
-        
         allowed_authorization_headers.append({"exact": key})
     
     allowed_request_headers = []  
-    for keys in sorted(request_headers.keys()):
+
+    for key in sorted(request_headers.keys()):
         allowed_request_headers.append({"exact": key})
 
     return {
@@ -210,10 +211,12 @@ def v2filter_authv1(auth: IRAuth):
 
     if auth.proto == "http":
         allowed_authorization_headers = []
+
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key})
     
         allowed_request_headers = []
+
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
             allowed_request_headers.append({"exact": key})
 
