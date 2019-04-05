@@ -494,6 +494,7 @@ class V2Listener(dict):
             'stat_prefix': 'ingress_http',
             'access_log': self.access_log,
             'http_filters': self.http_filters,
+            'normalize_path': True
         }
 
         if self.upgrade_configs:
