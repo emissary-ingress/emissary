@@ -117,7 +117,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.2
+        image: docker.io/lukeshu/ambassador:lukeshu-load-testing-d6284c65-dirty
 # XXX: Kubernaut
 #        resources:
 #          limits:
