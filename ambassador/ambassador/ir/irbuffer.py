@@ -31,7 +31,7 @@ class IRBuffer (IRFilter):
             self.post_error(RichStatus.fromError("missing required field: max_request_bytes"))
             return False
 
-        if self.pop('max_request_time'):
+        if self.pop('max_request_time', None):
             self.ir.aconf.post_notice("'max_request_time' is no longer supported, ignoring", self)
 
         return True
