@@ -111,14 +111,13 @@ func RunTestRaw(tc TestCase) TestResult {
 			limited++
 			res.Error = ""
 		default:
-		}
-		if overloaded := res.Header.Get("x-envoy-overloaded"); overloaded != "" {
-			res.Error += " (x-envoy-overloaded: " + overloaded + ")"
-		}
-		if res.Error != "" {
-			res.Error = sourcePortRE.ReplaceAllString(res.Error, ":XYZ->")
-			n := errs[res.Error]
-			errs[res.Error] = n + 1
+			errstr := fmt.Sprintf("code=%03d error=%#v x-envoy-overloaded=%#v body=%#v",
+				res.Code,
+				sourcePortRE.ReplaceAllString(res.Error, ":XYZ->"),
+				res.Header.Get("x-envoy-overloaded"),
+				string(res.Body),
+			)
+			errs[errstr] = errs[errstr] + 1
 		}
 		metrics.Add(res)
 	}
