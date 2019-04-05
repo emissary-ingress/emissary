@@ -10,8 +10,10 @@ launch() {
 	) &
 }
 
-export RLS_RUNTIME_DIR=/run/amb/config
-mkdir -p /run/amb
+RUN_DIR=/tmp/amb
+mkdir -p ${RUN_DIR}
+
+export RLS_RUNTIME_DIR=${RUN_DIR}/config
 
 # Launch each of the worker processes
 if test -z "$REDIS_URL"; then
@@ -20,7 +22,7 @@ else
 	# Setting the PORT is important only because the default PORT
 	# is 8080, which would clash with non-root-Ambassador when
 	# running as a sidecar.
-	launch USE_STATSD=false RUNTIME_ROOT=/run/amb/config RUNTIME_SUBDIRECTORY=config PORT=7000 "$exe" ratelimit
+	launch USE_STATSD=false RUNTIME_ROOT=${RUN_DIR}/config RUNTIME_SUBDIRECTORY=config PORT=7000 "$exe" ratelimit
 fi
 launch "$exe" main
 
