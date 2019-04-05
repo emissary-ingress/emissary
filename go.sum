@@ -54,6 +54,10 @@ github.com/datawire/teleproxy v0.3.16 h1:H9bXuDlyBQs0UR9RjOlKMFUYHTnswS4yyegVKn3
 github.com/datawire/teleproxy v0.3.16/go.mod h1:EbUA710RQ3uxRViAj9F6TC6O1wKhX4oLYamKifKbdzM=
 github.com/datawire/vegeta v12.2.2-0.20190403143047-99c4b3221721+incompatible h1:JDVArHAPxv9N5L697E6Vtnt4DHjsLxLL+8onf6wXK+Q=
 github.com/datawire/vegeta v12.2.2-0.20190403143047-99c4b3221721+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
+github.com/datawire/vegeta v12.2.2-0.20190404141942-8fbfd95c2eaa+incompatible h1:FQPPQ8D2tZhz5I4z2B1g5bUF/elc0b0qqcCQ0p68h4Q=
+github.com/datawire/vegeta v12.2.2-0.20190404141942-8fbfd95c2eaa+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
+github.com/datawire/vegeta v12.2.2-0.20190405145440-ca2efc6909c1+incompatible h1:EsZxDOo8aeUJuVYEAep4I/189J4+LFF7OsiaRs5b1gE=
+github.com/datawire/vegeta v12.2.2-0.20190405145440-ca2efc6909c1+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

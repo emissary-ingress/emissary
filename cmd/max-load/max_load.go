@@ -112,6 +112,9 @@ func RunTestRaw(tc TestCase) TestResult {
 			res.Error = ""
 		default:
 		}
+		if overloaded := res.Header.Get("x-envoy-overloaded"); overloaded != "" {
+			res.Error += " (x-envoy-overloaded: " + overloaded + ")"
+		}
 		if res.Error != "" {
 			res.Error = sourcePortRE.ReplaceAllString(res.Error, ":XYZ->")
 			n := errs[res.Error]

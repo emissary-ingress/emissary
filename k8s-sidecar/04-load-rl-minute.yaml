@@ -33,5 +33,5 @@ spec:
   domain: ambassador
   limits:
    - pattern: [{generic_key: minute}]
-     rate: 3000
+     rate: 30000
      unit: minute
