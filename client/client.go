@@ -296,7 +296,7 @@ func (q Query) AddResponse(resp *http.Response) {
 				log.Printf("Failed to unmarshal proto: %v", err)
 				return
 			}
-			result["json"] = response
+			result["text"] = response // q.r.json needs a different format
 			return
 		}
 		var jsonBody interface{}
@@ -481,7 +481,7 @@ func CallRealGRPC(query Query) {
 	result["body"] = ""
 	result["status"] = 200
 	if err == nil {
-		result["json"] = response
+		result["text"] = response // q.r.json needs a different format
 	}
 
 	// Stuff that's not available:
@@ -491,7 +491,7 @@ func CallRealGRPC(query Query) {
 	//   tests and the latter can be handy)
 	// - query.result.body (the raw HTTP body)
 	// - query.result.json or query.result.text (the parsed HTTP body -- we're
-	//   emitting the full EchoResponse object in the json field)
+	//   emitting the full EchoResponse object in the text field)
 }
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
