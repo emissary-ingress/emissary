@@ -54,13 +54,13 @@ class V2Bootstrap(dict):
             assert tracing.cluster
             clusters.append(V2Cluster(config, typecast(IRCluster, tracing.cluster)))
 
-        if config.ratelimit:
-            self['rate_limit_service'] = dict(config.ratelimit)
-
-            ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
-
-            assert ratelimit.cluster
-            clusters.append(V2Cluster(config, ratelimit.cluster))
+        # if config.ratelimit:
+        #     self['rate_limit_service'] = dict(config.ratelimit)
+        #
+        #     ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
+        #
+        #     assert ratelimit.cluster
+        #     clusters.append(V2Cluster(config, ratelimit.cluster))
 
         if config.ir.statsd['enabled']:
             self['stats_sinks'] = [

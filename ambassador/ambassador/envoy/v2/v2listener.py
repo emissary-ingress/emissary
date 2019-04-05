@@ -82,7 +82,9 @@ ExtAuthRequestHeaders = {
 
 
 @multi
-def v2filter(irfilter: IRFilter):
+def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     if irfilter.kind == 'IRAuth':
         if irfilter.api_version == 'ambassador/v1':
             return 'IRAuth_v1'
@@ -95,7 +97,9 @@ def v2filter(irfilter: IRFilter):
         return irfilter.kind
 
 @v2filter.when("IRBuffer")
-def v2filter_buffer(buffer: IRBuffer):
+def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.buffer',
         'config': {
@@ -104,14 +108,20 @@ def v2filter_buffer(buffer: IRBuffer):
     }
 
 @v2filter.when("ir.grpc_http1_bridge")
-def v2filter_grpc_http1_bridge(irfilter: IRFilter):
+def v2filter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
+    del irfilter  # silence unused-variable warning
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.grpc_http1_bridge',
-       'config': {},
+        'config': {},
     }
 
 @v2filter.when("ir.grpc_web")
-def v2filter_grpc_web(irfilter: IRFilter):
+def v2filter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
+    del irfilter  # silence unused-variable warning
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.grpc_web',
         'config': {},
@@ -133,7 +143,9 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
     return server_uri
 
 @v2filter.when("IRAuth_v0")
-def v2filter_authv0(auth: IRAuth):
+def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
     
@@ -190,7 +202,9 @@ def v2filter_authv0(auth: IRAuth):
 
 
 @v2filter.when("IRAuth_v1")
-def v2filter_authv1(auth: IRAuth):
+def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
@@ -273,7 +287,7 @@ def v2filter_authv1(auth: IRAuth):
 
 
 @v2filter.when("IRRateLimit")
-def v2filter_ratelimit(ratelimit: IRRateLimit):
+def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     config = dict(ratelimit.config)
 
     if 'timeout_ms' in config:
@@ -281,21 +295,26 @@ def v2filter_ratelimit(ratelimit: IRRateLimit):
 
         config['timeout'] = "%0.3fs" % (float(tm_ms) / 1000.0)
 
+    config['rate_limit_service'] = dict(v2config.ratelimit)
+
     return {
         'name': 'envoy.rate_limit',
-        'config': config
+        'config': config,
     }
 
 
 @v2filter.when("ir.cors")
-def v2filter_cors(cors: IRCORS):
+def v2filter_cors(cors: IRCORS, v2config: 'V2Config'):
     del cors    # silence unused-variable warning
+    del v2config  # silence unused-variable warning
 
     return { 'name': 'envoy.cors' }
 
 
 @v2filter.when("ir.router")
-def v2filter_router(router: IRFilter):
+def v2filter_router(router: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     od: Dict[str, Any] = { 'name': 'envoy.router' }
 
     if router.ir.tracing:
@@ -305,7 +324,9 @@ def v2filter_router(router: IRFilter):
 
 
 @v2filter.when("ir.lua_scripts")
-def v2filter_lua(irfilter: IRFilter):
+def v2filter_lua(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.lua',
         'config': irfilter.config_dict(),
@@ -441,7 +462,7 @@ class V2Listener(dict):
 
             # Assemble filters
             for f in config.ir.filters:
-                v2f: dict = v2filter(f)
+                v2f: dict = v2filter(f, config)
 
                 if v2f:
                     self.http_filters.append(v2f)
