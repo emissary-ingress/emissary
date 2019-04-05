@@ -121,7 +121,7 @@ ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.9.0-619
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
-# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
+# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-7
 AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-7
@@ -154,7 +154,6 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf docs/node_modules
-	-rm -rf kat/kat/client
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
@@ -297,14 +296,16 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(PWD)/kat/kat/client $(TELEPROXY) $(KUBERNAUT) version
+KAT_CLIENT=venv/bin/kat_client
 
-$(PWD)/kat/kat/client:
-	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz 
+$(KAT_CLIENT):
+	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
 	tar xzf v$(KAT_BACKEND_RELEASE).tar.gz
 	chmod +x kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
-	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/kat/kat/client
+	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/$(KAT_CLIENT)
 	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
+
+setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) version
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
