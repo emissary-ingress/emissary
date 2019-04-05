@@ -24,7 +24,6 @@ from t_extauth import (
     AuthenticationTestV1,	
     AuthenticationHTTPBufferedTest,	
     AuthenticationWebsocketTest,
-    AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
 from t_lua_scripts import LuaTest

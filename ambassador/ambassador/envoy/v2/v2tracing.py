@@ -35,9 +35,16 @@ class V2Tracing(dict):
         if not name.startswith('envoy.'):
             name = 'envoy.%s' % (name.lower())
 
+        driver_config = tracing['driver_config']
+
+        if name.lower() == 'envoy.zipkin':
+            # The collector_endpoint is mandatory now.
+            if not driver_config.get('collector_endpoint'):
+                driver_config['collector_endpoint'] = '/api/v1/spans'
+
         self['http'] = {
             "name": name,
-            "config": tracing['driver_config'],
+            "config": driver_config
         }
 
     @classmethod
