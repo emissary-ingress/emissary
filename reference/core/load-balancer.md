@@ -11,6 +11,11 @@ load_balancer:
   policy: <load balancing policy to use>
 ```
 
+Supported load balancer policies:
+- `round_robin`
+- `ring_hash`
+- `maglev`
+
 ### Round Robin
 When policy is set to `round_robin`, Ambassador discovers healthy endpoints for the given mapping, and load balances the incoming requests in a round robin fashion. For example:
 
@@ -41,6 +46,9 @@ Configuring sticky sessions makes Ambassador route requests to the same backend 
 - Cookie
 - Header
 - Source IP
+
+**NOTE:** Ambassador supports sticky sessions using 2 load balancing policies, `ring_hash` and `maglev`.
+
 
 ##### Cookie
 ```yaml
