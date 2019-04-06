@@ -1,16 +1,30 @@
-# import json
-# import pytest
-# import os
-#
-# from typing import ClassVar, Dict, Sequence, Tuple, Union
-
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import ServiceType
 
-from test_ambassador import BACKEND_POD
 
+LOADBALANCER_POD = """
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {name}
+  labels:
+    backend: {backend}
+    scope: AmbassadorTest
+spec:
+  containers:
+  - name: backend
+    image: quay.io/datawire/kat-backend:11
+    ports:
+    - containerPort: 8080
+    env:
+    - name: BACKEND_8080
+      value: {backend_env}
+    - name: BACKEND_8443
+      value: {backend_env}
+"""
 
 class LoadBalancerTest(AmbassadorTest):
     target: ServiceType
@@ -127,9 +141,9 @@ class GlobalLoadBalancing(AmbassadorTest):
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
         return super().manifests() + \
-               BACKEND_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
-               BACKEND_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
-               BACKEND_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
+               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
+               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
+               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
 ---
 apiVersion: v1
 kind: Service
@@ -271,6 +285,7 @@ service: globalloadbalancing-service
 class PerMappingLoadBalancing(AmbassadorTest):
     target: ServiceType
     enable_endpoints = True
+    policy: str
 
     def init(self):
         self.target = HTTP()
@@ -278,9 +293,9 @@ class PerMappingLoadBalancing(AmbassadorTest):
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
         return super().manifests() + \
-               BACKEND_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
-               BACKEND_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
-               BACKEND_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
+               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
+               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
+               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
 ---
 apiVersion: v1
 kind: Service

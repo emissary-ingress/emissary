@@ -1,9 +1,13 @@
 import json
-from typing import ClassVar, Sequence, Dict
-
 import pytest
-from abstract_tests import OptionTest, MappingTest
-from harness import Test, Query
+
+from typing import ClassVar, Dict, Sequence
+
+from kat.harness import Query, Test
+
+from abstract_tests import MappingTest, OptionTest
+
+# This is the place to add new OptionTests.
 
 
 class AddRequestHeaders(OptionTest):

@@ -1,6 +1,19 @@
-from abstract_tests import MappingTest, AmbassadorTest, ServiceType, OptionTest, HTTP
-from harness import variants, Query
-from test_ambassador import unique
+from kat.harness import variants, Query
+
+from abstract_tests import AmbassadorTest, HTTP
+from abstract_tests import MappingTest, OptionTest, ServiceType
+
+# This is the place to add new MappingTests.
+
+
+def unique(options):
+    added = set()
+    result = []
+    for o in options:
+        if o.__class__ not in added:
+            added.add(o.__class__)
+            result.append(o)
+    return tuple(result)
 
 
 class SimpleMapping(MappingTest):

@@ -1,5 +1,7 @@
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from harness import Query
+from kat.harness import Query
+
+from abstract_tests import AmbassadorTest, HTTP
+from abstract_tests import ServiceType
 
 
 class RedirectTests(AmbassadorTest):
@@ -58,8 +60,8 @@ config:
         # TODO (concaf): FWIW, this query only covers one side of the story. This tests that this is the correct
         #  deviation from the normal behavior (301 response), but does not test a 301 when proxy proto is actually sent.
         #  This is because net/http does not yet support adding proxy proto to HTTP requests, and hence it's difficult
-        #  to test with kat. We will need to open a raw TCP connection (e.g. telnet/nc) and send the entire HTTP Request in
-        #  plaintext to test this behavior (or use curl with --haproxy-protocol).
+        #  to test with kat. We will need to open a raw TCP connection (e.g. telnet/nc) and send the entire HTTP Request
+        #  in plaintext to test this behavior (or use curl with --haproxy-protocol).
         yield Query(self.url("tls-target/"), error="EOF")
 
 

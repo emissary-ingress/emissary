@@ -1,7 +1,8 @@
-from typing import Union, Tuple
+from typing import Tuple, Union
 
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from harness import Node, Query
+from kat.harness import Query
+
+from abstract_tests import AmbassadorTest, HTTP, Node, ServiceType
 
 
 class Empty(AmbassadorTest):

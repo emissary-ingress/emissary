@@ -1,9 +1,46 @@
 import os
 
-from abstract_tests import AmbassadorTest, HTTP, DEV
-from harness import Query
-from manifests import RBAC_CLUSTER_SCOPE, AMBASSADOR
-from test_ambassador import GRAPHITE_CONFIG
+from kat.harness import Query
+from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
+
+from abstract_tests import DEV, AmbassadorTest, HTTP
+
+
+GRAPHITE_CONFIG = """
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {0}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: {0}
+    spec:
+      containers:
+      - name: {0}
+        image: hopsoft/graphite-statsd:v0.9.15-phusion0.9.18
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {0}
+  name: {0}
+spec:
+  ports:
+  - protocol: UDP
+    port: 8125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 80
+    name: graphite-www
+  selector:
+    service: {0}
+"""
 
 
 class StatsdTest(AmbassadorTest):

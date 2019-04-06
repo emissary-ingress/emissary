@@ -1,7 +1,11 @@
-from typing import Union, Tuple
+from typing import Tuple, Union
 
-from abstract_tests import AmbassadorTest, MappingTest
-from harness import variants, Node, Query
+from kat.harness import variants, Query
+
+from abstract_tests import AmbassadorTest
+from abstract_tests import MappingTest, Node
+
+# Plain is the place that all the MappingTests get pulled in.
 
 
 class Plain(AmbassadorTest):
