@@ -144,9 +144,17 @@ Tests consume quite a lot of resources, so make sure you allocate them according
 1. Start minikube
 2. To build images directly into your minikube instance, set `DOCKER_REGISTRY=-` and point your docker client to docker daemon running inside minikube by running the command `eval $(minikube docker-env)`
 3. Point `KUBECONFIG` to minikube, generally using `export KUBECONFIG=~/.kube/config`
-4. Since everything is being run locally, you don't need a Kubernetes cluser using kubernaut. Set `USE_KUBERNAUT=false`
+4. Since everything is being run locally, you don't need a Kubernetes cluser using kubernaut. Set `USE_KUBERNAUT=false`.
 
 That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
+
+#### `ambassador dump``
+
+The `ambassador dump` function (run from a `make shell`) will export the full Envoy v2 configuration. Create a directory with one or more Ambassador configuration resources. Then, run:
+
+`ambassador dump --ir --v2 $configdir > test.json` 
+
+which will export the Ambassador IR and v2 Envoy configuration into `test.json`. If your configuration directory contains annotated Kubernetes resources, you should also pass a `--k8s` flag to `dump`. 
 
 Version Numbering
 -----------------
