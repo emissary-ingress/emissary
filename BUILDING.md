@@ -3,23 +3,35 @@ Building Ambassador
 
 If you just want to **use** Ambassador, check out https://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
 
-TL;DR for Code Changes
-----------------------
+Quick setup
+-----------
 
-If you're making a code change:
+Building Ambassador is straightforward:
 
 ```
 git clone https://github.com/datawire/ambassador
 cd ambassador
-# Development should be on branches based on the `master` branch
 git checkout master
 git checkout -b username/feature/my-branch-here
-make DOCKER_REGISTRY=-
+make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> docker-images
 ```
 
-That will build an Ambassador Docker image for you but not push it anywhere. To actually push the image into a registry so that you can use it for Kubernetes, set `DOCKER_REGISTRY` to a registry that you have permissions to push to.
+This will build a Docker image of Ambassador containing your code changes for yoiur given registry. After `make` is completed, run `docker push` to push the image to a registry and deploy the new image onto your cluster.
 
 **It is important to use `make` rather than trying to just do a `docker build`.** Actually assembling a Docker image for Ambassador involves quite a few steps before the image can be built.
+
+Running tests
+-------------
+
+Ambassador is infrastructure software, so robust testing is a must. To build Ambassador *and* run all all the regression tests, run `make` with the following arguments:
+
+```
+make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> USE_KUBERNAUT=false KUBECONFIG=<YOUR KUBE CONFIG>
+```
+
+The regression tests need a Kubernetes cluster to run. By default, Datawire developers use our on-demand Kubernetes cluster system, Kubernaut. You'll want to use your own Kubernetes cluster, so point `make` to the appropriate `KUBECONFIG`. Make sure your Kubernetes cluster can access images on your Docker registry.
+
+When the tests are run, your local machine will start `teleproxy`, a high-performance variant of [Telepresence](https://www.telepresence.io) to bridge your local machine to the Ambassador instance running in your Kubernetes cluster. Your local machine will then send a large number of requests to the remote Ambassador instance which will then be validated as part of the test suite.
 
 If you want to make a doc change, see the `Making Documentation-Only Changes` section below.
 
@@ -63,8 +75,7 @@ tied to a future feature, you'll need to make your change directly in the
 `datawire/ambassador-docs` repository. Clone that repository and check out
 its `README.md`. 
 
-(It is technically possible to make these changes from the `ambassador` repo. Please don't, unless you're fixing docs for an upcoming feature that hasn't yet
-shipped.)
+(It is technically possible to make these changes from the `ambassador` repo. Please don't, unless you're fixing docs for an upcoming feature that hasn't yet shipped.)
 
 Developer Quickstart/Inner Loop
 -------------------------------
