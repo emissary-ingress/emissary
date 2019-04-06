@@ -148,8 +148,6 @@
               link: /reference/services/tracing-service
         - title: Filters
           link: /reference/filter-reference
-        - title: Advanced configuration topics
-          link: /reference/advanced
     - title: Running Ambassador
       link: /reference/running
       items:
