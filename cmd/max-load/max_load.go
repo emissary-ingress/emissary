@@ -3,9 +3,12 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"regexp"
@@ -15,24 +18,160 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/pflag"
 	vegeta "github.com/tsenart/vegeta/lib"
 )
 
-const (
-	// Require TuneCooldownRequests consecutive successful requests with per-TuneCooldownPeriod
-	// p95 latency < TuneCooldownMaxLatency in order to be considered "cooled down".
+var Args = struct {
+	URL string
 
-	TuneCooldownMaxLatency = 10 * time.Millisecond
-	TuneCooldownPeriod     = 2 * time.Second
-	// Use an RPS for which it is likely that `latency*rps < 1.0`.  10ms latency seems
-	// reasonable under non-load, so 1.0/10ms gives us 100rps.
-	TuneCooldownRPS = 100
-	// Anecdotally, 500 seems too short for reliable client-cooldown (but maybe the newer
-	// TuneCooldownMaxLatency requirements help mitigate that?).  1000 seems too be spending too
-	// much time staring at the screen, waiting for it to move on.  800 is a decent-ish
-	// compromise?
-	TuneCooldownRequests = 800
-)
+	MaxLatency     time.Duration
+	MinSuccessRate float64
+	EnableHTTP2    bool
+
+	CooldownMaxLatency time.Duration
+	CooldownRPS        uint
+	CooldownRequests   uint64
+}{}
+
+func parseArgs(args []string) {
+	parser := pflag.NewFlagSet("", pflag.ContinueOnError)
+	usage := fmt.Sprintf(`Usage: %s [OPTIONS] URL
+Attempt to determine the maximum load that URL can handle
+
+You may specify and ordinary http:// or https:// URL to have direct
+absolute control over what it speaks to.  Alternatively, you may
+prefix the URL with "nodeport+" to have it resolve a NodePort service:
+
+    nodeport+https://SERVICE[.NAMESPACE][:PORTNAME]/PATH
+
+If no PORTNAME is specified with a nodeport+ url, "http" or "https" is
+used (depending on the URL scheme).
+
+TODO: support "loadbalancer+" for LoadBalancer services.
+`, os.Args[0])
+
+	generalParser := pflag.NewFlagSet("", pflag.ContinueOnError)
+	usage += `
+OPTIONS (general):
+
+  "so I asked richard for a latency budget, and he suggested 40ms
+  total as a starting point" -- rhs
+
+`
+	generalParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful during load-testing; use 0 to disable latency checks")
+	generalParser.Float64Var(&Args.MinSuccessRate, "min-success-rate", 0.95, "The required success rate for a given phase")
+	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
+	help := false
+	generalParser.BoolVarP(&help, "help", "h", false, "Show this message")
+	usage += generalParser.FlagUsagesWrapped(70)
+	parser.AddFlagSet(generalParser)
+
+	cooldownParser := pflag.NewFlagSet("", pflag.ContinueOnError)
+	usage += `
+OPTIONS (cooldown):
+
+  During cooldown periods, require ${cooldown-requests} consecutive
+  successful requests with latency < ${cooldown-max-latency} at
+  ${cooldown-rps} in order to be considered "cooled down".
+
+  In order do avoid either stressing either Envoy or the local client
+  with new TCP connections, the ${cooldown-rps} should be low enough
+  that it is likely that ` + "`latency*rps < 1.0`" + `.  10ms latency
+  seems reasonable under non-load, so 1.0/10ms gives us 100rps as the
+  default.
+
+  Anecdotally, 500 seems too short for reliable client-cooldown (but
+  maybe the newer ${cooldown-max-latency} requirement means it's more
+  reliable now?).  1000 seems too be spending too much time staring at
+  the screen, waiting for it to move on.  800 is a decent-ish
+  compromise?
+
+`
+	cooldownParser.DurationVar(&Args.CooldownMaxLatency, "cooldown-max-latency", 10*time.Millisecond, "Maximum latency to consider successful during cooldown; use 0 to disable latency checks")
+	cooldownParser.UintVar(&Args.CooldownRPS, "cooldown-rps", 100, "Requests per second during cooldown")
+	cooldownParser.Uint64Var(&Args.CooldownRequests, "cooldown-requests", 800, "When to consider cooldown complete")
+	usage += cooldownParser.FlagUsagesWrapped(70)
+	parser.AddFlagSet(cooldownParser)
+
+	if err := parser.Parse(args); err != nil {
+		errusage(err)
+	}
+	if help {
+		io.WriteString(os.Stdout, usage)
+		os.Exit(0)
+	}
+	if parser.NArg() != 1 {
+		errusage(errors.Errorf("expected 1 argument, got %d: %q", parser.NArg(), parser.Args()))
+	}
+	uStr := parser.Arg(0)
+	u, err := url.Parse(uStr)
+	if err != nil {
+		errusage(errors.Wrap(err, "bad URL"))
+	}
+	if strings.HasPrefix(u.Scheme, "nodeport+") {
+		// parse out our bits of the URL
+		var service, namespace string
+		hostparts := strings.Split(u.Hostname(), ".")
+		switch len(hostparts) {
+		case 1:
+			service = hostparts[0]
+		case 2:
+			service = hostparts[0]
+			namespace = hostparts[1]
+		default:
+			errusage(errors.Errorf("invalid number of segments in %s://SERVICE[.NAMESPACE] URL hostname", u.Scheme))
+		}
+		scheme := strings.TrimPrefix(u.Scheme, "nodeport+")
+		portname := u.Port()
+		if portname == "" {
+			portname = scheme
+		}
+
+		// use kubectl to resolve everything
+		var nodeIP string
+		cmd := exec.Command("kubectl", "config", "view", "--output=go-template", "--template={{range .clusters}}{{.cluster.server}}{{end}}")
+		cmd.Stderr = os.Stderr
+		bs, err := cmd.Output()
+		if err != nil {
+			errfatal(errors.Wrap(err, "kubectl config view"))
+		}
+		for _, line := range strings.Split(string(bs), "\n") {
+			clusterURL, err := url.Parse(line)
+			if err != nil {
+				errfatal(errors.Wrap(err, "invalid server URL in kubeconfig"))
+			}
+			nodeIP = clusterURL.Hostname()
+		}
+		cmdargs := []string{"kubectl", "get", "service", service, "--output=go-template", fmt.Sprintf("--template={{range .spec.ports}}{{if eq .name %q}}{{.nodePort}}{{end}}{{end}}", portname)}
+		if namespace != "" {
+			cmdargs = append(cmdargs, "--namespace="+namespace)
+		}
+		cmd = exec.Command(cmdargs[0], cmdargs[1:]...)
+		cmd.Stderr = os.Stderr
+		bs, err = cmd.Output()
+		if err != nil {
+			errfatal(errors.Wrap(err, "kubectl get service"))
+		}
+		nodePort := strings.TrimSpace(string(bs))
+
+		// build the new final URL
+		u.Scheme = scheme
+		u.Host = net.JoinHostPort(nodeIP, nodePort)
+	}
+	Args.URL = u.String()
+}
+
+func errusage(err error) {
+	fmt.Fprintf(os.Stderr, "%s: %v\nTry '%s --help' for more information.\n", os.Args[0], err, os.Args[0])
+	os.Exit(2)
+}
+
+func errfatal(err error) {
+	fmt.Fprintf(os.Stderr, "fatal: %v\n", err)
+	os.Exit(1)
+}
 
 func maxFiles() int {
 	var rlimit syscall.Rlimit
@@ -162,10 +301,10 @@ func RunTest(url string, rate int) bool {
 		// failure), but also (2) to let the client cool down and for any dangling but not
 		// keep-alive connections die.
 		var passed uint64
-		for passed < TuneCooldownRequests {
+		for passed < Args.CooldownRequests {
 			runtime.GC()
-			cooldown := RunTestRaw(TestCase{URL: url, RPS: TuneCooldownRPS, Duration: TuneCooldownPeriod})
-			if cooldown.Passed() && cooldown.Latency < TuneCooldownMaxLatency {
+			cooldown := RunTestRaw(TestCase{URL: url, RPS: int(Args.CooldownRPS), Duration: time.Second})
+			if cooldown.Passed() && cooldown.Latency < Args.CooldownMaxLatency {
 				passed += cooldown.Requests
 			} else {
 				passed = 0
@@ -183,48 +322,9 @@ func RunTest(url string, rate int) bool {
 	}
 }
 
-func usage() {
-	fmt.Printf("Usage: %s [namespace] request_path\n", os.Args[0])
-	fmt.Printf("   Or: %s url\n", os.Args[0])
-}
-
-func parseArgs(args []string) string {
-	var argNamespace string
-	var argPath string
-	switch len(args) {
-	case 0:
-		usage()
-		os.Exit(2)
-	case 1:
-		if strings.HasPrefix(args[0], "http://") || strings.HasPrefix(args[0], "https://") {
-			return args[0]
-		}
-		argNamespace = "default"
-		argPath = args[0]
-	case 2:
-		argNamespace = args[0]
-		argPath = args[1]
-	default:
-		usage()
-		os.Exit(2)
-	}
-
-	var nodeIP string
-	bs, _ := exec.Command("kubectl", "config", "view", "--output=go-template", "--template={{range .clusters}}{{.cluster.server}}{{end}}").Output()
-	for _, line := range strings.Split(string(bs), "\n") {
-		parts := strings.Split(strings.TrimPrefix(line, "https://"), ":")
-		nodeIP = parts[0]
-	}
-
-	bs, _ = exec.Command("kubectl", "--namespace="+argNamespace, "get", "service", "ambassador", "--output=go-template", "--template={{range .spec.ports}}{{if eq .name \"https\"}}{{.nodePort}}{{end}}{{end}}").Output()
-	nodePort := strings.TrimSpace(string(bs))
-
-	return "https://" + nodeIP + ":" + nodePort + argPath
-}
-
 func main() {
-	argURL := parseArgs(os.Args[1:])
-	fmt.Println("url =", argURL)
+	parseArgs(os.Args[1:])
+	fmt.Println("url =", Args.URL)
 
 	rate := 100
 	okRate := 1
@@ -232,7 +332,7 @@ func main() {
 
 	// first, find the point at which the system breaks
 	for {
-		if RunTest(argURL, rate) {
+		if RunTest(Args.URL, rate) {
 			okRate = rate
 			rate *= 2
 		} else {
@@ -244,7 +344,7 @@ func main() {
 	// next, do a binary search between okRate and nokRate
 	for (nokRate - okRate) > 1 {
 		rate = (nokRate + okRate) / 2
-		if RunTest(argURL, rate) {
+		if RunTest(Args.URL, rate) {
 			okRate = rate
 		} else {
 			nokRate = rate
