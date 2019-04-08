@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func Main(version string) {
+func Main(version string, diagdURL string, ambassadorURL string, publicURL string) {
 	s := NewServer()
 
 	serviceMap := s.K8sStore.List()
@@ -17,8 +17,7 @@ func Main(version string) {
 	}
 	fetcher := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), knownServices,
-		"http://192.168.39.80:31320", "http://192.168.39.80:31320",
-		time.Second*5, "https://myapi.woot.example.com")
+		diagdURL, ambassadorURL, time.Second*5, publicURL)
 	defer fetcher.Stop()
 	s.ServeHTTP()
 }
