@@ -22,7 +22,7 @@ func main() {
 		// The default service name and namespace for Ambassador:
 		ambassadorURL = "http://ambassador.default"
 	}
-	publicURL, set = os.LookupEnv("PUBLIC_URL")
+	publicURL, set = os.LookupEnv("PUBLIC_API_URL")
 	if !set {
 		// We need whoever is installing the Dev Portal to supply this,
 		// but since it ends up in documentation only it's OK to have a

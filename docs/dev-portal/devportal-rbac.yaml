@@ -55,7 +55,7 @@ kind: Deployment
 metadata:
   name: devportal
 spec:
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -63,6 +63,34 @@ spec:
     spec:
       serviceAccountName: devportal
       containers:
+      - name: devportal
+        image: quay.io/ambassador/ambassador_pro:dev-portal-server-0.3.0
+        imagePullPolicy: IfNotPresent
+        env:
+          # Change this to the main public address for your API (i.e. the
+          # default address exposed by Ambassador):
+          - name: PUBLIC_API_URL
+            value: "https://api.example.com"
+          # Change this if you ran Ambassador in a service+namespace that is
+          # not "ambassador.default"; this is the internal Kubernetes address:
+          - name: AMBASSADOR_URL
+            value: "http://ambassador.default"
+        ports:
+        - name: devportal-ui
+          containerPort: 8680
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8680
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8680
+          initialDelaySeconds: 30
+          periodSeconds: 3
+   
       - name: ambassador
         image: quay.io/datawire/ambassador:0.53.1
         resources:
