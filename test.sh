@@ -1,4 +1,5 @@
 #!/bin/sh
+make claim
 export KUBECONFIG=$PWD/build-aux/ambassador-pro.knaut
 ./bin_linux_amd64/max-load --csv-file=00-backend-http1.csv --enable-http2=false nodeport+http://load-http-echo.no-pro/load-testing/base/
 #./bin_linux_amd64/max-load --csv-file=01-oss-http1.csv    --enable-http2=false nodeport+http://ambassador.no-pro/load-testing/base/
