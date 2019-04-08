@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"flag"
@@ -208,6 +209,58 @@ func (q Query) CheckErr(err error) bool {
 	return false
 }
 
+// DecodeGrpcWebTextBody treats the body as a series of base64-encode chunks. It
+// returns the decoded proto and trailers.
+func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
+	// Process base64 blob into gRPC chunks
+	var chunks [][]byte
+	for {
+		if len(body) <= 0 {
+			break
+		}
+		buf := make([]byte, base64.StdEncoding.DecodedLen(len(body)))
+		n, err := base64.StdEncoding.Decode(buf, body)
+		if err != nil && n <= 0 {
+			log.Printf("Failed to process body: %v\n", err)
+			return nil, nil, err
+		}
+		chunk := buf[:n]
+		chunks = append(chunks, chunk)
+		consumed := base64.StdEncoding.EncodedLen(n)
+		body = body[consumed:]
+	}
+
+	trailers := make(http.Header)
+	var proto []byte
+
+	// Segregate chunks into protos and trailer. Either the body is empty or
+	// there should be exactly one of each. We assume that but do not verify it.
+	for _, chunk := range chunks {
+		if len(chunk) == 0 {
+			// Not sure why this would happen...
+			continue
+		}
+		if (chunk[0] & 128) > 0 {
+			// Trailers chunk
+			data := string(chunk[5:])
+			lines := strings.Split(data, "\n")
+			for _, line := range lines {
+				split := strings.SplitN(strings.TrimSpace(line), ":", 2)
+				if len(split) == 2 {
+					key := strings.TrimSpace(split[0])
+					value := strings.TrimSpace(split[1])
+					trailers.Add(key, value)
+				}
+			}
+		} else {
+			// Message chunk
+			proto = chunk
+		}
+	}
+
+	return proto, trailers, nil
+}
+
 // AddResponse populates a query's result with data from the query's HTTP
 // response object.
 func (q Query) AddResponse(resp *http.Response) {
@@ -221,6 +274,31 @@ func (q Query) AddResponse(resp *http.Response) {
 	if !q.CheckErr(err) {
 		log.Printf("%v: %v", q.URL(), resp.Status)
 		result["body"] = body
+		if q.GrpcType() != "" && len(body) > 5 {
+			if q.GrpcType() == "web" {
+				decodedBody, trailers, err := DecodeGrpcWebTextBody(body)
+				if q.CheckErr(err) {
+					log.Printf("Failed to decode grpc-web-text body: %v", err)
+					return
+				}
+				body = decodedBody
+				headers := result["headers"].(http.Header)
+				for key, values := range trailers {
+					for _, value := range values {
+						headers.Add(key, value)
+					}
+				}
+
+			}
+			response := &grpc_echo_pb.EchoResponse{}
+			err := proto.Unmarshal(body[5:], response)
+			if q.CheckErr(err) {
+				log.Printf("Failed to unmarshal proto: %v", err)
+				return
+			}
+			result["text"] = response // q.r.json needs a different format
+			return
+		}
 		var jsonBody interface{}
 		err = json.Unmarshal(body, &jsonBody)
 		if err == nil {
@@ -275,10 +353,10 @@ func ExecuteWebsocketQuery(query Query) {
 	}
 }
 
-// GetGRPCBridgeReqBody returns the body of the HTTP request using the
+// GetGRPCReqBody returns the body of the HTTP request using the
 // HTTP/1.1-gRPC bridge format as described in the Envoy docs
 // https://www.envoyproxy.io/docs/envoy/v1.9.0/configuration/http_filters/grpc_http1_bridge_filter
-func GetGRPCBridgeReqBody() (*bytes.Buffer, error) {
+func GetGRPCReqBody() (*bytes.Buffer, error) {
 	// Protocol:
 	// 	. 1 byte of zero (not compressed).
 	// 	. network order (big-endian) of proto message length.
@@ -391,36 +469,29 @@ func CallRealGRPC(query Query) {
 		return
 	}
 
-	// Now process the response and err objects. Save the request headers, as
-	// echoed and modified by the service, as if they were the HTTP response
-	// headers. This is bogus, but I'm not sure what else to put here. Then
-	// add/modify header values based on what occurred so that the tests can
-	// assert on that information. Also set other result fields by synthesizing
-	// what the HTTP response values might have been.
+	// Now process the response and synthesize the requisite result values.
 	// Note: Don't set result.body to anything that cannot be decoded as base64,
 	// or the kat harness will fail.
-	resHeaderMap := response.GetResponse().GetHeaders()
 	resHeader := make(http.Header)
-	for key, val := range resHeaderMap {
-		resHeader.Add(key, val)
-	}
 	resHeader.Add("Grpc-Status", fmt.Sprint(grpcCode))
 	resHeader.Add("Grpc-Message", stat.Message())
 
 	result := query.Result()
 	result["headers"] = resHeader
 	result["body"] = ""
-	result["text"] = "body/text not supported with grpc"
 	result["status"] = 200
+	if err == nil {
+		result["text"] = response // q.r.json needs a different format
+	}
 
 	// Stuff that's not available:
 	// - query.result.status (the HTTP status -- synthesized as 200)
-	// - query.result.headers (the HTTP response headers -- we're faking this
-	//   field by including the response object's headers, which are the same as
-	//   the request headers modulo modification via "requested-headers"
-	//   handling by the echo service)
+	// - query.result.headers (the HTTP response headers -- we're just putting
+	//   in grpc-status and grpc-message as the former is required by the
+	//   tests and the latter can be handy)
 	// - query.result.body (the raw HTTP body)
-	// - query.result.json or query.result.text (the parsed HTTP body)
+	// - query.result.json or query.result.text (the parsed HTTP body -- we're
+	//   emitting the full EchoResponse object in the text field)
 }
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
@@ -473,12 +544,17 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	// Prepare the HTTP request
 	var body io.Reader
 	method := query.Method()
-	if query.GrpcType() == "bridge" {
-		// Perform special handling for gRPC-bridge
-		buf, err := GetGRPCBridgeReqBody()
+	if query.GrpcType() != "" {
+		// Perform special handling for gRPC-bridge and gRPC-web
+		buf, err := GetGRPCReqBody()
 		if query.CheckErr(err) {
-			log.Printf("gRPC-bridge buffer error: %v", err)
+			log.Printf("gRPC buffer error: %v", err)
 			return
+		}
+		if query.GrpcType() == "web" {
+			result := make([]byte, base64.StdEncoding.EncodedLen(buf.Len()))
+			base64.StdEncoding.Encode(result, buf.Bytes())
+			buf = bytes.NewBuffer(result)
 		}
 		body = buf
 		method = "POST"
