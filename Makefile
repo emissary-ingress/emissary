@@ -117,14 +117,14 @@ NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
 # BELOW AND THEN RUN make docker-update-base
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.8.0-15c5befd43fb9ee9b145cc87e507beb801726316-15-ga0d95bafb
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.9.0-619-g5830eaa1d
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-6
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-6
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-7
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-7
 
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
 USE_KUBERNAUT ?= true
@@ -447,7 +447,7 @@ push-docs:
 		git fetch https://github.com/datawire/ambassador-docs master && \
 		docs_old=$$(git rev-parse FETCH_HEAD) && \
 		docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}") && \
-		git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:$(or $(PUSH_BRANCH),master)"; \
+		git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
 	}
 .PHONY: pull-docs push-docs
 

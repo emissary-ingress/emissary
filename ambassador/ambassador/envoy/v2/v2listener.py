@@ -82,7 +82,9 @@ ExtAuthRequestHeaders = {
 
 
 @multi
-def v2filter(irfilter: IRFilter):
+def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     if irfilter.kind == 'IRAuth':
         if irfilter.api_version == 'ambassador/v1':
             return 'IRAuth_v1'
@@ -95,24 +97,31 @@ def v2filter(irfilter: IRFilter):
         return irfilter.kind
 
 @v2filter.when("IRBuffer")
-def v2filter_buffer(buffer: IRBuffer):
+def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.buffer',
         'config': {
-            "max_request_time": "%0.3fs" % (float(buffer.max_request_time) / 1000.0),
             "max_request_bytes": buffer.max_request_bytes
-        }        
+        }  
     }
 
 @v2filter.when("ir.grpc_http1_bridge")
-def v2filter_grpc_http1_bridge(irfilter: IRFilter):
+def v2filter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
+    del irfilter  # silence unused-variable warning
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.grpc_http1_bridge',
-       'config': {},
+        'config': {},
     }
 
 @v2filter.when("ir.grpc_web")
-def v2filter_grpc_web(irfilter: IRFilter):
+def v2filter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
+    del irfilter  # silence unused-variable warning
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.grpc_web',
         'config': {},
@@ -134,7 +143,9 @@ def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
     return server_uri
 
 @v2filter.when("IRAuth_v0")
-def v2filter_authv0(auth: IRAuth):
+def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
     
@@ -152,9 +163,15 @@ def v2filter_authv0(auth: IRAuth):
     hdrs = set(auth.allowed_headers or [])      # turn list into a set
     hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
 
-    allowed_authorization_headers = sorted(hdrs)    # sorted() turns the set back into a list
+    allowed_authorization_headers = []
 
-    allowed_request_headers = sorted(request_headers.keys())
+    for key in sorted(hdrs):
+        allowed_authorization_headers.append({"exact": key})
+    
+    allowed_request_headers = []  
+
+    for key in sorted(request_headers.keys()):
+        allowed_request_headers.append({"exact": key})
 
     return {
         'name': 'envoy.ext_authz',
@@ -166,16 +183,28 @@ def v2filter_authv0(auth: IRAuth):
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
-                'allowed_authorization_headers': allowed_authorization_headers,
-                'allowed_request_headers': allowed_request_headers,
-            },
-            'send_request_data': auth.allow_request_body
+                'authorization_request': {
+                    'allowed_headers': {
+                        'patterns': allowed_request_headers
+                    }
+                },
+                'authorization_response' : {
+                    'allowed_upstream_headers': {
+                        'patterns': allowed_authorization_headers
+                    },
+                    'allowed_client_headers': {
+                        'patterns': allowed_authorization_headers
+                    }
+                }
+            }
         }
     }
 
 
 @v2filter.when("IRAuth_v1")
-def v2filter_authv1(auth: IRAuth):
+def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
@@ -184,11 +213,28 @@ def v2filter_authv1(auth: IRAuth):
 
     assert auth.proto
 
-    if auth.proto == "http":
-        allowed_authorization_headers = list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders))
-        allowed_request_headers = list(set(auth.allowed_request_headers).union(AllowedRequestHeaders))
+    body_info = auth.get('include_body')
 
-        return {
+    if not body_info and auth.get('allow_request_body', False):
+        body_info = {
+            'max_request_bytes': 4096,
+            'allow_partial_message': True
+        }
+
+    auth_info: Dict[str, Any] = {}
+
+    if auth.proto == "http":
+        allowed_authorization_headers = []
+
+        for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
+            allowed_authorization_headers.append({"exact": key})
+    
+        allowed_request_headers = []
+
+        for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
+            allowed_request_headers.append({"exact": key})
+
+        auth_info = {
             'name': 'envoy.ext_authz',
             'config': {
                 'http_service': {
@@ -198,15 +244,25 @@ def v2filter_authv1(auth: IRAuth):
                         'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                     },
                     'path_prefix': auth.path_prefix,
-                    'allowed_authorization_headers': allowed_authorization_headers,
-                    'allowed_request_headers': allowed_request_headers,
+                    'authorization_request': {
+                    'allowed_headers': {
+                            'patterns': allowed_request_headers
+                        }
+                    },
+                    'authorization_response' : {
+                        'allowed_upstream_headers': {
+                            'patterns': allowed_authorization_headers
+                        },
+                        'allowed_client_headers': {
+                            'patterns': allowed_authorization_headers
+                        }
+                    }
                 },
-                'send_request_data': auth.allow_request_body
             }
         }
 
     if auth.proto == "grpc":
-        return {
+        auth_info = {
             'name': 'envoy.ext_authz',
             'config': {
                 'grpc_service': {
@@ -215,9 +271,15 @@ def v2filter_authv1(auth: IRAuth):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'send_request_data': auth.allow_request_body
+                'use_alpha': True
             }
         }
+
+    if auth_info:
+        if body_info:
+            auth_info['config']['with_request_body'] = body_info
+
+        return auth_info
 
     # If here, something's gone horribly wrong.
     auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
@@ -225,7 +287,7 @@ def v2filter_authv1(auth: IRAuth):
 
 
 @v2filter.when("IRRateLimit")
-def v2filter_ratelimit(ratelimit: IRRateLimit):
+def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     config = dict(ratelimit.config)
 
     if 'timeout_ms' in config:
@@ -233,21 +295,26 @@ def v2filter_ratelimit(ratelimit: IRRateLimit):
 
         config['timeout'] = "%0.3fs" % (float(tm_ms) / 1000.0)
 
+    config['rate_limit_service'] = dict(v2config.ratelimit)
+
     return {
         'name': 'envoy.rate_limit',
-        'config': config
+        'config': config,
     }
 
 
 @v2filter.when("ir.cors")
-def v2filter_cors(cors: IRCORS):
+def v2filter_cors(cors: IRCORS, v2config: 'V2Config'):
     del cors    # silence unused-variable warning
+    del v2config  # silence unused-variable warning
 
     return { 'name': 'envoy.cors' }
 
 
 @v2filter.when("ir.router")
-def v2filter_router(router: IRFilter):
+def v2filter_router(router: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     od: Dict[str, Any] = { 'name': 'envoy.router' }
 
     if router.ir.tracing:
@@ -257,7 +324,9 @@ def v2filter_router(router: IRFilter):
 
 
 @v2filter.when("ir.lua_scripts")
-def v2filter_lua(irfilter: IRFilter):
+def v2filter_lua(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
     return {
         'name': 'envoy.lua',
         'config': irfilter.config_dict(),
@@ -393,7 +462,7 @@ class V2Listener(dict):
 
             # Assemble filters
             for f in config.ir.filters:
-                v2f: dict = v2filter(f)
+                v2f: dict = v2filter(f, config)
 
                 if v2f:
                     self.http_filters.append(v2f)
@@ -425,6 +494,7 @@ class V2Listener(dict):
             'stat_prefix': 'ingress_http',
             'access_log': self.access_log,
             'http_filters': self.http_filters,
+            'normalize_path': True
         }
 
         if self.upgrade_configs:
