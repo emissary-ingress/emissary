@@ -144,6 +144,16 @@
               link: /reference/services/rate-limit-service
             - title: Tracing
               link: /reference/services/tracing-service
+        - title: IDP Support
+          items:
+            - title: Auth0
+              link: /reference/idp-support/auth0
+            - title: Keycloak
+              link: /reference/idp-support/keycloak
+            - title: Okta
+              link: /reference/idp-support/okta
+            - title: User Account and Authentication (UAA)
+              link: /reference/idp-support/uaa
         - title: Filters
           link: /reference/filter-reference
         - title: Advanced configuration topics

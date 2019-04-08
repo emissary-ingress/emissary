@@ -6,7 +6,7 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
   ![](/doc-images/create-application.png)
 
-2. In the pop-up window, give the application a name (this will be the `authorizationURL` in your `Filter`) and create a "Machine to Machine App"
+2. In the pop-up window, give the application a name and create a "Machine to Machine App"
 
   ![](/doc-images/machine-machine.png)
 
@@ -25,6 +25,8 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
    The `audience` is the API Audience of your Auth0 Management API:
 
    ![](/doc-images/Auth0_audience.png)
+
+   The `authorizationURL` is your Auth0 tenant URL.
 
    ```yaml
    ---

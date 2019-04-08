@@ -52,10 +52,10 @@ Save the configuration to a file and apply it to the cluster: `kubectl apply -f 
 ## IDP Configuration
 You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
 
-- [Auth0](/user-guide/idp-support/auth0)
-- [Keycloak](/user-guide/idp-support/keycloak)
-- [Okta](/user-guide/idp-support/okta)
-- [UAA](/user-guide/idp-support/uaa)
+- [Auth0](/reference/idp-support/auth0)
+- [Keycloak](/reference/idp-support/keycloak)
+- [Okta](/reference/idp-support/okta)
+- [UAA](/reference/idp-support/uaa)
 
 ## Configure Authentication Across Multiple Domains (Optional)
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
