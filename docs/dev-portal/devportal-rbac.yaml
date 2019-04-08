@@ -92,7 +92,8 @@ spec:
           periodSeconds: 3
    
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.53.1
+        # TODO Switch to a released version at some point:
+        image: quay.io/datawire/ambassador:master-9acc2e6
         resources:
           limits:
             cpu: 1
