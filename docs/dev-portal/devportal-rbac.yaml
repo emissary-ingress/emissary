@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devportal
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  devportal_mapping
+      prefix: /docs/
+      service: devportal
+spec:
+  selector:
+    app: devportal
+  ports:
+  - port: 80
+    name: devportal
+    targetPort: devportal-ui
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: devportal
+rules:
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - services
+  - secrets
+  - endpoints
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devportal
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: devportal
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: devportal
+subjects:
+- kind: ServiceAccount
+  name: devportal
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: devportal
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        service: devportal
+    spec:
+      serviceAccountName: devportal
+      containers:
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.53.1
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: DIAGD_ONLY
+          value: "yes"
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - name: admin
+          containerPort: 8877
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+      restartPolicy: Always
