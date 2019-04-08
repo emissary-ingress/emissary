@@ -25,12 +25,13 @@ import (
 
 var Args = struct {
 	URL string
+	EnableHTTP2    bool
+	CSVFilename string
 
 	Period         time.Duration
 	StepRPS        uint
 	MaxLatency     time.Duration
 	MinSuccessRate float64
-	EnableHTTP2    bool
 
 	CooldownMaxLatency time.Duration
 	CooldownRPS        uint
@@ -54,23 +55,33 @@ If no PORTNAME is specified with a nodeport+ url, then "http" or
 TODO: support "loadbalancer+" for LoadBalancer services.
 `, os.Args[0])
 
+
 	generalParser := pflag.NewFlagSet("", pflag.ContinueOnError)
 	usage += `
 OPTIONS (general):
+
+`
+	help := false
+	generalParser.BoolVarP(&help, "help", "h", false, "Show this message")
+	generalParser.StringVar(&Args.CSVFilename, "csv-file", "", "Write rps-vs-latency to this CSV file")
+	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
+	usage += generalParser.FlagUsagesWrapped(70)
+	parser.AddFlagSet(generalParser)
+
+	loadParser := pflag.NewFlagSet("", pflag.ContinueOnError)
+	usage += `
+OPTIONS (load):
 
   "so I asked richard for a latency budget, and he suggested 40ms
   total as a starting point" -- rhs
 
 `
-	generalParser.DurationVar(&Args.Period, "period", 5*time.Second, "How long to hold a given RPS for")
-	generalParser.UintVar(&Args.StepRPS, "step-rps", 100, "Granularity of RPS measurements")
-	generalParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful during load-testing; use 0 to disable latency checks")
-	generalParser.Float64Var(&Args.MinSuccessRate, "min-success-rate", 0.95, "The required success rate for a given phase")
-	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
-	help := false
-	generalParser.BoolVarP(&help, "help", "h", false, "Show this message")
-	usage += generalParser.FlagUsagesWrapped(70)
-	parser.AddFlagSet(generalParser)
+	loadParser.DurationVar(&Args.Period, "period", 5*time.Second, "How long to hold a given RPS for")
+	loadParser.UintVar(&Args.StepRPS, "step-rps", 100, "Granularity of RPS measurements")
+	loadParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful during load-testing; use 0 to disable latency checks")
+	loadParser.Float64Var(&Args.MinSuccessRate, "min-success-rate", 0.95, "The required success rate for a given phase")
+	usage += loadParser.FlagUsagesWrapped(70)
+	parser.AddFlagSet(loadParser)
 
 	cooldownParser := pflag.NewFlagSet("", pflag.ContinueOnError)
 	usage += `
@@ -201,6 +212,8 @@ var attacker = vegeta.NewAttacker(
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
 
+var csvFile *os.File
+
 func openFiles() int {
 	fis, _ := ioutil.ReadDir("/dev/fd/")
 	return len(fis)
@@ -220,7 +233,7 @@ type TestResult struct {
 	Successes   uint64
 	Limited     uint64
 	Requests    uint64
-	P95Latency  time.Duration
+	Latency     vegeta.LatencyMetrics
 	Errors      map[string]uint64
 	FilesBefore int
 	FilesAfter  int
@@ -272,7 +285,7 @@ func RunTestRaw(tc TestCase) TestResult {
 	metrics.Close()
 	filesAfter := openFiles()
 
-	return TestResult{tc.RPS, successes, limited, metrics.Requests, metrics.Latencies.P95, errs, filesBefore, filesAfter}
+	return TestResult{tc.RPS, successes, limited, metrics.Requests, metrics.Latencies, errs, filesBefore, filesAfter}
 }
 
 func (r TestResult) SuccessRate() float64 {
@@ -290,8 +303,8 @@ func (r TestResult) String() string {
 	} else {
 		prefix = "✘ Failed"
 	}
-	mainline := fmt.Sprintf("%s at rate=%drps (p95-latency %s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
-		prefix, r.Rate, r.P95Latency, r.Successes, r.Requests, r.SuccessRate(), r.Limited, r.FilesBefore, r.FilesAfter)
+	mainline := fmt.Sprintf("%s at rate=%drps (latency p95=%s max=%s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
+		prefix, r.Rate, r.Latency.P95, r.Latency.Max, r.Successes, r.Requests, r.SuccessRate(), r.Limited, r.FilesBefore, r.FilesAfter)
 	errs := make([]string, 0, len(r.Errors))
 	for err, n := range r.Errors {
 		errs = append(errs, fmt.Sprintf("  error (%d): %s", n, err))
@@ -337,9 +350,12 @@ func RunTest(rate uint) bool {
 				}
 			},
 		})
-		fmt.Printf("  cooldown: %d (p95-latency %s) (open files: %d→%d)\n",
-			passed, cooldown.P95Latency, cooldown.FilesBefore, cooldown.FilesAfter)
+		fmt.Printf("  cooldown: %d (latency p95=%s max=%s) (open files: %d→%d)\n",
+			passed, cooldown.Latency.P95, cooldown.Latency.Max, cooldown.FilesBefore, cooldown.FilesAfter)
 		if result.Passed() {
+			if csvFile != nil {
+				fmt.Fprintf(csvFile, "%d,%f,%f\n", result.Rate, result.Latency.P95.Seconds()*1000, result.Latency.Max.Seconds()*1000)
+			}
 			return true
 		}
 		// try it up to 3 times
@@ -353,6 +369,14 @@ func main() {
 	parseArgs(os.Args[1:])
 	fmt.Println("url =", Args.URL)
 	vegeta.HTTP2(Args.EnableHTTP2)(attacker)
+	if Args.CSVFilename != "" {
+		var err error
+		csvFile, err = os.OpenFile(Args.CSVFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			errfatal(err)
+		}
+		fmt.Fprintln(csvFile, "rate (req/sec),p95-latency (ms),max-latency (ms)")
+	}
 
 	rate := uint(100)
 	okRate := uint(1)
