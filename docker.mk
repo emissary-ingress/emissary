@@ -14,6 +14,9 @@
 ## common.mk targets ##
 #  - clean
 #
+# Note: `docker.mk` depends on `kubernaut-ui.mk`.  See the
+# documentation there for more info.
+#
 # ## Local docker build ##
 #
 #    `Dockerfile`s must be in sub-directories; it doesn't support
