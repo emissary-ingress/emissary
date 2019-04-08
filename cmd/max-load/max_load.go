@@ -356,6 +356,7 @@ func main() {
 
 	rate := uint(100)
 	okRate := uint(1)
+	nokRate := uint(0)
 
 	// first, find the point at which the system breaks
 	for {
@@ -363,7 +364,18 @@ func main() {
 			okRate = rate
 			rate += Args.StepRPS
 		} else {
+			nokRate = rate
 			break
+		}
+	}
+
+	// next, do a binary search between okRate and nokRate
+	for (nokRate - okRate) > 1 {
+		rate = (nokRate + okRate) / 2
+		if RunTest(rate) {
+			okRate = rate
+		} else {
+			nokRate = rate
 		}
 	}
 	fmt.Printf("➡️Maximum Working Rate: %d req/sec\n", okRate)
