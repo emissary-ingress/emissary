@@ -27,6 +27,7 @@ var Args = struct {
 	URL string
 
 	Period         time.Duration
+	StepRPS        uint
 	MaxLatency     time.Duration
 	MinSuccessRate float64
 	EnableHTTP2    bool
@@ -62,6 +63,7 @@ OPTIONS (general):
 
 `
 	generalParser.DurationVar(&Args.Period, "period", 5*time.Second, "How long to hold a given RPS for")
+	generalParser.UintVar(&Args.StepRPS, "step-rps", 100, "Granularity of RPS measurements")
 	generalParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful during load-testing; use 0 to disable latency checks")
 	generalParser.Float64Var(&Args.MinSuccessRate, "min-success-rate", 0.95, "The required success rate for a given phase")
 	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
@@ -212,7 +214,7 @@ func openFiles() int {
 
 type TestCase struct {
 	URL        string
-	RPS        int
+	RPS        uint
 	Duration   time.Duration
 	MaxLatency time.Duration
 
@@ -220,7 +222,7 @@ type TestCase struct {
 }
 
 type TestResult struct {
-	Rate        int
+	Rate        uint
 	Successes   uint64
 	Limited     uint64
 	Requests    uint64
@@ -241,7 +243,7 @@ func RunTestRaw(tc TestCase) TestResult {
 	var limited uint64
 	errs := make(map[string]uint64)
 	filesBefore := openFiles()
-	for res := range attacker.Attack(targeter, vegeta.Rate{Freq: tc.RPS, Per: time.Second}, tc.Duration, fmt.Sprintf("atk-%d", tc.RPS)) {
+	for res := range attacker.Attack(targeter, vegeta.Rate{Freq: int(tc.RPS), Per: time.Second}, tc.Duration, fmt.Sprintf("atk-%d", tc.RPS)) {
 		// vegeta.Metrics doesn't consider HTTP 429 ("Too Many Requests") to be a "success",
 		// but for testing the rate limit service, we should.
 		success := false
@@ -304,7 +306,7 @@ func (r TestResult) String() string {
 	return strings.Join(append([]string{mainline}, errs...), "\n")
 }
 
-func RunTest(rate int) bool {
+func RunTest(rate uint) bool {
 	runs := 0
 	for {
 		result := RunTestRaw(TestCase{
@@ -322,7 +324,7 @@ func RunTest(rate int) bool {
 		var passed uint64
 		cooldown := RunTestRaw(TestCase{
 			URL:        Args.URL,
-			RPS:        int(Args.CooldownRPS),
+			RPS:        Args.CooldownRPS,
 			Duration:   0, // run until we call attacker.Stop()
 			MaxLatency: Args.CooldownMaxLatency,
 			Callback: func(result *vegeta.Result, errstr string) {
@@ -358,28 +360,16 @@ func main() {
 	fmt.Println("url =", Args.URL)
 	vegeta.HTTP2(Args.EnableHTTP2)(attacker)
 
-	rate := 100
-	okRate := 1
-	var nokRate int
+	rate := uint(100)
+	okRate := uint(1)
 
 	// first, find the point at which the system breaks
 	for {
 		if RunTest(rate) {
 			okRate = rate
-			rate *= 2
+			rate += Args.StepRPS
 		} else {
-			nokRate = rate
 			break
-		}
-	}
-
-	// next, do a binary search between okRate and nokRate
-	for (nokRate - okRate) > 1 {
-		rate = (nokRate + okRate) / 2
-		if RunTest(rate) {
-			okRate = rate
-		} else {
-			nokRate = rate
 		}
 	}
 	fmt.Printf("➡️Maximum Working Rate: %d req/sec\n", okRate)
