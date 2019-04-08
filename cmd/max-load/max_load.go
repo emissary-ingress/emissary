@@ -26,6 +26,7 @@ import (
 var Args = struct {
 	URL string
 
+	Period         time.Duration
 	MaxLatency     time.Duration
 	MinSuccessRate float64
 	EnableHTTP2    bool
@@ -46,8 +47,8 @@ prefix the URL with "nodeport+" to have it resolve a NodePort service:
 
     nodeport+https://SERVICE[.NAMESPACE][:PORTNAME]/PATH
 
-If no PORTNAME is specified with a nodeport+ url, "http" or "https" is
-used (depending on the URL scheme).
+If no PORTNAME is specified with a nodeport+ url, then "http" or
+"https" is used (depending on the URL scheme).
 
 TODO: support "loadbalancer+" for LoadBalancer services.
 `, os.Args[0])
@@ -60,6 +61,7 @@ OPTIONS (general):
   total as a starting point" -- rhs
 
 `
+	generalParser.DurationVar(&Args.Period, "period", 5*time.Second, "How long to hold a given RPS for")
 	generalParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful during load-testing; use 0 to disable latency checks")
 	generalParser.Float64Var(&Args.MinSuccessRate, "min-success-rate", 0.95, "The required success rate for a given phase")
 	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
@@ -198,8 +200,7 @@ func maxFiles() int {
 
 var attacker = vegeta.NewAttacker(
 	vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true}), // #nosec G402
-	vegeta.HTTP2(true),
-	vegeta.Connections(maxFiles()), // setting -1 or 0 for no-limit doesn't seemt to work?
+	vegeta.Connections(maxFiles()),                          // setting -1 or 0 for no-limit doesn't seemt to work?
 )
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
@@ -210,9 +211,12 @@ func openFiles() int {
 }
 
 type TestCase struct {
-	URL      string
-	RPS      int
-	Duration time.Duration
+	URL        string
+	RPS        int
+	Duration   time.Duration
+	MaxLatency time.Duration
+
+	Callback func(result *vegeta.Result, errstr string)
 }
 
 type TestResult struct {
@@ -220,7 +224,7 @@ type TestResult struct {
 	Successes   uint64
 	Limited     uint64
 	Requests    uint64
-	Latency     time.Duration
+	P95Latency  time.Duration
 	Errors      map[string]uint64
 	FilesBefore int
 	FilesAfter  int
@@ -232,25 +236,31 @@ func RunTestRaw(tc TestCase) TestResult {
 		URL:    tc.URL,
 		Header: http.Header(map[string][]string{"Authorization": {"Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."}}),
 	})
-	vegetaRate := vegeta.Rate{Freq: tc.RPS, Per: time.Second}
-	name := "atk-" + string(tc.RPS)
 	var metrics vegeta.Metrics
 	var successes uint64
 	var limited uint64
 	errs := make(map[string]uint64)
 	filesBefore := openFiles()
-	for res := range attacker.Attack(targeter, vegetaRate, tc.Duration, name) {
+	for res := range attacker.Attack(targeter, vegeta.Rate{Freq: tc.RPS, Per: time.Second}, tc.Duration, fmt.Sprintf("atk-%d", tc.RPS)) {
 		// vegeta.Metrics doesn't consider HTTP 429 ("Too Many Requests") to be a "success",
 		// but for testing the rate limit service, we should.
+		success := false
 		switch res.Code {
 		case http.StatusOK:
-			successes++
+			success = true
 		case http.StatusTooManyRequests:
-			successes++
+			success = true
 			limited++
-			res.Error = ""
-		default:
-			errstr := fmt.Sprintf("code=%03d error=%#v x-envoy-overloaded=%#v body=%#v",
+		}
+		if success && tc.MaxLatency > 0 && res.Latency > tc.MaxLatency {
+			success = false
+			res.Error = "latency limit exceeded"
+		}
+		var errstr string
+		if success {
+			successes++
+		} else {
+			errstr = fmt.Sprintf("code=%03d error=%#v x-envoy-overloaded=%#v body=%#v",
 				res.Code,
 				sourcePortRE.ReplaceAllString(res.Error, ":XYZ->"),
 				res.Header.Get("x-envoy-overloaded"),
@@ -259,6 +269,9 @@ func RunTestRaw(tc TestCase) TestResult {
 			errs[errstr] = errs[errstr] + 1
 		}
 		metrics.Add(res)
+		if tc.Callback != nil {
+			tc.Callback(res, errstr)
+		}
 	}
 	metrics.Close()
 	filesAfter := openFiles()
@@ -271,7 +284,7 @@ func (r TestResult) SuccessRate() float64 {
 }
 
 func (r TestResult) Passed() bool {
-	return r.Successes == r.Requests
+	return r.SuccessRate() >= Args.MinSuccessRate
 }
 
 func (r TestResult) String() string {
@@ -281,8 +294,8 @@ func (r TestResult) String() string {
 	} else {
 		prefix = "✘ Failed"
 	}
-	mainline := fmt.Sprintf("%s at rate=%drps (latency %s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
-		prefix, r.Rate, r.Latency, r.Successes, r.Requests, r.SuccessRate(), r.Limited, r.FilesBefore, r.FilesAfter)
+	mainline := fmt.Sprintf("%s at rate=%drps (p95-latency %s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
+		prefix, r.Rate, r.P95Latency, r.Successes, r.Requests, r.SuccessRate(), r.Limited, r.FilesBefore, r.FilesAfter)
 	errs := make([]string, 0, len(r.Errors))
 	for err, n := range r.Errors {
 		errs = append(errs, fmt.Sprintf("  error (%d): %s", n, err))
@@ -291,27 +304,45 @@ func (r TestResult) String() string {
 	return strings.Join(append([]string{mainline}, errs...), "\n")
 }
 
-func RunTest(url string, rate int) bool {
+func RunTest(rate int) bool {
 	runs := 0
 	for {
-		result := RunTestRaw(TestCase{URL: url, RPS: rate, Duration: 5 * time.Second})
+		result := RunTestRaw(TestCase{
+			URL:        Args.URL,
+			RPS:        rate,
+			Duration:   Args.Period,
+			MaxLatency: Args.MaxLatency,
+		})
 		runs++
 		fmt.Println(result)
 		// Let it cool down.  This is both (1) to let Ambassador cool down (after a
 		// failure), but also (2) to let the client cool down and for any dangling but not
 		// keep-alive connections die.
+		runtime.GC()
 		var passed uint64
-		for passed < Args.CooldownRequests {
-			runtime.GC()
-			cooldown := RunTestRaw(TestCase{URL: url, RPS: int(Args.CooldownRPS), Duration: time.Second})
-			if cooldown.Passed() && cooldown.Latency < Args.CooldownMaxLatency {
-				passed += cooldown.Requests
-			} else {
-				passed = 0
-			}
-			fmt.Printf("  cooldown: %d (latency %s) (open files: %d→%d)\n",
-				passed, cooldown.Latency, cooldown.FilesBefore, cooldown.FilesAfter)
-		}
+		cooldown := RunTestRaw(TestCase{
+			URL:        Args.URL,
+			RPS:        int(Args.CooldownRPS),
+			Duration:   0, // run until we call attacker.Stop()
+			MaxLatency: Args.CooldownMaxLatency,
+			Callback: func(result *vegeta.Result, errstr string) {
+				if errstr == "" {
+					passed++
+				} else {
+					fmt.Printf("  cooldown: error: %s\n", errstr)
+					runtime.GC()
+					passed = 0
+				}
+				if passed%100 == 0 {
+					fmt.Printf("  cooldown: %d\n", passed)
+				}
+				if passed >= Args.CooldownRequests {
+					attacker.Stop()
+				}
+			},
+		})
+		fmt.Printf("  cooldown: %d (p95-latency %s) (open files: %d→%d)\n",
+			passed, cooldown.P95Latency, cooldown.FilesBefore, cooldown.FilesAfter)
 		if result.Passed() {
 			return true
 		}
@@ -325,6 +356,7 @@ func RunTest(url string, rate int) bool {
 func main() {
 	parseArgs(os.Args[1:])
 	fmt.Println("url =", Args.URL)
+	vegeta.HTTP2(Args.EnableHTTP2)(attacker)
 
 	rate := 100
 	okRate := 1
@@ -332,7 +364,7 @@ func main() {
 
 	// first, find the point at which the system breaks
 	for {
-		if RunTest(Args.URL, rate) {
+		if RunTest(rate) {
 			okRate = rate
 			rate *= 2
 		} else {
@@ -344,7 +376,7 @@ func main() {
 	// next, do a binary search between okRate and nokRate
 	for (nokRate - okRate) > 1 {
 		rate = (nokRate + okRate) / 2
-		if RunTest(Args.URL, rate) {
+		if RunTest(rate) {
 			okRate = rate
 		} else {
 			nokRate = rate

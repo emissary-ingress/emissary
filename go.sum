@@ -58,6 +58,8 @@ github.com/datawire/vegeta v12.2.2-0.20190404141942-8fbfd95c2eaa+incompatible h1
 github.com/datawire/vegeta v12.2.2-0.20190404141942-8fbfd95c2eaa+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
 github.com/datawire/vegeta v12.2.2-0.20190405145440-ca2efc6909c1+incompatible h1:EsZxDOo8aeUJuVYEAep4I/189J4+LFF7OsiaRs5b1gE=
 github.com/datawire/vegeta v12.2.2-0.20190405145440-ca2efc6909c1+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
+github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible h1:6kO7uGyaYoMCMh/msX+/0ctqRNmHHvGZwmzvi0so1DI=
+github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
