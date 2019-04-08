@@ -86,16 +86,10 @@ OPTIONS (cooldown):
   seems reasonable under non-load, so 1.0/10ms gives us 100rps as the
   default.
 
-  Anecdotally, 500 seems too short for reliable client-cooldown (but
-  maybe the newer ${cooldown-max-latency} requirement means it's more
-  reliable now?).  1000 seems too be spending too much time staring at
-  the screen, waiting for it to move on.  800 is a decent-ish
-  compromise?
-
 `
-	cooldownParser.DurationVar(&Args.CooldownMaxLatency, "cooldown-max-latency", 10*time.Millisecond, "Maximum latency to consider successful during cooldown; use 0 to disable latency checks")
+	cooldownParser.DurationVar(&Args.CooldownMaxLatency, "cooldown-max-latency", 20*time.Millisecond, "Maximum latency to consider successful during cooldown; use 0 to disable latency checks")
 	cooldownParser.UintVar(&Args.CooldownRPS, "cooldown-rps", 100, "Requests per second during cooldown")
-	cooldownParser.Uint64Var(&Args.CooldownRequests, "cooldown-requests", 800, "When to consider cooldown complete")
+	cooldownParser.Uint64Var(&Args.CooldownRequests, "cooldown-requests", 500, "When to consider cooldown complete")
 	usage += cooldownParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(cooldownParser)
 
