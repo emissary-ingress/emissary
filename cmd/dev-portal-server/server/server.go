@@ -131,7 +131,7 @@ func (s *server) handleIndexHTML() http.HandlerFunc {
 <p>
 <strong>{{$service.Namespace}}/{{$service.Name}}</strong>
     {{if $metadata.HasDoc}}
-    <a href="/doc/{{$service.Namespace}}/{{$service.Name}}">Docs</a>
+    <a href="doc/{{$service.Namespace}}/{{$service.Name}}">Docs</a>
     {{end}}
 </p>
 {{end}}
@@ -159,7 +159,7 @@ func (s *server) handleDocHTML() http.HandlerFunc {
 <span id="swagger-ui"></span>
 <script>
 const ui = SwaggerUIBundle({
-    url: "/openapi/services/{{.namespace}}/{{.name}}/openapi.json",
+    url: "../../openapi/services/{{.namespace}}/{{.name}}/openapi.json",
     dom_id: '#swagger-ui',
     presets: [
       SwaggerUIBundle.presets.apis,
