@@ -2,14 +2,18 @@ package main
 
 import (
 	"github.com/datawire/apro/cmd/dev-portal-server/server"
+	"log"
 	"os"
+	"strconv"
+	"time"
 )
 
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
 func main() {
-	var diagdURL, ambassadorURL, publicURL string
+	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr string
+	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
 	diagdURL, set = os.LookupEnv("DIAGD_URL")
 	if !set {
@@ -29,5 +33,14 @@ func main() {
 		// placeholder.
 		publicURL = "https://api.example.com"
 	}
-	server.Main(Version, diagdURL, ambassadorURL, publicURL)
+	pollEverySecsStr, set = os.LookupEnv("POLL_EVERY_SECS")
+	if set {
+		p, err := strconv.Atoi(pollEverySecsStr)
+		if err == nil {
+			pollEverySecs = time.Duration(p) * time.Second
+		} else {
+			log.Print(err)
+		}
+	}
+	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs)
 }

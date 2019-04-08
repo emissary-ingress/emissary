@@ -71,6 +71,9 @@ spec:
           # default address exposed by Ambassador):
           - name: PUBLIC_API_URL
             value: "https://api.example.com"
+          # Change this if you want different poll rate for getting OpenAPI docs:
+          - name: POLL_EVERY_SECS
+            value: "60"
           # Change this if you ran Ambassador in a service+namespace that is
           # not "ambassador.default"; this is the internal Kubernetes address:
           - name: AMBASSADOR_URL

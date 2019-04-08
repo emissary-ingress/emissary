@@ -5,7 +5,9 @@ import (
 	"time"
 )
 
-func Main(version string, diagdURL string, ambassadorURL string, publicURL string) {
+func Main(
+	version string, diagdURL string, ambassadorURL string, publicURL string,
+	pollFrequency time.Duration) {
 	s := NewServer()
 
 	serviceMap := s.K8sStore.List()
@@ -17,7 +19,7 @@ func Main(version string, diagdURL string, ambassadorURL string, publicURL strin
 	}
 	fetcher := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), knownServices,
-		diagdURL, ambassadorURL, time.Second*5, publicURL)
+		diagdURL, ambassadorURL, pollFrequency, publicURL)
 	defer fetcher.Stop()
 	s.ServeHTTP()
 }

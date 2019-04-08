@@ -2,9 +2,19 @@
 
 See [Installation documentation](INSTALL.md) for install instructions.
 
-Run ambassador image in pod, but with env variable to disable (in entrypoint.sh) ambx and envory, so just run diagd. call diagd endpoint to get. also need to add the `--no-envoy --no-checks` flags to the `diagd` command line.
+## Architecture
 
-query diagd every 60 seconds: $AMBASSADOR_POD/ambassador/v0/diag/?json=true
+We run a pod that has two containers:
+
+* The Ambassador image, but with Envoy disabled, in order to get diagd access.
+* The dev portal image.
+
+### Update loop
+
+The Dev Portal runs a loop every 60 seconds:
+
+1. The Dev Portal queries its local diagd to get all Services registered with Ambassador.
+2. For each Service is sends a query (via the global Ambassador) to that service's `/.well-known/openapi-docs` path, to get the OpenAPI documentation for that service, if any.
 
 ## Dev Portal Web Server
 
