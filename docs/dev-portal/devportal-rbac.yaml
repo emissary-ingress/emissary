@@ -13,7 +13,7 @@ metadata:
       service: devportal
 spec:
   selector:
-    app: devportal
+    service: devportal
   ports:
   - port: 80
     name: devportal
@@ -110,16 +110,5 @@ spec:
         ports:
         - name: admin
           containerPort: 8877
-        livenessProbe:
-          httpGet:
-            path: /ambassador/v0/check_alive
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /ambassador/v0/check_ready
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
+        # TODO add liveness/readyness checks. there's initial ramp-up time...
       restartPolicy: Always
