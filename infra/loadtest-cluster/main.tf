@@ -1,9 +1,3 @@
-provider "google" { }
-
-terraform {
-	backend "local" {}
-}
-
 data "google_container_engine_versions" "kubernetes_version" {
 	project        = "${var.project}"
 	location       = "${var.cluster_location}"
