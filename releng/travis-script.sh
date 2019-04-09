@@ -20,6 +20,15 @@ set -o xtrace
 
 printf "== Begin: travis-script.sh ==\n"
 
+# We start by figuring out the COMMIT_TYPE. Yes, this is kind of a hack.
+eval $(make export-vars | grep COMMIT_TYPE)
+
+printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
+
+git status
+
+printf "========\n"
+
 # Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
 # nobuild branch.
 # if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
@@ -29,6 +38,10 @@ printf "== Begin: travis-script.sh ==\n"
 
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
+    # Set up the environment correctly, including the madness around
+    # the ephemeral Docker registry.
+    printf "========\nSetting up environment...\n"
+
     eval $(make DOCKER_LOCAL_REGISTRY=true \
                 DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
                 DOCKER_REGISTRY=localhost:31000 \
@@ -37,6 +50,8 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # Makes it much easier to actually debug when you see what the Makefile sees
     make print-vars
     git status
+
+    printf "========\nStarting build...\n"
 
     make setup-develop cluster.yaml docker-registry
     make docker-push
