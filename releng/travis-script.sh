@@ -45,9 +45,20 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     export DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY
     export DOCKER_REGISTRY=localhost:31000
 
-    make setup-develop cluster.yaml docker-registry
-    make docker-push
-    make KAT_REQ_LIMIT=900 test
+    make DOCKER_LOCAL_REGISTRY=true \
+         DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+         DOCKER_REGISTRY=localhost:31000 \
+         setup-develop cluster.yaml docker-registry
+
+    make DOCKER_LOCAL_REGISTRY=true \
+         DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+         DOCKER_REGISTRY=localhost:31000 \
+         docker-push
+
+    make DOCKER_LOCAL_REGISTRY=true \
+         DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+         DOCKER_REGISTRY=localhost:31000 \
+         KAT_REQ_LIMIT=900 test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
