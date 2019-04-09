@@ -8,7 +8,7 @@ Ambassador supports using [Consul](https://consul.io) for service discovery. In 
 
 In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we have created a QoTM API that automatically registers itself as service with Consul.
 
-1. Create the QoTM API:
+1. Create the QoTM API (if you're reading this in GitHub, use version 1.6 for `qotmVersion` below:)
 
     ```yaml
     ---
