@@ -28,7 +28,7 @@ cd pro-ref-arch
 make apply-upgrade-to-pro
 ```
 
-This `make` command will use `kubectl` to deploy Ambassador Pro alongside your Ambassador deployment.
+This `make` command will use `kubectl` to deploy Ambassador Pro alongside your Ambassador deployment. It will also redeploy the httpbin and QoTM services which are used for demo purposes.
 
 Verify that Ambassador Pro is running:
 
