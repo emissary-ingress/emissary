@@ -18,18 +18,6 @@ set -o errexit
 set -o nounset
 set -o xtrace
 
-# Makes it much easier to actually debug when you see what the Makefile sees
-make print-vars
-git status
-
-# IMPORTANT: no custom logic about shell variables goes here. The Makefile 
-# sets them all, because we want make to work when a developer runs it by 
-# hand. 
-#
-# All we get to do here is to copy things that make understands.
-eval $(make export-vars)
-git status
-
 printf "== Begin: travis-script.sh ==\n"
 
 # Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
@@ -41,24 +29,18 @@ printf "== Begin: travis-script.sh ==\n"
 
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
-    export DOCKER_LOCAL_REGISTRY=true
-    export DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY
-    export DOCKER_REGISTRY=localhost:31000
+    eval $(make DOCKER_LOCAL_REGISTRY=true \
+                DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+                DOCKER_REGISTRY=localhost:31000 \
+                export-vars)
 
-    make DOCKER_LOCAL_REGISTRY=true \
-         DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-         DOCKER_REGISTRY=localhost:31000 \
-         setup-develop cluster.yaml docker-registry
+    # Makes it much easier to actually debug when you see what the Makefile sees
+    make print-vars
+    git status
 
-    make DOCKER_LOCAL_REGISTRY=true \
-         DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-         DOCKER_REGISTRY=localhost:31000 \
-         docker-push
-
-    make DOCKER_LOCAL_REGISTRY=true \
-         DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-         DOCKER_REGISTRY=localhost:31000 \
-         KAT_REQ_LIMIT=900 test
+    make setup-develop cluster.yaml docker-registry
+    make docker-push
+    make KAT_REQ_LIMIT=900 test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.
