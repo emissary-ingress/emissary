@@ -6,7 +6,9 @@ There are currently two supported versions of the `AuthService` manifest:
 
 ### V1 (Ambassador 0.50.0 and higher):
 
-`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher.
+`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. It also allows sending body data to the auth service.
+
+You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher.
 
 ```yaml
 ---
@@ -20,7 +22,9 @@ allowed_request_headers:
 - "x-example-header"
 allowed_authorization_headers:
 - "x-qotm-session"
-allow_request_body: false
+include_body:
+  max_bytes: 4096
+  allow_partial: true
 ```
 
 - `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
@@ -42,7 +46,13 @@ allow_request_body: false
     * `Set-cookie`
     * `WWW-Authenticate`
 
-- `allow_request_body` (optional) will pass the full body of the request to the auth service for use cases such as computing an HMAC or request signature.
+- `include_body` (optional) controls how much of the request body to pass to the auth service, for use cases such as computing an HMAC or request signature:
+    * `max_bytes` controls the amount of body data that will be passed to the auth service
+    * `allow_partial` controls what happens to messages with bodies larger than `max_bytes`:
+       * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the auth service
+       * if false, the message is rejected. 
+
+- `allow_request_body` is deprecated. It is exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
 
 ### v0 (Ambassador versions prior to 0.50.0)
 

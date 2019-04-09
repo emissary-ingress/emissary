@@ -33,16 +33,18 @@ service: {self.target.path.k8s}
     def queries(self):
         # [0]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc-web-text", "requested-status": "0" },
+                    headers={ "content-type": "application/grpc-web-text",
+                              "accept": "application/grpc-web-text",
+                              "requested-status": "0" },
                     expected=200,
-                    xfail="The kat client does not support grpc-web (yet)",
                     grpc_type="web")
 
         # [1]
         yield Query(self.url("echo.EchoService/Echo"),
-                    headers={ "content-type": "application/grpc-web-text", "requested-status": "7" },
+                    headers={ "content-type": "application/grpc-web-text",
+                              "accept": "application/grpc-web-text",
+                              "requested-status": "7" },
                     expected=200,
-                    xfail="The kat client does not support grpc-web (yet)",
                     grpc_type="web")
 
     def check(self):
