@@ -34,7 +34,8 @@ spec:
     spec:
       containers:
       - name: openapi
-        image: "openapi-server:current"
+        image: "itamarst/openapi-server"
+        imagePullPolicy: IfNotPresent
         ports:
         - name: http-api
           containerPort: 5000

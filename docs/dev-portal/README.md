@@ -1,6 +1,11 @@
 # Dev Portal Implementation notes
 
-See [Installation documentation](INSTALL.md) for install instructions.
+See [Installation documentation](INSTALL.md) for install instructions and default access URL.
+
+## Testing your new Dev Portal
+
+In `docs/dev-portal/example-service` there is a K8s YAML for a service that exposes OpenAPI documentation.
+See the [documentation](example-service/README.md) for details.
 
 ## Architecture
 
