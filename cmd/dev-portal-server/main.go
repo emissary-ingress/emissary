@@ -12,6 +12,7 @@ import (
 var Version = "(unknown version)"
 
 func main() {
+	// TODO Do license enforcement.
 	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
