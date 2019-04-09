@@ -41,6 +41,16 @@ printf "== Begin: travis-script.sh ==\n"
 
 # Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
+    export DOCKER_LOCAL_REGISTRY=true
+    export DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY
+    export DOCKER_REGISTRY=localhost:31000
+
+    echo "========"
+    env | sort
+    echo "========"
+    echo
+    
+    make docker-registry
     make docker-push
     make KAT_REQ_LIMIT=900 test
 

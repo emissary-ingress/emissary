@@ -111,6 +111,12 @@ else
 AMBASSADOR_DOCKER_REPO ?= $(DOCKER_REGISTRY)/ambassador
 endif
 
+ifneq ($(DOCKER_EXTERNAL_REGISTRY),)
+AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(DOCKER_EXTERNAL_REGISTRY)/ambassador
+else
+AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(AMBASSADOR_DOCKER_REPO)
+endif
+
 DOCKER_OPTS =
 
 NETLIFY_SITE=datawire-ambassador
@@ -120,6 +126,7 @@ NETLIFY_SITE=datawire-ambassador
 ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.9.0-619-g5830eaa1d
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
+AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
@@ -201,6 +208,34 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 
+# All of this will likely fail horribly outside of CI, for the record.
+docker-registry:
+ifneq ($(DOCKER_LOCAL_REGISTRY),)
+	@if [ "$(COMMIT_TYPE)" == "random" ]; then \
+		echo "make docker-registry is only for CI" >&2 ;\
+		exit 1 ;\
+	fi
+	@if [ ! -r .docker_port_forward ]; then \
+		echo "Starting local Docker registry in Kubernetes" ;\
+		kubectl apply -f releng/docker-registry.yaml ;\
+		while [ -z "$$(kubectl get pods -n docker-registry -ojsonpath='{.items[0].status.containerStatuses[0].state.running}')" ]; do echo pod wait...; sleep 1; done ;\
+		sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & echo $$! > .docker_port_forward' ;\
+	else \
+		echo "Local Docker registry should be already running" ;\
+	fi
+	while ! curl -i http://localhost:31000/ 2>/dev/null; do echo curl wait...; sleep 1; done
+endif
+
+kill-docker-registry:
+	@if [ -r .docker_port_forward ]; then \
+		echo "Stopping local Docker registry" ;\
+		kill $$(cat .docker_port_forward) ;\
+		kubectl delete -f releng/docker-registry.yaml ;\
+		rm -f .docker_port_forward ;\
+	else \
+		echo "Docker registry should not be running" ;\
+	fi
+
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
@@ -219,10 +254,14 @@ ambassador-docker-image: version
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
+ifneq ($(DOCKER_LOCAL_REGISTRY),)
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 
 	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_REGISTRY)
+else
+	@echo "Using local registry, no need for docker login."
+endif
 
 docker-images: ambassador-docker-image
 
@@ -232,14 +271,14 @@ ifneq ($(DOCKER_REGISTRY), -)
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
-			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
+			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
+			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
 		fi; \
 		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
-			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
+			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
+			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
+			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
