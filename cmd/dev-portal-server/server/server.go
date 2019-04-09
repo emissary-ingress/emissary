@@ -17,6 +17,17 @@ type server struct {
 	K8sStore kubernetes.ServiceStore
 }
 
+func (s *server) knownServices() []kubernetes.Service {
+	serviceMap := s.K8sStore.List()
+	knownServices := make([]kubernetes.Service, len(serviceMap))
+	i := 0
+	for k := range serviceMap {
+		knownServices[i] = k
+		i++
+	}
+	return knownServices
+}
+
 func (s *server) getServiceAdd() AddServiceFunc {
 	return func(
 		service kubernetes.Service, baseURL string, prefix string,

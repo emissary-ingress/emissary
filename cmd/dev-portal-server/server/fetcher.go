@@ -97,12 +97,6 @@ func NewFetcher(
 			case <-f.ticker.C:
 				// Retrieve all services:
 				f.retrieve()
-
-				// Finished retrieving services, so delete any
-				// we don't recognize:
-				for _, service := range f.diff.NewRound() {
-					f.delete(service)
-				}
 			}
 		}
 	}()
@@ -193,6 +187,10 @@ func (f *fetcher) retrieve() {
 		}
 	}
 
+	// Finished retrieving services, so delete any we don't recognize:
+	for _, service := range f.diff.NewRound() {
+		f.delete(service)
+	}
 }
 
 func (f *fetcher) Stop() {

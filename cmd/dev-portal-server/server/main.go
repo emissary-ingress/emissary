@@ -2,8 +2,6 @@ package server
 
 import (
 	"time"
-
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 )
 
 func Main(
@@ -11,13 +9,7 @@ func Main(
 	pollFrequency time.Duration) {
 	s := NewServer()
 
-	serviceMap := s.K8sStore.List()
-	knownServices := make([]kubernetes.Service, len(serviceMap))
-	i := 0
-	for k := range serviceMap {
-		knownServices[i] = k
-		i++
-	}
+	knownServices := s.knownServices()
 	fetcher := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
 		diagdURL, ambassadorURL, pollFrequency, publicURL)
