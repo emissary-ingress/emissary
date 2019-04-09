@@ -167,52 +167,60 @@ print-%:
 	@printf "$($*)"
 
 print-vars:
-	@echo "MAIN_BRANCH             = $(MAIN_BRANCH)"
-	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
-	@echo "GIT_BRANCH_SANITIZED    = $(GIT_BRANCH_SANITIZED)"
-	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
-	@echo "GIT_DIRTY               = $(GIT_DIRTY)"
-	@echo "GIT_TAG                 = $(GIT_TAG)"
-	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
-	@echo "GIT_VERSION             = $(GIT_VERSION)"
-	@echo "GIT_DESCRIPTION         = $(GIT_DESCRIPTION)"
-	@echo "IS_PULL_REQUEST         = $(IS_PULL_REQUEST)"
-	@echo "COMMIT_TYPE             = $(COMMIT_TYPE)"
-	@echo "VERSION                 = $(VERSION)"
-	@echo "LATEST_RC               = $(LATEST_RC)"
-	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
-	@echo "DOCKER_OPTS             = $(DOCKER_OPTS)"
-	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
-	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
-	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
-	@echo "KAT_BACKEND_RELEASE     = $(KAT_BACKEND_RELEASE)"
-	@echo "KUBECONFIG =            = $(KUBECONFIG)"
+	@echo "AMBASSADOR_DOCKER_IMAGE          = $(AMBASSADOR_DOCKER_IMAGE)"
+	@echo "AMBASSADOR_DOCKER_REPO           = $(AMBASSADOR_DOCKER_REPO)"
+	@echo "AMBASSADOR_DOCKER_TAG            = $(AMBASSADOR_DOCKER_TAG)"
+	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
+	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
+	@echo "COMMIT_TYPE                      = $(COMMIT_TYPE)"
+	@echo "DOCKER_EPHEMERAL_REGISTRY            = $(DOCKER_EPHEMERAL_REGISTRY)"
+	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
+	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
+	@echo "DOCKER_REGISTRY                  = $(DOCKER_REGISTRY)"
+	@echo "GIT_BRANCH                       = $(GIT_BRANCH)"
+	@echo "GIT_BRANCH_SANITIZED             = $(GIT_BRANCH_SANITIZED)"
+	@echo "GIT_COMMIT                       = $(GIT_COMMIT)"
+	@echo "GIT_DESCRIPTION                  = $(GIT_DESCRIPTION)"
+	@echo "GIT_DIRTY                        = $(GIT_DIRTY)"
+	@echo "GIT_TAG                          = $(GIT_TAG)"
+	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
+	@echo "GIT_VERSION                      = $(GIT_VERSION)"
+	@echo "IS_PULL_REQUEST                  = $(IS_PULL_REQUEST)"
+	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
+	@echo "KUBECONFIG                       = $(KUBECONFIG)"
+	@echo "LATEST_RC                        = $(LATEST_RC)"
+	@echo "MAIN_BRANCH                      = $(MAIN_BRANCH)"
+	@echo "VERSION                          = $(VERSION)"
 
 export-vars:
-	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
+	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
+	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
+	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
+	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
+	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
+	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
+	@echo "export DOCKER_EPHEMERAL_REGISTRY='$(DOCKER_EPHEMERAL_REGISTRY)'"
+	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
+	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
+	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
 	@echo "export GIT_BRANCH='$(GIT_BRANCH)'"
 	@echo "export GIT_BRANCH_SANITIZED='$(GIT_BRANCH_SANITIZED)'"
 	@echo "export GIT_COMMIT='$(GIT_COMMIT)'"
+	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
-	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
-	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
-	@echo "export VERSION='$(VERSION)'"
-	@echo "export LATEST_RC='$(LATEST_RC)'"
-	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
-	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
-	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
-	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
-	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
+	@echo "export LATEST_RC='$(LATEST_RC)'"
+	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
+	@echo "export VERSION='$(VERSION)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
 docker-registry:
-ifneq ($(DOCKER_LOCAL_REGISTRY),)
+ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 	@if [ "$(TRAVIS)" != "true" ]; then \
 		echo "make docker-registry is only for CI" >&2 ;\
 		exit 1 ;\
@@ -260,7 +268,7 @@ ambassador-docker-image: version
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
-ifneq ($(DOCKER_LOCAL_REGISTRY),)
+ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 

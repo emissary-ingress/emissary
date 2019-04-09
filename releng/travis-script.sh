@@ -42,14 +42,13 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # the ephemeral Docker registry.
     printf "========\nSetting up environment...\n"
 
-    eval $(make DOCKER_LOCAL_REGISTRY=true \
+    eval $(make DOCKER_EPHEMERAL_REGISTRY=true \
                 DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
                 DOCKER_REGISTRY=localhost:31000 \
                 export-vars)
 
     # Makes it much easier to actually debug when you see what the Makefile sees
     make print-vars
-    git status
 
     printf "========\nStarting build...\n"
 
