@@ -562,7 +562,7 @@ def label(yaml, scope):
     return yaml
 
 
-CLIENT_GO = os.path.join(os.path.dirname(__file__), "client")
+CLIENT_GO = "kat_client"
 
 def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []

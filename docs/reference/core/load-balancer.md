@@ -40,6 +40,8 @@ load_balancer:
   policy: round_robin
 ```
 
+Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/concurrency_lb).
+
 ### Sticky Sessions / Session Affinity
 Configuring sticky sessions makes Ambassador route requests to the same backend service in a given session. In other words, requests in a session are served by the same Kubernetes pod. Ambassador lets you configure session affinity based on the following parameters in an incoming request:
 
