@@ -91,6 +91,7 @@ func (s *server) handleOpenAPIGet() http.HandlerFunc {
 		metadata := s.K8sStore.Get(kubernetes.Service{
 			Name: vars["name"], Namespace: vars["namespace"]},
 			true)
+		// TODO if Doc is empty we should 404, not blow up
 		js := metadata.Doc.JSON.EncodeJSON()
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(js)
