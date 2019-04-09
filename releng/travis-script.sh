@@ -45,12 +45,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     export DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY
     export DOCKER_REGISTRY=localhost:31000
 
-    echo "========"
-    env | sort
-    echo "========"
-    echo
-    
-    make docker-registry
+    make setup-develop cluster.yaml docker-registry
     make docker-push
     make KAT_REQ_LIMIT=900 test
 
