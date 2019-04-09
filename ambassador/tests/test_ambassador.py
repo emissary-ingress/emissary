@@ -24,6 +24,46 @@ import t_tls
 import t_tracing
 import t_consul
 
+class CircuitBreakingTest(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /{self.name}/
+service: httpstat.us
+host_rewrite: httpstat.us
+circuit_breakers:
+- priority: default
+  max_connections: 1
+  max_pending_requests: 1
+  max_requests: 1
+  max_retries: 1
+- priority: high
+  max_connections: 1
+  max_pending_requests: 1
+  max_requests: 1
+  max_retries: 1
+""")
+
+    def queries(self):
+        for i in range(1000):
+            yield Query(self.url(self.name) + '/200?sleep=1000', ignore_result=True)
+
+    def check(self):
+        overloaded = 0
+        for result in self.results:
+            if 'X-Envoy-Overloaded' in result.headers:
+                overloaded += 1
+        assert 500 < overloaded < 1000
+
+
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
 #
