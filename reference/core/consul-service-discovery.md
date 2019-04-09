@@ -4,7 +4,7 @@ Ambassador supports using [Consul](https://consul.io) for service discovery. In 
 
 ## Configuration Example:
 
-**Note:** This integration is available starting with Ambassador `0.53.0`. For now, the development image of this integration is here: `quay.io/datawire/ambassador:flynn-dev-watt-8922add`.
+**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:flynn-dev-watt-8922add`.
 
 In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we have created a QoTM API that automatically registers itself as service with Consul.
 
