@@ -1,15 +1,15 @@
 package server
 
 import (
-	"errors"
 	"fmt"
-	"github.com/Jeffail/gabs"
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Jeffail/gabs"
+	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 )
 
 // Add a new/updated service.
@@ -116,8 +116,7 @@ func httpGet(url string) ([]byte, error) {
 		return nil, err
 	}
 	if response.StatusCode != 200 {
-		return nil, errors.New(
-			fmt.Sprintf("HTTP error %d from %s", response.StatusCode, url))
+		return nil, fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
 	}
 	buf, err := ioutil.ReadAll(response.Body)
 	if err != nil {

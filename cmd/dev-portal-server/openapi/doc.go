@@ -1,8 +1,9 @@
 package openapi
 
 import (
-	"github.com/Jeffail/gabs"
 	"log"
+
+	"github.com/Jeffail/gabs"
 )
 
 type OpenAPIDoc struct {

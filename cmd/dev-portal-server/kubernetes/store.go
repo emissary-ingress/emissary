@@ -1,8 +1,9 @@
 package kubernetes
 
 import (
-	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	"sync"
+
+	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 )
 
 type Service struct {

@@ -1,10 +1,11 @@
 package server
 
 import (
-	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	. "github.com/onsi/gomega"
 	"sort"
 	"testing"
+
+	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	. "github.com/onsi/gomega"
 )
 
 func TestDiffCalculator(t *testing.T) {

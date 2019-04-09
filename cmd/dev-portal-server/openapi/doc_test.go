@@ -1,9 +1,10 @@
 package openapi
 
 import (
+	"testing"
+
 	"github.com/Jeffail/gabs"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 // The servers key of the OpenAPI doc is updated with a new URL. This is the

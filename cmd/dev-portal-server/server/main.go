@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"time"
+
+	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 )
 
 func Main(

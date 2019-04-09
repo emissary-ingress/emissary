@@ -1,10 +1,11 @@
 package kubernetes
 
 import (
+	"testing"
+
 	"github.com/Jeffail/gabs"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func testStoreInterface(s ServiceStore, t *testing.T) {

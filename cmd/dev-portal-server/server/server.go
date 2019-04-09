@@ -2,13 +2,14 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
-	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	"github.com/gorilla/mux"
 )
 
 type server struct {
@@ -184,7 +185,7 @@ const ui = SwaggerUIBundle({
 // Create a new HTTP server instance.
 //
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
-// perhaps a security risk, and more broadly might be embarassing for some
+// perhaps a security risk, and more broadly might be embarrassing for some
 // organizations. So might want some better URL scheme.
 func NewServer() *server {
 	router := mux.NewRouter()
