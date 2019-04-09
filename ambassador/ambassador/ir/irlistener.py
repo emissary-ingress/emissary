@@ -31,7 +31,7 @@ class IRListener (IRResource):
             use_proxy_proto=use_proxy_proto,
             **kwargs)
 
-        self.redirect_listener: bool = False
+        self.redirect_listener: bool = require_tls
         self.add_dict_helper('tls_contexts', IRListener.helper_contexts)
 
 class ListenerFactory:

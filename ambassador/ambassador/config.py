@@ -1131,7 +1131,7 @@ class Config (object):
         # https, are processes normally by envoy. In all the other cases, including X-FORWARDED-PROTO set to http,
         # a 301 redirect response to https://host is sent
         if self.ambassador_module.get('x_forwarded_proto_redirect', False):
-            primary_listener['require_tls'] = 'ALL'
+            primary_listener['require_tls'] = True
             self.logger.debug("x_forwarded_proto_redirect is set to true, enabling 'require_tls' in listener")
 
         redirect_cleartext_from = None
