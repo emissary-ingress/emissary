@@ -173,7 +173,7 @@ print-vars:
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
 	@echo "COMMIT_TYPE                      = $(COMMIT_TYPE)"
-	@echo "DOCKER_EPHEMERAL_REGISTRY            = $(DOCKER_EPHEMERAL_REGISTRY)"
+	@echo "DOCKER_EPHEMERAL_REGISTRY        = $(DOCKER_EPHEMERAL_REGISTRY)"
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
 	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
 	@echo "DOCKER_REGISTRY                  = $(DOCKER_REGISTRY)"
@@ -268,7 +268,11 @@ ambassador-docker-image: version
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
-ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
+ifeq ($(DOCKER_LOGIN_FAKE), true)
+	@echo Faking Docker login...
+else
+ifeq ($(TRAVIS), true)
+ifneq ($(DOCKER_EXTERNAL_REGISTRY),-)
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 
@@ -276,17 +280,21 @@ ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 else
 	@echo "Using local registry, no need for docker login."
 endif
+else
+	@echo "Not in CI, assuming you're already logged into Docker"
+endif
+endif
 
 docker-images: ambassador-docker-image
 
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
-		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
+		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
-		if [ \( "$(COMMIT_TYPE)" = "RC" \) ]; then \
-			make docker-login; \
-			if [ \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
+		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
+			make docker-login || exit 1; \
+			if [ "$(COMMIT_TYPE)" = "EA" ]; then \
 				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
 				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
 				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
@@ -299,6 +307,8 @@ ifneq ($(DOCKER_REGISTRY), -)
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
 	fi
+else
+	@echo "No DOCKER_REGISTRY set"
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
