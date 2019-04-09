@@ -20,6 +20,9 @@ type AddServiceFunc func(
 // Delete a service.
 type DeleteServiceFunc func(service kubernetes.Service)
 
+// Retrieve a URL.
+type HTTPGetFunc func(url string) ([]byte, error)
+
 type serviceMap map[kubernetes.Service]bool
 
 // Figure out what services no longer exist and need to be deleted.
@@ -56,11 +59,12 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 }
 
 type fetcher struct {
-	add    AddServiceFunc
-	delete DeleteServiceFunc
-	done   chan bool
-	ticker *time.Ticker
-	diff   *diffCalculator
+	add     AddServiceFunc
+	delete  DeleteServiceFunc
+	httpGet HTTPGetFunc
+	done    chan bool
+	ticker  *time.Ticker
+	diff    *diffCalculator
 	// diagd's URL
 	diagURL string
 	// ambassador's URL
@@ -72,11 +76,12 @@ type fetcher struct {
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
-	add AddServiceFunc, delete DeleteServiceFunc,
+	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
 	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
 	f := &fetcher{
 		add:           add,
 		delete:        delete,
+		httpGet:       httpGet,
 		done:          make(chan bool),
 		ticker:        time.NewTicker(duration),
 		diff:          NewDiffCalculator(known),
@@ -126,7 +131,7 @@ func httpGet(url string) ([]byte, error) {
 }
 
 func (f *fetcher) retrieve() {
-	buf, err := httpGet(f.diagURL + "/ambassador/v0/diag/?json=true")
+	buf, err := f.httpGet(f.diagURL + "/ambassador/v0/diag/?json=true")
 	if err != nil {
 		log.Print(err)
 		return
@@ -176,7 +181,7 @@ func (f *fetcher) retrieve() {
 			}
 			// Get the OpenAPI documentation:
 			var doc []byte
-			docBuf, err := httpGet(f.ambassadorURL + prefix + "/.well-known/openapi-docs")
+			docBuf, err := f.httpGet(f.ambassadorURL + prefix + "/.well-known/openapi-docs")
 			if err == nil {
 				doc = docBuf
 			} else {

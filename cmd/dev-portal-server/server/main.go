@@ -19,7 +19,7 @@ func Main(
 		i++
 	}
 	fetcher := NewFetcher(
-		s.getServiceAdd(), s.getServiceDelete(), knownServices,
+		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
 		diagdURL, ambassadorURL, pollFrequency, publicURL)
 	defer fetcher.Stop()
 	s.ServeHTTP()
