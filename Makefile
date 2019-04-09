@@ -185,7 +185,8 @@ print-vars:
 	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
-	@echo "KAT_BACKEND_RELEASE = $(KAT_BACKEND_RELEASE)"
+	@echo "KAT_BACKEND_RELEASE     = $(KAT_BACKEND_RELEASE)"
+	@echo "KUBECONFIG =            = $(KUBECONFIG)"
 
 export-vars:
 	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
@@ -207,12 +208,17 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
+	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
 docker-registry:
 ifneq ($(DOCKER_LOCAL_REGISTRY),)
 	@if [ "$(TRAVIS)" != "true" ]; then \
 		echo "make docker-registry is only for CI" >&2 ;\
+		exit 1 ;\
+	fi
+	@if [ -z "$(KUBECONFIG)" ]; then \
+		echo "No KUBECONFIG" >&2 ;\
 		exit 1 ;\
 	fi
 	@if [ ! -r .docker_port_forward ]; then \
@@ -355,6 +361,8 @@ ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 endif
+
+cluster-and-teleproxy: cluster.yaml
 	rm -rf /tmp/k8s-*.yaml
 	@echo "Killing teleproxy"
 	$(call kill_teleproxy)
@@ -362,7 +370,7 @@ endif
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
-setup-test: cluster.yaml
+setup-test: cluster-and-teleproxy
 
 teleproxy-restart:
 	@echo "Killing teleproxy"
@@ -382,7 +390,7 @@ teleproxy-stop:
 		echo "teleproxy stopped" >&2; \
 	fi
 
-shell: setup-develop cluster.yaml
+shell: setup-develop cluster-and-teleproxy
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
@@ -391,12 +399,12 @@ shell: setup-develop cluster.yaml
 	bash --init-file releng/init.sh -i
 
 clean-test:
-	rm -f cluster.yaml
+	rm -f cluster-and-teleproxy
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: setup-develop cluster.yaml
+test: setup-develop cluster-and-teleproxy 
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
