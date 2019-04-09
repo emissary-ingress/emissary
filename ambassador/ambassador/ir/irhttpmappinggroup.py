@@ -43,7 +43,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'timeout_ms': True,
         'idle_timeout_ms': True,
         'bypass_auth': True,
-        'load_balancer': True
+        'load_balancer': True,
+        'circuit_breakers': True
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
@@ -193,6 +194,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
                             connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
+                            circuit_breakers=mapping.get('circuit_breakers', None),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)

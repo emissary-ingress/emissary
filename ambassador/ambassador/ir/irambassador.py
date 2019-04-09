@@ -20,6 +20,7 @@ class IRAmbassador (IRResource):
     AModTransparentKeys: ClassVar = [
         'admin_port',
         'auth_enabled',
+        'circuit_breakers',
         'default_label_domain',
         'default_labels',
         'diag_port',
@@ -36,7 +37,7 @@ class IRAmbassador (IRResource):
         'use_proxy_proto',
         'use_remote_address',
         'x_forwarded_proto_redirect',
-        'xff_num_trusted_hops',
+        'xff_num_trusted_hops'
     ]
 
     service_port: int
@@ -81,6 +82,7 @@ class IRAmbassador (IRResource):
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
+            circuit_breakers=None,
             xff_num_trusted_hops=0,
             server_name="envoy",
             **kwargs
@@ -241,6 +243,11 @@ class IRAmbassador (IRResource):
         if self.get('load_balancer', None) is not None:
             if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
+                return False
+
+        if self.get('circuit_breakers', None) is not None:
+            if not IRHTTPMapping.validate_circuit_breakers(self['circuit_breakers']):
+                self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
 
         return True

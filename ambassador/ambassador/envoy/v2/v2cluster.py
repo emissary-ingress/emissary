@@ -50,6 +50,9 @@ class V2Cluster(dict):
             },
             'dns_lookup_family': dns_lookup_family
         }
+        circuit_breakers = self.get_circuit_breakers(cluster)
+        if circuit_breakers is not None:
+            fields['circuit_breakers'] = circuit_breakers
 
         if cluster.get('grpc', False):
             self["http2_protocol_options"] = {}
@@ -94,6 +97,29 @@ class V2Cluster(dict):
                     address['protocol'] = p.scheme.upper()
                 result.append({'endpoint': {'address': {'socket_address': address}}})
         return result
+
+    def get_circuit_breakers(self, cluster: IRCluster):
+        cluster_circuit_breakers = cluster.get('circuit_breakers', None)
+        if cluster_circuit_breakers is None:
+            return None
+
+        circuit_breakers = {
+            'thresholds': []
+        }
+        for circuit_breaker in cluster_circuit_breakers:
+            threshold = {}
+            if 'priority' in circuit_breaker:
+                threshold['priority'] = circuit_breaker.get('priority').upper()
+
+            digit_fields = ['max_connections', 'max_pending_requests', 'max_requests', 'max_retries']
+            for field in digit_fields:
+                if field in circuit_breaker:
+                    threshold[field] = int(circuit_breaker.get(field))
+
+            if len(threshold) > 0:
+                circuit_breakers['thresholds'].append(threshold)
+
+        return circuit_breakers
 
     @classmethod
     def generate(self, config: 'V2Config') -> None:
