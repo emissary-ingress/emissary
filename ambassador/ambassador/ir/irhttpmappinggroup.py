@@ -325,4 +325,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
+
+            # Flatten the case_sensitive field for host_redirect if it exists
+            if 'case_sensitive' in self.host_redirect:
+                self['case_sensitive'] = self.host_redirect['case_sensitive']
+
             return []
