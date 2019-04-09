@@ -43,7 +43,13 @@ func parseArgs(args []string) {
 	usage := fmt.Sprintf(`Usage: %s [OPTIONS] URL
 Attempt to determine the maximum load that URL can handle
 
-You may specify and ordinary http:// or https:// URL to have direct
+It will start at 100rps and measure the latency.  It will then go up
+in ${step-rps} steps until it starts seeing failures (such that the
+success rate drops below ${min-success-rate}).  It will then perform a
+binary search to determine a more precise rate for when failures
+started.
+
+You may specify an ordinary http:// or https:// URL to have direct
 absolute control over what it speaks to.  Alternatively, you may
 prefix the URL with "nodeport+" to have it resolve a NodePort service:
 
