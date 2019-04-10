@@ -130,8 +130,8 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-8
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-8
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-9
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-9
 
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
 USE_KUBERNAUT ?= true
@@ -417,7 +417,7 @@ shell: setup-develop cluster-and-teleproxy
 	bash --init-file releng/init.sh -i
 
 clean-test:
-	rm -f cluster-and-teleproxy
+	rm -f cluster.yaml
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
