@@ -36,7 +36,7 @@ env:
 
 before_install:
   - mkdir -p ~/bin
-  - make docker-login
+  # - make docker-login
 
 install:
   - ./releng/travis-install.sh

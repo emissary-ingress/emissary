@@ -295,6 +295,8 @@ def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
 
         config['timeout'] = "%0.3fs" % (float(tm_ms) / 1000.0)
 
+    # If here, we must have a ratelimit service configured.
+    assert v2config.ratelimit
     config['rate_limit_service'] = dict(v2config.ratelimit)
 
     return {
@@ -505,6 +507,9 @@ class V2Listener(dict):
 
         if 'xff_num_trusted_hops' in config.ir.ambassador_module:
             base_http_config["xff_num_trusted_hops"] = config.ir.ambassador_module.xff_num_trusted_hops
+
+        if 'server_name' in config.ir.ambassador_module:
+            base_http_config["server_name"] = config.ir.ambassador_module.server_name
 
         if config.ir.tracing:
             base_http_config["generate_request_id"] = True
