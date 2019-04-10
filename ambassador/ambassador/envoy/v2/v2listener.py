@@ -508,6 +508,9 @@ class V2Listener(dict):
         if 'xff_num_trusted_hops' in config.ir.ambassador_module:
             base_http_config["xff_num_trusted_hops"] = config.ir.ambassador_module.xff_num_trusted_hops
 
+        if 'server_name' in config.ir.ambassador_module:
+            base_http_config["server_name"] = config.ir.ambassador_module.server_name
+
         if config.ir.tracing:
             base_http_config["generate_request_id"] = True
 

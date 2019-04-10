@@ -792,6 +792,16 @@ class AddResponseHeaders(OptionTest):
                 actual = lowercased_headers.get(k.lower())
                 assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
 
+class RemoveResponseHeaders(OptionTest):
+
+    parent: Test
+
+    def config(self):
+        yield "remove_response_headers: x-envoy-upstream-service-time"
+
+    def check(self):
+        for r in self.parent.results:
+            assert r.headers.get("x-envoy-upstream-service-time", None) == None, "x-envoy-upstream-service-time header was meant to be dropped but wasnt"
 
 class HostHeaderMapping(MappingTest):
 
@@ -1482,6 +1492,34 @@ load_balancer:
         yield Query(self.url(self.name + "-6/"), expected=404)
         yield Query(self.url(self.name + "-7/"), expected=404)
 
+class ServerNameTest(AmbassadorTest):
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  server_name: "test-server"
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.path.k8s}/server-name
+prefix: /server-name
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        yield Query(self.url("server-name/"), expected=301)
+
+    def check(self):
+        assert self.results[0].headers["Server"] == [ "test-server" ]
 
 class GlobalLoadBalancing(AmbassadorTest):
     target: ServiceType
@@ -1826,4 +1864,3 @@ load_balancer:
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
 main = Runner(AmbassadorTest)
-
