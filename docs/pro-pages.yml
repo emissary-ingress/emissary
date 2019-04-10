@@ -11,6 +11,10 @@
 - /user-guide/advanced-rate-limiting
 - /user-guide/certified-builds
 - /reference/filter-reference
+- /reference/idp-support/keycloak
+- /reference/idp-support/auth0
+- /reference/idp-support/okta
+- /reference/idp-support/uaa
 - /docs/guides/filter-dev-guide
 - /docs/dev-guide/service-preview
 - /about/support
