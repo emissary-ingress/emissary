@@ -10,4 +10,4 @@ terraform plan -out tfplan
 terraform apply tfplan
 cd ../..
 
-make deploy KUBECONFIG=infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-sidecar_phil
+make deploy KUBECONFIG=infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load
