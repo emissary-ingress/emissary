@@ -79,7 +79,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push "$$(sed -n 3p $<)"; \
 	}
-	sed -n '3{ s/^host\.docker\.internal:/localhost:/; p; }' $< > $@
+	sed -n '3{ s/^[^:]*:/127.0.0.1:/; p; }' $< > $@
 .NOTPARALLEL: # work around https://github.com/datawire/teleproxy/issues/77
 
 %.docker.push: %.docker
