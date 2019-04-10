@@ -54,18 +54,19 @@ class V2Bootstrap(dict):
             assert tracing.cluster
             clusters.append(V2Cluster(config, typecast(IRCluster, tracing.cluster)))
 
-        if config.ratelimit:
-            self['rate_limit_service'] = dict(config.ratelimit)
-
-            ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
-
-            assert ratelimit.cluster
-            clusters.append(V2Cluster(config, ratelimit.cluster))
+        # if config.ratelimit:
+        #     self['rate_limit_service'] = dict(config.ratelimit)
+        #
+        #     ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
+        #
+        #     assert ratelimit.cluster
+        #     clusters.append(V2Cluster(config, ratelimit.cluster))
 
         if config.ir.statsd['enabled']:
+            name = 'envoy.dog_statsd' if config.ir.statsd['dogstatsd'] else 'envoy.statsd'
             self['stats_sinks'] = [
                 {
-                    'name': 'envoy.statsd',
+                    'name': name,
                     'config': {
                         'address': {
                             'socket_address': {

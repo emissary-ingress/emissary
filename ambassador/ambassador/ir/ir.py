@@ -338,8 +338,6 @@ class IR:
         return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
-        group: IRBaseMappingGroup = None
-
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name
@@ -354,7 +352,9 @@ class IR:
                 group = self.groups[mapping.group_id]
                 group.add_mapping(aconf, mapping)
 
-        return group
+            return group
+        else:
+            return None
 
     def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
@@ -463,6 +463,7 @@ class IR:
             od[key] = self.ambassador_module.get(key, False)
 
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
+        od['server_name'] = bool(self.ambassador_module.server_name != '')
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 

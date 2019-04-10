@@ -77,12 +77,11 @@ class EnvoyConfig:
 
     @classmethod
     def generate(cls, ir: IR, version: str="V2") -> 'EnvoyConfig':
-        if version == "V1":
-            from . import V1Config
-            return V1Config(ir)
-        else:
-            from . import V2Config
-            return V2Config(ir)
+        assert version == "V2"
+
+        from . import V2Config
+        return V2Config(ir)
+
 
 class EnvoyRoute:
     def __init__(self, group: IRHTTPMappingGroup):

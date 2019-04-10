@@ -24,7 +24,6 @@ from t_extauth import (
     AuthenticationTestV1,	
     AuthenticationHTTPBufferedTest,	
     AuthenticationWebsocketTest,
-    AuthenticationWebsocketTimeoutTest,
     AuthenticationGRPCTest
 )
 from t_lua_scripts import LuaTest
@@ -108,6 +107,48 @@ spec:
     port: 443
     targetPort: 8443
 """
+
+DOGSTATSD_CONFIG = """
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {0}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: {0}
+    spec:
+      containers:
+      - name: {0}
+        image: patricksanders/statsdebug:0.1.0
+        ports:
+        - containerPort: 8080
+        - containerPort: 8125
+          protocol: UDP
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {0}
+  name: {0}
+spec:
+  ports:
+  - protocol: UDP
+    port: 8125
+    name: statsdebug-statsd
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+    name: statsdebug-http
+  selector:
+    service: {0}
+"""
+
 
 class TLSContextsTest(AmbassadorTest):
     """
@@ -704,12 +745,13 @@ service: http://{self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/"))
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
-
+                assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 class AddRequestHeaders(OptionTest):
 
@@ -750,6 +792,16 @@ class AddResponseHeaders(OptionTest):
                 actual = lowercased_headers.get(k.lower())
                 assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
 
+class RemoveResponseHeaders(OptionTest):
+
+    parent: Test
+
+    def config(self):
+        yield "remove_response_headers: x-envoy-upstream-service-time"
+
+    def check(self):
+        for r in self.parent.results:
+            assert r.headers.get("x-envoy-upstream-service-time", None) == None, "x-envoy-upstream-service-time header was meant to be dropped but wasnt"
 
 class HostHeaderMapping(MappingTest):
 
@@ -1295,6 +1347,47 @@ service: http://{self.target.path.fqdn}
         assert 0 < self.results[-1].json[0]['datapoints'][0][0] <= 1000
 
 
+class DogstatsdTest(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+        if DEV:
+            self.skip_node = True
+
+    def manifests(self) -> str:
+        envs = """
+    - name: STATSD_ENABLED
+      value: 'true'
+    - name: STATSD_HOST
+      value: 'dogstatsd-sink'
+    - name: DOGSTATSD
+      value: 'true'
+"""
+
+        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+                           envs=envs, extra_ports="") + DOGSTATSD_CONFIG.format('dogstatsd-sink')
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+""")
+
+    def queries(self):
+        for i in range(1000):
+            yield Query(self.url(self.name + "/"), phase=1)
+
+        yield Query("http://dogstatsd-sink/all", phase=2)
+
+    def check(self):
+        # If we have a envoy.http.downstream_rq_total metric, we can safely
+        # assume that envoy is sending dogstatsd.
+        assert 0 < self.results[-1].json['envoy.http.downstream_rq_total'] <= 1000
+
+
 class LoadBalancerTest(AmbassadorTest):
     target: ServiceType
     enable_endpoints = True
@@ -1399,6 +1492,34 @@ load_balancer:
         yield Query(self.url(self.name + "-6/"), expected=404)
         yield Query(self.url(self.name + "-7/"), expected=404)
 
+class ServerNameTest(AmbassadorTest):
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  server_name: "test-server"
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.path.k8s}/server-name
+prefix: /server-name
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        yield Query(self.url("server-name/"), expected=301)
+
+    def check(self):
+        assert self.results[0].headers["Server"] == [ "test-server" ]
 
 class GlobalLoadBalancing(AmbassadorTest):
     target: ServiceType
@@ -1743,4 +1864,3 @@ load_balancer:
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
 main = Runner(AmbassadorTest)
-

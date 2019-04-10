@@ -1,6 +1,6 @@
 # Transport Layer Security (TLS)
 
-Ambassador supports both terminating TLS and originating TLS. By default, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret. 
+Ambassador supports both terminating TLS and originating TLS. By default, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret.
 
 ## The `tls` module
 
@@ -18,7 +18,7 @@ config:
     # If 'enabled' is not True, TLS termination will not happen.
     enabled: True
 
-    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic 
+    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
     # to that port will be redirected to HTTPS traffic. Typically you would
     # use port 80, of course.
     # redirect_cleartext_from: 80
@@ -31,7 +31,7 @@ config:
     # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
     # private_key_file: /etc/certs/tls.key  # remember to set enabled!
 
-    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with 
+    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with
     # HTTP2 clients over TLS.
     # This must be set to be able to use grpc over TLS.
     # alpn_protocols: h2
@@ -51,7 +51,7 @@ config:
     # a custom Docker build to install certificates onto the container
     # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
     # above.
-    # 
+    #
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
@@ -87,6 +87,23 @@ config:
 ```
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Requests that contain have `X-FORWARDED-PROTO` set to `https` will be passed through. Otherwise, for all other values of `X-FORWARDED-PROTO`, they will be redirected to TLS.
+
+## HTTP2 Support
+
+Enable TLS ALPN protocol, typically used to negotiate HTTP2.
+
+```yaml
+apiVersion: ambassador/v1
+kind:  Module
+name:  tls
+config:
+  server:
+    alpn_protocols: h2[, http/1.1]
+```
+
+Without setting setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
+
+If you leave off http/1.1, only HTTP2 connections will be supported.
 
 ## Authentication with TLS Client Certificates
 
