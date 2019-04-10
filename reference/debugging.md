@@ -302,7 +302,7 @@ The Envoy Proxy configuration that was generated from the Ambassador configurati
 
 ## <a name="manually-experimenting"></a> Manually Experimenting with Ambassador / Envoy configuration
 
-If the generated Envoy configuration is not looking as expected, you can manually tweak this and restart the Envoy process. The general approach to this is to scale down the Ambassador Deployment to a single Pod in order to send all Ambassador traffic through this single instance (which is not recommended in production!), exec into the Pod and make the modification, and then restart the Envoy process by sending a ```SIGHUP``` to the ```hot-starter.py``` process. e.g.
+If the generated Envoy configuration is not looking as expected, you can manually tweak this and restart the Envoy process. The general approach to this is to scale down the Ambassador Deployment to a single Pod in order to send all Ambassador traffic through this single instance (which is not recommended in production!), exec into the Pod and make the modification to the `envoy/envoy.json`. Then, restart the `ambex` process which will pass the updated `envoy.json` to Envoy. You can do this by getting the PID of `ambex` with `ps -ef | grep ambex`. Then run `kill -HUP $AMBEX_PID` to restart `ambex`.
 
 ```shell
 $ kubectl scale deployment ambassador --replicas=1
@@ -314,52 +314,31 @@ ambassador-85c4cf67b-fqp9g   1/1       Terminating   0          30m
 ambassador-85c4cf67b-vg6p5   1/1       Terminating   0          30m
 ```
 
-Wait for the scale down to complete, and then modify the Envoy config. e.g:
+Wait for the scale down to complete, and then modify the Envoy config e.g.,:
 
 ```shell
 $ kubectl exec -it ambassador-85c4cf67b-4pfj2 -- /bin/sh
-/ambassador # ls -lsa
-total 84
-     4 drwxrwxr-x    1 root     root          4096 Oct 15 12:35 .
-     4 drwxr-xr-x    1 root     root          4096 Oct 15 12:26 ..
-     4 drwxr-xr-x    4 root     root          4096 Oct 15 12:26 ambassador-0.40.0-py3.6.egg-tmp
-     4 drwxrwxr-x    1 root     root          4096 Sep 25 20:29 ambassador-config
-     4 drwxr-xr-x    2 root     root          4096 Oct 15 12:26 ambassador-config-1
-     4 drwxr-xr-x    2 root     root          4096 Oct 15 12:35 ambassador-config-2
-     4 drwxrwxr-x    1 root     root          4096 Sep 25 20:29 ambassador-demo-config
-     8 -rwxr-xr-x    1 root     root          4179 Sep 25 20:28 entrypoint.sh
-     4 -rw-r--r--    1 root     root          3322 Oct 15 12:26 envoy-1.json
-     8 -rw-r--r--    1 root     root          4101 Oct 15 12:35 envoy-2.json
-     8 -rw-rw-r--    1 root     root          5245 Sep 25 20:28 hot-restarter.py
-    20 -rw-rw-r--    1 root     root         16952 Sep 25 20:28 kubewatch.py
-     4 -rwxrwxr--    1 root     root           175 Sep 25 20:28 requirements.txt
-     4 -rwxr-xr-x    1 root     root           997 Sep 25 20:28 start-envoy.sh
-/ambassador # vi envoy-2.json
+/ambassador $ ls -lsa
+total 64
+     8 drwxrwxr-x    1 root     root          4096 Apr  5 21:01 .
+     4 drwxr-xr-x    1 root     root          4096 Apr  5 21:01 ..
+     4 drwxr-xr-x    3 8888     root          4096 Apr  5 21:01 .cache
+     4 drwxrwxr-x    1 root     root          4096 Apr  5 17:38 ambassador-config
+     4 drwxrwxr-x    1 root     root          4096 Apr  5 17:38 ambassador-demo-config
+     4 -rw-r--r--    1 8888     root             2 Apr  5 21:01 ambex.pid
+     4 -rw-r--r--    1 8888     root          1626 Apr  5 21:01 bootstrap-ads.json
+     4 drwxrwxr-x    1 root     root          4096 Apr  5 17:38 demo-services
+     8 -rwxr-xr-x    1 root     root          6589 Apr  5 17:37 entrypoint.sh
+     4 drwxrwxr-x    1 root     root          4096 Apr  5 21:01 envoy
+     4 -rwxr-xr-x    1 root     root           584 Apr  5 17:37 kick_ads.sh
+     4 -rwxr-xr-x    1 root     root          4007 Apr  5 17:37 kubewatch.py
+     4 -rwxr-xr-x    1 root     root           484 Apr  5 17:37 post_update.py
+     4 drwxr-xr-x    3 8888     root          4096 Apr  5 21:01 snapshots
+/ambassador $ vi envoy/envoy.json
+/ambassador $ ps -ef | grep ambex
+   33 8888     21:56 ambex /ambassador/envoy
+  122 8888      0:00 grep ambex
+/ambassador $ kill -HUP 33
 ```
-Make your changes to the Envoy configuration using `vi` and save the data. Now you can restart the Envoy process by sending a SIGHUP to the `hot-restarter.py` process.
 
 Be aware that even though you have modified the configuration files, the Ambassador Diagnostic Console may not accurately reflect your updates. In order to determine that the restart was successful with the correct configuration, you can ensure that the "Set Debug On" has been enabled via the Diagnostic Console and you can follow the Ambassador/Envoy logs to see the new configuration has been loaded.
-
-```shell
-/ambassador # ps aux
-PID   USER     TIME  COMMAND
-    1 root      0:00 {entrypoint.sh} /bin/sh ./entrypoint.sh
-   15 root      0:01 {diagd} /usr/bin/python3 /usr/bin/diagd --no-debugging /ambassador/ambassador-config
-   16 root      0:00 /usr/bin/python3 /ambassador/hot-restarter.py /ambassador/start-envoy.sh
-   17 root      0:02 /usr/bin/python3 /ambassador/kubewatch.py watch /ambassador/ambassador-config /ambassador/envoy.json -p 16 --delay 15
-   42 root      0:03 {diagd} /usr/bin/python3 /usr/bin/diagd --no-debugging /ambassador/ambassador-config
-   52 root      0:01 /usr/local/bin/envoy -c /ambassador/envoy-2.json --restart-epoch 1 --drain-time-s 5 --service-cluster ambassador-default --parent-shutdow
-   63 root      0:00 /bin/sh
-   76 root      0:00 ps aux
-/ambassador #
-/ambassador # # send a SIGHUP (kill -1) to the "/usr/bin/python3 /ambassador/hot-restarter.py" process
-/ambassador # kill -1 16
-```
-In a separate window you can follow the Ambassador logs before you issue the SIGHUP, e.g.:
-
-```shell
-$ kubectl logs -f ambassador-85c4cf67b-4pfj2
-got SIGHUP
-forking and execing new child process at epoch 3
-forked new child process with PID=79
-```
