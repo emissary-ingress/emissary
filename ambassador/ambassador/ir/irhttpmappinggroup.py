@@ -305,7 +305,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 
-        if not self.get('host_redirect', None):
+        redir = self.get('host_redirect', None)
+
+        if not redir:
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 
@@ -327,7 +329,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
             # Flatten the case_sensitive field for host_redirect if it exists
-            if 'case_sensitive' in self.host_redirect:
-                self['case_sensitive'] = self.host_redirect['case_sensitive']
+            if 'case_sensitive' in redir:
+                self['case_sensitive'] = redir['case_sensitive']
                 
             return []
