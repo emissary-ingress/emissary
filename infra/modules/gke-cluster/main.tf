@@ -36,7 +36,7 @@ resource "google_project_iam_member" "service_account" {
 
 resource "null_resource" "kubeconfig" {
 	triggers {
-		cluster_id = "${google_container_cluster.cluster.id}"
+		unique = "${uuid()}"
 	}
 
 	provisioner "local-exec" {
