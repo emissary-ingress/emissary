@@ -14,6 +14,7 @@ I've been testing with minikube, where you can build directly into the Docker re
 In the root of your `apro` checkout:
 
 ```
+$ make build
 $ eval $(minikube docker-env)
 $ cd docker/dev-portal-server
 $ export KUBECONFIG=~/.kube/config
