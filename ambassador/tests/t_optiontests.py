@@ -135,3 +135,15 @@ class Rewrite(OptionTest):
 
         for r in self.parent.results:
             assert r.backend.request.url.path == self.value
+
+
+class RemoveResponseHeaders(OptionTest):
+
+    parent: Test
+
+    def config(self):
+        yield "remove_response_headers: x-envoy-upstream-service-time"
+
+    def check(self):
+        for r in self.parent.results:
+            assert r.headers.get("x-envoy-upstream-service-time", None) == None, "x-envoy-upstream-service-time header was meant to be dropped but wasn't"

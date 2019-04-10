@@ -76,6 +76,11 @@ class V2Route(dict):
                 } for k, v in response_headers_to_add.items()
             ]
 
+        response_headers_to_remove = group.get('remove_response_headers', None)
+
+        if response_headers_to_remove:
+            self['response_headers_to_remove'] = response_headers_to_remove
+
         # If a host_redirect is set, we won't do a 'route' entry.
         host_redirect = group.get('host_redirect', None)
 

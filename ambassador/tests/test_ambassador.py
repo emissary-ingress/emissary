@@ -31,4 +31,3 @@ import t_tracing
 # - Any class you pass to Runner needs to be standalone (it must have its
 #   own manifests and be able to set up its own world).
 main = Runner(AmbassadorTest)
-
