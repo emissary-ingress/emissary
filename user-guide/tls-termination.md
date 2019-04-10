@@ -179,3 +179,8 @@ spec:
 ## Certificate Manager
 
 Jetstack's [cert-manager](https://github.com/jetstack/cert-manager) lets you easily provision and manage TLS certificates on Kubernetes. See documentation on using [cert-manager with Ambassador](/user-guide/cert-manager).
+
+## Supporting multiple domains
+
+With the setup from above it is not possible to supply separate certificates for different domains.
+This can be achieved with Ambassador's [SNI support](/user-guide/sni).
