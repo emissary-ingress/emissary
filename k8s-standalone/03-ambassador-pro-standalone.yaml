@@ -235,9 +235,6 @@ spec:
           value: "true"
         - name: AMBASSADOR_LICENSE_KEY # For everything
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-# XXX: Kubernaut
-#      imagePullSecrets:
-#      - name: ambassador-pro-registry-credentials
 
 
 ######################################################################
@@ -290,6 +287,3 @@ spec:
         env:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-# XXX: Kubernaut
-#      imagePullSecrets:
-#      - name: ambassador-pro-registry-credentials
