@@ -1,0 +1,119 @@
+# @TEMPLATE@
+######################################################################
+# Create the ambassador Service+Service+Deployment
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-grpc-admin
+  name: ambassador-grpc-admin
+  namespace: no-pro
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-grpc-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador-grpc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-grpc
+  namespace: no-pro
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      ambassador_id: grpc
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
+          alpn_protocols: h2
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      ambassador_id: grpc
+      name: authentication
+      proto: grpc
+      auth_service: 127.0.0.1:3000
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+spec:
+  type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  selector:
+    service: ambassador-grpc
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador-grpc
+  namespace: no-pro
+spec:
+  replicas: 1 # XXX: Kubernaut
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
+      labels:
+        service: ambassador-grpc
+    spec:
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.50.2
+# XXX: Kubernaut
+#        resources:
+#          limits:
+#            cpu: 1
+#            memory: 400Mi
+#          requests:
+#            cpu: 200m
+#            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        - name: AMBASSADOR_ID
+          value: "grpc"
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+      - name: sidecar
+        image: {{env "MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE"}}
+        ports:
+        - name: auth
+          containerPort: 3000
+      restartPolicy: Always
