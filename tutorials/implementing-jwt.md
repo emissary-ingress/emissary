@@ -38,4 +38,6 @@ JWTs are validated using public keys supplied in a JWKS file. For the purposes o
 
    This policy is set in the `FilterPolicy` object in `jwt-filter.yaml`.
 
-6. We're sending a short, unsigned JWT (hence the only `validAlgorithms` type is `none`). For real-world applications, you'll want to delete the `validAlgorithms` section and supply signed JWTs.
+6. We're sending a short, unsigned JWT (hence the only `validAlgorithms` type is `none`).
+
+   For real-world applications, you'll want to delete the `validAlgorithms` section and supply signed JWTs.
