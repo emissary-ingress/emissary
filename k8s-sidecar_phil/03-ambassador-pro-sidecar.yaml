@@ -1,0 +1,411 @@
+# @TEMPLATE@
+#
+# This file is roughly:
+# cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml) \
+#     <(curl https://getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml)
+# but:
+#  - split in to sections, for readability
+#  - modified to work with Kubernaut
+#  - with TLS enabled
+#  - with the ambassador-pro.yaml bit modified to be a sidecar of the
+#    main ambassador deployment
+#  - with the "telepresence-proxy" Service+Deployment added
+
+######################################################################
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador
+#
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-sidecar
+rules:
+# Regular Ambassador access requirements
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+# Ambassador Pro access requirements... we will create these CRDs
+# below.
+- apiGroups: ["getambassador.io"]
+  resources:
+  - filters
+  - filterpolicies
+  - ratelimits
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-sidecar
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-sidecar
+subjects:
+- kind: ServiceAccount
+  name: ambassador
+  namespace: default
+
+
+######################################################################
+# Create a CRDs used to configure ambassador-pro
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: filterpolicies.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta2
+  versions:
+  - name: v1beta2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: filterpolicies
+    singular: filterpolicy
+    kind: FilterPolicy
+    shortNames:
+    - fp
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: filters.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta2
+  versions:
+  - name: v1beta2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: filters
+    singular: filter
+    kind: Filter
+    shortNames:
+    - fil
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimits.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta2
+  versions:
+    - name: v1beta2
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimits
+    singular: ratelimit
+    kind: RateLimit
+    shortNames:
+    - rl
+
+
+######################################################################
+# Redis for Ambassador Pro ratelimit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    service: ambassador-pro-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-pro-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ambassador-pro-redis
+  template:
+    metadata:
+      labels:
+        service: ambassador-pro-redis
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["backends"]
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
+
+
+######################################################################
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services, and the Deployment that backs them all.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: RateLimitService
+      name: ambassador-pro
+      service: 127.0.0.1:8081
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      name: authentication
+      proto: grpc
+      auth_service: 127.0.0.1:8082
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+      ---
+      # This mapping needs to exist, but is never actually followed.
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: NoTaReAlSeRvIcE
+spec:
+  type: ClusterIP
+  selector:
+    service: ambassador
+  ports:
+  - name: ratelimit-grpc
+    port: 8081
+    targetPort: 8081
+  - name: ratelimit-debug
+    port: 6070
+    targetPort: 6070
+  - name: auth-http
+    port: 80
+    targetPort: 8082
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: 8877
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 80
+          alpn_protocols: h2
+spec:
+  type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  selector:
+    service: ambassador
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 1 # XXX: Kubernaut
+  selector:
+    matchLabels:
+      service: ambassador
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
+      labels:
+        service: ambassador
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["backends"]
+      serviceAccountName: ambassador
+      containers:
+      - name: ambassador
+        image: quay.io/datawire/ambassador:0.50.2
+# XXX: Kubernaut
+#        resources:
+#          limits:
+#            cpu: 1
+#            memory: 400Mi
+#          requests:
+#            cpu: 200m
+#            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        ports:
+        - name: http
+          containerPort: 80
+        - name: https
+          containerPort: 443
+        - name: admin
+          containerPort: 8877
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+      - name: ambassador-pro
+        image: {{env "AMB_SIDECAR_IMAGE"}}
+        ports:
+        - name: ratelimit-grpc
+          containerPort: 8081
+        - name: ratelimit-debug
+          containerPort: 6070
+        - name: auth-http
+          containerPort: 8082
+        env:
+        - name: APP_LOG_LEVEL
+          value: warn
+        - name: LOG_LEVEL
+          value: warn
+        - name: REDIS_SOCKET_TYPE # For ratelimit
+          value: tcp
+        - name: REDIS_URL # For ratelimit
+          value: ambassador-pro-redis:6379
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        - name: AMBASSADOR_LICENSE_KEY # For everything
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+      restartPolicy: Always
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
+
+
+######################################################################
+# Create the traffic-proxy Service+Deployment
+#
+# Does this *need* to be a standalone service, or could it be a
+# sidecar?  IDK.  --lukeshu
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telepresence-proxy
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: telepresence-proxy
+  ports:
+  - name: sshd
+    protocol: TCP
+    port: 8022
+  - name: api
+    protocol: TCP
+    port: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telepresence-proxy
+  labels:
+    app: telepresence-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telepresence-proxy
+  template:
+    metadata:
+      labels:
+        app: telepresence-proxy
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["backends"]
+      containers:
+      - name: telepresence-proxy
+        image: {{env "PROXY_IMAGE"}}
+        ports:
+        - name: sshd
+          containerPort: 8022
+        env:
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
