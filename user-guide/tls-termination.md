@@ -129,23 +129,7 @@ config:
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
-Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443:
-
-```yaml
----
-apiVersion: ambassador/v1
-kind: Module
-name: tls
-config:
-  server:
-    enabled: True
-    redirect_cleartext_from: 80
-    secret: ambassador-certs
-```
-
-is the minimal YAML to do this.
-
-In terms of the `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
+In terms of the tls `Module`, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
 
 ```yaml
 apiVersion: v1
@@ -175,6 +159,36 @@ spec:
 ```
 
 **Important.** Note that the name of the Module is case-sensitive! It must be `name: tls` as opposed to `name: TLS`.
+
+## Redirecting Cleartext
+
+Ambassador can only fully serve traffic for either HTTP or HTTPS traffic. Ambassador can however be configured to issue a 301 redirect for all cleartext traffic received on a port. This port is specified by `redirect_cleartext_from` and should be set to whichever port Ambassador is expecting to see HTTP traffic from (typically 80).
+
+To redirect HTTP traffic on port 80 to HTTPS on port 443:
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: tls
+config:
+  server:
+    enabled: True
+    redirect_cleartext_from: 80
+    secret: ambassador-certs
+```
+
+## Overriding Default Ports
+
+By default, Ambassador will listen for HTTPS on port 443 when the TLS `Module` is configured. If you would like Ambassador to listen on a different port (i.e. 8443), you will need to configure this in the [Ambassador `Module`](/reference/core/ambassador). 
+
+```yaml
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config: 
+  service_port: 8443
+```
 
 ## Certificate Manager
 
