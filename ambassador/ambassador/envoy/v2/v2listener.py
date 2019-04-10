@@ -295,6 +295,8 @@ def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
 
         config['timeout'] = "%0.3fs" % (float(tm_ms) / 1000.0)
 
+    # If here, we must have a ratelimit service configured.
+    assert v2config.ratelimit
     config['rate_limit_service'] = dict(v2config.ratelimit)
 
     return {

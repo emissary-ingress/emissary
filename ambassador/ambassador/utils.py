@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, TextIO, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TextIO, TYPE_CHECKING
 
 import binascii
 import io
@@ -34,8 +34,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
 
-yaml_loader = yaml.SafeLoader
-yaml_dumper = yaml.SafeDumper
+# XXX What a hack. There doesn't seem to be a way to convince mypy that SafeLoader
+# and CSafeLoader share a base class, even though they do. Sigh.
+
+yaml_loader: Any = yaml.SafeLoader
+yaml_dumper: Any = yaml.SafeDumper
 
 try:
     yaml_loader = yaml.CSafeLoader
@@ -47,10 +50,15 @@ try:
 except AttributeError:
     pass
 
+yaml_logged_loader = False
+yaml_logged_dumper = False
+
 
 def parse_yaml(serialization: str, **kwargs) -> Any:
-    if not getattr(parse_yaml, 'logged_info', False):
-        parse_yaml.logged_info = True
+    global yaml_logged_loader
+
+    if not yaml_logged_loader:
+        yaml_logged_loader = True
 
         logger.info("YAML: using %s parser" % ("Python" if (yaml_loader == yaml.SafeLoader) else "C"))
 
@@ -58,8 +66,10 @@ def parse_yaml(serialization: str, **kwargs) -> Any:
 
 
 def dump_yaml(obj: Any, **kwargs) -> str:
-    if not getattr(dump_yaml, 'logged_info', False):
-        dump_yaml.logged_info = True
+    global yaml_logged_dumper
+
+    if not yaml_logged_dumper:
+        yaml_logged_dumper = True
 
         logger.info("YAML: using %s dumper" % ("Python" if (yaml_dumper == yaml.SafeDumper) else "C"))
 
@@ -305,7 +315,7 @@ class SecretSaver:
         return self.secret_parser()
 
     def secret_parser(self) -> SavedSecret:
-        objects = []
+        objects: List[Any] = []
         cert_data = None
         cert = None
         key = None
