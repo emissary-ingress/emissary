@@ -39,6 +39,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'prefix': True,
         'prefix_regex': True,
         'rewrite': True,
+        'cluster_timeout_ms': True,
         'timeout_ms': True,
         'bypass_auth': True,
         'load_balancer': True
@@ -188,6 +189,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
+                            cluster_timeout_ms=mapping.get('cluster_timeout_ms', 3000),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)
@@ -233,7 +235,6 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             self.add_response_headers = add_response_headers
         if self.get('load_balancer', None) is None:
             self['load_balancer'] = ir.ambassador_module.load_balancer
-
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
@@ -325,9 +326,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
-
             # Flatten the case_sensitive field for host_redirect if it exists
             if 'case_sensitive' in self.host_redirect:
                 self['case_sensitive'] = self.host_redirect['case_sensitive']
-
+                
             return []
