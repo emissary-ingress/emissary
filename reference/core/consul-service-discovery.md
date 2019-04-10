@@ -8,7 +8,9 @@ Ambassador supports using [Consul](https://consul.io) for service discovery. In 
 
 In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we have created a QoTM API that automatically registers itself as service with Consul.
 
-1. Create the QoTM API (if you're reading this in GitHub, use version 1.6 for `qotmVersion` below:)
+1. Use the YAML here: https://github.com/datawire/pro-ref-arch/blob/master/ambassador/01-ambassador-pro.yaml and update it with the image above.
+
+2. Create the QoTM API (if you're reading this in GitHub, use version 1.6 for `qotmVersion` below:)
 
     ```yaml
     ---
@@ -60,7 +62,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
 
     This will register the qotm pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the qotm pod. 
 
-2. Verify the qotm pod has been registered with Consul
+2. Verify the QOTM pod has been registered with Consul.
 
    You can verify the qotm pod is registered correctly by accessing the Consul UI.
 
