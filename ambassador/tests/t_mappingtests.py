@@ -177,14 +177,32 @@ name:  {self.name}
 prefix: /{self.name}/
 service: foobar.com
 host_redirect: true
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}-2
+prefix: /{self.name}-2/
+case_sensitive: false
+service: foobar.com
+host_redirect: true
 """)
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/anything?itworked=true"), expected=301)
+        yield Query(self.parent.url(self.name.upper() + "/anything?itworked=true"), expected=404)
+        yield Query(self.parent.url(self.name + "-2/anything?itworked=true"), expected=301)
+        yield Query(self.parent.url(self.name.upper() + "-2/anything?itworked=true"), expected=301)
 
     def check(self):
         assert self.results[0].headers['Location'] == [
             self.format("http://foobar.com/{self.name}/anything?itworked=true")
+        ]
+        assert self.results[1].status == 404
+        assert self.results[2].headers['Location'] == [
+            self.format("http://foobar.com/{self.name}-2/anything?itworked=true")
+        ]
+        assert self.results[3].headers['Location'] == [
+            self.format("http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true")
         ]
 
 
