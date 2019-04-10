@@ -9,6 +9,10 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
+      ambassador_id:
+        - baseline
+        - grpc
+        - http
       name: load_testing_base
       prefix: /load-testing/
       service: load-http-echo

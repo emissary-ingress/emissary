@@ -172,11 +172,23 @@ metadata:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
+      kind: RateLimitService
+      name: ambassador-pro
+      service: 127.0.0.1:8081
+      ---
+      apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
       proto: grpc
-      auth_service: 127.0.0.1:3000
+      auth_service: 127.0.0.1:8082
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+      ---
+      # This mapping needs to exist, but is never actually followed.
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: callback_mapping
+      prefix: /callback
+      service: NoTaReAlSeRvIcE
 spec:
   type: ClusterIP
   selector:
@@ -188,7 +200,7 @@ spec:
   - name: ratelimit-debug
     port: 6070
     targetPort: 6070
-  - name: auth-grpc
+  - name: auth-http
     port: 80
     targetPort: 8082
 ---
@@ -291,11 +303,35 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       - name: ambassador-pro
-        image: {{env "MODEL_CLUSTER_LOAD_EXTAUTH_IMAGE"}}
+        image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-        - name: auth-grpc
-          containerPort: 3000
+        - name: ratelimit-grpc
+          containerPort: 8081
+        - name: ratelimit-debug
+          containerPort: 6070
+        - name: auth-http
+          containerPort: 8082
+        env:
+        - name: APP_LOG_LEVEL
+          value: warn
+        - name: LOG_LEVEL
+          value: warn
+        - name: REDIS_SOCKET_TYPE # For ratelimit
+          value: tcp
+        - name: REDIS_URL # For ratelimit
+          value: ambassador-pro-redis:6379
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        - name: AMBASSADOR_LICENSE_KEY # For everything
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
+# XXX: Kubernaut
+#      imagePullSecrets:
+#      - name: ambassador-pro-registry-credentials
 
 
 ######################################################################
