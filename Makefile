@@ -130,8 +130,8 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-7
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-7
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-8
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-8
 
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
 USE_KUBERNAUT ?= true
