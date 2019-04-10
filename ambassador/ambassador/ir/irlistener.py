@@ -92,6 +92,9 @@ class ListenerFactory:
         if 'xff_num_trusted_hops' in amod:
             primary_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
 
+        if 'server_name' in amod:
+            primary_listener.server_name = amod.server_name
+
         ir.add_listener(primary_listener)
 
         if redirect_cleartext_from:
@@ -112,6 +115,9 @@ class ListenerFactory:
 
             if 'xff_num_trusted_hops' in amod:
                 new_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
+
+            if 'server_name' in amod:
+                new_listener.server_name = amod.server_name
 
             ir.add_listener(new_listener)
 
