@@ -6,6 +6,21 @@ resource "google_compute_network" "cluster_network" {
 	routing_mode            = "REGIONAL"
 }
 
+resource "google_compute_firewall" "default" {
+	name    = "nodeports"
+	project = "${var.project}"
+	network = "${google_compute_network.cluster_network.self_link}"
+
+	allow {
+		protocol = "icmp"
+	}
+
+	allow {
+		protocol = "tcp"
+		ports    = ["30000-32767"]
+	}
+}
+
 resource "google_service_account" "cluster_service_account" {
 	account_id   = "${local.name}"
 	display_name = "${local.name} svc account in ${var.project}"
