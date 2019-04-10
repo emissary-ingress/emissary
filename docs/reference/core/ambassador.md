@@ -96,7 +96,7 @@ config:
 # mapping. Defaults to round robin with Kubernetes.
 # More information at the [load balancer reference](/reference/core/load-balancer)
 # load_balancer:
-#   policy: round_robin/ring_hash
+#   policy: round_robin/ring_hash/maglev
 #   ...
 
 # Set default CORS configuration for all mappings in the cluster. See 

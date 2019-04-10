@@ -33,14 +33,12 @@ service: {self.target.path.k8s}
         yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc", "requested-status": "0" },
                     expected=200,
-                    xfail="The kat client does not support real grpc (yet)",
                     grpc_type="real")
 
         # [1]
         yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc", "requested-status": "7" },
                     expected=200,
-                    xfail="The kat client does not support real grpc (yet)",
                     grpc_type="real")
 
     def check(self):

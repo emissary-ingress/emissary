@@ -25,6 +25,8 @@
         link: /user-guide/bare-metal
       - title: Ambassador Pro
         link: /user-guide/ambassador-pro-install
+      - title: Upgrading to Ambassador Pro
+        link: /user-guide/upgrade-to-pro
       - title: Early Access Releases
         link: /user-guide/early-access
       - title: Certified Builds
