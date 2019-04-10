@@ -160,19 +160,24 @@ class AmbassadorTest(Test):
         if os.environ.get('KAT_SKIP_DOCKER'):
             return
 
-        run("docker", "kill", self.path.k8s)
-        run("docker", "rm", self.path.k8s)
-
         image = os.environ["AMBASSADOR_DOCKER_IMAGE"]
         cached_image = os.environ["AMBASSADOR_DOCKER_IMAGE_CACHED"]
         ambassador_base_image = os.environ["AMBASSADOR_BASE_IMAGE"]
 
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
+
+            print("Killing old containers...")
+            run("bash", "-c", 'docker kill $(docker ps -a -f \'label=kat-family=ambassador\' --format \'{{.ID}}\')')
+            run("bash", "-c", 'docker rm $(docker ps -a -f \'label=kat-family=ambassador\' --format \'{{.ID}}\')')
+
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
             print("Starting docker build...", end="")
             sys.stdout.flush()
+
             result = run("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)
+
             try:
                 result.check_returncode()
                 print("done.")
@@ -209,7 +214,7 @@ class AmbassadorTest(Test):
             with open(os.path.join(secret_dir, k), "wb") as f:
                 f.write(base64.decodebytes(bytes(v, "utf8")))
         print("Launching %s container." % self.path.k8s)
-        command = ["docker", "run", "-d", "--name", self.path.k8s]
+        command = ["docker", "run", "-d", "-l", "kat-family=ambassador", "--name", self.path.k8s]
 
         envs = ["KUBERNETES_SERVICE_HOST=kubernetes", "KUBERNETES_SERVICE_PORT=443",
                 "AMBASSADOR_ID=%s" % self.ambassador_id]
