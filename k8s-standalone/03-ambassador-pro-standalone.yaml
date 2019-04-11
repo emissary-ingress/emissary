@@ -163,13 +163,13 @@ metadata:
       apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro
-      service: "ambassador-pro:8081"
+      service: "ambassador-pro:81"
       ---
       apiVersion: ambassador/v1
       kind: AuthService
       name: authentication
       proto: grpc
-      auth_service: ambassador-pro
+      auth_service: "ambassador-pro:80"
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---
       # This mapping needs to exist, but is never actually followed.
@@ -183,15 +183,15 @@ spec:
   selector:
     service: ambassador-pro
   ports:
-  - name: ratelimit-grpc
-    port: 8081
-    targetPort: 8081
-  - name: ratelimit-debug
-    port: 6070
-    targetPort: 6070
-  - name: auth-http
+  - name: grpc-auth
     port: 80
-    targetPort: 8082
+    targetPort: grpc-auth
+  - name: grpc-ratelimit
+    port: 81
+    targetPort: grpc-ratelimit
+  - name: http-debug
+    port: 82
+    targetPort: http-debug
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -214,12 +214,12 @@ spec:
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-        - name: ratelimit-grpc
-          containerPort: 8081
-        - name: ratelimit-debug
-          containerPort: 6070
-        - name: auth-http
-          containerPort: 8082
+        - name: grpc-auth
+          containerPort: 8500
+        - name: grpc-ratelimit
+          containerPort: 8501
+        - name: http-debug
+          containerPort: 8502
         env:
         - name: APP_LOG_LEVEL
           value: DEBUG
@@ -235,9 +235,6 @@ spec:
           value: "true"
         - name: AMBASSADOR_LICENSE_KEY # For everything
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-# XXX: Kubernaut
-#      imagePullSecrets:
-#      - name: ambassador-pro-registry-credentials
 
 
 ######################################################################
@@ -290,6 +287,3 @@ spec:
         env:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-# XXX: Kubernaut
-#      imagePullSecrets:
-#      - name: ambassador-pro-registry-credentials
