@@ -7,6 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
+	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20171227191756-4eba002a5eae // indirect
 	github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879
 	github.com/datawire/kat-backend v1.1.0
@@ -31,6 +32,7 @@ require (
 	github.com/miekg/dns v1.1.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
+	github.com/myzhan/boomer v0.0.0-20190321085146-9f3c9f575895
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/posener/complete v1.2.1 // indirect
@@ -40,7 +42,9 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/tsenart/go-tsz v0.0.0-20180814235614-0bd30b3df1c3 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
+	github.com/ugorji/go v1.1.4 // indirect
 	github.com/urfave/negroni v1.0.0 // indirect
+	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
 	golang.org/x/crypto v0.0.0-20190228161510-8dd112bcdc25 // indirect
 	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
