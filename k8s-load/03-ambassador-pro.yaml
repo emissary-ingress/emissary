@@ -123,17 +123,19 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-pro
+  name: ambassador-pro-pro
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind: RateLimitService
+      ambassador_id: ambassador-pro
       name: ambassador-pro
       service: "127.0.0.1:8501"
       ---
       apiVersion: ambassador/v1
       kind: AuthService
+      ambassador_id: ambassador-pro
       name: authentication
       proto: grpc
       auth_service: "127.0.0.1:8500"
@@ -142,13 +144,14 @@ metadata:
       # This mapping needs to exist, but is never actually followed.
       apiVersion: ambassador/v1
       kind: Mapping
+      ambassador_id: ambassador-pro
       name: callback_mapping
       prefix: /callback
       service: NoTaReAlSeRvIcE
 spec:
   type: ClusterIP
   selector:
-    service: ambassador
+    service: ambassador-pro
   ports:
   - name: grpc-auth
     port: 80
@@ -164,8 +167,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: ambassador-admin
-  name: ambassador-admin
+    service: ambassador-pro-admin
+  name: ambassador-pro-admin
 spec:
   type: NodePort
   ports:
@@ -173,12 +176,12 @@ spec:
     port: 8877
     targetPort: 8877
   selector:
-    service: ambassador
+    service: ambassador-pro
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador
+  name: ambassador-pro
   annotations:
     getambassador.io/config: |
       ---
@@ -201,24 +204,21 @@ spec:
     port: 443
     targetPort: 443
   selector:
-    service: ambassador
+    service: ambassador-pro
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador
+  name: ambassador-pro
 spec:
   replicas: 1 # XXX: Kubernaut
-  selector:
-    matchLabels:
-      service: ambassador
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
       labels:
-        service: ambassador
+        service: ambassador-pro
     spec:
       affinity:
         nodeAffinity:
@@ -228,7 +228,7 @@ spec:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
                     values: ["backends"]
-      serviceAccountName: ambassador
+      serviceAccountName: ambassador-pro
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:0.50.2
@@ -245,8 +245,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: AMBASSADOR_SINGLE_NAMESPACE
-          value: "true"
+        - name: AMBASSADOR_ID
+          value: "ambassador-pro"
         ports:
         - name: http
           containerPort: 80
@@ -293,61 +293,3 @@ spec:
         - name: AMBASSADOR_LICENSE_KEY # For everything
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
-
-
-######################################################################
-# Create the traffic-proxy Service+Deployment
-#
-# Does this *need* to be a standalone service, or could it be a
-# sidecar?  IDK.  --lukeshu
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: telepresence-proxy
-spec:
-  type: ClusterIP
-  clusterIP: None
-  selector:
-    app: telepresence-proxy
-  ports:
-  - name: sshd
-    protocol: TCP
-    port: 8022
-  - name: api
-    protocol: TCP
-    port: 8081
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: telepresence-proxy
-  labels:
-    app: telepresence-proxy
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: telepresence-proxy
-  template:
-    metadata:
-      labels:
-        app: telepresence-proxy
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: cloud.google.com/gke-nodepool
-                    operator: In
-                    values: ["backends"]
-      containers:
-      - name: telepresence-proxy
-        image: {{env "PROXY_IMAGE"}}
-        ports:
-        - name: sshd
-          containerPort: 8022
-        env:
-        - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}

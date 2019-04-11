@@ -9,6 +9,7 @@ MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-grpc-auth.docker.knaut-
 MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-http-auth.docker.knaut-push)
 MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-load-grpc-auth.docker.knaut-push)
 MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-load-http-auth.docker.knaut-push)
+MAX_LOAD_IMAGE=$(cat docker/max-load.docker.knaut-push)
 
 # acceptance_test.js
 EXTERNAL_IP=ambassador.standalone.svc.cluster.local

@@ -7,9 +7,8 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador
+  name: ambassador-oss
 rules:
-# Regular Ambassador access requirements
 - apiGroups: [""]
   resources:
   - services
@@ -22,29 +21,21 @@ rules:
   resources:
   - secrets
   verbs: ["get", "list", "watch"]
-# Ambassador Pro access requirements... we will create these CRDs
-# below.
-- apiGroups: ["getambassador.io"]
-  resources:
-  - filters
-  - filterpolicies
-  - ratelimits
-  verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador
+  name: ambassador-oss
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador
+  name: ambassador-oss
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador
+  name: ambassador-oss
 subjects:
 - kind: ServiceAccount
-  name: ambassador
+  name: ambassador-oss
   namespace: default

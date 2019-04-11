@@ -9,6 +9,12 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
+      ambassador_id:
+      - ambassador-oss-plaintext
+      - ambassador-oss-tls
+      - ambassador-oss-tls-httpauth
+      - ambassador-oss-tls-grpcauth
+      - ambassador-pro
       name: load_testing_base
       prefix: /load-testing/
       service: load-http-echo

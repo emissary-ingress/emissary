@@ -1,3 +1,4 @@
+# @TEMPLATE@
 ######################################################################
 # Create the ambassador Service+Service+Deployment
 ---
@@ -5,35 +6,41 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: ambassador-baseline-admin
-  name: ambassador-baseline-admin
-  namespace: no-pro
+    service: ambassador-oss-tls-grpcauth-admin
+  name: ambassador-oss-tls-grpcauth-admin
 spec:
   type: NodePort
   ports:
-  - name: ambassador-baseline-admin
+  - name: ambassador-admin
     port: 8877
     targetPort: 8877
   selector:
-    service: ambassador-baseline
+    service: ambassador-oss-tls-grpcauth
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-baseline
-  namespace: no-pro
+  name: ambassador-oss-tls-grpcauth
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: Module
-      ambassador_id: baseline
+      ambassador_id: ambassador-oss-tls-grpcauth
       name: tls
       config:
         server:
           enabled: True
           redirect_cleartext_from: 80
           alpn_protocols: h2
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      ambassador_id: ambassador-oss-tls-grpcauth
+      name: authentication
+      proto: grpc
+      auth_service: 127.0.0.1:3000
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
 spec:
   type: NodePort # XXX: Kubernaut
   externalTrafficPolicy: Local
@@ -45,13 +52,12 @@ spec:
     port: 443
     targetPort: 443
   selector:
-    service: ambassador-baseline
+    service: ambassador-oss-tls-grpcauth
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador-baseline
-  namespace: no-pro
+  name: ambassador-oss-tls-grpcauth
 spec:
   replicas: 1 # XXX: Kubernaut
   template:
@@ -60,9 +66,17 @@ spec:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
       labels:
-        service: ambassador-baseline
+        service: ambassador-oss-tls-grpcauth
     spec:
-      serviceAccountName: ambassador
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["backends"]
+      serviceAccountName: ambassador-oss
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:0.50.2
@@ -79,10 +93,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: AMBASSADOR_SINGLE_NAMESPACE
-          value: "true"
         - name: AMBASSADOR_ID
-          value: "baseline"
+          value: "ambassador-oss-tls-grpcauth"
         ports:
         - name: http
           containerPort: 80
@@ -102,4 +114,9 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
+      - name: sidecar
+        image: {{env "MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE"}}
+        ports:
+        - name: auth
+          containerPort: 3000
       restartPolicy: Always

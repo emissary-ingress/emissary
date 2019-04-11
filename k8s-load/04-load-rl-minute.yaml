@@ -9,6 +9,7 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
+      ambassador_id: ambassador-pro
       name: load_testing_rl_minute
       prefix: /load-testing/rl-minute/
       service: load-http-echo

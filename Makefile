@@ -9,7 +9,7 @@ image.norelease = docker/amb-sidecar-plugins $(filter docker/model-cluster-%,$(i
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
-K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev k8s-no-pro
+K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
@@ -205,6 +205,8 @@ docker/amb-sidecar-plugins/Dockerfile: docker/amb-sidecar-plugins/Dockerfile.gen
 	$^ > $@
 docker/amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
 docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plugins/$p.so)
+
+docker/max-load.docker: docker/max-load/test.sh
 
 #
 # Deploy

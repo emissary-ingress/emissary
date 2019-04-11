@@ -1,0 +1,43 @@
+# @TEMPLATE@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: load-generator
+  namespace: default
+spec:
+  selector:
+    app: load-generator
+  ports:
+  - port: 80
+    name: http
+    targetPort: http
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: load-generator
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: load-generator
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["generators"]
+      containers:
+      - name: max-load
+        image: {{env "MAX_LOAD_IMAGE"}}
+        ports:
+        - name: http
+          containerPort: 8000

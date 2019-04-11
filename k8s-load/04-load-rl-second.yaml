@@ -9,6 +9,7 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
+      ambassador_id: ambassador-pro
       name: load_testing_rl_second
       prefix: /load-testing/rl-second/
       service: load-http-echo
@@ -27,7 +28,7 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: RateLimit
 metadata:
-  name: second-rate-limit
+  name: load-rl-second
   namespace: default
 spec:
   domain: ambassador
