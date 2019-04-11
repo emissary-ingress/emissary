@@ -109,6 +109,11 @@ class V2Route(dict):
                 }
             }
 
+            idle_timeout_ms = group.get('idle_timeout_ms', None)
+
+            if idle_timeout_ms is not None:
+                route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
+
             if group.get('rewrite', None):
                 route['prefix_rewrite'] = group['rewrite']
 

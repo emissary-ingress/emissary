@@ -41,6 +41,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'rewrite': True,
         'cluster_timeout_ms': True,
         'timeout_ms': True,
+        'idle_timeout_ms': True,
         'bypass_auth': True,
         'load_balancer': True
     }
@@ -331,5 +332,5 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             # Flatten the case_sensitive field for host_redirect if it exists
             if 'case_sensitive' in redir:
                 self['case_sensitive'] = redir['case_sensitive']
-                
+
             return []
