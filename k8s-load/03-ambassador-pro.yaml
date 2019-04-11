@@ -187,6 +187,7 @@ metadata:
       ---
       apiVersion: ambassador/v0
       kind: Module
+      ambassador_id: ambassador-pro
       name: tls
       config:
         server:
