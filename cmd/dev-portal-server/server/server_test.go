@@ -73,3 +73,15 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 	resultJson, _ := gabs.ParseJSON(rr.Body.Bytes())
 	g.Expect(resultJson).To(Equal(expectedDoc))
 }
+
+// An unknown OpenAPI doc results in a 404.
+func TestOpenAPIDocNotFound(t *testing.T) {
+	g := NewGomegaWithT(t)
+	s := NewServer()
+	req, _ := http.NewRequest(
+		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
+	rr := httptest.NewRecorder()
+	s.router.ServeHTTP(rr, req)
+	g.Expect(rr.Code).To(Equal(http.StatusNotFound))
+
+}
