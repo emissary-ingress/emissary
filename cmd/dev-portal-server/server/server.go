@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 type server struct {
@@ -194,6 +194,33 @@ const ui = SwaggerUIBundle({
 	}
 }
 
+type wrappedResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func newLoggingResponseWriter(w http.ResponseWriter) *wrappedResponseWriter {
+	return &wrappedResponseWriter{w, http.StatusOK}
+}
+
+func (lw *wrappedResponseWriter) WriteHeader(code int) {
+	lw.statusCode = code
+	lw.ResponseWriter.WriteHeader(code)
+}
+
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		loggingWriter := newLoggingResponseWriter(w)
+		next.ServeHTTP(loggingWriter, r)
+		log.WithFields(log.Fields{
+			"subsystem":   "server",
+			"request":     r.RequestURI,
+			"method":      r.Method,
+			"status_code": loggingWriter.statusCode,
+		}).Info("HTTP request")
+	})
+}
+
 // Create a new HTTP server instance.
 //
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
@@ -201,6 +228,8 @@ const ui = SwaggerUIBundle({
 // organizations. So might want some better URL scheme.
 func NewServer() *server {
 	router := mux.NewRouter()
+	router.Use(LoggingMiddleware)
+
 	s := &server{router: router, K8sStore: kubernetes.NewInMemoryStore()}
 
 	// TODO in a later design iteration, we would serve static HTML, and
