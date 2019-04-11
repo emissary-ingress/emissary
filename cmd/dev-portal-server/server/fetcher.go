@@ -3,13 +3,13 @@ package server
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Jeffail/gabs"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	log "github.com/sirupsen/logrus"
 )
 
 // Add a new/updated service.
@@ -21,7 +21,7 @@ type AddServiceFunc func(
 type DeleteServiceFunc func(service kubernetes.Service)
 
 // Retrieve a URL.
-type HTTPGetFunc func(url string) ([]byte, error)
+type HTTPGetFunc func(url string, logger *log.Entry) ([]byte, error)
 
 type serviceMap map[kubernetes.Service]bool
 
@@ -65,6 +65,7 @@ type fetcher struct {
 	done    chan bool
 	ticker  *time.Ticker
 	diff    *diffCalculator
+	logger  *log.Entry
 	// diagd's URL
 	diagURL string
 	// ambassador's URL
@@ -85,6 +86,7 @@ func NewFetcher(
 		done:          make(chan bool),
 		ticker:        time.NewTicker(duration),
 		diff:          NewDiffCalculator(known),
+		logger:        log.WithFields(log.Fields{"subsystem": "fetcher"}),
 		diagURL:       strings.TrimRight(diagURL, "/"),
 		ambassadorURL: strings.TrimRight(ambassadorURL, "/"),
 		publicBaseURL: strings.TrimRight(publicBaseURL, "/"),
@@ -108,24 +110,33 @@ func getString(o *gabs.Container, attr string) string {
 	return o.S(attr).Data().(string)
 }
 
-func httpGet(url string) ([]byte, error) {
+func httpGet(url string, logger *log.Entry) ([]byte, error) {
+	logger = logger.WithFields(log.Fields{"url": url})
+	logger.Info("HTTP GET")
 	client := &http.Client{Timeout: time.Second * 2}
 	response, err := client.Get(url)
 	if err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 	if response.StatusCode != 200 {
+		logger.WithFields(
+			log.Fields{"status_code": response.StatusCode}).Error(
+			"Bad HTTP response")
 		return nil, fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
 	}
 	buf, err := ioutil.ReadAll(response.Body)
 	if err != nil {
+		logger.Error(err)
 		return nil, err
 	}
+	logger.Info("GET succeeded")
 	return buf, nil
 }
 
 func (f *fetcher) retrieve() {
-	buf, err := f.httpGet(f.diagURL + "/ambassador/v0/diag/?json=true")
+	f.logger.Info("Iteration started")
+	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", f.logger)
 	if err != nil {
 		log.Print(err)
 		return
@@ -154,14 +165,15 @@ func (f *fetcher) retrieve() {
 		}
 		mappings, err := child.S("mappings").Children()
 		if err != nil {
-			log.Print(err)
+			f.logger.WithError(err).Error("No mappings JSON entry")
 			return
 		}
 		for _, mapping := range mappings {
-			if getString(mapping, "location") == "--internal--" {
+			location := getString(mapping, "location")
+			if location == "--internal--" {
 				continue
 			}
-			location_parts := strings.Split(getString(mapping, "location"), ".")
+			location_parts := strings.Split(location, ".")
 			prefix := getString(mapping, "prefix")
 			prefix = strings.TrimRight(prefix, "/")
 			name := location_parts[0]
@@ -173,9 +185,17 @@ func (f *fetcher) retrieve() {
 			} else {
 				baseURL = f.publicBaseURL
 			}
+			f.logger.WithFields(log.Fields{
+				"name":      name,
+				"namespace": namespace,
+				"baseURL":   baseURL,
+				"prefix":    prefix,
+			}).Info("Found mapping")
 			// Get the OpenAPI documentation:
 			var doc []byte
-			docBuf, err := f.httpGet(f.ambassadorURL + prefix + "/.well-known/openapi-docs")
+			docBuf, err := f.httpGet(
+				f.ambassadorURL+prefix+"/.well-known/openapi-docs",
+				f.logger)
 			if err == nil {
 				doc = docBuf
 			} else {
@@ -189,8 +209,12 @@ func (f *fetcher) retrieve() {
 
 	// Finished retrieving services, so delete any we don't recognize:
 	for _, service := range f.diff.NewRound() {
+		f.logger.WithFields(log.Fields{
+			"name": service.Name, "namespace": service.Namespace,
+		}).Info("Deleting old service we didn't find in this iteration")
 		f.delete(service)
 	}
+	f.logger.Info("Iteration done")
 }
 
 func (f *fetcher) Stop() {
