@@ -83,6 +83,7 @@ class IRHTTPMapping (IRBaseMapping):
         "shadow": True,
         "cluster_timeout_ms": True,
         "timeout_ms": True,
+        "idle_timeout_ms": True,
         "tls": True,
         "use_websocket": True,
         "weight": True,
