@@ -232,7 +232,7 @@ spec:
       serviceAccountName: ambassador-pro
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.2
+        image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
 # XXX: Kubernaut
 #        resources:
 #          limits:

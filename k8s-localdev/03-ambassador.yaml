@@ -1,3 +1,5 @@
+# @TEMPLATE@
+#
 # This file is roughly:
 # cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
 #     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml)
@@ -117,7 +119,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.2
+        image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
 # XXX: Kubernaut
 #        resources:
 #          limits:
