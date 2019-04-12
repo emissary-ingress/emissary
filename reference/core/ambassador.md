@@ -102,6 +102,15 @@ config:
 #   policy: round_robin/ring_hash/maglev
 #   ...
 
+# circuit_breakers sets the global circuit breaking configuration that
+# Ambassador will use for all mappings, unless overridden in a
+# mapping.
+# More information at the [circuit breaking reference](/reference/core/circuit-breaking)
+# circuit_breakers:
+#   max_connections: 2048
+#   ...
+
+
 # Set default CORS configuration for all mappings in the cluster. See 
 # CORS syntax at https://www.getambassador.io/reference/cors.html
 # cors:
