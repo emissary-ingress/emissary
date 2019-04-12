@@ -98,6 +98,7 @@ OPTIONS (load):
 	loadParser.UintVar(&Args.LoadUntilMinSamples, "load-until-min-samples", 1000, "Make at least this many requests at a given RPS")
 	loadParser.Float64Var(&Args.LoadUntilMinLatencyConfidence, "load-until-min-latency-confidence", 0.95, "Be at least this sure of the latency margin")
 	loadParser.DurationVar(&Args.LoadUntilMaxLatencyMargin, "load-until-max-latency-margin", 2*time.Millisecond, "Run until the mean latency is accurate to ± this")
+
 	usage += loadParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(loadParser)
 
@@ -121,10 +122,12 @@ OPTIONS (cooldown):
 
 `
 	cooldownParser.UintVar(&Args.CooldownRPS, "cooldown-rps", 100, "Requests per second during cooldown")
+
 	cooldownParser.UintVar(&Args.CooldownUntilMinSamples, "cooldown-until-min-samples", 500, "Required number of consecutive successful requests")
 	cooldownParser.Float64Var(&Args.CooldownUntilMinLatencyConfidence, "lcooldown-until-min-latency-confidence", 0.95, "Be at least this sure of the latency margin")
 	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatencyMargin, "cooldown-until-max-latency-margin", 2*time.Millisecond, "Run until the mean latency is accurate to ± this")
-	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatencyMargin, "cooldown-until-max-latency", 20*time.Millisecond, "Run until the p95 latency at most this")
+	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatency, "cooldown-until-max-latency", 10*time.Millisecond, "Run until the p95 latency at most this")
+
 	usage += cooldownParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(cooldownParser)
 
@@ -258,6 +261,9 @@ func RunCooldown() {
 					return false
 				}
 				if m.LatencyMargin(Args.CooldownUntilMinLatencyConfidence) > Args.CooldownUntilMaxLatencyMargin {
+					return false
+				}
+				if m.LatencyQuantile(0.95) > Args.CooldownUntilMaxLatency {
 					return false
 				}
 				return true
