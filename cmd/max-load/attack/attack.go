@@ -63,7 +63,6 @@ func openFiles() int {
 type TestCase struct {
 	URL        string
 	RPS        uint
-	MaxLatency time.Duration
 
 	ShouldStop func(metrics.MetricsReader) bool
 }
@@ -95,10 +94,6 @@ func (tc TestCase) Run() TestResult {
 			success = true
 			limited = true
 		}
-		if success && tc.MaxLatency > 0 && res.Latency > tc.MaxLatency {
-			success = false
-			res.Error = "latency limit exceeded"
-		}
 		var errstr string
 		if !success {
 			errstr = fmt.Sprintf("code=%03d error=%#v x-envoy-overloaded=%#v body=%#v",
@@ -129,17 +124,17 @@ func (r TestResult) Passed(minSuccessRate float64) bool {
 	return r.Metrics.SuccessRate() >= minSuccessRate
 }
 
-func (r TestResult) String(minSuccessRate float64) string {
+func (r TestResult) String(minSuccessRate float64, confidence float64) string {
 	var prefix string
 	if r.Passed(minSuccessRate) {
 		prefix = "✔ Success"
 	} else {
 		prefix = "✘ Failed"
 	}
-	mainline := fmt.Sprintf("%s at rate=%drps (latency p95=%s max=%s margin(95%%)=±%s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
+	mainline := fmt.Sprintf("%s at rate=%drps (latency p95=%s max=%s margin(%d%%)=±%s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
 		prefix,
 		r.Rate,
-		r.Metrics.LatencyQuantile(0.95), r.Metrics.LatencyMax(), r.Metrics.LatencyMargin(0.95),
+		r.Metrics.LatencyQuantile(0.95), r.Metrics.LatencyMax(), int(confidence*100), r.Metrics.LatencyMargin(confidence),
 		r.Metrics.CountSuccesses(), r.Metrics.CountRequests(), r.Metrics.SuccessRate(),
 		r.Metrics.CountLimited(),
 		r.FilesBefore, r.FilesAfter)

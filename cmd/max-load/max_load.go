@@ -22,7 +22,6 @@ var Args = struct {
 	URL         string
 	EnableHTTP2 bool
 	CSVFilename string
-	MaxLatency  time.Duration
 
 	LoadRPSResolution  uint
 	LoadMinSuccessRate float64
@@ -70,7 +69,6 @@ OPTIONS (general):
 	generalParser.BoolVarP(&help, "help", "h", false, "Show this message")
 	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
 	generalParser.StringVar(&Args.CSVFilename, "csv-file", "", "Write rps-vs-latency to this CSV file")
-	generalParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful; use 0 to disable latency threshold")
 	usage += generalParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(generalParser)
 
@@ -91,12 +89,12 @@ OPTIONS (load):
   ${min-success-rate}.
 
 `
-	loadParser.UintVar(&Args.LoadRPSResolution, "load-rps-resolution", 50, "Granularity of RPS measurements")
+	loadParser.UintVar(&Args.LoadRPSResolution, "load-rps-resolution", 100, "Granularity of RPS measurements")
 	loadParser.Float64Var(&Args.LoadMinSuccessRate, "load-min-success-rate", 0.95, "The required success rate")
 
 	loadParser.DurationVar(&Args.LoadUntilMinDuration, "load-until-min-duration", 5*time.Second, "Run at a given RPS for at least this long")
 	loadParser.UintVar(&Args.LoadUntilMinSamples, "load-until-min-samples", 1000, "Make at least this many requests at a given RPS")
-	loadParser.Float64Var(&Args.LoadUntilMinLatencyConfidence, "load-until-min-latency-confidence", 0.95, "Be at least this sure of the latency margin")
+	loadParser.Float64Var(&Args.LoadUntilMinLatencyConfidence, "load-until-min-latency-confidence", 0.99, "Be at least this sure of the latency margin")
 	loadParser.DurationVar(&Args.LoadUntilMaxLatencyMargin, "load-until-max-latency-margin", 2*time.Millisecond, "Run until the mean latency is accurate to ± this")
 
 	usage += loadParser.FlagUsagesWrapped(70)
@@ -124,7 +122,7 @@ OPTIONS (cooldown):
 	cooldownParser.UintVar(&Args.CooldownRPS, "cooldown-rps", 100, "Requests per second during cooldown")
 
 	cooldownParser.UintVar(&Args.CooldownUntilMinSamples, "cooldown-until-min-samples", 500, "Required number of consecutive successful requests")
-	cooldownParser.Float64Var(&Args.CooldownUntilMinLatencyConfidence, "lcooldown-until-min-latency-confidence", 0.95, "Be at least this sure of the latency margin")
+	cooldownParser.Float64Var(&Args.CooldownUntilMinLatencyConfidence, "lcooldown-until-min-latency-confidence", 0.99, "Be at least this sure of the latency margin")
 	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatencyMargin, "cooldown-until-max-latency-margin", 2*time.Millisecond, "Run until the mean latency is accurate to ± this")
 	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatency, "cooldown-until-max-latency", 10*time.Millisecond, "Run until the p95 latency at most this")
 
@@ -211,26 +209,45 @@ func errfatal(err error) {
 
 var csvFile *os.File
 
-func RunLoad(rps uint) attack.TestResult {
-	startTime := time.Now()
-	return attack.TestCase{
-		URL:        Args.URL,
-		RPS:        rps,
-		MaxLatency: Args.MaxLatency,
 
-		ShouldStop: func(m metrics.MetricsReader) bool {
-			if m.CountRequests() < Args.LoadUntilMinSamples {
-				return false
-			}
-			if time.Since(startTime) < Args.LoadUntilMinDuration {
-				return false
-			}
-			if m.LatencyMargin(Args.LoadUntilMinLatencyConfidence) > Args.LoadUntilMaxLatencyMargin {
-				return false
-			}
-			return true
-		},
-	}.Run()
+var prevP95Latency time.Duration
+
+func RunLoad(rps uint) attack.TestResult {
+	for {
+		startTime := time.Now()
+		result := attack.TestCase{
+			URL:        Args.URL,
+			RPS:        rps,
+
+			ShouldStop: func(m metrics.MetricsReader) bool {
+				if m.CountRequests() < Args.LoadUntilMinSamples {
+					return false
+				}
+				if time.Since(startTime) < Args.LoadUntilMinDuration {
+					return false
+				}
+				if m.LatencyMargin(Args.LoadUntilMinLatencyConfidence) > Args.LoadUntilMaxLatencyMargin {
+					return false
+				}
+				return true
+			},
+		}.Run()
+
+		// Prune spikes in latency that correspond with spikes
+		// in file descriptors.  That corresponds with TLS
+		// handshakes, which we know perform poorly and we
+		// don't want to include in these benchmarks.
+		//
+		// Define a spike as:
+		//  - 10 file descriptors
+		//  - 2 ms
+		if result.FilesAfter > result.FilesBefore+10 && result.Metrics.LatencyQuantile(0.95) > prevP95Latency+(2*time.Millisecond) {
+			continue
+		}
+		prevP95Latency = result.Metrics.LatencyQuantile(0.95)
+
+		return result
+	}
 }
 
 func RunCooldown() {
@@ -239,7 +256,6 @@ func RunCooldown() {
 		result := attack.TestCase{
 			URL:        Args.URL,
 			RPS:        Args.CooldownRPS,
-			MaxLatency: Args.MaxLatency,
 
 			ShouldStop: func(m metrics.MetricsReader) bool {
 				if m.CountSuccesses() < m.CountRequests() {
@@ -277,7 +293,7 @@ func RunCooldown() {
 
 func Run(rate uint) bool {
 	result := RunLoad(rate)
-	fmt.Println(result.String(Args.LoadMinSuccessRate))
+	fmt.Println(result.String(Args.LoadMinSuccessRate, Args.LoadUntilMinLatencyConfidence))
 	RunCooldown()
 	if result.Passed(Args.LoadMinSuccessRate) {
 		if csvFile != nil {
