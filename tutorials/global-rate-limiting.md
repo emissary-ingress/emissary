@@ -4,8 +4,9 @@ category: Security
 reading_time: 10 minutes
 technologies_used: Ambassador, Prometheus
 ---
+Imagine your website gets on the front page of Hacker News. Or, you've announced a major Black Friday sale. Generally, [ecommerce platforms generate 300% more sales on Black Friday](https://www.userreport.com/blog/e-commerce-exploit-increased-traffic-black-friday/). But if your database starts to fail under the increased load, the degraded performance can impact your conversion numbers. Or worse, your website can fail completely. To mitigate performance issues as quickly as possible while you work to scale your backend, you can use global rate limiting.
 
-Suppose we want to limit a certain subset of users to only 10 requests per minute for any requests through Ambassador. We can configure a global rate limit that can rate limit based off a header that identifies this subset of users. Users with the header `x-limited-user: true` will be limited to 10 requests per minute.
+Suppose we want to limit users to only 10 requests per minute for any requests through Ambassador. We can configure a global rate limit that can rate limit based off a header that identifies this subset of users. Users with the header `x-limited-user: true` will be limited to 10 requests per minute.
 
 1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
 
@@ -46,4 +47,4 @@ Suppose we want to limit a certain subset of users to only 10 requests per minut
    ```
 
 ## Summary
-This is a summary, put the summary here.
+Don't leave your website performance at risk for sudden spikes in traffic. To quickly enable global rate limiting on your website, get started with a [free 14-day trial of Ambassador Pro](https://www.getambassador.io/pro/free-trial), or [contact sales](https://www.getambassador.io/contact) today. 
