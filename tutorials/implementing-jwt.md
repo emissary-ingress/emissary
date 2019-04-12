@@ -1,8 +1,13 @@
-# Implementing JWT Validation
+---
+title: Implementing JWT Validation
+category: Security
+reading_time: 10 minutes
+technologies_used: Ambassador, Prometheus
+---
 
 JWTs are validated using public keys supplied in a JWKS file. For the purposes of this demo, we're supplying a Datawire JWKS file (and giving you a JWT that we've generated ourselves). You can change the JWKS file by modifying the `jwt-filter.yaml` manifest and changing the `jwksURI` value.
 
-1. Install Ambassador Pro
+1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
 
 2. Configure the JWT filter and JWT-authenticated `httpbin` test service:
 
@@ -41,3 +46,6 @@ JWTs are validated using public keys supplied in a JWKS file. For the purposes o
 6. We're sending a short, unsigned JWT (hence the only `validAlgorithms` type is `none`).
 
    For real-world applications, you'll want to delete the `validAlgorithms` section and supply signed JWTs.
+
+## Summary
+This is a summary, put the summary here.
