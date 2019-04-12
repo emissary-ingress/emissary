@@ -295,7 +295,7 @@ class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
                  xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
-                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False):
+                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False, body=None):
         self.method = method
         self.url = url
         self.headers = headers
