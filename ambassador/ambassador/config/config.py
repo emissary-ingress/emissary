@@ -51,6 +51,34 @@ class Config:
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
     enable_endpoints: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'))
 
+    StorageByKind: ClassVar[Dict[str, str]] = {
+        'authservice': "auth_configs",
+        'consulresolver': "resolvers",
+        'mapping': "mappings",
+        'kubernetesendpointresolver': "resolvers",
+        'kubernetesserviceresolver': "resolvers",
+        'ratelimitservice': "ratelimit_configs",
+        'secret': "secret",
+        'service': "service",
+        'tcpmapping': "tcpmappings",
+        'tlscontext': "tls_contexts",
+        'tracingservice': "tracing_configs",
+    }
+
+    SupportedVersions: ClassVar[Dict[str, str]] = {
+        "v0": "is deprecated, consider upgrading",
+        "v1": "ok",
+        "v2": "ok"
+    }
+
+    NoSchema: ClassVar = {
+        'secret',
+        'service',
+        'consulresolver',
+        'kubernetesendpointresolver',
+        'kubernetesserviceresolver'
+    }
+
     # INSTANCE VARIABLES
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
@@ -303,33 +331,30 @@ class Config:
             # Well that's no good.
             return rc
 
-        # Is this a v0 resource?
-        version = resource.apiVersion.lower()
+        # OK, so far so good. Should we just stash this somewhere?
+        lkind = resource.kind.lower()
+        store_as = Config.StorageByKind.get(lkind)
 
-        if version != 'ambassador/v1':
-            desc = "is deprecated, consider upgrading"
+        if store_as:
+            # Just stash it.
+            self.safe_store(store_as, resource)
+        else:
+            # Can't just stash it. Is there a handler for this kind of resource?
+            handler_name = f"handle_{lkind}"
+            handler = getattr(self, handler_name, None)
 
-            if version != 'ambassador/v0':
-                desc = "is not supported"
+            if not handler:
+                handler = self.save_object
+                self.logger.warning("%s: no handler for %s, just saving" % (resource, resource.kind))
+            # else:
+            #     self.logger.debug("%s: handling %s..." % (resource, resource.kind))
 
-            self.post_notice("apiVersion ambassador/v0 %s" % desc, resource=resource)
-
-        # OK, so far so good. Grab the handler for this object type.
-        handler_name = "handle_%s" % resource.kind.lower()
-        handler = getattr(self, handler_name, None)
-
-        if not handler:
-            handler = self.save_object
-            self.logger.warning("%s: no handler for %s, just saving" % (resource, resource.kind))
-        # else:
-        #     self.logger.debug("%s: handling %s..." % (resource, resource.kind))
-
-        try:
-            handler(resource)
-        except Exception as e:
-            # Bzzzt.
-            raise
-            # return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))
+            try:
+                handler(resource)
+            except Exception as e:
+                # Bzzzt.
+                raise
+                # return RichStatus.fromError("%s: could not process %s object: %s" % (resource, resource.kind, e))
 
         # OK, all's well.
         self.current_resource = None
@@ -342,12 +367,29 @@ class Config:
             return RichStatus.fromError("must have apiVersion, kind, and name")
 
         apiVersion = resource.apiVersion
+        originalApiVersion = apiVersion
+
+        # XXX HACK!
+        if apiVersion.startswith('getambassador.io/'):
+            apiVersion = apiVersion.replace('getambassador.io/', 'ambassador/')
+            resource.apiVersion = apiVersion
 
         # Ditch the leading ambassador/ that really needs to be there.
         if apiVersion.startswith("ambassador/"):
             apiVersion = apiVersion.split('/')[1]
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
+
+        version = apiVersion.lower()
+
+        # Is this deprecated?
+        status = Config.SupportedVersions.get(version, 'is totally bogus')
+
+        if status != 'ok':
+            self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
+
+        if resource.kind.lower() in Config.NoSchema:
+            return RichStatus.OK(msg=f"no schema for {resource.kind} so calling it good")
 
         # Do we already have this schema loaded?
         schema_key = "%s-%s" % (apiVersion, resource.kind)
@@ -467,69 +509,3 @@ class Config:
         module_resource = ACResource.from_resource(resource, kind="Module", **resource.config)
 
         self.safe_store("modules", module_resource)
-
-    def handle_ratelimitservice(self, resource: ACResource) -> None:
-        """
-        Handles a RateLimitService resource.
-        """
-
-        self.safe_store("ratelimit_configs", resource)
-
-    def handle_tracingservice(self, resource: ACResource) -> None:
-        """
-        Handles a TracingService resource.
-        """
-
-        self.safe_store("tracing_configs", resource)
-
-    def handle_authservice(self, resource: ACResource) -> None:
-        """
-        Handles an AuthService resource.
-        """
-
-        self.safe_store("auth_configs", resource)
-
-    def handle_tlscontext(self, resource: ACResource) -> None:
-        """
-        Handles a TLSContext resource.
-        """
-
-        self.safe_store("tls_contexts", resource)
-
-    def handle_endpoints(self, resource: ACResource) -> None:
-        """
-        Handles an Endpoints resource.
-        """
-
-        self.safe_store("endpoints", resource)
-
-    def handle_serviceinfo(self, resource: ACResource) -> None:
-        """
-        Handles an ServiceInfo resource.
-        """
-
-        self.safe_store("service_info", resource)
-
-    def handle_secret(self, resource: ACResource) -> None:
-        """
-        Handles a Secret resource.
-        """
-
-        self.safe_store("secret", resource)
-
-    def handle_mapping(self, resource: ACMapping) -> None:
-        """
-        Handles a ACMapping resource.
-
-        Mappings are complex things, so a lot of stuff gets buried in a ACMapping 
-        object.
-        """
-
-        self.safe_store("mappings", resource)
-
-    def handle_tcpmapping(self, resource: ACResource) -> None:
-        """
-        Handles a TCPMapping resource.
-        """
-
-        self.safe_store("tcpmappings", resource)
