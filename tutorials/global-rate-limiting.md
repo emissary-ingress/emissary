@@ -1,8 +1,8 @@
 ---
 title: Global Rate Limiting
 category: Security
-reading_time: 10 minutes
-technologies_used: Ambassador, Prometheus
+reading_time: 5 minutes
+technologies_used: Ambassador Pro 
 ---
 Imagine your website gets on the front page of Hacker News. Or, you've announced a major Black Friday sale. Generally, [ecommerce platforms generate 300% more sales on Black Friday](https://www.userreport.com/blog/e-commerce-exploit-increased-traffic-black-friday/). But if your database starts to fail under the increased load, the degraded performance can impact your conversion numbers. Or worse, your website can fail completely. To mitigate performance issues as quickly as possible while you work to scale your backend, you can use global rate limiting.
 
