@@ -80,35 +80,19 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-pro-pro
+  name: ambassador-pro-rlonly-pro
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind: RateLimitService
-      ambassador_id: ambassador-pro
+      ambassador_id: ambassador-pro-rlonly
       name: ambassador-pro
       service: "127.0.0.1:8501"
-      ---
-      apiVersion: ambassador/v1
-      kind: AuthService
-      ambassador_id: ambassador-pro
-      name: authentication
-      proto: grpc
-      auth_service: "127.0.0.1:8500"
-      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
-      ---
-      # This mapping needs to exist, but is never actually followed.
-      apiVersion: ambassador/v1
-      kind: Mapping
-      ambassador_id: ambassador-pro
-      name: callback_mapping
-      prefix: /callback
-      service: NoTaReAlSeRvIcE
 spec:
   type: ClusterIP
   selector:
-    service: ambassador-pro
+    service: ambassador-pro-rlonly
   ports:
   - name: grpc-auth
     port: 80
@@ -124,8 +108,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: ambassador-pro-admin
-  name: ambassador-pro-admin
+    service: ambassador-pro-rlonly-admin
+  name: ambassador-pro-rlonly-admin
 spec:
   type: NodePort
   ports:
@@ -133,18 +117,18 @@ spec:
     port: 8877
     targetPort: 8877
   selector:
-    service: ambassador-pro
+    service: ambassador-pro-rlonly
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-pro
+  name: ambassador-pro-rlonly
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: Module
-      ambassador_id: ambassador-pro
+      ambassador_id: ambassador-pro-rlonly
       name: tls
       config:
         server:
@@ -162,12 +146,12 @@ spec:
     port: 443
     targetPort: 443
   selector:
-    service: ambassador-pro
+    service: ambassador-pro-rlonly
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador-pro
+  name: ambassador-pro-rlonly
 spec:
   replicas: 1 # XXX: Kubernaut
   template:
@@ -176,7 +160,7 @@ spec:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
       labels:
-        service: ambassador-pro
+        service: ambassador-pro-rlonly
     spec:
       affinity:
         nodeAffinity:
@@ -204,7 +188,7 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_ID
-          value: "ambassador-pro"
+          value: "ambassador-pro-rlonly"
         ports:
         - name: http
           containerPort: 80

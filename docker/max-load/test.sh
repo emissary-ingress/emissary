@@ -10,6 +10,9 @@ max-load --csv-file=$((i++))-oss-https2.csv                                 http
 max-load --csv-file=$((i++))-oss-https2-httpauth.csv                        https://ambassador-oss-tls-httpauth/load-testing/base/
 max-load --csv-file=$((i++))-oss-https2-grpcauth.csv                        https://ambassador-oss-tls-grpcauth/load-testing/base/
 
+max-load --csv-file=$((i++))-pro-rlonly-https2-rl-minute.csv                https://ambassador-pro-rlonly/load-testing/rl-minute/
+max-load --csv-file=$((i++))-pro-rlonly-https2-rl-second.csv                https://ambassador-pro-rlonly/load-testing/rl-second/
+
 max-load --csv-file=$((i++))-pro-https2-base.csv                            https://ambassador-pro/load-testing/base/
 max-load --csv-file=$((i++))-pro-https2-rl-minute.csv                       https://ambassador-pro/load-testing/rl-minute/
 max-load --csv-file=$((i++))-pro-https2-rl-second.csv                       https://ambassador-pro/load-testing/rl-second/
