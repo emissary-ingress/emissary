@@ -98,7 +98,7 @@ config:
   - priority: default
     max_pending_requests: 1
     max_connections: 1
-    """)
+""")
 
     def queries(self):
         for i in range(500):
