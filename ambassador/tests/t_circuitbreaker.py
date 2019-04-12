@@ -37,13 +37,14 @@ circuit_breakers:
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/200?sleep=1000', ignore_result=True, phase=1)
 
-        yield Query("http://statsd-sink/render?format=json&target=summarize(stats.envoy.cluster.cluster_httpstat_us.upstream_rq_pending_overflow,'1hour','sum',true)&from=-1hour", phase=2)
+        for i in range(20):
+            yield Query("http://statsd-sink/render?format=json&target=summarize(stats.envoy.cluster.cluster_httpstat_us.upstream_rq_pending_overflow,'1hour','sum',true)&from=-1hour", phase=2, ignore_result=True)
 
     def check(self):
 
-        assert len(self.results) == 501
+        assert len(self.results) == 520
         pending_results = self.results[0:500]
-        pending_stats = self.results[500]
+        pending_stats = self.results[500:520]
 
         # pending requests tests
         pending_overloaded = 0
@@ -52,7 +53,12 @@ circuit_breakers:
                 pending_overloaded += 1
         assert 450 < pending_overloaded < 500
 
-        pending_datapoints = pending_stats.json[0]['datapoints'][0][0]
+        pending_datapoints = 0
+        for stat in pending_stats:
+            if stat.status == 200:
+                pending_datapoints = stat.json[0]['datapoints'][0][0]
+                break
+        assert pending_datapoints > 0
         assert 450 < pending_datapoints*10 <= 500
 
         assert pending_overloaded == pending_datapoints*10
