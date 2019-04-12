@@ -136,10 +136,10 @@ func (r TestResult) String(minSuccessRate float64) string {
 	} else {
 		prefix = "✘ Failed"
 	}
-	mainline := fmt.Sprintf("%s at rate=%drps (latency p95=%s max=%s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
+	mainline := fmt.Sprintf("%s at rate=%drps (latency p95=%s max=%s margin(95%%)=±%s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
 		prefix,
 		r.Rate,
-		r.Metrics.LatencyQuantile(0.95), r.Metrics.LatencyMax(),
+		r.Metrics.LatencyQuantile(0.95), r.Metrics.LatencyMax(), r.Metrics.LatencyMargin(0.95),
 		r.Metrics.CountSuccesses(), r.Metrics.CountRequests(), r.Metrics.SuccessRate(),
 		r.Metrics.CountLimited(),
 		r.FilesBefore, r.FilesAfter)
