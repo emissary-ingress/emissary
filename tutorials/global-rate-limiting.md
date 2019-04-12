@@ -10,7 +10,7 @@ Suppose we want to limit users to only 10 requests per minute for any requests t
 
 1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
 
-2. Observe the ambassador `Module` in `ambassador/03-ambassador-service.yaml` we deployed earlier.
+2. In the `pro-ref-arch` directory, observe the ambassador `Module` in `ambassador/03-ambassador-service.yaml` we deployed earlier.
 
    You will see a `default_label` set in the config. This configures Ambassador to label every request through Ambassador with a check for `x-limited-user` so the rate limiting service can check it.
 
@@ -33,7 +33,7 @@ Suppose we want to limit users to only 10 requests per minute for any requests t
 3. Configure the global rate limit
 
    ```
-   kubectl apply -f rl-global.yaml
+   kubectl apply -f ratelimit/rl-global.yaml
    ```
 
    This configures Ambassador's rate limiting service to look for the `x_limited_user` label and, if set to `true`, limit the requests to 10 per minute.
@@ -43,7 +43,7 @@ Suppose we want to limit users to only 10 requests per minute for any requests t
    We provide a simple way to test that this global rate limit is working. Run the simple shell script `ratelimit-test.sh` in "global" mode to send requests to the `qotm` and `httpbin` endpoints. You will see, after a couple of request, that requests that set `x-limited-user: true` will be returned a 429 by Ambassador after 10 requests but requests with `x-limited-user: false` are allowed.
 
    ```
-   ./ratelimit-test.sh global
+   ratelimit/ratelimit-test.sh global
    ```
 
 ## Summary
