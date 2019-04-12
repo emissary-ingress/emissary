@@ -21,12 +21,12 @@ func main() {
 	if !set {
 		// Typically will be run in same Pod; customizable only in order
 		// to support running outside of Kubernetes.
-		diagdURL = "http://localhost:8877"
+		diagdURL = "http://localhost:" + os.Getenv("AMBASSADOR_ADMIN_SERVICE_PORT")
 	}
 	ambassadorURL, set = os.LookupEnv("AMBASSADOR_URL")
 	if !set {
 		// Ambassador's Envoy running in the same Pod:
-		ambassadorURL = "http://localhost:80"
+		ambassadorURL = "http://localhost:" + os.Getenv("AMBASSADOR_SERVICE_PORT")
 	}
 	publicURL, set = os.LookupEnv("PUBLIC_API_URL")
 	if !set {
