@@ -110,6 +110,8 @@ class V2Cluster(dict):
             threshold = {}
             if 'priority' in circuit_breaker:
                 threshold['priority'] = circuit_breaker.get('priority').upper()
+            else:
+                threshold['priority'] = 'DEFAULT'
 
             digit_fields = ['max_connections', 'max_pending_requests', 'max_requests', 'max_retries']
             for field in digit_fields:
