@@ -11,7 +11,7 @@ func Main(
 
 	knownServices := s.knownServices()
 	fetcher := NewFetcher(
-		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
+		s.getServiceAdd(), s.getServiceDelete(), insecureHttpGet, knownServices,
 		diagdURL, ambassadorURL, pollFrequency, publicURL)
 	defer fetcher.Stop()
 	s.ServeHTTP()
