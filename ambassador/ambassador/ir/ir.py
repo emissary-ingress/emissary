@@ -35,6 +35,7 @@ from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
+from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory
 
 from ..VERSION import Version, Build
 
@@ -67,6 +68,7 @@ class IR:
     secret_root: str
     secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
+    resolvers: Dict[str, IRServiceResolver]
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -120,6 +122,7 @@ class IR:
         self.ratelimit = None
         self.listeners = []
         self.groups = {}
+        self.resolvers = {}
 
         # OK, time to get this show on the road. Grab whatever information our aconf
         # has about secrets...
@@ -139,11 +142,13 @@ class IR:
         # the TLS contexts available to it.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
 
-        # Save breaker & outlier configs.
+        # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
-        self.endpoints = aconf.get_config("endpoints") or {}
-        self.service_info = aconf.get_config("service_info") or {}
+        self.services = aconf.get_config("services") or {}
+
+        # Next up, initialize our IRServiceResolvers.
+        IRServiceResolverFactory.load_all(self, aconf)
 
         # Save tracing and ratelimit settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
@@ -260,6 +265,12 @@ class IR:
             self.post_error("Duplicate TLSContext %s; keeping definition from %s" % (ctx.name, extant_ctx.location))
         else:
             self.tls_contexts[ctx.name] = ctx
+
+    def get_resolver(self, name: str) -> Optional[IRServiceResolver]:
+        return self.resolvers.get(name, None)
+
+    def add_resolver(self, resolver: IRServiceResolver) -> None:
+        self.resolvers[resolver.name] = resolver
 
     # def has_tls_context(self, name: str) -> bool:
     #     return bool(self.get_tls_context(name))
