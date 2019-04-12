@@ -1,11 +1,12 @@
 ---
 title: Per User Rate Limiting
 category: Security
-reading_time: 10 minutes
-technologies_used: Ambassador, Prometheus
+reading_time: 5 minutes
+technologies_used: Ambassador Pro
 ---
+If you're site is attacked by a malicious user, are you prepared? 
 
-Suppose we notice a couple of unlimited users are abusing their limitless permissions and overwhelming the `httpbin` endpoint. To ensure fairness in allocating resources to all of our users, we can enable rate limiting based off the incoming client IP address. We do this with the `remote_address` field that Envoy configures on each request.
+If you notice users who are  abusing their limitless permissions and overwhelming the `httpbin` endpoint. You can ensure fairness and protect your site from vulnerabilities by enabling rate limiting based off the incoming client IP address. We do this with the `remote_address` field that Envoy configures on each request.
 
 1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
 
@@ -50,4 +51,4 @@ Suppose we notice a couple of unlimited users are abusing their limitless permis
    ```
 
 ## Summary
-This is a summary, put the summary here.
+Protect your site from malicious users. To enable per user rate limiting quickly and easily, get started with a [free 14-day trial of Ambassador Pro](https://www.getambassador.io/pro/free-trial), or [contact sales](https://www.getambassador.io/contact) today. 
