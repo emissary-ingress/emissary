@@ -24,6 +24,8 @@ github.com/Masterminds/sprig v2.17.1+incompatible h1:PChbxFGKTWsg9IWh+pSZRCSj3zQ
 github.com/Masterminds/sprig v2.17.1+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
 github.com/PuerkitoBio/goquery v1.5.0 h1:uGvmFXOA73IKluu/F84Xd1tt/z07GYm8X49XKHP7EJk=
 github.com/PuerkitoBio/goquery v1.5.0/go.mod h1:qD2PgZ9lccMbQlc7eEOjaeRlFQON7xY8kdmcsrnKqMg=
+github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7 h1:/NWziSfuX4cu00adiPldD8sdCpKxu6BZtLoALSyElZQ=
+github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7/go.mod h1:idZL3yvz4kzx1dsBOAC+oYv6L92P1oFEhUXUB1A/lwQ=
 github.com/andybalholm/cascadia v1.0.0 h1:hOCXnnZ5A+3eVDX8pvgl4kofXv2ELss0bKcqRySc45o=
 github.com/andybalholm/cascadia v1.0.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=

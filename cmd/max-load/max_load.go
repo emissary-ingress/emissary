@@ -1,41 +1,43 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"math"
 	"net"
-	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
-	"regexp"
 	"runtime"
-	"sort"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	vegeta "github.com/tsenart/vegeta/lib"
+
+	"github.com/datawire/apro/cmd/max-load/attack"
+	"github.com/datawire/apro/cmd/max-load/metrics"
 )
 
 var Args = struct {
-	URL string
-	EnableHTTP2    bool
+	URL         string
+	EnableHTTP2 bool
 	CSVFilename string
+	MaxLatency  time.Duration
 
-	Period         time.Duration
-	StepRPS        uint
-	MaxLatency     time.Duration
-	MinSuccessRate float64
+	LoadRPSResolution  uint
+	LoadMinSuccessRate float64
 
-	CooldownMaxLatency time.Duration
-	CooldownRPS        uint
-	CooldownRequests   uint64
+	LoadUntilMinDuration          time.Duration
+	LoadUntilMinSamples           uint
+	LoadUntilMinLatencyConfidence float64
+	LoadUntilMaxLatencyMargin     time.Duration
+
+	CooldownRPS uint
+
+	CooldownUntilMinSamples           uint
+	CooldownUntilMinLatencyConfidence float64
+	CooldownUntilMaxLatencyMargin     time.Duration
+	CooldownUntilMaxLatency           time.Duration
 }{}
 
 func parseArgs(args []string) {
@@ -45,9 +47,7 @@ Attempt to determine the maximum load that URL can handle
 
 It will start at 100rps and measure the latency.  It will then go up
 in ${step-rps} steps until it starts seeing failures (such that the
-success rate drops below ${min-success-rate}).  It will then perform a
-binary search to determine a more precise rate for when failures
-started.
+success rate drops below ${min-success-rate}).
 
 You may specify an ordinary http:// or https:// URL to have direct
 absolute control over what it speaks to.  Alternatively, you may
@@ -61,7 +61,6 @@ If no PORTNAME is specified with a nodeport+ url, then "http" or
 TODO: support "loadbalancer+" for LoadBalancer services.
 `, os.Args[0])
 
-
 	generalParser := pflag.NewFlagSet("", pflag.ContinueOnError)
 	usage += `
 OPTIONS (general):
@@ -69,8 +68,9 @@ OPTIONS (general):
 `
 	help := false
 	generalParser.BoolVarP(&help, "help", "h", false, "Show this message")
-	generalParser.StringVar(&Args.CSVFilename, "csv-file", "", "Write rps-vs-latency to this CSV file")
 	generalParser.BoolVar(&Args.EnableHTTP2, "enable-http2", true, "Whether to enable HTTP/2 if the remote supports it")
+	generalParser.StringVar(&Args.CSVFilename, "csv-file", "", "Write rps-vs-latency to this CSV file")
+	generalParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful; use 0 to disable latency threshold")
 	usage += generalParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(generalParser)
 
@@ -78,14 +78,26 @@ OPTIONS (general):
 	usage += `
 OPTIONS (load):
 
-  "so I asked richard for a latency budget, and he suggested 40ms
-  total as a starting point" -- rhs
+  During load periods it will make requests at a given RPS, until all
+  3 conditions are met:
+
+    1. It has made at least ${until-min-samples} requests.
+    2. It has been running for at least ${until-min-duration}.
+    3. It is ${until-min-latency-confidence} % sure that the mean
+       latency is accurate to at least ± ${until-max-latency-margin}.
+
+  Once these conditions are met, it will consider the service to have
+  successfully handled that RPS, if the success rate is at least
+  ${min-success-rate}.
 
 `
-	loadParser.DurationVar(&Args.Period, "period", 5*time.Second, "How long to hold a given RPS for")
-	loadParser.UintVar(&Args.StepRPS, "step-rps", 100, "Granularity of RPS measurements")
-	loadParser.DurationVar(&Args.MaxLatency, "max-latency", 40*time.Millisecond, "Maximum latency to consider successful during load-testing; use 0 to disable latency checks")
-	loadParser.Float64Var(&Args.MinSuccessRate, "min-success-rate", 0.95, "The required success rate for a given phase")
+	loadParser.UintVar(&Args.LoadRPSResolution, "load-rps-resolution", 50, "Granularity of RPS measurements")
+	loadParser.Float64Var(&Args.LoadMinSuccessRate, "load-min-success-rate", 0.95, "The required success rate")
+
+	loadParser.DurationVar(&Args.LoadUntilMinDuration, "load-until-min-duration", 5*time.Second, "Run at a given RPS for at least this long")
+	loadParser.UintVar(&Args.LoadUntilMinSamples, "load-until-min-samples", 1000, "Make at least this many requests at a given RPS")
+	loadParser.Float64Var(&Args.LoadUntilMinLatencyConfidence, "load-until-min-latency-confidence", 0.95, "Be at least this sure of the latency margin")
+	loadParser.DurationVar(&Args.LoadUntilMaxLatencyMargin, "load-until-max-latency-margin", 2*time.Millisecond, "Run until the mean latency is accurate to ± this")
 	usage += loadParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(loadParser)
 
@@ -93,20 +105,26 @@ OPTIONS (load):
 	usage += `
 OPTIONS (cooldown):
 
-  During cooldown periods, require ${cooldown-requests} consecutive
-  successful requests with latency < ${cooldown-max-latency} at
-  ${cooldown-rps} in order to be considered "cooled down".
+  Between loads, cooldown at ${rps} until all 3 conditions are met:
+
+    1. It has made ${until-min-smaples} consecutive successful
+       requests.
+    2. It is ${until-min-latency-confidence} % sure that the mean
+       latency is accurate to at least ± ${until-max-latency-margin}.
+    3. The p95 latency is at most ${until-max-latency}.
 
   In order do avoid either stressing either Envoy or the local client
-  with new TCP connections, the ${cooldown-rps} should be low enough
-  that it is likely that ` + "`latency*rps < 1.0`" + `.  10ms latency
-  seems reasonable under non-load, so 1.0/10ms gives us 100rps as the
+  with new TCP connections, the ${rps} should be low enough that it is
+  likely that ` + "`latency*rps < 1.0`" + `.  10ms latency seems
+  reasonable under non-load, so 1.0/10ms gives us 100rps as the
   default.
 
 `
-	cooldownParser.DurationVar(&Args.CooldownMaxLatency, "cooldown-max-latency", 20*time.Millisecond, "Maximum latency to consider successful during cooldown; use 0 to disable latency checks")
 	cooldownParser.UintVar(&Args.CooldownRPS, "cooldown-rps", 100, "Requests per second during cooldown")
-	cooldownParser.Uint64Var(&Args.CooldownRequests, "cooldown-requests", 500, "When to consider cooldown complete")
+	cooldownParser.UintVar(&Args.CooldownUntilMinSamples, "cooldown-until-min-samples", 500, "Required number of consecutive successful requests")
+	cooldownParser.Float64Var(&Args.CooldownUntilMinLatencyConfidence, "lcooldown-until-min-latency-confidence", 0.95, "Be at least this sure of the latency margin")
+	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatencyMargin, "cooldown-until-max-latency-margin", 2*time.Millisecond, "Run until the mean latency is accurate to ± this")
+	cooldownParser.DurationVar(&Args.CooldownUntilMaxLatencyMargin, "cooldown-until-max-latency", 20*time.Millisecond, "Run until the p95 latency at most this")
 	usage += cooldownParser.FlagUsagesWrapped(70)
 	parser.AddFlagSet(cooldownParser)
 
@@ -188,193 +206,89 @@ func errfatal(err error) {
 	os.Exit(1)
 }
 
-func maxFiles() int {
-	var rlimit syscall.Rlimit
-	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rlimit)
-	if err != nil {
-		panic(err)
-	}
-
-	ret := rlimit.Cur
-
-	err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &syscall.Rlimit{
-		Cur: rlimit.Max,
-		Max: rlimit.Max,
-	})
-	if err == nil {
-		ret = rlimit.Max
-	}
-
-	if ret > math.MaxInt32 {
-		ret = math.MaxInt32
-	}
-	return int(ret)
-}
-
-var attacker = vegeta.NewAttacker(
-	vegeta.TLSConfig(&tls.Config{InsecureSkipVerify: true}), // #nosec G402
-	vegeta.Connections(maxFiles()),                          // setting -1 or 0 for no-limit doesn't seemt to work?
-)
-
-var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
-
 var csvFile *os.File
 
-func openFiles() int {
-	fis, _ := ioutil.ReadDir("/dev/fd/")
-	return len(fis)
-}
+func RunLoad(rps uint) attack.TestResult {
+	startTime := time.Now()
+	return attack.TestCase{
+		URL:        Args.URL,
+		RPS:        rps,
+		MaxLatency: Args.MaxLatency,
 
-type TestCase struct {
-	URL        string
-	RPS        uint
-	Duration   time.Duration
-	MaxLatency time.Duration
-
-	Callback func(result *vegeta.Result, errstr string)
-}
-
-type TestResult struct {
-	Rate        uint
-	Successes   uint64
-	Limited     uint64
-	Requests    uint64
-	Latency     vegeta.LatencyMetrics
-	Errors      map[string]uint64
-	FilesBefore int
-	FilesAfter  int
-}
-
-func RunTestRaw(tc TestCase) TestResult {
-	targeter := vegeta.NewStaticTargeter(vegeta.Target{
-		Method: "GET",
-		URL:    tc.URL,
-		Header: http.Header(map[string][]string{"Authorization": {"Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."}}),
-	})
-	var metrics vegeta.Metrics
-	var successes uint64
-	var limited uint64
-	errs := make(map[string]uint64)
-	filesBefore := openFiles()
-	for res := range attacker.Attack(targeter, vegeta.Rate{Freq: int(tc.RPS), Per: time.Second}, tc.Duration, fmt.Sprintf("atk-%d", tc.RPS)) {
-		// vegeta.Metrics doesn't consider HTTP 429 ("Too Many Requests") to be a "success",
-		// but for testing the rate limit service, we should.
-		success := false
-		switch res.Code {
-		case http.StatusOK:
-			success = true
-		case http.StatusTooManyRequests:
-			success = true
-			limited++
-		}
-		if success && tc.MaxLatency > 0 && res.Latency > tc.MaxLatency {
-			success = false
-			res.Error = "latency limit exceeded"
-		}
-		var errstr string
-		if success {
-			successes++
-		} else {
-			errstr = fmt.Sprintf("code=%03d error=%#v x-envoy-overloaded=%#v body=%#v",
-				res.Code,
-				sourcePortRE.ReplaceAllString(res.Error, ":XYZ->"),
-				res.Header.Get("x-envoy-overloaded"),
-				string(res.Body),
-			)
-			errs[errstr] = errs[errstr] + 1
-		}
-		metrics.Add(res)
-		if tc.Callback != nil {
-			tc.Callback(res, errstr)
-		}
-	}
-	metrics.Close()
-	filesAfter := openFiles()
-
-	return TestResult{tc.RPS, successes, limited, metrics.Requests, metrics.Latencies, errs, filesBefore, filesAfter}
-}
-
-func (r TestResult) SuccessRate() float64 {
-	return float64(r.Successes) / float64(r.Requests)
-}
-
-func (r TestResult) Passed() bool {
-	return r.SuccessRate() >= Args.MinSuccessRate
-}
-
-func (r TestResult) String() string {
-	var prefix string
-	if r.Passed() {
-		prefix = "✔ Success"
-	} else {
-		prefix = "✘ Failed"
-	}
-	mainline := fmt.Sprintf("%s at rate=%drps (latency p95=%s max=%s) (success rate=%d/%d=%f) (rate-limited: %d) (open files: %d→%d)",
-		prefix, r.Rate, r.Latency.P95, r.Latency.Max, r.Successes, r.Requests, r.SuccessRate(), r.Limited, r.FilesBefore, r.FilesAfter)
-	errs := make([]string, 0, len(r.Errors))
-	for err, n := range r.Errors {
-		errs = append(errs, fmt.Sprintf("  error (%d): %s", n, err))
-	}
-	sort.Strings(errs)
-	return strings.Join(append([]string{mainline}, errs...), "\n")
-}
-
-func RunTest(rate uint) bool {
-	runs := 0
-	for {
-		result := RunTestRaw(TestCase{
-			URL:        Args.URL,
-			RPS:        rate,
-			Duration:   Args.Period,
-			MaxLatency: Args.MaxLatency,
-		})
-		runs++
-		fmt.Println(result)
-		// Let it cool down.  This is both (1) to let Ambassador cool down (after a
-		// failure), but also (2) to let the client cool down and for any dangling but not
-		// keep-alive connections die.
-		runtime.GC()
-		var passed uint64
-		cooldown := RunTestRaw(TestCase{
-			URL:        Args.URL,
-			RPS:        Args.CooldownRPS,
-			Duration:   0, // run until we call attacker.Stop()
-			MaxLatency: Args.CooldownMaxLatency,
-			Callback: func(result *vegeta.Result, errstr string) {
-				if errstr == "" {
-					passed++
-				} else {
-					fmt.Printf("  cooldown: error: %s\n", errstr)
-					runtime.GC()
-					passed = 0
-				}
-				if passed%100 == 0 {
-					fmt.Printf("  cooldown: %d\n", passed)
-				}
-				if passed >= Args.CooldownRequests {
-					attacker.Stop()
-				}
-			},
-		})
-		fmt.Printf("  cooldown: %d (latency p95=%s max=%s) (open files: %d→%d)\n",
-			passed, cooldown.Latency.P95, cooldown.Latency.Max, cooldown.FilesBefore, cooldown.FilesAfter)
-		if result.Passed() {
-			if csvFile != nil {
-				fmt.Fprintf(csvFile, "%d,%f,%f\n", result.Rate, result.Latency.P95.Seconds()*1000, result.Latency.Max.Seconds()*1000)
+		ShouldStop: func(m metrics.MetricsReader) bool {
+			if m.CountRequests() < Args.LoadUntilMinSamples {
+				return false
+			}
+			if time.Since(startTime) < Args.LoadUntilMinDuration {
+				return false
+			}
+			if m.LatencyMargin(Args.LoadUntilMinLatencyConfidence) > Args.LoadUntilMaxLatencyMargin {
+				return false
 			}
 			return true
-		}
-		// try it up to 3 times
-		if runs == 3 {
-			return false
+		},
+	}.Run()
+}
+
+func RunCooldown() {
+	for {
+		runtime.GC()
+		result := attack.TestCase{
+			URL:        Args.URL,
+			RPS:        Args.CooldownRPS,
+			MaxLatency: Args.MaxLatency,
+
+			ShouldStop: func(m metrics.MetricsReader) bool {
+				if m.CountSuccesses() < m.CountRequests() {
+					for errstr := range m.Errors() {
+						fmt.Printf("  cooldown: error: %s\n", errstr)
+					}
+					return true
+				}
+
+				if m.CountRequests()%100 == 0 {
+					fmt.Printf("  cooldown: requests=%d latency-p95=%v latency-margin(c=%d%%)=%v\n",
+						m.CountRequests(),
+						m.LatencyQuantile(0.95),
+						int(Args.CooldownUntilMinLatencyConfidence*100),
+						m.LatencyMargin(Args.CooldownUntilMinLatencyConfidence))
+				}
+
+				if m.CountRequests() < Args.CooldownUntilMinSamples {
+					return false
+				}
+				if m.LatencyMargin(Args.CooldownUntilMinLatencyConfidence) > Args.CooldownUntilMaxLatencyMargin {
+					return false
+				}
+				return true
+			},
+		}.Run()
+		if result.Metrics.CountSuccesses() == result.Metrics.CountRequests() {
+			break
 		}
 	}
+}
+
+func Run(rate uint) bool {
+	result := RunLoad(rate)
+	fmt.Println(result.String(Args.LoadMinSuccessRate))
+	RunCooldown()
+	if result.Passed(Args.LoadMinSuccessRate) {
+		if csvFile != nil {
+			fmt.Fprintf(csvFile, "%d,%f,%f\n",
+				result.Rate,
+				result.Metrics.LatencyQuantile(0.95).Seconds()*1000,
+				result.Metrics.LatencyMax().Seconds()*1000)
+		}
+		return true
+	}
+	return false
 }
 
 func main() {
 	parseArgs(os.Args[1:])
 	fmt.Println("url =", Args.URL)
-	vegeta.HTTP2(Args.EnableHTTP2)(attacker)
+	attack.SetHTTP2Enabled(Args.EnableHTTP2)
 	if Args.CSVFilename != "" {
 		var err error
 		csvFile, err = os.OpenFile(Args.CSVFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
@@ -386,27 +300,16 @@ func main() {
 
 	rate := uint(100)
 	okRate := uint(1)
-	nokRate := uint(0)
 
 	// first, find the point at which the system breaks
 	for {
-		if RunTest(rate) {
+		if Run(rate) {
 			okRate = rate
-			rate += Args.StepRPS
+			rate += Args.LoadRPSResolution
 		} else {
-			nokRate = rate
 			break
 		}
 	}
 
-	// next, do a binary search between okRate and nokRate
-	for (nokRate - okRate) > 1 {
-		rate = (nokRate + okRate) / 2
-		if RunTest(rate) {
-			okRate = rate
-		} else {
-			nokRate = rate
-		}
-	}
 	fmt.Printf("➡️Maximum Working Rate: %d req/sec\n", okRate)
 }

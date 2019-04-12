@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/Jeffail/gabs v1.2.0
 	github.com/PuerkitoBio/goquery v1.5.0
+	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20171227191756-4eba002a5eae // indirect
@@ -22,7 +23,7 @@ require (
 	github.com/hashicorp/consul v1.4.2
 	github.com/hashicorp/go-sockaddr v1.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
-	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9 // indirect
+	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
