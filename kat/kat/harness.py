@@ -1046,7 +1046,7 @@ class Runner:
 
         for phase in phases:
             if phase != 1:
-                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 30))
+                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 60))
                 print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
                 time.sleep(phase_delay)
 
