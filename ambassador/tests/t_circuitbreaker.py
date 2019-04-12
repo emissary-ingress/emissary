@@ -61,7 +61,7 @@ circuit_breakers:
         assert pending_datapoints > 0
         assert 450 < pending_datapoints*10 <= 500
 
-        assert pending_overloaded == pending_datapoints*10
+        assert abs(pending_overloaded-(pending_datapoints*10)) < 10
 
 
 class GlobalCircuitBreakingTest(AmbassadorTest):
