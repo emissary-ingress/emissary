@@ -15,7 +15,7 @@ To protect our QoTM app, we need to put a rate limit on the number of requests t
 
 1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
 
-2. Observe the `Mapping`s in `ambassador/05-qotm.yaml` we deployed earlier.
+2. In the `pro-ref-arch` directory, observe the `Mapping`s in `ambassador/05-qotm.yaml` we deployed earlier.
 
    You will see a `labels` applied to the `qotm_limited_mapping`. This configures Ambassador to label the request with the string `qotm`. We will configure Ambassador to `RateLimit` off this label.
 
@@ -38,7 +38,7 @@ To protect our QoTM app, we need to put a rate limit on the number of requests t
 3. Configure the `RateLimit`:
 
    ```
-   kubectl apply -f rl-basic.yaml
+   kubectl apply -f ratelimit/rl-basic.yaml
    ```
 
    We have now configured Ambassador to limit requests containing the label `qotm` to 5 requests per minute.
@@ -46,7 +46,7 @@ To protect our QoTM app, we need to put a rate limit on the number of requests t
 4. Test the `RateLimit`:
 
    ```
-   ./ratelimit-test.sh basic
+   ratelimit/ratelimit-test.sh basic
    ```
 
    This is a simple bash script that sends a `cURL` to http://$AMBASSADOR_IP/qotm/limited/ every second. You will notice that after the 5th request, Ambassador is returning a 429 instead of 200 to requests to the `/qotm/limited/` endpoint.
