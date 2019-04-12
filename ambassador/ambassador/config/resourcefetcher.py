@@ -409,7 +409,7 @@ class ResourceFetcher:
             return None
 
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
-        resource_identifier = '{name}.{namespace}'.format(namespace=resource_namespace, name=resource_name)
+        resource_identifier = f'{resource_name}.{resource_namespace}'
 
         # Not skipping. Stash this in self.k8s_services for later resolution.
 
@@ -522,8 +522,8 @@ class ResourceFetcher:
             'apiVersion': 'ambassador/v1',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
-            'resolve-with': 'consul',
             'name': name,
+            'datacenter': consul_object.get('datacenter') or 'dc1',
             'endpoints': {}
         }
 
@@ -535,15 +535,15 @@ class ResourceFetcher:
                 self.logger.debug(f"ignoring Consul service {name} endpoint {ep['ID']} missing address info")
                 continue
 
-            svc['endpoints'][ep_port] = {
+            svc_eps = svc['endpoints'].setdefault(ep_port, [])
+            svc_eps.append({
                 'ip': ep_addr,
                 'port': ep_port,
                 'target_kind': 'Consul'
-            }
+            })
 
         # Once again: don't return this. Instead, save it in self.services.
-        consul_services = self.services.setdefault('consul', {})
-        consul_services[name] = svc
+        self.services[f"consul-{name}-{svc['datacenter']}"] = svc
 
         return None
 
@@ -581,6 +581,9 @@ class ResourceFetcher:
             # See if we can find endpoints for this service.
             k8s_ep = self.k8s_endpoints.get(key, None)
             k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
+
+            k8s_name = k8s_svc['name']
+            k8s_namespace = k8s_svc['namespace']
 
             # OK, Kube is weird. The way all this works goes like this:
             #
@@ -712,25 +715,23 @@ class ResourceFetcher:
                 } for target_addr in target_addrs ]
 
             # Nope. Set this up for service routing.
-            k8s_services = self.services.setdefault('k8s', {})
-            k8s_services[key] = {
+            self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
                 'apiVersion': 'ambassador/v1',
                 'ambassador_id': Config.ambassador_id,
                 'kind': 'Service',
-                'resolve-with': 'k8s',
-                'name': k8s_svc['name'],
+                'name': k8s_name,
+                'namespace': k8s_namespace,
                 'endpoints': svc_endpoints
             }
 
         # OK. After all that, go turn all of the things in self.services into Ambassador
         # Service resources.
 
-        for svc_type, svcs in self.services.items():
-            for key, svc in svcs.items():
-                serialization = dump_yaml(svc, default_flow_style=False)
+        for key, svc in self.services.items():
+            serialization = dump_yaml(svc, default_flow_style=False)
 
-                r = ACResource.from_dict(key, key, serialization, svc)
-                self.elements.append(r)
+            r = ACResource.from_dict(key, key, serialization, svc)
+            self.elements.append(r)
 
         od = {
             'elements': [ x.as_dict() for x in self.elements ],

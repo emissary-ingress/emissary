@@ -40,6 +40,15 @@ class IRBaseMapping (IRResource):
 
         self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
 
+        # We can also default the resolver, and scream if it doesn't match a resolver we
+        # know about.
+        if not self.get('resolver'):
+            self.resolver = self.ir.ambassador_module.get('resolver', 'kubernetes-service')
+
+        if not self.ir.get_resolver(self.resolver):
+            self.post_error(f'resolver {self.resolver} is unknown!')
+            return False
+
         return True
 
     def _group_id(self) -> str:

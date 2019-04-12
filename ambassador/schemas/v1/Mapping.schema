@@ -71,6 +71,7 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
+        "resolver": { "type": "string" },
         "rewrite": { "type": "string" },
         "shadow": { "type": "boolean" },
         "cluster_timeout_ms": { "type": "integer" },

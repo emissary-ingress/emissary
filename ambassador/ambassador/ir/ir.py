@@ -145,7 +145,7 @@ class IR:
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
-        self.services = aconf.get_config("services") or {}
+        self.services = aconf.get_config("service") or {}
 
         # Next up, initialize our IRServiceResolvers.
         IRServiceResolverFactory.load_all(self, aconf)
@@ -323,6 +323,23 @@ class IR:
 
         return ss
 
+    def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
+                        hostname: str, port: int, lb: str) -> Any:
+        # Which resolver should we use?
+        if not resolver_name:
+            resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
+
+        resolver = self.get_resolver(resolver_name)
+
+        # It should not be possible for resolver to be unset here.
+        if not resolver:
+            self.post_error(f"cluster {cluster.name} has invalid resolver {resolver_name}?", cluster)
+            return None
+
+        # OK, ask the resolver for the target list. Understanding the mechanics of resolution
+        # and the load balancer policy and all that is up to the resolver.
+        return resolver.resolve(self, cluster, hostname, port, lb)
+
     def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():
             if not already_saved:
@@ -419,7 +436,7 @@ class IR:
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
-            'endpoints': self.endpoints
+            'services': self.services
         }
 
         if self.tracing:
