@@ -58,6 +58,9 @@ spec:
   replicas: 1
   template:
     metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: devportal
     spec:
@@ -74,10 +77,6 @@ spec:
           # Change this if you want different poll rate for getting OpenAPI docs:
           - name: POLL_EVERY_SECS
             value: "60"
-          # Change this if you ran Ambassador in a service+namespace that is
-          # not "ambassador.default"; this is the internal Kubernetes address:
-          - name: AMBASSADOR_URL
-            value: "http://ambassador.default"
         ports:
         - name: devportal-ui
           containerPort: 8680
@@ -95,8 +94,7 @@ spec:
           periodSeconds: 3
    
       - name: ambassador
-        # TODO Switch to a released version at some point:
-        image: quay.io/datawire/ambassador:master-9acc2e6
+        image: quay.io/datawire/ambassador:0.53.1
         resources:
           limits:
             cpu: 1
@@ -105,8 +103,6 @@ spec:
             cpu: 200m
             memory: 100Mi
         env:
-        - name: DIAGD_ONLY
-          value: "yes"
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
@@ -114,5 +110,7 @@ spec:
         ports:
         - name: admin
           containerPort: 8877
+        - name: http
+          containerPort: 80
         # TODO add liveness/readyness checks. there's initial ramp-up time...
       restartPolicy: Always

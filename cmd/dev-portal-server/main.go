@@ -25,8 +25,8 @@ func main() {
 	}
 	ambassadorURL, set = os.LookupEnv("AMBASSADOR_URL")
 	if !set {
-		// The default service name and namespace for Ambassador:
-		ambassadorURL = "http://ambassador.default"
+		// Ambassador's Envoy running in the same Pod:
+		ambassadorURL = "http://localhost:80"
 	}
 	publicURL, set = os.LookupEnv("PUBLIC_API_URL")
 	if !set {

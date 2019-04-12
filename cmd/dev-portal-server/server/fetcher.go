@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -111,19 +110,10 @@ func getString(o *gabs.Container, attr string) string {
 	return o.S(attr).Data().(string)
 }
 
-func insecureHttpGet(url string, logger *log.Entry) ([]byte, error) {
+func httpGet(url string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
 	logger.Info("HTTP GET")
-	// Ambassador will often have TLS certificate, whose hostname won't
-	// match the internal K8s address we're often talking to. And given this
-	// should all be routed internally, disabling cert checks seems fine as
-	// a first pass.
-	// TODO come up with better solution.
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Timeout: time.Second * 2, Transport: transport}
+	client := &http.Client{Timeout: time.Second * 2}
 	response, err := client.Get(url)
 	if err != nil {
 		logger.Error(err)
