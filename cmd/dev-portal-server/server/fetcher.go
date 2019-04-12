@@ -118,6 +118,7 @@ func insecureHttpGet(url string, logger *log.Entry) ([]byte, error) {
 	// match the internal K8s address we're often talking to. And given this
 	// should all be routed internally, disabling cert checks seems fine as
 	// a first pass.
+	// TODO come up with better solution.
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
