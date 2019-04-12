@@ -32,7 +32,7 @@ metadata:
   name: load-http-echo
   namespace: default
 spec:
-  replicas: 1
+  replicas: 3
   strategy:
     type: RollingUpdate
   template:

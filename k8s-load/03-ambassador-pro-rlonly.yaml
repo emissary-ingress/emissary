@@ -153,7 +153,7 @@ kind: Deployment
 metadata:
   name: ambassador-pro-rlonly
 spec:
-  replicas: 1 # XXX: Kubernaut
+  replicas: 3
   template:
     metadata:
       annotations:

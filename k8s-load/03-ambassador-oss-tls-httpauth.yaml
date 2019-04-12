@@ -59,7 +59,7 @@ kind: Deployment
 metadata:
   name: ambassador-oss-tls-httpauth
 spec:
-  replicas: 1 # XXX: Kubernaut
+  replicas: 3
   template:
     metadata:
       annotations:

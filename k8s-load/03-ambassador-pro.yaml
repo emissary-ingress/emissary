@@ -169,7 +169,7 @@ kind: Deployment
 metadata:
   name: ambassador-pro
 spec:
-  replicas: 1 # XXX: Kubernaut
+  replicas: 3
   template:
     metadata:
       annotations:
