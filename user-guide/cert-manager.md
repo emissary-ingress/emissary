@@ -25,6 +25,8 @@ An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manag
 ### Certificate
 A [Certificate](https://cert-manager.readthedocs.io/en/latest/reference/certificates.html) is a namespaced resource that references an `Issuer` or `ClusterIssuer` for issuing certificates. `Certificate`s define the DNS name(s) a key and certificate should be issued for, as well as the secret to store those files (e.g. `ambassador-certs`). Configuration depends on which ACME [challenge](/user-guide/cert-manager#challenge) you are using.
 
+By duplicating issuers, certificates, and secrets one can support multiple domains with [SNI](/user-guide/sni).
+
 ### Challenge
 cert-manager supports two kinds of ACME challenges which verify domain ownership in different ways: HTTP-01 and DNS-01.
 
