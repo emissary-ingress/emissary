@@ -460,8 +460,8 @@ class IR:
         using_tls_contexts = False
 
         od['endpoint_routing'] = Config.enable_endpoints
-        od['endpoint_resource_total'] = len(self.endpoints.keys())
-        od['serviceinfo_resource_total'] = len(self.service_info.keys())
+        # od['endpoint_resource_total'] = len(self.endpoints.keys())
+        # od['serviceinfo_resource_total'] = len(self.service_info.keys())
 
         for ctx in self.get_tls_contexts():
             if ctx:
@@ -550,26 +550,26 @@ class IR:
                 using_http = True
                 cluster_http_count += 1
 
-            cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.endpoint['ip']
-            num_endpoints = len(cluster_endpoints)
+            # cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.endpoint['ip']
+            # num_endpoints = len(cluster_endpoints)
 
-            if using_tls:
-                endpoint_tls_count += num_endpoints
-
-            if using_http:
-                endpoint_http_count += num_endpoints
-
-            if using_grpc:
-                endpoint_grpc_count += num_endpoints
-
-            if lb_type == 'kube':
-                endpoint_routing_kube_count += num_endpoints
-            elif lb_type == 'ring_hash':
-                endpoint_routing_envoy_rh_count += num_endpoints
-            elif lb_type == 'maglev':
-                endpoint_routing_envoy_maglev_count += num_endpoints
-            else:
-                endpoint_routing_envoy_rr_count += num_endpoints
+            # if using_tls:
+            #     endpoint_tls_count += num_endpoints
+            #
+            # if using_http:
+            #     endpoint_http_count += num_endpoints
+            #
+            # if using_grpc:
+            #     endpoint_grpc_count += num_endpoints
+            #
+            # if lb_type == 'kube':
+            #     endpoint_routing_kube_count += num_endpoints
+            # elif lb_type == 'ring_hash':
+            #     endpoint_routing_envoy_rh_count += num_endpoints
+            # elif lb_type == 'maglev':
+            #     endpoint_routing_envoy_maglev_count += num_endpoints
+            # else:
+            #     endpoint_routing_envoy_rr_count += num_endpoints
 
         od['cluster_count'] = cluster_count
         od['cluster_grpc_count'] = cluster_grpc_count
