@@ -76,6 +76,11 @@ class V2Route(dict):
                 } for k, v in response_headers_to_add.items()
             ]
 
+        response_headers_to_remove = group.get('remove_response_headers', None)
+
+        if response_headers_to_remove:
+            self['response_headers_to_remove'] = response_headers_to_remove
+
         # If a host_redirect is set, we won't do a 'route' entry.
         host_redirect = group.get('host_redirect', None)
 
@@ -103,6 +108,11 @@ class V2Route(dict):
                     'clusters': clusters
                 }
             }
+
+            idle_timeout_ms = group.get('idle_timeout_ms', None)
+
+            if idle_timeout_ms is not None:
+                route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
 
             if group.get('rewrite', None):
                 route['prefix_rewrite'] = group['rewrite']
@@ -210,7 +220,7 @@ class V2Route(dict):
         load_balancer = mapping_group.get('load_balancer', None)
         if load_balancer is not None:
             lb_policy = load_balancer.get('policy')
-            if lb_policy == 'ring_hash':
+            if lb_policy in ['ring_hash', 'maglev']:
                 cookie = load_balancer.get('cookie')
                 header = load_balancer.get('header')
                 source_ip = load_balancer.get('source_ip')
