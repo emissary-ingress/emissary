@@ -133,6 +133,8 @@
               link: /reference/rewrites
             - title: Routing TCP Connections
               link: /reference/tcpmappings
+            - title: Timeouts
+              link: /reference/timeouts
             - title: Traffic Shadowing
               link: /reference/shadowing
         - title: Plugins
