@@ -76,11 +76,14 @@ class IRHTTPMapping (IRBaseMapping):
         "prefix_regex": True,
         "priority": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
+        "remove_response_headers": True,
         # Do not include regex_headers.
         # Do not include rewrite.
         "service": True,
         "shadow": True,
+        "cluster_timeout_ms": True,
         "timeout_ms": True,
+        "idle_timeout_ms": True,
         "tls": True,
         "use_websocket": True,
         "weight": True,
@@ -222,7 +225,7 @@ class IRHTTPMapping (IRBaseMapping):
         if lb_policy == 'round_robin':
             if len(load_balancer) == 1:
                 is_valid = True
-        elif lb_policy == 'ring_hash':
+        elif lb_policy in ['ring_hash', 'maglev']:
             if len(load_balancer) == 2:
                 if 'cookie' in load_balancer:
                     cookie = load_balancer.get('cookie')

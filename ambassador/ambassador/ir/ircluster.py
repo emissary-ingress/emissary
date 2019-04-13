@@ -54,7 +54,7 @@ class IRCluster (IRResource):
                  location: str,  # REQUIRED
 
                  service: str,   # REQUIRED
-
+                 cluster_timeout_ms: Optional[int] = 3000,
                  marker: Optional[str] = None,  # extra marker for this context name
 
                  ctx_name: Optional[Union[str, bool]]=None,
@@ -268,7 +268,8 @@ class IRCluster (IRResource):
             "service": service,
             'enable_ipv4': enable_ipv4,
             'enable_ipv6': enable_ipv6,
-            'enable_endpoints': enable_endpoints
+            'enable_endpoints': enable_endpoints,
+            'cluster_timeout_ms': cluster_timeout_ms
         }
 
         if grpc:
@@ -302,7 +303,7 @@ class IRCluster (IRResource):
     def endpoints_required(self, load_balancer) -> bool:
         required = False
         lb_policy = load_balancer.get('policy')
-        if lb_policy in ['round_robin', 'ring_hash']:
+        if lb_policy in ['round_robin', 'ring_hash', 'maglev']:
             self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
             required = True
         return required
@@ -381,7 +382,7 @@ class IRCluster (IRResource):
         mismatches = []
 
         for key in [ 'type', 'lb_type', 'host_rewrite',
-                     'tls_context', 'originate_tls', 'grpc' ]:
+                     'tls_context', 'originate_tls', 'grpc', 'cluster_timeout_ms' ]:
             if self.get(key, None) != other.get(key, None):
                 mismatches.append(key)
 
