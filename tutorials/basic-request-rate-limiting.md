@@ -13,7 +13,7 @@ You can test this by running the `ratelimit.sh` script in "basic" mode which sen
 
 To protect our QoTM app, we need to put a rate limit on the number of requests that are allowed to the `/qotm/limited/` route.
 
-1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
+1. <install-ambassador-pro/> // InstallAmbassadorPro component
 
 2. In the `pro-ref-arch` directory, observe the `Mapping`s in `ambassador/05-qotm.yaml` we deployed earlier.
 

@@ -8,7 +8,7 @@ Imagine your website gets on the front page of Hacker News. Or, you've announced
 
 Suppose we want to limit users to only 10 requests per minute for any requests through Ambassador. We can configure a global rate limit that can rate limit based off a header that identifies this subset of users. Users with the header `x-limited-user: true` will be limited to 10 requests per minute.
 
-1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
+1. <install-ambassador-pro/> // InstallAmbassadorPro component
 
 2. In the `pro-ref-arch` directory, observe the ambassador `Module` in `ambassador/03-ambassador-service.yaml` we deployed earlier.
 

@@ -9,7 +9,7 @@ The right authentication strategy is imperative to protecting your user's data. 
 
 JWTs are validated using public keys supplied in a JWKS file. For the purposes of this demo, we're supplying a Datawire JWKS file (and giving you a JWT that we've generated ourselves). You can change the JWKS file by modifying the `jwt-filter.yaml` manifest and changing the `jwksURI` value.
 
-1. [Install Ambassador Pro](https://www.getambassador.io/user-guide/ambassador-pro-install/)
+1. <install-ambassador-pro/> // InstallAmbassadorPro component
 
 2. Configure the JWT filter and JWT-authenticated `httpbin` test service:
 
