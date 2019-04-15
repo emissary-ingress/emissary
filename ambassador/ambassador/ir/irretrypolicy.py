@@ -8,15 +8,14 @@ from .irresource import IRResource
 if TYPE_CHECKING:
     from .ir import IR
 
-
-class IRRETRYPOLICY (IRResource):
+class IRRetryPolicy (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
 
                  rkey: str="ir.retrypolicy",
-                 kind: str="IRRETRYPOLICY",
+                 kind: str="IRRetryPolicy",
                  name: str="ir.retrypolicy",
                  **kwargs) -> None:
-        # print("IRRETRYPOLICY __init__ (%s %s %s)" % (kind, name, kwargs))
+        # print("IRRetryPolicy __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
