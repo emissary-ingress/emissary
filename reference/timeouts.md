@@ -12,7 +12,7 @@ Ambassador enables you to control timeouts in several different ways.
 
 ## Connect timeout: `cluster_timeout_ms`
 
-`cluster_timeout_ms` controls how long Ambassador will spend on any given TCP connection attempt.
+`cluster_timeout_ms` controls the connection-level timeout for Ambassador to an upstream service.
 
 ### Example
 
