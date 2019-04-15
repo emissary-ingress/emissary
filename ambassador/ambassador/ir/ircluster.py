@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
+import socket
 from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
 from typing import cast as typecast
 
@@ -212,6 +212,13 @@ class IRCluster (IRResource):
                     service_info = ir.service_info.get(service, None)
                     endpoint_info = ir.endpoints.get(hostname, None)
 
+                    if service_info is None and endpoint_info is None:
+                        # See if we can get endpoint name by resolving the hostname
+                        service_name = self.get_service_by_hostname(hostname, ir.service_info)
+                        if len(service_name) > 0:
+                            service_info = ir.service_info.get(service_name, None)
+                            endpoint_info = ir.endpoints.get(service_name, None)
+
                     self.logger.debug(f"service info %s" % json.dumps(service_info, indent=4, sort_keys=True))
                     self.logger.debug(f"endpoint info %s" % json.dumps(endpoint_info, indent=4, sort_keys=True))
 
@@ -307,6 +314,18 @@ class IRCluster (IRResource):
             self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
             required = True
         return required
+
+    def get_service_by_hostname(self, name, services):
+        try:
+            endpoint_ip = socket.gethostbyname(name)
+        except socket.gaierror:
+            return ''
+
+        for service_name, service_info in services.items():
+            if service_info.get('clusterIP', None) == endpoint_ip:
+                return service_name
+
+        return ''
 
     def get_endpoint(self, hostname, port, service_info, endpoint):
         if endpoint is None:

@@ -308,6 +308,7 @@ class ServiceKind(ObjectKind):
                 service_info['ports'] = []
                 for port in ports:
                     service_info['ports'].append(port)
+        service_info['clusterIP'] = spec.get('clusterIP', None)
 
         metadata = self.object.get('metadata', None)
         resource_name = metadata.get('name') if metadata else None
