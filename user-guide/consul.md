@@ -178,3 +178,125 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
 
 ## Encrypted TLS
 
+Ambassador can also use certificates stored in Consul to originate encrypted TLS connections to the Consul service mesh. This requires the use of the Ambassador Consul connector. The following steps assume you've already set up Consul for service discovery, per above.
+
+1. The Ambassador connector registers Ambassador as a Consul service, and also retrieves the TLS certificate issued by the Consul CA for use by Ambassador. Deploy the Ambassador Consul Connector with `kubectl`:
+
+   ```
+   kubectl apply -f https://getambassador.io/yaml/ambassador/consul/ambassador-consul-connector.yaml
+   ```
+
+2. Configure the `TLSContext` to tell Ambassador to use the Consul-issued certificate for upstream services. Typically, this resource will be added to your Ambassador service. For more information about TLS configuration, see the [TLS reference](/reference/core/tls).
+
+  ```yaml
+  ---
+  apiVersion: ambassador/v1
+  kind: TLSContext
+  name: ambassador-consul
+  hosts: []
+  secret: ambassador-consul-connect
+  ```
+
+3. Ambassador needs to be configured to originate TLS to upstream services. This is done by providing the specific `TLSContext` to your service `Mapping`.  
+
+  ```yaml
+  ---
+  apiVersion: ambassador/v1
+  kind: Mapping
+  name: qotm_mapping
+  prefix: /qotm/
+  tls: ambassador-consul
+  service: https://qotm:443
+  ```
+
+  **Note:** All service mappings will need `tls: ambassador-consul` to authenticate with Connect-enabled upstream services.
+
+4. Do more stuff here. FIXME.
+
+
+To test that the Ambassador Consul Connector is working, you will need to have a service running with a Connect Sidecar. The following configuration will create the QoTM service with a Connect sidecar.
+
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: qotm
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: qotm
+      annotations:
+        "consul.hashicorp.com/connect-inject": "true"
+    spec:
+      containers:
+      - name: qotm
+        image: datawire/qotm:1.2
+        ports:
+        - name: http-api
+          containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+```
+Put this YAML in a file called `qotm-deploy.yaml` and apply it with `kubectl`:
+
+```
+kubectl apply -f qotm-deploy.yaml
+```
+
+Now, you will need to configure a service for Ambassador to route requests to. The following service will:
+
+- Create a `Mapping` to tell Ambassador to originate TLS using the `ambassador-consul` `TLSContext` configured earlier.
+- Route requests to Ambassador to the Connect sidecar in the QoTM pod using the statically assigned Consul port: `20000`.
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotm
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      tls: ambassador-consul
+      service: https://qotm:443
+spec:
+  type: NodePort
+  selector:
+    app: qotm
+  ports:
+  - port: 443
+    name: https-qotm
+    targetPort: 20000
+```
+Put this YAML in a file named `qotm-service.yaml` and apply it with `kubectl`.
+
+```
+kubectl apply -f qotm-service.yaml
+```
+
+Finally, test the service with cURL.
+
+```
+curl -v https://{AMBASSADOR-EXTERNAL-IP}/qotm/
+```
+
+## More information
+
+For more about Ambassador's integration with Consul, read the [service discovery configuration](/reference/core/resolvers) documentation.

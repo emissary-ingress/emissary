@@ -39,7 +39,7 @@ datacenter: Optional[str]
 
 ## Consul TLS configuration
 
-Ambassdaor can also use certificates stored in Consul to originate encrypted TLS connections to the Consul service mesh. This requires the use of the Ambassador Consul connector; for more details on setup, see the [Consul getting started guide](/user-guide/consul).
+Ambassador can also use certificates stored in Consul to originate encrypted TLS connections to the Consul service mesh. This requires the use of the Ambassador Consul connector; for more details on setup, see the [Consul getting started guide](/user-guide/consul).
 
 The Consul connector can be configured with environment variables.
 

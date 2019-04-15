@@ -82,8 +82,8 @@
         link: /user-guide/advanced-rate-limiting
     - title: Release
       items:
-      - title: Consul Connect and Ambassador
-        link: /user-guide/consul-connect-ambassador
+      - title: Consul and Ambassador
+        link: /user-guide/consul
       - title: Distributed Tracing
         link: /user-guide/tracing-tutorial
       - title: Implementing GitOps with Ambassador
