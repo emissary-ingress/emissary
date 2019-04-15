@@ -23,5 +23,17 @@ class IRRetryPolicy (IRResource):
         )
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        if not self.validate_retry_policy():
+            self.post_error("Invalid retry policy specified: {}".format(self))
+            return False
+
         return True
 
+    def validate_retry_policy(self) -> bool:
+        retry_on = self.get('retry_on', None)
+
+        is_valid = False
+        if retry_on in [ '5xx', 'gateway-error', 'connect-failure', 'retriable-4xx', 'refused-stream', 'retriable-status-codes' ]:
+            return True
+
+        return is_valid
