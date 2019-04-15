@@ -74,9 +74,17 @@
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
+        "remove_response_headers": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
         "rewrite": { "type": "string" },
         "shadow": { "type": "boolean" },
+        "cluster_timeout_ms": { "type": "integer" },
         "timeout_ms": { "type": "integer" },
+        "idle_timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
         "use_websocket": { "type": "boolean" },
         "weight": { "type": "integer" },

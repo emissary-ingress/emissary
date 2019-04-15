@@ -264,6 +264,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `request_ok_count` | int | lower bound for how many requests have succeeded (not a 4xx or 5xx) | 
 | `request_total_count` | int | lower bound for how many requests were handled in total | 
 | `statsd` | bool | is statsd enabled? |
+| `server_name` | str | Overrides `server_name` response header |
 | `tls_origination_count` | int | count of TLS origination contexts |
 | `tls_termination_count` | int | count of TLS termination contexts |
 | `tls_using_contexts` | bool | is the old TLS module in use? |

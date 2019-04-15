@@ -36,7 +36,8 @@ class IRAmbassador (IRResource):
         'use_remote_address',
         'x_forwarded_proto_redirect',
         'load_balancer',
-        'xff_num_trusted_hops'
+        'xff_num_trusted_hops',
+        'server_name'
     ]
 
     service_port: int
@@ -82,6 +83,7 @@ class IRAmbassador (IRResource):
             x_forwarded_proto_redirect=False,
             load_balancer=None,
             xff_num_trusted_hops=0,
+            server_name="envoy",
             **kwargs
         )
 
