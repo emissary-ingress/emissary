@@ -104,10 +104,10 @@
           items:
             - title: Ambassador Core Configuration
               link: /reference/core/ambassador
-            - title: Ambassador Service Discovery
-              link: /reference/core/resolvers
             - title: Load Balancing Configuration
               link: /reference/core/load-balancer
+            - title: Service Discovery Configuration
+              link: /reference/core/resolvers
             - title: TLS Configuration
               link: /reference/core/tls
         - title: Configuring Services
