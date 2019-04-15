@@ -1,18 +1,59 @@
-# Consul for Service Discovery
+# Consul Integration
 
-Ambassador supports using [Consul](https://www.consul.io) for service discovery. In this configuration, Consul keeps track of all endpoints. Ambassador synchronizes with Consul, and uses this endpoint information for routing purposes. This architecture is particularly useful when deploying Ambassador in environments where Kubernetes is not the only platform (e.g., you're running VMs).
+[Consul](https://www.consul.io) is a widely used service mesh. Ambassador natively supports Consul for end-to-end TLS and service discovery. This capability is particularly useful when deploying Ambassador in so-called hybrid clouds, where applications are deployed in VMs, bare metal, and Kubernetes. In this environment, Ambassador can securely route to any application regardless where it is deployed over TLS.
 
-## Configuration Example
+## Getting started
 
 **Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:flynn-dev-watt-8922add`.
 
-In this example, we will demo using Consul Service Discovery to expose APIs to Ambassador. For simplicity, we have created a QoTM API that automatically registers itself as service with Consul.
+In this guide, we will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
 
-1. Install Ambassador with the YAML here: https://github.com/datawire/ambassador-docs/tree/consul-sd/yaml/consul/ambassador-consul-sd.yaml
+1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center.
 
-   This will install Ambassador with the image above with the proper RBAC permissions and configure the Ambassador service. 
+2. Download the standard Ambassador deployment YAML file:
 
-2. Create the QoTM API (if you're reading this in GitHub, use version 1.6 for `qotmVersion` below:)
+   ```
+   curl -o ambassador-rbac.yaml https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+   ```
+
+3. Edit the deployment and set `AMBASSADOR_ENABLE_ENDPOINTS` to `true`:
+
+   ```
+   ...
+    containers:
+    - name: ambassador
+      image: quay.io/datawire/ambassador:%version%
+      resources:
+        limits:
+          cpu: 1
+          memory: 400Mi
+        requests:
+          cpu: 200m
+          memory: 100Mi
+      env:
+      - name: AMBASSADOR_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: AMBASSADOR_ENABLE_ENDPOINTS
+        value: true
+      ports:
+   ...
+   ```
+   
+   This will enable [endpoint load balancing](/reference/core/load-balancer) in Ambassador, and is required for Consul.
+
+4. Deploy Ambassador. Note: If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
+
+   ```
+   kubectl apply -f ambassador-rbac.yaml
+   ```
+
+   If you're on GKE, or haven't previously created the Ambassador service, please see the Quick Start.
+
+   Note: For now, you'll need to install using https://github.com/datawire/ambassador-docs/tree/consul-sd/yaml/consul/ambassador-consul-sd.yaml, which adds the necessary RBAC permissions.
+
+5. Deploy the QOTM test service. This service will automatically register itself with Consul when deployed.
 
     ```yaml
     ---
@@ -58,15 +99,15 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
                 memory: 100Mi
     ```
 
+    Note: If reading this on GitHub, use version 1.6 for QOTM.
+
     ```
     kubectl apply -f qotm.yaml
     ```
 
-    This will register the qotm pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the qotm pod. 
+    This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
 
-2. Verify the QOTM pod has been registered with Consul.
-
-   You can verify the qotm pod is registered correctly by accessing the Consul UI.
+6. Verify the QOTM pod has been registered with Consul. You can verify the QOTM pod is registered correctly by accessing the Consul UI.
 
    ```shell
    kubectl port-forward service/consul-ui 8500:80
@@ -75,7 +116,7 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
    Go to http://localhost:8500 from a web browser and you should see a service named `qotm-XXXXXXXXXX-XXXXX-consul`. 
 
 
-3. Create the `ConfigMap` to expose `qotm-consul` to Ambassador
+7. Create the `ConfigMap` to expose `qotm-consul` to Ambassador:
 
     ```yaml
     kind: ConfigMap
@@ -96,9 +137,8 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
 
     Note that the `ConfigMap` will be replaced with a CRD for GA.
 
-4. Set `AMBASSADOR_ENABLE_ENDPOINTS` to `true` in the Ambassador deployment and deploy Ambassador.
 
-5. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
+8. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
 
    ```yaml
    ---
@@ -126,10 +166,15 @@ In this example, we will demo using Consul Service Discovery to expose APIs to A
    kubectl apply -f consul-sd.yaml
    ```
 
-6. Send a request to the `qotm-consul` API.
+9. Send a request to the `qotm-consul` API.
 
    ```shell
    curl http://$AMBASSADORURL/qotm-consul/
 
    {"hostname":"qotm-749c675c6c-hq58f","ok":true,"quote":"The last sentence you read is often sensible nonsense.","time":"2019-03-29T22:21:42.197663","version":"1.3"}
    ```
+
+   Congratulations! You're successfully routing traffic to the QOTM service, which is registered in Consul.
+
+## Encrypted TLS
+
