@@ -18,6 +18,10 @@ Ambassador is a specialized [control plane for Envoy Proxy](https://blog.getamba
 
 Ambassador relies on Kubernetes for scaling, high availability, and persistence. All Ambassador configuration is stored directly in Kubernetes; there is no database. Ambassador is packaged as a single container that contains both the control plane and an Envoy Proxy instance. By default, Ambassador is deployed as a Kubernetes `deployment` and can be scaled and managed like any other Kubernetes deployment.
 
+### Stateless architecture
+
+By design, Ambassador is an entirely stateless architecture. Each individual Ambassador instance operates independently of other Ambassador instances. These Ambassador instances rely on Kubernetes to coordinate the configuration between different Ambassador instances. This enables Ambassador to sidestep the need to engineer a safe, highly available centralized control plane (and if you don't think that this is hard, check out [Jepson](https://jepson.io)). By contrast, other control plane architectures rely on a single centralized control plane to manage multiple instances of the data plane. This means that these control plane architectures must engineer resilience and availability into their central control plane.
+
 ## Envoy Proxy
 
 Ambassador closely tracks Envoy Proxy releases. A stable branch of Envoy Proxy is maintained that enables the team to cherry pick specific fixes into Ambassador.
