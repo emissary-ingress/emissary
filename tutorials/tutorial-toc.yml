@@ -1,8 +1,12 @@
 - title: Implementing JWT
   link: /tutorials/implementing-jwt
+  excerpt: This is an excerpt
 - title: Global Rate Limiting
   link: /tutorials/global-rate-limiting
+  excerpt: This is an excerpt
 - title: Per User Rate Limiting
   link: /tutorials/per-user-rate-limiting
+  excerpt: This is an excerpt
 - title: Basic Request Rate Limiting
   link: /tutorials/basic-request-rate-limiting
+  excerpt: This is an excerpt
