@@ -156,6 +156,21 @@ func (q Query) Headers() (result http.Header) {
 	return result
 }
 
+// Body returns an io.Reader for the base64 encoded body supplied in
+// the query.
+func (q Query) Body() io.Reader {
+	body, ok := q["body"]
+	if ok {
+		buf, err := base64.StdEncoding.DecodeString(body.(string))
+		if err != nil {
+			panic(err)
+		}
+		return bytes.NewReader(buf)
+	} else {
+		return nil
+	}
+}
+
 // GrpcType returns the query's grpc_type field or the empty string.
 func (q Query) GrpcType() string {
 	val, ok := q["grpc_type"]
@@ -558,6 +573,8 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 		}
 		body = buf
 		method = "POST"
+	} else {
+		body = query.Body()
 	}
 	req, err := http.NewRequest(method, query.URL(), body)
 	if query.CheckErr(err) {

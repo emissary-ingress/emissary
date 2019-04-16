@@ -1,4 +1,4 @@
-TAG=11
+TAG=12
 
 all: xds echo backend client
 
@@ -9,7 +9,7 @@ backend: backend.build backend.push
 backend.build:
 	@echo " ---> building kat-backend image"
 	@docker build . -t quay.io/datawire/kat-backend:${TAG}
-	
+
 backend.push:
 	@echo " ---> pushing kat-backend image"
 	@docker push quay.io/datawire/kat-backend:${TAG}
