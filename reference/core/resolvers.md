@@ -12,7 +12,7 @@ Ambassador supports different mechanisms for service discovery. These mechanisms
 
 ### Kubernetes service-level discovery
 
-By default, Ambassador uses Kubernetes DNS and service-level discovery. In a `mapping` resource, specifying `service: foo` will prompt Ambassador to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c.
+By default, Ambassador uses Kubernetes DNS and service-level discovery. In a `Mapping` resource, specifying `service: foo` will prompt Ambassador to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c.
 
 ### Kubernetes endpoint-level discovery
 
@@ -39,7 +39,7 @@ name: kubernetes-service
 
 ### The Kubernetes Endpoint Resolver
 
-The Kubernetes Endpoint Resolver configures Ambassadot to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer).
+The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer).
 
 ```
 ---
@@ -63,9 +63,11 @@ datacenter: dc1
 
 ## Using Resolvers
 
-Once a resolver is defined, you can use them in a given `mapping`:
+Once a resolver is defined, you can use them in a given `Mapping`:
 
---
+
+```yaml
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -97,18 +99,6 @@ spec:
     - port: 80
       targetPort: http-api
   type: NodePort
----
+```
 
-## Consul TLS configuration
-
-Ambassador can also use certificates stored in Consul to originate encrypted TLS connections to the Consul service mesh. This requires the use of the Ambassador Consul connector; for more details on setup, see the [Consul getting started guide](/user-guide/consul).
-
-The Consul connector can be configured with environment variables.
-
-| Environment Variable | Description | Default |
-| -------------------- | ----------- | ------- |
-| \_AMBASSADOR\_ID        | Set the Ambassador ID so multiple instances of this integration can run per-Cluster when there are multiple Ambassadors (Required if `AMBASSADOR_ID` is set in your Ambassador deployment) | `""` |
-| \_CONSUL\_HOST          | Set the IP or DNS name of the target Consul HTTP API server | `127.0.0.1` |
-| \_CONSUL\_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
-| \_AMBASSADOR\_TLS\_SECRET\_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
-| \_AMBASSADOR\_TLS\_SECRET\_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
+The YAML configuration above will configure Ambassador to use Kubernetes Service Discovery  to route to the qotm Kubernetes service on requests with `prefix: /qotm/` and use Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.

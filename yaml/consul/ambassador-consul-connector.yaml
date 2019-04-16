@@ -27,6 +27,25 @@ subjects:
     name: ambassador-pro-consul-connect
     namespace: default
 ---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: ambassador-consul-connector
+  annotations: 
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: TLSContext
+      name: ambassador-consul
+      hosts: []
+      secret: ambassador-consul-connect
+spec:
+  ports:
+  - name: ambassador-consul-connector
+    port: 80
+  selector:
+    component: consul-connect
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

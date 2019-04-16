@@ -2,6 +2,27 @@
 
 Ambassador supports both terminating TLS and originating TLS. By default, Ambassador will enable TLS termination whenever it finds valid TLS certificates stored in the `ambassador-certs` Kubernetes secret. 
 
+## `TLSContext`
+
+Ambassador 0.50.0 added the `TLSContext` type that enabled more dynamic TLS configurations. While this is specifically used and required for sni, the `TLSContext` can (and will in future versions of Ambassador) replace the tls `Module`.
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: tls
+# hosts: "*"
+# secret: ambassador-certs
+cert_chain_file:
+private_key_file:
+apln_protcols:
+
+ca_secret:
+cacert_chain_file:
+cert_required:
+
+```
+
 ## The `tls` module
 
 The `tls` module defines system-wide configuration for TLS when additional configuration is needed.
@@ -157,7 +178,86 @@ spec:
 Ambassador will assume it can trust the services in your cluster so will default to not validating the backend's certificates. This allows for your backend services to use self-signed certificates with ease.
 
 ### Mutual TLS
-Ambassador can be configured to do mutual TLS with backend services as well. To accomplish this, you will need to provide certificates for Ambassador to use with the backend. An example of this is given in the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation.
+Ambassador can be configured to do mutual TLS with backend services as well. To accomplish this, you will need to provide certificates for Ambassador to use with the backend. You will need to create a Kubernetes secret for Ambassador to load the certificates from with a `TLSContext`.
+
+This can be a necessary requirement for using the Consul service mesh and some Istio setups. 
+
+#### Istio mTLS
+
+Since Istio stores it's TLS certificates in Kubernetes secrets by default, configuring mTLS with Ambassador is trivial.
+
+1. Create a `TLSContext` to load the Istio mTLS certificates into Ambassador. These certificates are stored in a secret named `istio.default`.
+
+   ```yaml
+   ---
+   apiVersion: ambassador/v1
+   kind: TLSConext
+   name: istio-upstream
+   hosts: []
+   secret: istio.default
+   ```
+
+   It is recommended to add this configuration as an annotation to the Ambassador service since it is a system-wide configuration.
+
+2. Tell Ambassador to use the `TLSContext` when proxying requests by setting the `tls` attribute in a `Mapping`
+
+   ```yaml
+   ---
+   apiVersion: ambassador/v1
+   kind: Mapping
+   name: productpage_mapping
+   prefix: /productpage/
+   rewrite: /productpage
+   tls: istio-upstream
+   service: https://productpage:9080
+   ```
+
+Ambassador will now use the certificates loaded into the `istio-upstream` `TLSContext` when proxying requests with `prefix: /productpage/`. See the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation) for more information.
+
+#### Consul mTLS
+
+Since Consul does not expose TLS Certificates as Kubernetes secrets, we will need a way to export those from Consul.
+
+1. Install the Ambassador Consul connector. 
+
+   ```
+   kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
+   ```
+
+   This will grab the certificate issued by Consul CA and store it in a Kubernetes secret named `ambassador-consul-connect`. It will also create a Service named `ambassador-consul-connector` which will configure the following `TLSContext`:
+
+   ```yaml
+   ---
+   apiVersion: ambassador/v1
+   kind: TLSContext
+   name: ambassador-consul
+   hosts: []
+   secret: ambassador-consul-connect
+   ```
+
+2. Tell Ambassador to use the `TLSContext` when proxying requests by setting the `tls` attribute in a `Mapping`
+
+   ```yaml
+   ---
+   apiVersion: ambassador/v1
+   kind: Mapping
+   name: qotm_mtls_mapping
+   prefix: /qotm-consul-mtls/
+   tls: ambassador-consul
+   service: https://qotm-proxy
+   ```
+
+Ambassador will now use the certificates loaded into the `ambassador-consul` `TLSContext` when proxying requests with `prefix: /qotm-consul-mtls`. See the [Consul example](/user-guide/consul#encrypted-tls) for an example configuration.
+
+**Note:** The Consul connector can be configured with the following environment variables. The defaults will be best for most use-cases.
+
+| Environment Variable | Description | Default |
+| -------------------- | ----------- | ------- |
+| \_AMBASSADOR\_ID        | Set the Ambassador ID so multiple instances of this integration can run per-Cluster when there are multiple Ambassadors (Required if `AMBASSADOR_ID` is set in your Ambassador deployment) | `""` |
+| \_CONSUL\_HOST          | Set the IP or DNS name of the target Consul HTTP API server | `127.0.0.1` |
+| \_CONSUL\_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
+| \_AMBASSADOR\_TLS\_SECRET\_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
+| \_AMBASSADOR\_TLS\_SECRET\_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
 
 ## More reading
 
