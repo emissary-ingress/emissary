@@ -8,6 +8,8 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -311,6 +313,14 @@ func (c *echoServiceClient) Echo(ctx context.Context, in *EchoRequest, opts ...g
 // EchoServiceServer is the server API for EchoService service.
 type EchoServiceServer interface {
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
+}
+
+// UnimplementedEchoServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedEchoServiceServer struct {
+}
+
+func (*UnimplementedEchoServiceServer) Echo(ctx context.Context, req *EchoRequest) (*EchoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
 }
 
 func RegisterEchoServiceServer(s *grpc.Server, srv EchoServiceServer) {
