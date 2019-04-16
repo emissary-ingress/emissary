@@ -315,6 +315,7 @@ spec:
     def config(self):
         for policy in ['ring_hash', 'maglev']:
             self.policy = policy
+
             yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -367,6 +368,18 @@ load_balancer:
     name: lb-cookie
 """)
 
+            yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-header-long-{self.policy}
+prefix: /{self.name}-header-long-{self.policy}/
+service: permappingloadbalancing-service.default.svc.cluster.local
+load_balancer:
+  policy: {self.policy}
+  header: LB-HEADER
+""")
+
     def queries(self):
         for policy in ['ring_hash', 'maglev']:
             # generic header queries
@@ -403,30 +416,42 @@ load_balancer:
                     }
                 ])
 
-    def check(self):
-        assert len(self.results) == 600
+            # header long queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-header-long-{}/'.format(policy), headers={"LB-HEADER": "yes"})
 
-        for i in [0, 300]:
+            # generic header long queries
+            for i in range(50):
+                yield Query(self.url(self.name) + '-header-long-{}/'.format(policy))
+
+    def check(self):
+        assert len(self.results) == 800
+
+        for i in [0, 400]:
             generic_header_queries = self.results[0+i:50+i]
             header_queries = self.results[50+i:100+i]
             source_ip_queries = self.results[100+i:150+i]
             generic_cookie_queries = self.results[150+i:200+i]
             cookie_queries = self.results[200+i:250+i]
             cookie_no_ttl_queries = self.results[250+i:300+i]
+            header_long_queries = self.results[300+i:350+i]
+            generic_header_long_queries = self.results[350+i:400+i]
 
             # generic header queries
-            generic_header_dict = {}
-            for result in generic_header_queries:
-                generic_header_dict[result.backend.name] =\
-                    generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
-            assert len(generic_header_dict) == 3
+            for queries in [generic_header_queries, generic_header_long_queries]:
+                generic_header_dict = {}
+                for result in queries:
+                    generic_header_dict[result.backend.name] =\
+                        generic_header_dict[result.backend.name] + 1 if result.backend.name in generic_header_dict else 1
+                assert len(generic_header_dict) == 3
 
-            # header queries
-            header_dict = {}
-            for result in header_queries:
-                header_dict[result.backend.name] = \
-                    header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
-            assert len(header_dict) == 1
+            # header and header long queries
+            for queries in [header_queries, header_long_queries]:
+                header_dict = {}
+                for result in queries:
+                    header_dict[result.backend.name] = \
+                        header_dict[result.backend.name] + 1 if result.backend.name in header_dict else 1
+                assert len(header_dict) == 1
 
             # source IP queries
             source_ip_dict = {}
