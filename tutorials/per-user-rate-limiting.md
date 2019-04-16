@@ -4,9 +4,9 @@ category: Security
 reading_time: 5 minutes
 technologies_used: Ambassador Pro
 ---
-If you're site is attacked by a malicious user, are you prepared? 
+If your site is attacked by a malicious user are you prepared? 
 
-If you notice users who are  abusing their limitless permissions and overwhelming the `httpbin` endpoint. You can ensure fairness and protect your site from vulnerabilities by enabling rate limiting based off the incoming client IP address. We do this with the `remote_address` field that Envoy configures on each request.
+If you notice users who are  abusing their limitless permissions and overwhelming the `httpbin` endpoint, you can ensure fairness and protect your site from vulnerabilities by enabling rate limiting based off the incoming client IP address. We do this with the `remote_address` field that Envoy configures on each request.
 
 1. <install-ambassador-pro/> // InstallAmbassadorPro component
 
