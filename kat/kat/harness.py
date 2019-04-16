@@ -708,7 +708,7 @@ class Runner:
                     expanded.add(a)
 
             try:
-                self._setup_k8s()
+                self._setup_k8s(expanded)
 
                 for t in self.tests:
                     if t in expanded:
@@ -795,7 +795,7 @@ class Runner:
 
         return manifests
 
-    def _setup_k8s(self):
+    def _setup_k8s(self, selected):
         manifests = self.get_manifests()
 
         configs = OrderedDict()
@@ -874,14 +874,16 @@ class Runner:
             print("Manifests unchanged, skipping apply.")
 
         for n in self.nodes:
-            action = getattr(n, "post_manifest", None)
-            if action:
-                action()
+            if n in selected:
+                action = getattr(n, "post_manifest", None)
+                if action:
+                    action()
 
-        self._wait()
+        self._wait(selected)
 
-    def _wait(self):
-        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()]
+    def _wait(self, selected):
+        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()
+                        if node in selected]
 
         homogenous = {}
         for node, kind, name in requirements:
