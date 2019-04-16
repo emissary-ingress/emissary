@@ -26,16 +26,78 @@ Ambassador natively integrates with [Consul](https://www.consul.io) for endpoint
 
 The `Resolver` resource is used to configure Ambassador's service discovery strategy.
 
+### The Kubernetes Service Resolver
+
+The Kubernetes Service Resolver configures Ambassador to use Kubernetes services. If no resolver is specified, this behavior is the default.
+
 ```
 ---
 apiVersion: getambassador.io/v2
-kind: ConsulResolver
-name: string
-agent: str
-tags: Optional[List[str]]
-datacenter: Optional[str]
+kind: KubernetesServiceResolver
+name: kubernetes-service
 ```
 
+### The Kubernetes Endpoint Resolver
+
+The Kubernetes Endpoint Resolver configures Ambassadot to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer).
+
+```
+---
+apiVersion: getambassador.io/v2
+kind: KubernetesEndpointResolver
+name: endpoint
+```
+
+### The Consul Resolver
+
+The Consul Resolver configures Ambassador to use Consul for service discovery.
+
+```
+---
+apiVersion: ambassador/v2
+kind: ConsulResolver
+name: consul-dc1
+Address: consul:8500
+datacenter: dc1
+```
+
+## Using Resolvers
+
+Once a resolver is defined, you can use them in a given `mapping`:
+
+--
+apiVersion: v1
+kind: Service
+metadata:
+  name: qotm
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      service: qotm
+      load_balancer:
+        policy: round_robin
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  bar_mapping
+      prefix: /bar/
+      service: https://bar:9000
+      tls: client-context
+      resolver: consul-dc1
+      load_balancer:
+        policy: round_robin
+spec:
+  selector:
+    service: qotm
+  ports:
+    - port: 80
+      targetPort: http-api
+  type: NodePort
+---
 
 ## Consul TLS configuration
 
