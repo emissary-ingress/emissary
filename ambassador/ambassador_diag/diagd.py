@@ -257,7 +257,7 @@ def td_format(td_object):
         if seconds > period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
 
-            strings.append("%d %s%s" % 
+            strings.append("%d %s%s" %
                            (period_value, period_name, "" if (period_value == 1) else "s"))
 
     formatted = ", ".join(strings)
@@ -390,7 +390,7 @@ def show_overview(reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     tvars = dict(system=system_info(),
-                 envoy_status=envoy_status(app.estats), 
+                 envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
                  **ov, **ddict)
@@ -586,7 +586,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
-        scc = SecretSaver(app.logger, path, app.snapshot_path)
+        scc = SecretSaver(app.logger, path, "%s/%s" % (app.snapshot_path, snapshot))
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -618,7 +618,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
             # return
 
-        scc = SecretSaver(app.logger, url, app.snapshot_path)
+        scc = SecretSaver(app.logger, url, "%s/%s" % (app.snapshot_path, snapshot))
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
