@@ -4,9 +4,9 @@ category: Security
 reading_time: 5 minutes
 technologies_used: Ambassador Pro 
 ---
-Imagine your website gets on the front page of Hacker News. Or, you've announced a major Black Friday sale. Generally, [ecommerce platforms generate 300% more sales on Black Friday](https://www.userreport.com/blog/e-commerce-exploit-increased-traffic-black-friday/). But if your database starts to fail under the increased load, the degraded performance can impact your conversion numbers. Or worse, your website can fail completely. To mitigate performance issues as quickly as possible while you work to scale your backend, you can use global rate limiting.
+Suppose you've announced a major Black Friday sale. Generally, [ecommerce platforms generate 300% more sales on Black Friday](https://www.userreport.com/blog/e-commerce-exploit-increased-traffic-black-friday/). But if your database starts to fail under the increased load, the degraded performance can impact your conversion numbers. Or worse, your website can fail completely. To mitigate performance issues as quickly as possible while you work to scale your backend, you can use rate limiting.
 
-Suppose we want to limit users to only 10 requests per minute for any requests through Ambassador. We can configure a global rate limit that can rate limit based off a header that identifies this subset of users. Users with the header `x-limited-user: true` will be limited to 10 requests per minute.
+Ambassador Pro's rate limiting integrates with the [authentication and filter system](/reference/filter-reference/). Suppose our authentication system sets an HTTP header of `x-limited-user: true` once they've successfully authenticated. We can then set a global rate limit for all requests that contain this HTTP header. In this example, we'll set this rate limit to 10 requests per minute which facilitiates manual testing.
 
 1. <install-ambassador-pro/> // InstallAmbassadorPro component
 
