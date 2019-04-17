@@ -88,7 +88,8 @@ config:
 
 # Ambassador lets through only the HTTP requests with
 # `X-FORWARDED-PROTO: https` header set, and redirects all the other
-# requests to HTTPS if this field is set to true.
+# requests to HTTPS if this field is set to true. Note that `use_remote_address` 
+# must be set to false for this feature to work as expected.
 # x_forwarded_proto_redirect: false
 
 # load_balancer sets the global load balancing type and policy that
