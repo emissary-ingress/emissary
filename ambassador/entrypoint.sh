@@ -227,10 +227,10 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
-    KUBEWATCH_SYNC_KINDS="-s secret -s service -s configmap"
+    KUBEWATCH_SYNC_KINDS="-s secret -s service"
 
     if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
-        KUBEWATCH_SYNC_KINDS="-s service -s configmap"
+        KUBEWATCH_SYNC_KINDS="-s service"
     fi
 
     set -x
