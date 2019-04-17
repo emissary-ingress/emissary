@@ -264,7 +264,7 @@ docker-push-base-images:
 
 docker-update-base: docker-base-images docker-push-base-images
 
-ambassador-docker-image: version
+ambassador-docker-image: version $(WATT)
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
@@ -341,6 +341,14 @@ $(TELEPROXY):
 	sudo chown root $(TELEPROXY)
 	sudo chmod go-w,a+sx $(TELEPROXY)
 
+WATT=watt
+WATT_VERSION=0.4.1
+
+# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
+$(WATT):
+	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
+	chmod go-w,a+x $(WATT)
+
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
 
@@ -369,7 +377,7 @@ $(KAT_CLIENT):
 	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/$(KAT_CLIENT)
 	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) version
+setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
