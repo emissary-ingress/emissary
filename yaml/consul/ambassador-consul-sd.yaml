@@ -46,6 +46,12 @@ metadata:
       name: ambassador
       config:
         service_port: 8080
+      ---
+      apiVersion: ambassador/v2
+      kind: ConsulResolver
+      name: consul-dc1
+      address: consul-server:8500
+      datacenter: dc1
 spec:
   type: LoadBalancer
   selector:
@@ -99,7 +105,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:flynn-dev-watt-8922add
+        image: dwflynn/ambassador:flynn-dev-watt-ae4f48e2-dirty
         resources:
           limits:
             cpu: 1

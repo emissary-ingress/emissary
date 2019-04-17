@@ -30,7 +30,7 @@ The `Resolver` resource is used to configure Ambassador's service discovery stra
 
 The Kubernetes Service Resolver configures Ambassador to use Kubernetes services. If no resolver is specified, this behavior is the default.
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: KubernetesServiceResolver
@@ -41,7 +41,7 @@ name: kubernetes-service
 
 The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer).
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
@@ -52,14 +52,16 @@ name: endpoint
 
 The Consul Resolver configures Ambassador to use Consul for service discovery.
 
-```
+```yaml
 ---
 apiVersion: ambassador/v2
 kind: ConsulResolver
 name: consul-dc1
-Address: consul:8500
+address: consul-server:8500
 datacenter: dc1
 ```
+- `address`: The address of your Consul server
+- `datacenter`: The Consul data center your services are registered to
 
 ## Using Resolvers
 

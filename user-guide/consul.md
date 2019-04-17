@@ -4,7 +4,7 @@
 
 ## Getting started
 
-**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:flynn-dev-watt-8922add`.
+**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `dwflynn/ambassador:flynn-dev-watt-ae4f48e2-dirty`.
 
 In this guide, we will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
 
@@ -18,7 +18,7 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
 
 3. Edit the deployment and set `AMBASSADOR_ENABLE_ENDPOINTS` to `true`:
 
-   ```
+   ```yaml
    ...
     containers:
     - name: ambassador
@@ -52,6 +52,47 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
    If you're on GKE, or haven't previously created the Ambassador service, please see the Quick Start.
 
    Note: For now, you'll need to install using https://github.com/datawire/ambassador-docs/tree/consul-sd/yaml/consul/ambassador-consul-sd.yaml, which adds the necessary RBAC permissions.
+
+5. Configure Ambassador to look for services registered to Consul by creating the `ConsulResolver`:
+
+    ```yaml
+    ---
+    apiVersion: ambassador/v2
+    kind: ConsulResolver
+    name: consul-dc1
+    address: consul-server:8500
+    datacenter: dc1
+    ```
+    This will tell Ambassador that Consul is a service discovery endpoint. You will then need to set `resolver: consul-dc1` in the `Mapping` to tell Ambassador to look in Consul for the service. Review the [Resolvers](/reference/core/resolvers) documentation for more information.
+    
+    Since this is a system-wide configuration, it is recommended to put this annotation in your Ambassador service:
+
+    ```yaml
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: ambassador
+      annotations:
+        getambassador.io/config: |
+          ---
+          apiVersion: ambassador/v2
+          kind: ConsulResolver
+          name: consul-dc1
+          address: consul-server:8500
+          datacenter: dc1
+    spec:
+      type: LoadBalancer
+      selector:
+        service: ambassador
+      ports:
+      - name: http
+        port: 80
+    ```
+
+    ```
+    kubectl apply -f ambassador-service.yaml
+    ```
 
 ## Routing to Consul Services
 
@@ -113,7 +154,7 @@ To demonstrate this behavior we will: register a demo application with Consul, c
 
     This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
 
-6. Verify the QOTM pod has been registered with Consul. You can verify the QOTM pod is registered correctly by accessing the Consul UI.
+2. Verify the QOTM pod has been registered with Consul. You can verify the QOTM pod is registered correctly by accessing the Consul UI.
 
    ```shell
    kubectl port-forward service/consul-ui 8500:80
@@ -122,29 +163,7 @@ To demonstrate this behavior we will: register a demo application with Consul, c
    Go to http://localhost:8500 from a web browser and you should see a service named `qotm-XXXXXXXXXX-XXXXX-consul`. 
 
 
-3. Create the `ConfigMap` to expose `qotm-consul` to Ambassador:
-
-    ```yaml
-    kind: ConfigMap
-    apiVersion: v1
-    metadata:
-      name: consul-sd
-      annotations:
-        "getambassador.io/consul-resolver": "true"
-    data:
-      consulAddress: "consul-server:8500"
-      datacenter: "dc1"
-      service: "qotm-XXXXXXXXXX-XXXXX-consul"
-    ```
-
-    ```
-    kubectl apply -f consul-cm.yaml
-    ```
-
-    Note that the `ConfigMap` will be replaced with a CRD for GA.
-
-
-4. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
+3. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
 
    ```yaml
    ---
@@ -155,11 +174,12 @@ To demonstrate this behavior we will: register a demo application with Consul, c
      annotations:
        getambassador.io/config: |
          ---
-         apiVersion: ambassador/v1
+         apiVersion: ambassador/v2
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
-         service: qotm-XXXXXXXXXX-XXXXX-consul
+         service: qotm-XXXXXXXXXX-XXXXX-consul:5000
+         resolver: consul-dc1
          load_balancer: 
            policy: round_robin
    spec:
@@ -167,12 +187,14 @@ To demonstrate this behavior we will: register a demo application with Consul, c
      - name: http
        port: 80
    ```
+   - `resolver` must be set to the `ConsulResolver` we created in the previous step
+   - `load_balancer` must be set to configure Ambassador to route directly to the endpoint(s) from Consul
 
    ```
    kubectl apply -f consul-sd.yaml
    ```
 
-5. Send a request to the `qotm-consul` API.
+4. Send a request to the `qotm-consul` API.
 
    ```shell
    curl http://$AMBASSADORURL/qotm-consul/
@@ -195,68 +217,71 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
    Which will install:
    - RBAC resources.
    - The Consul connector service.
-   - A `TLSContext` to load the `ambassador-consul-connect` secret into Ambassador. 
+   - A `TLSContext` named `ambassador-consul` to load the `ambassador-consul-connect` secret into Ambassador. 
 
 2. You will need to tell Ambassador to use this certificate when proxying requests to upstream services. This is done by providing the specific `TLSContext` to your service `Mapping` with the `tls` attribute.
 
    e.g.:
     ```yaml
     ---
-    apiVersion: ambassador/v1
+    apiVersion: ambassador/v2
     kind: Mapping
-    name: qotm_mtls_mapping
-    prefix: /qotm-consul-mtls/
+    name: consul_qotm_ssl_mapping
+    prefix: /qotm-consul-ssl/
+    service: qotm-proxy:20000
+    resolver: consul-dc1
     tls: ambassador-consul
-    service: https://qotm-proxy
+    load_balancer:
+      policy: round_robin
     ```
 
-  **Note:** All service mappings will need `tls: ambassador-consul` to authenticate with Connect-enabled upstream services.
+   **Note:** All service mappings will need `tls: ambassador-consul` to authenticate with Connect-enabled upstream services.
 
 4. Create a demo application running with a sidecar connect proxy. This can easily be done in a Kubernetes by annotating the `Deployment` with `"consul.hashicorp.com/connect-inject": "true"`.
 
-```yaml
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: qotm-mtls
-spec:
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
+    ```yaml
+    ---
+    apiVersion: extensions/v1beta1
+    kind: Deployment
     metadata:
-      labels:
-        app: qotm
-      annotations:
-        "consul.hashicorp.com/connect-inject": "true"
+      name: qotm-mtls
     spec:
-      containers:
-      - name: qotm
-        image: datawire/qotm:%qotmVersion%
-        ports:
-        - name: http-api
-          containerPort: 5000
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 5000
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
-```
-Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it with `kubectl`:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+      template:
+        metadata:
+          labels:
+            app: qotm
+          annotations:
+            "consul.hashicorp.com/connect-inject": "true"
+        spec:
+          containers:
+          - name: qotm
+            image: datawire/qotm:%qotmVersion%
+            ports:
+            - name: http-api
+              containerPort: 5000
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 5000
+              initialDelaySeconds: 30
+              periodSeconds: 3
+            resources:
+              limits:
+                cpu: "0.1"
+                memory: 100Mi
+    ```
+   Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it with `kubectl`:
 
-```
-kubectl apply -f qotm-deploy.yaml
-```
+   ```
+   kubectl apply -f qotm-consul-mtls.yaml
+   ```
 
-**Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.6`.
+   **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.6`.
 
-This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the service with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features. 
+   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the service with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features. 
 
 5. Verify the `qotm-mtls` application is registered in Consul by accessing the Consul UI on http://localhost:8500/ after running:
 
@@ -264,7 +289,7 @@ This will deploy a demo application called `qotm-mtls` with the Connect sidecar 
    kubectl port-forward service/consul-ui 8500:80
    ```
 
-   You should see a service registered as `qotm-mtls-proxy`.
+   You should see a service registered as `qotm-proxy`.
 
 6. Create a `Mapping` to route to the `qotm-mtls-proxy` service in Consul
 
@@ -277,12 +302,13 @@ This will deploy a demo application called `qotm-mtls` with the Connect sidecar 
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v1
+          apiVersion: ambassador/v2
           kind: Mapping
           name: consul_qotm_ssl_mapping
           prefix: /qotm-consul-ssl/
-          service: qotm-mtls-proxy
-          tls: ambassador-consul-connect
+          service: qotm-proxy:20000
+          resolver: consul-dc1
+          tls: ambassador-consul
           load_balancer:
             policy: round_robin
     spec:
@@ -290,6 +316,9 @@ This will deploy a demo application called `qotm-mtls` with the Connect sidecar 
       - name: http
         port: 80
     ```
+    - `resolver` must be set to the `ConsulResolver` created when configuring Ambassador
+    - `tls` must be set to the `TLSContext` storing the Consul mTLS certificates (`ambassador-consul`)
+    - `load_balancer` must be set to configure Ambassador to route directly to the endpoint(s) from Consul
 
     Copy this YAML to a file named `qotm-consul-mtls-svc.yaml` and apply it with `kubectl`:
 
@@ -299,6 +328,11 @@ This will deploy a demo application called `qotm-mtls` with the Connect sidecar 
 
 7. Send a request to the `/qotm-consul-ssl/` API.
 
+   ```
+   curl $AMBASSADOR_IP/qotm-consul-ssl/
+
+   {"hostname":"qotm-6c6dc4f67d-hbznl","ok":true,"quote":"A principal idea is omnipresent, much like candy.","time":"2019-04-17T19:27:54.758361","version":"1.3"}
+   ```
 
 ## More information
 
