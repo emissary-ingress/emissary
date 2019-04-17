@@ -12,6 +12,7 @@ VERSION.py
 .pytest_cache
 .mypy_cache
 cluster.yaml
+watt
 
 *.egg-info
 build
