@@ -720,34 +720,40 @@ class Runner:
             if not DOCTEST:
                 print()
 
-            expanded = set(selected)
+            expanded_up = set(selected)
 
-            for e in list(expanded):
+            for e in list(expanded_up):
                 for a in e.ancestors:
-                    expanded.add(a)
+                    expanded_up.add(a)
+
+            expanded = set(expanded_up)
+
+            for s in list(expanded):
+                for n in s.traversal:
+                    expanded.add(n)
 
             try:
                 self._setup_k8s(expanded)
 
                 for t in self.tests:
-                    if t in expanded:
+                    if t in expanded_up:
                         pre_query: Callable = getattr(t, "pre_query", None)
 
                         if pre_query:
                             pre_query()
 
-                self._query(expanded)
+                self._query(expanded_up)
             except:
                 traceback.print_exc()
                 pytest.exit("setup failed")
             finally:
                 self.done = True
 
-    def get_manifests(self) -> OrderedDict:
+    def get_manifests(self, selected) -> OrderedDict:
         manifests = OrderedDict()
         superpods: Dict[str, Superpod] = {}
 
-        for n in self.nodes:
+        for n in (n for n in self.nodes if n in selected):
             # What namespace is this node in?
             nsp = None
             cur = n
@@ -815,10 +821,10 @@ class Runner:
         return manifests
 
     def _setup_k8s(self, selected):
-        manifests = self.get_manifests()
+        manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
-        for n in self.nodes:
+        for n in (n for n in self.nodes if n in selected):
             configs[n] = []
             for cfg in n.config():
                 if isinstance(cfg, str):
