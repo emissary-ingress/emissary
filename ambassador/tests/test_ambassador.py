@@ -1210,41 +1210,6 @@ host_redirect: true
             self.format("http://foobar.com/{self.name}/anything?itworked=true")
         ]
 
-class TlsRedirect(MappingTest):
-    parent: AmbassadorTest
-    target: ServiceType
-
-    def init(self):
-        MappingTest.init(self, HTTP())
-
-    def config(self):
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind: Module
-name: ambassador
-config:
-  x_forwarded_proto_redirect: true
-  use_remote_address: false
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.name}
-prefix: /{self.name}/
-service: foobar.com
-""")
-
-    def queries(self):
-        yield Query(self.parent.url(self.name + "/target"), headers={ "X-Forwarded-Proto": "http" }, expected=301)
-
-    def queries(self):
-        yield Query(self.parent.url(self.name + "/target"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
-
-    def check(self):
-        assert self.results[0].headers['Location'] == [
-            self.format("https://foobar.com/target/")
-        ]
-
 class CanaryMapping(MappingTest):
 
     parent: AmbassadorTest
@@ -1851,6 +1816,38 @@ load_balancer:
                     cookie_no_ttl_dict[result.backend.name] + 1 if result.backend.name in cookie_no_ttl_dict else 1
             assert len(cookie_no_ttl_dict) == 1
 
+class TlsRedirect(TLSRedirect):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    def init(self):
+        MappingTest.init(self, HTTP())
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind: Module
+name: ambassador
+config:
+  x_forwarded_proto_redirect: true
+  use_remote_address: false
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: foobar.com
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "http" }, expected=301)
+        yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
+
+    def check(self):
+        assert self.results[0].headers['Location'] == [
+            self.format("https://foobar.com/target/")
+        ]
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
