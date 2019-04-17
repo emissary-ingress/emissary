@@ -23,11 +23,11 @@ Ambassador Pro integrates with the [Keycloak IDP](https://keycloak.org). Using K
    CLIENT_SECRET=<Client Secret from GitHub>
    ```
 4. Get the `External-IP` for your Ambassador service `kubectl get svc ambassador`
-5. Replace the `${AMBASSADOR_IP}` values in [00-tenant.yaml](00-tenant.yaml)
+5. Replace the `${AMBASSADOR_IP}` values in [api-auth-with-github/00-tenant.yaml](00-tenant.yaml)
 6. Run `make apply-api-auth`.
 7. Go to `https://${AMBASSADOR_IP}/httpbin/headers` in your browser and you will be asked to login. Select the `GitHub` option.
 
 Behind the scenes, we've created an [OAuth authentication Filter](/reference/filter-reference) for requests to `httpbin/headers`. Note that requests to other `httpbin` URLs, e.g., `httpbin/ip` do not require authentication. With this approach, we give users fine-grained control over which specific hosts and paths require authentication, and support using different authentication schemes for different URLs.
 
 ## Summary
-To quickly enable JWT validation for your application, get started with a [free 14-day trial of Ambassador Pro](https://www.getambassador.io/pro/free-trial), or [contact sales](https://www.getambassador.io/contact) today.
+To quickly enable Single Sign-On for your application, get started with a [free 14-day trial of Ambassador Pro](https://www.getambassador.io/pro/free-trial), or [contact sales](https://www.getambassador.io/contact) today.
