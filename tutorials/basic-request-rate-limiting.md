@@ -54,4 +54,4 @@ To protect our QoTM app, we need to put a rate limit on the number of requests t
    The `/qotm/open/` endpoint does not have the same load restrictions and therefore does not need to be rate limited.
 
 ## Summary
-To quickly enable global rate limiting on your website, get started with a [free 14-day trial of Ambassador Pro](https://www.getambassador.io/pro/free-trial), or [contact sales](https://www.getambassador.io/contact) today.
+To quickly enable basic request rate limiting on your website, get started with a [free 14-day trial of Ambassador Pro](https://www.getambassador.io/pro/free-trial), or [contact sales](https://www.getambassador.io/contact) today.
