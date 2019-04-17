@@ -1,3 +1,4 @@
+from ipaddress import ip_address
 from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
 from typing import cast as typecast
 
@@ -67,6 +68,27 @@ class IRServiceResolver(IRResource):
 
     def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int, lb: str) -> IREndpointSet:
         keyfields = [ self.resolve_with ]
+
+        # Is this already an IP address?
+        is_ip_address = False
+
+        try:
+            x = ip_address(svc_name)
+            is_ip_address = True
+        except ValueError:
+            pass
+
+        if is_ip_address:
+            # Already an IP address, great.
+            self.logger.debug(f'Resolver {self.name}: {svc_name} is already an IP address')
+            return [
+                {
+                    'ip': svc_name,
+                    'port': port,
+                    'target_kind': 'IPaddr'
+                }
+            ]
+
 
         if self.resolve_with == 'k8s':
             # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
