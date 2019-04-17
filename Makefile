@@ -142,6 +142,10 @@ SCOUT_APP_KEY=
 # For details https://github.com/datawire/kat-backend
 KAT_BACKEND_RELEASE = 1.4.0
 
+# Allow overriding which watt we use.
+WATT ?= watt
+WATT_VERSION ?= 0.4.1
+
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
 all: setup-develop docker-push test
@@ -160,6 +164,7 @@ clean: clean-test
 		| xargs -0 rm -f
 
 clobber: clean
+	-rm -rf watt
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
@@ -340,9 +345,6 @@ $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
 	sudo chmod go-w,a+sx $(TELEPROXY)
-
-WATT=watt
-WATT_VERSION=0.4.1
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(WATT):
