@@ -69,6 +69,9 @@ RUN mkdir ambassador-config envoy
 COPY demo/config/ ambassador-demo-config
 COPY demo/services/ demo-services
 
+# ...and symlink /usr/bin/python because of !*@&#*!@&# Werkzeug.
+RUN ln -s python3 /usr/bin/python
+
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R u+x ${AMBASSADOR_ROOT} && \
