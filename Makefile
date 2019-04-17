@@ -437,7 +437,7 @@ test: setup-develop cluster-and-teleproxy
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
-	sh ../releng/run-tests.sh
+	bash ../releng/run-tests.sh
 
 test-list: setup-develop
 	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q

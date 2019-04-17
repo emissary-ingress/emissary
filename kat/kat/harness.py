@@ -722,13 +722,13 @@ class Runner:
 
             expanded_up = set(selected)
 
-            for e in list(expanded_up):
-                for a in e.ancestors:
-                    expanded_up.add(a)
+            for s in selected:
+                for n in s.ancestors:
+                    expanded_up.add(n)
 
             expanded = set(expanded_up)
 
-            for s in list(expanded):
+            for s in selected:
                 for n in s.traversal:
                     expanded.add(n)
 
