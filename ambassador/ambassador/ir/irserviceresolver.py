@@ -75,8 +75,13 @@ class IRServiceResolver(IRResource):
             namespace = Config.ambassador_namespace
 
             if '.' in svc:
-                # OK, cool.
-                ( svc, namespace ) = svc.split(".", 1)
+                # OK, cool. Peel off the service and the namespace.
+                #
+                # Note that some people may use service.namespace.cluster.svc.local or
+                # some such crap. The [0:2] is to restrict this to just the first two
+                # elements if there are more, but still work if there are not.
+
+                ( svc, namespace ) = svc.split(".", 2)[0:2]
 
             keyfields.append(svc)
             keyfields.append(namespace)
