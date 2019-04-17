@@ -25,40 +25,6 @@ from kat import manifests
 AMBASSADOR_LOCAL = """
 ---
 apiVersion: v1
-kind: Service
-metadata:
-  name: {self.path.k8s}
-spec:
-  type: NodePort
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 80
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 443
-  {extra_ports}
-  selector:
-    service: {self.path.k8s}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {self.path.k8s}-admin
-  name: {self.path.k8s}-admin
-spec:
-  type: NodePort
-  ports:
-  - name: {self.path.k8s}-admin
-    port: 8877
-    targetPort: 8877
-  selector:
-    service: {self.path.k8s}
----
-apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}
