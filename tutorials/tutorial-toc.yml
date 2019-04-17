@@ -1,15 +1,15 @@
 - title: Implementing JWT
   link: /tutorials/implementing-jwt
-  excerpt: This is an excerpt
+  excerpt: Quickly enable JWT validation  
 - title: Global Rate Limiting
   link: /tutorials/global-rate-limiting
-  excerpt: This is an excerpt
+  excerpt: Set a global rate limit for all requests containing a specific HTTP header 
 - title: Per User Rate Limiting
   link: /tutorials/per-user-rate-limiting
-  excerpt: This is an excerpt
+  excerpt: Rate limit a specific client IP address
 - title: Basic Request Rate Limiting
   link: /tutorials/basic-request-rate-limiting
-  excerpt: This is an excerpt
+  excerpt: Limit the number of requests to a specific endpoint
 - title: Single Sign-On with GitHub
   link: /tutorials/github-sso
   excerpt: Set up SSO with GitHub and Keycloak
