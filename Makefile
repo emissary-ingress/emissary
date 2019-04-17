@@ -329,7 +329,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.3.16
+TELEPROXY_VERSION=0.4.0
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
