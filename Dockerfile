@@ -80,7 +80,8 @@ COPY ambassador/entrypoint.sh .
 COPY ambassador/kick_ads.sh .
 COPY ambassador/post_update.py .
 COPY ambassador/post_watt.sh .
-RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py post_watt.sh
+COPY ambassador/watch_hook.py .
+RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py post_watt.sh watch_hook.py
 
 # XXX Move to base image
 COPY watt .
