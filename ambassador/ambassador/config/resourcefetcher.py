@@ -127,7 +127,7 @@ class ResourceFetcher:
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             for key in [ 'service', 'endpoints', 'secret' ]:
-                for obj in watt_k8s.get(key, []):
+                for obj in watt_k8s.get(key) or []:
                     self.handle_k8s(obj)
 
             watt_consul = watt_dict.get('Consul', {})
