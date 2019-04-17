@@ -105,9 +105,14 @@ class IRServiceResolver(IRResource):
             self.logger.debug(f'Resolver {self.name}: {key} has no endpoints')
             return None
 
+        # If this is a Kubernetes resolver, try to find a port match. If not, assume
+        # that we don't need to.
+
+        search_port = port if (self.resolve_with == 'k8s') else '*'
+
         # Do we have a match for the port they're asking for?
 
-        targets = endpoints.get(port)
+        targets = endpoints.get(search_port)
 
         if targets:
             # Yes!
@@ -117,7 +122,12 @@ class IRServiceResolver(IRResource):
 
             return targets
         else:
-            self.logger.debug(f'Resolver {self.name}: {key}:{port} matches no endpoints')
+            hrtype = 'Kubernetes' if (self.resolve_with == 'k8s') else self.resolve_with
+
+            # This is ugly. We're almost certainly being called from _within_ the initialization
+            # of the cluster here -- so I guess we'll report the error against the service. Sigh.
+            self.ir.post_error(f'Service {service.name}: {key}:{port} matches no endpoints from {hrtype}',
+                               resource=service)
 
             return None
 

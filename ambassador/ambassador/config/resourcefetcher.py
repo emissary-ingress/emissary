@@ -535,7 +535,9 @@ class ResourceFetcher:
                 self.logger.debug(f"ignoring Consul service {name} endpoint {ep['ID']} missing address info")
                 continue
 
-            svc_eps = svc['endpoints'].setdefault(ep_port, [])
+            # Consul services don't have the weird indirections that Kube services do, so just
+            # lump all the endpoints together under the same source port of '*'.
+            svc_eps = svc['endpoints'].setdefault('*', [])
             svc_eps.append({
                 'ip': ep_addr,
                 'port': ep_port,
