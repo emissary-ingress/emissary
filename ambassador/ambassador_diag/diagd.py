@@ -586,7 +586,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
-        scc = SecretSaver(app.logger, path, "%s" % (app.snapshot_path))
+        scc = SecretSaver(app.logger, path, "%s/%s" % (app.snapshot_path, snapshot))
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
