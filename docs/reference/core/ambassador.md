@@ -57,6 +57,10 @@ config:
 # readiness_probe:
 #   enabled: true
 
+# By default Envoy sets server_name response header to 'envoy'
+# Override it with this variable
+# server_name: envoy
+
 # If present, service_port will be the port Ambassador listens
 # on for microservice access. If not present, Ambassador will
 # use 443 if TLS is configured, 80 otherwise. In future releases
@@ -109,11 +113,26 @@ config:
 #   ...
 ```
 
+### Overriding Default Ports
+
+By default, Ambassador listens for HTTP or HTTPS traffic on ports 80 or 443 respectively. This value can be overridden by setting the `service_port` in the Ambassador `Module`. 
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  service_port: 8080
+```
+
+This will configure Ambassador to listen for traffic on port 8080 instead of 80. 
+
 ### Lua Scripts (`lua_scripts`)
 
 Ambassador supports the ability to inline Lua scripts that get run on every request. This is useful for simple use cases that mutate requests or responses, e.g., add a custom header. Here is a sample:
 
-```
+```yaml
 ---
 apiVersion: ambassador/v1
 kind: Module
