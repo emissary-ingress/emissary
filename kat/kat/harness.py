@@ -275,14 +275,31 @@ class Test(Node):
             return self.parent.ambassador_id
 
 
+@multi
+def encode_body(obj):
+    yield type(obj)
+
+@encode_body.when(bytes)
+def encode_body(b):
+    return base64.encodebytes(b).decode("utf-8")
+
+@encode_body.when(str)
+def encode_body(s):
+    return encode_body(s.encode("utf-8"))
+
+@encode_body.default
+def encode_body(obj):
+    return encode_body(json.dumps(obj))
+
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
                  xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
-                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None):
+                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, body=None):
         self.method = method
         self.url = url
         self.headers = headers
+        self.body = body
         self.cookies = cookies
         self.messages = messages
         self.insecure = insecure
@@ -320,6 +337,8 @@ class Query:
             result["method"] = self.method
         if self.headers:
             result["headers"] = self.headers
+        if self.body is not None:
+            result["body"] = encode_body(self.body)
         if self.cookies:
             result["cookies"] = self.cookies
         if self.messages is not None:
