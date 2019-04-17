@@ -1,7 +1,7 @@
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType
+from abstract_tests import ServiceType, TLSRedirect
 
 
 class RedirectTests(AmbassadorTest):
@@ -93,3 +93,36 @@ name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
+
+class XFPRedirect(TLSRedirect):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind: Module
+name: ambassador
+config:
+  x_forwarded_proto_redirect: true
+  use_remote_address: false
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: foobar.com
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "http" }, expected=301)
+        yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
+
+    def check(self):
+        assert self.results[0].headers['Location'] == [
+            self.format("https://foobar.com/target/")
+        ]
