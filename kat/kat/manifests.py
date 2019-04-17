@@ -39,22 +39,29 @@ spec:
 
 SUPERPOD_POD = """
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: superpod
-  labels:
-    backend: superpod
 spec:
-  containers:
-  - name: backend
-    image: quay.io/datawire/kat-backend:11
-    # ports:
-    # {ports}
-    env:
-    - name: INCLUDE_EXTAUTH_HEADER
-      value: "yes"
-    # {envs} 
+  replicas: 1
+  selector:
+    matchLabels:
+      backend: superpod
+  template:
+    metadata:
+      labels:
+        backend: superpod
+    spec:
+      containers:
+      - name: backend
+        image: quay.io/datawire/kat-backend:11
+        # ports:
+        # {ports}
+        env:
+        - name: INCLUDE_EXTAUTH_HEADER
+          value: "yes"
+        # {envs} 
 """
 
 AUTH_BACKEND = """

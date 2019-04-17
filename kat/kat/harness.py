@@ -638,14 +638,16 @@ class Superpod:
 
         m = manifest[0]
 
+        template = m['spec']['template']
+
         ports: List[Dict[str, int]] = []
-        envs: List[Dict[str, Union[str, int]]] = m['spec']['containers'][0]['env']
+        envs: List[Dict[str, Union[str, int]]] = template['spec']['containers'][0]['env']
 
         for p in sorted(self.service_names.keys()):
             ports.append({ 'containerPort': p })
             envs.append({ 'name': f'BACKEND_{p}', 'value': self.service_names[p] })
 
-        m['spec']['containers'][0]['ports'] = ports
+        template['spec']['containers'][0]['ports'] = ports
 
         if 'metadata' not in m:
             m['metadata'] = {}
@@ -653,10 +655,8 @@ class Superpod:
         metadata = m['metadata']
         metadata['name'] = self.name
 
-        if 'labels' not in metadata:
-            metadata['labels'] = {}
-
-        metadata['labels']['backend'] = self.name
+        m['spec']['selector']['matchLabels']['backend'] = self.name
+        template['metadata']['labels']['backend'] = self.name
 
         if self.namespace:
             # Fix up the namespace.
