@@ -39,7 +39,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'prefix': True,
         'prefix_regex': True,
         'rewrite': True,
-        'cluster_timeout_ms': True,
+        'connect_timeout_ms': True,
         'timeout_ms': True,
         'idle_timeout_ms': True,
         'bypass_auth': True,
@@ -190,7 +190,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
-                            cluster_timeout_ms=mapping.get('cluster_timeout_ms', 3000),
+                            connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)

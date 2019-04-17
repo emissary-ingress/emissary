@@ -10,9 +10,9 @@ Ambassador enables you to control timeouts in several different ways.
 
 `idle_timeout_ms` controls how long a connection should remain open when no traffic is being sent through the connection. If not set, Ambassador will wait 5 minutes (300000 milliseconds).
 
-## Connect timeout: `cluster_timeout_ms`
+## Connect timeout: `connect_timeout_ms`
 
-`cluster_timeout_ms` controls the connection-level timeout for Ambassador to an upstream service.
+`connect_timeout_ms` controls the connection-level timeout for Ambassador to an upstream service.
 
 ### Example
 

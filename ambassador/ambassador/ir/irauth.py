@@ -27,7 +27,7 @@ class IRAuth (IRFilter):
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             cluster=None,
             timeout_ms=5000,
-            cluster_timeout_ms=3000,
+            connect_timeout_ms=3000,
             path_prefix=None,
             api_version=None,
             allowed_headers=[],
@@ -120,7 +120,7 @@ class IRAuth (IRFilter):
         self["api_version"] = module.get("apiVersion", None)
         self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
-        self["cluster_timeout_ms"] = module.get("cluster_timeout_ms", 3000)
+        self["connect_timeout_ms"] = module.get("connect_timeout_ms", 3000)
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
@@ -149,7 +149,7 @@ class IRAuth (IRFilter):
             "cluster": self.cluster.name
         }
 
-        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'cluster_timeout_ms' ]:
+        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'connect_timeout_ms' ]:
             if self.get(key, None):
                 config[key] = self[key]
 
