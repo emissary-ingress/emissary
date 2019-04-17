@@ -10,3 +10,6 @@
 - title: Basic Request Rate Limiting
   link: /tutorials/basic-request-rate-limiting
   excerpt: This is an excerpt
+- title: Single Sign-On with GitHub
+  link: /tutorials/github-sso
+  excerpt: Set up SSO with GitHub and Keycloak
