@@ -2,75 +2,17 @@
 {{ $useLoadBalancer := true }}
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
+{{ $useNoopAuth := "" }}
 {{ $useProRateLimit := true }}
 {{ $useProAuth := false }}
+{{ $useTLS := true }}
+{{ $serviceAccount := "ambassador-pro" }}
 {{ $ambassadorSuffix := "-pro-rlonly" }}
 
 ######################################################################
-# Create a CRDs used to configure ambassador-pro
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: filterpolicies.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-  - name: v1beta2
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: filterpolicies
-    singular: filterpolicy
-    kind: FilterPolicy
-    shortNames:
-    - fp
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: filters.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-  - name: v1beta2
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: filters
-    singular: filter
-    kind: Filter
-    shortNames:
-    - fil
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: ratelimits.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-    - name: v1beta2
-      served: true
-      storage: true
-  scope: Namespaced
-  names:
-    plural: ratelimits
-    singular: ratelimit
-    kind: RateLimit
-    shortNames:
-    - rl
-
-
-######################################################################
+{{if or $useProRateLimit $useProAuth }}
 # Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
 # Services, and the Deployment that backs them all.
-{{if or $useProRateLimit $useProAuth }}
 ---
 apiVersion: v1
 kind: Service
@@ -118,6 +60,8 @@ spec:
   - name: http-debug
     port: 82
     targetPort: http-debug
+{{else}}
+# Create the ambassador Service+Service+Deployment
 {{end}}
 ---
 apiVersion: v1
@@ -148,9 +92,23 @@ metadata:
       name: tls
       config:
         server:
+{{if $useTLS}}
           enabled: True
           redirect_cleartext_from: 80
           alpn_protocols: h2
+{{else}}
+          enabled: False
+{{end}}
+{{if ne $useNoopAuth ""}}
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: authentication
+      proto: {{$useNoopAuth}}
+      auth_service: 127.0.0.1:3000
+      allow_request_body: false
+{{end}}
 spec:
   type: {{if $useLoadBalancer}}LoadBalancer{{else}}NodePort{{end}}
   externalTrafficPolicy: Local
@@ -186,7 +144,7 @@ spec:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
                     values: ["backends"]
-      serviceAccountName: ambassador-pro
+      serviceAccountName: {{$serviceAccount}}
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
@@ -229,6 +187,7 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
+{{if or $useProRateLimit $useProAuth }}
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
@@ -255,4 +214,12 @@ spec:
           value: "true"
         - name: AMBASSADOR_LICENSE_KEY # For everything
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
+{{end}}
+{{if ne $useNoopAuth ""}}
+      - name: sidecar
+        image: {{if eq $useNoopAuth "grpc"}}{{env "MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE"}}{{else}}{{env "MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE"}}{{end}}
+        ports:
+        - name: auth
+          containerPort: 3000
+{{end}}
       restartPolicy: Always

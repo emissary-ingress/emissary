@@ -3,11 +3,66 @@
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
 {{ $useNoopAuth := "" }}
+{{ $useProRateLimit := false }}
+{{ $useProAuth := false }}
 {{ $useTLS := false }}
+{{ $serviceAccount := "ambassador-oss" }}
 {{ $ambassadorSuffix := "-oss-plaintext" }}
 
 ######################################################################
+{{if or $useProRateLimit $useProAuth }}
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services, and the Deployment that backs them all.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador{{$ambassadorSuffix}}-pro
+  annotations:
+    getambassador.io/config: |
+{{if $useProRateLimit}}
+      ---
+      apiVersion: ambassador/v1
+      kind: RateLimitService
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: ambassador-pro
+      service: "127.0.0.1:8501"
+{{end}}
+{{if $useProAuth}}
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: authentication
+      proto: grpc
+      auth_service: "127.0.0.1:8500"
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+      ---
+      # This mapping needs to exist, but is never actually followed.
+      apiVersion: ambassador/v1
+      kind: Mapping
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: callback_mapping
+      prefix: /callback
+      service: NoTaReAlSeRvIcE
+{{end}}
+spec:
+  type: ClusterIP
+  selector:
+    service: ambassador{{$ambassadorSuffix}}
+  ports:
+  - name: grpc-auth
+    port: 80
+    targetPort: grpc-auth
+  - name: grpc-ratelimit
+    port: 81
+    targetPort: grpc-ratelimit
+  - name: http-debug
+    port: 82
+    targetPort: http-debug
+{{else}}
 # Create the ambassador Service+Service+Deployment
+{{end}}
 ---
 apiVersion: v1
 kind: Service
@@ -89,7 +144,7 @@ spec:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
                     values: ["backends"]
-      serviceAccountName: ambassador-oss
+      serviceAccountName: {{$serviceAccount}}
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
@@ -132,6 +187,34 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
+{{if or $useProRateLimit $useProAuth }}
+      - name: ambassador-pro
+        image: {{env "AMB_SIDECAR_IMAGE"}}
+        ports:
+        - name: grpc-auth
+          containerPort: 8500
+        - name: grpc-ratelimit
+          containerPort: 8501
+        - name: http-debug
+          containerPort: 8502
+        env:
+        - name: APP_LOG_LEVEL
+          value: warn
+        - name: LOG_LEVEL
+          value: warn
+        - name: REDIS_SOCKET_TYPE # For ratelimit
+          value: tcp
+        - name: REDIS_URL # For ratelimit
+          value: ambassador-pro-redis:6379
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        - name: AMBASSADOR_LICENSE_KEY # For everything
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+{{end}}
 {{if ne $useNoopAuth ""}}
       - name: sidecar
         image: {{if eq $useNoopAuth "grpc"}}{{env "MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE"}}{{else}}{{env "MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE"}}{{end}}
