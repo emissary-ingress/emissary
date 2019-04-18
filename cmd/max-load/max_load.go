@@ -46,8 +46,8 @@ func parseArgs(args []string) {
 Attempt to determine the maximum load that URL can handle
 
 It will start at 100rps and measure the latency.  It will then go up
-in ${step-rps} steps until it starts seeing failures (such that the
-success rate drops below ${min-success-rate}), or it reaches
+in ${rps-resolution} steps until it starts seeing failures (such that
+the success rate drops below ${min-success-rate}), or it reaches
 ${max-rps} (whichever comes first).
 
 You may specify an ordinary http:// or https:// URL to have direct
