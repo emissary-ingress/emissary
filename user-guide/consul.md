@@ -10,48 +10,15 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
 
 1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center.
 
-2. Download the standard Ambassador deployment YAML file:
+2. Deploy Ambassador. Note: If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
 
    ```
-   curl -o ambassador-rbac.yaml https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-   ```
-
-3. Edit the deployment and set `AMBASSADOR_ENABLE_ENDPOINTS` to `true`:
-
-   ```yaml
-   ...
-    containers:
-    - name: ambassador
-      image: quay.io/datawire/ambassador:%version%
-      resources:
-        limits:
-          cpu: 1
-          memory: 400Mi
-        requests:
-          cpu: 200m
-          memory: 100Mi
-      env:
-      - name: AMBASSADOR_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: AMBASSADOR_ENABLE_ENDPOINTS
-        value: true
-      ports:
-   ...
-   ```
-   
-   This will enable [endpoint load balancing](/reference/core/load-balancer) in Ambassador, and is required for Consul.
-
-4. Deploy Ambassador. Note: If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
-
-   ```
-   kubectl apply -f ambassador-rbac.yaml
+   kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
    ```
 
    If you're on GKE, or haven't previously created the Ambassador service, please see the Quick Start.
 
-5. Configure Ambassador to look for services registered to Consul by creating the `ConsulResolver`:
+3. Configure Ambassador to look for services registered to Consul by creating the `ConsulResolver`:
 
     ```yaml
     ---
