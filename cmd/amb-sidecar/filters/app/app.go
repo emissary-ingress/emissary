@@ -1,9 +1,10 @@
 package app
 
 import (
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
 	"net/http"
 	"strings"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
 
 	"github.com/pkg/errors"
 	"golang.org/x/net/http2"

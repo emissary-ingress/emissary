@@ -2,8 +2,6 @@ package health
 
 import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
-	"math/rand"
-	"net/http"
 )
 
 type Probe interface {
@@ -22,13 +20,13 @@ func (p *StaticProbe) Check() bool {
 
 // RandomProbe returns a randomly selected boolean value. This is primarily for tests and development but has some
 // limited value in development.
-type RandomProbe struct {
-	rand *rand.Rand
-}
-
-func (p *RandomProbe) Check() bool {
-	return p.rand.Intn(2) == 0
-}
+//type RandomProbe struct {
+//	rand *rand.Rand
+//}
+//
+//func (p *RandomProbe) Check() bool {
+//	return p.rand.Intn(2) == 0
+//}
 
 // MultiProbe executes zero or more probes.
 type MultiProbe struct {
@@ -74,23 +72,23 @@ func (p *MultiProbe) Check() bool {
 // NOTE: An alternative implementation is to perform the checks asynchronously and just return a pre-computed result
 //       when the handler is invoked. That strategy is often employed when probes are expensive/slow and blocking
 //       the probing mechanism (e.g. Kubernetes liveness or readiness probes) would lead to failures.
-type SyncProbeHandler struct {
-	HealthinessProbe Probe
-	ReadinessProbe   Probe
-}
-
-func (h *SyncProbeHandler) QueryHealthiness(w http.ResponseWriter, r *http.Request) {
-	if h.HealthinessProbe.Check() {
-		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-func (h *SyncProbeHandler) QueryReadiness(w http.ResponseWriter, r *http.Request) {
-	if h.ReadinessProbe.Check() {
-		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
+//type SyncProbeHandler struct {
+//	HealthinessProbe Probe
+//	ReadinessProbe   Probe
+//}
+//
+//func (h *SyncProbeHandler) QueryHealthiness(w http.ResponseWriter, r *http.Request) {
+//	if h.HealthinessProbe.Check() {
+//		w.WriteHeader(http.StatusOK)
+//	} else {
+//		w.WriteHeader(http.StatusInternalServerError)
+//	}
+//}
+//
+//func (h *SyncProbeHandler) QueryReadiness(w http.ResponseWriter, r *http.Request) {
+//	if h.ReadinessProbe.Check() {
+//		w.WriteHeader(http.StatusOK)
+//	} else {
+//		w.WriteHeader(http.StatusInternalServerError)
+//	}
+//}
