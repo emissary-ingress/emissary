@@ -322,6 +322,27 @@ tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wil
 check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 
 #
+# Load-testing
+
+infra/loadtest-cluster/.terraform: FORCE
+	cd infra/loadtest-cluster && terraform init
+infra/loadtest-cluster/loadtest.kubeconfig: infra/loadtest-cluster/.terraform FORCE
+	cd infra/loadtest-cluster && terraform plan -out create.tfplan && terraform apply create.tfplan
+infra/loadtest-cluster/loadtest.kubeconfig.clean: %.clean:
+	if [ -e $* ]; then cd infra/loadtest-cluster && terraform plan -destroy -out destroy.tfplan && terraform apply destroy.tfplan; fi
+	rm -f $*
+
+loadtest-destroy: ## Destroy the load-testing cluster
+loadtest-destroy: infra/loadtest-cluster/loadtest.kubeconfig.clean
+loadtest-apply: ## Apply YAML to the load-testing cluster
+loadtest-apply: infra/loadtest-cluster/loadtest.kubeconfig
+	$(MAKE) KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load apply
+loadtest-deploy: ## Push images and apply YAML to the load-testing cluster
+loadtest-deploy: infra/loadtest-cluster/loadtest.kubeconfig
+	$(MAKE) KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load deploy
+.PHONY: loadtest-destroy loadtest-apply loadtest-deploy
+
+#
 # Clean
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker))
