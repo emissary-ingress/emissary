@@ -197,7 +197,7 @@ class AmbassadorTest(Test):
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]
 
-        ports = ["%s:8877" % (8877 + self.index), "%s:80" % (8080 + self.index), "%s:443" % (8443 + self.index)]
+        ports = ["%s:8877" % (8877 + self.index), "%s:8080" % (8080 + self.index), "%s:8443" % (8443 + self.index)]
 
         if self.extra_ports:
             for port in self.extra_ports:

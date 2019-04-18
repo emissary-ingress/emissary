@@ -261,11 +261,11 @@ spec:
   - name: http
     protocol: TCP
     port: 80
-    targetPort: 80
+    targetPort: 8080
   - name: https
     protocol: TCP
     port: 443
-    targetPort: 443
+    targetPort: 8443
   {extra_ports}
   selector:
     service: {self.path.k8s}

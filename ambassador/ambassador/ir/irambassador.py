@@ -1,7 +1,6 @@
 from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
 
-# import json
-from ambassador.ir.irfilter import IRFilter
+from ..constants import Constants
 
 from ..config import Config
 
@@ -68,9 +67,9 @@ class IRAmbassador (IRResource):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            service_port=80,
-            admin_port=8001,
-            diag_port=8877,
+            service_port=Constants.SERVICE_PORT_HTTP,
+            admin_port=Constants.ADMIN_PORT,
+            diag_port=Constants.DIAG_PORT,
             auth_enabled=None,
             enable_ipv6=False,
             enable_ipv4=True,
@@ -160,7 +159,7 @@ class IRAmbassador (IRResource):
             if ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
-                self.service_port = 443
+                self.service_port = Constants.SERVICE_PORT_HTTPS
 
                 if ctx.get('ca_cert', None):
                     # Client-side TLS is enabled.
@@ -183,7 +182,7 @@ class IRAmbassador (IRResource):
             self.default_labels: Dict[str, Any] = {}
 
         # Next up: diag port & services.
-        diag_port = aconf.module_lookup('ambassador', 'diag_port', 8877)
+        diag_port = aconf.module_lookup('ambassador', 'diag_port', Constants.DIAG_PORT)
         diag_service = "127.0.0.1:%d" % diag_port
 
         for name, cur, dflt in [

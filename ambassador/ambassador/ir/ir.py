@@ -19,6 +19,8 @@ import json
 import logging
 import os
 
+from ..constants import Constants
+
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
 
@@ -495,10 +497,10 @@ class IR:
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
-        default_port = 443 if tls_termination_count else 80
+        default_port = Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
 
         od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
-        od['custom_diag_port'] = bool(self.ambassador_module.diag_port != 8877)
+        od['custom_diag_port'] = bool(self.ambassador_module.diag_port != Constants.DIAG_PORT)
 
         cluster_count = 0
         cluster_grpc_count = 0      # clusters using GRPC upstream

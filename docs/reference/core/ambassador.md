@@ -63,10 +63,8 @@ config:
 
 # If present, service_port will be the port Ambassador listens
 # on for microservice access. If not present, Ambassador will
-# use 443 if TLS is configured, 80 otherwise. In future releases
-# of Ambassador, this will change to 8080 when we run Ambassador
-# as non-root by default.
-# service_port: 80
+# use 8443 if TLS is configured, 8080 otherwise.
+# service_port: 8080
 
 # statsd configures Ambassador statistics. These values can be
 # set in the Ambassador module or in an environment variable.

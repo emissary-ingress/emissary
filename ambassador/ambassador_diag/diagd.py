@@ -45,6 +45,8 @@ from ambassador.config.resourcefetcher import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
 
+from ambassador.constants import Constants
+
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext
 
@@ -890,7 +892,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
           *, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0', notices=None):
+          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None):
     """
     Run the diagnostic daemon.
 
@@ -907,8 +909,8 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param debug: If True, do debug logging
     :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
-    :param host: Interface on which to listen (default 0.0.0.0)
-    :param port: Port on which to listen (default 8877)
+    :param host: Interface on which to listen
+    :param port: Port on which to listen
     :param notices: Optional file to read for local notices
     """
 
