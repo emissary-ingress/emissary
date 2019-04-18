@@ -207,11 +207,17 @@ docker/amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in
 docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plugins/$p.so)
 
 docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
-docker/consul_connect_integration/kubectl:
-	curl -o $@ --fail 'https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl'
-	chmod 755 $@
 
 docker/max-load.docker: docker/max-load/test.sh
+docker/max-load.docker: docker/max-load/kubeapply
+docker/max-load.docker: docker/max-load/kubectl
+docker/max-load/kubeapply:
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
+	chmod 755 $@
+
+docker/%/kubectl:
+	curl -o $@ --fail 'https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl'
+	chmod 755 $@
 
 #
 # Deploy
@@ -393,8 +399,9 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker))
 	rm -f docker/ambassador-oauth/ambassador-oauth
 	rm -f docker/traffic-sidecar/ambex
 clobber:
-	rm -f docker/app-sidecar/ambex
-	rm -f docker/consul_connect_integration/kubectl
+	rm -f docker/*/ambex
+	rm -f docker/*/kubeapply
+	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
 
 #

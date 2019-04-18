@@ -38,6 +38,17 @@ spec:
       containers:
       - name: max-load
         image: {{env "MAX_LOAD_IMAGE"}}
+        env:
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+        - name: AMBASSADOR_VERSION
+          value: {{env "AMBASSADOR_VERSION"}}
+        - name: AMB_SIDECAR_IMAGE
+          value: {{env "AMB_SIDECAR_IMAGE"}}
+        - name: MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE
+          value: {{env "MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE"}}
+        - name: MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE
+          value: {{env "MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE"}}
         ports:
         - name: http
           containerPort: 8000
