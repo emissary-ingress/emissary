@@ -295,6 +295,7 @@ docker-images: ambassador-docker-image
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
+		set -x; \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
@@ -308,6 +309,7 @@ ifneq ($(DOCKER_REGISTRY), -)
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
 			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 		fi; \
+		set +x; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
