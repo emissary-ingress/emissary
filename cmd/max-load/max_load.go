@@ -91,7 +91,7 @@ OPTIONS (load):
   ${min-success-rate}.
 
 `
-	loadParser.UintVar(&Args.LoadRPSResolution, "load-rps-resolution", 100, "Granularity of RPS measurements")
+	loadParser.UintVar(&Args.LoadRPSResolution, "load-rps-resolution", 50, "Granularity of RPS measurements")
 	loadParser.Float64Var(&Args.LoadMinSuccessRate, "load-min-success-rate", 0.95, "The required success rate")
 	loadParser.UintVar(&Args.LoadMaxRPS, "load-max-rps", 0, "Maximum RPS to test (0 for no maximum)")
 
