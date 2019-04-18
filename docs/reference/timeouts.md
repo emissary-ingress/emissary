@@ -27,5 +27,5 @@ prefix: /qotm/
 service: qotm
 timeout_ms: 4000
 idle_timeout_ms: 500000
-cluster_timeout_ms: 4000
+connect_timeout_ms: 4000
 ```
