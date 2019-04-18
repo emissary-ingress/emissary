@@ -95,8 +95,6 @@ spec:
         env:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{.AMBASSADOR_LICENSE_KEY}}
-      imagePullSecrets:
-      - name: ambassador-pro-registry-credentials
 `))
 
 func doInitialize(cmd *cobra.Command, args []string) error {
@@ -242,9 +240,6 @@ func munge(res k8s.Resource) error {
 			{"containerPort": 9900},
 		},
 	})
-	podSpec["imagePullSecrets"] = append(typecastList(podSpec["imagePullSecrets"]),
-		map[string]string{"name": "ambassador-pro-registry-credentials"},
-	)
 
 	return nil
 }

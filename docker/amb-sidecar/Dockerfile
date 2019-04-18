@@ -8,4 +8,4 @@ COPY ./run.sh ./amb-sidecar /opt/ambassador-pro/
 
 USER datawire
 CMD [ "/opt/ambassador-pro/run.sh" ]
-EXPOSE 6070 8081 8082
+EXPOSE 8500 8501 8502

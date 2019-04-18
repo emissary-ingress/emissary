@@ -1,5 +1,10 @@
 #!/bin/bash
 
+export APRO_AUTH_PORT=${APRO_AUTH_PORT:-8500} # Auth gRPC
+export GRPC_PORT=${GRPC_PORT:-8501} # RLS gRPC
+export DEBUG_PORT=${DEBUG_PORT:-8502} # RLS debug (HTTP)
+export PORT=${PORT:-8503} # RLS HTTP ???
+
 exe="${BASH_SOURCE[0]%/*}/amb-sidecar"
 trap 'jobs -p | xargs -r kill --' INT
 
@@ -22,7 +27,7 @@ else
 	# Setting the PORT is important only because the default PORT
 	# is 8080, which would clash with non-root-Ambassador when
 	# running as a sidecar.
-	launch USE_STATSD=false RUNTIME_ROOT=${RUN_DIR}/config RUNTIME_SUBDIRECTORY=config PORT=7000 "$exe" ratelimit
+	launch USE_STATSD=false RUNTIME_ROOT=${RUN_DIR}/config RUNTIME_SUBDIRECTORY=config "$exe" ratelimit
 fi
 launch "$exe" main
 
