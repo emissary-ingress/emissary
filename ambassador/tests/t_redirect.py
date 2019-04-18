@@ -27,7 +27,7 @@ ambassador_id: {self.ambassador_id}
 config:
   server:
     enabled: True
-    redirect_cleartext_from: 80
+    redirect_cleartext_from: 8080
 """)
 
         yield self.target, self.format("""
@@ -82,7 +82,7 @@ config:
   server:
     enabled: True
     secret: does-not-exist-secret
-    redirect_cleartext_from: 80
+    redirect_cleartext_from: 8080
 """)
 
         yield self.target, self.format("""
