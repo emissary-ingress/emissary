@@ -213,6 +213,18 @@ spec:
       containers:
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
+        livenessProbe:
+          httpGet:
+            path: /_/sys/healthz
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_/sys/readyz
+            port: 8082
+          initialDelaySeconds: 30
+          periodSeconds: 5
         ports:
         - name: ratelimit-grpc
           containerPort: 8081
