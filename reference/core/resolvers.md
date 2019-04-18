@@ -28,7 +28,7 @@ The `Resolver` resource is used to configure Ambassador's service discovery stra
 
 ### The Kubernetes Service Resolver
 
-The Kubernetes Service Resolver configures Ambassador to use Kubernetes services. If no resolver is specified, this behavior is the default.
+The Kubernetes Service Resolver configures Ambassador to use Kubernetes services. If no resolver is specified, this behavior is the default. When this resolver is used, the `service.namespace` value from a `Mapping` is handed to the Kubernetes cluster's DNS resolver to determine where requests are sent. 
 
 ```yaml
 ---
@@ -39,7 +39,7 @@ name: kubernetes-service
 
 ### The Kubernetes Endpoint Resolver
 
-The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer).
+The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
 
 ```yaml
 ---
@@ -50,7 +50,7 @@ name: endpoint
 
 ### The Consul Resolver
 
-The Consul Resolver configures Ambassador to use Consul for service discovery.
+The Consul Resolver configures Ambassador to use Consul for service discovery. When this resolver is used, the `service` defined in a `Mapping` is passed to Consul, along with the datacenter specified, to determine where requests are sent.
 
 ```yaml
 ---
