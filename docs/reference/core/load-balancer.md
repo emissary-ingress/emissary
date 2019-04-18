@@ -1,8 +1,8 @@
 # Load Balancing in Ambassador
 
-Ambassador lets users control how it load balances between resulting endpoints for a given mapping. This feature ships in Early Access for Ambassador 0.52, and requires setting the environment variable `AMBASSADOR_ENABLE_ENDPOINTS` to `true` to enable this feature.
-
 Load balancing configuration can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
+
+(In Ambassador 0.60, you can disable advanced load balancing features by setting the environment variable `AMBASSADOR_DISABLE_ENDPOINTS` to any value. If you find that this is necessary, please reach out to us on [Slack](https://d6e.co/slack) so we can fix whatever is wrong!)
 
 The `load_balancer` attribute configures the load balancing. The following fields are supported:
 
