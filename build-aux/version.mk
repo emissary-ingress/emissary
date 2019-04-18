@@ -18,4 +18,16 @@ $(shell PAGER= git diff --cached >&2)
 $(error This should not happen in CI: the build should not be dirty)
 endef
 
+ifneq ($(CIRCLE_TAG),)
+  ifneq ($(patsubst v%,%,$(CIRCLE_TAG)),$(VERSION))
+    $(error This should not happen: CIRCLE_TAG={$(patsubst v%,%,$(CIRCLE_TAG))} and VERSION={$(VERSION)} disagree)
+  endif
+endif
+
+ifneq ($(TRAVIS_TAG),)
+  ifneq ($(patsubst v%,%,$(TRAVIS_TAG)),$(VERSION))
+    $(error This should not happen: TRAVIS_TAG={$(patsubst v%,%,$(TRAVIS_TAG))} and VERSION={$(VERSION)} disagree)
+  endif
+endif
+
 endif
