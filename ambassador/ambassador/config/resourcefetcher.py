@@ -430,10 +430,6 @@ class ResourceFetcher:
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
-        # # Don't include service_info unless endpoint routing is enabled.
-        # if Config.enable_endpoints:
-        #     objects.append(service_info)
-
         return resource_identifier, objects
 
     # Handler for K8s Secret resources.
