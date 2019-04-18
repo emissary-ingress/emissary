@@ -640,7 +640,7 @@ class AmbassadorEventWatcher(threading.Thread):
         else:
             self.logger.debug("no services loaded from snapshot %s" % snapshot)
 
-        if os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'):
+        if Config.enable_endpoints:
             serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
 
             if serialization:
