@@ -2,6 +2,8 @@
 {{ $useLoadBalancer := true }}
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
+{{ $useNoopAuth := "" }}
+{{ $useTLS := false }}
 {{ $ambassadorSuffix := "-oss-plaintext" }}
 
 ######################################################################
@@ -35,7 +37,23 @@ metadata:
       name: tls
       config:
         server:
+{{if $useTLS}}
+          enabled: True
+          redirect_cleartext_from: 80
+          alpn_protocols: h2
+{{else}}
           enabled: False
+{{end}}
+{{if ne $useNoopAuth ""}}
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: authentication
+      proto: {{$useNoopAuth}}
+      auth_service: 127.0.0.1:3000
+      allow_request_body: false
+{{end}}
 spec:
   type: {{if $useLoadBalancer}}LoadBalancer{{else}}NodePort{{end}}
   externalTrafficPolicy: Local
@@ -114,4 +132,11 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
+{{if ne $useNoopAuth ""}}
+      - name: sidecar
+        image: {{if eq $useNoopAuth "grpc"}}{{env "MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE"}}{{else}}{{env "MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE"}}{{end}}
+        ports:
+        - name: auth
+          containerPort: 3000
+{{end}}
       restartPolicy: Always
