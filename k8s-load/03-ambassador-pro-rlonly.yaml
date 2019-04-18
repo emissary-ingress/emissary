@@ -1,7 +1,7 @@
 # @TEMPLATE@
-{{ $useLoadBalancer := false }}
-{{ $useResourceLimits := false }}
-{{ $useStatsD := false }}
+{{ $useLoadBalancer := true }}
+{{ $useResourceLimits := true }}
+{{ $useStatsD := true }}
 {{ $ambassadorSuffix := "-pro-rlonly" }}
 
 ######################################################################

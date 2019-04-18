@@ -1,6 +1,6 @@
 # @TEMPLATE@
-{{ $useLoadBalancer := false }}
-{{ $useResourceLimits := false }}
+{{ $useLoadBalancer := true }}
+{{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
 {{ $ambassadorSuffix := "-pro" }}
 
