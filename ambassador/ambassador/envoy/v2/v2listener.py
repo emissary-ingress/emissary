@@ -428,7 +428,7 @@ class V2Listener(dict):
         # Default some things to the way they should be for the redirect listener
         self.name = "redirect_listener"
         self.access_log: Optional[List[dict]] = None
-        self.require_tls: Optional[str] = 'ALL'
+        self.require_tls: Optional[str] = 'EXTERNAL_ONLY'
         self.use_proxy_proto = listener.get('use_proxy_proto')
 
         self.http_filters: List[dict] = []

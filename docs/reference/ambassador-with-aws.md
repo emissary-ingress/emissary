@@ -223,7 +223,7 @@ metadata:
       name:  ambassador
       config:
         use_proxy_proto: true
-        use_remote_address: true
+        use_remote_address: false
         x_forwarded_proto_redirect: true
 spec:
   externalTrafficPolicy: Local

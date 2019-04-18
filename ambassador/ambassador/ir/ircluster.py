@@ -55,7 +55,7 @@ class IRCluster (IRResource):
 
                  service: str,   # REQUIRED
                  resolver: Optional[str] = None,
-                 cluster_timeout_ms: Optional[int] = 3000,
+                 connect_timeout_ms: Optional[int] = 3000,
                  marker: Optional[str] = None,  # extra marker for this context name
 
                  ctx_name: Optional[Union[str, bool]]=None,
@@ -258,7 +258,7 @@ class IRCluster (IRResource):
             'enable_ipv4': enable_ipv4,
             'enable_ipv6': enable_ipv6,
             'enable_endpoints': enable_endpoints,
-            'cluster_timeout_ms': cluster_timeout_ms
+            'connect_timeout_ms': connect_timeout_ms
         }
 
         if grpc:
@@ -312,7 +312,7 @@ class IRCluster (IRResource):
         mismatches = []
 
         for key in [ 'type', 'lb_type', 'host_rewrite',
-                     'tls_context', 'originate_tls', 'grpc', 'cluster_timeout_ms' ]:
+                     'tls_context', 'originate_tls', 'grpc', 'connect_timeout_ms' ]:
             if self.get(key, None) != other.get(key, None):
                 mismatches.append(key)
 
