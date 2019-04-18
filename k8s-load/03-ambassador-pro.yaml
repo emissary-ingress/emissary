@@ -2,6 +2,8 @@
 {{ $useLoadBalancer := true }}
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
+{{ $useProRateLimit := true }}
+{{ $useProAuth := true }}
 {{ $ambassadorSuffix := "-pro" }}
 
 ######################################################################
@@ -68,6 +70,7 @@ spec:
 ######################################################################
 # Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
 # Services, and the Deployment that backs them all.
+{{if or $useProRateLimit $useProAuth }}
 ---
 apiVersion: v1
 kind: Service
@@ -75,12 +78,15 @@ metadata:
   name: ambassador{{$ambassadorSuffix}}-pro
   annotations:
     getambassador.io/config: |
+{{if $useProRateLimit}}
       ---
       apiVersion: ambassador/v1
       kind: RateLimitService
       ambassador_id: ambassador{{$ambassadorSuffix}}
       name: ambassador-pro
       service: "127.0.0.1:8501"
+{{end}}
+{{if $useProAuth}}
       ---
       apiVersion: ambassador/v1
       kind: AuthService
@@ -97,6 +103,7 @@ metadata:
       name: callback_mapping
       prefix: /callback
       service: NoTaReAlSeRvIcE
+{{end}}
 spec:
   type: ClusterIP
   selector:
@@ -111,6 +118,7 @@ spec:
   - name: http-debug
     port: 82
     targetPort: http-debug
+{{end}}
 ---
 apiVersion: v1
 kind: Service

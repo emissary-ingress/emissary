@@ -2,6 +2,8 @@
 {{ $useLoadBalancer := true }}
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
+{{ $useProRateLimit := true }}
+{{ $useProAuth := false }}
 {{ $ambassadorSuffix := "-pro-rlonly" }}
 
 ######################################################################
@@ -68,6 +70,7 @@ spec:
 ######################################################################
 # Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
 # Services, and the Deployment that backs them all.
+{{if or $useProRateLimit $useProAuth }}
 ---
 apiVersion: v1
 kind: Service
@@ -75,12 +78,32 @@ metadata:
   name: ambassador{{$ambassadorSuffix}}-pro
   annotations:
     getambassador.io/config: |
+{{if $useProRateLimit}}
       ---
       apiVersion: ambassador/v1
       kind: RateLimitService
       ambassador_id: ambassador{{$ambassadorSuffix}}
       name: ambassador-pro
       service: "127.0.0.1:8501"
+{{end}}
+{{if $useProAuth}}
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: authentication
+      proto: grpc
+      auth_service: "127.0.0.1:8500"
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+      ---
+      # This mapping needs to exist, but is never actually followed.
+      apiVersion: ambassador/v1
+      kind: Mapping
+      ambassador_id: ambassador{{$ambassadorSuffix}}
+      name: callback_mapping
+      prefix: /callback
+      service: NoTaReAlSeRvIcE
+{{end}}
 spec:
   type: ClusterIP
   selector:
@@ -95,6 +118,7 @@ spec:
   - name: http-debug
     port: 82
     targetPort: http-debug
+{{end}}
 ---
 apiVersion: v1
 kind: Service
