@@ -4,7 +4,7 @@
 
 ## Getting started
 
-**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `dwflynn/ambassador:flynn-dev-watt-ae4f48e2-dirty`.
+**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:0.60.0-rc1`.
 
 In this guide, we will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
 
@@ -50,8 +50,6 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
    ```
 
    If you're on GKE, or haven't previously created the Ambassador service, please see the Quick Start.
-
-   Note: For now, you'll need to install using https://github.com/datawire/ambassador-docs/tree/consul-sd/yaml/consul/ambassador-consul-sd.yaml, which adds the necessary RBAC permissions.
 
 5. Configure Ambassador to look for services registered to Consul by creating the `ConsulResolver`:
 
