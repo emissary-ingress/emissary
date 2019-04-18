@@ -54,7 +54,7 @@ The Consul Resolver configures Ambassador to use Consul for service discovery. W
 
 ```yaml
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 name: consul-dc1
 address: consul-server:8500
