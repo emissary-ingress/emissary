@@ -40,7 +40,7 @@ service: {self.target.path.k8s}
                     grpc_type="real")
 
         # [1]
-        yield Query(self.url("echo.EndpointEcho/Echo"),
+        yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc", "requested-status": "7" },
                     expected=200,
                     grpc_type="real")
@@ -91,7 +91,7 @@ resolver: endpoint
                     grpc_type="real")
 
         # [1]
-        yield Query(self.url("echo.EndpointEcho/Echo"),
+        yield Query(self.url("echo.EchoService/Echo"),
                     headers={ "content-type": "application/grpc", "requested-status": "7" },
                     expected=200,
                     grpc_type="real")
