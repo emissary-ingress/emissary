@@ -68,7 +68,7 @@ spec:
   ports:
   - name: ambassador
     port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```
@@ -89,7 +89,7 @@ You can see if the two Ambassador services are running correctly (and also obtai
 ```shell
 $ kubectl get services
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)          AGE
-ambassador         LoadBalancer   10.63.247.1     35.224.41.XX     80:32171/TCP     11m
+ambassador         LoadBalancer   10.63.247.1     35.224.41.XX     8080:32171/TCP     11m
 ambassador-admin   NodePort       10.63.250.17    <none>           8877:32107/TCP   12m
 details            ClusterIP      10.63.241.224   <none>           9080/TCP         16m
 kubernetes         ClusterIP      10.63.240.1     <none>           443/TCP          24m
@@ -254,7 +254,7 @@ metadata:
       config:
         server:
           enabled: True
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
         client:
           enabled: False
         upstream:
@@ -265,7 +265,7 @@ spec:
   ports:
   - name: ambassador
     port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```

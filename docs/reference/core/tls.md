@@ -19,9 +19,10 @@ config:
     enabled: True
 
     # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
-    # to that port will be redirected to HTTPS traffic. Typically you would
-    # use port 80, of course.
-    # redirect_cleartext_from: 80
+    # to that port will be redirected to HTTPS traffic. Make sure that the
+    # port number you specify matches the port on which Ambassador is
+    # listening!
+    # redirect_cleartext_from: 8080
 
     # These are optional. They should not be present unless you are using
     # a custom Docker build to install certificates onto the container
@@ -57,7 +58,7 @@ config:
 
 ## Redirecting from cleartext to TLS
 
-The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following configuration:
+The most common case requiring a `tls` module is redirecting cleartext traffic on port 8080 to HTTPS on port 8443, which can be done with the following configuration:
 
 ```yaml
 ---
@@ -67,7 +68,7 @@ name:  tls
 config:
   server:
     enabled: True
-    redirect_cleartext_from: 80
+    redirect_cleartext_from: 8080
 ```
 
 ## X-FORWARDED-PROTO Redirect
