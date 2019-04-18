@@ -25,6 +25,7 @@ var Args = struct {
 
 	LoadRPSResolution  uint
 	LoadMinSuccessRate float64
+	LoadMaxRPS         uint
 
 	LoadUntilMinDuration          time.Duration
 	LoadUntilMinSamples           uint
@@ -46,7 +47,8 @@ Attempt to determine the maximum load that URL can handle
 
 It will start at 100rps and measure the latency.  It will then go up
 in ${step-rps} steps until it starts seeing failures (such that the
-success rate drops below ${min-success-rate}).
+success rate drops below ${min-success-rate}), or it reaches
+${max-rps} (whichever comes first).
 
 You may specify an ordinary http:// or https:// URL to have direct
 absolute control over what it speaks to.  Alternatively, you may
@@ -91,6 +93,7 @@ OPTIONS (load):
 `
 	loadParser.UintVar(&Args.LoadRPSResolution, "load-rps-resolution", 100, "Granularity of RPS measurements")
 	loadParser.Float64Var(&Args.LoadMinSuccessRate, "load-min-success-rate", 0.95, "The required success rate")
+	loadParser.UintVar(&Args.LoadMaxRPS, "load-max-rps", 0, "Maximum RPS to test (0 for no maximum)")
 
 	loadParser.DurationVar(&Args.LoadUntilMinDuration, "load-until-min-duration", 5*time.Second, "Run at a given RPS for at least this long")
 	loadParser.UintVar(&Args.LoadUntilMinSamples, "load-until-min-samples", 1000, "Make at least this many requests at a given RPS")
@@ -323,7 +326,7 @@ func main() {
 	okRate := uint(1)
 
 	// first, find the point at which the system breaks
-	for {
+	for Args.LoadMaxRPS == 0 || rate <= Args.LoadMaxRPS {
 		if Run(rate) {
 			okRate = rate
 			rate += Args.LoadRPSResolution
