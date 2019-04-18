@@ -23,8 +23,8 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:%version%
     ports:
-    # expose port 80 via 8080 on the host machine
-    - 8080:80
+    # expose port 8080 via 8080 on the host machine
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -162,7 +162,7 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:%version%
     ports:
-    - 8080:80
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -249,7 +249,7 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:%version%
     ports:
-    - 8080:80
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
@@ -337,7 +337,7 @@ services:
   ambassador:
     image: quay.io/datawire/ambassador:%version%
     ports:
-    - 8080:80
+    - 8080:8080
     volumes:
     # mount a volume where we can inject configuration files
     - ./config:/ambassador/ambassador-config
