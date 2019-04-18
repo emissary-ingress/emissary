@@ -61,8 +61,8 @@ func openFiles() int {
 }
 
 type TestCase struct {
-	URL        string
-	RPS        uint
+	URL string
+	RPS uint
 
 	ShouldStop func(metrics.MetricsReader) bool
 }

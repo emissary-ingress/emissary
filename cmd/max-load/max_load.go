@@ -209,15 +209,14 @@ func errfatal(err error) {
 
 var csvFile *os.File
 
-
 var prevP95Latency time.Duration
 
 func RunLoad(rps uint) attack.TestResult {
 	for {
 		startTime := time.Now()
 		result := attack.TestCase{
-			URL:        Args.URL,
-			RPS:        rps,
+			URL: Args.URL,
+			RPS: rps,
 
 			ShouldStop: func(m metrics.MetricsReader) bool {
 				if m.CountRequests() < Args.LoadUntilMinSamples {
@@ -254,8 +253,8 @@ func RunCooldown() {
 	for {
 		runtime.GC()
 		result := attack.TestCase{
-			URL:        Args.URL,
-			RPS:        Args.CooldownRPS,
+			URL: Args.URL,
+			RPS: Args.CooldownRPS,
 
 			ShouldStop: func(m metrics.MetricsReader) bool {
 				if m.CountSuccesses() < m.CountRequests() {
