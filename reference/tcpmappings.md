@@ -43,7 +43,7 @@ This leaves four cases:
 
 #### Neither `host` nor `tls` are set.
 
-In this case, Ambassador simply proxies bytes between the client and the upstream. TLS may or may not be involved, and Ambassador doesn't care. You should specify the port to use for the ustream connection; if you don't, Ambassador will guess port 80.
+In this case, Ambassador simply proxies bytes between the client and the upstream. TLS may or may not be involved, and Ambassador doesn't care. You should specify the port to use for the upstream connection; if you don't, Ambassador will guess port 80.
 
 Examples:
 

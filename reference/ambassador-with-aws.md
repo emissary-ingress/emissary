@@ -31,7 +31,7 @@ spec:
   ports:
   - name: ambassador
     port: 443
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```
@@ -114,8 +114,8 @@ Enabling HTTP -> HTTPS redirection will depend on if your load balancer is runni
 When running an ELB in L4 mode, you will need to listen on two ports to redirect all incoming HTTP requests to HTTPS. The first port will listen for HTTP traffic to redirect to HTTPS, while the second port will listen for HTTPS traffic.
 
 Let's say,
-- port 80 on the load balancer forwards requests to port 80 on Ambassador
-- port 443 on the load balancer forwards requests to port 443 on Ambassador
+- port 80 on the load balancer forwards requests to port 8080 on Ambassador
+- port 443 on the load balancer forwards requests to port 8443 on Ambassador
 
 
 
@@ -128,10 +128,10 @@ spec:
   ports:
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: 8443
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: 8080
 ```
 
 Now, we want every request on port 80 to be redirected to port 443.
@@ -145,7 +145,7 @@ name:  tls
 config:
   server:
     enabled: True
-    redirect_cleartext_from: 80
+    redirect_cleartext_from: 8080
 ```
 
 **Note:** Ensure there is no `ambassador-certs` secret in Ambassador's Namespace. If present, the tls `Module` will configure Ambassador to expect HTTPS traffic.
@@ -180,22 +180,22 @@ metadata:
       config:
         server:
           enabled: true
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
 spec:
   externalTrafficPolicy: Local
   type: LoadBalancer
   ports:
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: 8443
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```
 
-This configuration makes Ambassador start a new listener on 80 which redirects all cleartext HTTP traffic to HTTPS.
+This configuration makes Ambassador start a new listener on 8080 which redirects all cleartext HTTP traffic to HTTPS.
 
 **Note:** Ambassador only supports standard ports (80 and 443) on the load balancer for L4 redirection, [yet](https://github.com/datawire/ambassador/issues/702)! For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888`. This will fail because HTTPS listener is on port 9999.
 
@@ -231,7 +231,7 @@ spec:
   ports:
   - name: ambassador
     port: 443
-    targetPort: 80
+    targetPort: 8080
   selector:
     service: ambassador
 ```

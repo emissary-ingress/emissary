@@ -128,7 +128,7 @@ Pod Template:
  Containers:
   ambassador:
    Image:       quay.io/datawire/ambassador:0.40.0
-   Ports:       80/TCP, 443/TCP, 8877/TCP
+   Ports:       8080/TCP, 8443/TCP, 8877/TCP
    Host Ports:  0/TCP, 0/TCP, 0/TCP
    Limits:
      cpu:     1
@@ -288,7 +288,7 @@ The Envoy Proxy configuration that was generated from the Ambassador configurati
   "listeners": [
 
     {
-      "address": "tcp://0.0.0.0:80",
+      "address": "tcp://0.0.0.0:8080",
 
       "filters": [
         {
