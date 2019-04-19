@@ -1,146 +1,156 @@
-#!/usr/bin/python3
-from typing import Any, Dict
+#!/usr/bin/python
+
+from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
 import sys
 
 import json
 import logging
-import traceback
+import os
 
-from collections import OrderedDict
-
-from multi import multi
-
-from ambassador.utils import parse_yaml
-from ambassador.config import Config
-
-
-########
-# This is the quick-and-dirty approach to the watch hook. It needs to be rewritten to use
-# the ResourceFetcher and friends...
-
+from urllib.parse import urlparse
 
 logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s watch_hook %(levelname)s: %(message)s",
+    level=logging.INFO,
+    format="%(asctime)s test-dump %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 logger = logging.getLogger('ambassador')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+
+from ambassador import Config, IR
+# from ambassador.envoy import V2Config
+
+# from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
+from ambassador.config.resourcefetcher import ResourceFetcher
+
+if TYPE_CHECKING:
+    from ambassador.ir.irtlscontext import IRTLSContext
 
 
-class ConsulResolver:
+class Service:
+    def __init__(self, logger, service: str, allow_scheme=True, ctx_name: str=None) -> None:
+        original_service = service
 
-    def __init__(self, source: str, address: str, datacenter: str) -> None:
-        self.source = source
-        self.address = address
-        self.datacenter = datacenter
+        originate_tls = False
 
+        self.scheme = 'http'
+        self.errors = []
+        self.name_fields = []
+        self.ctx_name = ctx_name
 
-class Mapping:
+        if allow_scheme and service.lower().startswith("https://"):
+            service = service[len("https://"):]
 
-    def __init__(self, source: str, namespace: str, service: str, resolver: str) -> None:
-        self.source = source
-        self.namespace = namespace
-        self.service = service
-        self.resolver = resolver
+            originate_tls = True
+            self.name_fields.append('otls')
 
+        elif allow_scheme and service.lower().startswith("http://"):
+            service = service[ len("http://"): ]
 
-class Loader:
+            if ctx_name:
+                self.errors.append(f'Originate-TLS context {ctx_name} being used even though service {service} lists HTTP')
+                originate_tls = True
+                self.name_fields.append('otls')
+            else:
+                originate_tls = False
 
-    def __init__(self):
-        self.services = set()
-        self.mappings = []
-        self.resolvers = OrderedDict()
+        elif ctx_name:
+            # No scheme (or schemes are ignored), but we have a context.
+            originate_tls = True
+            self.name_fields.append('otls')
+            self.name_fields.append(ctx_name)
 
-    def service(self, name, namespace):
-        self.services.add(f"{name}.{namespace}")
+        if '://' in service:
+            idx = service.index('://')
+            scheme = service[0:idx]
 
-    @multi
-    def load(self, source: str, namespace: str, obj: Any) -> None:
-        del source      # silence warnings
-        del namespace
+            if allow_scheme:
+                self.errors.append(f'service {service} has unknown scheme {scheme}, assuming {self.scheme}')
+            else:
+                self.errors.append(f'ignoring scheme {scheme} for service {service}, since it is being used for a non-HTTP mapping')
 
-        yield obj["kind"]
+            service = service[idx + 3:]
 
-    @load.when("Mapping", "TCPMapping")
-    def load(self, source: str, namespace: str, m: Dict[str, Any]) -> None:
-        self.mappings.append(Mapping(source, namespace, m["service"], m.get("resolver")))
+        # # XXX Should this be checking originate_tls? Why does it do that?
+        # if originate_tls and host_rewrite:
+        #     name_fields.append("hr-%s" % host_rewrite)
 
-    @load.when("ConsulResolver")
-    def load(self, source: str, namespace: str, r: Dict[str, Any]) -> None:
-        del namespace   # silence warning
+        # Parse the service as a URL. Note that we have to supply a scheme to urllib's
+        # parser, because it's kind of stupid.
 
-        self.resolvers[r["name"]] = ConsulResolver(source, r["address"], r["datacenter"])
+        logger.debug(f'Service: {original_service} otls {originate_tls} ctx {ctx_name} -> {self.scheme}, {service}')
+        p = urlparse('random://' + service)
 
-    @load.when("Module", "AuthService", "TLSContext", "KubernetesServiceResolver", "KubernetesEndpointResolver",
-               "RateLimitService", "TracingService")
-    def load(self, *args) -> None:
-        pass
+        # Is there any junk after the host?
 
-    def print_watches(self):
-        # we just watch all the endpoints for now because for some
-        # reason it is slow to watch individual ones
-        k8s_watches = [
-            {
-                "kind": "endpoints",
-                "namespace": Config.ambassador_namespace if Config.single_namespace else "",
-                "field-selector": "metadata.namespace!=kube-system"
-            }
-        ]
+        if p.path or p.params or p.query or p.fragment:
+            self.errors.append(f'service {service} has extra URL components; ignoring everything but the host and port')
 
-        consul_watches = []
+        # p is read-only, so break stuff out.
 
-        for m in self.mappings:
-            if m.resolver is not None:
-                r = self.resolvers.get(m.resolver)
+        self.hostname = p.hostname
+        self.port = p.port
 
-                if r is None:
-                    logger.error(f"mapping {m.source} has unknown resolver: {m.resolver}")
-                else:
-                    consul_watches.append(
-                        {
-                            "consul-address": r.address,
-                            "datacenter": r.datacenter,
-                            "service-name": m.service
-                        }
-                    )
+        # If the port is unset, fix it up.
+        if not self.port:
+            self.port = 443 if originate_tls else 80
 
-        watchset = {
-            "kubernetes-watches": k8s_watches,
-            "consul-watches": consul_watches
+yaml_stream = sys.stdin
+
+if len(sys.argv) > 1:
+    yaml_stream = open(sys.argv[1], "r")
+
+aconf = Config()
+fetcher = ResourceFetcher(logger, aconf)
+fetcher.parse_watt(yaml_stream.read())
+
+aconf.load_all(fetcher.sorted())
+
+mappings = aconf.get_config('mappings') or {}
+resolvers = aconf.get_config('resolvers') or {}
+contexts = aconf.get_config('tls_contexts') or {}
+secrets = aconf.get_config('secret') or {}  # 'secret', singular, is not a typo
+
+consul_watches = []
+
+for mname, mapping in mappings.items():
+    res_name = mapping.get('resolver', None)
+    ctx_name = mapping.get('tls', None)
+
+    if res_name:
+        resolver = resolvers.get(res_name, None)
+
+        if resolver:
+            if resolver.kind == 'ConsulResolver':
+                logger.debug(f'Mapping {mname} uses Consul resolver {res_name}')
+
+                svc = Service(logger, mapping.service, ctx_name)
+
+                consul_watches.append(
+                    {
+                        "id": res_name,
+                        "consul-address": resolver.address,
+                        "datacenter": resolver.datacenter,
+                        "service-name": svc.hostname
+                    }
+                )
+
+watchset = {
+    "kubernetes-watches": [
+        {
+            "kind": "endpoints",
+            "namespace": Config.ambassador_namespace if Config.single_namespace else "",
+            "field-selector": "metadata.namespace!=kube-system"
         }
+    ],
+    "consul-watches": consul_watches
+}
 
-        json.dump(watchset, sys.stdout)
+save_dir = os.environ.get('AMBASSADOR_WATCH_DIR', None)
 
+if save_dir:
+    json.dump(watchset, open(os.path.join(save_dir, 'watch.yaml'), "w"))
 
-def main(stream) -> None:
-    snapshot = json.load(stream)
-
-    # XXX: should make everything lowercase in watt
-    services = snapshot.get("Kubernetes", {}).get("service") or []
-
-    loader = Loader()
-
-    for svc in services:
-        metadata = svc.get("metadata", {})
-        namespace = metadata.get("namespace", "default")
-        name = metadata["name"]
-        loader.service(name, namespace)
-        annotations = metadata.get("annotations", {})
-        config = annotations.get("getambassador.io/config")
-        if config:
-            objs = parse_yaml(config)
-            for idx, obj in enumerate(objs):
-                source = metadata["name"] + "." + namespace + f".{idx}"
-                try:
-                    loader.load(source, namespace, obj)
-                except:
-                    logger.error("error loading object from %s: %s", source, traceback.format_exc())
-
-    loader.print_watches()
-
-
-if __name__ == "__main__":
-    main(sys.stdin)
+json.dump(watchset, sys.stdout)
