@@ -64,8 +64,6 @@ kind:  Mapping
 name:  {self.path.k8s}_k8s_mapping
 prefix: /{self.path.k8s}_k8s/
 service: {self.k8s_target.path.k8s}
-load_balancer:
-  policy: round_robin
 ---
 apiVersion: getambassador.io/v2
 kind: KubernetesServiceResolver
@@ -98,6 +96,12 @@ secret: {self.path.k8s}-client-cert-secret
 """)
 
     def queries(self):
+        # The K8s service should be OK. The Consul service should 503 because it has no upstreams
+        # in phase 1.
+        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=1)
+        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=503, phase=1)
+
+        # Register the Consul service in phase 2.
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
                     method="PUT",
                     body={
@@ -106,9 +110,12 @@ secret: {self.path.k8s}-client-cert-secret
                         "Address": "asdf.org",
                         "Service": {"Service": self.format("{self.path.k8s}-consul-service"),
                                     "Address": "asdf.org",
-                                    "Port": 80}})
-        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=2)
-        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=2)
+                                    "Port": 80}},
+                    phase=2)
+
+        # Both services should work in phase 3.
+        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)
+        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3)
 
     def check(self):
         pass

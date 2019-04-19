@@ -74,8 +74,10 @@ class V2Cluster(dict):
     def get_endpoints(self, cluster: IRCluster):
         result = []
 
-        if cluster.enable_endpoints and len(cluster.targets) > 0:
-            for target in cluster.targets:
+        targetlist = cluster.get('targets', [])
+
+        if cluster.enable_endpoints and len(targetlist) > 0:
+            for target in targetlist:
                 address = {
                     'address': target['ip'],
                     'port_value': target['port']
@@ -98,6 +100,5 @@ class V2Cluster(dict):
         config.clusters = []
 
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
-            if ircluster:
-                cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
-                config.clusters.append(cluster)
+            cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
+            config.clusters.append(cluster)
