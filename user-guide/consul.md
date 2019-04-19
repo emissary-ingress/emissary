@@ -55,10 +55,6 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
         port: 80
     ```
 
-    ```
-    kubectl apply -f ambassador-service.yaml
-    ```
-
 ## Routing to Consul Services
 
 Suppose we have a legacy service running on a VM outside of Kubernetes. This service is registered to Consul via a `Consul Agent` running on the VM and is part of the same `Consul Cluster` as your Consul installation in Kubernetes. Ambassador, running in Kubernetes, can route to these services running outside Kubernetes using their Consul service discovery endpoint. 
@@ -113,11 +109,7 @@ To demonstrate this behavior we will: register a demo application with Consul, c
 
     Note: If reading this on GitHub, use version 1.6 for QOTM.
 
-    ```
-    kubectl apply -f qotm.yaml
-    ```
-
-    This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
+    Save the above to a file called `qotm.yaml` and run `kubectl apply -f qotm.yaml`. This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
 
 2. Verify the QOTM pod has been registered with Consul. You can verify the QOTM pod is registered correctly by accessing the Consul UI.
 
@@ -128,7 +120,7 @@ To demonstrate this behavior we will: register a demo application with Consul, c
    Go to http://localhost:8500 from a web browser and you should see a service named `qotm-XXXXXXXXXX-XXXXX-consul`. 
 
 
-3. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul.
+3. Create a `Mapping` for the `qotm-consul` service. Make sure you specify the `load_balancer` annotation to configure Ambassador to route directly to the endpoint(s) from Consul. Save the following YAML to a file, and use `kubectl apply` to apply this configuration to your Kubernetes cluster.
 
    ```yaml
    ---
@@ -154,10 +146,6 @@ To demonstrate this behavior we will: register a demo application with Consul, c
    ```
    - `resolver` must be set to the `ConsulResolver` we created in the previous step
    - `load_balancer` must be set to configure Ambassador to route directly to the endpoint(s) from Consul
-
-   ```
-   kubectl apply -f consul-sd.yaml
-   ```
 
 4. Send a request to the `qotm-consul` API.
 
@@ -238,11 +226,7 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
                 cpu: "0.1"
                 memory: 100Mi
     ```
-   Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it with `kubectl`:
-
-   ```
-   kubectl apply -f qotm-consul-mtls.yaml
-   ```
+   Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls.yaml`.
 
    **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.6`.
 
@@ -285,11 +269,7 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
     - `tls` must be set to the `TLSContext` storing the Consul mTLS certificates (`ambassador-consul`)
     - `load_balancer` must be set to configure Ambassador to route directly to the endpoint(s) from Consul
 
-    Copy this YAML to a file named `qotm-consul-mtls-svc.yaml` and apply it with `kubectl`:
-
-    ```
-    kubectl apply -f qotm-consul-mtls-svc.yaml
-    ```
+    Copy this YAML to a file named `qotm-consul-mtls-svc.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls-svc.yaml`.
 
 7. Send a request to the `/qotm-consul-ssl/` API.
 
