@@ -351,12 +351,16 @@ loadtest-apply: infra/loadtest-cluster/loadtest.kubeconfig
 loadtest-deploy: ## Push images and apply YAML to the load-testing cluster
 loadtest-deploy: infra/loadtest-cluster/loadtest.kubeconfig
 	$(MAKE) KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load deploy
-.PHONY: loadtest-destroy loadtest-apply loadtest-deploy
+loadtest-clean: ## Remove loadtest files
+loadtest-clean: loadtest-destroy
+	rm -rf infra/loadtest-cluster/.terraform
+	rm -f infra/loadtest-cluster/*tfplan
+.PHONY: loadtest-%
 
 #
 # Clean
 
-clean: $(addsuffix .clean,$(wildcard docker/*.docker))
+clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
