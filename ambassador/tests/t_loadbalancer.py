@@ -44,8 +44,8 @@ service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}-0
-prefix: /{self.name}-0/
+name:  {self.name}-1
+prefix: /{self.name}-1/
 service: {self.target.path.fqdn}
 resolver:  endpoint
 load_balancer:
