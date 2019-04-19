@@ -19,6 +19,8 @@ import json
 import logging
 import os
 
+from ipaddress import ip_address
+
 from ..constants import Constants
 
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
@@ -37,7 +39,7 @@ from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
-from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory
+from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpoint, SvcEndpointSet
 
 from ..VERSION import Version, Build
 
@@ -228,8 +230,8 @@ class IR:
 
     # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
     # a common container that can hold errors.
-    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None):
-        self.aconf.post_error(rc, resource=resource)
+    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None, rkey: Optional[str]=None):
+        self.aconf.post_error(rc, resource=resource, rkey=rkey)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():
@@ -326,7 +328,28 @@ class IR:
         return ss
 
     def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
-                        hostname: str, port: int, lb: str) -> Any:
+                        hostname: str, port: int) -> Optional[SvcEndpointSet]:
+        # Is the host already an IP address?
+        is_ip_address = False
+
+        try:
+            x = ip_address(hostname)
+            is_ip_address = True
+        except ValueError:
+            pass
+
+        if is_ip_address:
+            # Already an IP address, great.
+            self.logger.debug(f'cluster {cluster.name}: {hostname} is already an IP address')
+
+            return [
+                {
+                    'ip': hostname,
+                    'port': port,
+                    'target_kind': 'IPaddr'
+                }
+            ]
+
         # Which resolver should we use?
         if not resolver_name:
             resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
@@ -335,12 +358,12 @@ class IR:
 
         # It should not be possible for resolver to be unset here.
         if not resolver:
-            self.post_error(f"cluster {cluster.name} has invalid resolver {resolver_name}?", cluster)
+            self.post_error(f"cluster {cluster.name} has invalid resolver {resolver_name}?", rkey=cluster.rkey)
             return None
 
         # OK, ask the resolver for the target list. Understanding the mechanics of resolution
         # and the load balancer policy and all that is up to the resolver.
-        return resolver.resolve(self, cluster, hostname, port, lb)
+        return resolver.resolve(self, cluster, hostname, port)
 
     def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():

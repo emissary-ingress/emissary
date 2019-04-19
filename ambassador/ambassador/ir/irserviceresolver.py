@@ -1,11 +1,11 @@
-from ipaddress import ip_address
-from typing import Any, ClassVar, Dict, List, Optional, Union, TYPE_CHECKING
-from typing import cast as typecast
+from typing import Dict, List, Optional, Union, TYPE_CHECKING
 
 import json
 import logging
 import re
 import urllib.parse
+
+from multi import multi
 
 from ..config import Config
 from ..utils import RichStatus
@@ -16,6 +16,7 @@ from .irtlscontext import IRTLSContext
 if TYPE_CHECKING:
     from .ir import IR
     from .ircluster import IRCluster
+    from .irbasemapping import IRBaseMapping
 
 #############################################################################
 ## irserviceresolver.py -- resolve endpoints for services
@@ -34,7 +35,8 @@ if TYPE_CHECKING:
 ## all get turned into IRServiceResolvers, and the IR uses those to handle
 ## the mechanics of finding the upstream endpoints for a service.
 
-IREndpointSet = Any
+SvcEndpoint = Dict[str, Union[int, str]]
+SvcEndpointSet = List[SvcEndpoint]
 
 
 class IRServiceResolver(IRResource):
@@ -66,58 +68,93 @@ class IRServiceResolver(IRResource):
 
         return True
 
-    def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int, lb: str) -> IREndpointSet:
-        keyfields = [ self.resolve_with ]
+    @multi
+    def valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping'):
+        del ir
+        del mapping
 
-        # Is this already an IP address?
-        is_ip_address = False
+        yield self.kind
 
-        try:
-            x = ip_address(svc_name)
-            is_ip_address = True
-        except ValueError:
-            pass
+    @valid_mapping.when("KubernetesServiceResolver")
+    def _k8s_svc_valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping'):
+        # You're not allowed to specific a load balancer with a KubernetesServiceResolver.
+        if mapping.get('load_balancer'):
+            mapping.post_error('No load_balancer setting is allowed with the KubernetesServiceResolver')
+            return False
 
-        if is_ip_address:
-            # Already an IP address, great.
-            self.logger.debug(f'Resolver {self.name}: {svc_name} is already an IP address')
-            return [
-                {
-                    'ip': svc_name,
-                    'port': port,
-                    'target_kind': 'IPaddr'
-                }
-            ]
+        return True
 
+    @valid_mapping.when("KubernetesEndpointResolver")
+    def _k8s_valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping'):
+        # There's no real validation to do here beyond what the Mapping already does.
+        return True
 
-        if self.resolve_with == 'k8s':
-            # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
+    @valid_mapping.when("ConsulResolver")
+    def _consul_valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping'):
+        # Mappings using the Consul resolver can't use service names with '.', or port
+        # override. We currently do this the cheap & sleazy way.
 
-            svc = svc_name
-            namespace = Config.ambassador_namespace
+        valid = True
 
-            if '.' in svc:
-                # OK, cool. Peel off the service and the namespace.
-                #
-                # Note that some people may use service.namespace.cluster.svc.local or
-                # some such crap. The [0:2] is to restrict this to just the first two
-                # elements if there are more, but still work if there are not.
+        if mapping.service.find('.') >= 0:
+            mapping.post_error('The Consul resolver does not allow dots in service names')
+            valid = False
 
-                ( svc, namespace ) = svc.split(".", 2)[0:2]
+        if mapping.service.find(':') >= 0:
+            # This is not an _error_ per se -- we'll accept the mapping and just ignore the port.
+            ir.aconf.post_notice('The Consul resolver does not allow overriding service port; ignoring requested port',
+                                 resource=mapping)
 
-            keyfields.append(svc)
-            keyfields.append(namespace)
-        elif self.resolve_with == 'consul':
-            keyfields.append(svc_name)
-            keyfields.append(self.datacenter)
-        else:
-            # "Impossible."
-            self.post_error(f'resolver {self.name} is neither Kubernetes nor Consul?')
-            return None
+        return valid
 
+    @multi
+    def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+        del ir      # silence warnings
+        del cluster
+        del svc_name
+        del port
+
+        yield self.kind
+
+    @resolve.when("KubernetesServiceResolver")
+    def _k8s_svc_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+        # The K8s service resolver always returns a single endpoint.
+
+        return [ {
+            'ip': svc_name,
+            'port': port,
+            'target_kind': 'DNSname'
+        } ]
+
+    @resolve.when("KubernetesEndpointResolver")
+    def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+        # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
+
+        svc = svc_name
+        namespace = Config.ambassador_namespace
+
+        if '.' in svc:
+            # OK, cool. Peel off the service and the namespace.
+            #
+            # Note that some people may use service.namespace.cluster.svc.local or
+            # some such crap. The [0:2] is to restrict this to just the first two
+            # elements if there are more, but still work if there are not.
+
+            (svc, namespace) = svc.split(".", 2)[0:2]
+
+        # Find endpoints, and try for a port match!
+        return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
+
+    @resolve.when("ConsulResolver")
+    def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+        # For Consul, we look things up with the service name and the datacenter at present.
+        # We ignore the port in the lookup (we should've already posted a warning about the port
+        # being present, actually).
+
+        return self.get_endpoints(ir, f'consul-{svc_name}-{self.datacenter}', None)
+
+    def get_endpoints(self, ir: 'IR', key: str, port: Optional[int]) -> Optional[SvcEndpointSet]:
         # OK. Do we have a Service by this key?
-        key = "-".join(keyfields)
-
         service = ir.services.get(key)
 
         if not service:
@@ -132,14 +169,9 @@ class IRServiceResolver(IRResource):
             self.logger.debug(f'Resolver {self.name}: {key} has no endpoints')
             return None
 
-        # If this is a Kubernetes resolver, try to find a port match. If not, assume
-        # that we don't need to.
+        # Do we have a match for the port they're asking for (y'know, if they're asking for one)?
 
-        search_port = port if (self.resolve_with == 'k8s') else '*'
-
-        # Do we have a match for the port they're asking for?
-
-        targets = endpoints.get(search_port)
+        targets = endpoints.get(port or '*')
 
         if targets:
             # Yes!

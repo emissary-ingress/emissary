@@ -374,8 +374,6 @@ class ResourceFetcher:
         metadata = k8s_object.get('metadata', None)
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
-        spec = k8s_object.get('spec', None)
-        ports = spec.get('ports', None) if spec else None
 
         annotations = metadata.get('annotations', None) if metadata else None
         if annotations:
@@ -387,16 +385,8 @@ class ResourceFetcher:
             self.logger.debug("ignoring K8s Service with no metadata")
             skip = True
 
-        if not resource_name:
+        if not skip and not resource_name:
             self.logger.debug("ignoring K8s Service with no name")
-            skip = True
-
-        if not spec:
-            self.logger.debug(f"ignoring K8s Service {resource_name}.{resource_namespace} with no spec")
-            skip = True
-
-        if not ports:
-            self.logger.debug(f"ignoring K8s Service {resource_name}.{resource_namespace} with no ports")
             skip = True
 
         if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace)):
@@ -411,13 +401,20 @@ class ResourceFetcher:
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
         resource_identifier = f'{resource_name}.{resource_namespace}'
 
-        # Not skipping. Stash this in self.k8s_services for later resolution.
+        # Not skipping. First, if we have some actual ports, stash this in self.k8s_services
+        # for later resolution.
 
-        self.k8s_services[resource_identifier] = {
-            'name': resource_name,
-            'namespace': resource_namespace,
-            'ports': ports
-        }
+        spec = k8s_object.get('spec', None)
+        ports = spec.get('ports', None) if spec else None
+
+        if spec and ports:
+            self.k8s_services[resource_identifier] = {
+                'name': resource_name,
+                'namespace': resource_namespace,
+                'ports': ports
+            }
+        else:
+            self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 
         objects = []
 
@@ -511,15 +508,18 @@ class ResourceFetcher:
             self.logger.debug(f"ignoring Consul service {name} with no Endpoints")
             return None
 
-        # We can turn this directly into an Ambassador Service resource. (Why? because
-        # Consul keeps services and endpoints together, as it should!!)
+        # We can turn this directly into an Ambassador Service resource, since Consul keeps
+        # services and endpoints together (as it should!!).
+        #
+        # Note that we currently trust the association ID to contain the datacenter name.
+        # That's a function of the watch_hook putting it there.
 
         svc = {
             'apiVersion': 'ambassador/v1',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
             'name': name,
-            'datacenter': consul_object.get('datacenter') or 'dc1',
+            'datacenter': consul_object.get('id') or 'dc1',
             'endpoints': {}
         }
 

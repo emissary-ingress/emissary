@@ -267,7 +267,10 @@ class Config:
         self.logger.info("%s: NOTICE: %s" % (rkey, msg))
 
     @multi
-    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None) -> str:
+    def post_error(self, msg: Union[RichStatus, str], resource: Optional[Resource]=None, rkey: Optional[str]=None) -> str:
+        del resource    # silence warnings
+        del rkey
+
         if isinstance(msg, RichStatus):
             return 'RichStatus'
         elif isinstance(msg, str):
@@ -276,31 +279,28 @@ class Config:
             return type(msg).__name__
 
     @post_error.when('string')
-    def post_error_string(self, msg: str, resource: Optional[Resource]=None):
+    def post_error_string(self, msg: str, resource: Optional[Resource]=None, rkey: Optional[str]=None):
         rc = RichStatus.fromError(msg)
 
         self.post_error(rc, resource=resource)
 
     @post_error.when('RichStatus')
-    def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None):
+    def post_error_richstatus(self, rc: RichStatus, resource: Optional[Resource]=None, rkey: Optional[str]=None):
         if resource is None:
             resource = self.current_resource
 
-        rkey = '-global-'
+        if not rkey:
+            rkey = '-global-'
 
-        if resource is not None:
-            rkey = resource.rkey
-            # resource.post_error(rc)
+            if resource is not None:
+                rkey = resource.rkey
 
-            if isinstance(resource, ACResource):
-                self.save_source(resource)
-        # elif not unparsed_resource:
-        #     raise Exception("FATAL: trying to post an error from a totally unknown resource??")
+                if isinstance(resource, ACResource):
+                    self.save_source(resource)
 
-        # XXX Probably don't need this data structure, since we can walk the source
-        # list and get them all.
         errors = self.errors.setdefault(rkey, [])
         errors.append(rc.as_dict())
+
         self.logger.error("%s: %s" % (rkey, rc))
 
     def process(self, resource: ACResource) -> RichStatus:

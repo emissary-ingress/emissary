@@ -61,7 +61,8 @@ class AmbassadorTest(Test):
     name: Name
     path: Name
     extra_ports: Optional[List[int]] = None
-
+    debug_diagd: bool = False
+    
     env = []
 
     def manifests(self) -> str:
@@ -193,6 +194,9 @@ class AmbassadorTest(Test):
 
         if self.disable_endpoints:
             envs.append("AMBASSADOR_DISABLE_ENDPOINTS=yes")
+
+        if self.debug_diagd:
+            envs.append("AMBASSADOR_DEBUG=diagd")
 
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]
