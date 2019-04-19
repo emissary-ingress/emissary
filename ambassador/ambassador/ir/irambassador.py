@@ -29,6 +29,7 @@ class IRAmbassador (IRResource):
         'liveness_probe',
         'load_balancer',
         'readiness_probe',
+        'resolver',
         'server_name',
         'service_port',
         'statsd',
