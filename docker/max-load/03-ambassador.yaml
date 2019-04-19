@@ -124,6 +124,8 @@ metadata:
   name: ambassador{{$ambassadorSuffix}}
 spec:
   replicas: 3
+  strategy:
+    type: Recreate
   template:
     metadata:
       annotations:
