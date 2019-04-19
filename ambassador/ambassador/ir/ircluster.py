@@ -38,18 +38,6 @@ if TYPE_CHECKING:
 
 
 class IRCluster (IRResource):
-    # TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
-    #     "auto_host_rewrite": True,
-    #     "case_sensitive": True,
-    #     "enable_ipv4": True,
-    #     "enable_ipv6": True,
-    #     "envoy_override": True,
-    #     "host_rewrite": True,
-    #     "path_redirect": True,
-    #     "priority": True,
-    #     "timeout_ms": True,
-    # }
-
     def __init__(self, ir: 'IR', aconf: Config,
                  location: str,  # REQUIRED
 
@@ -199,9 +187,6 @@ class IRCluster (IRResource):
 
         self.logger.debug(f"Load balancer for {url} is {load_balancer}")
 
-        # Resolve this to a set of targets.
-        targets = ir.resolve_targets(self, resolver, hostname, port, load_balancer)
-
         enable_endpoints = False
 
         if self.endpoints_required(load_balancer):
@@ -209,14 +194,13 @@ class IRCluster (IRResource):
                 # Bzzt.
                 errors.append(f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}")
                 load_balancer = global_load_balancer
-            elif targets:
-                # Good to go.
+            else:
                 enable_endpoints = True
                 lb_type = load_balancer.get('policy')
 
                 key_fields = ['er', lb_type.lower()]
 
-                # XXX LOAD_BALANCER HACK
+                # XXX Should we really include these things?
                 if 'header' in load_balancer:
                     key_fields.append('hdr')
                     key_fields.append(load_balancer['header'])
@@ -229,8 +213,6 @@ class IRCluster (IRResource):
                     key_fields.append('srcip')
 
                 name_fields.append("-".join(key_fields))
-            else:
-                self.logger.debug("No endpoints found. Endpoint routing misconfigured, not enabling endpoint routing")
 
         # Finally we can construct the cluster name.
         name = "_".join(name_fields)
@@ -252,13 +234,12 @@ class IRCluster (IRResource):
             "type": dns_type,
             "lb_type": lb_type,
             "urls": [ url ],
-            "targets": targets,
             "load_balancer": load_balancer,
             "service": service,
             'enable_ipv4': enable_ipv4,
             'enable_ipv6': enable_ipv6,
             'enable_endpoints': enable_endpoints,
-            'connect_timeout_ms': connect_timeout_ms
+            'connect_timeout_ms': connect_timeout_ms,
         }
 
         if grpc:
@@ -276,6 +257,11 @@ class IRCluster (IRResource):
         if rkey == '-override-':
             rkey = name
 
+        # Stash the resolver, hostname, and port for setup.
+        self._resolver = resolver
+        self._hostname = hostname
+        self._port = port
+
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
@@ -288,6 +274,24 @@ class IRCluster (IRResource):
         if errors:
             for error in errors:
                 ir.post_error(error, resource=self)
+
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Resolve our actual targets.
+        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._port)
+
+        if targets:
+            # Great.
+            self.targets = targets
+        else:
+            self.post_error("no endpoints found, disabling cluster")
+
+            # This is a legit error. If we can't find _anything_ to route to, something is
+            # badly broken. (Note that the KubernetesServiceResolver will return a single
+            # endpoint with the DNS name of the service as the address, so it's not a special
+            # case here.)
+            return False
+
+        return True
 
     def endpoints_required(self, load_balancer) -> bool:
         required = False
@@ -322,8 +326,14 @@ class IRCluster (IRResource):
             return False
 
         # All good.
-        for url in other.urls:
-            self.add_url(url)
+        if other.urls:
             self.referenced_by(other)
+
+            for url in other.urls:
+                self.add_url(url)
+
+        if other.targets:
+            self.referenced_by(other)
+            self.targets += other.targets
 
         return True

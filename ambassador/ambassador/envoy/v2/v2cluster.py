@@ -98,6 +98,6 @@ class V2Cluster(dict):
         config.clusters = []
 
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
-            cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
-            config.clusters.append(cluster)
-
+            if ircluster:
+                cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
+                config.clusters.append(cluster)

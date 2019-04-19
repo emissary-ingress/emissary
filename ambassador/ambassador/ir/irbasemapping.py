@@ -45,8 +45,15 @@ class IRBaseMapping (IRResource):
         if not self.get('resolver'):
             self.resolver = self.ir.ambassador_module.get('resolver', 'kubernetes-service')
 
-        if not self.ir.get_resolver(self.resolver):
+        resolver = self.ir.get_resolver(self.resolver)
+
+        if not resolver:
             self.post_error(f'resolver {self.resolver} is unknown!')
+            return False
+
+        # And, of course, we can make sure that the resolver thinks that this Mapping is OK.
+        if not resolver.valid_mapping(ir, self):
+            # If there's trouble, the resolver should've already posted about it.
             return False
 
         return True
