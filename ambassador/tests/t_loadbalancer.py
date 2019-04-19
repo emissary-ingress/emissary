@@ -38,90 +38,86 @@ class LoadBalancerTest(AmbassadorTest):
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}-1
-prefix: /{self.name}-1/
+name:  {self.name}-0
+prefix: /{self.name}-0/
 service: {self.target.path.fqdn}
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-0
+prefix: /{self.name}-0/
+service: {self.target.path.fqdn}
+resolver:  endpoint
 load_balancer:
   policy: round_robin
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-2
 prefix: /{self.name}-2/
 service: {self.target.path.fqdn}
+resolver: endpoint
 load_balancer:
   policy: ring_hash
   header: test-header
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-3
 prefix: /{self.name}-3/
 service: {self.target.path.fqdn}
+resolver: endpoint
 load_balancer:
   policy: ring_hash
   source_ip: True
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-4
 prefix: /{self.name}-4/
 service: {self.target.path.fqdn}
+resolver: endpoint
 load_balancer:
   policy: ring_hash
   cookie:
     name: test-cookie
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-5
 prefix: /{self.name}-5/
 service: {self.target.path.fqdn}
+resolver: endpoint
 load_balancer:
   policy: ring_hash
   cookie:
     name: test-cookie
   header: test-header
   source_ip: True
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-6
 prefix: /{self.name}-6/
 service: {self.target.path.fqdn}
+resolver: endpoint
 load_balancer:
   policy: round_robin
   cookie:
     name: test-cookie
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-7
 prefix: /{self.name}-7/
 service: {self.target.path.fqdn}
+resolver: endpoint
 load_balancer:
   policy: rr
 """)
 
     def queries(self):
+        yield Query(self.url(self.name + "-0/"))
         yield Query(self.url(self.name + "-1/"))
         yield Query(self.url(self.name + "-2/"))
         yield Query(self.url(self.name + "-3/"))
@@ -166,12 +162,10 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config:
+  resolver: endpoint
   load_balancer:
     policy: ring_hash
     header: LB-HEADER
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -182,9 +176,6 @@ load_balancer:
   policy: ring_hash
   cookie:
     name: lb-cookie
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
