@@ -313,45 +313,40 @@ kind:  Mapping
 name:  {self.name}-header-{self.policy}
 prefix: /{self.name}-header-{self.policy}/
 service: permappingloadbalancing-service
+resolver: endpoint
 load_balancer:
   policy: {self.policy}
   header: LB-HEADER
-""")
-
-            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-sourceip-{self.policy}
 prefix: /{self.name}-sourceip-{self.policy}/
 service: permappingloadbalancing-service
+resolver: endpoint
 load_balancer:
   policy: {self.policy}
   source_ip: true
-""")
-
-            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-cookie-{self.policy}
 prefix: /{self.name}-cookie-{self.policy}/
 service: permappingloadbalancing-service
+resolver: endpoint
 load_balancer:
   policy: {self.policy}
   cookie:
     name: lb-cookie
     ttl: 125s
     path: /foo
-""")
-
-            yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-cookie-no-ttl-{self.policy}
 prefix: /{self.name}-cookie-no-ttl-{self.policy}/
 service: permappingloadbalancing-service
+resolver: endpoint
 load_balancer:
   policy: {self.policy}
   cookie:
