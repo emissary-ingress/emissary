@@ -22,18 +22,6 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
 
     ```yaml
     ---
-    apiVersion: ambassador/v2
-    kind: ConsulResolver
-    name: consul-dc1
-    address: consul-server:8500
-    datacenter: dc1
-    ```
-    This will tell Ambassador that Consul is a service discovery endpoint. You will then need to set `resolver: consul-dc1` in the `Mapping` to tell Ambassador to look in Consul for the service. Review the [Resolvers](/reference/core/resolvers) documentation for more information.
-    
-    Since this is a system-wide configuration, it is recommended to put this annotation in your Ambassador service:
-
-    ```yaml
-    ---
     apiVersion: v1
     kind: Service
     metadata:
@@ -54,6 +42,8 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
       - name: http
         port: 80
     ```
+
+    This will tell Ambassador that Consul is a service discovery endpoint. Review the [Resolvers](/reference/core/resolvers) documentation for more information. Make sure you apply this configuration with `kubectl apply`.
 
 ## Routing to Consul Services
 
