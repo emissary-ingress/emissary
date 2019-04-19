@@ -128,9 +128,12 @@ for mname, mapping in mappings.items():
 
                 svc = Service(logger, mapping.service, ctx_name)
 
+                # At the moment, we stuff the resolver's datacenter into the association
+                # ID for this watch. The ResourceFetcher relies on that.
+
                 consul_watches.append(
                     {
-                        "id": res_name,
+                        "id": resolver.datacenter,
                         "consul-address": resolver.address,
                         "datacenter": resolver.datacenter,
                         "service-name": svc.hostname

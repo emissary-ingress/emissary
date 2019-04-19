@@ -511,15 +511,18 @@ class ResourceFetcher:
             self.logger.debug(f"ignoring Consul service {name} with no Endpoints")
             return None
 
-        # We can turn this directly into an Ambassador Service resource. (Why? because
-        # Consul keeps services and endpoints together, as it should!!)
+        # We can turn this directly into an Ambassador Service resource, since Consul keeps
+        # services and endpoints together (as it should!!).
+        #
+        # Note that we currently trust the association ID to contain the datacenter name.
+        # That's a function of the watch_hook putting it there.
 
         svc = {
             'apiVersion': 'ambassador/v1',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
             'name': name,
-            'datacenter': consul_object.get('datacenter') or 'dc1',
+            'datacenter': consul_object.get('id') or 'dc1',
             'endpoints': {}
         }
 
