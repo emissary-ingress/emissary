@@ -104,3 +104,5 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       restartPolicy: Always
+      securityContext:
+        runAsUser: 8888
