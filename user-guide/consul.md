@@ -4,7 +4,7 @@
 
 ## Getting started
 
-**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:0.60.0-rc1`.
+**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:0.60.0-rc2`.
 
 In this guide, we will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
 
@@ -105,16 +105,16 @@ We'll now register a demo application with Consul, and show how Ambassador can r
    kubectl port-forward service/consul-ui 8500:80
    ```
 
-   Go to http://localhost:8500 from a web browser and you should see a service named `qotm-XXXXXXXXXX-XXXXX-consul`. 
+   Go to http://localhost:8500 from a web browser and you should see a service named `qotm-consul`. 
 
-3. Create a `Mapping` for the `qotm-consul` service. Replace the name of the `service` below with the real name of the service that you get from Consul. Save the following YAML to a file, and use `kubectl apply` to apply this configuration to your Kubernetes cluster.
+3. Create a `Mapping` for the `qotm-consul` service. Save the following YAML to a file, and use `kubectl apply` to apply this configuration to your Kubernetes cluster.
 
    ```yaml
    ---
    apiVersion: v1
    kind: Service
    metadata:
-     name: consul-sd
+     name: qotm-consul
      annotations:
        getambassador.io/config: |
          ---
@@ -122,7 +122,7 @@ We'll now register a demo application with Consul, and show how Ambassador can r
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
-         service: qotm-XXXXXXXXXX-XXXXX-consul
+         service: qotm-consul
          resolver: consul-dc1
          load_balancer: 
            policy: round_robin
@@ -151,7 +151,7 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
 1. The Ambassador Consul connector retrieves the TLS certificate issued by the Consul CA and stores it in a Kubernetes secret for Ambassador to use. Deploy the Ambassador Consul Connector with `kubectl`:
 
    ```
-   kubectl apply -f https://getambassador.io/yaml/ambassador/consul/ambassador-consul-connector.yaml
+   kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
    ```
    
    Which will install:
