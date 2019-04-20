@@ -171,7 +171,7 @@ Where everything except for the `service` is optional.
 - `scheme` can be either `http` or `https`; if not present, the default is `http`.
 - `service` is the name of a service (typically the service name in Kubernetes or Consul); it is not allowed to contain the `.` character. 
 - `namespace` is the namespace in which the service is running. If not supplied, it defaults to the namespace in which Ambassador is running. When using a Consul resolver, `namespace` is not allowed.
-- `port` is the port to which a request should be sent. If not specified, it defaults to `80` when the scheme is `http` or `443` when the scheme is `https`. Note that the [resolver](/reference/core/resolvers) may return a port; if specified, the `port` value will override whatever is returned from the resolver.
+- `port` is the port to which a request should be sent. If not specified, it defaults to `80` when the scheme is `http` or `443` when the scheme is `https`. Note that the [resolver](/reference/core/resolvers) may return a port in which case the `port` setting is ignored.
 
 Note that while using `service.namespace.svc.cluster.local` may work for Kubernetes resolvers, the preferred syntax is `service.namespace`.
 
