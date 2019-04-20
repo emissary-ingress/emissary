@@ -56,6 +56,7 @@ spec:
   externalTrafficPolicy: Local
   ports:
    - port: 80
+     targetPort: 8080
   selector:
     service: ambassador
 ```

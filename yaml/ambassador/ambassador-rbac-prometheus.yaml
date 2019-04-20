@@ -139,3 +139,5 @@ spec:
           mountPath: /statsd-exporter/
           readOnly: true
       restartPolicy: Always
+      securityContext:
+        runAsUser: 8888
