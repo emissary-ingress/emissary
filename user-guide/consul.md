@@ -197,7 +197,7 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
     ```
    Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls.yaml`.
 
-   **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.6`.
+   **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.7`.
 
    This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the service with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
 
@@ -222,8 +222,8 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
           ---
           apiVersion: ambassador/v2
           kind: Mapping
-          name: consul_qotm_ssl_mapping
-          prefix: /qotm-consul-ssl/
+          name: consul_qotm_tls_mapping
+          prefix: /qotm-consul-tls/
           service: qotm-proxy:20000
           resolver: consul-dc1
           tls: ambassador-consul
