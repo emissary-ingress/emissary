@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-pro-consul-connect
+  name: ambassador-consul-connect
 rules:
   - apiGroups: [""]
     resources:
@@ -12,19 +12,19 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador-pro-consul-connect
+  name: ambassador-consul-connect
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-pro-consul-connect
+  name: ambassador-consul-connect
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-pro-consul-connect
+  name: ambassador-consul-connect
 subjects:
   - kind: ServiceAccount
-    name: ambassador-pro-consul-connect
+    name: ambassador-consul-connect
     namespace: default
 ---
 apiVersion: v1
@@ -49,7 +49,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ambassador-pro-consul-connect-integration
+  name: ambassador-consul-connect-integration
   labels:
     app: ambassador-pro
     component: consul-connect
@@ -69,9 +69,7 @@ spec:
       annotations:
         "consul.hashicorp.com/connect-inject": "false"
     spec:
-      serviceAccountName: ambassador-pro-consul-connect
-      imagePullSecrets:
-        - name: ambassador-pro-registry-credentials
+      serviceAccountName: ambassador-consul-connect
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
