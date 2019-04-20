@@ -30,12 +30,6 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
         getambassador.io/config: |
           ---
           apiVersion: ambassador/v2
-          kind: Module
-          name: ambassador
-          config:
-            service_port: 8080
-          ---
-          apiVersion: ambassador/v2
           kind: ConsulResolver
           name: consul-dc1
           address: consul-server:8500
