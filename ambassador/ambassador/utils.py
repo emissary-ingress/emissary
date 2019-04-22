@@ -354,10 +354,11 @@ class SecretHandler:
     source_root: str
     cache_dir: str
 
-    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str) -> None:
+    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str, version: str) -> None:
         self.logger = logger
         self.source_root = source_root
         self.cache_dir = cache_dir
+        self.version = version
 
     def load_secret(self, context: 'IRTLSContext',
                     secret_name: str, namespace: str) -> Optional[SecretInfo]:
@@ -386,11 +387,11 @@ class SecretHandler:
             except FileExistsError:
                 pass
 
-            cert_path = os.path.join(secret_dir, "tls.crt")
+            cert_path = os.path.join(secret_dir, f'tls-{self.version}.crt')
             open(cert_path, "w").write(cert)
 
             if key:
-                key_path = os.path.join(secret_dir, "tls.key")
+                key_path = os.path.join(secret_dir, f'tls-{self.version}.key')
                 open(key_path, "w").write(key)
 
             cert_data = {
