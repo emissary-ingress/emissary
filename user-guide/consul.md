@@ -4,8 +4,6 @@
 
 ## Getting started
 
-**Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:0.60.0-rc2`.
-
 In this guide, you will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
 
 1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center. 
@@ -96,8 +94,6 @@ You'll now register a demo application with Consul, and show how Ambassador can 
                 cpu: "0.1"
                 memory: 100Mi
     ```
-
-   **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.7`.
 
     Save the above to a file called `qotm.yaml` and run `kubectl apply -f qotm.yaml`. This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
 
@@ -199,8 +195,6 @@ This will install into your cluster:
                 memory: 100Mi
     ```
    Copy this YAML in a file called `qotm-consul-mtls.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls.yaml`.
-
-   **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.7`.
 
    This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
 
