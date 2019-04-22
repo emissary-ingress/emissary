@@ -68,6 +68,8 @@ $ kubectl apply -f ambassador-service.yaml
 
 The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
 
+If you have a static IP provided by your cloud provider you can set as `loadBalancerIP`.
+
 ## 3. Creating your first route
 
 Create the following YAML and put it in a file called `httpbin.yaml`.

@@ -96,7 +96,7 @@ config:
 # mapping. Defaults to round robin with Kubernetes.
 # More information at the [load balancer reference](/reference/core/load-balancer)
 # load_balancer:
-#   policy: round_robin/ring_hash
+#   policy: round_robin/ring_hash/maglev
 #   ...
 
 # Set default CORS configuration for all mappings in the cluster. See 
@@ -108,11 +108,26 @@ config:
 #   ...
 ```
 
+### Overriding Default Ports
+
+By default, Ambassador listens for HTTP or HTTPS traffic on ports 80 or 443 respectively. This value can be overridden by setting the `service_port` in the Ambassador `Module`. 
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  service_port: 8080
+```
+
+This will configure Ambassador to listen for traffic on port 8080 instead of 80. 
+
 ### Lua Scripts (`lua_scripts`)
 
 Ambassador supports the ability to inline Lua scripts that get run on every request. This is useful for simple use cases that mutate requests or responses, e.g., add a custom header. Here is a sample:
 
-```
+```yaml
 ---
 apiVersion: ambassador/v1
 kind: Module

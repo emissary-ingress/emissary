@@ -25,6 +25,8 @@
         link: /user-guide/bare-metal
       - title: Ambassador Pro
         link: /user-guide/ambassador-pro-install
+      - title: Upgrading to Ambassador Pro
+        link: /user-guide/upgrade-to-pro
       - title: Early Access Releases
         link: /user-guide/early-access
       - title: Certified Builds
@@ -35,6 +37,8 @@
   items:
     - title: Ambassador Architecture
       link: /concepts/architecture
+    - title: Ambassador Deployment Architecture
+      link: /concepts/ambassador-deployment
     - title: Continuous Delivery, Declarative Config, and GitOps
       link: /user-guide/cd-declarative-gitops
     - title: Microservices API Gateways
@@ -146,10 +150,18 @@
               link: /reference/services/rate-limit-service
             - title: Tracing
               link: /reference/services/tracing-service
+        - title: IDP Support
+          items:
+            - title: Auth0
+              link: /reference/idp-support/auth0
+            - title: Keycloak
+              link: /reference/idp-support/keycloak
+            - title: Okta
+              link: /reference/idp-support/okta
+            - title: User Account and Authentication (UAA)
+              link: /reference/idp-support/uaa
         - title: Filters
           link: /reference/filter-reference
-        - title: Advanced configuration topics
-          link: /reference/advanced
     - title: Running Ambassador
       link: /reference/running
       items:

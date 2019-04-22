@@ -76,6 +76,10 @@ config:
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
+## `alpn_protocols`
+
+The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over TLS, set `alpn_protocols: h2`. If you need to support HTTP/2 upgrade from HTTP/1, set `alpn_protocols: h2,http/1.1` in the configuration.
+
 ## Redirecting from cleartext to TLS
 
 The most common case requiring a `tls` module is redirecting cleartext traffic on port 80 to HTTPS on port 443, which can be done with the following configuration:

@@ -60,7 +60,7 @@ You will need to tell Ambassador to use the certificate issued by Consul for `mT
   ---
   apiVersion: ambassador/v1
   kind: TLSContext
-  name: ambassador-consul-connect
+  name: ambassador-consul
   hosts: []
   secret: ambassador-consul-connect
   ```

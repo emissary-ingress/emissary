@@ -17,15 +17,23 @@ Note that requesting a certificate _requires_ a `Common Name` (`CN`) for your Am
 
 ## 2. You'll need a DNS name.
 
-As noted above, the DNS name must match the `CN` in the certificate. The simplest way to manage this is to create an `ambassador` Kubernetes service up front, before you do anything else, so that you can point DNS to whatever Kubernetes gives you for it -- then don't delete the `ambassador` service, even if you later need to update it or delete and recreate the `ambassador` deployment.
+As noted above, the DNS name must match the `CN` in the certificate. The simplest way to manage this is to create an `ambassador` Kubernetes service up front, before you do anything else, so that you can point DNS to whatever IP Kubernetes assignes to it -- then don't delete the `ambassador` service, even if you later need to update it or delete and recreate the `ambassador` deployment.
+
+Alternatively you can request a static IP from your cloud provider and set it as `loadBalancerIP` in the service created below.
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
 ```
 
-will create a minimal `ambassador` service for this purpose; you can then use its external appearance to configure either a `CNAME` or an `A` record in DNS. Make sure that there's a matching `PTR` record, too.
+will create a minimal `ambassador` service for this purpose. You can then use its external IP address to configure either a `CNAME` or an `A` record in DNS. Make sure that there's a matching `PTR` record, too.
 
 It's OK to include annotations on the `ambassador` service at this point, if you need to configure additional TLS options (see below for more on this).
+
+Once assigned the external IP can be checked with:
+
+```shell
+kubectl get svc -o wide ambassador
+```
 
 ## 3. You'll need to store the certificate in a Kubernetes `secret`.
 
@@ -129,23 +137,7 @@ config:
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
 
-Of these, `redirect_cleartext_from` is the most likely to be relevant: to make Ambassador redirect HTTP traffic on port 80 to HTTPS on port 443:
-
-```yaml
----
-apiVersion: ambassador/v1
-kind: Module
-name: tls
-config:
-  server:
-    enabled: True
-    redirect_cleartext_from: 80
-    secret: ambassador-certs
-```
-
-is the minimal YAML to do this.
-
-In terms of the `tls` module, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
+In terms of the tls `Module`, it's simplest to include it as an `annotation` on the `ambassador` service itself, like so:
 
 ```yaml
 apiVersion: v1
@@ -176,6 +168,41 @@ spec:
 
 **Important.** Note that the name of the Module is case-sensitive! It must be `name: tls` as opposed to `name: TLS`.
 
+## Redirecting Cleartext
+
+Ambassador can only fully serve traffic for either HTTP or HTTPS traffic. Ambassador can however be configured to issue a 301 redirect for all cleartext traffic received on a port. This port is specified by `redirect_cleartext_from` and should be set to whichever port Ambassador is expecting to see HTTP traffic from (typically 80).
+
+To redirect HTTP traffic on port 80 to HTTPS on port 443:
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: Module
+name: tls
+config:
+  server:
+    enabled: True
+    redirect_cleartext_from: 80
+    secret: ambassador-certs
+```
+
+## Overriding Default Ports
+
+By default, Ambassador will listen for HTTPS on port 443 when the TLS `Module` is configured. If you would like Ambassador to listen on a different port (i.e. 8443), you will need to configure this in the [Ambassador `Module`](/reference/core/ambassador). 
+
+```yaml
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config: 
+  service_port: 8443
+```
+
 ## Certificate Manager
 
 Jetstack's [cert-manager](https://github.com/jetstack/cert-manager) lets you easily provision and manage TLS certificates on Kubernetes. See documentation on using [cert-manager with Ambassador](/user-guide/cert-manager).
+
+## Supporting multiple domains
+
+With the setup from above it is not possible to supply separate certificates for different domains.
+This can be achieved with Ambassador's [SNI support](/user-guide/sni).

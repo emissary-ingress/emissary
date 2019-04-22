@@ -4,7 +4,7 @@ Ambassador is a Kubernetes-native API gateway for microservices. Ambassador is d
 
 Ambassador and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through Ambassador, which then routes the traffic to Istio-powered services. Ambassador handles authentication, edge routing, TLS termination, and other traditional edge functions.
 
-This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador) combined with a state-of-the-art service mesh (Istio). Istio's basic [ingress controller](https://istio.io/docs/tasks/traffic-management/ingress.html) is very limited, and has no support for authentication or many of the other features of Ambassador.
+This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador) combined with a state-of-the-art service mesh (Istio). While Istio has introduced a [Gateway](https://istio.io/docs/tasks/traffic-management/ingress/#configuring-ingress-using-an-istio-gateway) abstraction, Ambassador still has a much broader feature set for edge routing than Istio. For more on this topic, see https://blog.getambassador.io/api-gateway-vs-service-mesh-104c01fa4784.
 
 ## Getting Ambassador Working With Istio
 
@@ -265,8 +265,7 @@ If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingS
       config: {}
 ```
 
-*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`.  
-Please see [Distributed Tracing](https://www.getambassador.io/reference/services/tracing-service) for more details on Tracing configuration.
+*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](https://www.getambassador.io/reference/services/tracing-service) for more details on Tracing configuration.
 
 ## Monitoring/Statistics Integration
 
