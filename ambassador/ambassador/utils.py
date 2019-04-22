@@ -379,7 +379,16 @@ class SecretHandler:
         key_path = None
         cert_data = None
 
+        h = hashlib.new('sha1')
+
         if cert:
+            h.update(cert.encode('utf-8'))
+
+            if key:
+                h.update(key.encode('utf-8'))
+
+            hd = h.hexdigest().upper()
+
             secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
 
             try:
@@ -387,11 +396,11 @@ class SecretHandler:
             except FileExistsError:
                 pass
 
-            cert_path = os.path.join(secret_dir, f'tls-{self.version}.crt')
+            cert_path = os.path.join(secret_dir, f'{hd}.crt')
             open(cert_path, "w").write(cert)
 
             if key:
-                key_path = os.path.join(secret_dir, f'tls-{self.version}.key')
+                key_path = os.path.join(secret_dir, f'{hd}.key')
                 open(key_path, "w").write(key)
 
             cert_data = {
