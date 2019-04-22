@@ -66,7 +66,7 @@ service: https://{self.target.path.fqdn}
 retry_policy:
   retry_on: "5xx"
   num_retries: 3
-  per_try_timeout: "500ms"
+  per_try_timeout: "0.5s"
 """)
 
     def queries(self):
