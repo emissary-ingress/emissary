@@ -124,7 +124,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
      annotations:
        getambassador.io/config: |
          ---
-         apiVersion: ambassador/v2
+         apiVersion: ambassador/v1
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
@@ -225,7 +225,7 @@ This will install into your cluster:
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v2
+          apiVersion: ambassador/v1
           kind: Mapping
           name: consul_qotm_tls_mapping
           prefix: /qotm-consul-tls/
