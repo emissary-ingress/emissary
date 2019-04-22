@@ -32,7 +32,7 @@ The Kubernetes Service Resolver configures Ambassador to use Kubernetes services
 
 ```yaml
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador/v1
 kind: KubernetesServiceResolver
 name: kubernetes-service
 ```
@@ -43,7 +43,7 @@ The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes end
 
 ```yaml
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador/v1
 kind: KubernetesEndpointResolver
 name: endpoint
 ```
@@ -54,7 +54,7 @@ The Consul Resolver configures Ambassador to use Consul for service discovery. W
 
 ```yaml
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador/v1
 kind: ConsulResolver
 name: consul-dc1
 address: consul-server.svc.:8500
