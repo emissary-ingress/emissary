@@ -25,9 +25,7 @@ metadata:
   namespace: default
 spec:
   serviceAccountName: prometheus-operator
-  serviceMonitorSelector:
-    matchLabels:
-      ambassador: monitoring
+  serviceMonitorSelector: {}
   resources:
     requests:
       memory: 400Mi
