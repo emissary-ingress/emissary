@@ -168,7 +168,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path)
+        secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path, 0)
 
         ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
@@ -296,7 +296,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path)
+            secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path, 0)
 
             ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 

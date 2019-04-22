@@ -611,7 +611,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
-        scc = FSSecretHandler(app.logger, path, app.snapshot_path)
+        scc = FSSecretHandler(app.logger, path, app.snapshot_path, 0)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -656,7 +656,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
             # return
 
-        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path)
+        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -689,7 +689,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
         # the secrets that watt sends.
-        scc = SecretHandler(app.logger, url, app.snapshot_path)
+        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
