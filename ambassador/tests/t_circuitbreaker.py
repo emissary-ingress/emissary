@@ -4,6 +4,42 @@ from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.harness import Query
 from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
 
+GRAPHITE_CONFIG = """
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {0}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: {0}
+    spec:
+      containers:
+      - name: {0}
+        image: hopsoft/graphite-statsd:v0.9.15-phusion0.9.18
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: {0}
+  name: {0}
+spec:
+  ports:
+  - protocol: UDP
+    port: 8125
+    name: statsd-metrics
+  - protocol: TCP
+    port: 80
+    name: graphite-www
+  selector:
+    service: {0}
+"""
+
 class CircuitBreakingTest(AmbassadorTest):
     target: ServiceType
 
@@ -16,7 +52,8 @@ class CircuitBreakingTest(AmbassadorTest):
       value: 'true'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs, extra_ports="")
+        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('statsd-sink')
 
     def config(self):
         yield self, self.format("""
