@@ -248,7 +248,7 @@ This will install into your cluster:
    ```
    curl $AMBASSADOR_IP/qotm-consul-tls/
 
-   {"hostname":"qotm-6c6dc4f67d-hbznl","ok":true,"quote":"A principal idea is omnipresent, much like candy.","time":"2019-04-17T19:27:54.758361","version":"1.3"}
+   {"hostname":"qotm-6c6dc4f67d-hbznl","ok":true,"quote":"A principal idea is omnipresent, much like candy.","time":"2019-04-17T19:27:54.758361","version":"1.7"}
    ```
 
 ## More information
