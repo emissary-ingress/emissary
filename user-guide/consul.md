@@ -37,7 +37,7 @@ In this guide, you will register a service with Consul and use Ambassador to dyn
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v2
+          apiVersion: ambassador/v1
           kind: ConsulResolver
           name: consul-dc1
           address: consul-server:8500
