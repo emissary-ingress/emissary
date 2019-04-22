@@ -11,56 +11,7 @@
 {{ $useProAuth := env "USE_PRO_AUTH" | eq "true" }}
 
 ######################################################################
-{{if or $useProRateLimit $useProAuth }}
-# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
-# Services, and the Deployment that backs them all.
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ambassador{{$ambassadorSuffix}}-pro
-  annotations:
-    getambassador.io/config: |
-{{if $useProRateLimit}}
-      ---
-      apiVersion: ambassador/v1
-      kind: RateLimitService
-      name: ambassador-pro
-      service: "127.0.0.1:8501"
-{{end}}
-{{if $useProAuth}}
-      ---
-      apiVersion: ambassador/v1
-      kind: AuthService
-      name: authentication
-      proto: grpc
-      auth_service: "127.0.0.1:8500"
-      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
-      ---
-      # This mapping needs to exist, but is never actually followed.
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: callback_mapping
-      prefix: /callback
-      service: NoTaReAlSeRvIcE
-{{end}}
-spec:
-  type: ClusterIP
-  selector:
-    service: ambassador{{$ambassadorSuffix}}
-  ports:
-  - name: grpc-auth
-    port: 80
-    targetPort: grpc-auth
-  - name: grpc-ratelimit
-    port: 81
-    targetPort: grpc-ratelimit
-  - name: http-debug
-    port: 82
-    targetPort: http-debug
-{{else}}
 # Create the ambassador Service+Service+Deployment
-{{end}}
 ---
 apiVersion: v1
 kind: Service
@@ -104,6 +55,29 @@ metadata:
       proto: {{$useNoopAuth}}
       auth_service: 127.0.0.1:3000
       allow_request_body: false
+{{end}}
+{{if $useProRateLimit}}
+      ---
+      apiVersion: ambassador/v1
+      kind: RateLimitService
+      name: ambassador-pro-ratelimit
+      service: "127.0.0.1:8501"
+{{end}}
+{{if $useProAuth}}
+      ---
+      apiVersion: ambassador/v1
+      kind: AuthService
+      name: ambassador-pro-filter
+      proto: grpc
+      auth_service: "127.0.0.1:8500"
+      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+      ---
+      # This mapping needs to exist, but is never actually followed.
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: ambassador-pro-oauth-mapping
+      prefix: /callback
+      service: NoTaReAlSeRvIcE
 {{end}}
 spec:
   type: {{if $useLoadBalancer}}LoadBalancer{{else}}NodePort{{end}}
