@@ -5,6 +5,7 @@ apiVersion: v1
 metadata:
   name: {self.path.k8s}
 spec:
+  type: ClusterIP
   selector:
     backend: {self.path.k8s}
   ports:
@@ -71,6 +72,7 @@ apiVersion: v1
 metadata:
   name: {self.path.k8s}
 spec:
+  type: ClusterIP
   selector:
     backend: {self.path.k8s}
   ports:
@@ -109,6 +111,7 @@ apiVersion: v1
 metadata:
   name: {self.path.k8s}
 spec:
+  type: ClusterIP
   selector:
     backend: {self.path.k8s}
   ports:
@@ -147,6 +150,7 @@ apiVersion: v1
 metadata:
   name: {self.path.k8s}
 spec:
+  type: ClusterIP
   selector:
     backend: {self.path.k8s}
   ports:
@@ -310,13 +314,13 @@ spec:
       httpGet:
         path: /ambassador/v0/check_alive
         port: 8877
-      initialDelaySeconds: 120
+      initialDelaySeconds: 10
       periodSeconds: 3
     readinessProbe:
       httpGet:
         path: /ambassador/v0/check_ready
         port: 8877
-      initialDelaySeconds: 120
+      initialDelaySeconds: 10
       periodSeconds: 3
   restartPolicy: Always
 """
@@ -328,6 +332,7 @@ apiVersion: v1
 metadata:
   name: {self.path.k8s}
 spec:
+  type: ClusterIP
   selector:
     pod: {self.path.k8s}
   ports:
