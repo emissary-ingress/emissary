@@ -18,7 +18,11 @@ Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env
 
 **Note:** Ambassador Pro will not start without a valid license key.
 
-## 3. Deploy Ambassador Pro
+## 3. Install Go
+
+The Ambassador Pro installation uses a few Go commands. Make sure you have [Go](https://golang.org) installed locally.
+
+## 4. Deploy Ambassador Pro
 
 If you're on GKE, first, create the following `ClusterRoleBinding`:
 
@@ -44,23 +48,24 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 
 **Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change the `ambassador/ambassador-service.yaml` to a different service type (e.g., `NodePort`).
 
-By default, Ambassador Pro uses ports 8081 and 8082 for rate-limiting
-and filtering, respectively.  If for whatever reason those assignments
-are problematic (perhaps you [set
+By default, Ambassador Pro uses ports 8500-8503.  If for whatever
+reason those assignments are problematic (perhaps you [set
 `service_port`](/reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
 
-  - `GRPC_PORT`: Which port to serve the RateLimitService on; `8081`
-    by default.
-  - `APRO_AUTH_PORT`: Which port to serve the filtering AuthService
-    on; `8082` by default.
+| Purpose                       | Variable         | Default |
+| ---                           | ---              | ---     |
+| Filtering AuthService (gRPC)  | `APRO_AUTH_PORT` | 8500    |
+| RateLimitService (gRPC)       | `GRPC_PORT`      | 8501    |
+| RateLimitService debug (HTTP) | `DEBUG_PORT`     | 8502    |
+| RateLimitService misc (HTTP)  | `PORT`           | 8503    |
 
 If you have deployed Ambassador with
 [`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
 [`AMBASSADOR_ID`](/reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
-## 4. Configure JWT authentication
+## 5. Configure JWT authentication
 
 Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
 
@@ -126,7 +131,7 @@ $ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.ey
 }
 ```
 
-## 5. Configure additional Ambassador Pro services
+## 6. Configure additional Ambassador Pro services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 

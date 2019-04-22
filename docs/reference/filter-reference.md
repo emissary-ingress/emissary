@@ -322,12 +322,15 @@ mentioning `ERR x509: certificate signed by unknown authority`.  You
 can fix this by installing that self-signed certificate in to the Pro
 container following the standard procedure for Alpine Linux 3.8: Copy
 the certificate to `/usr/local/share/ca-certificates/` and then run
-`update-ca-certificates`.
+`update-ca-certificates`.  Note that the amb-sidecar image set `USER
+1000`, but `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
 FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
+USER 1000
 ```
 
 When deploying Ambassador Pro, refer to that Docker image, rather than
