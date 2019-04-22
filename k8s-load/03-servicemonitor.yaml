@@ -9,6 +9,6 @@ metadata:
 spec:
   selector:
     matchLabels:
-      service: statsd-sink
+      service: ambassador-monitor
   endpoints:
   - port: prometheus-metrics
