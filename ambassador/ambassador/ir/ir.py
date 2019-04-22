@@ -241,14 +241,15 @@ class IR:
 
     # Save secrets from our aconf.
     def save_secret_info(self, aconf):
-        # ...but we may be able to probably do have secret_info that we'll need to use to locate saved secrets.
         aconf_secrets = aconf.get_config("secret") or {}
 
         for secret_name, aconf_secret in aconf_secrets.items():
-            secret_info = SecretInfo.from_aconf_secret(aconf_secret)
-            secret_namespace = secret_info.namespace
+            # Ignore anything that doesn't at least have a public half.
+            if aconf_secret.get('tls_crt'):
+                secret_info = SecretInfo.from_aconf_secret(aconf_secret)
+                secret_namespace = secret_info.namespace
 
-            self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
+                self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
 
     # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
     # are just ACResources; they need to be turned into IRTLSContexts.
