@@ -40,7 +40,7 @@ In this guide, you will register a service with Consul and use Ambassador to dyn
           apiVersion: ambassador/v1
           kind: ConsulResolver
           name: consul-dc1
-          address: consul-server:8500
+          address: consul-server.default.svc.cluster.local:8500
           datacenter: dc1
     spec:
       type: LoadBalancer
