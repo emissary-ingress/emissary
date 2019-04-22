@@ -57,10 +57,10 @@ The Consul Resolver configures Ambassador to use Consul for service discovery. W
 apiVersion: getambassador.io/v2
 kind: ConsulResolver
 name: consul-dc1
-address: consul-server:8500
+address: consul-server.svc.:8500
 datacenter: dc1
 ```
-- `address`: The address of your Consul server
+- `address`: The fully-qualified domain name or IP address of your Consul server.
 - `datacenter`: The Consul data center your services are registered to
 
 ## Using Resolvers
