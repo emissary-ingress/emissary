@@ -1,14 +1,16 @@
 # Consul Integration
 
-[Consul](https://www.consul.io) is a widely used service mesh. Ambassador natively supports Consul for end-to-end TLS and service discovery. This capability is particularly useful when deploying Ambassador in so-called hybrid clouds, where applications are deployed in VMs, bare metal, and Kubernetes. In this environment, Ambassador can securely route to any application regardless where it is deployed over TLS.
+[Consul](https://www.consul.io) is a widely used service mesh. Ambassador natively supports Consul for service discovery and end-to-end TLS (including mTLS between services). This capability is particularly useful when deploying Ambassador in so-called hybrid clouds, where applications are deployed on bare metal, VMs, and Kubernetes. In this environment, Ambassador can securely route over TLS to any application regardless of where it is deployed.
 
 ## Getting started
 
 **Note:** This integration is not yet shipping. For now, the development image of this integration is here: `quay.io/datawire/ambassador:0.60.0-rc2`.
 
-In this guide, we will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
+In this guide, you will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
 
-1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center.
+1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center. 
+
+Note, that if you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the Chart and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file).
 
 2. Deploy Ambassador. Note: If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
 
@@ -47,9 +49,9 @@ In this guide, we will register a service with Consul and use Ambassador to dyna
 
 ## Routing to Consul Services
 
-We'll now register a demo application with Consul, and show how Ambassador can route to this application using endpoint data from Consul. To simplify this tutorial, we'll deploy the application in Kubernetes, although in practice this application can be deployed anywhere in your data center (e.g., on VMs or bare metal). 
+You'll now register a demo application with Consul, and show how Ambassador can route to this application using endpoint data from Consul. To simplify this tutorial, you'll deploy the application in Kubernetes, although in practice this application can be deployed anywhere in your data center (e.g., on VMs or bare metal). 
 
-1. Deploy the QOTM demo application. The QOTM application will automatically register itself with Consul.
+1. Deploy the QOTM demo application. The QOTM application contains code to automatically register itself with Consul, using the CONSUL_IP and POD_IP environment variables specified within the QOTM container spec.
 
     ```yaml
     ---
@@ -95,7 +97,7 @@ We'll now register a demo application with Consul, and show how Ambassador can r
                 memory: 100Mi
     ```
 
-    Note: If reading this on GitHub, use version 1.7 for QOTM.
+   **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.7`.
 
     Save the above to a file called `qotm.yaml` and run `kubectl apply -f qotm.yaml`. This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
 
@@ -107,7 +109,7 @@ We'll now register a demo application with Consul, and show how Ambassador can r
 
    Go to http://localhost:8500 from a web browser and you should see a service named `qotm-consul`. 
 
-3. Create a `Mapping` for the `qotm-consul` service. Save the following YAML to a file, and use `kubectl apply` to apply this configuration to your Kubernetes cluster.
+3. Create a `Mapping` for the `qotm-consul` service. 
 
    ```yaml
    ---
@@ -131,22 +133,23 @@ We'll now register a demo application with Consul, and show how Ambassador can r
      - name: http
        port: 80
    ```
-   - `resolver` must be set to the `ConsulResolver` we created in the previous step
-   - `load_balancer` must be set to configure Ambassador to route directly to the endpoint(s) from Consul
+Save the above YAML to a file named `qotm-mapping.yaml`, and use `kubectl apply -f qotm-mapping.yaml` to apply this configuration to your Kubernetes cluster. Note that in the above config:
+   - `resolver` must be set to the `ConsulResolver` that you created in the previous step
+   - `load_balancer` must be set to configure Ambassador to route directly to the QOTM application endpoint(s) that are retrieved from Consul.
 
 4. Send a request to the `qotm-consul` API.
 
    ```shell
-   curl http://$AMBASSADORURL/qotm-consul/
+   curl http://$AMBASSADOR_IP/qotm-consul/
 
    {"hostname":"qotm-749c675c6c-hq58f","ok":true,"quote":"The last sentence you read is often sensible nonsense.","time":"2019-03-29T22:21:42.197663","version":"1.7"}
    ```
 
-Congratulations! You're successfully routing traffic to the QOTM service, which is registered in Consul.
+Congratulations! You're successfully routing traffic to the QOTM application, the location of which is registered in Consul.
 
 ## Encrypted TLS
 
-Ambassador can also use certificates stored in Consul to originate encrypted TLS connections to the Consul service mesh. This requires the use of the Ambassador Consul connector. The following steps assume you've already set up Consul for service discovery, per above.
+Ambassador can also use certificates stored in Consul to originate encrypted TLS connections from Ambassador to the Consul service mesh. This requires the use of the Ambassador Consul connector. The following steps assume you've already set up Consul for service discovery, as detailed above.
 
 1. The Ambassador Consul connector retrieves the TLS certificate issued by the Consul CA and stores it in a Kubernetes secret for Ambassador to use. Deploy the Ambassador Consul Connector with `kubectl`:
 
@@ -154,12 +157,12 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
    kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
    ```
    
-   Which will install:
+This will install into your cluster:
    - RBAC resources.
    - The Consul connector service.
    - A `TLSContext` named `ambassador-consul` to load the `ambassador-consul-connect` secret into Ambassador. 
 
-2. Deploy a new version of the demo application, and configure it to inject the Consul sidecar proxy by setting `"consul.hashicorp.com/connect-inject"` to `true`:
+2. Deploy a new version of the demo application, and configure it to inject the Consul sidecar proxy by setting `"consul.hashicorp.com/connect-inject"` to `true`. Note that in this version of the configuration, you do not have to configure environment variables for the location of the Consul server:
 
     ```yaml
     ---
@@ -199,7 +202,7 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
 
    **Note:** If you are reading this on GitHub, replace `%qotmVersion%` with `1.7`.
 
-   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the service with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
+   This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
 
 3. Verify the `qotm-mtls` application is registered in Consul by accessing the Consul UI on http://localhost:8500/ after running:
 
@@ -224,7 +227,7 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
           kind: Mapping
           name: consul_qotm_tls_mapping
           prefix: /qotm-consul-tls/
-          service: qotm-proxy:20000
+          service: qotm-proxy
           resolver: consul-dc1
           tls: ambassador-consul
           load_balancer:
@@ -235,15 +238,15 @@ Ambassador can also use certificates stored in Consul to originate encrypted TLS
         port: 80
     ```
     - `resolver` must be set to the `ConsulResolver` created when configuring Ambassador
-    - `tls` must be set to the `TLSContext` storing the Consul mTLS certificates (`ambassador-consul`)
-    - `load_balancer` must be set to configure Ambassador to route directly to the endpoint(s) from Consul
+    - `tls` must be set to the `TLSContext` storing the Consul mTLS certificates (e.g. `ambassador-consul`)
+    - `load_balancer` must be set to configure Ambassador to route directly to the application endpoint(s) that are retrieved from Consul
 
     Copy this YAML to a file named `qotm-consul-mtls-svc.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls-svc.yaml`.
 
-5. Send a request to the `/qotm-consul-ssl/` API.
+5. Send a request to the `/qotm-consul-tls/` API.
 
    ```
-   curl $AMBASSADOR_IP/qotm-consul-ssl/
+   curl $AMBASSADOR_IP/qotm-consul-tls/
 
    {"hostname":"qotm-6c6dc4f67d-hbznl","ok":true,"quote":"A principal idea is omnipresent, much like candy.","time":"2019-04-17T19:27:54.758361","version":"1.3"}
    ```
