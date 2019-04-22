@@ -51,20 +51,20 @@ kind: Deployment
 metadata:
   name: ambassador-consul-connect-integration
   labels:
-    app: ambassador-pro
+    app: ambassador
     component: consul-connect
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ambassador-pro
+      app: ambassador
       component: consul-connect
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: ambassador-pro
+        app: ambassador
         component: consul-connect
       annotations:
         "consul.hashicorp.com/connect-inject": "false"
