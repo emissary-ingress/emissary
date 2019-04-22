@@ -2,6 +2,12 @@
 
 [Consul](https://www.consul.io) is a widely used service mesh. Ambassador natively supports Consul for service discovery and end-to-end TLS (including mTLS between services). This capability is particularly useful when deploying Ambassador in so-called hybrid clouds, where applications are deployed on bare metal, VMs, and Kubernetes. In this environment, Ambassador can securely route over TLS to any application regardless of where it is deployed.
 
+## Architecture Overview
+
+In this architecture, Consul serves as the source of truth for your entire data center, tracking available endpoints, service configuration, and secrets for TLS encryption. New applications and services automatically register themselves with Consul using the Consul agent or API. When a request is sent through Ambassador, Ambassador sends the request to an endpoint based on the data in Consul.
+
+![ambassador-consul](/doc-images/consul-ambassador.png)
+
 ## Getting started
 
 In this guide, you will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
