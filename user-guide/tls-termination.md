@@ -17,15 +17,23 @@ Note that requesting a certificate _requires_ a `Common Name` (`CN`) for your Am
 
 ## 2. You'll need a DNS name.
 
-As noted above, the DNS name must match the `CN` in the certificate. The simplest way to manage this is to create an `ambassador` Kubernetes service up front, before you do anything else, so that you can point DNS to whatever Kubernetes gives you for it -- then don't delete the `ambassador` service, even if you later need to update it or delete and recreate the `ambassador` deployment.
+As noted above, the DNS name must match the `CN` in the certificate. The simplest way to manage this is to create an `ambassador` Kubernetes service up front, before you do anything else, so that you can point DNS to whatever IP Kubernetes assignes to it -- then don't delete the `ambassador` service, even if you later need to update it or delete and recreate the `ambassador` deployment.
+
+Alternatively you can request a static IP from your cloud provider and set it as `loadBalancerIP` in the service created below.
 
 ```shell
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-https.yaml
 ```
 
-will create a minimal `ambassador` service for this purpose; you can then use its external appearance to configure either a `CNAME` or an `A` record in DNS. Make sure that there's a matching `PTR` record, too.
+will create a minimal `ambassador` service for this purpose. You can then use its external IP address to configure either a `CNAME` or an `A` record in DNS. Make sure that there's a matching `PTR` record, too.
 
 It's OK to include annotations on the `ambassador` service at this point, if you need to configure additional TLS options (see below for more on this).
+
+Once assigned the external IP can be checked with:
+
+```shell
+kubectl get svc -o wide ambassador
+```
 
 ## 3. You'll need to store the certificate in a Kubernetes `secret`.
 
