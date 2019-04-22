@@ -40,16 +40,17 @@ ambassador-pro-6545769c68-vnnzz         1/1     Running   1          23h
 ambassador-pro-redis-6db64c5685-4k8fn   1/1     Running   0          23h
 ```
 
-By default, Ambassador Pro uses ports 8081 and 8082 for rate-limiting
-and filtering, respectively.  If for whatever reason those assignments
-are problematic (perhaps you [set
+By default, Ambassador Pro uses ports 8500-8503.  If for whatever
+reason those assignments are problematic (perhaps you [set
 `service_port`](/reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
 
-  - `GRPC_PORT`: Which port to serve the RateLimitService on; `8081`
-    by default.
-  - `APRO_AUTH_PORT`: Which port to serve the filtering AuthService
-    on; `8082` by default.
+| Purpose                       | Variable         | Default |
+| ---                           | ---              | ---     |
+| Filtering AuthService (gRPC)  | `APRO_AUTH_PORT` | 8500    |
+| RateLimitService (gRPC)       | `GRPC_PORT`      | 8501    |
+| RateLimitService debug (HTTP) | `DEBUG_PORT`     | 8502    |
+| RateLimitService misc (HTTP)  | `PORT`           | 8503    |
 
 If you have deployed Ambassador with
 [`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
