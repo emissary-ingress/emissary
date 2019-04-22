@@ -119,6 +119,10 @@ endif
 
 DOCKER_OPTS =
 
+# This is the branch from ambassador-docs to pull for "make pull-docs".
+# Override if you need to.
+PULL_BRANCH ?= master
+
 NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
@@ -514,7 +518,7 @@ mypy: mypy-server
 
 pull-docs:
 	{ \
-		git fetch https://github.com/datawire/ambassador-docs master && \
+		git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH) && \
 		docs_head=$$(git rev-parse FETCH_HEAD) && \
 		git subtree merge --prefix=docs "$${docs_head}" && \
 		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
