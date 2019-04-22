@@ -90,7 +90,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
 4. Create a Mapping for the `/.well-known/acme-challenge` route.
 
-    cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` for the so cert-manager can reach the temporary pod. 
+    cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
     ```yaml
     ---
     apiVersion: v1
@@ -116,7 +116,8 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     ```
     Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate. 
 
-5. Verify the secret is created
+5. Verify the secret is created:
+
     ```shell
     $ kubectl get secrets
     NAME                     TYPE                                  DATA      AGE
