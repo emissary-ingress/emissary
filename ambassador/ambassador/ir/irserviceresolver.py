@@ -209,7 +209,7 @@ class IRServiceResolverFactory:
         if not ir.get_resolver('kubernetes-service'):
             # Default the K8s service resolver.
             config = {
-                'apiVersion': 'getambassador.io/v2',
+                'apiVersion': 'getambassador.io/v1',
                 'kind': 'KubernetesServiceResolver',
                 'name': 'kubernetes-service'
             }
@@ -227,7 +227,7 @@ class IRServiceResolverFactory:
             # Neither exists. Create them from scratch.
 
             config = {
-                'apiVersion': 'getambassador.io/v2',
+                'apiVersion': 'getambassador.io/v1',
                 'kind': 'KubernetesEndpointResolver',
                 'name': 'kubernetes-endpoint'
             }
@@ -250,7 +250,7 @@ class IRServiceResolverFactory:
             # Neither exists. Create them from scratch.
 
             config = {
-                'apiVersion': 'getambassador.io/v2',
+                'apiVersion': 'getambassador.io/v1',
                 'kind': 'ConsulResolver',
                 'name': 'consul-endpoint',
                 'datacenter': 'dc1'
