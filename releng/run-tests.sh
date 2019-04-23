@@ -9,6 +9,8 @@
 # to the pytest line, and, uh, I guess recover and merge all the .coverage 
 # files from the containers??
 
+GLOBAL_RESULT=0
+
 TEST_ARGS="--tb=short"
 
 if [ -n "${TEST_NAME}" ]; then
@@ -48,12 +50,15 @@ else
         if [ $RESULT -ne 0 ] ; then
             # we could try again on failure, but lets see if we can
             # keep things non-flakey enough that it isn't necessary
-            break
+
+            # Do remember that we had failures, but don't bail yet.
+            GLOBAL_RESULT=$RESULT
+#            break
         fi
     done
 fi
 
-if [ $RESULT -ne 0 ]; then
+if [ $GLOBAL_RESULT -ne 0 ]; then
     kubectl get pods
     kubectl get svc
 
