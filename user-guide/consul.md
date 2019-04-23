@@ -40,7 +40,7 @@ In this guide, you will register a service with Consul and use Ambassador to dyn
           apiVersion: ambassador/v1
           kind: ConsulResolver
           name: consul-dc1
-          address: consul-server:8500
+          address: consul-server.default.svc.cluster.local:8500
           datacenter: dc1
     spec:
       type: LoadBalancer
@@ -124,7 +124,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
      annotations:
        getambassador.io/config: |
          ---
-         apiVersion: ambassador/v2
+         apiVersion: ambassador/v1
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
@@ -225,7 +225,7 @@ This will install into your cluster:
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v2
+          apiVersion: ambassador/v1
           kind: Mapping
           name: consul_qotm_tls_mapping
           prefix: /qotm-consul-tls/
