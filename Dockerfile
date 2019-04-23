@@ -69,6 +69,9 @@ RUN mkdir ambassador-config envoy
 COPY demo/config/ ambassador-demo-config
 COPY demo/services/ demo-services
 
+# ...and symlink /usr/bin/python because of !*@&#*!@&# Werkzeug.
+RUN ln -s python3 /usr/bin/python
+
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R u+x ${AMBASSADOR_ROOT} && \
@@ -79,6 +82,12 @@ COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
 COPY ambassador/kick_ads.sh .
 COPY ambassador/post_update.py .
-RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py
+COPY ambassador/post_watt.sh .
+COPY ambassador/watch_hook.py .
+RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py post_watt.sh watch_hook.py
+
+# XXX Move to base image
+COPY watt .
+RUN chmod 755 watt
 
 ENTRYPOINT [ "./entrypoint.sh" ]

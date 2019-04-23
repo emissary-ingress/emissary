@@ -49,12 +49,13 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'add_request_headers': True,    # do this manually.
-        'add_response_headers': True,    # do this manually.
+        'add_response_headers': True,   # do this manually.
         'cluster': True,
         'host': True,
         'kind': True,
         'location': True,
         'name': True,
+        'resolver': True,               # can't flatten the resolver...
         'rkey': True,
         'route_weight': True,
         'service': True,
@@ -184,6 +185,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
+                            resolver=mapping.resolver,
                             ctx_name=mapping.get('tls', None),
                             host_rewrite=mapping.get('host_rewrite', False),
                             enable_ipv4=mapping.get('enable_ipv4', None),

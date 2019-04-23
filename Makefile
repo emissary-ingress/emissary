@@ -119,6 +119,10 @@ endif
 
 DOCKER_OPTS =
 
+# This is the branch from ambassador-docs to pull for "make pull-docs".
+# Override if you need to.
+PULL_BRANCH ?= master
+
 NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
@@ -140,7 +144,11 @@ SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.3.0
+KAT_BACKEND_RELEASE = 1.4.0
+
+# Allow overriding which watt we use.
+WATT ?= watt
+WATT_VERSION ?= 0.4.2
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -160,6 +168,7 @@ clean: clean-test
 		| xargs -0 rm -f
 
 clobber: clean
+	-rm -rf watt
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
@@ -264,7 +273,7 @@ docker-push-base-images:
 
 docker-update-base: docker-base-images docker-push-base-images
 
-ambassador-docker-image: version
+ambassador-docker-image: version $(WATT)
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
@@ -276,7 +285,7 @@ ifneq ($(DOCKER_EXTERNAL_REGISTRY),-)
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 
-	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_REGISTRY)
+	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_EXTERNAL_REGISTRY)
 else
 	@echo "Using local registry, no need for docker login."
 endif
@@ -329,7 +338,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.3.16
+TELEPROXY_VERSION=0.4.0
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
@@ -340,6 +349,11 @@ $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
 	sudo chmod go-w,a+sx $(TELEPROXY)
+
+# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
+$(WATT):
+	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
+	chmod go-w,a+x $(WATT)
 
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
@@ -369,7 +383,7 @@ $(KAT_CLIENT):
 	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/$(KAT_CLIENT)
 	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) version
+setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
 
 kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
 
@@ -429,7 +443,7 @@ test: setup-develop cluster-and-teleproxy
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
-	sh ../releng/run-tests.sh
+	bash ../releng/run-tests.sh
 
 test-list: setup-develop
 	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
@@ -504,7 +518,7 @@ mypy: mypy-server
 
 pull-docs:
 	{ \
-		git fetch https://github.com/datawire/ambassador-docs master && \
+		git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH) && \
 		docs_head=$$(git rev-parse FETCH_HEAD) && \
 		git subtree merge --prefix=docs "$${docs_head}" && \
 		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \

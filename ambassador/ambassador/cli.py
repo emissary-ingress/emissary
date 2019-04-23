@@ -31,7 +31,7 @@ from .config.resourcefetcher import ResourceFetcher
 from .envoy import EnvoyConfig, V2Config
 from .ir.irtlscontext import IRTLSContext
 
-from .utils import RichStatus, SavedSecret, SecretSaver
+from .utils import RichStatus, SecretInfo, SecretHandler
 
 __version__ = Version
 
@@ -105,16 +105,12 @@ def file_checker(path: str) -> bool:
     return True
 
 
-def cli_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
-    # In the Real World, the secret reader should, y'know, read secrets..
-    # Here we're just gonna fake it.
+class CLISecretHandler(SecretHandler):
+    def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        # In the Real World, the secret loader should, y'know, load secrets..
+        # Here we're just gonna fake it.
 
-    secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-
-    cert_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.crt")
-    key_path = os.path.join(secret_root, namespace, "cli-secrets", secret_name, "tls.key")
-
-    return SavedSecret(secret_name, namespace, cert_path, key_path, {})
+        return SecretInfo(secret_name, namespace, "fake-tls-crt", "fake-tls-key")
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
@@ -172,7 +168,9 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
+        secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path, 0)
+
+        ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
         if dump_ir:
             od['ir'] = ir.as_dict()
@@ -298,7 +296,9 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             if exit_on_error and aconf.errors:
                 raise Exception("errors in: {0}".format(', '.join(aconf.errors.keys())))
 
-            ir = IR(aconf, file_checker=file_checker, secret_reader=cli_secret_reader)
+            secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path, 0)
+
+            ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
             if dump_ir:
                 with open(dump_ir, "w") as output:
@@ -331,80 +331,8 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
         sys.exit(1)
 
 
-def splitconfig(root_path: Parameter.REQUIRED, *, ambex_pid: int=0,
-                bootstrap_path=None, ads_path=None, changes=None, gencount=None,
-                debug=False, debug_scout=False, k8s=True, ir_path=None):
-    """
-    Generate an Envoy configuration from resources that have already been pulled from Kube
-
-    :param root_path: Root of the config data. Expected to contain subdirs for namespaces
-    :param ambex_pid: PID of running Ambex to signal on config changes
-    :param bootstrap_path: Path to which to write Envoy bootstrap config
-    :param ads_path: Path to which to write Envoy ADS config for Ambex
-    :param ir_path: If set, path to which to dump the IR
-    :param changes: How many changes since the last update have happened?
-    :param gencount: Generation count of this update
-    :param debug: If set, generate debugging output
-    :param debug_scout: If set, generate debugging output when talking to Scout
-    """
-    # :param k8s: If set, assume configuration files are annotated K8s manifests
-    # """
-
-    if debug:
-        logger.setLevel(logging.DEBUG)
-
-    if debug_scout:
-        logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
-
-    # root_path contains directories for each resource type: services, secrets, optional
-    # crd-whatever paths.
-    scc = SecretSaver(logger, root_path, root_path)
-
-    # Start by assuming that we're going to look at everything.
-    config_root = root_path
-
-    # ...then override that if we're running in single-namespace mode.
-    if os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'):
-        config_root = os.path.join(root_path, os.environ.get('AMBASSADOR_NAMESPACE', 'default'))
-
-    # OK. Load the Config from the config_root.
-    aconf = Config()
-    fetcher = ResourceFetcher(logger, aconf)
-    fetcher.load_from_filesystem(config_root, k8s=k8s, recurse=True)
-    aconf.load_all(fetcher.sorted())
-
-    # Use the SecretSaver to read secret from the filesystem.
-    ir = IR(aconf, secret_reader=scc.file_reader)
-
-    # Generate a V2Config from that, and grab the split bootstrap and ADS configs.
-    v2config = V2Config(ir)
-    bootstrap_config, ads_config = v2config.split_config()
-
-    if not bootstrap_path:
-        bootstrap_path="bootstrap-ads.json"
-
-    if not ads_path:
-        ads_path="envoy/envoy.json"
-
-    logger.info("SAVING CONFIG")
-
-    with open(bootstrap_path, "w") as output:
-        output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
-
-    with open(ads_path, "w") as output:
-        output.write(json.dumps(ads_config, sort_keys=True, indent=4))
-
-    if ir_path:
-        with open(ir_path, "w") as output:
-            output.write(ir.as_json())
-
-    if ambex_pid != 0:
-        logger.info("RESTARTING")
-        os.kill(ambex_pid, signal.SIGHUP)
-
-
 def main():
-    clize.run([config, splitconfig, dump, validate], alt=[version, showid],
+    clize.run([config, dump, validate], alt=[version, showid],
               description="""
               Generate an Envoy config, or manage an Ambassador deployment. Use
 

@@ -38,22 +38,11 @@ if TYPE_CHECKING:
 
 
 class IRCluster (IRResource):
-    # TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
-    #     "auto_host_rewrite": True,
-    #     "case_sensitive": True,
-    #     "enable_ipv4": True,
-    #     "enable_ipv6": True,
-    #     "envoy_override": True,
-    #     "host_rewrite": True,
-    #     "path_redirect": True,
-    #     "priority": True,
-    #     "timeout_ms": True,
-    # }
-
     def __init__(self, ir: 'IR', aconf: Config,
                  location: str,  # REQUIRED
 
                  service: str,   # REQUIRED
+                 resolver: Optional[str] = None,
                  connect_timeout_ms: Optional[int] = 3000,
                  marker: Optional[str] = None,  # extra marker for this context name
 
@@ -190,58 +179,40 @@ class IRCluster (IRResource):
         # TLS. Kind of odd, but there we go.)
         url = "tcp://%s:%d" % (hostname, port)
 
-        # The Ambassador module will always have a load_balancer.
+        # The Ambassador module will always have a load_balancer (which may be None).
         global_load_balancer = ir.ambassador_module.load_balancer
 
         if not load_balancer:
             load_balancer = global_load_balancer
 
-        self.logger.info("Load balancer for {} is {}".format(url, load_balancer))
+        self.logger.debug(f"Load balancer for {url} is {load_balancer}")
 
-        endpoint = {}
         enable_endpoints = False
 
-        if load_balancer is not None:
-            if self.endpoints_required(load_balancer):
-                if not Config.enable_endpoints:
-                    errors.append(f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}")
-                    load_balancer = global_load_balancer
-                else:
-                    self.logger.debug(f"fetching endpoint information for service {service} hostname {hostname}")
+        if self.endpoints_required(load_balancer):
+            if not Config.enable_endpoints:
+                # Bzzt.
+                errors.append(f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}")
+                load_balancer = global_load_balancer
+            else:
+                enable_endpoints = True
+                lb_type = load_balancer.get('policy')
 
-                    service_info = ir.service_info.get(service, None)
-                    endpoint_info = ir.endpoints.get(hostname, None)
+                key_fields = ['er', lb_type.lower()]
 
-                    self.logger.debug(f"service info %s" % json.dumps(service_info, indent=4, sort_keys=True))
-                    self.logger.debug(f"endpoint info %s" % json.dumps(endpoint_info, indent=4, sort_keys=True))
+                # XXX Should we really include these things?
+                if 'header' in load_balancer:
+                    key_fields.append('hdr')
+                    key_fields.append(load_balancer['header'])
 
-                    endpoint = self.get_endpoint(hostname, port, service_info, endpoint_info)
+                if 'cookie' in load_balancer:
+                    key_fields.append('cookie')
+                    key_fields.append(load_balancer['cookie']['name'])
 
-                    if len(endpoint) > 0:
-                        # We want to enable endpoints and change the load balancer policy only if endpoint routing
-                        # is configured correctly and we're getting endpoints for the given service
-                        enable_endpoints = True
-                        lb_type = load_balancer.get('policy')
-                    else:
-                        self.logger.debug("No endpoints found. Endpoint routing misconfigured, not enabling endpoint routing")
+                if 'source_ip' in load_balancer:
+                    key_fields.append('srcip')
 
-        # If the lb_type isn't round_robin, toss it into the cluster name too.
-        if enable_endpoints:
-            key_fields = [ 'er', lb_type.lower() ]
-
-            # XXX LOAD_BALANCER HACK
-            if 'header' in load_balancer:
-                key_fields.append('hdr')
-                key_fields.append(load_balancer['header'])
-
-            if 'cookie' in load_balancer:
-                key_fields.append('cookie')
-                key_fields.append(load_balancer['cookie']['name'])
-
-            if 'source_ip' in load_balancer:
-                key_fields.append('srcip')
-
-            name_fields.append("-".join(key_fields))
+                name_fields.append("-".join(key_fields))
 
         # Finally we can construct the cluster name.
         name = "_".join(name_fields)
@@ -263,13 +234,12 @@ class IRCluster (IRResource):
             "type": dns_type,
             "lb_type": lb_type,
             "urls": [ url ],
-            "endpoint": endpoint,
             "load_balancer": load_balancer,
             "service": service,
             'enable_ipv4': enable_ipv4,
             'enable_ipv6': enable_ipv6,
             'enable_endpoints': enable_endpoints,
-            'connect_timeout_ms': connect_timeout_ms
+            'connect_timeout_ms': connect_timeout_ms,
         }
 
         if grpc:
@@ -287,6 +257,11 @@ class IRCluster (IRResource):
         if rkey == '-override-':
             rkey = name
 
+        # Stash the resolver, hostname, and port for setup.
+        self._resolver = resolver
+        self._hostname = hostname
+        self._port = port
+
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
@@ -300,76 +275,35 @@ class IRCluster (IRResource):
             for error in errors:
                 ir.post_error(error, resource=self)
 
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Resolve our actual targets.
+        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._port)
+
+        if targets:
+            # Great.
+            self.targets = targets
+        else:
+            self.post_error("no endpoints found, disabling cluster")
+
+            # This is a legit error. If we can't find _anything_ to route to, something is
+            # badly broken. (Note that the KubernetesServiceResolver will return a single
+            # endpoint with the DNS name of the service as the address, so it's not a special
+            # case here.)
+            return False
+
+        return True
+
     def endpoints_required(self, load_balancer) -> bool:
         required = False
-        lb_policy = load_balancer.get('policy')
-        if lb_policy in ['round_robin', 'ring_hash', 'maglev']:
-            self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
-            required = True
+
+        if load_balancer:
+            lb_policy = load_balancer.get('policy')
+
+            if lb_policy in ['round_robin', 'ring_hash', 'maglev']:
+                self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
+                required = True
+
         return required
-
-    def get_endpoint(self, hostname, port, service_info, endpoint):
-        if endpoint is None:
-            self.logger.debug("no relevant endpoint found for hostname {}".format(hostname))
-            return {}
-
-        if service_info is None:
-            self.logger.debug("no service found for hostname {}".format(hostname))
-            return {}
-
-        ip = []
-        for address in endpoint['addresses']:
-            ip.append(address['ip'])
-
-        ep_port = None
-
-        # service_port_name  is only required if there are multiple ports in a given service, to match
-        # the port in Endpoint resource
-        service_port_name = ""
-        service_ports = service_info.get('ports', [])
-        num_service_ports = len(service_ports)
-        if num_service_ports > 1:
-            for service_port in service_ports:
-                if port == service_port.get('port'):
-                    service_port_name = service_port.get('name')
-                    break
-        elif num_service_ports == 0:
-            self.logger.debug("no service port found for service: {}".format(service_info))
-            return {}
-
-        self.logger.debug("service port name is '{}'".format(service_port_name))
-
-        if len(service_port_name) == 0:
-            # this means there is only one port
-            endpoint_ports = endpoint.get('ports', [])
-            if len(endpoint_ports) != 1:
-                self.logger.debug("no or more than one endpoint ports found {}, not enabling endpoint routing".format(endpoint_ports))
-                return {}
-            ep_port = endpoint_ports[0].get('port', None)
-        else:
-            # there are more than one service ports, so we need to match on name
-            endpoint_ports = endpoint.get('ports', [])
-            for ep in endpoint_ports:
-                name = ep.get('name', "")
-                if name == service_port_name:
-                    ep_port = ep.get('port', None)
-                    break
-
-        if ep_port is None:
-            self.logger.debug("could not discover any relevant endpoint port for hostname {}, not enabling endpoint routing".format(hostname))
-            return {}
-
-        if len(ip) == 0:
-            self.logger.debug("no IP addresses found for endpoint for hostname {}, not enabling endpoint routing".format(hostname))
-            return {}
-
-        generated_endpoint = {
-            'ip': ip,
-            'port': ep_port
-        }
-        self.logger.debug("generated endpoint for hostname {}: {}".format(hostname, generated_endpoint))
-
-        return generated_endpoint
 
     def add_url(self, url: str) -> List[str]:
         self.urls.append(url)
@@ -392,8 +326,14 @@ class IRCluster (IRResource):
             return False
 
         # All good.
-        for url in other.urls:
-            self.add_url(url)
+        if other.urls:
             self.referenced_by(other)
+
+            for url in other.urls:
+                self.add_url(url)
+
+        if other.targets:
+            self.referenced_by(other)
+            self.targets += other.targets
 
         return True

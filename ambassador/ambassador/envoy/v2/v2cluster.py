@@ -74,12 +74,13 @@ class V2Cluster(dict):
     def get_endpoints(self, cluster: IRCluster):
         result = []
 
-        endpoint = cluster.endpoint
-        if cluster.enable_endpoints and len(endpoint) > 0:
-            for ip in endpoint['ip']:
+        targetlist = cluster.get('targets', [])
+
+        if cluster.enable_endpoints and len(targetlist) > 0:
+            for target in targetlist:
                 address = {
-                    'address': ip,
-                    'port_value': endpoint['port']
+                    'address': target['ip'],
+                    'port_value': target['port']
                 }
                 result.append({'endpoint': {'address': {'socket_address': address}}})
         else:
@@ -101,4 +102,3 @@ class V2Cluster(dict):
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
             cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
             config.clusters.append(cluster)
-

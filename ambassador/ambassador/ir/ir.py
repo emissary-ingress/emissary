@@ -19,7 +19,11 @@ import json
 import logging
 import os
 
-from ..utils import RichStatus, SavedSecret
+from ipaddress import ip_address
+
+from ..constants import Constants
+
+from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
 
 from .irresource import IRResource
@@ -35,6 +39,7 @@ from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
+from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpoint, SvcEndpointSet
 
 from ..VERSION import Version, Build
 
@@ -44,11 +49,6 @@ from ..VERSION import Version, Build
 ## After getting an ambassador.Config, you can create an ambassador.IR. The
 ## IR is the basis for everything else: you can use it to configure an Envoy
 ## or to run diagnostics.
-
-
-def error_secret_reader(context: IRTLSContext, secret_name: str, namespace: str) -> SavedSecret:
-    # Failsafe only.
-    return SavedSecret(secret_name, namespace, None, None, {})
 
 
 class IR:
@@ -66,13 +66,15 @@ class IR:
     clusters: Dict[str, IRCluster]
     grpc_services: Dict[str, IRCluster]
     saved_resources: Dict[str, IRResource]
+    saved_secrets: Dict[str, SavedSecret]
     tls_contexts: Dict[str, IRTLSContext]
     aconf: Config
     secret_root: str
-    secret_reader: Callable[[IRTLSContext, str, str], SavedSecret]
+    secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
+    resolvers: Dict[str, IRServiceResolver]
 
-    def __init__(self, aconf: Config, secret_reader=None, file_checker=None) -> None:
+    def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
@@ -82,8 +84,12 @@ class IR:
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
-        setattr(self, 'secret_reader', secret_reader or error_secret_reader)
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
+
+        # The secret_handler is _required_.
+        self.secret_handler = secret_handler
+
+        assert self.secret_handler, "Ambassador.IR requires a SecretHandler at initialization"
 
         self.logger.debug("IR __init__:")
         self.logger.debug("IR: Version         %s built from %s on %s" % (Version, Build.git.commit, Build.git.branch))
@@ -93,7 +99,7 @@ class IR:
         self.logger.debug("IR: Endpoints       %s" % "enabled" if Config.enable_endpoints else "disabled")
 
         self.logger.debug("IR: file checker:   %s" % getattr(self, 'file_checker').__name__)
-        self.logger.debug("IR: secret reader:  %s" % getattr(self, 'secret_reader').__name__)
+        self.logger.debug("IR: secret handler: %s" % type(self.secret_handler).__name__)
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
@@ -102,7 +108,11 @@ class IR:
         # with. It starts out empty.
         self.saved_resources = {}
 
-        # Next, define the initial IR state -- which is empty.
+        # Also, we have no saved secret stuff yet...
+        self.saved_secrets = {}
+        self.secret_info: Dict[str, SecretInfo] = {}
+
+        # ...and the initial IR state is empty.
         #
         # Note that we use a map for clusters, not a list -- the reason is that
         # multiple mappings can use the same service, and we don't want multiple
@@ -112,33 +122,37 @@ class IR:
         self.filters = []
         self.tracing = None
         self.tls_contexts = {}
+        self.tls_module = None
         self.ratelimit = None
         self.listeners = []
         self.groups = {}
+        self.resolvers = {}
 
-        # Set up default TLS stuff.
+        # OK, time to get this show on the road. Grab whatever information our aconf
+        # has about secrets...
+        self.save_secret_info(aconf)
+
+        # ...and then it's on to default TLS stuff, both from the TLS module and from
+        # any TLS contexts.
         #
         # XXX This feels like a hack -- shouldn't it be class-wide initialization
         # in TLSModule or TLSContext? So far it's the only place we need anything like
         # this though.
 
-        self.tls_module = None
-
-        # OK! Start by wrangling TLS-context stuff, both from the TLS module (if any)...
         TLSModuleFactory.load_all(self, aconf)
-
-        # ...and from any TLSContext resources.
         self.save_tls_contexts(aconf)
 
         # Next, handle the "Ambassador" module. This is last so that the Ambassador module has all
         # the TLS contexts available to it.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
 
-        # Save breaker & outlier configs.
+        # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
-        self.endpoints = aconf.get_config("endpoints") or {}
-        self.service_info = aconf.get_config("service_info") or {}
+        self.services = aconf.get_config("service") or {}
+
+        # Next up, initialize our IRServiceResolvers.
+        IRServiceResolverFactory.load_all(self, aconf)
 
         # Save tracing and ratelimit settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
@@ -216,14 +230,26 @@ class IR:
 
     # XXX Brutal hackery here! Probably this is a clue that Config and IR and such should have
     # a common container that can hold errors.
-    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None):
-        self.aconf.post_error(rc, resource=resource)
+    def post_error(self, rc: Union[str, RichStatus], resource: Optional[IRResource]=None, rkey: Optional[str]=None):
+        self.aconf.post_error(rc, resource=resource, rkey=rkey)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():
             self.saved_resources[resource.rkey] = resource
 
         return resource
+
+    # Save secrets from our aconf.
+    def save_secret_info(self, aconf):
+        aconf_secrets = aconf.get_config("secret") or {}
+
+        for secret_name, aconf_secret in aconf_secrets.items():
+            # Ignore anything that doesn't at least have a public half.
+            if aconf_secret.get('tls_crt'):
+                secret_info = SecretInfo.from_aconf_secret(aconf_secret)
+                secret_namespace = secret_info.namespace
+
+                self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
 
     # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
     # are just ACResources; they need to be turned into IRTLSContexts.
@@ -245,6 +271,12 @@ class IR:
         else:
             self.tls_contexts[ctx.name] = ctx
 
+    def get_resolver(self, name: str) -> Optional[IRServiceResolver]:
+        return self.resolvers.get(name, None)
+
+    def add_resolver(self, resolver: IRServiceResolver) -> None:
+        self.resolvers[resolver.name] = resolver
+
     # def has_tls_context(self, name: str) -> bool:
     #     return bool(self.get_tls_context(name))
 
@@ -253,6 +285,86 @@ class IR:
 
     def get_tls_contexts(self) -> ValuesView[IRTLSContext]:
         return self.tls_contexts.values()
+
+    def resolve_secret(self, context: IRTLSContext, secret_name: str) -> SavedSecret:
+        # Start by figuring out a namespace to look in. Assume that we're
+        # in the Ambassador's namespace...
+        namespace = self.ambassador_namespace
+
+        # ...but allow secrets to override the namespace, too.
+        if "." in secret_name:
+            secret_name, namespace = secret_name.split('.', 1)
+
+        # OK. Do we already have a SavedSecret for this?
+        ss_key = f'{secret_name}.{namespace}'
+
+        ss = self.saved_secrets.get(ss_key, None)
+
+        if ss:
+            # Done. Return it.
+            self.logger.debug(f"resolve_secret {ss_key}: using cached SavedSecret")
+            return ss
+
+        # OK, do we have a secret_info for it??
+        secret_info = self.secret_info.get(ss_key, None)
+
+        if not secret_info:
+            # No secret_info, so ask the secret_handler to find us one.
+            self.logger.debug(f"resolve_secret {ss_key}: asking handler to load")
+            secret_info = self.secret_handler.load_secret(context, secret_name, namespace)
+
+        if not secret_info:
+            self.logger.error(f"Secret {ss_key} unknown")
+
+            ss = SavedSecret(secret_name, namespace, None, None, None)
+        else:
+            self.logger.debug(f"resolve_secret {ss_key}: asking handler to cache")
+
+            # OK, we got a secret_info. Cache that using the secret handler.
+            ss = self.secret_handler.cache_secret(context, secret_info)
+
+            # Save this for next time.
+            self.saved_secrets[secret_name] = ss
+
+        return ss
+
+    def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
+                        hostname: str, port: int) -> Optional[SvcEndpointSet]:
+        # Is the host already an IP address?
+        is_ip_address = False
+
+        try:
+            x = ip_address(hostname)
+            is_ip_address = True
+        except ValueError:
+            pass
+
+        if is_ip_address:
+            # Already an IP address, great.
+            self.logger.debug(f'cluster {cluster.name}: {hostname} is already an IP address')
+
+            return [
+                {
+                    'ip': hostname,
+                    'port': port,
+                    'target_kind': 'IPaddr'
+                }
+            ]
+
+        # Which resolver should we use?
+        if not resolver_name:
+            resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
+
+        resolver = self.get_resolver(resolver_name)
+
+        # It should not be possible for resolver to be unset here.
+        if not resolver:
+            self.post_error(f"cluster {cluster.name} has invalid resolver {resolver_name}?", rkey=cluster.rkey)
+            return None
+
+        # OK, ask the resolver for the target list. Understanding the mechanics of resolution
+        # and the load balancer policy and all that is up to the resolver.
+        return resolver.resolve(self, cluster, hostname, port)
 
     def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():
@@ -350,7 +462,7 @@ class IR:
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
-            'endpoints': self.endpoints
+            'services': self.services
         }
 
         if self.tracing:
@@ -374,8 +486,8 @@ class IR:
         using_tls_contexts = False
 
         od['endpoint_routing'] = Config.enable_endpoints
-        od['endpoint_resource_total'] = len(self.endpoints.keys())
-        od['serviceinfo_resource_total'] = len(self.service_info.keys())
+        # od['endpoint_resource_total'] = len(self.endpoints.keys())
+        # od['serviceinfo_resource_total'] = len(self.service_info.keys())
 
         for ctx in self.get_tls_contexts():
             if ctx:
@@ -409,10 +521,10 @@ class IR:
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
-        default_port = 443 if tls_termination_count else 80
+        default_port = Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
 
         od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
-        od['custom_diag_port'] = bool(self.ambassador_module.diag_port != 8877)
+        od['custom_diag_port'] = bool(self.ambassador_module.diag_port != Constants.DIAG_PORT)
 
         cluster_count = 0
         cluster_grpc_count = 0      # clusters using GRPC upstream
@@ -464,26 +576,26 @@ class IR:
                 using_http = True
                 cluster_http_count += 1
 
-            cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.endpoint['ip']
-            num_endpoints = len(cluster_endpoints)
+            # cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.endpoint['ip']
+            # num_endpoints = len(cluster_endpoints)
 
-            if using_tls:
-                endpoint_tls_count += num_endpoints
-
-            if using_http:
-                endpoint_http_count += num_endpoints
-
-            if using_grpc:
-                endpoint_grpc_count += num_endpoints
-
-            if lb_type == 'kube':
-                endpoint_routing_kube_count += num_endpoints
-            elif lb_type == 'ring_hash':
-                endpoint_routing_envoy_rh_count += num_endpoints
-            elif lb_type == 'maglev':
-                endpoint_routing_envoy_maglev_count += num_endpoints
-            else:
-                endpoint_routing_envoy_rr_count += num_endpoints
+            # if using_tls:
+            #     endpoint_tls_count += num_endpoints
+            #
+            # if using_http:
+            #     endpoint_http_count += num_endpoints
+            #
+            # if using_grpc:
+            #     endpoint_grpc_count += num_endpoints
+            #
+            # if lb_type == 'kube':
+            #     endpoint_routing_kube_count += num_endpoints
+            # elif lb_type == 'ring_hash':
+            #     endpoint_routing_envoy_rh_count += num_endpoints
+            # elif lb_type == 'maglev':
+            #     endpoint_routing_envoy_maglev_count += num_endpoints
+            # else:
+            #     endpoint_routing_envoy_rr_count += num_endpoints
 
         od['cluster_count'] = cluster_count
         od['cluster_grpc_count'] = cluster_grpc_count

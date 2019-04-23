@@ -71,6 +71,7 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
+        "resolver": { "type": "string" },
         "rewrite": { "type": "string" },
         "shadow": { "type": "boolean" },
         "connect_timeout_ms": { "type": "integer" },

@@ -217,7 +217,9 @@ else
 fi
 
 if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
-    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
+#    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
+    KUBEWATCH_SYNC_CMD="sh /ambassador/post_watt.sh"
+    WATCH_HOOK="/ambassador/watch_hook.py"
 
     KUBEWATCH_NAMESPACE_ARG=""
 
@@ -225,22 +227,16 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
-    KUBEWATCH_ENDPOINTS_ARG=""
-
-    if [ -n "$AMBASSADOR_ENABLE_ENDPOINTS" ]; then
-        KUBEWATCH_ENDPOINTS_ARG="endpoints"
-    fi
-
-    KUBEWATCH_SYNC_KINDS="secrets services"
+    KUBEWATCH_SYNC_KINDS="-s secret -s service"
 
     if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
-        KUBEWATCH_SYNC_KINDS="services"
+        KUBEWATCH_SYNC_KINDS="-s service"
     fi
 
     set -x
-    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s $KUBEWATCH_SYNC_KINDS $KUBEWATCH_ENDPOINTS_ARG &
+    /ambassador/watt ${KUBEWATCH_NAMESPACE_ARG} --notify "$KUBEWATCH_SYNC_CMD" $KUBEWATCH_SYNC_KINDS --watch "$WATCH_HOOK" &
     set +x
-    pids="${pids:+${pids} }$!:kubewatch"
+    pids="${pids:+${pids} }$!:watt"
 fi
 
 echo "AMBASSADOR: waiting"
