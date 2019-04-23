@@ -15,8 +15,8 @@ In this guide, you will register a service with Consul and use Ambassador to dyn
 1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center. 
 
    **Note** 
-   - If you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the [Chart](https://github.com/hashicorp/consul-helm) and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file). `git checkout` the most recent tag in the [consul-helm](https://github.com/hashicorp/consul-helm) repository will install the latest version of Consul.
-   - If you would like to enable end-to-end TLS between all of your APIs in Kubernetes, you need to set `connectInject.enabled: true` and `client.grpc: true` in the values.yaml file.
+   - If you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the [Chart](https://github.com/hashicorp/consul-helm) and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file). `git checkout` the most recent tag in the [consul-helm](https://github.com/hashicorp/consul-helm) repository to get the latest version of the Consul Helm chart.
+   - If you would like to enable end-to-end TLS between all of your APIs in Kubernetes, you will need to set `connectInject.enabled: true` and `client.grpc: true` in the values.yaml file.
 
 2. Deploy Ambassador. Note: If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
 
@@ -51,7 +51,7 @@ In this guide, you will register a service with Consul and use Ambassador to dyn
         targetPort: 8080
     ```
 
-    This will tell Ambassador that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](/reference/core/resolvers).
+    This will tell Ambassador that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](/reference/core/resolvers). (If you're using Consul deployed elsewhere in your data center, make sure the `address` points to your Consul FQDN or IP address).
 
 ## Routing to Consul Services
 
