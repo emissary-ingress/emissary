@@ -57,12 +57,14 @@ config:
 # readiness_probe:
 #   enabled: true
 
+# By default Envoy sets server_name response header to 'envoy'
+# Override it with this variable
+# server_name: envoy
+
 # If present, service_port will be the port Ambassador listens
 # on for microservice access. If not present, Ambassador will
-# use 443 if TLS is configured, 80 otherwise. In future releases
-# of Ambassador, this will change to 8080 when we run Ambassador
-# as non-root by default.
-# service_port: 80
+# use 8443 if TLS is configured, 8080 otherwise.
+# service_port: 8080
 
 # statsd configures Ambassador statistics. These values can be
 # set in the Ambassador module or in an environment variable.
@@ -88,7 +90,8 @@ config:
 
 # Ambassador lets through only the HTTP requests with
 # `X-FORWARDED-PROTO: https` header set, and redirects all the other
-# requests to HTTPS if this field is set to true.
+# requests to HTTPS if this field is set to true. Note that `use_remote_address` 
+# must be set to false for this feature to work as expected.
 # x_forwarded_proto_redirect: false
 
 # load_balancer sets the global load balancing type and policy that
@@ -110,7 +113,7 @@ config:
 
 ### Overriding Default Ports
 
-By default, Ambassador listens for HTTP or HTTPS traffic on ports 80 or 443 respectively. This value can be overridden by setting the `service_port` in the Ambassador `Module`. 
+By default, Ambassador listens for HTTP or HTTPS traffic on ports 8080 or 8443 respectively. This value can be overridden by setting the `service_port` in the Ambassador `Module`:
 
 ```yaml
 ---
@@ -118,10 +121,10 @@ apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config:
-  service_port: 8080
+  service_port: 4567
 ```
 
-This will configure Ambassador to listen for traffic on port 8080 instead of 80. 
+This will configure Ambassador to listen for traffic on port 4567 instead of 8080.
 
 ### Lua Scripts (`lua_scripts`)
 
@@ -183,6 +186,8 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 ### `use_remote_address`
 
 In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
+
+**Note well** that if you need to use `X-Forwarded-Proto`, you **must** set `use_remote_address` to `false`.
 
 ### `use_proxy_proto`
 
