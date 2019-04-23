@@ -304,12 +304,24 @@ spec:
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-        - name: grpc-auth
-          containerPort: 8500
-        - name: grpc-ratelimit
-          containerPort: 8501
-        - name: http-debug
-          containerPort: 8502
+          - name: grpc-auth
+            containerPort: 8500
+          - name: grpc-ratelimit
+            containerPort: 8501
+          - name: http-debug
+            containerPort: 8502
+        livenessProbe:
+          httpGet:
+            path: /_/sys/healthz
+            port: 8500
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_/sys/readyz
+            port: 8500
+          initialDelaySeconds: 30
+          periodSeconds: 5
         env:
         - name: REDIS_SOCKET_TYPE # For ratelimit
           value: tcp

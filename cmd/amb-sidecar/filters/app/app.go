@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
+
 	"github.com/pkg/errors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -35,6 +37,15 @@ func NewFilterMux(config types.Config, logger types.Logger, controller *controll
 	grpcServer := grpc.NewServer()
 	filterapi.RegisterFilterService(grpcServer, filterMux)
 
+	// register more health probes off the MultiProbe as
+	probe := health.MultiProbe{
+		Logger: logger,
+	}
+
+	// this is a probe that always returns true... it is admittedly "dumb", but if the HTTP server stops serving
+	// this will fail and it forms the basis of the Probe API which we can use for subsequent more involved probes.
+	probe.RegisterProbe("basic", &health.StaticProbe{Value: true})
+
 	// The net/http.Server doesn't support h2c (unencrypted
 	// HTTP/2) built-in.  Since we want to have gRPC and plain
 	// HTTP/1 on the same unencrypted port, need h2c.
@@ -43,7 +54,19 @@ func NewFilterMux(config types.Config, logger types.Logger, controller *controll
 		if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 			grpcServer.ServeHTTP(w, r)
 		} else {
-			http.NotFound(w, r)
+			path := r.URL.Path
+
+			// reserve the /_/sys/* path for future internal "system" paths.
+			if strings.HasPrefix(path, "/_/sys/healthz") || strings.HasPrefix(path, "/_/sys/readyz") {
+				healthy := probe.Check()
+				if healthy {
+					w.WriteHeader(http.StatusOK)
+				} else {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+			} else {
+				http.NotFound(w, r)
+			}
 		}
 	}), &http2.Server{}), nil
 }
