@@ -1,5 +1,9 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.4.1 (2019-04-23)
+
+ * Add liveness and readiness probes
+
 ## 0.4.0 (2019-04-18)
 
  * Moved all of the default sidecar ports around; YAML will need to be adjusted (hence 0.4.0 instead of 0.3.2).  Additionally, all of the ports are now configurable via environment variables
