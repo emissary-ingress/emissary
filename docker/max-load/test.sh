@@ -9,6 +9,7 @@ adjust_ambassador() {
 }
 
 cd /tmp
+trap 'python3 -m http.server' EXIT
 i=0
 set -ex
 max-load $args --csv-file=$((i++))-backend-http1.csv         --enable-http2=false  http://load-http-echo/load-testing/base/
@@ -29,5 +30,3 @@ max-load $args --csv-file=$((i++))-pro-https2-base.csv                          
 max-load $args --csv-file=$((i++))-pro-https2-rl-minute.csv                       https://ambassador/load-testing/rl-minute/
 max-load $args --csv-file=$((i++))-pro-https2-rl-second.csv                       https://ambassador/load-testing/rl-second/
 max-load $args --csv-file=$((i++))-pro-https2-filter-jwt.csv                      https://ambassador/load-testing/filter-jwt/
-
-python3 -m http.server

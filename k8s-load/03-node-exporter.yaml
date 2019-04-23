@@ -1,6 +1,6 @@
 # This file is the concatenation of
 # https://github.com/coreos/kube-prometheus.git:manifests/node-exporter-*.yaml
-# but with the namespace adjusted.
+# but with the namespace adjusted and kube-rbac-proxy removed.
 
 # Part 1: The ClusterRole+ServiceAccount+ClusterRoleBinding
 ---

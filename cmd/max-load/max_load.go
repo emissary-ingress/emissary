@@ -336,4 +336,7 @@ func main() {
 	}
 
 	fmt.Printf("➡️Maximum Working Rate: %d req/sec\n", okRate)
+	if okRate == 1 {
+		os.Exit(1)
+	}
 }
