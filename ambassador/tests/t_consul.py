@@ -65,11 +65,11 @@ name:  {self.path.k8s}_k8s_mapping
 prefix: /{self.path.k8s}_k8s/
 service: {self.k8s_target.path.k8s}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v1
 kind: KubernetesServiceResolver
 name: kubernetes-service
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v1
 kind: KubernetesEndpointResolver
 name: endpoint
 ---
@@ -83,7 +83,7 @@ resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador/v1
 kind: ConsulResolver
 name: {self.path.k8s}-resolver
 address: {self.path.k8s}-consul:8500
