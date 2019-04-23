@@ -357,7 +357,7 @@ endif
 kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
 
 ifeq ($(shell uname -s), Darwin)
-run_teleproxy = sudo $(TELEPROXY)
+run_teleproxy = sudo id; sudo $(TELEPROXY)
 else
 run_teleproxy = $(TELEPROXY)
 endif
