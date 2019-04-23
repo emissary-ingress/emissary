@@ -2,13 +2,12 @@
 
 ## BREAKING NEWS
 
-### DEFAULT PORTS CHANGING IN AMBASSADOR 0.60
+### DEFAULT PORTS CHANGED IN AMBASSADOR 0.60
 
 Ambassador 0.60 will, by default, listen for cleartext HTTP on port 8080 (rather than 80),
 and for HTTPS on port 8443 (rather than 443), in order to simplify running Ambassador without
 root privileges. If you are relying on the default port numbering in your installation, **you
-will need to change your configuration** and Ambassador 0.52 will attempt to warn you of this
-in the diagnostic service.   
+will need to change your configuration**.
 
 ### AMBASSADOR 0.53.1
 
@@ -89,6 +88,20 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+
+## [0.60.0] April 23, 2019
+
+### Changes since 0.53.1
+
+- BREAKING CHANGE: Ambassador listens on 8080 and 8443 by default so it does not need to run as root
+- Ambassador natively supports using Consul for service discovery
+- `AMBASSADOR_ENABLE_ENDPOINTS` is no longer needed; configure using the `Resolver` resource instead
+- Support for the Maglev load balancing algorithm
+- Support `connect_timeout_ms`. Thanks to Pétur Erlingsson.
+- Support for `idle_timeout_ms` Thanks to Aaron Triplett.
+- Ambassador will properly reload renewed Let's Encrypt certificates (#1416). Thanks to Matthew Ceroni.
+- Ambassador will now properly redirect from HTTP to HTTPS based on `x-forwarded-proto` (#1233).
+- The `case_sensitive` field now works when `host_redirect` is set to true (#699). Thanks to Peter Choi and Christopher Coté.
 
 ## [0.53.1] April 5, 2019
 [0.53.1]: https://github.com/datawire/ambassador/compare/0.52.1...0.53.1
