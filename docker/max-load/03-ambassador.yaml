@@ -2,6 +2,7 @@
 {{ $useLoadBalancer := true }}
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
+{{ $serviceAccount := "ambassador-pro" }}
 {{ $ambassadorSuffix := "" }}
 
 {{ $useTLS := env "USE_TLS" | eq "true" }}
@@ -11,58 +12,9 @@
 
 # We define the CRDs in a separate file, so that they are available
 # early.
-
-
-######################################################################
-# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador
 #
-# NB: ClusterRoles and ClusterRoleBindings are not namespaced
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: ambassador{{$ambassadorSuffix}}
-rules:
-# Regular Ambassador access requirements
-- apiGroups: [""]
-  resources:
-  - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch"]
-# Ambassador Pro access requirements... we will create these CRDs
-# below.
-- apiGroups: ["getambassador.io"]
-  resources:
-  - filters
-  - filterpolicies
-  - ratelimits
-  verbs: ["get", "list", "watch"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador{{$ambassadorSuffix}}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador{{$ambassadorSuffix}}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador{{$ambassadorSuffix}}
-subjects:
-- kind: ServiceAccount
-  name: ambassador{{$ambassadorSuffix}}
-  namespace: default
+# We define the ServiceAccount in a separate file, so that test.sh
+# doesn't need to have access to manage RBAC stuff.
 
 
 {{if $useProRateLimit}}
@@ -215,7 +167,7 @@ spec:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
                     values: ["ingress"]
-      serviceAccountName: ambassador{{$ambassadorSuffix}}
+      serviceAccountName: {{$serviceAccount}}
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
