@@ -55,7 +55,7 @@ The `prefix` is set to be the same as the first annotation, which tells Ambassad
 
 ### Shadow traffic weighting
 
-It is possible shadowing only a portion of the traffic specifying the `weight` in the mapping. Eg.
+It is possible to shadow a portion of the traffic by specifying the `weight` in the mapping. Eg.
 
 ```yaml
   getambassador.io/config: |
