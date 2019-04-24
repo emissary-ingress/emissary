@@ -730,7 +730,12 @@ class AmbassadorEventWatcher(threading.Thread):
 
         self.logger.info("rotating snapshots for snapshot %s" % snapshot)
 
-        for from_suffix, to_suffix in [ ('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '') ]:
+        for from_suffix, to_suffix in [
+            # ('-3', '-4'),
+            # ('-2', '-3'),
+            # ('-1', '-2'),
+            ('', '-1'),
+            ('-tmp', '') ]:
             for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
                 try:
                     from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
