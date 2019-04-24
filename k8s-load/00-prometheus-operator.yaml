@@ -49,6 +49,10 @@ rules:
   resources:
   - namespaces
   verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - nodes/metrics
+  verbs: ["get"]
 ---
 apiVersion: v1
 kind: ServiceAccount
