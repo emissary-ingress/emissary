@@ -46,7 +46,7 @@ script:
 
 after_script:
   # release the kubernaut claim
-  - make clean-test
+  - ./releng/travis-cleanup.sh
 
 deploy:
   # Set "GIT_BRANCH" to the value of "MAIN_BRANCH" because the branch a tag originates from is not preserved by Git.
