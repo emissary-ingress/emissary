@@ -3,6 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: kubelet
+  namespace: default
 spec:
   endpoints:
   - port: https-metrics
@@ -20,10 +21,7 @@ spec:
       caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       insecureSkipVerify: true
     bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-  jobLabel: k8s-app
-  namespaceSelector:
-    matchNames:
-    - kube-system
+  jobLabel: k8s-kubelet
   selector:
     matchLabels:
       k8s-app: kubelet

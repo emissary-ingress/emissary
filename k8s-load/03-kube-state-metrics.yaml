@@ -242,8 +242,6 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  labels:
-    k8s-app: kube-state-metrics
   name: kube-state-metrics
   namespace: default
 spec:
@@ -262,7 +260,7 @@ spec:
     scheme: http
     tlsConfig:
       insecureSkipVerify: true
-  jobLabel: k8s-app
+  jobLabel: k8s-kube-state-metrics
   selector:
     matchLabels:
       k8s-app: kube-state-metrics

@@ -145,7 +145,7 @@ spec:
   - interval: 30s
     port: http
     scheme: http
-  jobLabel: k8s-app
+  jobLabel: k8s-node-exporter
   selector:
     matchLabels:
       k8s-app: node-exporter
