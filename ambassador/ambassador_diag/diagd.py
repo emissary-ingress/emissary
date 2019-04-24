@@ -728,23 +728,35 @@ class AmbassadorEventWatcher(threading.Thread):
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 
-        self.logger.info("rotating snapshots for snapshot %s" % snapshot)
+        snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))
+        snaplist: List[Tuple[str, str]] = []
 
-        for from_suffix, to_suffix in [
-            # ('-3', '-4'),
-            # ('-2', '-3'),
-            # ('-1', '-2'),
-            ('', '-1'),
-            ('-tmp', '') ]:
+        if snapcount > 0:
+            self.logger.debug("rotating snapshots for snapshot %s" % snapshot)
+
+            # If snapcount is 4, this range statement becomes range(-4, -1)
+            # which gives [ -4, -3, -2 ], which the list comprehension turns
+            # into [ ( "-3", "-4" ), ( "-2", "-3" ), ( "-1", "-2" ) ]...
+            # which is the list of suffixes to rename to rotate the snapshots.
+
+            snaplist += [ (str(x+1), str(x)) for x in range(-1 * snapcount, -1) ]
+
+            # After dealing with that, we need to rotate the current file into -1.
+            snaplist.append(( '', '-1' ))
+
+        # Whether or not we do any rotation, we need to cycle in the '-tmp' file.
+        snaplist.append(( '-tmp', '' ))
+
+        for from_suffix, to_suffix in snaplist:
             for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
-                try:
-                    from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
-                    to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
+                from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
+                to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
-                    # self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                try:
+                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
                 except IOError as e:
-                    # self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
                     pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
