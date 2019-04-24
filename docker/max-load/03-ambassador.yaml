@@ -190,14 +190,11 @@ spec:
   selector:
     service: ambassador{{$ambassadorSuffix}}
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
   name: ambassador{{$ambassadorSuffix}}
 spec:
-  replicas: 3
-  strategy:
-    type: Recreate
   template:
     metadata:
       annotations:
