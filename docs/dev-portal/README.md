@@ -21,6 +21,8 @@ The Dev Portal runs a loop every 60 seconds:
 1. The Dev Portal queries its local diagd to get all Services registered with Ambassador.
 2. For each Service is sends a query (via the global Ambassador) to that service's `/.well-known/openapi-docs` path, to get the OpenAPI documentation for that service, if any.
 
+**Important:** The `/.well-known/openapi-docs` path is _not_ from the root of the microservice, it's from the root of the path exposed via Ambassador.
+
 ## Dev Portal Web Server
 
 API endpoints:
