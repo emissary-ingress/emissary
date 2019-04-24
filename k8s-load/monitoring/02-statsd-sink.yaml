@@ -32,3 +32,11 @@ spec:
       - name: statsd-sink
         image: prom/statsd-exporter:v0.8.1
       restartPolicy: Always
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["generators"]

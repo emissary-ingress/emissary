@@ -36,6 +36,19 @@ module "generator_node_pool" {
 	machine_type    = "n1-standard-4"
 }
 
+module "ingress_node_pool" {
+	source = "../modules/gke-node_pool"
+
+	project         = "${var.project}"
+	preemptible     = true
+	name            = "ingress"
+	cluster         = "${module.cluster.cluster_name}"
+	location        = "${var.cluster_location}"
+	service_account = "${module.cluster.cluster_service_account_email}"
+	node_count      = 1 // "node_count" is a bit of misnomer... it is nodes per region and there are <N> availability zones per region.
+	machine_type    = "n1-standard-4"
+}
+
 module "backends_node_pool" {
 	source = "../modules/gke-node_pool"
 

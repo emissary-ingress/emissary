@@ -52,3 +52,11 @@ spec:
       volumes:
       - name: grafana-persistent-storage
         emptyDir: {}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["generators"]

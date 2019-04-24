@@ -2,13 +2,111 @@
 {{ $useLoadBalancer := true }}
 {{ $useResourceLimits := true }}
 {{ $useStatsD := true }}
-{{ $serviceAccount := "ambassador-pro" }}
 {{ $ambassadorSuffix := "" }}
 
 {{ $useTLS := env "USE_TLS" | eq "true" }}
 {{ $useNoopAuth := env "USE_NOOP_AUTH" }}
 {{ $useProRateLimit := env "USE_PRO_RATELIMIT" | eq "true" }}
 {{ $useProAuth := env "USE_PRO_AUTH" | eq "true" }}
+
+# We define the CRDs in a separate file, so that they are available
+# early.
+
+
+######################################################################
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador
+#
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador{{$ambassadorSuffix}}
+rules:
+# Regular Ambassador access requirements
+- apiGroups: [""]
+  resources:
+  - services
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["create", "update", "patch", "get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+# Ambassador Pro access requirements... we will create these CRDs
+# below.
+- apiGroups: ["getambassador.io"]
+  resources:
+  - filters
+  - filterpolicies
+  - ratelimits
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador{{$ambassadorSuffix}}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador{{$ambassadorSuffix}}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador{{$ambassadorSuffix}}
+subjects:
+- kind: ServiceAccount
+  name: ambassador{{$ambassadorSuffix}}
+  namespace: default
+
+
+######################################################################
+# Redis for Ambassador Pro ratelimit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-redis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    service: ambassador-pro-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-pro-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ambassador-pro-redis
+  template:
+    metadata:
+      labels:
+        service: ambassador-pro-redis
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: ["backends"]
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
+
 
 ######################################################################
 # Create the ambassador Service+Service+Deployment
@@ -115,8 +213,8 @@ spec:
               - matchExpressions:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
-                    values: ["backends"]
-      serviceAccountName: {{$serviceAccount}}
+                    values: ["ingress"]
+      serviceAccountName: ambassador{{$ambassadorSuffix}}
       containers:
       - name: ambassador
         image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
