@@ -120,9 +120,23 @@ class ResourceFetcher:
 
         self.finalize()
 
+    def parse_json(self, serialization: Optional[str], k8s=False, rkey: Optional[str]=None,
+                   filename: Optional[str]=None) -> None:
+        # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
+        #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
+        #                    serialization))
+
+        try:
+            objects = json.loads(serialization)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
+        except json.decoder.JSONDecodeError as e:
+            self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
+
+        self.finalize()
+
     def parse_watt(self, serialization: Optional[str]) -> None:
         try:
-            watt_dict = parse_yaml(serialization)[0]
+            watt_dict = json.loads(serialization)
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
@@ -141,7 +155,7 @@ class ResourceFetcher:
 
                     self.parse_object(parsed_objects, k8s=False,
                                       filename=self.filename, rkey=rkey)
-        except yaml.error.YAMLError as e:
+        except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
         self.finalize()
