@@ -17,6 +17,7 @@ rules:
   verbs: ["*"]
 - apiGroups: ["extensions", "apps"]
   resources:
+  - daemonsets
   - deployments
   verbs: ["*"]
 ---

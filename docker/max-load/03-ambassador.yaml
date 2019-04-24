@@ -65,6 +65,7 @@ subjects:
   namespace: default
 
 
+{{if $useProRateLimit}}
 ######################################################################
 # Redis for Ambassador Pro ratelimit
 ---
@@ -106,7 +107,7 @@ spec:
       - name: redis
         image: redis:5.0.1
       restartPolicy: Always
-
+{{end}}
 
 ######################################################################
 # Create the ambassador Service+Service+Deployment

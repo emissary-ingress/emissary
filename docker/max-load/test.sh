@@ -1,17 +1,31 @@
 #!/bin/sh
 args='--load-max-rps=3000'
+args='--load-max-rps=300'
+
+preambassador_cleanup() {
+	kubectl delete daemonset ambassador || true
+	kubectl delete deployment ambassador || true
+	kubectl delete deployment ambassador-pro-redis || true
+	kubectl delete services ambassador ambassador-pro ambassador-pro-redis || true
+}
 
 adjust_ambassador() {
 	for assignment in "$@"; do
 		export "$assignment"
 	done
 	kubeapply -f /opt/03-ambassador.yaml
+	if test "$USE_PRO_RATELIMIT" != true; then
+		kubectl delete service ambassador-pro-redis || true
+		kubectl delete deployment ambassador-pro-redis || true
+	fi
+	sleep 5
 }
 
 cd /tmp
 trap 'python3 -m http.server' EXIT
 i=0
 set -ex
+preambassador_cleanup
 max-load $args --csv-file=$((i++))-backend-http1.csv         --enable-http2=false  http://load-http-echo/load-testing/base/
 adjust_ambassador USE_TLS=false USE_NOOP_AUTH='' USE_PRO_RATELIMIT=false USE_PRO_AUTH=false
 max-load $args --csv-file=$((i++))-oss-http1.csv             --enable-http2=false  http://ambassador/load-testing/base/
