@@ -26,6 +26,9 @@ metadata:
   name: load-http-echo
   namespace: default
 spec:
+  selector:
+    matchLabels:
+      app: load-http-echo
   template:
     metadata:
       labels:

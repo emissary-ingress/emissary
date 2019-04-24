@@ -208,9 +208,10 @@ docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plu
 
 docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
 
-docker/max-load.docker: docker/max-load/test.sh
+docker/max-load.docker: docker/max-load/03-ambassador.yaml
 docker/max-load.docker: docker/max-load/kubeapply
 docker/max-load.docker: docker/max-load/kubectl
+docker/max-load.docker: docker/max-load/test.sh
 docker/max-load/kubeapply:
 	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
 	chmod 755 $@

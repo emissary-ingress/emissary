@@ -101,7 +101,7 @@ spec:
               - matchExpressions:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
-                    values: ["backends"]
+                    values: ["ingress"]
       containers:
       - name: redis
         image: redis:5.0.1
@@ -195,6 +195,9 @@ kind: DaemonSet
 metadata:
   name: ambassador{{$ambassadorSuffix}}
 spec:
+  selector:
+    matchLabels:
+      service: ambassador{{$ambassadorSuffix}}
   template:
     metadata:
       annotations:
