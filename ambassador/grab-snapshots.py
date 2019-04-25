@@ -58,25 +58,21 @@ def sanitize_snapshot(path: str):
 	return sanitized
 
 # Open a tarfile for output...
-tarfile = tarfile.open('sanitized.tgz', 'w:gz')
+with tarfile.open('sanitized.tgz', 'w:gz') as archive:
+	# ...then iterate any snapshots, sanitize, and stuff 'em in the tarfile.
+	# Note that the '.yaml' on the snapshot file name is a misnomer: when
+	# watt is involved, they're actually JSON. It's a long story.
 
-# ...then iterate any snapshots, sanitize, and stuff 'em in the tarfile.
-# Note that the '.yaml' on the snapshot file name is a misnomer: when 
-# watt is involved, they're actually JSON. It's a long story.
+	for path in glob.glob('snapshots/snap*.yaml'):
+		# The tarfile can be flat, rather than embedding everything
+		# in a directory with a fixed name.
+		b = os.path.basename(path)
 
-for path in glob.glob('snapshots/snap*.yaml'):
-	# The tarfile can be flat, rather than embedding everything
-	# in a directory with a fixed name.
-	b = os.path.basename(path)
+		sanitized = sanitize_snapshot(path)
 
-	sanitized = sanitize_snapshot(path)
+		if sanitized:
+			with open('sanitized.json', 'w') as tmp:
+				tmp.write(json.dumps(sanitized))
 
-	if sanitized:
-		with open('sanitized.json', 'w') as tmp:
-			tmp.write(json.dumps(sanitized))
-
-		tarfile.add('sanitized.json', arcname=b)
-
-		os.unlink('sanitized.json')
-
-tarfile.close()
+			archive.add('sanitized.json', arcname=b)
+			os.unlink('sanitized.json')

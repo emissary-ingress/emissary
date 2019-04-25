@@ -69,11 +69,11 @@ class IRServiceResolver(IRResource):
         return True
 
     @multi
-    def valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping'):
+    def valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping') -> str:
         del ir
         del mapping
 
-        yield self.kind
+        return self.kind
 
     @valid_mapping.when("KubernetesServiceResolver")
     def _k8s_svc_valid_mapping(self, ir: 'IR', mapping: 'IRBaseMapping'):
@@ -108,13 +108,13 @@ class IRServiceResolver(IRResource):
         return valid
 
     @multi
-    def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+    def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> str:
         del ir      # silence warnings
         del cluster
         del svc_name
         del port
 
-        yield self.kind
+        return self.kind
 
     @resolve.when("KubernetesServiceResolver")
     def _k8s_svc_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
@@ -146,7 +146,7 @@ class IRServiceResolver(IRResource):
         return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
 
     @resolve.when("ConsulResolver")
-    def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+    def _consul_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
         # For Consul, we look things up with the service name and the datacenter at present.
         # We ignore the port in the lookup (we should've already posted a warning about the port
         # being present, actually).
@@ -185,8 +185,8 @@ class IRServiceResolver(IRResource):
 
             # This is ugly. We're almost certainly being called from _within_ the initialization
             # of the cluster here -- so I guess we'll report the error against the service. Sigh.
-            self.ir.post_error(f'Service {service.name}: {key}:{port} matches no endpoints from {hrtype}',
-                               resource=service)
+            self.ir.aconf.post_error(f'Service {service.name}: {key}:{port} matches no endpoints from {hrtype}',
+                                     resource=service)
 
             return None
 
@@ -208,16 +208,16 @@ class IRServiceResolverFactory:
 
         if not ir.get_resolver('kubernetes-service'):
             # Default the K8s service resolver.
-            config = {
+            resolver_config = {
                 'apiVersion': 'getambassador.io/v1',
                 'kind': 'KubernetesServiceResolver',
                 'name': 'kubernetes-service'
             }
 
             if Config.single_namespace:
-                config['namespace'] = Config.ambassador_namespace
+                resolver_config['namespace'] = Config.ambassador_namespace
 
-            ir.add_resolver(IRServiceResolver(ir, aconf, **config))
+            ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
 
         # Ugh, the aliasing for the K8s and Consul endpoint resolvers is annoying.
         res_e = ir.get_resolver('endpoint')
@@ -226,20 +226,20 @@ class IRServiceResolverFactory:
         if not res_e and not res_k_e:
             # Neither exists. Create them from scratch.
 
-            config = {
+            resolver_config = {
                 'apiVersion': 'getambassador.io/v1',
                 'kind': 'KubernetesEndpointResolver',
                 'name': 'kubernetes-endpoint'
             }
 
             if Config.single_namespace:
-                config['namespace'] = Config.ambassador_namespace
+                resolver_config['namespace'] = Config.ambassador_namespace
 
-            ir.add_resolver(IRServiceResolver(ir, aconf, **config))
+            ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
 
-            config['name'] = 'endpoint'
+            resolver_config['name'] = 'endpoint'
 
-            ir.add_resolver(IRServiceResolver(ir, aconf, **config))
+            ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
         else:
             cls.check_aliases(ir, aconf, 'endpoint', res_e, 'kubernetes-endpoint', res_k_e)
 
@@ -249,18 +249,18 @@ class IRServiceResolverFactory:
         if not res_c and not res_c_e:
             # Neither exists. Create them from scratch.
 
-            config = {
+            resolver_config = {
                 'apiVersion': 'getambassador.io/v1',
                 'kind': 'ConsulResolver',
                 'name': 'consul-endpoint',
                 'datacenter': 'dc1'
             }
 
-            ir.add_resolver(IRServiceResolver(ir, aconf, **config))
+            ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
 
-            config['name'] = 'consul'
+            resolver_config['name'] = 'consul'
 
-            ir.add_resolver(IRServiceResolver(ir, aconf, **config))
+            ir.add_resolver(IRServiceResolver(ir, aconf, **resolver_config))
         else:
             cls.check_aliases(ir, aconf, 'consul', res_c, 'consul-endpoint', res_c_e)
 

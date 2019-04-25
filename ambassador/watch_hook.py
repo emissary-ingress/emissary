@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 import sys
 
@@ -20,9 +20,6 @@ logger = logging.getLogger('ambassador')
 logger.setLevel(logging.INFO)
 
 from ambassador import Config, IR
-# from ambassador.envoy import V2Config
-
-# from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 from ambassador.config.resourcefetcher import ResourceFetcher
 
 if TYPE_CHECKING:
@@ -36,8 +33,8 @@ class Service:
         originate_tls = False
 
         self.scheme = 'http'
-        self.errors = []
-        self.name_fields = []
+        self.errors: List[str] = []
+        self.name_fields: List[str] = []
         self.ctx_name = ctx_name
 
         if allow_scheme and service.lower().startswith("https://"):
