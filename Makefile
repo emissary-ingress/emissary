@@ -306,7 +306,7 @@ ifneq ($(DOCKER_REGISTRY), -)
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
-			make docker-login || exit 1; \
+			$(MAKE) docker-login || exit 1; \
 			\
 			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
@@ -491,7 +491,9 @@ release-prep:
 
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
+		$(MAKE) docker-login || exit 1; \
 		set -ex; \
+
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
