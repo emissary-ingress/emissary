@@ -1,3 +1,4 @@
+# @TEMPLATE@
 # This file is the concatenation of
 # https://github.com/coreos/kube-prometheus.git:manifests/node-exporter-*.yaml
 # but with the namespace adjusted and kube-rbac-proxy removed.
@@ -58,23 +59,36 @@ spec:
     targetPort: http
   selector:
     app: node-exporter
+# Define 3 separate DaemonSets, so that we can tell the cluster-groups
+# apart by the pod name in Prometheus.
+{{define "daemonset"}}
 ---
 apiVersion: apps/v1beta2
 kind: DaemonSet
 metadata:
   labels:
     app: node-exporter
-  name: node-exporter
+  name: node-exporter-{{.}}
   namespace: default
 spec:
   selector:
     matchLabels:
       app: node-exporter
+      group: {{.}}
   template:
     metadata:
       labels:
         app: node-exporter
+        group: {{.}}
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values: [{{.}}]
       containers:
       - args:
         - --path.procfs=/host/proc
@@ -130,6 +144,10 @@ spec:
       - hostPath:
           path: /
         name: root
+{{end}}
+{{template "daemonset" "ingress"}}
+{{template "daemonset" "generators"}}
+{{template "daemonset" "backends"}}
 
 # Part 3: The ServiceMonitor
 ---
