@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-CI_DEBUG_KAT_BRANCH=flynn/dev/1467
+CI_DEBUG_KAT_BRANCH=
 
 SHELL = bash
 
@@ -307,11 +307,11 @@ ifneq ($(DOCKER_REGISTRY), -)
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
 			make docker-login || exit 1; \
-			if [ "$(COMMIT_TYPE)" = "EA" ]; then \
-				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
-			fi; \
+			\
+			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
+			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
+			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			\
 			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
 			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
 			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
