@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s test-dump %(levelname)s: %(message)s",
+    format="%(asctime)s watch-hook %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
@@ -146,6 +146,11 @@ watchset = {
             "kind": "endpoints",
             "namespace": Config.ambassador_namespace if Config.single_namespace else "",
             "field-selector": "metadata.namespace!=kube-system"
+        },
+        {
+            "kind": "secret",
+            "namespace": Config.ambassador_namespace if Config.single_namespace else "",
+            "field-selector": "metadata.namespace!=kube-system,type!=kubernetes.io/service-account-token"
         }
     ],
     "consul-watches": consul_watches
