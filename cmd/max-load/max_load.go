@@ -221,7 +221,25 @@ func RunLoad(rps uint) attack.TestResult {
 			URL: Args.URL,
 			RPS: rps,
 
-			ShouldStop: func(m metrics.MetricsReader) bool {
+			ShouldStop: func(m metrics.MetricsReader, filesBefore int) bool {
+				if m.CountRequests()%(5*rps) == 0 {
+					fmt.Printf("? ------- at rate=%drps (latency p95=%s max=%s margin(%d%%)=±%s) (success rate=%d/%d=%f) (rate-limited: %d)\n",
+						rps,
+						m.LatencyQuantile(0.95), m.LatencyMax(), int(Args.LoadUntilMinLatencyConfidence*100), m.LatencyMargin(Args.LoadUntilMinLatencyConfidence),
+						m.CountSuccesses(), m.CountRequests(), m.SuccessRate(),
+						m.CountLimited())
+					// If there's a really bad spike in latency that corresponds with a a spike in
+					// file descriptors, go ahead and bail early, and let the general spike detector
+					// prune it out below.  The confidence tests means that this run would
+					// eventually stabalize, but it would take a pointlessly long time.
+					//
+					// Define a "really bad" spike as:
+					//  - 10 file descriptors (same as below)
+					//  - 2 s (1000× below)
+					if m.LatencyQuantile(0.95) > prevP95Latency+(2*time.Second) && attack.OpenFiles() > filesBefore+10 {
+						return true
+					}
+				}
 				if m.CountRequests() < Args.LoadUntilMinSamples {
 					return false
 				}
@@ -252,6 +270,23 @@ func RunLoad(rps uint) attack.TestResult {
 	}
 }
 
+var prevLine = "BoGuS"
+var inLine = false
+
+func printdup(line string) {
+	if line == prevLine {
+		fmt.Printf(".")
+		inLine = true
+	} else {
+		if inLine {
+			fmt.Printf("\n")
+		}
+		fmt.Println(line)
+		inLine = false
+		prevLine = line
+	}
+}
+
 func RunCooldown() {
 	for {
 		runtime.GC()
@@ -259,20 +294,20 @@ func RunCooldown() {
 			URL: Args.URL,
 			RPS: Args.CooldownRPS,
 
-			ShouldStop: func(m metrics.MetricsReader) bool {
+			ShouldStop: func(m metrics.MetricsReader, _ int) bool {
 				if m.CountSuccesses() < m.CountRequests() {
 					for errstr := range m.Errors() {
-						fmt.Printf("  cooldown: error: %s\n", errstr)
+						printdup(fmt.Sprintf("  cooldown: error: %s", errstr))
 					}
 					return true
 				}
 
 				if m.CountRequests()%100 == 0 {
-					fmt.Printf("  cooldown: requests=%d latency-p95=%v latency-margin(c=%d%%)=%v\n",
+					printdup(fmt.Sprintf("  cooldown: requests=%d latency-p95=%v latency-margin(c=%d%%)=%v",
 						m.CountRequests(),
 						m.LatencyQuantile(0.95),
 						int(Args.CooldownUntilMinLatencyConfidence*100),
-						m.LatencyMargin(Args.CooldownUntilMinLatencyConfidence))
+						m.LatencyMargin(Args.CooldownUntilMinLatencyConfidence)))
 				}
 
 				if m.CountRequests() < Args.CooldownUntilMinSamples {
@@ -291,6 +326,7 @@ func RunCooldown() {
 			break
 		}
 	}
+	printdup("")
 }
 
 func Run(rate uint) bool {

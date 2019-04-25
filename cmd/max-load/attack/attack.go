@@ -55,7 +55,7 @@ func SetHTTP2Enabled(enabled bool) {
 
 var sourcePortRE = regexp.MustCompile(":[1-9][0-9]*->")
 
-func openFiles() int {
+func OpenFiles() int {
 	fis, _ := ioutil.ReadDir("/dev/fd/")
 	return len(fis)
 }
@@ -64,7 +64,7 @@ type TestCase struct {
 	URL string
 	RPS uint
 
-	ShouldStop func(metrics.MetricsReader) bool
+	ShouldStop func(m metrics.MetricsReader, filesBefore int) bool
 }
 
 type TestResult struct {
@@ -83,7 +83,7 @@ func (tc TestCase) Run() TestResult {
 
 	m := metrics.NewMetrics()
 
-	filesBefore := openFiles()
+	filesBefore := OpenFiles()
 	for res := range attacker.Attack(targeter, vegeta.Rate{Freq: int(tc.RPS), Per: time.Second}, 0, fmt.Sprintf("atk-%d", tc.RPS)) {
 		success := false
 		limited := false
@@ -106,11 +106,11 @@ func (tc TestCase) Run() TestResult {
 
 		m.Add(success, limited, res.Latency, errstr)
 
-		if tc.ShouldStop(m) {
+		if tc.ShouldStop(m, filesBefore) {
 			attacker.Stop()
 		}
 	}
-	filesAfter := openFiles()
+	filesAfter := OpenFiles()
 
 	return TestResult{
 		Rate:        tc.RPS,
