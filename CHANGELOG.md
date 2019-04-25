@@ -88,6 +88,17 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.60.1] April 25, 2019
+[0.60.1]: https://github.com/datawire/ambassador/compare/0.60.0...0.60.1
+
+- Speed up initial parsing of WATT snapshots considerably ([#1465])
+- Don't look at secrets in the kube-system namespace, or for service-account tokens. 
+- Make sure that secrets we do look at are correctly associated with their namespaces ([#1467] -- thanks to @flands and @derrickburns for their contributions here!)
+- Allow tuning the number of input snapshots retained for debugging
+- Include the grab-snapshots.py script to help with debuggability
+
+[#1465]: https://github.com/datawire/ambassador/issues/1465
+[#1467]: https://github.com/datawire/ambassador/issues/1467
 
 ## [0.60.0] April 23, 2019
 
