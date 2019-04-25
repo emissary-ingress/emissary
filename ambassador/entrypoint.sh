@@ -61,6 +61,11 @@ export ENVOY_DEBUG
 
 DIAGD_CONFIGDIR=
 
+echo "AMBASSADOR STARTING with environment:"
+echo "===="
+env | grep AMBASSADOR | sort
+echo "===="
+
 if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
