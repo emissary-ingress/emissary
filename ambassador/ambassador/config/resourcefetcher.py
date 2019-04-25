@@ -46,9 +46,9 @@ class ResourceFetcher:
         self.ocount: int = 1
         self.saved: List[Tuple[Optional[str], int]] = []
 
-        self.k8s_endpoints = {}
-        self.k8s_services = {}
-        self.services = {}
+        self.k8s_endpoints: Dict[str, AnyDict] = {}
+        self.k8s_services: Dict[str, AnyDict] = {}
+        self.services: Dict[str, AnyDict] = {}
 
     @property
     def location(self):
@@ -106,7 +106,7 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_yaml(self, serialization: Optional[str], k8s=False, rkey: Optional[str]=None,
+    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
                    filename: Optional[str]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
@@ -120,7 +120,7 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_json(self, serialization: Optional[str], k8s=False, rkey: Optional[str]=None,
+    def parse_json(self, serialization: str, k8s=False, rkey: Optional[str]=None,
                    filename: Optional[str]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
@@ -134,7 +134,7 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_watt(self, serialization: Optional[str]) -> None:
+    def parse_watt(self, serialization: str) -> None:
         try:
             watt_dict = json.loads(serialization)
 
@@ -430,7 +430,7 @@ class ResourceFetcher:
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 
-        objects = []
+        objects: List[Any] = []
 
         if annotations:
             if (self.filename is not None) and (not self.filename.endswith(":annotation")):
