@@ -40,3 +40,18 @@ spec:
                   - key: cloud.google.com/gke-nodepool
                     operator: In
                     values: ["generators"]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ambassador-monitor
+  namespace: default
+  labels:
+    ambassador: monitoring
+spec:
+  selector:
+    matchLabels:
+      service: ambassador-monitor
+  endpoints:
+  - port: prometheus-metrics
+    interval: 1s
