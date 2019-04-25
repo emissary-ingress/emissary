@@ -355,7 +355,9 @@ class IR:
         if not resolver_name:
             resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
 
-        resolver = self.get_resolver(resolver_name)
+        # Casting to str is OK because the Ambassador module's resolver must be a string,
+        # so all the paths for resolver_name land with it being a string.
+        resolver = self.get_resolver(typecast(str, resolver_name))
 
         # It should not be possible for resolver to be unset here.
         if not resolver:

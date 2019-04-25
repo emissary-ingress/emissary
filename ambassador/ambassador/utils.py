@@ -241,7 +241,7 @@ class PeriodicTrigger(threading.Thread):
 
 class SecretInfo:
     def __init__(self, name: str, namespace: str,
-                 tls_crt: str, tls_key: Optional[str]=None, decode_b64=True) -> None:
+                 tls_crt: Optional[str], tls_key: Optional[str]=None, decode_b64=True) -> None:
         self.name = name
         self.namespace = namespace
 
@@ -273,7 +273,7 @@ class SecretInfo:
         return pem
 
     @staticmethod
-    def fingerprint(pem: str) -> str:
+    def fingerprint(pem: Optional[str]) -> str:
         if not pem:
             return '<none>'
 
@@ -506,7 +506,7 @@ class FSSecretHandler(SecretHandler):
 
         if version.startswith('ambassador') and (kind == 'Secret'):
             # It's an Ambassador Secret. It should have a public key and maybe a private key.
-            return self.secret_info_from_dict(context, secret_name, namespace, source, obj)
+            return SecretInfo.from_dict(context, secret_name, namespace, source, obj)
 
         # Didn't look like an Ambassador object. Try K8s.
         return self.secret_info_from_k8s(context, secret_name, namespace, source, serialization)
