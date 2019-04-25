@@ -60,6 +60,7 @@ data:
             "y": 0
           },
           "id": 2,
+          "interval": "1s",
           "legend": {
             "alignAsTable": true,
             "avg": false,
@@ -151,6 +152,7 @@ data:
             "y": 9
           },
           "id": 3,
+          "interval": "1s",
           "legend": {
             "alignAsTable": true,
             "avg": false,
@@ -241,6 +243,7 @@ data:
             "y": 17
           },
           "id": 4,
+          "interval": "1s",
           "legend": {
             "alignAsTable": true,
             "avg": false,

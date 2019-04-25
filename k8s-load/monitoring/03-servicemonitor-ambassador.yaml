@@ -12,3 +12,4 @@ spec:
       service: ambassador-monitor
   endpoints:
   - port: prometheus-metrics
+    interval: 1s

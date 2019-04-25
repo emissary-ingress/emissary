@@ -13,6 +13,7 @@ spec:
       insecureSkipVerify: true
     bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
+    interval: 1s
   - port: https-metrics
     scheme: https
     path: /metrics/cadvisor
@@ -21,6 +22,7 @@ spec:
       caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       insecureSkipVerify: true
     bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 1s
   jobLabel: k8s-kubelet
   namespaceSelector:
     matchNames:
