@@ -29,7 +29,7 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 7. Now for the time-critical bit.
    - Tag `master` with a GA tag like `0.33.0` and let CI do its thing.
    - CI will retag the latest RC image as the GA image.
-   - `make docs-push` _after the retag_ to push new docs out to the website.
+   - `make push-docs` _after the retag_ to push new docs out to the website.
 
    **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
