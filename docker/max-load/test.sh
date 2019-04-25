@@ -34,7 +34,7 @@ run_test() {
 	url=$2
 	shift 2
 	# Make sure that Ambassador is ready
-	while ! curl --fail -L "$url"; do
+	while ! curl --fail -Lk -is "$url"; do
 		sleep 1
 	done
 	# Make it easy to tell apart clusters in the graphs
