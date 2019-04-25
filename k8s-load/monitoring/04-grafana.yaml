@@ -54,7 +54,7 @@ data:
           "description": "Memory usage for all containers in namespace=default",
           "fill": 1,
           "gridPos": {
-            "h": 9,
+            "h": 8,
             "w": 24,
             "x": 0,
             "y": 0
@@ -149,7 +149,7 @@ data:
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 9
+            "y": 8
           },
           "id": 3,
           "interval": "1s",
@@ -240,7 +240,7 @@ data:
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 16
           },
           "id": 4,
           "interval": "1s",
