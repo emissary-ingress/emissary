@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-CI_DEBUG_KAT_BRANCH=flynn/dev/mypy-clean
+CI_DEBUG_KAT_BRANCH=
 
 SHELL = bash
 
