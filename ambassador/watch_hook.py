@@ -146,6 +146,11 @@ watchset = {
             "kind": "endpoints",
             "namespace": Config.ambassador_namespace if Config.single_namespace else "",
             "field-selector": "metadata.namespace!=kube-system"
+        },
+        {
+            "kind": "secret",
+            "namespace": Config.ambassador_namespace if Config.single_namespace else "",
+            "field-selector": "metadata.namespace!=kube-system,type!=kubernetes.io/service-account-token"
         }
     ],
     "consul-watches": consul_watches

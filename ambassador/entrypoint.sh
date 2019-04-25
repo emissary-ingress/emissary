@@ -227,11 +227,11 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
-    KUBEWATCH_SYNC_KINDS="-s secret -s service"
+    KUBEWATCH_SYNC_KINDS="-s service"
 
-    if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
-        KUBEWATCH_SYNC_KINDS="-s service"
-    fi
+#    if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
+#        KUBEWATCH_SYNC_KINDS="-s service"
+#    fi
 
     set -x
     /ambassador/watt ${KUBEWATCH_NAMESPACE_ARG} --notify "$KUBEWATCH_SYNC_CMD" $KUBEWATCH_SYNC_KINDS --watch "$WATCH_HOOK" &
