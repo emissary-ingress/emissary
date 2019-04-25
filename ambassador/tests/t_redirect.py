@@ -4,6 +4,15 @@ from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import ServiceType, TLSRedirect
 
 
+#####
+# XXX This file is annoying.
+#
+# RedirectTestsWithProxyProto and RedirectTestsInvalidSecret used to be subclasses of RedirectTests,
+# which makes a certain amount of sense. Problem is that when I wanted to modify just RedirectTests
+# to have secrets defined, that ended up affecting the two subclasses in bad ways. There's basically
+# no way to subclass an AmbassadorTest without having your base class be run separately, which isn't
+# what I wanted here. Sigh.
+
 class RedirectTests(AmbassadorTest):
 
     target: ServiceType
@@ -64,13 +73,37 @@ service: {self.target.path.fqdn}
 """)
 
     def queries(self):
+        # [0]
         yield Query(self.url("tls-target/"), expected=301)
 
+        # [1] -- PHASE 2
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors",
+                             scheme="https"),
+                    insecure=True,
+                    phase=2)
 
-class RedirectTestsWithProxyProto(RedirectTests):
+    def check(self):
+        # We don't have to check anything about query 0, the "expected" clause is enough.
+
+        # For query 1, we require no errors.
+        # XXX Ew. If self.results[1].json is empty, the harness won't convert it to a response.
+        errors = self.results[1].json
+        assert(len(errors) == 0)
+
+
+class RedirectTestsWithProxyProto(AmbassadorTest):
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def requirements(self):
+        # only check https urls since test readiness will only end up barfing on redirect
+        yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
 
     def config(self):
-        yield self.target, self.format("""
+        yield self, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Module
@@ -78,6 +111,15 @@ name:  ambassador
 config:
   use_proxy_proto: true
   enable_ipv6: true
+""")
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  tls_target_mapping
+prefix: /tls-target/
+service: {self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -88,13 +130,35 @@ config:
         #  in plaintext to test this behavior (or use curl with --haproxy-protocol).
         yield Query(self.url("tls-target/"), error="EOF")
 
+    # We can't do the error check until we have the PROXY client mentioned above.
+    #     # [1] -- PHASE 2
+    #     yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), phase=2)
+    #
+    # def check(self):
+    #     # We don't have to check anything about query 0, the "expected" clause is enough.
+    #
+    #     # For query 1, we require no errors.
+    #     # XXX Ew. If self.results[1].json is empty, the harness won't convert it to a response.
+    #     errors = self.results[1].json
+    #     assert(len(errors) == 0)
 
-class RedirectTestsInvalidSecret(RedirectTests):
+
+class RedirectTestsInvalidSecret(AmbassadorTest):
     """
     This test tests that even if the specified secret is invalid, the rest of TLS Context should
     go through. In this case, even though the secret does not exist, redirect_cleartext_from
     should still take effect.
     """
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def requirements(self):
+        # only check https urls since test readiness will only end up barfing on redirect
+        yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("https"))
+
     def config(self):
         yield self, self.format("""
 ---
@@ -117,6 +181,24 @@ name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("tls-target/"), expected=301)
+
+    # There's kind of no way to do this. Looks like we need to speak HTTP to the port on which we
+    # think the server is listening for HTTPS? This is a bad config all the way around, really.
+    #     # [1] -- PHASE 2
+    #     yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors", scheme="https"), phase=2)
+    #
+    # def check(self):
+    #     # We don't have to check anything about query 0, the "expected" clause is enough.
+    #
+    #     # For query 1, we require no errors.
+    #     # XXX Ew. If self.results[1].json is empty, the harness won't convert it to a response.
+    #     errors = self.results[1].json
+    #     assert(len(errors) == 0)
+
 
 class XFPRedirect(TLSRedirect):
     parent: AmbassadorTest
@@ -143,10 +225,24 @@ service: foobar.com
 """)
 
     def queries(self):
+        # [0]
         yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "http" }, expected=301)
+
+        # [1]
         yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
 
+        # [2] -- PHASE 2
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors", headers={ "X-Forwarded-Proto": "https" }), phase=2)
+
     def check(self):
+        # For query 0, check the redirection target.
         assert self.results[0].headers['Location'] == [
             self.format("https://foobar.com/target/")
         ]
+
+        # For query 1, we don't have to check anything, the "expected" clause is enough.
+
+        # For query 2, we require no errors.
+        # XXX Ew. If self.results[2].json is empty, the harness won't convert it to a response.
+        errors = self.results[2].json
+        assert(len(errors) == 0)

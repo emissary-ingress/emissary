@@ -511,7 +511,7 @@ class Config:
     def handle_secret(self, resource: ACResource) -> None:
         """
         Handles a Secret resource. We need a handler for this because the key needs to be
-        the name plus the namespace, not the name.
+        the rkey, not the name.
         """
 
         storage = self.config.setdefault('secrets', {})
