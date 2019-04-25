@@ -142,7 +142,7 @@ metadata:
   namespace: default
 spec:
   endpoints:
-  - interval: 30s
+  - interval: 1s
     port: http
     scheme: http
   jobLabel: k8s-node-exporter
