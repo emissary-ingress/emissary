@@ -13,12 +13,19 @@ adjust_ambassador() {
 		export "$assignment"
 	done
 
-	kubectl delete service ambassador || true # make sure that the curl-check in run_test doesn't hit an old pod
 	kubeapply -f /opt/03-ambassador.yaml
+	# Clean up left-overs
 	if test "$USE_PRO_RATELIMIT" != true; then
 		kubectl delete service ambassador-pro-redis || true
 		kubectl delete deployment ambassador-pro-redis || true
 	fi
+	# Make sure that there are no old pods around to accidentally
+	# hit, because
+	# https://github.com/datawire/teleproxy/issues/103 and
+	# https://github.com/datawire/teleproxy/issues/65.  This is a
+	# little racy; it might delete new pods.  But that's OK; it's
+	# just extra work for the cluster to re-create them.
+	kubectl delete pods -l service=ambassador
 }
 
 i=0

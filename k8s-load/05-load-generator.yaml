@@ -13,6 +13,7 @@ rules:
   verbs: ["list", "watch"]
 - apiGroups: [""]
   resources:
+  - pods
   - services
   verbs: ["*"]
 - apiGroups: ["extensions", "apps"]
