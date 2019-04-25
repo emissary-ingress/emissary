@@ -307,7 +307,7 @@ spec:
     - name: AMBASSADOR_ID
       value: {self.path.k8s}
     - name: AMBASSADOR_SNAPSHOT_COUNT
-      value: "1"
+      value: "0"
     livenessProbe:
       httpGet:
         path: /ambassador/v0/check_alive
