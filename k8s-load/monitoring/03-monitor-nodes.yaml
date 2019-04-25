@@ -113,7 +113,6 @@ spec:
         beta.kubernetes.io/os: linux
       securityContext:
         runAsNonRoot: true
-        runAsUser: 65534
       serviceAccountName: node-exporter
       tolerations:
       - effect: NoExecute
@@ -142,7 +141,7 @@ metadata:
   namespace: default
 spec:
   endpoints:
-  - interval: 30s
+  - interval: 1s
     port: http
     scheme: http
   jobLabel: k8s-node-exporter
