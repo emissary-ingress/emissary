@@ -7,7 +7,8 @@ preambassador_cleanup() {
 	done
 
 	# clear old data from Prometheus
-	curl --fail -X POST -g 'http://prometheus:9090/api/v1/admin/tsdb/delete_series?match[]={__name__=~".+"}'
+	curl --fail -X POST -gi 'http://prometheus:9090/api/v1/admin/tsdb/delete_series?match[]={__name__=~".+"}'
+	curl --fail -X POST -gi 'http://prometheus:9090/api/v1/admin/tsdb/clean_tombstones'
 	# clear old deployments
 	kubectl delete daemonset ambassador || true
 	kubectl delete deployment ambassador || true
