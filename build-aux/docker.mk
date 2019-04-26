@@ -6,6 +6,7 @@
 ## Inputs ##
 #  - Variable: VERSION
 #  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
+#  - Variable: DOCKER_K8S_ENABLE_PVC ?=
 ## Outputs ##
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
 #  - .PHONY Target : %.docker.clean
@@ -19,6 +20,9 @@
 #
 # DOCKER_IMAGE defines the mapping to publicly the pushed image
 # name/tag, it is evaluated in the context of "%.docker.push"
+#
+# If DOCKER_K8S_ENABLE_PVC is 'true', then the in-cluster registry
+# will use a PersistentVolumeClaim, instead of a hostPath.
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))flock.mk
@@ -32,6 +36,7 @@ docker.LOCALHOST = localhost
 endif
 
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
+DOCKER_K8S_ENABLE_PVC ?=
 
 _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 
@@ -73,9 +78,9 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 #
 #  line 1: in-cluster tag name (hash-based)
 %.docker.knaut-push: %.docker $(KUBEAPPLY) $(KUBECONFIG)
-	$(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
+	DOCKER_K8S_ENABLE_PVC=$(DOCKER_K8S_ENABLE_PVC) $(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
 	{ \
-	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
+	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry statefulset/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push "$$(sed -n 3p $<)"; \
 	}

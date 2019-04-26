@@ -348,10 +348,10 @@ loadtest-destroy: ## Destroy the load-testing cluster
 loadtest-destroy: infra/loadtest-cluster/loadtest.kubeconfig.clean
 loadtest-apply: ## Apply YAML to the load-testing cluster
 loadtest-apply: infra/loadtest-cluster/loadtest.kubeconfig
-	$(MAKE) KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load apply
+	$(MAKE) DOCKER_K8S_ENABLE_PVC=true KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load apply
 loadtest-deploy: ## Push images and apply YAML to the load-testing cluster
 loadtest-deploy: infra/loadtest-cluster/loadtest.kubeconfig
-	$(MAKE) KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load deploy
+	$(MAKE) DOCKER_K8S_ENABLE_PVC=true KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load deploy
 loadtest-clean: ## Remove loadtest files
 loadtest-clean: loadtest-destroy
 	rm -rf infra/loadtest-cluster/.terraform
