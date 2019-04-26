@@ -27,17 +27,22 @@ spec:
   serviceAccountName: prometheus-operator
   serviceMonitorSelector: {}
   enableAdminAPI: true
+  securityContext: # https://github.com/coreos/prometheus-operator/issues/2182
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 2000
   storage:
     volumeClaimTemplate:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 20Gi
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
   resources:
     requests:
       memory: 400Mi
-  replicas: 2
+  replicas: 1
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
