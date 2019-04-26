@@ -346,15 +346,18 @@ infra/loadtest-cluster/loadtest.kubeconfig.clean: %.clean:
 
 loadtest-destroy: ## Destroy the load-testing cluster
 loadtest-destroy: infra/loadtest-cluster/loadtest.kubeconfig.clean
-loadtest-apply: ## Apply YAML to the load-testing cluster
-loadtest-deploy: ## Push images and apply YAML to the load-testing cluster
-loadtest-shell: ## Run a shell with loadtest variables set
-loadtest-apply loadtest-deploy loadtest-shell: loadtest-%: infra/loadtest-cluster/loadtest.kubeconfig
-	$(MAKE) DOCKER_K8S_ENABLE_PVC=true KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load $*
 loadtest-clean: ## Remove loadtest files
 loadtest-clean: loadtest-destroy
 	rm -rf infra/loadtest-cluster/.terraform
 	rm -f infra/loadtest-cluster/*tfplan
+
+loadtest-apply: ## Apply YAML to the load-testing cluster
+loadtest-deploy: ## Push images and apply YAML to the load-testing cluster
+loadtest-shell: ## Run a shell with loadtest variables set
+loadtest-proxy: ## Launch teleproxy to the loadtest cluster
+loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/loadtest-cluster/loadtest.kubeconfig
+	$(MAKE) DOCKER_K8S_ENABLE_PVC=true KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load $*
+
 .PHONY: loadtest-%
 
 #
