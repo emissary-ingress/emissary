@@ -144,10 +144,11 @@ spec:
     service: ambassador{{$ambassadorSuffix}}
 ---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   name: ambassador{{$ambassadorSuffix}}
 spec:
+  replicas: 1
   selector:
     matchLabels:
       service: ambassador{{$ambassadorSuffix}}
