@@ -223,7 +223,7 @@ Istio can be configured to require TLS on connections to APIs in the service mes
           name: productpage_mapping
           prefix: /productpage/
           rewrite: /productpage
-          tls: upstream
+          tls: istio-upstream
           service: https://productpage:9080
     spec:
       ports:
