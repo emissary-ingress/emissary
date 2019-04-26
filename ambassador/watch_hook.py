@@ -11,17 +11,28 @@ import os
 
 from urllib.parse import urlparse
 
+loglevel = logging.INFO
+
+args = sys.argv[1:]
+
+if args:
+    if args[0] == '--debug':
+        loglevel = logging.DEBUG
+        args.pop(0)
+    elif args[0].startswith('--'):
+        raise Exception(f'Usage: {os.path.basename(sys.argv[0])} [--debug] [path]')
+
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=loglevel,
     format="%(asctime)s watch-hook %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 alogger = logging.getLogger('ambassador')
-alogger.setLevel(logging.INFO)
+alogger.setLevel(loglevel)
 
 logger = logging.getLogger('watch_hook')
-logger.setLevel(logging.INFO)
+logger.setLevel(loglevel)
 
 from ambassador import Config, IR
 from ambassador.config.resourcefetcher import ResourceFetcher
@@ -177,8 +188,8 @@ class Service:
 
 yaml_stream = sys.stdin
 
-if len(sys.argv) > 1:
-    yaml_stream = open(sys.argv[1], "r")
+if args:
+    yaml_stream = open(args[0], "r")
 
 aconf = Config()
 fetcher = ResourceFetcher(logger, aconf)
