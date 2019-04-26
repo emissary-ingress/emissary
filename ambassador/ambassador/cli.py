@@ -114,7 +114,7 @@ class CLISecretHandler(SecretHandler):
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
-         debug=False, debug_scout=False, k8s=False, recurse=False,
+         watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
          aconf=False, ir=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -123,6 +123,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     will be dumped.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param watt: If set, input must be a WATT snapshot
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output
     :param k8s: If set, assume configuration files are annotated K8s manifests
@@ -159,7 +160,12 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     try:
         aconf = Config()
         fetcher = ResourceFetcher(logger, aconf)
-        fetcher.load_from_filesystem(config_dir_path, k8s=k8s, recurse=True)
+
+        if watt:
+            fetcher.parse_watt(open(config_dir_path, "r").read())
+        else:
+            fetcher.load_from_filesystem(config_dir_path, k8s=k8s, recurse=True)
+
         aconf.load_all(fetcher.sorted())
 
         # aconf.post_error("Error from string, boo yah")
