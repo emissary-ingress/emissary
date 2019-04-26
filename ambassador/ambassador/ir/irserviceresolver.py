@@ -55,7 +55,7 @@ class IRServiceResolver(IRResource):
         if self.kind == 'ConsulResolver':
             self.resolve_with = 'consul'
 
-            if not self.datacenter:
+            if not self.get('datacenter'):
                 self.post_error("ConsulResolver is required to have a datacenter")
                 return False
         elif self.kind == 'KubernetesServiceResolver':
