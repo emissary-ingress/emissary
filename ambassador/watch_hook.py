@@ -215,13 +215,21 @@ logger.debug(f'contexts: {len(contexts)}')
 consul_watches = []
 kube_watches = []
 
+global_resolver = fake.ambassador_module.get('resolver', None)
+
 for mname, mapping in mappings.items():
     res_name = mapping.get('resolver', None)
+    res_source = 'mapping'
+
+    if not res_name:
+        res_name = global_resolver
+        res_source = 'defaults'
+
     ctx_name = mapping.get('tls', None)
 
-    if res_name:
-        logger.debug(f'Mapping {mname}: resolver {res_name}, service {mapping.service}, tls {ctx_name}')
+    logger.debug(f'Mapping {mname}: resolver {res_name} from {res_source}, service {mapping.service}, tls {ctx_name}')
 
+    if res_name:
         resolver = resolvers.get(res_name, None)
         logger.debug(f'-> resolver {resolver}')
 
