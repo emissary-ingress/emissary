@@ -16,7 +16,7 @@ KUBEAPPLY ?= $(dir $(_kubeapply.mk))kubeapply
 KUBEAPPLY_VERSION = 0.3.11
 
 $(KUBEAPPLY): $(_kubeapply.mk)
-	curl -o $@ https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/$(GOOS)/$(GOARCH)/kubeapply
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/$(GOOS)/$(GOARCH)/kubeapply
 	chmod go-w,a+x $@
 
 clobber: _clobber-kubeapply
