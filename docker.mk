@@ -15,14 +15,76 @@
 ## common.mk targets ##
 #  - clean
 #
-# The private in-kubernaut-cluster registry is known as
-# "localhost:31000" to the cluster Nodes.
+# Note: `docker.mk` depends on `kubernaut-ui.mk`.  See the
+# documentation there for more info.
 #
-# DOCKER_IMAGE defines the mapping to publicly the pushed image
-# name/tag, it is evaluated in the context of "%.docker.push"
+# ## Local docker build ##
 #
-# If DOCKER_K8S_ENABLE_PVC is 'true', then the in-cluster registry
-# will use a PersistentVolumeClaim, instead of a hostPath.
+#    `Dockerfile`s must be in sub-directories; it doesn't support
+#    having a `Dockerfile` in the root.
+#
+#    You can build `somedir/Dockefile` by depending on
+#    `somedir.docker`.  The TL;DR of naming is that the image will be
+#    named `localhost:31000/$(notdir $*):latest`, where `$*=somedir`,
+#    but you should use `$$(sed -n 2p somedir.docker)` to robustly
+#    refer to it in your Makefile rules.  The nuance is:
+#     - It will be `host.docker.internal:31000` instead of
+#       `localhost:31000` on macOS.  You can use $(docker.LOCALHOST)
+#       to portably refer `host.docker.internal` on macOS, and
+#       `localhost` on everything else.
+#     - It actually gets tagged as 2 or 3 different things:
+#        * `$(docker.LOCALHOST):31000/$(notdir $*):latest`
+#        * `$(docker.LOCALHOST):31000/$(notdir $*):$(VERSION)` (if `$(VERSION)` is set))
+#        * `$(docker.LOCALHOST):31000/$(notdir $*):id-sha256-...`
+#     - Inside of your local Makefile rules, you should refer to by
+#       its ID hash using `$$(sed -n 2p somedir.docker)`.
+#
+#    If you need something to be done before the `docker build`, make
+#    it a dependency of `somedir.docker`.
+#
+#    You can untag an image by having your `clean` target depend on
+#    `dir.docker.clean`
+#
+# ## Pushing to a private Kubernaut registry ##
+#
+#     > NOTE: On macOS, you will need to add
+#     > host.docker.internal:31000` to Docker's list of "Insecure
+#     > registries" in order to push to kubernaut.io clusters.  Ask
+#     > Abhay how to do that.
+#
+#    You can push to kubernaut by depending on
+#    `somedir.docker.knaut-push`.  It will be known in-cluster as
+#    `$$(cat somedir.docker.knaut-push)`.  You will need to substitute
+#    that value in your YAML (kubeapply can help with this).
+#
+#    The private in-kubernaut-cluster registry is known as
+#    "localhost:31000" to the cluster Nodes.
+#
+#    As a preliminary measure for supporting this functionality on
+#    non-Kubernaut clusters, if DOCKER_K8S_ENABLE_PVC is 'true', then
+#    the in-cluster registry will use a PersistentVolumeClaim (instead
+#    of a hostPath) for storage.  Kubernaut does not support
+#    PersistentVolumeClaims, but since Kubernaut clusters only have a
+#    single Node, a hostPath is an acceptable hack there; it isn't on
+#    other clusters.
+#
+# ## Pushing to a public registry ##
+#
+#    You can push to the public `$(DOCKER_REGISTRY)` by depending on
+#    `somedir.docker.push`.  By default, it will have the same name as
+#    the local tag (sans the `localhost:31000` prefix).
+#
+#    You can customize the public name by adjusting the `DOCKER_IMAGE`
+#    variable, which defines a mapping to publicly the pushed image
+#    name/tag, it is evaluated in the context of "%.docker.push".
+#
+#    Example:
+#        In order to to push the Ambassador Pro sidecar as
+#        `ambassador_pro:amb-sidecar-$(VERSION)` instead the the
+#        default `amb-sidecar:$(VERSION)`, the apro Makefile sets
+#
+#            DOCKER_IMAGE = $(DOCKER_REGISTRY)/ambassador_pro:$(notdir $*)-$(VERSION)
+#
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))flock.mk
