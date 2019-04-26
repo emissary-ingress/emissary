@@ -26,9 +26,18 @@ metadata:
 spec:
   serviceAccountName: prometheus-operator
   serviceMonitorSelector: {}
+  enableAdminAPI: true
+  storage:
+    volumeClaimTemplate:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
   resources:
     requests:
       memory: 400Mi
+  replicas: 2
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:

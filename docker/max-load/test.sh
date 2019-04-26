@@ -1,7 +1,7 @@
 #!/bin/sh
 
 preambassador_cleanup() {
-	kubectl delete pod prometheus-prometheus-0
+	curl -X POST -g 'http://prometheus:9090/api/v1/admin/tsdb/delete_series?match[]={__name__=~".+"}'
 	kubectl delete daemonset ambassador || true
 	kubectl delete deployment ambassador || true
 	kubectl delete deployment ambassador-pro-redis || true
