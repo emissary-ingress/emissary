@@ -1,7 +1,14 @@
 #!/bin/sh
 
 preambassador_cleanup() {
-	curl -X POST -g 'http://prometheus:9090/api/v1/admin/tsdb/delete_series?match[]={__name__=~".+"}'
+	# ensure that Prometheus is ready
+	while ! curl --fail -Lk -is http://prometheus:9090/; do
+		sleep 1
+	done
+
+	# clear old data from Prometheus
+	curl --fail -X POST -g 'http://prometheus:9090/api/v1/admin/tsdb/delete_series?match[]={__name__=~".+"}'
+	# clear old deployments
 	kubectl delete daemonset ambassador || true
 	kubectl delete deployment ambassador || true
 	kubectl delete deployment ambassador-pro-redis || true
