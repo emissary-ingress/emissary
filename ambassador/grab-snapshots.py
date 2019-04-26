@@ -36,10 +36,7 @@ def sanitize_snapshot(path: str):
 						data = secret["data"]
 
 						for k in data.keys():
-							if ((k == "token") or 
-								k.lower().endswith(".crt") or
-								k.lower().endswith(".key")):
-								data[k] = f'-sanitized-{k}-'
+							data[k] = f'-sanitized-{k}-'
 
 					metadata = secret.get('metadata', {})
 					annotations = metadata.get('annotations', {})
