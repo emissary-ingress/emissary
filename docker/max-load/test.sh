@@ -56,21 +56,25 @@ trap 'python3 -m http.server' EXIT
 set -ex
 
 preambassador_cleanup
-run_test backend-http1               http://load-http-echo/load-testing/base/ --enable-http2=false
-adjust_ambassador USE_TLS=false USE_NOOP_AUTH='' USE_PRO_RATELIMIT=false USE_PRO_AUTH=false
-run_test oss-http1                   http://ambassador/load-testing/base/     --enable-http2=false
-adjust_ambassador USE_TLS=true
-run_test oss-https1                  https://ambassador/load-testing/base/    --enable-http2=false
-run_test oss-https2                  https://ambassador/load-testing/base/
-adjust_ambassador USE_NOOP_AUTH=http
-run_test oss-https2-httpauth         https://ambassador/load-testing/base/
-adjust_ambassador USE_NOOP_AUTH=grpc
-run_test oss-https2-grpcauth         https://ambassador/load-testing/base/
-adjust_ambassador USE_NOOP_AUTH='' USE_PRO_RATELIMIT=true
-run_test pro-rlonly-https2-rl-minute https://ambassador/load-testing/rl-minute/
-run_test pro-rlonly-https2-rl-second https://ambassador/load-testing/rl-second/
-adjust_ambassador USE_NOOP_AUTH='' USE_PRO_AUTH=true
-run_test pro-https2-base             https://ambassador/load-testing/base/
-run_test pro-https2-rl-minute        https://ambassador/load-testing/rl-minute/
-run_test pro-https2-rl-second        https://ambassador/load-testing/rl-second/
-run_test pro-https2-filter-jwt       https://ambassador/load-testing/filter-jwt/
+
+# run_test backend-http1               http://load-http-echo/load-testing/base/ --enable-http2=false
+# adjust_ambassador USE_TLS=false USE_NOOP_AUTH='' USE_PRO_RATELIMIT=false USE_PRO_AUTH=false
+# run_test oss-http1                   http://ambassador/load-testing/base/     --enable-http2=false
+# adjust_ambassador USE_TLS=true
+# run_test oss-https1                  https://ambassador/load-testing/base/    --enable-http2=false
+# run_test oss-https2                  https://ambassador/load-testing/base/
+# adjust_ambassador USE_NOOP_AUTH=http
+# run_test oss-https2-httpauth         https://ambassador/load-testing/base/
+# adjust_ambassador USE_NOOP_AUTH=grpc
+# run_test oss-https2-grpcauth         https://ambassador/load-testing/base/
+# adjust_ambassador USE_NOOP_AUTH='' USE_PRO_RATELIMIT=true
+# run_test pro-rlonly-https2-rl-minute https://ambassador/load-testing/rl-minute/
+# run_test pro-rlonly-https2-rl-second https://ambassador/load-testing/rl-second/
+# adjust_ambassador USE_NOOP_AUTH='' USE_PRO_AUTH=true
+# run_test pro-https2-base             https://ambassador/load-testing/base/
+# run_test pro-https2-rl-minute        https://ambassador/load-testing/rl-minute/
+# run_test pro-https2-rl-second        https://ambassador/load-testing/rl-second/
+# run_test pro-https2-filter-jwt       https://ambassador/load-testing/filter-jwt/
+
+adjust_ambassador USE_TLS=false USE_NOOP_AUTH=grpc USE_PRO_RATELIMIT=false USE_PRO_AUTH=false
+run_test for-phil http://ambassador/load-testing/base/    --enable-http2=false
