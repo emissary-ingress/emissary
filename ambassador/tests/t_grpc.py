@@ -81,6 +81,8 @@ rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 resolver: endpoint
+load_balancer:
+  policy: round_robin
 """)
 
     def queries(self):
