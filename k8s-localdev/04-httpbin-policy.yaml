@@ -31,3 +31,11 @@ spec:
       public: false
       filters:
       - name: keycloak
+    - host: "*"
+      path: /okta/httpbin/headers
+      filters:
+        - name: okta
+          arguments:
+            scopes:
+              - "openid"
+              - "profile"

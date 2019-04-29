@@ -46,6 +46,58 @@ func (as authorizationService) Check(ctx context.Context, req *envoyAuthV2.Check
 	return filterResponse.toCheckResponse(), nil
 }
 
+type FilterClient interface {
+	Filter(ctx context.Context, in *FilterRequest, opts ...grpc.CallOption) (FilterResponse, error)
+}
+
+type filterClient struct {
+	authorizationClient envoyAuthV2.AuthorizationClient
+}
+
+func (fc *filterClient) Filter(ctx context.Context, in *FilterRequest, opts ...grpc.CallOption) (FilterResponse, error) {
+	checkResponse, err := fc.authorizationClient.Check(ctx, &envoyAuthV2.CheckRequest{Attributes: in}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	if checkResponse.GetStatus().GetCode() == int32(rpc.OK) {
+		ret := &HTTPRequestModification{
+			Header: nil,
+		}
+		for _, headerValueOption := range checkResponse.GetOkResponse().GetHeaders() {
+			asAppend := true // docs claim this is default https://godoc.org/github.com/datawire/kat-backend/xds/envoy/api/v2/core#HeaderValueOption
+			if headerValueOption.GetAppend() != nil {
+				asAppend = headerValueOption.GetAppend().GetValue()
+			}
+			if asAppend {
+				ret.Header = append(ret.Header, &HTTPHeaderAppendValue{
+					Key:   headerValueOption.GetHeader().GetKey(),
+					Value: headerValueOption.GetHeader().GetValue(),
+				})
+			} else {
+				ret.Header = append(ret.Header, &HTTPHeaderReplaceValue{
+					Key:   headerValueOption.GetHeader().GetKey(),
+					Value: headerValueOption.GetHeader().GetValue(),
+				})
+			}
+		}
+		return ret, nil
+	} else {
+		ret := &HTTPResponse{
+			StatusCode: int(checkResponse.GetDeniedResponse().GetStatus().GetCode()),
+			Header:     http.Header{},
+			Body:       checkResponse.GetDeniedResponse().GetBody(),
+		}
+		for _, headerValueOption := range checkResponse.GetDeniedResponse().GetHeaders() {
+			ret.Header.Add(headerValueOption.GetHeader().GetKey(), headerValueOption.GetHeader().GetValue())
+		}
+		return ret, nil
+	}
+}
+
+func NewFilterClient(cc *grpc.ClientConn) FilterClient {
+	return &filterClient{authorizationClient: envoyAuthV2.NewAuthorizationClient(cc)}
+}
+
 // A Filter is something that can modify or intercept an incoming HTTP
 // request.
 type Filter interface {
@@ -99,7 +151,7 @@ type HTTPRequestModification struct {
 	Header []HTTPHeaderModification
 }
 
-var _ FilterResponse = HTTPRequestModification{}
+var _ FilterResponse = &HTTPRequestModification{}
 
 type HTTPHeaderModification interface {
 	toHeaderValueOption() *envoyCoreV2.HeaderValueOption
@@ -110,9 +162,12 @@ type HTTPHeaderAppendValue struct {
 	Value string
 }
 
-var _ HTTPHeaderModification = HTTPHeaderAppendValue{}
+var _ HTTPHeaderModification = &HTTPHeaderAppendValue{}
 
-func (h HTTPHeaderAppendValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (h *HTTPHeaderAppendValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
 	return &envoyCoreV2.HeaderValueOption{
 		Header: &envoyCoreV2.HeaderValue{
 			Key:   h.Key,
@@ -127,9 +182,12 @@ type HTTPHeaderReplaceValue struct {
 	Value string
 }
 
-var _ HTTPHeaderModification = HTTPHeaderReplaceValue{}
+var _ HTTPHeaderModification = &HTTPHeaderReplaceValue{}
 
-func (h HTTPHeaderReplaceValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (h *HTTPHeaderReplaceValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOption {
 	return &envoyCoreV2.HeaderValueOption{
 		Header: &envoyCoreV2.HeaderValue{
 			Key:   h.Key,
@@ -139,7 +197,10 @@ func (h HTTPHeaderReplaceValue) toHeaderValueOption() *envoyCoreV2.HeaderValueOp
 	}
 }
 
-func (r HTTPRequestModification) toCheckResponse() *envoyAuthV2.CheckResponse {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (r *HTTPRequestModification) toCheckResponse() *envoyAuthV2.CheckResponse {
 	headers := make([]*envoyCoreV2.HeaderValueOption, len(r.Header))
 	for i := range r.Header {
 		headers[i] = r.Header[i].toHeaderValueOption()
@@ -163,9 +224,12 @@ type HTTPResponse struct {
 	Body       string
 }
 
-var _ = HTTPResponse{}
+var _ FilterResponse = &HTTPResponse{}
 
-func (r HTTPResponse) toCheckResponse() *envoyAuthV2.CheckResponse {
+// use a pointer-receiver so that code doing a type-switch doesn't
+// need to handle both the pointer and non-pointer cases; force
+// everything to be a pointer.
+func (r *HTTPResponse) toCheckResponse() *envoyAuthV2.CheckResponse {
 	var headers []*envoyCoreV2.HeaderValueOption
 	for k, vs := range r.Header {
 		for _, v := range vs {

@@ -7,6 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	coreV1client "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -34,11 +36,25 @@ func countTrue(args ...bool) int {
 }
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch(ctx context.Context) {
+func (c *Controller) Watch(ctx context.Context) error {
 	c.Rules.Store([]crd.Rule{})
 	c.Filters.Store(map[string]interface{}{})
 
-	w := k8s.NewClient(nil).Watcher()
+	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
+	if err != nil {
+		return err
+	}
+
+	restconfig, err := kubeinfo.GetRestConfig()
+	if err != nil {
+		return err
+	}
+	coreClient, err := coreV1client.NewForConfig(restconfig)
+	if err != nil {
+		return err
+	}
+
+	w := k8s.NewClient(kubeinfo).Watcher()
 
 	w.Watch("filters", func(w *k8s.Watcher) {
 		filters := map[string]interface{}{}
@@ -56,18 +72,19 @@ func (c *Controller) Watch(ctx context.Context) {
 				continue
 			}
 
-			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil) != 1 {
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil, spec.External != nil) != 1 {
 				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v", []string{
 					"OAuth2",
 					"Plugin",
 					"JWT",
+					"External",
 				})
 				continue
 			}
 
 			switch {
 			case spec.OAuth2 != nil:
-				if err = spec.OAuth2.Validate(); err != nil {
+				if err = spec.OAuth2.Validate(mw.Namespace(), coreClient); err != nil {
 					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
 					continue
 				}
@@ -90,6 +107,14 @@ func (c *Controller) Watch(ctx context.Context) {
 
 				c.Logger.Infoln("loading filter jwt")
 				filters[mw.QName()] = *spec.JWT
+			case spec.External != nil:
+				if err = spec.External.Validate(); err != nil {
+					c.Logger.Errorln(errors.Wrap(err, "filter resource"))
+					continue
+				}
+
+				c.Logger.Infoln("loading filter external=%s", spec.External.AuthService)
+				filters[mw.QName()] = *spec.External
 			default:
 				panic("should not happen")
 			}
@@ -120,10 +145,12 @@ func (c *Controller) Watch(ctx context.Context) {
 			Path: "/callback",
 		})
 		for _, p := range w.List("filterpolicies") {
+			logger := c.Logger.WithField("FILTERPOLICY", p.QName())
+
 			var spec crd.FilterPolicySpec
 			err := mapstructure.Convert(p.Spec(), &spec)
 			if err != nil {
-				c.Logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
+				logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
 				continue
 			}
 			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
@@ -135,7 +162,7 @@ func (c *Controller) Watch(ctx context.Context) {
 
 			for _, rule := range spec.Rules {
 				if err := rule.Validate(p.Namespace()); err != nil {
-					c.Logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
+					logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
 					continue
 				}
 
@@ -143,7 +170,7 @@ func (c *Controller) Watch(ctx context.Context) {
 				for _, filterRef := range rule.Filters {
 					filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
 				}
-				c.Logger.Infof("loading rule host=%s, path=%s, filters=[%s]",
+				logger.Infof("loading rule host=%s, path=%s, filters=[%s]",
 					rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
 				rules = append(rules, rule)
@@ -159,4 +186,5 @@ func (c *Controller) Watch(ctx context.Context) {
 	}()
 
 	w.Wait()
+	return nil
 }

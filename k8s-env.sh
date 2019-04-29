@@ -5,6 +5,8 @@ PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
 SIDECAR_IMAGE=$(cat docker/app-sidecar.docker.knaut-push)
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(cat docker/consul_connect_integration.docker.knaut-push)
 MODEL_CLUSTER_APP_IMAGE=$(cat docker/model-cluster-app.docker.knaut-push)
+MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-grpc-auth.docker.knaut-push)
+MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-http-auth.docker.knaut-push)
 
 # acceptance_test.js
 EXTERNAL_IP=ambassador.standalone.svc.cluster.local
@@ -47,3 +49,8 @@ IDP_KEYCLOAK_PROVIDER_URL=http://keycloak.localdev.svc.cluster.local/auth/realms
 IDP_KEYCLOAK_AUDIENCE=app
 IDP_KEYCLOAK_CLIENT_ID=app
 IDP_KEYCLOAK_CLIENT_SECRET=8517c278-0ae8-40e5-b418-20199b7e3fb5
+
+IDP_OKTA_PROVIDER_URL=https://dev-264701.okta.com/oauth2/default
+IDP_OKTA_AUDIENCE=api://default
+IDP_OKTA_CLIENT_ID=0oaeshpr0wKNbyWQn356
+IDP_OKTA_CLIENT_SECRET=7Z-C1IIxDSzr1ICmZgnKt8G1_Mdtm2CpqvKSNnXd
