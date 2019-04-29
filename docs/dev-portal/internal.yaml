@@ -1,0 +1,67 @@
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: internal-access-control
+  namespace: default
+spec:
+  rules:
+    - host: "*"
+      path: "*/.ambassador-internal/*"
+      filters:
+        - name: internal-access-control-basicauth
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: internal-access-control-basicauth
+  namespace: default
+spec:
+  External:
+    auth_service: "internal-access-control-basicauth:4000"
+    path_prefix: "/extauth"
+    proto: http
+    allowed_request_headers:
+    - "x-allowed-input-header"
+    allowed_authorization_headers:
+    - "x-input-headers"
+    - "x-allowed-output-header"
+    allow_request_body: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-access-control-basicauth
+spec:
+  type: ClusterIP
+  selector:
+    app: internal-access-control-basicauth
+  ports:
+  - port: 3000
+    name: http-auth
+    targetPort: http-api
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: internal-access-control-basicauth
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: internal-access-control-basicauth
+    spec:
+      containers:
+      - name: internal-access-control-basicauth
+        image: datawire/ambassador-auth-service:1.1.1
+        imagePullPolicy: Always
+        ports:
+        - name: http-api
+          containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
