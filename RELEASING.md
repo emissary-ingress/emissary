@@ -37,6 +37,18 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
    - in `Chart.yaml`, update `appVersion` with the new Ambassador version, and bump `version`.
    - in `README.md`, update the default value of `image.tag`.
    - in `values.yaml`, update `tag`.
+   - Helpful stuff for this:
+      - git checkout master               # switch to master
+      - git fetch --all                   # make sure our view of remotes is up to date
+      - git pull                          # pull down any changes to master
+      - git rebase upstream/master        # move master on top of upstream
+      - git push                          # push rebases to our fork
+      - git branch -b update/$VERSION     # switch to a feature branch
+      - make your edits
+      - git commit -a                     # commit changes
+      - git push origin/update/$VERSION   # push to feature branch
+      - open a PR
+    - Once your PR is merged, _delete the feature branch without merging it back to origin/master_.
 
 ----
 Updating Ambassador's Envoy
