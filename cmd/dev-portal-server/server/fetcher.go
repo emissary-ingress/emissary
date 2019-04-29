@@ -194,7 +194,7 @@ func (f *fetcher) retrieve() {
 			// Get the OpenAPI documentation:
 			var doc []byte
 			docBuf, err := f.httpGet(
-				f.ambassadorURL+prefix+"/.well-known/openapi-docs",
+				f.ambassadorURL+prefix+"/.ambassador-internal/openapi-docs",
 				f.logger)
 			if err == nil {
 				doc = docBuf

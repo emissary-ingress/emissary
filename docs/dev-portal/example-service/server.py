@@ -3,7 +3,7 @@ import time
 from flask import Flask, make_response
 app = Flask(__name__)
 
-@app.route('/.well-known/openapi-docs')
+@app.route('/.ambassador-internal/openapi-docs')
 def openapi_docs():
     with open("openapi.json") as f:
         docs = json.load(f)

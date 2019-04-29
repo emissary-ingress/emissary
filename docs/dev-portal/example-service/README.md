@@ -1,6 +1,6 @@
 # Sample service exposing OpenAPI docs
 
-This service publishes OpenAPI docs at `/.well-known/openapi-docs` in order to help test the Dev Portal.
+This service publishes OpenAPI docs at `/.ambassador-internal/openapi-docs` in order to help test the Dev Portal.
 
 To run it:
 
