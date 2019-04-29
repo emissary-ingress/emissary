@@ -493,7 +493,6 @@ release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		$(MAKE) docker-login || exit 1; \
 		set -ex; \
-
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
