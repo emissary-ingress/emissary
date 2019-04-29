@@ -57,7 +57,7 @@ deploy:
   # based on the logic in the Makefile. This will cause a release failure which is expected behavior
   - provider: script
     # script: make release GIT_BRANCH=$(make print-MAIN_BRANCH)
-    script: make release
+    script: ./releng/travis-release.sh
     skip_cleanup: true
     on:
       all_branches: true
