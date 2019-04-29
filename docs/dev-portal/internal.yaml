@@ -18,7 +18,7 @@ metadata:
   namespace: default
 spec:
   External:
-    auth_service: "internal-access-control-basicauth:4000"
+    auth_service: "internal-access-control-basicauth:3000"
     path_prefix: "/extauth"
     proto: http
     allowed_request_headers:
