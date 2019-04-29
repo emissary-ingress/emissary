@@ -18,7 +18,7 @@ metadata:
   namespace: default
 spec:
   External:
-    auth_service: "internal-access-control-basicauth:3000"
+    auth_service: "internal-access-control-basicauth:5000"
     path_prefix: "/extauth"
     proto: http
     allowed_request_headers:
@@ -37,9 +37,17 @@ spec:
   selector:
     app: internal-access-control-basicauth
   ports:
-  - port: 3000
+  - port: 5000
     name: http-auth
     targetPort: http-api
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ambassador-auth-httpbasic
+type: Opaque
+data:
+  users.yaml: "YWRtaW46CiAgaGFzaGVkX3Bhc3N3b3JkOiAiJDJiJDEyJG1XcXZVT1pRb3d2aks4WFBtT3VPdk9XUFBnVVYyZDY0TWw0OXJPRXpmQWw4TUpYWjNaUFJLIgo="
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -56,12 +64,23 @@ spec:
     spec:
       containers:
       - name: internal-access-control-basicauth
-        image: datawire/ambassador-auth-service:1.1.1
+        image: quay.io/datawire/ambassador-auth-httpbasic:0.1.1
         imagePullPolicy: Always
         ports:
         - name: http-api
-          containerPort: 3000
+          containerPort: 5000
+        volumeMounts:
+          - name: ambassador-auth-httpbasic
+            mountPath: /var/lib/ambassador/auth-httpbasic
+            readOnly: true
         resources:
           limits:
             cpu: "0.1"
             memory: 100Mi
+      volumes:
+        - name: ambassador-auth-httpbasic
+          secret:
+            secretName: ambassador-auth-httpbasic
+            items:
+              - key: users.yaml
+                path: users.yaml
