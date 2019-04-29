@@ -67,7 +67,7 @@ spec:
       serviceAccountName: devportal
       containers:
       - name: devportal
-        image: quay.io/ambassador/ambassador_pro:dev-portal-server-0.3.0
+        image: quay.io/ambassador/ambassador_pro:dev-portal-server-0.4.0
         imagePullPolicy: IfNotPresent
         env:
           # Change this to the main public address for your API (i.e. the
@@ -94,7 +94,7 @@ spec:
           periodSeconds: 3
    
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.53.1
+        image: quay.io/datawire/ambassador:0.60.0
         resources:
           limits:
             cpu: 1
