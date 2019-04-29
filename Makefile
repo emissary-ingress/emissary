@@ -492,7 +492,6 @@ release-prep:
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \
-	    eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars); \
 		$(MAKE) print-vars; \
 		$(MAKE) docker-login || exit 1; \
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
