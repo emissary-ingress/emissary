@@ -18,7 +18,7 @@ $ make build
 $ eval $(minikube docker-env)
 $ cd docker/dev-portal-server
 $ export KUBECONFIG=~/.kube/config
-$ docker build -t quay.io/ambassador/ambassador_pro:dev-portal-server-0.3.0 .
+$ docker build -t quay.io/ambassador/ambassador_pro:dev-portal-server-0.4.0 .
 ```
 
 This tag matches what's in the Kubernetes YAML file.
