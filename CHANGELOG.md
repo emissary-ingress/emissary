@@ -88,8 +88,19 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.60.2] April 29, 2019
+[0.60.2]: https://github.com/datawire/ambassador/compare/0.60.1...0.60.2
+
+### Changes since 0.60.1
+
+- Ambassador is now much more careful about which endpoints and secrets it pays attention to. ([#1465] again -- thanks to [@flands](https://github.com/flands) and @seandon for the help here!)
+
+[#1465]: https://github.com/datawire/ambassador/issues/1465
+
 ## [0.60.1] April 25, 2019
 [0.60.1]: https://github.com/datawire/ambassador/compare/0.60.0...0.60.1
+
+### Changes since 0.60.0
 
 - Speed up initial parsing of WATT snapshots considerably ([#1465])
 - Don't look at secrets in the kube-system namespace, or for service-account tokens. 
@@ -101,6 +112,7 @@ Format:
 [#1467]: https://github.com/datawire/ambassador/issues/1467
 
 ## [0.60.0] April 23, 2019
+[0.60.0]: https://github.com/datawire/ambassador/compare/0.53.1...0.60.0
 
 ### Changes since 0.53.1
 
