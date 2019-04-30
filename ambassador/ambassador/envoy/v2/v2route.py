@@ -51,30 +51,12 @@ class V2Route(dict):
             self['per_filter_config'] = per_filter_config
 
         request_headers_to_add = group.get('add_request_headers', None)
-
         if request_headers_to_add:
-            self['request_headers_to_add'] = [
-                {
-                    'header': {
-                        'key': k,
-                        'value': v
-                    },
-                    'append': True  # ???
-                } for k, v in request_headers_to_add.items()
-            ]
+            self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
 
         response_headers_to_add = group.get('add_response_headers', None)
-
         if response_headers_to_add:
-            self['response_headers_to_add'] = [
-                {
-                    'header': {
-                        'key': k,
-                        'value': v
-                    },
-                    'append': True  # ???
-                } for k, v in response_headers_to_add.items()
-            ]
+            self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
 
         response_headers_to_remove = group.get('remove_response_headers', None)
 
@@ -243,3 +225,28 @@ class V2Route(dict):
                     }
 
         return hash_policy
+
+    @staticmethod
+    def generate_headers_to_add(headers: dict) -> List[dict]:
+        headers = []
+        for k, v in headers.items():
+                append = True
+                if isinstance(v,dict):
+                    if 'append' in v:
+                        append = bool(v['append'])
+                    headers.append({
+                        'header': {
+                            'key': k,
+                            'value': v['value']
+                        },
+                        'append': append
+                    })
+                else:
+                    headers.append({
+                        'header': {
+                            'key': k,
+                            'value': v
+                        },
+                        'append': append  # Default append True, for backward compatability
+                    })
+        return headers
