@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
+	"github.com/datawire/apro/cmd/apro-internal-access/secret"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,7 +22,7 @@ type AddServiceFunc func(
 type DeleteServiceFunc func(service kubernetes.Service)
 
 // Retrieve a URL.
-type HTTPGetFunc func(url string, logger *log.Entry) ([]byte, error)
+type HTTPGetFunc func(url string, internalSecret string, logger *log.Entry) ([]byte, error)
 
 type serviceMap map[kubernetes.Service]bool
 
@@ -72,24 +73,27 @@ type fetcher struct {
 	ambassadorURL string
 	// The public default base URL for the APIs, e.g. https://api.example.com
 	publicBaseURL string
+	// Shared secret to send so that we can access .ambassador-internal
+	internalSecret string
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
-	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
+	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string, sharedSecretPath string) *fetcher {
 	f := &fetcher{
-		add:           add,
-		delete:        delete,
-		httpGet:       httpGet,
-		done:          make(chan bool),
-		ticker:        time.NewTicker(duration),
-		diff:          NewDiffCalculator(known),
-		logger:        log.WithFields(log.Fields{"subsystem": "fetcher"}),
-		diagURL:       strings.TrimRight(diagURL, "/"),
-		ambassadorURL: strings.TrimRight(ambassadorURL, "/"),
-		publicBaseURL: strings.TrimRight(publicBaseURL, "/"),
+		add:            add,
+		delete:         delete,
+		httpGet:        httpGet,
+		done:           make(chan bool),
+		ticker:         time.NewTicker(duration),
+		diff:           NewDiffCalculator(known),
+		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
+		diagURL:        strings.TrimRight(diagURL, "/"),
+		ambassadorURL:  strings.TrimRight(ambassadorURL, "/"),
+		publicBaseURL:  strings.TrimRight(publicBaseURL, "/"),
+		internalSecret: secret.LoadSecret(sharedSecretPath),
 	}
 	go func() {
 		for {
@@ -110,11 +114,18 @@ func getString(o *gabs.Container, attr string) string {
 	return o.S(attr).Data().(string)
 }
 
-func httpGet(url string, logger *log.Entry) ([]byte, error) {
+func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
 	logger.Info("HTTP GET")
 	client := &http.Client{Timeout: time.Second * 2}
-	response, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	req.Header.Set("X-Ambassador-Internal-Auth", internalSecret)
+
+	response, err := client.Do(req)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -136,7 +147,7 @@ func httpGet(url string, logger *log.Entry) ([]byte, error) {
 
 func (f *fetcher) retrieve() {
 	f.logger.Info("Iteration started")
-	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", f.logger)
+	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", "", f.logger)
 	if err != nil {
 		log.Print(err)
 		return
@@ -195,6 +206,7 @@ func (f *fetcher) retrieve() {
 			var doc []byte
 			docBuf, err := f.httpGet(
 				f.ambassadorURL+prefix+"/.ambassador-internal/openapi-docs",
+				f.internalSecret,
 				f.logger)
 			if err == nil {
 				doc = docBuf

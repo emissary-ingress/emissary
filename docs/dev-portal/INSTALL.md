@@ -3,6 +3,7 @@
 To install the Dev Portal you will need:
 
 1. A Docker image for the Dev Portal.
+2. A Docker image for the Internal Access service.
 2. Load the relevant Kubernetes resources.
 
 ## Temporary hack: Building Docker images in minikube
@@ -14,21 +15,25 @@ I've been testing with minikube, where you can build directly into the Docker re
 In the root of your `apro` checkout:
 
 ```
-$ make build
+$ make docker/dev-portal-server/dev-portal-server
+$ make docker/apro-internal-access/apro-internal-access
 $ eval $(minikube docker-env)
 $ cd docker/dev-portal-server
 $ export KUBECONFIG=~/.kube/config
 $ docker build -t quay.io/ambassador/ambassador_pro:dev-portal-server-0.4.0 .
+$ cd ../apro-internal-access
+$ docker build -t quay.io/ambassador/ambassador_pro:apro-internal-access-0.4.0 .
 ```
 
-This tag matches what's in the Kubernetes YAML file.
+These tag matches what's in the Kubernetes YAML files.
 
 
 ## Loading the relevant Kubernetes resources
 
-Assuming you have standard Ambassador install already, i.e. Service `ambassador.default`, in the root of your `apro` checkout you just need to:
+Assuming you have standard Ambassador and Ambassador Pro install already, i.e. Service `ambassador.default`, in the root of your `apro` checkout you just need to:
 
 ```
+$ kubectl apply -f docs/dev-portal/internal.yaml
 $ kubectl apply -f docs/dev-portal/devportal-rbac.yaml
 ```
 

@@ -23,6 +23,12 @@ The Dev Portal runs a loop every 60 seconds:
 
 **Important:** The `/.ambassador-internal/openapi-docs` path is _not_ from the root of the microservice, it's from the root of the path exposed via Ambassador.
 
+### Access control
+
+Since the `.ambassador-internal` paths are publicly exposed, they are restricted via access control.
+A `Secret` is created for the Ambassador Pro service account, and it is used to generate a shared secret that needs to be provided using `X-Ambassador-Internal-Auth` HTTP header in order to access paths of form `*/.ambassador-internal/*`.
+This is implemented by the `apro-internal-access` service.
+
 ## Dev Portal Web Server
 
 API endpoints:

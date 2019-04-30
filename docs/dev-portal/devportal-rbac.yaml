@@ -80,6 +80,10 @@ spec:
         ports:
         - name: devportal-ui
           containerPort: 8680
+        volumeMounts:
+          - name: ambassador-auth-secret
+            mountPath: /etc/apro-internal-access
+            readOnly: true
         livenessProbe:
           httpGet:
             path: /
@@ -109,3 +113,11 @@ spec:
               fieldPath: metadata.namespace
         # TODO add liveness/readyness checks. there's initial ramp-up time...
       restartPolicy: Always
+      volumes:
+        # Created by internal.yaml:
+        - name: ambassador-auth-secret
+          secret:
+            secretName: internal-access-control
+            items:
+              - key: token
+                path: shared-secret

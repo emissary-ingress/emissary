@@ -14,7 +14,7 @@ var Version = "(unknown version)"
 
 func main() {
 	// TODO Do license enforcement.
-	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr string
+	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, sharedSecretPath string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
 	diagdURL, set = os.LookupEnv("DIAGD_URL")
@@ -35,6 +35,11 @@ func main() {
 		// placeholder.
 		publicURL = "https://api.example.com"
 	}
+	sharedSecretPath, set = os.LookupEnv("SHARED_SECRET_PATH")
+	if !set {
+		// Customizable only to support running outside of Kubernetes.
+		sharedSecretPath = "/etc/apro-internal-access/shared-secret"
+	}
 	pollEverySecsStr, set = os.LookupEnv("POLL_EVERY_SECS")
 	if set {
 		p, err := strconv.Atoi(pollEverySecsStr)
@@ -44,5 +49,6 @@ func main() {
 			log.Print(err)
 		}
 	}
-	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs)
+	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs,
+		sharedSecretPath)
 }
