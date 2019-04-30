@@ -50,10 +50,10 @@ service: {self.target.path.k8s}
 
     def check(self):
         # [0]
-        assert self.results[0].headers["Grpc-Status"] == ["0"]
+        assert self.results[0].headers["Grpc-Status"] == ["0"], f'0 expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
 
         # [1]
-        assert self.results[1].headers["Grpc-Status"] == ["7"]
+        assert self.results[1].headers["Grpc-Status"] == ["7"], f'0 expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
 
         # [2]
         # XXX Ew. If self.results[2].json is empty, the harness won't convert it to a response.
@@ -81,6 +81,8 @@ rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
 resolver: endpoint
+load_balancer:
+  policy: round_robin
 """)
 
     def queries(self):
@@ -101,10 +103,10 @@ resolver: endpoint
 
     def check(self):
         # [0]
-        assert self.results[0].headers["Grpc-Status"] == ["0"]
+        assert self.results[0].headers["Grpc-Status"] == ["0"], f'0 expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
 
         # [1]
-        assert self.results[1].headers["Grpc-Status"] == ["7"]
+        assert self.results[1].headers["Grpc-Status"] == ["7"], f'0 expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
 
         # [2]
         # XXX Ew. If self.results[2].json is empty, the harness won't convert it to a response.

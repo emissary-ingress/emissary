@@ -241,7 +241,7 @@ class PeriodicTrigger(threading.Thread):
 
 class SecretInfo:
     def __init__(self, name: str, namespace: str,
-                 tls_crt: str, tls_key: Optional[str]=None, decode_b64=True) -> None:
+                 tls_crt: Optional[str], tls_key: Optional[str]=None, decode_b64=True) -> None:
         self.name = name
         self.namespace = namespace
 
@@ -273,7 +273,7 @@ class SecretInfo:
         return pem
 
     @staticmethod
-    def fingerprint(pem: str) -> str:
+    def fingerprint(pem: Optional[str]) -> str:
         if not pem:
             return '<none>'
 
@@ -354,10 +354,11 @@ class SecretHandler:
     source_root: str
     cache_dir: str
 
-    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str) -> None:
+    def __init__(self, logger: logging.Logger, source_root: str, cache_dir: str, version: str) -> None:
         self.logger = logger
         self.source_root = source_root
         self.cache_dir = cache_dir
+        self.version = version
 
     def load_secret(self, context: 'IRTLSContext',
                     secret_name: str, namespace: str) -> Optional[SecretInfo]:
@@ -378,7 +379,16 @@ class SecretHandler:
         key_path = None
         cert_data = None
 
+        h = hashlib.new('sha1')
+
         if cert:
+            h.update(cert.encode('utf-8'))
+
+            if key:
+                h.update(key.encode('utf-8'))
+
+            hd = h.hexdigest().upper()
+
             secret_dir = os.path.join(self.cache_dir, namespace, "secrets-decoded", name)
 
             try:
@@ -386,11 +396,11 @@ class SecretHandler:
             except FileExistsError:
                 pass
 
-            cert_path = os.path.join(secret_dir, "tls.crt")
+            cert_path = os.path.join(secret_dir, f'{hd}.crt')
             open(cert_path, "w").write(cert)
 
             if key:
-                key_path = os.path.join(secret_dir, "tls.key")
+                key_path = os.path.join(secret_dir, f'{hd}.key')
                 open(key_path, "w").write(key)
 
             cert_data = {
@@ -496,7 +506,7 @@ class FSSecretHandler(SecretHandler):
 
         if version.startswith('ambassador') and (kind == 'Secret'):
             # It's an Ambassador Secret. It should have a public key and maybe a private key.
-            return self.secret_info_from_dict(context, secret_name, namespace, source, obj)
+            return SecretInfo.from_dict(context, secret_name, namespace, source, obj)
 
         # Didn't look like an Ambassador object. Try K8s.
         return self.secret_info_from_k8s(context, secret_name, namespace, source, serialization)

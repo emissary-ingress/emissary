@@ -241,14 +241,17 @@ class IR:
 
     # Save secrets from our aconf.
     def save_secret_info(self, aconf):
-        # ...but we may be able to probably do have secret_info that we'll need to use to locate saved secrets.
-        aconf_secrets = aconf.get_config("secret") or {}
+        aconf_secrets = aconf.get_config("secrets") or {}
 
-        for secret_name, aconf_secret in aconf_secrets.items():
-            secret_info = SecretInfo.from_aconf_secret(aconf_secret)
-            secret_namespace = secret_info.namespace
+        for secret_key, aconf_secret in aconf_secrets.items():
+            # Ignore anything that doesn't at least have a public half.
+            if aconf_secret.get('tls_crt'):
+                secret_info = SecretInfo.from_aconf_secret(aconf_secret)
+                secret_name = secret_info.name
+                secret_namespace = secret_info.namespace
 
-            self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
+                self.logger.debug(f'saving {secret_name}.{secret_namespace} (from {secret_key}) in secret_info')
+                self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
 
     # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
     # are just ACResources; they need to be turned into IRTLSContexts.
@@ -307,7 +310,9 @@ class IR:
         # OK, do we have a secret_info for it??
         secret_info = self.secret_info.get(ss_key, None)
 
-        if not secret_info:
+        if secret_info:
+            self.logger.debug(f"resolve_secret {ss_key}: found secret_info")
+        else:
             # No secret_info, so ask the secret_handler to find us one.
             self.logger.debug(f"resolve_secret {ss_key}: asking handler to load")
             secret_info = self.secret_handler.load_secret(context, secret_name, namespace)
@@ -354,7 +359,9 @@ class IR:
         if not resolver_name:
             resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
 
-        resolver = self.get_resolver(resolver_name)
+        # Casting to str is OK because the Ambassador module's resolver must be a string,
+        # so all the paths for resolver_name land with it being a string.
+        resolver = self.get_resolver(typecast(str, resolver_name))
 
         # It should not be possible for resolver to be unset here.
         if not resolver:

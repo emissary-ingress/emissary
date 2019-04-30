@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+CI_DEBUG_KAT_BRANCH=
+
 SHELL = bash
 
 # Welcome to the Ambassador Makefile...
@@ -148,7 +150,7 @@ KAT_BACKEND_RELEASE = 1.4.0
 
 # Allow overriding which watt we use.
 WATT ?= watt
-WATT_VERSION ?= 0.4.2
+WATT_VERSION ?= 0.4.7
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -181,6 +183,7 @@ print-vars:
 	@echo "AMBASSADOR_DOCKER_TAG            = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
+	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
 	@echo "COMMIT_TYPE                      = $(COMMIT_TYPE)"
 	@echo "DOCKER_EPHEMERAL_REGISTRY        = $(DOCKER_EPHEMERAL_REGISTRY)"
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
@@ -207,6 +210,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
+	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
 	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
 	@echo "export DOCKER_EPHEMERAL_REGISTRY='$(DOCKER_EPHEMERAL_REGISTRY)'"
 	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
@@ -302,15 +306,17 @@ ifneq ($(DOCKER_REGISTRY), -)
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
-			make docker-login || exit 1; \
-			if [ "$(COMMIT_TYPE)" = "EA" ]; then \
-				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			$(MAKE) docker-login || exit 1; \
+			\
+			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
+			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
+			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			\
+			if [ "$(COMMIT_TYPE)" = "RC" ]; then \
+				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
+				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
+				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 			fi; \
-			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
@@ -338,7 +344,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.4.0
+TELEPROXY_VERSION=0.4.6
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
@@ -348,7 +354,19 @@ GOARCH=$(shell go env GOARCH)
 $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
-	sudo chmod go-w,a+sx $(TELEPROXY)
+ifeq ($(shell uname -s), Darwin)
+	sudo chmod go-w,a+x $(TELEPROXY)	# no SUID here
+else
+	sudo chmod go-w,a+sx $(TELEPROXY)	# SUID here
+endif
+
+kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
+
+ifeq ($(shell uname -s), Darwin)
+run_teleproxy = sudo id; sudo $(TELEPROXY)
+else
+run_teleproxy = $(TELEPROXY)
+endif
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(WATT):
@@ -385,8 +403,6 @@ $(KAT_CLIENT):
 
 setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
 
-kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
-
 cluster.yaml: $(CLAIM_FILE)
 ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
@@ -394,37 +410,39 @@ ifeq ($(USE_KUBERNAUT), true)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 endif
 
-cluster-and-teleproxy: cluster.yaml teleproxy-restart
-	rm -rf /tmp/k8s-*.yaml
-
 setup-test: cluster-and-teleproxy
 
-teleproxy-start:
-	@echo "Starting teleproxy"
-	@$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
-	@echo "Waiting for teleproxy to start..."
-	@sleep 5
-	@if ! pgrep -x "teleproxy" > /dev/null; then \
-		echo "Teleproxy crashed, exiting..."; \
+cluster-and-teleproxy: cluster.yaml
+	rm -rf /tmp/k8s-*.yaml
+	$(MAKE) teleproxy-restart
+	@echo "Sleeping for Teleproxy cluster"
+	sleep 10
+
+teleproxy-restart:
+	@echo "Killing teleproxy"
+	$(kill_teleproxy)
+	sleep 0.25 # wait for exit...
+	$(run_teleproxy) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
+	sleep 0.5 # wait for start
+	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -le 0 ]; then \
+		echo "teleproxy did not start"; \
+		cat /tmp/teleproxy.log; \
 		exit 1; \
 	fi
-	@echo "Started teleproxy"
-
-teleproxy-restart: teleproxy-stop teleproxy-start
+	@echo "Done"
 
 teleproxy-stop:
-	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
-	@sleep 0.25 # wait for exit...
+	$(kill_teleproxy)
+	sleep 0.25 # wait for exit...
 	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
 		echo "teleproxy still running" >&2; \
 		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
 		false; \
 	else \
-		echo "Killed teleproxy" >&2; \
+		echo "teleproxy stopped" >&2; \
 	fi
 
-shell: setup-develop cluster-and-teleproxy
+shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
@@ -474,6 +492,8 @@ release-prep:
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \
+		$(MAKE) print-vars; \
+		$(MAKE) docker-login || exit 1; \
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \

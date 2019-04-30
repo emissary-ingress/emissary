@@ -46,9 +46,9 @@ class ResourceFetcher:
         self.ocount: int = 1
         self.saved: List[Tuple[Optional[str], int]] = []
 
-        self.k8s_endpoints = {}
-        self.k8s_services = {}
-        self.services = {}
+        self.k8s_endpoints: Dict[str, AnyDict] = {}
+        self.k8s_services: Dict[str, AnyDict] = {}
+        self.services: Dict[str, AnyDict] = {}
 
     @property
     def location(self):
@@ -106,7 +106,7 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_yaml(self, serialization: Optional[str], k8s=False, rkey: Optional[str]=None,
+    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
                    filename: Optional[str]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
@@ -120,9 +120,23 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_watt(self, serialization: Optional[str]) -> None:
+    def parse_json(self, serialization: str, k8s=False, rkey: Optional[str]=None,
+                   filename: Optional[str]=None) -> None:
+        # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
+        #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
+        #                    serialization))
+
         try:
-            watt_dict = parse_yaml(serialization)[0]
+            objects = json.loads(serialization)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
+        except json.decoder.JSONDecodeError as e:
+            self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
+
+        self.finalize()
+
+    def parse_watt(self, serialization: str) -> None:
+        try:
+            watt_dict = json.loads(serialization)
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
@@ -141,7 +155,7 @@ class ResourceFetcher:
 
                     self.parse_object(parsed_objects, k8s=False,
                                       filename=self.filename, rkey=rkey)
-        except yaml.error.YAMLError as e:
+        except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
         self.finalize()
@@ -416,7 +430,7 @@ class ResourceFetcher:
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 
-        objects = []
+        objects: List[Any] = []
 
         if annotations:
             if (self.filename is not None) and (not self.filename.endswith(":annotation")):
