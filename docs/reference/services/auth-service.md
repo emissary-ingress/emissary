@@ -39,7 +39,7 @@ include_body:
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
 
-- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed. These headers are always included:
+- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
     * `Location`
     * `Authorization`
     * `Proxy-Authenticate`

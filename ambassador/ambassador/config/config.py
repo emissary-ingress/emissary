@@ -58,7 +58,6 @@ class Config:
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
         'ratelimitservice': "ratelimit_configs",
-        'secret': "secret",
         'tcpmapping': "tcpmappings",
         'tlscontext': "tls_contexts",
         'tracingservice': "tracing_configs",
@@ -508,6 +507,22 @@ class Config:
         module_resource = ACResource.from_resource(resource, kind="Module", **resource.config)
 
         self.safe_store("modules", module_resource)
+
+    def handle_secret(self, resource: ACResource) -> None:
+        """
+        Handles a Secret resource. We need a handler for this because the key needs to be
+        the rkey, not the name.
+        """
+
+        storage = self.config.setdefault('secrets', {})
+        key = resource.rkey
+
+        if key in storage:
+            self.post_error("%s defines %s %s, which is already defined by %s" %
+                            (resource, resource.kind, key, storage[key].location),
+                            resource=resource)
+
+        storage[key] = resource
 
     def handle_service(self, resource: ACResource) -> None:
         """

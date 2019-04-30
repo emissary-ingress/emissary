@@ -10,11 +10,13 @@ In this architecture, Consul serves as the source of truth for your entire data 
 
 ## Getting started
 
-In this guide, you will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data.
+In this guide, you will register a service with Consul and use Ambassador to dynamically route requests to that service based on Consul's service discovery data. If you already have Ambassador installed, you will just need to configure the `ConsulResolver` in step 3.
 
 1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center. 
 
-Note, that if you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the Chart and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file).
+   **Note** 
+   - If you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the [Chart](https://github.com/hashicorp/consul-helm) and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file). `git checkout` the most recent tag in the [consul-helm](https://github.com/hashicorp/consul-helm) repository to get the latest version of the Consul Helm chart.
+   - If you would like to enable end-to-end TLS between all of your APIs in Kubernetes, you will need to set `connectInject.enabled: true` and `client.grpc: true` in the values.yaml file.
 
 2. Deploy Ambassador. Note: If this is your first time deploying Ambassador, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
 
@@ -35,10 +37,10 @@ Note, that if you are using the [Consul Helm Chart](https://www.consul.io/docs/p
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v2
+          apiVersion: ambassador/v1
           kind: ConsulResolver
           name: consul-dc1
-          address: consul-server:8500
+          address: consul-server.default.svc.cluster.local:8500
           datacenter: dc1
     spec:
       type: LoadBalancer
@@ -49,7 +51,7 @@ Note, that if you are using the [Consul Helm Chart](https://www.consul.io/docs/p
         targetPort: 8080
     ```
 
-    This will tell Ambassador that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](/reference/core/resolvers).
+    This will tell Ambassador that Consul is a service discovery endpoint. Save the configuration to a file (e.g., `ambassador-service.yaml`, and apply this configuration with `kubectl apply -f ambassador-service.yaml`. For more information about resolver configuration, see the [resolver reference documentation](/reference/core/resolvers). (If you're using Consul deployed elsewhere in your data center, make sure the `address` points to your Consul FQDN or IP address).
 
 ## Routing to Consul Services
 
@@ -101,7 +103,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
                 memory: 100Mi
     ```
 
-    Save the above to a file called `qotm.yaml` and run `kubectl apply -f qotm.yaml`. This will register the QOTM pod with Consul with the name `{QOTM_POD_NAME}-consul` and the IP address of the QOTM pod. 
+    Save the above to a file called `qotm.yaml` and run `kubectl apply -f qotm.yaml`. This will register the QOTM pod as a Consul service with the name `qotm-consul` and the IP address of the QOTM pod. 
 
 2. Verify the QOTM pod has been registered with Consul. You can verify the QOTM pod is registered correctly by accessing the Consul UI.
 
@@ -122,7 +124,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
      annotations:
        getambassador.io/config: |
          ---
-         apiVersion: ambassador/v2
+         apiVersion: ambassador/v1
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
@@ -223,7 +225,7 @@ This will install into your cluster:
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v2
+          apiVersion: ambassador/v1
           kind: Mapping
           name: consul_qotm_tls_mapping
           prefix: /qotm-consul-tls/

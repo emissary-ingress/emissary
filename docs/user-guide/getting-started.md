@@ -6,7 +6,7 @@ Ambassador is designed to allow service authors to control how their service is 
 
 ## 1. Deploying Ambassador
 
-To deploy Ambassador in your default namespace, first you need to check if Kubernetes has RBAC enabled:
+To deploy Ambassador in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
 
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
@@ -37,7 +37,9 @@ We recommend downloading the YAML files and exploring the content. You will see
 that an `ambassador-admin` NodePort Service is created (which provides an
 Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
 
-For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
+When not installing Ambassador into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
+
+For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly.
 
 
 ## 2. Defining the Ambassador Service
