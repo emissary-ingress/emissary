@@ -38,7 +38,24 @@ class IRBaseMapping (IRResource):
         # ...and the route weight.
         self.route_weight = self._route_weight()
 
-        self.ir.logger.debug("%s: GID %s route_weight %s" % (self, self.group_id, self.route_weight))
+        # We can also default the resolver, and scream if it doesn't match a resolver we
+        # know about.
+        if not self.get('resolver'):
+            self.resolver = self.ir.ambassador_module.get('resolver', 'kubernetes-service')
+
+        resolver = self.ir.get_resolver(self.resolver)
+
+        if not resolver:
+            self.post_error(f'resolver {self.resolver} is unknown!')
+            return False
+
+        self.ir.logger.debug("%s: GID %s route_weight %s, resolver %s" %
+                             (self, self.group_id, self.route_weight, resolver))
+
+        # And, of course, we can make sure that the resolver thinks that this Mapping is OK.
+        if not resolver.valid_mapping(ir, self):
+            # If there's trouble, the resolver should've already posted about it.
+            return False
 
         return True
 

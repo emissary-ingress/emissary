@@ -15,9 +15,12 @@ if [ -n "${TEST_NAME}" ]; then
     TEST_ARGS+=" -k ${TEST_NAME}"
 fi
 
-if ! pytest ${TEST_ARGS}; then
-    kubectl get pods
-    kubectl get svc
+pytest ${TEST_ARGS}
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+    kubectl get pods --all-namespaces
+    kubectl get svc --all-namespaces
 
     if [ -n "${AMBASSADOR_DEV}" ]; then
         docker ps -a

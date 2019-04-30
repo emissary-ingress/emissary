@@ -137,3 +137,24 @@ If you are a user of the [Datadog](https://www.datadoghq.com/) monitoring system
     kubectl apply -f statsd-sink/datadog/dd-statsd-sink.yaml
 
 This sets up the `statsd-sink` service and a deployment of the DogStatsD agent that automatically forwards Ambassador stats to your Datadog account.
+
+Next, add the `DOGSTATSD` environment variable to your deployment to tell Envoy to emit stats with DogStatsD-compliant tags:
+
+```yaml
+<redacted>
+    spec:
+      containers:
+      - env:
+        - name: STATSD_ENABLED
+          value: "true"
+        - name: DOGSTATSD
+          value: "true"
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: <ambassador image>
+        imagePullPolicy: IfNotPresent
+<redacted>
+```

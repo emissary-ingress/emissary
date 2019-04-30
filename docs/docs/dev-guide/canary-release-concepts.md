@@ -99,7 +99,7 @@ spec:
  ports:
  - name: ambassador
    port: 80
-   targetPort: 80
+   targetPort: 8080
  selector:
    service: ambassador
 ```
