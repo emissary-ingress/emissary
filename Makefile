@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+CI_DEBUG_KAT_BRANCH=
+
 SHELL = bash
 
 # Welcome to the Ambassador Makefile...
@@ -111,7 +113,17 @@ else
 AMBASSADOR_DOCKER_REPO ?= $(DOCKER_REGISTRY)/ambassador
 endif
 
+ifneq ($(DOCKER_EXTERNAL_REGISTRY),)
+AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(DOCKER_EXTERNAL_REGISTRY)/ambassador
+else
+AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(AMBASSADOR_DOCKER_REPO)
+endif
+
 DOCKER_OPTS =
+
+# This is the branch from ambassador-docs to pull for "make pull-docs".
+# Override if you need to.
+PULL_BRANCH ?= master
 
 NETLIFY_SITE=datawire-ambassador
 
@@ -120,11 +132,12 @@ NETLIFY_SITE=datawire-ambassador
 ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.9.0-619-g5830eaa1d
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
+AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
-# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN 
+# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-7
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-7
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-9
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-9
 
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
 USE_KUBERNAUT ?= true
@@ -133,7 +146,11 @@ SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.2.1
+KAT_BACKEND_RELEASE = 1.4.0
+
+# Allow overriding which watt we use.
+WATT ?= watt
+WATT_VERSION ?= 0.4.7
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -153,54 +170,98 @@ clean: clean-test
 		| xargs -0 rm -f
 
 clobber: clean
+	-rm -rf watt
 	-rm -rf docs/node_modules
-	-rm -rf kat/kat/client
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
 	@printf "$($*)"
 
 print-vars:
-	@echo "MAIN_BRANCH             = $(MAIN_BRANCH)"
-	@echo "GIT_BRANCH              = $(GIT_BRANCH)"
-	@echo "GIT_BRANCH_SANITIZED    = $(GIT_BRANCH_SANITIZED)"
-	@echo "GIT_COMMIT              = $(GIT_COMMIT)"
-	@echo "GIT_DIRTY               = $(GIT_DIRTY)"
-	@echo "GIT_TAG                 = $(GIT_TAG)"
-	@echo "GIT_TAG_SANITIZED       = $(GIT_TAG_SANITIZED)"
-	@echo "GIT_VERSION             = $(GIT_VERSION)"
-	@echo "GIT_DESCRIPTION         = $(GIT_DESCRIPTION)"
-	@echo "IS_PULL_REQUEST         = $(IS_PULL_REQUEST)"
-	@echo "COMMIT_TYPE             = $(COMMIT_TYPE)"
-	@echo "VERSION                 = $(VERSION)"
-	@echo "LATEST_RC               = $(LATEST_RC)"
-	@echo "DOCKER_REGISTRY         = $(DOCKER_REGISTRY)"
-	@echo "DOCKER_OPTS             = $(DOCKER_OPTS)"
-	@echo "AMBASSADOR_DOCKER_REPO  = $(AMBASSADOR_DOCKER_REPO)"
-	@echo "AMBASSADOR_DOCKER_TAG   = $(AMBASSADOR_DOCKER_TAG)"
-	@echo "AMBASSADOR_DOCKER_IMAGE = $(AMBASSADOR_DOCKER_IMAGE)"
-	@echo "KAT_BACKEND_RELEASE = $(KAT_BACKEND_RELEASE)"
+	@echo "AMBASSADOR_DOCKER_IMAGE          = $(AMBASSADOR_DOCKER_IMAGE)"
+	@echo "AMBASSADOR_DOCKER_REPO           = $(AMBASSADOR_DOCKER_REPO)"
+	@echo "AMBASSADOR_DOCKER_TAG            = $(AMBASSADOR_DOCKER_TAG)"
+	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
+	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
+	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
+	@echo "COMMIT_TYPE                      = $(COMMIT_TYPE)"
+	@echo "DOCKER_EPHEMERAL_REGISTRY        = $(DOCKER_EPHEMERAL_REGISTRY)"
+	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
+	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
+	@echo "DOCKER_REGISTRY                  = $(DOCKER_REGISTRY)"
+	@echo "GIT_BRANCH                       = $(GIT_BRANCH)"
+	@echo "GIT_BRANCH_SANITIZED             = $(GIT_BRANCH_SANITIZED)"
+	@echo "GIT_COMMIT                       = $(GIT_COMMIT)"
+	@echo "GIT_DESCRIPTION                  = $(GIT_DESCRIPTION)"
+	@echo "GIT_DIRTY                        = $(GIT_DIRTY)"
+	@echo "GIT_TAG                          = $(GIT_TAG)"
+	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
+	@echo "GIT_VERSION                      = $(GIT_VERSION)"
+	@echo "IS_PULL_REQUEST                  = $(IS_PULL_REQUEST)"
+	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
+	@echo "KUBECONFIG                       = $(KUBECONFIG)"
+	@echo "LATEST_RC                        = $(LATEST_RC)"
+	@echo "MAIN_BRANCH                      = $(MAIN_BRANCH)"
+	@echo "VERSION                          = $(VERSION)"
 
 export-vars:
-	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
+	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
+	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
+	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
+	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
+	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
+	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
+	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
+	@echo "export DOCKER_EPHEMERAL_REGISTRY='$(DOCKER_EPHEMERAL_REGISTRY)'"
+	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
+	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
+	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
 	@echo "export GIT_BRANCH='$(GIT_BRANCH)'"
 	@echo "export GIT_BRANCH_SANITIZED='$(GIT_BRANCH_SANITIZED)'"
 	@echo "export GIT_COMMIT='$(GIT_COMMIT)'"
+	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
-	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
-	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
-	@echo "export VERSION='$(VERSION)'"
-	@echo "export LATEST_RC='$(LATEST_RC)'"
-	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
-	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
-	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
-	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
-	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
+	@echo "export KUBECONFIG='$(KUBECONFIG)'"
+	@echo "export LATEST_RC='$(LATEST_RC)'"
+	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
+	@echo "export VERSION='$(VERSION)'"
+
+# All of this will likely fail horribly outside of CI, for the record.
+docker-registry:
+ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
+	@if [ "$(TRAVIS)" != "true" ]; then \
+		echo "make docker-registry is only for CI" >&2 ;\
+		exit 1 ;\
+	fi
+	@if [ -z "$(KUBECONFIG)" ]; then \
+		echo "No KUBECONFIG" >&2 ;\
+		exit 1 ;\
+	fi
+	@if [ ! -r .docker_port_forward ]; then \
+		echo "Starting local Docker registry in Kubernetes" ;\
+		kubectl apply -f releng/docker-registry.yaml ;\
+		while [ -z "$$(kubectl get pods -n docker-registry -ojsonpath='{.items[0].status.containerStatuses[0].state.running}')" ]; do echo pod wait...; sleep 1; done ;\
+		sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & echo $$! > .docker_port_forward' ;\
+	else \
+		echo "Local Docker registry should be already running" ;\
+	fi
+	while ! curl -i http://localhost:31000/ 2>/dev/null; do echo curl wait...; sleep 1; done
+endif
+
+kill-docker-registry:
+	@if [ -r .docker_port_forward ]; then \
+		echo "Stopping local Docker registry" ;\
+		kill $$(cat .docker_port_forward) ;\
+		kubectl delete -f releng/docker-registry.yaml ;\
+		rm -f .docker_port_forward ;\
+	else \
+		echo "Docker registry should not be running" ;\
+	fi
 
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
@@ -216,36 +277,53 @@ docker-push-base-images:
 
 docker-update-base: docker-base-images docker-push-base-images
 
-ambassador-docker-image: version
+ambassador-docker-image: version $(WATT)
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
+ifeq ($(DOCKER_LOGIN_FAKE), true)
+	@echo Faking Docker login...
+else
+ifeq ($(TRAVIS), true)
+ifneq ($(DOCKER_EXTERNAL_REGISTRY),-)
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 
-	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_REGISTRY)
+	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_EXTERNAL_REGISTRY)
+else
+	@echo "Using local registry, no need for docker login."
+endif
+else
+	@echo "Not in CI, assuming you're already logged into Docker"
+endif
+endif
 
 docker-images: ambassador-docker-image
 
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
 	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
-		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE)"; \
+		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
-			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
-		fi; \
-		if [ "$(COMMIT_TYPE)" = "RC" ]; then \
-			echo "PUSH $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
+			$(MAKE) docker-login || exit 1; \
+			\
+			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
+			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
+			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			\
+			if [ "$(COMMIT_TYPE)" = "RC" ]; then \
+				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
+				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
+				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
+			fi; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
 	fi
+else
+	@echo "No DOCKER_REGISTRY set"
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
@@ -266,7 +344,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.3.16
+TELEPROXY_VERSION=0.4.6
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
@@ -276,7 +354,24 @@ GOARCH=$(shell go env GOARCH)
 $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
-	sudo chmod go-w,a+sx $(TELEPROXY)
+ifeq ($(shell uname -s), Darwin)
+	sudo chmod go-w,a+x $(TELEPROXY)	# no SUID here
+else
+	sudo chmod go-w,a+sx $(TELEPROXY)	# SUID here
+endif
+
+kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
+
+ifeq ($(shell uname -s), Darwin)
+run_teleproxy = sudo id; sudo $(TELEPROXY)
+else
+run_teleproxy = $(TELEPROXY)
+endif
+
+# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
+$(WATT):
+	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
+	chmod go-w,a+x $(WATT)
 
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
@@ -297,16 +392,16 @@ $(KUBERNAUT):
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-setup-develop: venv $(PWD)/kat/kat/client $(TELEPROXY) $(KUBERNAUT) version
+KAT_CLIENT=venv/bin/kat_client
 
-$(PWD)/kat/kat/client:
-	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz 
+$(KAT_CLIENT):
+	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
 	tar xzf v$(KAT_BACKEND_RELEASE).tar.gz
 	chmod +x kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
-	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/kat/kat/client
+	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/$(KAT_CLIENT)
 	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
 
-kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
+setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
 
 cluster.yaml: $(CLAIM_FILE)
 ifeq ($(USE_KUBERNAUT), true)
@@ -314,24 +409,30 @@ ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 endif
+
+setup-test: cluster-and-teleproxy
+
+cluster-and-teleproxy: cluster.yaml
 	rm -rf /tmp/k8s-*.yaml
-	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
+	$(MAKE) teleproxy-restart
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
-setup-test: cluster.yaml
-
 teleproxy-restart:
 	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
+	$(kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	@$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
+	$(run_teleproxy) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
+	sleep 0.5 # wait for start
+	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -le 0 ]; then \
+		echo "teleproxy did not start"; \
+		cat /tmp/teleproxy.log; \
+		exit 1; \
+	fi
 	@echo "Done"
 
 teleproxy-stop:
-	$(call kill_teleproxy)
+	$(kill_teleproxy)
 	sleep 0.25 # wait for exit...
 	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
 		echo "teleproxy still running" >&2; \
@@ -341,7 +442,7 @@ teleproxy-stop:
 		echo "teleproxy stopped" >&2; \
 	fi
 
-shell: setup-develop cluster.yaml
+shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
@@ -355,14 +456,14 @@ clean-test:
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: setup-develop cluster.yaml
+test: setup-develop cluster-and-teleproxy 
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
-	sh ../releng/run-tests.sh
+	bash ../releng/run-tests.sh
 
 test-list: setup-develop
 	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
@@ -391,6 +492,8 @@ release-prep:
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \
+		$(MAKE) print-vars; \
+		$(MAKE) docker-login || exit 1; \
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
@@ -437,7 +540,7 @@ mypy: mypy-server
 
 pull-docs:
 	{ \
-		git fetch https://github.com/datawire/ambassador-docs master && \
+		git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH) && \
 		docs_head=$$(git rev-parse FETCH_HEAD) && \
 		git subtree merge --prefix=docs "$${docs_head}" && \
 		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \

@@ -43,9 +43,9 @@ The `ambassador.Config` class is relatively unsophisticated: for the most part, 
 
     Looks up a specific `key` in a specific `Module`. e.g.
 
-    ```aconf.module_lookup('ambassador', 'service_port', 80)```
+    ```aconf.module_lookup('ambassador', 'service_port', 8080)```
 
-    will look up the `service_port` from the `Ambassador` `Module`; if no `service_port` is defined, the default value will be 80.
+    will look up the `service_port` from the `Ambassador` `Module`; if no `service_port` is defined, the default value will be 8080.
 
 * `dump(self, output=sys.stdout) -> None`
 

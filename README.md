@@ -6,9 +6,9 @@ Ambassador [![Build Status](https://travis-ci.org/datawire/ambassador.png?branch
 Key [features](https://www.getambassador.io/features) include:
 
 * Self-service configuration, via Kubernetes annotations
-* First class [gRPC and HTTP/2 support](https://www.getambassador.io/user-guide/grpc)
-* Support for CORS, timeouts, weighted round robin ([canary](https://www.getambassador.io/reference/canary)), [rate limiting](https://www.getambassador.io/reference/services/rate-limit-service)
-* [Istio integration](https://www.getambassador.io/user-guide/with-istio)
+* Support for [gRPC and HTTP/2](https://www.getambassador.io/user-guide/grpc), [TCP](https://www.getambassador.io/reference/tcpmappings), and [WebSockets](https://www.getambassador.io/user-guide/websockets-ambassador)
+* Support for CORS, timeouts, weighted round robin ([canary](https://www.getambassador.io/reference/canary)), sticky sessions, [rate limiting](https://www.getambassador.io/reference/services/rate-limit-service)
+* [Consul](https://www.getambassador.io/user-guide/consul) and [Istio](https://www.getambassador.io/user-guide/with-istio) integration
 * [Authentication](https://www.getambassador.io/reference/services/auth-service)
 * Robust TLS support, including TLS client-certificate authentication and [SNI](https://www.getambassador.io/user-guide/sni)
 * Comprehensive [metrics](https://www.getambassador.io/reference/statistics) support

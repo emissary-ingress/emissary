@@ -118,6 +118,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
+                            resolver=mapping.resolver,
                             ctx_name=mapping.get('tls', None),
                             host_rewrite=mapping.get('host_rewrite', False),
                             enable_ipv4=mapping.get('enable_ipv4', None),

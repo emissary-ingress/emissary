@@ -29,30 +29,35 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     labels: Dict[str, Any]
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
+        'bypass_auth': True,
+        'circuit_breakers': True,
+        'cluster_timeout_ms': True,
+        'connect_timeout_ms': True,
         'group_id': True,
         'headers': True,
         'host_rewrite': True,
+        'idle_timeout_ms': True,
         # 'labels' doesn't appear in the TransparentKeys list for IRMapping, but it's still
         # a CoreMappingKey -- if it appears, it can't have multiple values within an IRHTTPMappingGroup.
         'labels': True,
+        'load_balancer': True,
         'method': True,
         'prefix': True,
         'prefix_regex': True,
         'rewrite': True,
-        'timeout_ms': True,
-        'bypass_auth': True,
-        'load_balancer': True
+        'timeout_ms': True
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'add_request_headers': True,    # do this manually.
-        'add_response_headers': True,    # do this manually.
+        'add_response_headers': True,   # do this manually.
         'cluster': True,
         'host': True,
         'kind': True,
         'location': True,
         'name': True,
+        'resolver': True,               # can't flatten the resolver...
         'rkey': True,
         'route_weight': True,
         'service': True,
@@ -182,12 +187,15 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
+                            resolver=mapping.resolver,
                             ctx_name=mapping.get('tls', None),
                             host_rewrite=mapping.get('host_rewrite', False),
                             enable_ipv4=mapping.get('enable_ipv4', None),
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
+                            connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
+                            circuit_breakers=mapping.get('circuit_breakers', None),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)
@@ -233,7 +241,6 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             self.add_response_headers = add_response_headers
         if self.get('load_balancer', None) is None:
             self['load_balancer'] = ir.ambassador_module.load_balancer
-
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
@@ -304,7 +311,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 
-        if not self.get('host_redirect', None):
+        redir = self.get('host_redirect', None)
+
+        if not redir:
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 
@@ -325,4 +334,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
+            # Flatten the case_sensitive field for host_redirect if it exists
+            if 'case_sensitive' in redir:
+                self['case_sensitive'] = redir['case_sensitive']
+
             return []

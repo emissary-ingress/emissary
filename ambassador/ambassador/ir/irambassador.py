@@ -1,7 +1,6 @@
 from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
 
-# import json
-from ambassador.ir.irfilter import IRFilter
+from ..constants import Constants
 
 from ..config import Config
 
@@ -21,6 +20,7 @@ class IRAmbassador (IRResource):
     AModTransparentKeys: ClassVar = [
         'admin_port',
         'auth_enabled',
+        'circuit_breakers',
         'default_label_domain',
         'default_labels',
         'diag_port',
@@ -28,7 +28,10 @@ class IRAmbassador (IRResource):
         'enable_ipv6',
         'enable_ipv4',
         'liveness_probe',
+        'load_balancer',
         'readiness_probe',
+        'resolver',
+        'server_name',
         'service_port',
         'statsd',
         'use_proxy_proto',
@@ -68,9 +71,9 @@ class IRAmbassador (IRResource):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
-            service_port=80,
-            admin_port=8001,
-            diag_port=8877,
+            service_port=Constants.SERVICE_PORT_HTTP,
+            admin_port=Constants.ADMIN_PORT,
+            diag_port=Constants.DIAG_PORT,
             auth_enabled=None,
             enable_ipv6=False,
             enable_ipv4=True,
@@ -81,8 +84,13 @@ class IRAmbassador (IRResource):
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
+            circuit_breakers=None,
             xff_num_trusted_hops=0,
+<<<<<<< HEAD
             enable_http10=False,
+=======
+            server_name="envoy",
+>>>>>>> master
             **kwargs
         )
 
@@ -160,7 +168,7 @@ class IRAmbassador (IRResource):
             if ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
-                self.service_port = 443
+                self.service_port = Constants.SERVICE_PORT_HTTPS
 
                 if ctx.get('ca_cert', None):
                     # Client-side TLS is enabled.
@@ -183,7 +191,7 @@ class IRAmbassador (IRResource):
             self.default_labels: Dict[str, Any] = {}
 
         # Next up: diag port & services.
-        diag_port = aconf.module_lookup('ambassador', 'diag_port', 8877)
+        diag_port = aconf.module_lookup('ambassador', 'diag_port', Constants.DIAG_PORT)
         diag_service = "127.0.0.1:%d" % diag_port
 
         for name, cur, dflt in [
@@ -241,6 +249,11 @@ class IRAmbassador (IRResource):
         if self.get('load_balancer', None) is not None:
             if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
+                return False
+
+        if self.get('circuit_breakers', None) is not None:
+            if not IRHTTPMapping.validate_circuit_breakers(self['circuit_breakers']):
+                self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
 
         return True

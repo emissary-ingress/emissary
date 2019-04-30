@@ -118,17 +118,6 @@ class IRTLSContext(IRResource):
 
         return True
 
-    def load_secret(self, secret_name: str) -> SavedSecret:
-        # Assume that we're in the Ambassador's namespace...
-        namespace = self.ir.ambassador_namespace
-
-        # ...but allow secrets to override the namespace, too.
-        if "." in secret_name:
-            secret_name, namespace = secret_name.split('.', 1)
-
-        sr = getattr(self.ir, 'secret_reader')
-        return sr(self, secret_name, namespace)
-
     def resolve(self) -> bool:
         # is_valid determines if the TLS context is valid
         is_valid = False
@@ -142,19 +131,19 @@ class IRTLSContext(IRResource):
         if not self.secret_info:
             self.logger.info("TLSContext %s has no certificate information at all?" % self.name)
 
-        # self.ir.logger.debug("resolve_secrets working on: %s" % self.as_json())
+        self.ir.logger.debug("resolve_secrets working on: %s" % self.as_json())
 
         # OK. Do we have a secret name?
         secret_name = self.secret_info.get('secret')
         secret_valid = True
 
         if secret_name:
-            # Yes. Try loading it.
-            # We always return a SavedSecret, so that our caller has access to the name and namespace.
-            # The SavedSecret will evaluate non-True if we found no cert though.
-            ss = self.load_secret(secret_name)
+            # Yes. Try loading it. This always returns a SavedSecret, so that our caller
+            # has access to the name and namespace. The SavedSecret will evaluate non-True
+            # if we found no cert though.
+            ss = self.ir.resolve_secret(self, secret_name)
 
-            self.ir.logger.debug("resolve_secrets loaded secret %s as %s" % (secret_name, ss))
+            self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (secret_name, ss))
 
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,
@@ -187,7 +176,9 @@ class IRTLSContext(IRResource):
                 return False
 
             # They gave a secret name for the validation cert. Try loading it.
-            ss = self.load_secret(ca_secret_name)
+            ss = self.ir.resolve_secret(self, ca_secret_name)
+
+            self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (ca_secret_name, ss))
 
             if not ss:
                 # This is definitively an error: they mentioned a secret, it can't be loaded,

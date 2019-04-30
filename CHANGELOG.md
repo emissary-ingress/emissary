@@ -2,13 +2,12 @@
 
 ## BREAKING NEWS
 
-### DEFAULT PORTS CHANGING IN AMBASSADOR 0.60
+### DEFAULT PORTS CHANGED IN AMBASSADOR 0.60
 
 Ambassador 0.60 will, by default, listen for cleartext HTTP on port 8080 (rather than 80),
 and for HTTPS on port 8443 (rather than 443), in order to simplify running Ambassador without
 root privileges. If you are relying on the default port numbering in your installation, **you
-will need to change your configuration** and Ambassador 0.52 will attempt to warn you of this
-in the diagnostic service.   
+will need to change your configuration**.
 
 ### AMBASSADOR 0.53.1
 
@@ -89,6 +88,43 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.60.2] April 29, 2019
+[0.60.2]: https://github.com/datawire/ambassador/compare/0.60.1...0.60.2
+
+### Changes since 0.60.1
+
+- Ambassador is now much more careful about which endpoints and secrets it pays attention to. ([#1465] again -- thanks to [@flands](https://github.com/flands) and @seandon for the help here!)
+
+[#1465]: https://github.com/datawire/ambassador/issues/1465
+
+## [0.60.1] April 25, 2019
+[0.60.1]: https://github.com/datawire/ambassador/compare/0.60.0...0.60.1
+
+### Changes since 0.60.0
+
+- Speed up initial parsing of WATT snapshots considerably ([#1465])
+- Don't look at secrets in the kube-system namespace, or for service-account tokens. 
+- Make sure that secrets we do look at are correctly associated with their namespaces ([#1467] -- thanks to @flands and @derrickburns for their contributions here!)
+- Allow tuning the number of input snapshots retained for debugging
+- Include the grab-snapshots.py script to help with debuggability
+
+[#1465]: https://github.com/datawire/ambassador/issues/1465
+[#1467]: https://github.com/datawire/ambassador/issues/1467
+
+## [0.60.0] April 23, 2019
+[0.60.0]: https://github.com/datawire/ambassador/compare/0.53.1...0.60.0
+
+### Changes since 0.53.1
+
+- BREAKING CHANGE: Ambassador listens on 8080 and 8443 by default so it does not need to run as root
+- Ambassador natively supports using Consul for service discovery
+- `AMBASSADOR_ENABLE_ENDPOINTS` is no longer needed; configure using the `Resolver` resource instead
+- Support for the Maglev load balancing algorithm
+- Support `connect_timeout_ms`. Thanks to Pétur Erlingsson.
+- Support for `idle_timeout_ms` Thanks to Aaron Triplett.
+- Ambassador will properly reload renewed Let's Encrypt certificates (#1416). Thanks to Matthew Ceroni.
+- Ambassador will now properly redirect from HTTP to HTTPS based on `x-forwarded-proto` (#1233).
+- The `case_sensitive` field now works when `host_redirect` is set to true (#699). Thanks to Peter Choi and Christopher Coté.
 
 ## [0.53.1] April 5, 2019
 [0.53.1]: https://github.com/datawire/ambassador/compare/0.52.1...0.53.1

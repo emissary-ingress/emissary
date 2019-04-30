@@ -39,22 +39,29 @@ spec:
 
 SUPERPOD_POD = """
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: superpod
-  labels:
-    backend: superpod
 spec:
-  containers:
-  - name: backend
-    image: quay.io/datawire/kat-backend:11
-    # ports:
-    # {ports}
-    env:
-    - name: INCLUDE_EXTAUTH_HEADER
-      value: "yes"
-    # {envs} 
+  replicas: 1
+  selector:
+    matchLabels:
+      backend: superpod
+  template:
+    metadata:
+      labels:
+        backend: superpod
+    spec:
+      containers:
+      - name: backend
+        image: quay.io/datawire/kat-backend:11
+        # ports:
+        # {ports}
+        env:
+        - name: INCLUDE_EXTAUTH_HEADER
+          value: "yes"
+        # {envs} 
 """
 
 AUTH_BACKEND = """
@@ -180,6 +187,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - configmaps
   - services
   - secrets
   - namespaces
@@ -215,6 +223,7 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - configmaps
   - services
   - secrets
   - namespaces
@@ -252,11 +261,11 @@ spec:
   - name: http
     protocol: TCP
     port: 80
-    targetPort: 80
+    targetPort: 8080
   - name: https
     protocol: TCP
     port: 443
-    targetPort: 443
+    targetPort: 8443
   {extra_ports}
   selector:
     service: {self.path.k8s}
@@ -297,6 +306,8 @@ spec:
           fieldPath: metadata.namespace
     - name: AMBASSADOR_ID
       value: {self.path.k8s}
+    - name: AMBASSADOR_SNAPSHOT_COUNT
+      value: "0"
     livenessProbe:
       httpGet:
         path: /ambassador/v0/check_alive

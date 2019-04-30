@@ -6,7 +6,7 @@ Ambassador is designed to allow service authors to control how their service is 
 
 ## 1. Deploying Ambassador
 
-To deploy Ambassador in your default namespace, first you need to check if Kubernetes has RBAC enabled:
+To deploy Ambassador in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
 
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
@@ -37,7 +37,9 @@ We recommend downloading the YAML files and exploring the content. You will see
 that an `ambassador-admin` NodePort Service is created (which provides an
 Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
 
-For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly (e.g., your namespace).
+When not installing Ambassador into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
+
+For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly.
 
 
 ## 2. Defining the Ambassador Service
@@ -56,6 +58,7 @@ spec:
   externalTrafficPolicy: Local
   ports:
    - port: 80
+     targetPort: 8080
   selector:
     service: ambassador
 ```
@@ -67,6 +70,8 @@ $ kubectl apply -f ambassador-service.yaml
 ```
 
 The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
+
+If you have a static IP provided by your cloud provider you can set as `loadBalancerIP`.
 
 ## 3. Creating your first route
 
