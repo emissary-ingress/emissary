@@ -295,7 +295,7 @@ class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
                  xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
-                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, body=None):
+                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False, body=None):
         self.method = method
         self.url = url
         self.headers = headers
@@ -312,6 +312,7 @@ class Query:
             self.expected = expected
         self.skip = skip
         self.xfail = xfail
+        self.ignore_result = ignore_result
         self.phase = phase
         self.parent = None
         self.result = None
@@ -383,27 +384,28 @@ class Result:
         if self.query.xfail:
             pytest.xfail(self.query.xfail)
 
-        if self.query.error is not None:
-            found = False
-            errors = self.query.error
+        if not self.query.ignore_result:
+            if self.query.error is not None:
+                found = False
+                errors = self.query.error
 
-            if isinstance(self.query.error, str):
-                errors = [ self.query.error ]
+                if isinstance(self.query.error, str):
+                    errors = [ self.query.error ]
 
-            if self.error is not None:
-                for error in errors:
-                    if error in self.error:
-                        found = True
-                        break
+                if self.error is not None:
+                    for error in errors:
+                        if error in self.error:
+                            found = True
+                            break
 
-            assert found, "{}: expected error to contain any of {}; got {} instead".format(
-                self.query.url, ", ".join([ "'%s'" % x for x in errors ]),
-                ("'%s'" % self.error) if self.error else "no error"
-            )
-        else:
-            assert self.query.expected == self.status, \
-                   "%s: expected status code %s, got %s instead with error %s" % (
-                       self.query.url, self.query.expected, self.status, self.error)
+                assert found, "{}: expected error to contain any of {}; got {} instead".format(
+                    self.query.url, ", ".join([ "'%s'" % x for x in errors ]),
+                    ("'%s'" % self.error) if self.error else "no error"
+                )
+            else:
+                assert self.query.expected == self.status, \
+                       "%s: expected status code %s, got %s instead with error %s" % (
+                           self.query.url, self.query.expected, self.status, self.error)
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
@@ -1044,7 +1046,7 @@ class Runner:
 
         for phase in phases:
             if phase != 1:
-                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 30))
+                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 60))
                 print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
                 time.sleep(phase_delay)
 

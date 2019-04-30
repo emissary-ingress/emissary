@@ -53,7 +53,7 @@ class IRHTTPMapping (IRBaseMapping):
         "add_response_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
-        # "circuit_breaker": True,
+        "circuit_breakers": True,
         "cors": True,
         "enable_ipv4": True,
         "enable_ipv6": True,
@@ -139,8 +139,8 @@ class IRHTTPMapping (IRBaseMapping):
             **new_args
         )
 
-        if ('circuit_breaker' in kwargs) or ('outlier_detection' in kwargs):
-            self.post_error(RichStatus.fromError("circuit_breaker and outlier_detection are not supported"))
+        if 'outlier_detection' in kwargs:
+            self.post_error(RichStatus.fromError("outlier_detection is not supported"))
 
     @staticmethod
     def group_class() -> Type[IRBaseMappingGroup]:
@@ -215,6 +215,34 @@ class IRHTTPMapping (IRBaseMapping):
             if not self.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}, invalidating mapping".format(self['load_balancer']))
                 return False
+
+        if self.get('circuit_breakers', None) is None:
+            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
+
+        if self.get('circuit_breakers', None) is not None:
+            if not self.validate_circuit_breakers(self['circuit_breakers']):
+                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
+                return False
+
+        return True
+
+    @staticmethod
+    def validate_circuit_breakers(circuit_breakers) -> bool:
+        if not isinstance(circuit_breakers, (list, tuple)):
+            return False
+
+        for circuit_breaker in circuit_breakers:
+            if 'priority' in circuit_breaker:
+                if circuit_breaker.get('priority').lower() not in ['default', 'high']:
+                    return False
+
+            digit_fields = ['max_connections', 'max_pending_requests', 'max_requests', 'max_retries']
+            for field in digit_fields:
+                if field in circuit_breaker:
+                    try:
+                        int(circuit_breaker[field])
+                    except ValueError:
+                        return False
 
         return True
 

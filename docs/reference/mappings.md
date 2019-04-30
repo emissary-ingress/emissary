@@ -33,6 +33,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`host_regex`](/reference/host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`host_rewrite`](/reference/host) | forces the HTTP `Host` header to a specific value when talking to the service |
 | [`load_balancer`](/reference/core/load-balancer) | configures load balancer on a mapping
+| [`circuit_breakers`](/reference/core/circuit-breaking) | configures circuit breaking on a mapping
 | [`method`](/reference/method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |

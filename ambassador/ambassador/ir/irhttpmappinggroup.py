@@ -29,21 +29,23 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     labels: Dict[str, Any]
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
+        'bypass_auth': True,
+        'circuit_breakers': True,
+        'cluster_timeout_ms': True,
+        'connect_timeout_ms': True,
         'group_id': True,
         'headers': True,
         'host_rewrite': True,
+        'idle_timeout_ms': True,
         # 'labels' doesn't appear in the TransparentKeys list for IRMapping, but it's still
         # a CoreMappingKey -- if it appears, it can't have multiple values within an IRHTTPMappingGroup.
         'labels': True,
+        'load_balancer': True,
         'method': True,
         'prefix': True,
         'prefix_regex': True,
         'rewrite': True,
-        'connect_timeout_ms': True,
-        'timeout_ms': True,
-        'idle_timeout_ms': True,
-        'bypass_auth': True,
-        'load_balancer': True
+        'timeout_ms': True
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
@@ -193,6 +195,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
                             connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
+                            circuit_breakers=mapping.get('circuit_breakers', None),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)
