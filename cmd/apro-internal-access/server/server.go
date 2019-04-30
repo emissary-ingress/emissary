@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/datawire/apro/cmd/apro-internal-access/secret"
-	"github.com/datawire/apro/shared/logging"
+	"github.com/datawire/apro/lib/logging"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )

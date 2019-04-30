@@ -8,7 +8,7 @@ import (
 
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
-	"github.com/datawire/apro/shared/logging"
+	"github.com/datawire/apro/lib/logging"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
