@@ -80,13 +80,13 @@ class IRAmbassador (IRResource):
             readiness_probe={"enabled": True},
             diagnostics={"enabled": True},
             use_proxy_proto=False,
+            enable_http10=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
             circuit_breakers=None,
             xff_num_trusted_hops=0,
             server_name="envoy",
-            enable_http10=False
             **kwargs
         )
 
