@@ -9,33 +9,30 @@ spec:
     - host: "*"
       path: "*/.ambassador-internal/*"
       filters:
-        - name: internal-access-control-basicauth
+        - name: internal-access-control
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: internal-access-control-basicauth
+  name: internal-access-control
   namespace: default
 spec:
   External:
-    auth_service: "internal-access-control-basicauth:5000"
+    auth_service: "internal-access-control:5000"
     path_prefix: "/extauth"
     proto: http
     allowed_request_headers:
-    - "x-allowed-input-header"
-    allowed_authorization_headers:
-    - "x-input-headers"
-    - "x-allowed-output-header"
+    - "x-ambassador-internal-auth"
     allow_request_body: false
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: internal-access-control-basicauth
+  name: internal-access-control
 spec:
   type: ClusterIP
   selector:
-    app: internal-access-control-basicauth
+    app: internal-access-control
   ports:
   - port: 5000
     name: http-auth
@@ -44,15 +41,15 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ambassador-auth-httpbasic
-type: Opaque
-data:
-  users.yaml: "YWRtaW46CiAgaGFzaGVkX3Bhc3N3b3JkOiAiJDJiJDEyJG1XcXZVT1pRb3d2aks4WFBtT3VPdk9XUFBnVVYyZDY0TWw0OXJPRXpmQWw4TUpYWjNaUFJLIgo="
+  name: internal-access-control
+  annotations:
+    kubernetes.io/service-account.name: ambassador-pro
+type: kubernetes.io/service-account-token
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: internal-access-control-basicauth
+  name: internal-access-control
 spec:
   replicas: 1
   strategy:
@@ -60,26 +57,26 @@ spec:
   template:
     metadata:
       labels:
-        app: internal-access-control-basicauth
+        app: internal-access-control
     spec:
       containers:
-      - name: internal-access-control-basicauth
-        image: quay.io/datawire/ambassador-auth-httpbasic:0.1.1
-        imagePullPolicy: Always
+      - name: internal-access-control
+        image: quay.io/ambassador/ambassador_pro:apro-internal-access-0.4.0
+        imagePullPolicy: IfNotPresent
         ports:
         - name: http-api
           containerPort: 5000
         volumeMounts:
-          - name: ambassador-auth-httpbasic
-            mountPath: /var/lib/ambassador/auth-httpbasic
+          - name: ambassador-auth-secret
+            mountPath: /etc/apro-internal-access
             readOnly: true
         resources:
           limits:
             memory: 100Mi
       volumes:
-        - name: ambassador-auth-httpbasic
+        - name: ambassador-auth-secret
           secret:
-            secretName: ambassador-auth-httpbasic
+            secretName: internal-access-control
             items:
-              - key: users.yaml
-                path: users.yaml
+              - key: token
+                path: shared-secret
