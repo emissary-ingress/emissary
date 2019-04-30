@@ -39,19 +39,23 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'prefix': True,
         'prefix_regex': True,
         'rewrite': True,
+        'connect_timeout_ms': True,
         'timeout_ms': True,
-        'bypass_auth': True
+        'idle_timeout_ms': True,
+        'bypass_auth': True,
+        'load_balancer': True
     }
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'add_request_headers': True,    # do this manually.
-        'add_response_headers': True,    # do this manually.
+        'add_response_headers': True,   # do this manually.
         'cluster': True,
         'host': True,
         'kind': True,
         'location': True,
         'name': True,
+        'resolver': True,               # can't flatten the resolver...
         'rkey': True,
         'route_weight': True,
         'service': True,
@@ -181,11 +185,14 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
+                            resolver=mapping.resolver,
                             ctx_name=mapping.get('tls', None),
                             host_rewrite=mapping.get('host_rewrite', False),
                             enable_ipv4=mapping.get('enable_ipv4', None),
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
+                            load_balancer=mapping.get('load_balancer', None),
+                            connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
                             marker=marker)
 
         stored = ir.add_cluster(cluster)
@@ -229,7 +236,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             self.add_request_headers = add_request_headers
         if add_response_headers:
             self.add_response_headers = add_response_headers
-
+        if self.get('load_balancer', None) is None:
+            self['load_balancer'] = ir.ambassador_module.load_balancer
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
@@ -300,7 +308,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 
-        if not self.get('host_redirect', None):
+        redir = self.get('host_redirect', None)
+
+        if not redir:
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 
@@ -321,4 +331,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
+            # Flatten the case_sensitive field for host_redirect if it exists
+            if 'case_sensitive' in redir:
+                self['case_sensitive'] = redir['case_sensitive']
+
             return []

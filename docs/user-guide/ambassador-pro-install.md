@@ -14,13 +14,15 @@ git clone https://github.com/datawire/pro-ref-arch
 
 ## 2. License Key
 
-In the `ambassador/ambassador-pro.yaml` file, update the `AMBASSADOR_LICENSE_KEY` environment variable field with the license key that is supplied as part of your trial email.
+Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env.sh` file.
 
 **Note:** Ambassador Pro will not start without a valid license key.
 
-## 3. Deploy Ambassador Pro
+## 3. Install Go
 
-Once you have fully configured Ambassador Pro, deploy your updated configuration. Note that the default configuration will also redeploy your current Ambassador configuration, so verify that you have the correct Ambassador version before deploying Pro.
+The Ambassador Pro installation uses a few Go commands. Make sure you have [Go](https://golang.org) installed locally.
+
+## 4. Deploy Ambassador Pro
 
 If you're on GKE, first, create the following `ClusterRoleBinding`:
 
@@ -28,11 +30,13 @@ If you're on GKE, first, create the following `ClusterRoleBinding`:
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-Then, deploy Ambassador Pro and related dependencies:
+Then, deploy Ambassador Pro:
 
 ```
-kubectl apply -f ambassador/
+make apply-ambassador
 ```
+
+This `make` command will use `kubectl` to deploy Ambassador Pro and a basic test configuration to the cluster.
 
 Verify that Ambassador Pro is running:
 
@@ -44,28 +48,29 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 
 **Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change the `ambassador/ambassador-service.yaml` to a different service type (e.g., `NodePort`).
 
-By default, Ambassador Pro uses ports 8081 and 8082 for rate-limiting
-and filtering, respectively.  If for whatever reason those assignments
-are problematic (perhaps you [set
+By default, Ambassador Pro uses ports 8500-8503.  If for whatever
+reason those assignments are problematic (perhaps you [set
 `service_port`](/reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
 
-  - `GRPC_PORT`: Which port to serve the RateLimitService on; `8081`
-    by default.
-  - `APRO_AUTH_PORT`: Which port to serve the filtering AuthService
-    on; `8082` by default.
+| Purpose                       | Variable         | Default |
+| ---                           | ---              | ---     |
+| Filtering AuthService (gRPC)  | `APRO_AUTH_PORT` | 8500    |
+| RateLimitService (gRPC)       | `GRPC_PORT`      | 8501    |
+| RateLimitService debug (HTTP) | `DEBUG_PORT`     | 8502    |
+| RateLimitService misc (HTTP)  | `PORT`           | 8503    |
 
 If you have deployed Ambassador with
 [`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or
-[`AMBASSADOR_ID`](/reference/running/#multiple-ambassadors-in-one-cluster)
+[`AMBASSADOR_ID`](/reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
-## 4. Configure JWT authentication
+## 5. Configure JWT authentication
 
 Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
 
 ```
-kubectl apply -f jwt/
+make apply-jwt
 ```
 
 This will configure the following `FilterPolicy`:
@@ -120,13 +125,13 @@ server: envoy
 Finally, send a request with a valid JWT to the `jwt-httpbin` URL, which will return successfully.
 
 ```
-$ curl -k --header "Authorization: BwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." https://$AMBASSADOR_IP/jwt-httpbin/ip
+$ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ." https://$AMBASSADOR_IP/jwt-httpbin/ip
 {
   "origin": "108.20.119.124, 35.194.4.146, 108.20.119.124"
 }
 ```
 
-## 5. Configure additional Ambassador Pro services
+## 6. Configure additional Ambassador Pro services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 

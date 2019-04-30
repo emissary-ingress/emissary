@@ -61,10 +61,18 @@ export ENVOY_DEBUG
 
 DIAGD_CONFIGDIR=
 
+echo "AMBASSADOR STARTING with environment:"
+echo "===="
+env | grep AMBASSADOR | sort
+echo "===="
+
 if [ "$1" == "--demo" ]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
     CONFIG_DIR="$AMBASSADOR_ROOT/ambassador-demo-config"
+
+    PORT=5050 python3 demo-services/auth.py &
+    python3 demo-services/qotm.py &
 fi
 
 # Do we have config on the filesystem?
@@ -172,17 +180,21 @@ echo "AMBASSADOR: using cluster ID $AMBASSADOR_CLUSTER_ID"
 # Empty Envoy directory, hence no config via ADS yet.
 mkdir -p "${ENVOY_DIR}"
 
-echo "AMBASSADOR: starting ads"
-ambex "${ENVOY_DIR}" &
-AMBEX_PID="$!"
-pids="${pids:+${pids} }${AMBEX_PID}:ambex"
+if [ -z "${DIAGD_ONLY}" ]; then
+    echo "AMBASSADOR: starting ads"
+    ambex "${ENVOY_DIR}" &
+    AMBEX_PID="$!"
+    pids="${pids:+${pids} }${AMBEX_PID}:ambex"
+else
+    DIAGD_EXTRA="--no-checks --no-envoy"
+fi
 
 # We can't start Envoy until the initial config happens, which means that diagd has to start it.
 
 echo "AMBASSADOR: starting diagd"
 
 diagd "${SNAPSHOT_DIR}" "${ENVOY_BOOTSTRAP_FILE}" "${ENVOY_CONFIG_FILE}" $DIAGD_DEBUG $DIAGD_CONFIGDIR \
-      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" &
+      --kick "sh /ambassador/kick_ads.sh $AMBEX_PID" --notices "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json" $DIAGD_EXTRA &
 pids="${pids:+${pids} }$!:diagd"
 
 # Wait for diagd to start
@@ -210,7 +222,9 @@ else
 fi
 
 if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
-    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
+#    KUBEWATCH_SYNC_CMD="python3 /ambassador/post_update.py"
+    KUBEWATCH_SYNC_CMD="sh /ambassador/post_watt.sh"
+    WATCH_HOOK="/ambassador/watch_hook.py"
 
     KUBEWATCH_NAMESPACE_ARG=""
 
@@ -218,10 +232,16 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
+    KUBEWATCH_SYNC_KINDS="-s service"
+
+#    if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
+#        KUBEWATCH_SYNC_KINDS="-s service"
+#    fi
+
     set -x
-    "kubewatch" ${KUBEWATCH_NAMESPACE_ARG} --sync "$KUBEWATCH_SYNC_CMD" --warmup-delay 10s secrets services &
+    /ambassador/watt ${KUBEWATCH_NAMESPACE_ARG} --notify "$KUBEWATCH_SYNC_CMD" $KUBEWATCH_SYNC_KINDS --watch "$WATCH_HOOK" &
     set +x
-    pids="${pids:+${pids} }$!:kubewatch"
+    pids="${pids:+${pids} }$!:watt"
 fi
 
 echo "AMBASSADOR: waiting"

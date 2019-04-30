@@ -234,7 +234,27 @@ class EnvoyStats (object):
 
         # Now dig into clusters a bit more.
 
+        requests_info = {}
         active_clusters = {}
+
+        if ("http" in envoy_stats) and ("ingress_http" in envoy_stats["http"]):
+            ingress_stats = envoy_stats["http"]["ingress_http"]
+
+            requests_total = ingress_stats.get("downstream_rq_total", 0)
+
+            requests_4xx = ingress_stats.get('downstream_rq_4xx', 0)
+            requests_5xx = ingress_stats.get('downstream_rq_5xx', 0)
+            requests_bad = requests_4xx + requests_5xx
+
+            requests_ok = requests_total - requests_bad
+
+            requests_info = {
+                "total": requests_total,
+                "4xx": requests_4xx,
+                "5xx": requests_5xx,
+                "bad": requests_bad,
+                "ok": requests_ok,
+            }
 
         if "cluster" in envoy_stats:
             for cluster_name in envoy_stats['cluster']:
@@ -275,7 +295,6 @@ class EnvoyStats (object):
                     healthy_percent = None
                     # logging.debug("cluster %s has had no requests" % cluster_name)
 
-                # active_mappings[mapping_name] = {
                 active_clusters[cluster_name] = {
                     'healthy_members': healthy_members,
                     'total_members': total_members,
@@ -297,6 +316,7 @@ class EnvoyStats (object):
         self.stats.update({
             "last_update": last_update,
             "last_attempt": last_attempt,
+            "requests": requests_info,
             "clusters": active_clusters,
             "envoy": envoy_stats
         })

@@ -39,10 +39,13 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents
+from ambassador.utils import SystemInfo, PeriodicTrigger, SavedSecret, load_url_contents
+from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.config.resourcefetcher import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
+
+from ambassador.constants import Constants
 
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext
@@ -103,10 +106,13 @@ class DiagApp (Flask):
     # scout_result: Dict[str, Any]
     watcher: 'AmbassadorEventWatcher'
     stats_updater: Optional[PeriodicTrigger]
+    last_request_info: Dict[str, int]
+    last_request_time: Optional[datetime.datetime]
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
-              do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False, notices=None):
+              k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
+              notices=None):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
@@ -115,6 +121,7 @@ class DiagApp (Flask):
         self.notice_path = notices
         self.notices = Notices(self.notice_path)
         self.notices.reset()
+        self.k8s = k8s
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -136,7 +143,10 @@ class DiagApp (Flask):
         self.ir = None
         self.stats_updater = None
 
-        # self.scout = Scout(update_frequency=datetime.timedelta(seconds=30))
+        self.last_request_info = {}
+        self.last_request_time = None
+
+        # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout()
 
     def check_scout(self, what: str) -> None:
@@ -301,16 +311,31 @@ def handle_ping():
 
 
 @app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_update():
+def handle_kubewatch_update():
     url = request.args.get('url', None)
 
     if not url:
         app.logger.error("error: update requested with no URL")
         return "error: update requested with no URL", 400
 
-    app.logger.info("Update requested from %s" % url)
+    app.logger.info("Update requested: kubewatch, %s" % url)
 
-    status, info = app.watcher.post('CONFIG', url)
+    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
+
+    return info, status
+
+
+@app.route('/_internal/v0/watt', methods=[ 'POST' ])
+def handle_watt_update():
+    url = request.args.get('url', None)
+
+    if not url:
+        app.logger.error("error: watt update requested with no URL")
+        return "error: watt update requested with no URL", 400
+
+    app.logger.info("Update requested: watt, %s" % url)
+
+    status, info = app.watcher.post('CONFIG', ( 'watt', url ))
 
     return info, status
 
@@ -524,8 +549,8 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
 
-    def post(self, cmd: str, arg: Union[str, Tuple[str, IR]]) -> Tuple[int, str]:
-        rqueue = queue.Queue()
+    def post(self, cmd: str, arg: Union[str, Tuple[str, Optional[IR]]]) -> Tuple[int, str]:
+        rqueue: queue.Queue = queue.Queue()
 
         self.events.put((cmd, arg, rqueue))
 
@@ -556,8 +581,15 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
             elif cmd == 'CONFIG':
+                version, url = arg
+
                 try:
-                    self.load_config(rqueue, arg)
+                    if version == 'kw':
+                        self.load_config_kubewatch(rqueue, url)
+                    elif version == 'watt':
+                        self.load_config_watt(rqueue, url)
+                    else:
+                        raise RuntimeError("config from %s not supported" % version)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
@@ -579,27 +611,44 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
-        scc = SecretSaver(app.logger, path, app.snapshot_path)
+        scc = FSSecretHandler(app.logger, path, app.snapshot_path, "0")
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
-        fetcher.load_from_filesystem(path, k8s=False, recurse=True)
+        fetcher.load_from_filesystem(path, k8s=app.k8s, recurse=True)
 
         if not fetcher.elements:
-            self.logger.debug("no configuration found at %s" % path)
-            self._respond(rqueue, 204, 'ignoring empty configuration')
-            return
+            self.logger.debug("no configuration resources found at %s" % path)
+            # self._respond(rqueue, 204, 'ignoring empty configuration')
+            # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.null_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    def load_config(self, rqueue: queue.Queue, url):
+    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        self.logger.info("copying configuration from %s to %s" % (url, ss_path))
+        self.logger.info("copying configuration: kubewatch, %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
+        elements: List[str] = []
+
         serialization = load_url_contents(self.logger, "%s/services" % url, stream2=open(ss_path, "w"))
+
+        if serialization:
+            elements.append(serialization)
+        else:
+            self.logger.debug("no services loaded from snapshot %s" % snapshot)
+
+        if Config.enable_endpoints:
+            serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
+
+            if serialization:
+                elements.append(serialization)
+            else:
+                self.logger.debug("no endpoints loaded from snapshot %s" % snapshot)
+
+        serialization = "---\n".join(elements)
 
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
@@ -607,7 +656,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
             # return
 
-        scc = SecretSaver(app.logger, url, app.snapshot_path)
+        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -621,18 +670,51 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
             # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
+
+    def load_config_watt(self, rqueue: queue.Queue, url: str):
+        snapshot = url.split('/')[-1]
+        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
+
+        self.logger.info("copying configuration: watt, %s to %s" % (url, ss_path))
+
+        # Grab the serialization, and save it to disk too.
+        serialization = load_url_contents(self.logger, url, stream2=open(ss_path, "w"))
+
+        if not serialization:
+            self.logger.debug("no data loaded from snapshot %s" % snapshot)
+            # We never used to return here. I'm not sure if that's really correct?
+            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
+            # return
+
+        # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
+        # the secrets that watt sends.
+        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
+
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+
+        if serialization:
+            fetcher.parse_watt(serialization)
+
+        if not fetcher.elements:
+            self.logger.debug("no configuration found in snapshot %s" % snapshot)
+
+            # Don't actually bail here. If they send over a valid config that happens
+            # to have nothing for us, it's still a legit config.
+            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
+            # return
+
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
-                 secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
-                 snapshot: str) -> None:
-
+                 secret_handler: SecretHandler, snapshot: str) -> None:
         aconf.load_all(fetcher.sorted())
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        ir = IR(aconf, secret_reader=secret_reader)
+        ir = IR(aconf, secret_handler=secret_handler)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
@@ -648,18 +730,36 @@ class AmbassadorEventWatcher(threading.Thread):
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 
-        self.logger.info("rotating snapshots for snapshot %s" % snapshot)
+        snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))
+        snaplist: List[Tuple[str, str]] = []
 
-        for from_suffix, to_suffix in [ ('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '') ]:
+        if snapcount > 0:
+            self.logger.debug("rotating snapshots for snapshot %s" % snapshot)
+
+            # If snapcount is 4, this range statement becomes range(-4, -1)
+            # which gives [ -4, -3, -2 ], which the list comprehension turns
+            # into [ ( "-3", "-4" ), ( "-2", "-3" ), ( "-1", "-2" ) ]...
+            # which is the list of suffixes to rename to rotate the snapshots.
+
+            snaplist += [ (str(x+1), str(x)) for x in range(-1 * snapcount, -1) ]
+
+            # After dealing with that, we need to rotate the current file into -1.
+            snaplist.append(( '', '-1' ))
+
+        # Whether or not we do any rotation, we need to cycle in the '-tmp' file.
+        snaplist.append(( '-tmp', '' ))
+
+        for from_suffix, to_suffix in snaplist:
             for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
-                try:
-                    from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
-                    to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
+                from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
+                to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
+                try:
                     self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
                 except IOError as e:
                     self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
@@ -689,14 +789,19 @@ class AmbassadorEventWatcher(threading.Thread):
         if app.health_checks and not app.stats_updater:
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
+            # app.scout_updater = PeriodicTrigger(lambda: app.watcher.check_scout("30s"), period=30)
 
         # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
         # update until after we've taken care of Envoy.
         self.check_scout("update")
 
     def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
-        uptime = datetime.datetime.now() - boot_time
+        now = datetime.datetime.now()
+        uptime = now - boot_time
         hr_uptime = td_format(uptime)
+
+        if not ir:
+            ir = app.ir
 
         self.app.notices.reset()
 
@@ -705,8 +810,35 @@ class AmbassadorEventWatcher(threading.Thread):
             "hr_uptime": hr_uptime
         }
 
-        if ir and not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
-            scout_args["features"] = ir.features()
+        if ir:
+            self.app.logger.debug("check_scout: we have an IR")
+
+            if not os.environ.get("AMBASSADOR_DISABLE_FEATURES", None):
+                self.app.logger.debug("check_scout: including features")
+                feat = ir.features()
+
+                request_data = app.estats.stats.get('requests', None)
+
+                if request_data:
+                    self.app.logger.debug("check_scout: including requests")
+
+                    for rkey in request_data.keys():
+                        cur = request_data[rkey]
+                        prev = app.last_request_info.get(rkey, 0)
+                        feat[f'request_{rkey}_count'] = max(cur - prev, 0)
+
+                    lrt = app.last_request_time or boot_time
+                    since_lrt = now - lrt
+                    elapsed = since_lrt.total_seconds()
+                    hr_elapsed = td_format(since_lrt)
+
+                    app.last_request_time = now
+                    app.last_request_info = request_data
+
+                    feat['request_elapsed'] = elapsed
+                    feat['request_hr_elapsed'] = hr_elapsed
+
+                scout_args["features"] = feat
 
         scout_result = self.app.scout.report(mode="diagd", action=what, **scout_args)
         scout_notices = scout_result.pop('notices', [])
@@ -777,9 +909,9 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, config_path=None, ambex_pid=0, kick=None,
+          *, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0', notices=None):
+          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None):
     """
     Run the diagnostic daemon.
 
@@ -787,6 +919,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param bootstrap_path: Path to which to write bootstrap Envoy configuration
     :param ads_path: Path to which to write ADS Envoy configuration
     :param config_path: Optional configuration path to scan for Ambassador YAML files
+    :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param no_checks: If True, don't do Envoy-cluster health checking
@@ -795,8 +928,8 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param debug: If True, do debug logging
     :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
-    :param host: Interface on which to listen (default 0.0.0.0)
-    :param port: Port on which to listen (default 8877)
+    :param host: Interface on which to listen
+    :param port: Port on which to listen
     :param notices: Optional file to read for local notices
     """
 
@@ -805,7 +938,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
-              not no_checks, no_envoy, reload, debug, verbose, notices)
+              k8s, not no_checks, no_envoy, reload, debug, verbose, notices)
 
     if not workers:
         workers = number_of_workers()

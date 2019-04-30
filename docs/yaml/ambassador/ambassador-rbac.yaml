@@ -24,6 +24,7 @@ rules:
   - namespaces
   - services
   - secrets
+  - endpoints
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -58,6 +59,15 @@ spec:
       labels:
         service: ambassador
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  service: ambassador
+              topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
       containers:
       - name: ambassador
@@ -76,9 +86,9 @@ spec:
               fieldPath: metadata.namespace
         ports:
         - name: http
-          containerPort: 80
+          containerPort: 8080
         - name: https
-          containerPort: 443
+          containerPort: 8443
         - name: admin
           containerPort: 8877
         livenessProbe:
@@ -94,3 +104,5 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 3
       restartPolicy: Always
+      securityContext:
+        runAsUser: 8888

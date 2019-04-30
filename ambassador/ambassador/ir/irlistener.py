@@ -31,7 +31,7 @@ class IRListener (IRResource):
             use_proxy_proto=use_proxy_proto,
             **kwargs)
 
-        self.redirect_listener: bool = False
+        self.redirect_listener: bool = require_tls
         self.add_dict_helper('tls_contexts', IRListener.helper_contexts)
 
 class ListenerFactory:
@@ -92,6 +92,9 @@ class ListenerFactory:
         if 'xff_num_trusted_hops' in amod:
             primary_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
 
+        if 'server_name' in amod:
+            primary_listener.server_name = amod.server_name
+
         ir.add_listener(primary_listener)
 
         if redirect_cleartext_from:
@@ -112,6 +115,9 @@ class ListenerFactory:
 
             if 'xff_num_trusted_hops' in amod:
                 new_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
+
+            if 'server_name' in amod:
+                new_listener.server_name = amod.server_name
 
             ir.add_listener(new_listener)
 

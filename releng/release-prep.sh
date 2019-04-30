@@ -34,31 +34,38 @@ echo "$RELEASE_PROMPT"
 press_enter
 
 echo "Fetching latest release tag from GitHub"
-CURRENT_VERSION=$(curl --silent "https://api.github.com/repos/datawire/ambassador/releases/latest" | jq -r '.tag_name')
-
+CURRENT_VERSION=$(curl --silent "https://api.github.com/repos/datawire/ambassador/releases/latest" | fgrep 'tag_name' | cut -d'"' -f 4)
 echo
 echo "Current version: ${CURRENT_VERSION}"
 echo
-git log --pretty=oneline --abbrev-commit ${CURRENT_VERSION}^..
-echo
-echo "^ these changes have been made since the last release, pick the right version number accordingly"
+# git log --pretty=oneline --abbrev-commit ${CURRENT_VERSION}^..
+# echo
+# echo "^ these changes have been made since the last release, pick the right version number accordingly"
 read -p "Enter new version: " DESIRED_VERSION
 echo "Desired version: ${DESIRED_VERSION}"
 press_enter
 echo
 
-# Update version number in docs/index.html
-echo "Found the following occurrences of $CURRENT_VERSION in ./docs/index.html"
-echo
-grep -C 2 ${CURRENT_VERSION} docs/index.html
-echo
+# # Update version number in docs/index.html
+# echo "Found the following occurrences of $CURRENT_VERSION in ./docs/index.html"
+# echo
+# grep -C 2 ${CURRENT_VERSION} docs/index.html
+# echo
 
-echo "Replacing $CURRENT_VERSION with $DESIRED_VERSION in ./docs/index.html"
-sed -i -e "s/$CURRENT_VERSION/$DESIRED_VERSION/g" docs/index.html
+# echo "Replacing $CURRENT_VERSION with $DESIRED_VERSION in ./docs/index.html"
+# sed -i -e "s/$CURRENT_VERSION/$DESIRED_VERSION/g" docs/index.html
+# echo
+# git diff docs/index.html
+# echo
+# echo "^ this is the 'git diff' for docs/index.html"
+# press_enter
+
+echo "Updating version to $DESIRED_VERSION in ./docs/versions.yml"
+sed -i -e "s/^version: .*$/version: $DESIRED_VERSION/g" docs/versions.yml
 echo
-git diff docs/index.html
+git diff docs/versions.yml
 echo
-echo "^ this is the 'git diff' for docs/index.html"
+echo "^ this is the 'git diff' for docs/versions.yml"
 press_enter
 
 # Update release notes and changelog now
@@ -86,25 +93,32 @@ CHANGELOG="## [${DESIRED_VERSION}] $(date "+%B %d, %Y")
 [${DESIRED_VERSION}]: https://github.com/datawire/ambassador/compare/${CURRENT_VERSION}...${DESIRED_VERSION}
 
 ${RELEASE_NOTES}"
+echo ""
+echo "====================================="
 echo "Generated changelog -"
 echo "${CHANGELOG}"
 press_enter
-echo "Updating CHANGELOG.md"
-echo "${CHANGELOG}" | sed -i '/CueAddReleaseNotes/r /dev/stdin' CHANGELOG.md
-echo
+echo "Updating CHANGELOG.md..."
+echo "${CHANGELOG}" | sed -i -e '/CueAddReleaseNotes/r /dev/stdin' CHANGELOG.md
+echo "...done. Diffs for CHANGELOG.md:"
 git diff CHANGELOG.md
 echo
 echo "^ this is the 'git diff' for CHANGELOG.md"
 press_enter
-git diff
+
+echo ""
+echo "====================================="
+echo "Final diffs to be committed:"
+git diff docs/versions.yml CHANGELOG.md
 echo
-echo "^ This is final 'git diff'"
+echo "^ This is final 'git diff'. Bail out now if you do not want to commit this."
 press_enter
-echo "Staging docs/index.html and CHANGELOG.md"
-git add docs/index.html CHANGELOG.md
-echo "Committing the changes"
-git commit -m "Ambassador ${DESIRED_VERSION} release"
-echo
+
+echo "Staging docs/versions.yml and CHANGELOG.md"
+git add docs/versions.yml CHANGELOG.md
+echo "Committing docs/versions.yml and CHANGELOG.md"
+git commit -m "Ambassador ${DESIRED_VERSION} release" docs/versions.yml CHANGELOG.md
+
 GITHUB_RELEASE_NOTES="## :tada: Ambassador ${DESIRED_VERSION} :tada:
 #### Ambassador is an open source, Kubernetes-native microservices API gateway built on the Envoy Proxy.
 
@@ -113,6 +127,9 @@ View changelog - https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
 Get started with Ambassador on Kubernetes - https://www.getambassador.io/user-guide/getting-started
 
 ${RELEASE_NOTES}"
+
+echo ""
+echo "====================================="
 echo "Paste the following content in GitHub release page once the release is done -"
 echo
 echo "${GITHUB_RELEASE_NOTES}"

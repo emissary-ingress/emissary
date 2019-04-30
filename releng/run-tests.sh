@@ -9,9 +9,18 @@
 # to the pytest line, and, uh, I guess recover and merge all the .coverage 
 # files from the containers??
 
-if ! pytest --tb=short ${TEST_NAME}; then
-    kubectl get pods
-    kubectl get svc
+TEST_ARGS="--tb=short"
+
+if [ -n "${TEST_NAME}" ]; then
+    TEST_ARGS+=" -k ${TEST_NAME}"
+fi
+
+pytest ${TEST_ARGS}
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+    kubectl get pods --all-namespaces
+    kubectl get svc --all-namespaces
 
     if [ -n "${AMBASSADOR_DEV}" ]; then
         docker ps -a

@@ -39,7 +39,7 @@ class V2Cluster(dict):
             'name': cluster.name,
             'type': cluster.type.upper(),
             'lb_policy': cluster.lb_type.upper(),
-            'connect_timeout': "3s",
+            'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
             'load_assignment': {
                 'cluster_name': cluster.name,
                 'endpoints': [
@@ -73,15 +73,26 @@ class V2Cluster(dict):
 
     def get_endpoints(self, cluster: IRCluster):
         result = []
-        for u in cluster.urls:
-            p = urllib.parse.urlparse(u)
-            address = {
-                'address': p.hostname,
-                'port_value': int(p.port)
-            }
-            if p.scheme:
-                address['protocol'] = p.scheme.upper()
-            result.append({'endpoint': {'address': {'socket_address': address}}})
+
+        targetlist = cluster.get('targets', [])
+
+        if cluster.enable_endpoints and len(targetlist) > 0:
+            for target in targetlist:
+                address = {
+                    'address': target['ip'],
+                    'port_value': target['port']
+                }
+                result.append({'endpoint': {'address': {'socket_address': address}}})
+        else:
+            for u in cluster.urls:
+                p = urllib.parse.urlparse(u)
+                address = {
+                    'address': p.hostname,
+                    'port_value': int(p.port)
+                }
+                if p.scheme:
+                    address['protocol'] = p.scheme.upper()
+                result.append({'endpoint': {'address': {'socket_address': address}}})
         return result
 
     @classmethod
@@ -91,4 +102,3 @@ class V2Cluster(dict):
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
             cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
             config.clusters.append(cluster)
-

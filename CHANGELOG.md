@@ -2,9 +2,18 @@
 
 ## BREAKING NEWS
 
-### AMBASSADOR 0.51
+### DEFAULT PORTS CHANGED IN AMBASSADOR 0.60
 
-The current recommended version of Ambassador is 0.51.2.
+Ambassador 0.60 will, by default, listen for cleartext HTTP on port 8080 (rather than 80),
+and for HTTPS on port 8443 (rather than 443), in order to simplify running Ambassador without
+root privileges. If you are relying on the default port numbering in your installation, **you
+will need to change your configuration**.
+
+### AMBASSADOR 0.53.1
+
+The current recommended version of Ambassador is 0.53.1. **This release includes fixes for two
+security issues**; as such, it is strongly recommended that you upgrade from any earlier release
+to 0.53.1. See below for more information.
 
 ### AMBASSADOR 0.50+
 
@@ -79,6 +88,104 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.60.2] April 29, 2019
+[0.60.2]: https://github.com/datawire/ambassador/compare/0.60.1...0.60.2
+
+### Changes since 0.60.1
+
+- Ambassador is now much more careful about which endpoints and secrets it pays attention to. ([#1465] again -- thanks to [@flands](https://github.com/flands) and @seandon for the help here!)
+
+[#1465]: https://github.com/datawire/ambassador/issues/1465
+
+## [0.60.1] April 25, 2019
+[0.60.1]: https://github.com/datawire/ambassador/compare/0.60.0...0.60.1
+
+### Changes since 0.60.0
+
+- Speed up initial parsing of WATT snapshots considerably ([#1465])
+- Don't look at secrets in the kube-system namespace, or for service-account tokens. 
+- Make sure that secrets we do look at are correctly associated with their namespaces ([#1467] -- thanks to @flands and @derrickburns for their contributions here!)
+- Allow tuning the number of input snapshots retained for debugging
+- Include the grab-snapshots.py script to help with debuggability
+
+[#1465]: https://github.com/datawire/ambassador/issues/1465
+[#1467]: https://github.com/datawire/ambassador/issues/1467
+
+## [0.60.0] April 23, 2019
+[0.60.0]: https://github.com/datawire/ambassador/compare/0.53.1...0.60.0
+
+### Changes since 0.53.1
+
+- BREAKING CHANGE: Ambassador listens on 8080 and 8443 by default so it does not need to run as root
+- Ambassador natively supports using Consul for service discovery
+- `AMBASSADOR_ENABLE_ENDPOINTS` is no longer needed; configure using the `Resolver` resource instead
+- Support for the Maglev load balancing algorithm
+- Support `connect_timeout_ms`. Thanks to Pétur Erlingsson.
+- Support for `idle_timeout_ms` Thanks to Aaron Triplett.
+- Ambassador will properly reload renewed Let's Encrypt certificates (#1416). Thanks to Matthew Ceroni.
+- Ambassador will now properly redirect from HTTP to HTTPS based on `x-forwarded-proto` (#1233).
+- The `case_sensitive` field now works when `host_redirect` is set to true (#699). Thanks to Peter Choi and Christopher Coté.
+
+## [0.53.1] April 5, 2019
+[0.53.1]: https://github.com/datawire/ambassador/compare/0.52.1...0.53.1
+
+(0.53.0 was immediately supplanted by 0.53.1.)
+
+## SECURITY FIXES
+
+Ambassador 0.53.1 addresses two security issues in Envoy Proxy, CVE-2019-9900 and CVE-2019-9901:
+
+- CVE-2019-9900 (Score 8.3/High). When parsing HTTP/1.x header values, Envoy 1.9 and before does not reject embedded zero characters (NUL, ASCII 0x0).
+
+- CVE-2019-9901 (Score 8.3/High). Envoy does not normalize HTTP URL paths in Envoy 1.9 and before.
+
+Since these issues can potentially allow a remote attacker to use maliciously-crafted URLs to bypass
+authentication, anyone running an Ambassador prior to 0.53.1 should upgrade. 
+
+### UPCOMING CHANGES
+
+Ambassador 0.60 will listen on ports 8080/8443 by default. The diagnostics service in Ambassador 0.52.0
+will try to warn you if your configuration will be affected by this change.
+
+## Other changes since 0.52.1
+
+- `AuthService` version `ambassador/v1` can now explicitly configure how much body data is sent
+  to the external authentication service.
+
+## [0.52.1] March 26, 2019
+[0.52.1]: https://github.com/datawire/ambassador/compare/0.52.0...0.52.1
+
+### Changes since 0.52.0
+
+- You can specify the `AMBASSADOR_NO_SECRETS` environment variable to prevent Ambassador from 
+  watching Kubernetes secrets at all (thanks [@esmet](https://github.com/esmet)!) ([#1293])
+- The services used when you do `docker run ambassador --demo` have been moved into the Docker image,
+  to remove external dependencies from the Ambassador quickstart.  
+
+[#1293]: https://github.com/datawire/ambassador/issues/1293
+
+## [0.52.0] March 21, 2019
+[0.52.0]: https://github.com/datawire/ambassador/compare/0.51.2...0.52.0
+
+### Changes since 0.51.2
+
+- Initial support for endpoint routing, rather than relying on `kube-proxy` ([#1031])
+   - set `AMBASSADOR_ENABLE_ENDPOINTS` in the environment to allow this
+- Initial support for Envoy ring hashing and session affinity (requires endpoint routing!) 
+- Support Lua filters (thanks to [@lolletsoc](https://github.com/lolletsoc)!)
+- Support gRPC-Web (thanks to [@gertvdijk](https://github.com/gertvdijk)!) ([#456])
+- Support for gRPC HTTP 1.1 bridge (thanks to [@rotemtam](https://github.com/rotemtam)!)
+- Allow configuring `num-trusted-hosts` for `X-Forwarded-For`
+- External auth services using gRPC can now correctly add new headers ([#1313])
+- External auth services correctly add trace spans
+- Ambassador should respond to changes more quickly now ([#1294], [#1318])
+- Ambassador startup should be faster now
+
+[#456]: https://github.com/datawire/ambassador/issues/456
+[#1031]: https://github.com/datawire/ambassador/issues/1031
+[#1294]: https://github.com/datawire/ambassador/issues/1294
+[#1313]: https://github.com/datawire/ambassador/issues/1313
+[#1318]: https://github.com/datawire/ambassador/issues/1318
 
 ## [0.51.2] March 12, 2019
 [0.51.2]: https://github.com/datawire/ambassador/compare/0.51.1...0.51.2
@@ -152,6 +259,8 @@ At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador 
 
 ## [0.50.1] February 7, 2019
 [0.50.1]: https://github.com/datawire/ambassador/compare/0.50.0...0.50.1
+
+**0.50.1 is not recommended: upgrade to 0.52.0.**
 
 ### Changes since 0.50.0
 

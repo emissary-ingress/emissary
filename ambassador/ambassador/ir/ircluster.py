@@ -38,23 +38,12 @@ if TYPE_CHECKING:
 
 
 class IRCluster (IRResource):
-    # TransparentRouteKeys: ClassVar[Dict[str, bool]] = {
-    #     "auto_host_rewrite": True,
-    #     "case_sensitive": True,
-    #     "enable_ipv4": True,
-    #     "enable_ipv6": True,
-    #     "envoy_override": True,
-    #     "host_rewrite": True,
-    #     "path_redirect": True,
-    #     "priority": True,
-    #     "timeout_ms": True,
-    # }
-
     def __init__(self, ir: 'IR', aconf: Config,
                  location: str,  # REQUIRED
 
                  service: str,   # REQUIRED
-
+                 resolver: Optional[str] = None,
+                 connect_timeout_ms: Optional[int] = 3000,
                  marker: Optional[str] = None,  # extra marker for this context name
 
                  ctx_name: Optional[Union[str, bool]]=None,
@@ -66,6 +55,7 @@ class IRCluster (IRResource):
                  lb_type: str="round_robin",
                  grpc: Optional[bool] = False,
                  allow_scheme: Optional[bool] = True,
+                 load_balancer: Optional[dict] = None,
 
                  cb_name: Optional[str]=None,
                  od_name: Optional[str]=None,
@@ -100,6 +90,8 @@ class IRCluster (IRResource):
         # Do we have a marker?
         if marker:
             name_fields.append(marker)
+
+        self.logger = ir.logger
 
         # Toss in the original service before we mess with it, too.
         name_fields.append(service)
@@ -162,13 +154,10 @@ class IRCluster (IRResource):
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
 
-        name = "_".join(name_fields)
-        name = re.sub(r'[^0-9A-Za-z_]', '_', name)
-
         # Parse the service as a URL. Note that we have to supply a scheme to urllib's
         # parser, because it's kind of stupid.
 
-        ir.logger.debug("cluster %s service %s otls %s ctx %s" % (name, service, originate_tls, ctx))
+        ir.logger.debug("cluster setup: service %s otls %s ctx %s" % (service, originate_tls, ctx))
         p = urllib.parse.urlparse('random://' + service)
 
         # Is there any junk after the host?
@@ -185,13 +174,49 @@ class IRCluster (IRResource):
         if not port:
             port = 443 if originate_tls else 80
 
-        if rkey == '-override-':
-            rkey = name
-
         # Rebuild the URL with the 'tcp' scheme and our changed info.
         # (Yes, really, TCP. Envoy uses the TLS context to determine whether to originate
         # TLS. Kind of odd, but there we go.)
         url = "tcp://%s:%d" % (hostname, port)
+
+        # The Ambassador module will always have a load_balancer (which may be None).
+        global_load_balancer = ir.ambassador_module.load_balancer
+
+        if not load_balancer:
+            load_balancer = global_load_balancer
+
+        self.logger.debug(f"Load balancer for {url} is {load_balancer}")
+
+        enable_endpoints = False
+
+        if self.endpoints_required(load_balancer):
+            if not Config.enable_endpoints:
+                # Bzzt.
+                errors.append(f"{service}: endpoint routing is not enabled, falling back to {global_load_balancer}")
+                load_balancer = global_load_balancer
+            else:
+                enable_endpoints = True
+                lb_type = load_balancer.get('policy')
+
+                key_fields = ['er', lb_type.lower()]
+
+                # XXX Should we really include these things?
+                if 'header' in load_balancer:
+                    key_fields.append('hdr')
+                    key_fields.append(load_balancer['header'])
+
+                if 'cookie' in load_balancer:
+                    key_fields.append('cookie')
+                    key_fields.append(load_balancer['cookie']['name'])
+
+                if 'source_ip' in load_balancer:
+                    key_fields.append('srcip')
+
+                name_fields.append("-".join(key_fields))
+
+        # Finally we can construct the cluster name.
+        name = "_".join(name_fields)
+        name = re.sub(r'[^0-9A-Za-z_]', '_', name)
 
         # OK. Build our default args.
         #
@@ -209,9 +234,12 @@ class IRCluster (IRResource):
             "type": dns_type,
             "lb_type": lb_type,
             "urls": [ url ],
+            "load_balancer": load_balancer,
             "service": service,
             'enable_ipv4': enable_ipv4,
-            'enable_ipv6': enable_ipv6
+            'enable_ipv6': enable_ipv6,
+            'enable_endpoints': enable_endpoints,
+            'connect_timeout_ms': connect_timeout_ms,
         }
 
         if grpc:
@@ -226,6 +254,14 @@ class IRCluster (IRResource):
             else:
                 new_args['tls_context'] = IRTLSContext.null_context(ir=ir)
 
+        if rkey == '-override-':
+            rkey = name
+
+        # Stash the resolver, hostname, and port for setup.
+        self._resolver = resolver
+        self._hostname = hostname
+        self._port = port
+
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
@@ -239,6 +275,36 @@ class IRCluster (IRResource):
             for error in errors:
                 ir.post_error(error, resource=self)
 
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Resolve our actual targets.
+        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._port)
+
+        if targets:
+            # Great.
+            self.targets = targets
+        else:
+            self.post_error("no endpoints found, disabling cluster")
+
+            # This is a legit error. If we can't find _anything_ to route to, something is
+            # badly broken. (Note that the KubernetesServiceResolver will return a single
+            # endpoint with the DNS name of the service as the address, so it's not a special
+            # case here.)
+            return False
+
+        return True
+
+    def endpoints_required(self, load_balancer) -> bool:
+        required = False
+
+        if load_balancer:
+            lb_policy = load_balancer.get('policy')
+
+            if lb_policy in ['round_robin', 'ring_hash', 'maglev']:
+                self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
+                required = True
+
+        return required
+
     def add_url(self, url: str) -> List[str]:
         self.urls.append(url)
 
@@ -250,7 +316,7 @@ class IRCluster (IRResource):
         mismatches = []
 
         for key in [ 'type', 'lb_type', 'host_rewrite',
-                     'tls_context', 'originate_tls', 'grpc' ]:
+                     'tls_context', 'originate_tls', 'grpc', 'connect_timeout_ms' ]:
             if self.get(key, None) != other.get(key, None):
                 mismatches.append(key)
 
@@ -260,8 +326,14 @@ class IRCluster (IRResource):
             return False
 
         # All good.
-        for url in other.urls:
-            self.add_url(url)
+        if other.urls:
             self.referenced_by(other)
+
+            for url in other.urls:
+                self.add_url(url)
+
+        if other.targets:
+            self.referenced_by(other)
+            self.targets += other.targets
 
         return True

@@ -19,14 +19,13 @@ helm install -n cert-manager --set webhook.enabled=false stable/cert-manager
 ## Issuing Certificates
 cert-manager issues certificates from a CA such as [Let's Encrypt](https://letsencrypt.org/). It does this using the ACME protocol which supports various challenge mechanisms for verifying ownership of the domain. 
 
-### HTTP-01 Challenge 
-One challenge mechanism is the HTTP-01 challenge which verifies ownership of the domain by sending a request for a specific file on that domain. cert-manager accomplishes this by creating a temporary pod and service and sending a request to that pod with the prefix `/.well-known/acme-challenge`. 
-
 ### Issuer
 An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manager will use to issue a certificate. `Issuer` is a namespaced resource allowing for you to use different CAs in each namespace, a `ClusterIssuer` is used to issue certificates in any namespace. Configuration depends on which ACME [challenge](/user-guide/cert-manager#challenge) you are using.
 
 ### Certificate
 A [Certificate](https://cert-manager.readthedocs.io/en/latest/reference/certificates.html) is a namespaced resource that references an `Issuer` or `ClusterIssuer` for issuing certificates. `Certificate`s define the DNS name(s) a key and certificate should be issued for, as well as the secret to store those files (e.g. `ambassador-certs`). Configuration depends on which ACME [challenge](/user-guide/cert-manager#challenge) you are using.
+
+By duplicating issuers, certificates, and secrets one can support multiple domains with [SNI](/user-guide/sni).
 
 ### Challenge
 cert-manager supports two kinds of ACME challenges which verify domain ownership in different ways: HTTP-01 and DNS-01.
@@ -91,7 +90,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
 4. Create a Mapping for the `/.well-known/acme-challenge` route.
 
-    cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` for the so cert-manager can reach the temporary pod. 
+    cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
     ```yaml
     ---
     apiVersion: v1
@@ -117,7 +116,8 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     ```
     Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate. 
 
-5. Verify the secret is created
+5. Verify the secret is created:
+
     ```shell
     $ kubectl get secrets
     NAME                     TYPE                                  DATA      AGE

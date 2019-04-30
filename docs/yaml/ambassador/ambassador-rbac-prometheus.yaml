@@ -62,7 +62,7 @@ kind: Deployment
 metadata:
   name: ambassador
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       annotations:
@@ -71,6 +71,15 @@ spec:
       labels:
         service: ambassador
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  service: ambassador
+              topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
       volumes:
       - name: stats-exporter-mapping-config
@@ -100,9 +109,9 @@ spec:
           value: "localhost"
         ports:
         - name: http
-          containerPort: 80
+          containerPort: 8080
         - name: https
-          containerPort: 443
+          containerPort: 8443
         - name: admin
           containerPort: 8877
         livenessProbe:
@@ -130,3 +139,5 @@ spec:
           mountPath: /statsd-exporter/
           readOnly: true
       restartPolicy: Always
+      securityContext:
+        runAsUser: 8888

@@ -21,6 +21,7 @@
         "weight": { "type": "integer" },
         "enable_ipv4": { "type": "boolean" },
         "enable_ipv6": { "type": "boolean" },
+        "resolver": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
 
         "service": { "type": "string" }

@@ -19,6 +19,10 @@
 # Besides that, alpine mirrors have been found to be inconsistent over timezones, so this seems to
 # be a better approach.
 
+########
+# Seeing weird errors copying stuff? Check .dockerignore!!
+########
+
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
@@ -61,8 +65,12 @@ COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 # if you really really need to (not recommended).
 RUN mkdir ambassador-config envoy
 
-# COPY in a default config for use with --demo.
-COPY ambassador/default-config/ ambassador-demo-config
+# COPY in the stuff for use with --demo.
+COPY demo/config/ ambassador-demo-config
+COPY demo/services/ demo-services
+
+# ...and symlink /usr/bin/python because of !*@&#*!@&# Werkzeug.
+RUN ln -s python3 /usr/bin/python
 
 # Fix permissions to allow running as a non root user
 RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
@@ -70,10 +78,17 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R g=u ${AMBASSADOR_ROOT} /etc/passwd
 
 # COPY the entrypoint and Python-kubewatch and make them runnable.
-COPY ambassador/kubewatch.py .
 COPY ambassador/entrypoint.sh .
+COPY ambassador/grab-snapshots.py .
 COPY ambassador/kick_ads.sh .
+COPY ambassador/kubewatch.py .
 COPY ambassador/post_update.py .
-RUN chmod 755 kubewatch.py entrypoint.sh kick_ads.sh post_update.py
+COPY ambassador/post_watt.sh .
+COPY ambassador/watch_hook.py .
+RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_update.py post_watt.sh watch_hook.py
+
+# XXX Move to base image
+COPY watt .
+RUN chmod 755 watt
 
 ENTRYPOINT [ "./entrypoint.sh" ]

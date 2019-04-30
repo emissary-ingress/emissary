@@ -31,7 +31,40 @@ spec:
     GLOBAL_FILTER_ARGUMENTS
 ```
 
-Currently, Ambassador supports three filter types: `JWT`, `OAuth2`, and `Plugin`.
+Currently, Ambassador supports four filter types: `External`, `JWT`, `OAuth2`, and `Plugin`.
+
+### Filter Type: `External`
+
+The `External` filter type exposes the Ambassador `AuthService` interface to external authentication services. This is useful in a number of situations, e.g., if you have already written a custom `AuthService`, but also want to use other filters.
+
+The `External` filter looks very similar to an `AuthService` annotation:
+
+```
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: http-auth-filter
+  namespace: standalone
+spec:
+  External:
+    auth_service: "http-auth:4000"
+    path_prefix: "/frobnitz"
+    proto: http
+    allowed_request_headers:
+    - "x-allowed-input-header"
+    allowed_authorization_headers:
+    - "x-input-headers"
+    - "x-allowed-output-header"
+    allow_request_body: false
+```
+
+The spec is mostly identical to an `AuthService`, with the following exceptions:
+
+* It does not contain the apiVersion field
+* It does not contain the kind field
+* It does not contain the name field
+* In an AuthService, the tls field may either be a Boolean, or a string referring to a TLS context. In an `External`, it may only be a Boolean; referring to a TLS context is not supported.
 
 ### Filter Type: `JWT`
 
@@ -46,6 +79,7 @@ metadata:
 spec:
   JWT:
     jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json" # required, unless the only validAlgorithm is "none"
+    insecureTLS: true # optional, default is false
     validAlgorithms: # omitting this means "all supported algos except for 'none'"
       - "RS256"
       - "RS384"
@@ -59,6 +93,11 @@ spec:
     requireExpiresAt: true # optional, default is false
     requireNotBefore: true # optional, default is false
 ```
+
+ - `insecureTLS` disables TLS verification for the cases when
+   `jwksURI` begins with `https://`.  This is discouraged in favor of
+   either using plain `http://` or [installing a self-signed
+   certificate](#installing-self-signed-certificates).
 
 ### Filter Type: `OAuth2`
 
@@ -78,6 +117,7 @@ spec:
     authorizationURL: "url-string"      # required
     clientURL:        "url-string"      # required
     stateTTL:         "duration-string" # optional; default is "5m"
+    insecureTLS:      bool              # optional; default is false
     audience:         "string"
     clientID:         "string"
     secret:           "string"
@@ -92,7 +132,11 @@ spec:
    (`example.com:1234`) parts are used; the path part of the URL is
    ignored.
  - stateTTL: How long Ambassador will wait for the user to submit credentials to the IDP and receive a response to that effect from the IDP
- - audience: the OIDC audience
+ - `insecureTLS` disables TLS verification when speeking to an
+   `https://` IDP.  This is discouraged in favor of either using plain
+   `http://` or [installing a self-signed
+   certificate](#installing-self-signed-certificates).
+ - audience: The OIDC audience.
  - clientID: The client ID you get from your IDP.
  - secret: The client secret you get from your IDP.
  - `maxStale`: How long to keep stale cache OIDC replies for.  This
@@ -278,12 +322,15 @@ mentioning `ERR x509: certificate signed by unknown authority`.  You
 can fix this by installing that self-signed certificate in to the Pro
 container following the standard procedure for Alpine Linux 3.8: Copy
 the certificate to `/usr/local/share/ca-certificates/` and then run
-`update-ca-certificates`.
+`update-ca-certificates`.  Note that the amb-sidecar image set `USER
+1000`, but `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
 FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
+USER 1000
 ```
 
 When deploying Ambassador Pro, refer to that Docker image, rather than

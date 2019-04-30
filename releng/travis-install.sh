@@ -17,6 +17,9 @@
 set -o errexit
 set -o nounset
 
+# Set up for Kubernaut.
+base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
+
 KUBECTL_VERSION=1.10.2
 
 curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
