@@ -1,19 +1,39 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/datawire/apro/cmd/dev-portal-server/server"
+	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/spf13/cobra"
 )
 
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
+func licenseEnforce() {
+	devportal := &cobra.Command{
+		Use: "dev-portal-server [command]",
+	}
+	keycheck := licensekeys.InitializeCommandFlags(devportal.PersistentFlags(), "dev-portal-server", Version)
+	devportal.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
+	err := keycheck(devportal.PersistentFlags())
+	if err == nil {
+		log.Printf("License validated")
+		return
+	} else {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
 func main() {
-	// TODO Do license enforcement.
+	licenseEnforce()
 	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, sharedSecretPath string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool

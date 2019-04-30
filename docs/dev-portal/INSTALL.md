@@ -32,6 +32,10 @@ These tag matches what's in the Kubernetes YAML files.
 
 Assuming you have standard Ambassador and Ambassador Pro install already, i.e. Service `ambassador.default`, in the root of your `apro` checkout you just need to:
 
+First, edit `docs/dev-portal/devportal-rbac.yaml` so it has an appropriate Ambassador Pro license key (you can get one from `k8s-env.sh` in this repo).
+
+Then:
+
 ```
 $ kubectl apply -f docs/dev-portal/internal.yaml
 $ kubectl apply -f docs/dev-portal/devportal-rbac.yaml

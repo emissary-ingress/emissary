@@ -77,6 +77,9 @@ spec:
           # Change this if you want different poll rate for getting OpenAPI docs:
           - name: POLL_EVERY_SECS
             value: "60"
+          # Set this to the relevant value:
+          - name: AMBASSADOR_LICENSE_KEY
+            value: "FILL THIS IN"
         ports:
         - name: devportal-ui
           containerPort: 8680
