@@ -29,7 +29,7 @@ KUBE_URL = https://kubernetes/api/
 
 $(TELEPROXY): $(_teleproxy.mk)
 	sudo rm -f $@
-	curl -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOHOSTOS)/$(GOHOSTARCH)/teleproxy
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOHOSTOS)/$(GOHOSTARCH)/teleproxy
 	sudo chown root $@
 	sudo chmod go-w,a+sx $@
 

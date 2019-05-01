@@ -14,6 +14,19 @@
 #  - .PHONY Target: status-cluster
 ## common.mk targets ##
 #  - clean
+#
+# `kubernaut-ui.mk` adds the `claim`, `unclaim`, `shell`, and
+# `status-cluster` user-facing Makefile targets
+#
+# Makefile rules that need to talk to the cluster should declare a
+# dependency on `$(KUBECONFIG)`
+#
+# `kubernaut-ui.mk` sets `KUBECONFIG` (well, it has `kubernaut.mk` set
+# it).  The user can override this to point to an existing cluster
+# (instead of a Kubernaut cluster), but NOT with an environment
+# variable.  To override it, you must set it with a `make` argument:
+# `make KUBECONFIG=...`
+#
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubernaut-ui.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_kubernaut-ui.mk))kubernaut.mk

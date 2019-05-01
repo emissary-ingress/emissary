@@ -102,7 +102,7 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)
 .PHONY: go-build
 
 $(dir $(_go-common.mk))golangci-lint: $(_go-common.mk)
-	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(@D) v$(go.GOLANG_LINT_VERSION)
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(@D) v$(go.GOLANG_LINT_VERSION)
 
 go-lint: ## (Go) Check the code with `golangci-lint`
 go-lint: $(dir $(_go-common.mk))golangci-lint go-get
