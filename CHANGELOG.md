@@ -1,12 +1,15 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.4.1 (2019-04-23)
 
-## 0.4.0 (TBD)
+ * Add liveness and readiness probes
+
+## 0.4.0 (2019-04-18)
 
  * Moved all of the default sidecar ports around; YAML will need to be adjusted (hence 0.4.0 instead of 0.3.2).  Additionally, all of the ports are now configurable via environment variables
 
    | Purpose          | Variable       | Old  | New  |
-   | -------          | --------       | ---- | ---- |
+   | -------          | --------       | ---  | ---  |
    | Auth gRPC        | APRO_AUTH_PORT | 8082 | 8500 |
    | RLS gRPC         | GRPC_PORT      | 8081 | 8501 |
    | RLS debug (HTTP) | DEBUG_PORT     | 6070 | 8502 |
