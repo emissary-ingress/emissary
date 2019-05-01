@@ -31,7 +31,7 @@ func doRls() error {
 	req.Domain = "envoy"
 	entry := pb.RateLimitDescriptor_Entry{Key: "client_id", Value: "foo"}
 	entries := []*pb.RateLimitDescriptor_Entry{&entry}
-	req.Descriptors = []*pb.RateLimitDescriptor{&pb.RateLimitDescriptor{Entries: entries}}
+	req.Descriptors = []*pb.RateLimitDescriptor{{Entries: entries}}
 
 	_, err = client.ShouldRateLimit(ctx, req)
 	if err != nil {
