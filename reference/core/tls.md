@@ -206,22 +206,44 @@ This can be a necessary requirement for using the Consul service mesh and some I
 
 #### Istio mTLS
 
-Since Istio stores it's TLS certificates in Kubernetes secrets by default, configuring mTLS with Ambassador is trivial.
+Istio stores it's TLS certificates as Kubernetes secrets by default, so accessing them is a matter of YAML configuration changes.
 
-1. Create a `TLSContext` to load the Istio mTLS certificates into Ambassador. These certificates are stored in a secret named `istio.default`.
+1. You will need to mount the `istio.default` secret in a volume in the Ambassador container. This is done by configuring a `volume` and `volumeMount` in the Ambassador deployment manifest.
+
+   ```yaml
+    ---
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: ambassador
+    spec:
+    ...
+            volumeMounts:
+              - mountPath: /etc/istiocerts/
+                name: istio-certs
+                readOnly: true
+          restartPolicy: Always
+          volumes:
+          - name: istio-certs
+            secret:
+              optional: true
+              secretName: istio.default
+   ```
+
+2. You can now configure Ambassador to use the certificate stored in this secret by specifying an `upstream` in the tls `Module`:
 
    ```yaml
    ---
    apiVersion: ambassador/v1
-   kind: TLSConext
-   name: istio-upstream
-   hosts: []
-   secret: istio.default
+   kind:  Module
+   name: tls
+   config:
+     istio-upstream:
+       cert_chain_file: /etc/istiocerts/cert-chain.pem
+       private_key_file: /etc/istiocerts/key.pem
    ```
 
-   It is recommended to add this configuration as an annotation to the Ambassador service since it is a system-wide configuration.
-
-2. Tell Ambassador to use the `TLSContext` when proxying requests by setting the `tls` attribute in a `Mapping`
+3. Finally, we will tell Ambassador to use these certificates for originating TLS to specific upstream services by setting the `tls` attribute in a `Mapping`
 
    ```yaml
    ---
@@ -234,7 +256,7 @@ Since Istio stores it's TLS certificates in Kubernetes secrets by default, confi
    service: https://productpage:9080
    ```
 
-Ambassador will now use the certificates loaded into the `istio-upstream` `TLSContext` when proxying requests with `prefix: /productpage/`. See the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation) for more information.
+Ambassador will now use the certificate stored in the `istio.default` secret to originate TLS to istio-powered services. See the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation) for and example with more information.
 
 #### Consul mTLS
 

@@ -60,8 +60,32 @@ name: consul-dc1
 address: consul-server.default.svc.cluster.local:8500
 datacenter: dc1
 ```
-- `address`: The fully-qualified domain name or IP address of your Consul server.
-- `datacenter`: The Consul data center your services are registered to
+- `address`: The fully-qualified domain name or IP address of your Consul server. This field also supports environment variable substitution.
+- `datacenter`: The Consul data center where your services are registered
+
+You may want to use an environment variable if you're running a Consul agent on each node in your cluster. In this setup, you could do the following:
+
+```
+---
+apiVersion: ambassador/v1
+kind: ConsulResolver
+name: consul-dc1
+address: "${HOST_IP}"
+datacenter: dc1
+```
+
+and then add the `HOST_IP` environment variable to your Kubernetes deployment:
+
+```
+containers:
+  - name: example
+    image: quay.io/datawire/ambassador:%version%
+    env:
+      - name: HOST_IP
+        valueFrom:
+          fieldRef:
+             fieldPath: status.hostIP
+```
 
 ## Using Resolvers
 
