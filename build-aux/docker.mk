@@ -146,7 +146,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 %.docker.knaut-push: %.docker $(KUBEAPPLY) $(KUBECONFIG)
 	DOCKER_K8S_ENABLE_PVC=$(DOCKER_K8S_ENABLE_PVC) $(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
 	{ \
-	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry statefulset/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
+	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry $(if $(filter true,$(DOCKER_K8S_ENALBE_PVC)),statefulset,deployment)/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
 	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
 	    docker push "$$(sed -n 3p $<)"; \
 	}
