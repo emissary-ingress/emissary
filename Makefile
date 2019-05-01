@@ -137,12 +137,12 @@ $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 # B: Needed for Telepresence local-dev
 
 # always do plugins on native-builds
-go-build: $(foreach p,$(plugins),bin_$(GOOS)_$(GOARCH)/$p.so)
+go-build: $(foreach p,$(plugins),bin_$(GOHOSTOS)_$(GOHOSTARCH)/$p.so)
 _cgo_files = amb-sidecar apro-plugin-runner $(addsuffix .so,$(plugins))
-$(addprefix bin_$(GOOS)_$(GOARCH)/,$(_cgo_files)): CGO_ENABLED=1
+$(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED=1
 
 # but cross-builds are the complex story
-ifneq ($(GOOS)_$(GOARCH),linux_amd64)
+ifneq ($(GOHOSTOS)_$(GOHOSTARCH),linux_amd64)
 ifneq ($(HAVE_DOCKER),)
 
 go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
@@ -284,11 +284,11 @@ help-local-dev: ## (LocalDev) Describe how to use local dev features
 	@echo "make launch-pro-tel  relaunch Telepresence if needed"
 	@echo
 	@echo "Launch auth manually:"
-	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
+	@echo '  env $$(cat pro-env.sh)' "bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar auth"
 .PHONY: help-local-dev
 run-auth: ## (LocalDev) Build and launch the auth service locally
-run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
-	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOOS)_$(GOARCH)/amb-sidecar main
+run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
+	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
 
 #
