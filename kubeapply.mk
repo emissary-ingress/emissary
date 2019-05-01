@@ -2,8 +2,10 @@
 #
 # Makefile snippet for installing `kubeapply`
 #
-## Inputs ##
+## Eager inputs ##
 #  - Variable: KUBEAPPLY ?= ./build-aux/kubeapply
+## Lazy inputs ##
+#  (none)
 ## Outputs ##
 #  - Target: $(KUBEAPPLY)
 ## common.mk targets ##

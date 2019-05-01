@@ -2,12 +2,16 @@
 #
 # Makefile snippet to auto-generate a `make help` rule.
 #
-## Inputs: ##
-#   - Variable: help.body ?= …
-## Outputs: ##
-#   - .PHONY Target: help
+## Eager inputs ##
+#  (none)
+## Lazy inputs ##
+#  - Variable: help.body ?= …
+## Outputs ##
+#  - .PHONY Target: help
+## common.mk targets ##
+#  (none)
 #
-## Basic Example: ##
+## Basic Example ##
 #
 #     # Copyright 2018 Datawire. All rights reserved.
 #

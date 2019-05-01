@@ -2,13 +2,15 @@
 #
 # Makefile snippet for managing kubernaut.io clusters.
 #
-## Inputs ##
-#   - Variable: GUBERNAUT ?= gubernaut
+## Eager inputs ##
+#  - Variable: GUBERNAUT ?= gubernaut
+## Lazy inputs ##
+#  (none)
 ## Outputs ##
-#   - Target       : `%.knaut`
-#   - .PHONY Target: `%.knaut.clean`
+#  - Target       : `%.knaut`
+#  - .PHONY Target: `%.knaut.clean`
 ## common.mk targets ##
-#   - clobber
+#  - clobber
 #
 # Creating the NAME.knaut creates the Kubernaut claim.  The file may
 # be used as a KUBECONFIG file.

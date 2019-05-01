@@ -3,8 +3,10 @@
 # Makefile snippet for providing claim/unclaim/shell user-facing
 # targets for interacting with kubernaut.
 #
-## Inputs ##
+## Eager inputs ##
 #  - Variable: export KUBECONFIG := $(or $(NAME),cluster).knaut
+## Lazy inputs ##
+#  (none)
 ## Outputs ##
 #  - .PHONY Target: claim
 #  - .PHONY Target: unclaim

@@ -1,6 +1,23 @@
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Makefile snippet for bits common bits we "always" want.
+#
+## Eager inputs ##
+#  (none)
+## Lazy inputs ##
+#  (none)
+## Outputs ##
+#  - Variable: GOOS
+#  - Variable: GOARCH
+#  - .PHONY Target: all
+#  - .PHONY Target: build
+#  - .PHONY Target: check
+#  - .PHONY Target: lint
+#  - .PHONY Target: format
+#  - .PHONY Target: clean
+#  - .PHONY Target: clobber
+## common.mk targets ##
+#  (N/A)
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _common.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_common.mk))prelude.mk
