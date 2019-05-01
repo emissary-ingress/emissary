@@ -19,13 +19,17 @@ spec:
       nodePort: 31000
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+# XXX: Avoid using a StatefulSet if possible, because `kubeapply`
+# doesn't know how to wait for them.
+kind: {{ if env "DOCKER_K8S_ENABLE_PVC" | eq "true" }}StatefulSet{{ else }}Deployment{{ end }}
 metadata:
   namespace: docker-registry
   name: registry
 spec:
   replicas: 1
+{{ if env "DOCKER_K8S_ENABLE_PVC" | eq "true" }} # XXX: StatefulSet
   serviceName: registry
+{{ end }}
   selector:
     matchLabels:
       app: registry
