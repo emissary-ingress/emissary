@@ -13,8 +13,10 @@ include $(dir $(_common.mk))prelude.mk
 #
 # Possible values of GOOS/GOARCH:
 # https://golang.org/doc/install/source#environment
-export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(shell go env GOOS))
-export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(shell go env GOARCH))
+_GOOS   = $(call lazyonce,_GOOS,$(shell go env GOOS))
+_GOARCH = $(call lazyonce,_GOARCH,$(shell go env GOARCH))
+export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(_GOOS))
+export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(_GOARCH))
 
 #
 # User-facing targets
