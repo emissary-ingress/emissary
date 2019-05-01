@@ -55,7 +55,7 @@
 # Because your editor's syntax-highlighting might be unhappy with
 # things inside of help.body, you may prefix lines with "#" or "# ".
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))prelude.mk
 
 # Usage: $(call _help.genbody.line,VAR)
 _help.genbody.line = $(if $(filter-out undefined,$(origin $1)),  $1 = $($1))
