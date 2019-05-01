@@ -88,7 +88,7 @@ bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(ly
 	}
 endef
 $(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
-build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
+build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin))))))
 
 #
 # Plugins
