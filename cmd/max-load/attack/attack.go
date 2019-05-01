@@ -39,8 +39,6 @@ func maxFiles() int {
 	return int(ret)
 }
 
-var _ = maxFiles()
-
 var attacker = vegeta.NewAttacker(
 
 	vegeta.TLSConfig(
@@ -48,9 +46,7 @@ var attacker = vegeta.NewAttacker(
 		&tls.Config{InsecureSkipVerify: true},
 	),
 
-	vegeta.Connections(1), // setting -1 or 0 for no-limit doesn't seemt to work?
-
-	vegeta.KeepAlive(false),
+	vegeta.Connections(maxFiles()), // setting -1 or 0 for no-limit doesn't seemt to work?
 )
 
 func SetHTTP2Enabled(enabled bool) {
