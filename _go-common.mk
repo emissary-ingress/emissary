@@ -48,6 +48,7 @@ ifeq ($(go.module),)
 $(error Do not include _go-common.mk directly, include go-mod.mk or go-workspace.mk)
 endif
 _go-common.mk := $(lastword $(MAKEFILE_LIST))
+include $(dir $(_go-common.mk))common.mk
 
 NAME ?= $(notdir $(go.module))
 
