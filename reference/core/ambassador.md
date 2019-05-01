@@ -174,7 +174,7 @@ gRPC-Web is a protocol built on gRPC that extends the benefits of gRPC to the br
 
 ### HTTP/1.0 support (`enable_http10`)
 
-Enabled/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
+Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
 
 ### `enable_ivp4` and `enable_ipv6`
 
