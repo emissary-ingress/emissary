@@ -21,7 +21,7 @@
 # name/tag, it is evaluated in the context of "%.docker.push"
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
-include $(dir $(_docker.mk))flock.mk
+include $(dir $(_docker.mk))prelude.mk
 include $(dir $(_docker.mk))kubeapply.mk
 include $(dir $(_docker.mk))kubernaut-ui.mk
 

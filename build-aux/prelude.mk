@@ -7,12 +7,14 @@
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
+#  - Variable: FLOCK
 #  - Variable: NL
 #  - Variable: SPACE
 #  - Function: joinlist
 #  - Function: path.trimprefix
 #  - Function: path.addprefix
 #  - Function: quote.shell
+#  - Function: lazyonce
 #  - .PHONY Target: FORCE
 ## common.mk targets ##
 #  (none)
@@ -20,6 +22,8 @@ ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEF
 
 #
 # Variables
+
+FLOCK = $(call lazyonce,FLOCK,$(if $(shell which flock 2>/dev/null),flock,$(dir $(_flock.mk))flock))
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
@@ -54,6 +58,12 @@ path.addprefix = $(patsubst %/.,%,$(addprefix $1/,$2))
 # https://git.lukeshu.com/autothing/tree/build-aux/Makefile.once.head/00-quote.mk?id=9384e763b00774603208b3d44977ed0e6762a09a
 # but modified to make newlines work with shells other than Bash.
 quote.shell = "$$(printf '%s\n' $(subst $(NL),' ','$(subst ','\'',$1)'))"
+
+# Usage: VAR = $(call lazyonce,VAR,EXPR)
+#
+# Caches the value of EXPR (in case it's expensive/slow) once it is
+# evaluated, but doesn't eager-evaluate it either.
+lazyonce = $(eval $1 := $2)$($1)
 
 #
 # Targets
