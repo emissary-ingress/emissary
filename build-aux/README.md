@@ -53,7 +53,10 @@ common bit of functionality that you want to make use of.
 
  - Each `.mk` snippet contains a reference-quality header comment
    identifying
-    - any inputs (mostly variables)
+    - any "eager" inputs (mostly variables); these must be defined
+      *before* including the `.mk` file.
+    - any "lazy" inputs (mostly variables); these may be defined
+      before or after including the `.mk` file.
     - any outputs (targets, variables)
     - which targets from other snippets it hooks in to (mostly hooking
       in to `common.mk` targets)

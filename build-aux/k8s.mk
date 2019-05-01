@@ -3,10 +3,11 @@
 # Makefile snippet for building Docker images, and for pushing them to
 # kubernaut.io clusters.
 #
-## Inputs ##
+## Eager inputs ##
 #  - Variable: K8S_ENVS ?=
-#  - Variable: K8S_DIRS ?= k8s
 #  - Variable: K8S_IMAGES ?=
+## Lazy inputs ##
+#  - Variable: K8S_DIRS ?= k8s
 ## Outputs ##
 #  - .PHONY Target: push
 #  - .PHONY Target: apply

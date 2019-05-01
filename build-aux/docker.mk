@@ -3,8 +3,10 @@
 # Makefile snippet for building Docker images, and for pushing them to
 # kubernaut.io clusters.
 #
-## Inputs ##
-#  - Variable: VERSION
+## Eager inputs ##
+#  - Variable: KUBECONFIG (optional)
+## Lazy inputs ##
+#  - Variable: VERSION (optional)
 #  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
 ## Outputs ##
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)

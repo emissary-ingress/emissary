@@ -2,10 +2,11 @@
 #
 # Makefile snippet for calling `teleproxy`
 #
-## Inputs ##
+## Eager inputs ##
 #  - Variable: TELEPROXY     ?= ./build-aux/teleproxy
-#  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
 #  - Variable: KUBECONFIG
+#  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
+## Lazy inputs ##
 #  - Variable: KUBE_URL
 ## Outputs ##
 #  - Target       : $(TELEPROXY)
@@ -16,7 +17,6 @@
 #  - clean
 #  - clobber
 ## kubernaut-ui.mk targets ##
-#  - unclaim
 #  - $(KUBECONFIG).clean
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _teleproxy.mk := $(lastword $(MAKEFILE_LIST))
