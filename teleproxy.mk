@@ -20,7 +20,8 @@
 #  - $(KUBECONFIG).clean
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _teleproxy.mk := $(lastword $(MAKEFILE_LIST))
-include $(dir $(lastword $(MAKEFILE_LIST)))kubernaut-ui.mk
+include $(dir $(_teleproxy.mk))prelude.mk
+include $(dir $(_teleproxy.mk))kubernaut-ui.mk
 
 TELEPROXY ?= $(dir $(_teleproxy.mk))teleproxy
 TELEPROXY_LOG ?= $(dir $(_teleproxy.mk))teleproxy.log
@@ -29,7 +30,7 @@ KUBE_URL = https://kubernetes/api/
 
 $(TELEPROXY): $(_teleproxy.mk)
 	sudo rm -f $@
-	curl -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+	curl -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOHOSTOS)/$(GOHOSTARCH)/teleproxy
 	sudo chown root $@
 	sudo chmod go-w,a+sx $@
 

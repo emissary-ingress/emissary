@@ -7,6 +7,8 @@
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
+#  - Variable: export GOHOSTOS
+#  - Variable: export GOHOSTARCH
 #  - Variable: FLOCK
 #  - Variable: NL
 #  - Variable: SPACE
@@ -22,6 +24,12 @@ ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEF
 
 #
 # Variables
+
+# Possible values of GOHOSTOS/GOHOSTARCH:
+# https://golang.org/doc/install/source#environment
+_prelude.HAVE_GO = $(call lazyonce,_prelude.HAVE_GO,$(shell which go 2>/dev/null))
+export GOHOSTOS   = $(call lazyonce,GOHOSTOS  ,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTOS  ),$(shell uname -s | tr A-Z a-z)))
+export GOHOSTARCH = $(call lazyonce,GOHOSTARCH,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTARCH),$(patsubst i%86,386,$(patsubst x86_64,amd64,$(shell uname -m)))))
 
 FLOCK = $(call lazyonce,FLOCK,$(if $(shell which flock 2>/dev/null),flock,$(dir $(_flock.mk))flock))
 

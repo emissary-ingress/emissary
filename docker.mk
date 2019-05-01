@@ -27,7 +27,7 @@ include $(dir $(_docker.mk))prelude.mk
 include $(dir $(_docker.mk))kubeapply.mk
 include $(dir $(_docker.mk))kubernaut-ui.mk
 
-ifeq ($(GOOS),darwin)
+ifeq ($(GOHOSTOS),darwin)
 docker.LOCALHOST = host.docker.internal
 else
 docker.LOCALHOST = localhost
