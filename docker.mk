@@ -25,7 +25,6 @@ ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEF
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))prelude.mk
 include $(dir $(_docker.mk))kubeapply.mk
-include $(dir $(_docker.mk))kubernaut-ui.mk
 
 ifeq ($(GOHOSTOS),darwin)
 docker.LOCALHOST = host.docker.internal
