@@ -9,6 +9,7 @@
 #  - Variable: VERSION (optional)
 #  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
 ## Outputs ##
+#  - Variable      : HAVE_DOCKER             # non-empty if true, empty if false
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
 #  - .PHONY Target : %.docker.clean
 #  - Target        : %.docker.knaut-push     # pushes to private in-kubernaut-cluster registry
@@ -33,6 +34,8 @@ docker.LOCALHOST = localhost
 endif
 
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
+
+HAVE_DOCKER = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
 
 _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 

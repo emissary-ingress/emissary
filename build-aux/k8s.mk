@@ -26,7 +26,7 @@ K8S_IMAGES ?=
 K8S_ENVS ?=
 K8S_DIRS ?= k8s
 
-ifneq ($(shell which docker 2>/dev/null),)
+ifneq ($(HAVE_DOCKER),)
 build: $(addsuffix .docker,$(K8S_IMAGES))
 else
 build: _build-k8s

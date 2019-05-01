@@ -37,8 +37,6 @@ include build-aux/help.mk
 
 .DEFAULT_GOAL = help
 
-HAVE_DOCKER := $(shell which docker 2>/dev/null)
-
 status: ## Report on the status of Kubernaut and Teleproxy
 status: status-pro-tel
 .PHONY: status
