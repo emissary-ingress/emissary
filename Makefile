@@ -25,6 +25,9 @@ export SCOUT_DISABLE = 1
 # _FORTIFY_SOURCE=2 by default.
 export CGO_CPPFLAGS += -U_FORTIFY_SOURCE
 
+include build-aux/kubernaut-ui.mk
+# Include kubernaut-ui.mk before anything else, because it sets
+# KUBECONFIG, which generally is eager.
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/k8s.mk
