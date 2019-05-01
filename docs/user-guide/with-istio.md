@@ -11,7 +11,7 @@ This allows the operator to have the best of both worlds: a high performance, mo
 Getting Ambassador working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
 1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/quick-start.html) (without using mutual TLS auth between sidecars)
-2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/guides/bookinfo.html).
+2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/examples/bookinfo/#if-you-are-running-on-kubernetes).
 3. Verify that the sample application is working as expected.
 
 By default, the Bookinfo application uses the Istio ingress. To use Ambassador, we need to:
@@ -169,77 +169,137 @@ Newer versions of Istio support Kubernetes initializers to [automatically inject
 
 ## Istio Mutual TLS
 
-Istio can be configured to require TLS on connections to APIs in the service mesh. In this case, Ambassador will need to use the TLS certificate created by Istio when proxying requests to upstream services. For this purpose, Istio stores this certificate in a secret named `istio.default` in every namespace. In order to route to services in the Istio mesh, we need to configure Ambassador to load the TLS certificates from this secret. We can easily do this with a `TLSContext`.
+In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell Ambassador to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador deployment installed above.
 
-1. Create the `TLSContext` to load the TLS certificate stored in `istio.default`. Since this is a system-wide configuration, this is typically created in the Ambassador `Service`.
+In case of RBAC:
 
-    ```yaml
-    ---
-    apiVersion: v1
-    kind: Service
+``` yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 3
+  template:
     metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
       labels:
         service: ambassador
-      name: ambassador
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind:  Mapping
-          name:  httpbin_mapping
-          prefix: /httpbin/
-          service: httpbin.org:80
-          host_rewrite: httpbin.org
-          ---
-          apiVersion: ambassador/v1
-          kind:  TLSContext
-          name: istio-upstream
-          hosts: []
-          secret: istio.default
     spec:
-      type: LoadBalancer
-      ports:
+      serviceAccountName: ambassador
+      containers:
       - name: ambassador
-        port: 80
-        targetPort: 80
-      selector:
-        service: ambassador
-    ```
+        image: quay.io/datawire/ambassador:0.50.1
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace          
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        volumeMounts:
+          - mountPath: /etc/istiocerts/
+            name: istio-certs
+            readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: istio-certs
+        secret:
+          optional: true
+          secretName: istio.default
+```
 
-2. Tell Ambassador to use the certificate stored in the `TLSContext` `istio-upstream` when making requests to upstream services. This is done by setting the `tls` attribute in the `Mapping` config:
+Specifically note the mounting of the Istio secrets. For non RBAC cluster modify accordingly. Next we need to modify the Ambassador configuration to tell it use the new certificates for Istio enabled services:
 
-    ``` yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: productpage
-      labels:
-        app: productpage
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind: Mapping
-          name: productpage_mapping
-          prefix: /productpage/
-          rewrite: /productpage
-          tls: upstream
-          service: https://productpage:9080
-    spec:
-      ports:
-      - port: 9080
-        name: http
-        protocol: TCP
-      selector:
-        app: productpage
-    ```
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  httpbin_mapping
+      prefix: /httpbin/
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+      ---
+      apiVersion: ambassador/v1
+      kind:  Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 8080
+        client:
+          enabled: False
+        upstream:
+          cert_chain_file: /etc/istiocerts/cert-chain.pem
+          private_key_file: /etc/istiocerts/key.pem
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 8080
+  selector:
+    service: ambassador
+```
 
-3. Traffic between Ambassador and the Bookinfo application will now be secured with TLS. Test this by accessing the product page service.
+This will define an `upstream` that uses the Istio certificates. We can now reuse the `upstream` in all Ambassador mappings to enable communication with Istio pods.
 
-   ```
-   curl -v $AMBASSADOR_IP/productpage/
-   ```
+``` yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: productpage_mapping
+      prefix: /productpage/
+      rewrite: /productpage
+      tls: upstream
+      service: https://productpage:9080
+spec:
+  ports:
+  - port: 9080
+    name: http
+    protocol: TCP
+  selector:
+    app: productpage
+```
+Note the `tls: upstream`, which lets Ambassador know which certificate to use when communicating with that service.
 
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
 
 ## Tracing Integration
 
