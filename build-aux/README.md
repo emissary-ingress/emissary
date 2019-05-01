@@ -23,8 +23,7 @@ At Datawire, those are good trade-offs, since:
    and only care about #4 for Python-only projects).
  - I've never heard anyone here even mention out-of-tree builds (#1).
  - We need to support macOS (which still ships GNU Make 3.81, as it's
-   the last GPLv2 version) and the Ubuntu 14.04 images that CircleCI
-   uses (which ship 3.81) (so Autothing is ruled out).
+   the last GPLv2 version) (so Autothing is ruled out).
 
 ## How to use
 
