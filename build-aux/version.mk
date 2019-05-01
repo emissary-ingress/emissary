@@ -12,7 +12,6 @@
 ## common.mk targets ##
 #  (none)
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-_version.mk := $(lastword $(MAKEFILE_LIST))
 
 VERSION ?= $(patsubst v%,%,$(shell git describe --tags --always))$(if $(shell git status -s),-dirty$(if $(CI),$(_version.ci_error)))
 
