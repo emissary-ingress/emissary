@@ -9,11 +9,11 @@ class CircuitBreakingTest(AmbassadorTest):
 
     envs = {
         'STATSD_ENABLED': 'true',
-        'STATSD_HOST': 'cbstatsd'
+        'STATSD_HOST': 'circuitbreakertest-statsd'
     }
 
     extra_pods = {
-        'statsd': {
+        'circuitbreakertest-statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
                 'STATSD_TEST_CLUSTER': "cluster_httpstat_us",
@@ -49,7 +49,7 @@ name:  {self.name}-reset
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
-service: cbstatsd
+service: circuitbreakertest-statsd
 '''
     }
 
@@ -57,11 +57,11 @@ service: cbstatsd
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/200?sleep=1000', ignore_result=True, phase=1)
 
-        yield Query("http://statsd/DUMP/", phase=2)
+        yield Query("http://circuitbreakertest-statsd/DUMP/", phase=2)
 
 
     def requirements(self):
-        yield ("url", Query("http://cbstatsd/RESET/"))
+        yield ("url", Query(self.url("RESET/")))
 
     def check(self):
 
