@@ -1,64 +1,36 @@
-import os
-
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.harness import Query
-from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
-
-GRAPHITE_CONFIG = """
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: {0}
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: {0}
-    spec:
-      containers:
-      - name: {0}
-        image: hopsoft/graphite-statsd:v0.9.15-phusion0.9.18
-      restartPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {0}
-  name: {0}
-spec:
-  ports:
-  - protocol: UDP
-    port: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 80
-    name: graphite-www
-  selector:
-    service: {0}
-"""
 
 class CircuitBreakingTest(AmbassadorTest):
+    # Needs statsd, which can't work in a dev shell...
+    skip_in_dev = True
+
     target: ServiceType
+
+    envs = {
+        'STATSD_ENABLED': 'true',
+        'STATSD_HOST': 'cbstatsd'
+    }
+
+    extra_pods = {
+        'statsd': {
+            'image': 'dwflynn/stats-test:0.1.0',
+            'envs': {
+                'STATSD_TEST_CLUSTER': "cluster_httpstat_us",
+                # 'STATSD_TEST_DEBUG': 'true'
+            },
+            'ports': [
+                ( 'tcp', 80, 3000 ),
+                ( 'udp', 8125, 8125 )
+            ]
+        }
+    }
 
     def init(self):
         self.target = HTTP()
 
-    def manifests(self) -> str:
-        envs = """
-    - name: STATSD_ENABLED
-      value: 'true'
-    - name: STATSD_HOST
-      value: 'cbstatsd-sink'
-"""
-
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('cbstatsd-sink')
-
-    def config(self):
-        yield self, self.format("""
+    configs = {
+        'self': '''
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -70,48 +42,56 @@ circuit_breakers:
 - priority: default
   max_pending_requests: 1
   max_connections: 1
-""")
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-reset
+case_sensitive: false
+prefix: /reset/
+rewrite: /RESET/
+service: cbstatsd
+'''
+    }
 
     def queries(self):
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/200?sleep=1000', ignore_result=True, phase=1)
 
-        for i in range(20):
-            yield Query("http://cbstatsd-sink/render?format=json&target=summarize(stats.envoy.cluster.cluster_httpstat_us.upstream_rq_pending_overflow,'1hour','sum',true)&from=-1hour", phase=2, ignore_result=True)
+        yield Query("http://statsd/DUMP/", phase=2)
+
+
+    def requirements(self):
+        yield ("url", Query("http://cbstatsd/RESET/"))
 
     def check(self):
 
-        assert len(self.results) == 520
+        result_count = len(self.results)
+        assert result_count == 501, f'wanted 501 results, got {result_count}'
+
         pending_results = self.results[0:500]
-        pending_stats = self.results[500:520]
+        stats = self.results[500].json or {}
 
         # pending requests tests
         pending_overloaded = 0
         for result in pending_results:
             if 'X-Envoy-Overloaded' in result.headers:
                 pending_overloaded += 1
-        assert 450 < pending_overloaded < 500
 
-        pending_datapoints = 0
-        for stat in pending_stats:
-            if stat.status == 200:
-                pending_datapoints = stat.json[0]['datapoints'][0][0]
-                break
-        assert pending_datapoints > 0
-        assert 450 < pending_datapoints*10 <= 500
+        assert 450 < pending_overloaded < 500, f'Expected between 450 and 500 overloaded, got {pending_overloaded}'
 
-        assert abs(pending_overloaded-(pending_datapoints*10)) < 10
+        cluster_stats = stats.get('cluster_httpstat_us', {})
+        rq_completed = cluster_stats.get('upstream_rq_completed', -1)
+        rq_pending_overflow = cluster_stats.get('upstream_rq_pending_overflow', -1)
+
+        assert rq_completed == 500, f'Expected 500 completed requests to httpstat_us, got {rq_completed}'
+        assert abs(pending_overloaded - rq_pending_overflow) < 2, f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}'
 
 
 class GlobalCircuitBreakingTest(AmbassadorTest):
     target: ServiceType
 
-    def init(self):
-        self.target = HTTP()
-
-    def config(self):
-        yield self, self.format("""
----
+    configs = {
+        'self': '''
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
@@ -122,9 +102,6 @@ circuit_breakers:
 - priority: default
   max_pending_requests: 1024
   max_connections: 1024
-""")
-
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -132,9 +109,7 @@ name:  {self.target.path.k8s}-normal
 prefix: /{self.name}-normal/
 service: http://httpstat.us
 host_rewrite: httpstat.us
-""")
-
-        yield self, self.format("""
+---
 apiVersion: ambassador/v1
 kind:  Module
 name:  ambassador
@@ -143,7 +118,11 @@ config:
   - priority: default
     max_pending_requests: 1
     max_connections: 1
-""")
+'''
+    }
+
+    def init(self):
+        self.target = HTTP()
 
     def queries(self):
         for i in range(500):
@@ -162,11 +141,11 @@ config:
         for result in cb_mapping_results:
             if 'X-Envoy-Overloaded' in result.headers:
                 cb_mapping_overloaded += 1
-        assert cb_mapping_overloaded == 0
+        assert cb_mapping_overloaded == 0, f'expected no -pr overloaded, got {cb_mapping_overloaded}'
 
         # normal mapping tests, global configuration should be in effect
         normal_overloaded = 0
         for result in normal_mapping_results:
             if 'X-Envoy-Overloaded' in result.headers:
                 normal_overloaded += 1
-        assert 450 < normal_overloaded < 500
+        assert 450 < normal_overloaded < 500, f'expected between 450 and 500 -normal overloaded, got {normal_overloaded}'
