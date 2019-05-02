@@ -81,10 +81,14 @@ limitations under the License
               <tbody>
                 <tr>
                   <td width="50%" align="center">
-                    <a href="/diag?logging=debug"><button type="button" class="btn btn-warning">Set Debug On</button></a>
+                    <a href="/ambassador/v0/diag/?loglevel=debug">
+                      <button type="button" class="btn btn-warning">Set Debug On</button>
+                    </a>
                   </td>
                   <td width="50%" align="center">
-                    <button type="button" class="btn btn-warning">Set Debug Off</button>
+                    <a href="/ambassador/v0/diag/?loglevel=info">
+                      <button type="button" class="btn btn-warning">Set Debug Off</button>
+                    </a>
                   </td>
                 </tr>
               </tbody>
@@ -97,7 +101,7 @@ limitations under the License
         <div class="row">
           <div class="col-12">
             {% for notice in notices %}
-              <span 
+              <span
               {% if (notice.level == 'WARNING') or (notice.level == 'ERROR') %}
               style="color:red"
               {% elif notice.level == 'NOTICE' %}

@@ -44,10 +44,10 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
       - git pull                          # pull down any changes to master
       - git rebase upstream/master        # move master on top of upstream
       - git push                          # push rebases to our fork
-      - git branch -b update/$VERSION     # switch to a feature branch
+      - git checkout -b update/$VERSION   # switch to a feature branch
       - make your edits
-      - git commit -a                     # commit changes
-      - git push origin/update/$VERSION   # push to feature branch
+      - git commit -a                     # commit changes -- don't forget DCO in the message!
+      - git push origin update/$VERSION   # push to feature branch
       - open a PR
     - Once your PR is merged, _delete the feature branch without merging it back to origin/master_.
 
