@@ -453,9 +453,8 @@ teleproxy-stop:
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
 # needed:
 #
-# USE_KUBERNAUT true => set up for Kubernaut, else
-# USE_MINIKUBE true => switch to Minikube Docker and assume KUBECONFIG is good, else
-# assume KUBECONFIG is good.
+# If USE_KUBERNAUT is true, we'll set up for Kubernaut, otherwise we'll assume 
+# that the current KUBECONFIG is good.
 
 shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
