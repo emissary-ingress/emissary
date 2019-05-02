@@ -3,12 +3,13 @@
 # Makefile snippet for managing kubernaut.io clusters.
 #
 ## Eager inputs ##
-#  - Variable: GUBERNAUT ?= gubernaut
-## Lazy inputs ##
 #  (none)
+## Lazy inputs ##
+#  - Variable: GUBERNAUT ?= go run …/gubernaut.go
 ## Outputs ##
 #  - Target       : `%.knaut`
 #  - .PHONY Target: `%.knaut.clean`
+#  - Variable: GUBERNAUT ?= go run …/gubernaut.go
 ## common.mk targets ##
 #  - clobber
 #

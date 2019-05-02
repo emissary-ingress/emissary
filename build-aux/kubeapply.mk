@@ -7,6 +7,7 @@
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
+#  - Variable: KUBEAPPLY ?= ./build-aux/kubeapply
 #  - Target: $(KUBEAPPLY)
 ## common.mk targets ##
 #  - clobber

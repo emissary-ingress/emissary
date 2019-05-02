@@ -7,6 +7,7 @@
 #  - Variable: TRAVIS_TAG (optional)
 ## Lazy inputs ##
 #  - Variable: CI (optional)
+#  - Variable: VERSION ?= …
 ## Outputs ##
 #  - Variable: VERSION ?= …
 ## common.mk targets ##
