@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-FROM ubuntu:14.04
+FROM alpine:3.9
 
 MAINTAINER Datawire <flynn@datawire.io>
 LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
@@ -28,10 +28,13 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # blindly hack up this file.
 
 # We need curl, pip, and dnsutils (for nslookup).
-RUN apt-get update && apt-get -q install -y \
-    curl \
-    python3-pip \
-    dnsutils
+RUN apk --no-cache add curl python3 bind-tools jq
+RUN python3 -m ensurepip && \
+    rm -r /usr/lib/python*/ensurepip && \
+    pip3 install --upgrade pip setuptools && \
+    if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
+    if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
+    rm -r /root/.cache
 
 # Set WORKDIR to /application which is the root of all our apps then COPY
 # only requirements.txt to avoid screwing up Docker caching and causing a
@@ -47,10 +50,11 @@ RUN pip3 install -r requirements.txt
 # configuration steps.
 
 COPY stats-test.py ./
+COPY stats-web.py ./
 
 # COPY the entrypoint script and make it runnable.
 COPY entrypoint.sh .
 RUN chmod 755 entrypoint.sh
 
-ENTRYPOINT ./entrypoint.sh
+ENTRYPOINT /application/entrypoint.sh
 
