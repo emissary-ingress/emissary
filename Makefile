@@ -210,6 +210,7 @@ print-vars:
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
 	@echo "MAIN_BRANCH                      = $(MAIN_BRANCH)"
+	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
 	@echo "VERSION                          = $(VERSION)"
 
 export-vars:
@@ -237,6 +238,7 @@ export-vars:
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
 	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
+	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
 	@echo "export VERSION='$(VERSION)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
