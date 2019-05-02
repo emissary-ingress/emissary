@@ -42,7 +42,8 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # the ephemeral Docker registry.
     printf "========\nSetting up environment...\n"
 
-    eval $(make DOCKER_EPHEMERAL_REGISTRY=true \
+    eval $(make USE_KUBERNAUT=true \
+                DOCKER_EPHEMERAL_REGISTRY=true \
                 DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
                 DOCKER_REGISTRY=localhost:31000 \
                 export-vars)

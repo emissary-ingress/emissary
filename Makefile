@@ -139,8 +139,15 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-9
 AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-9
 
+# Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
+# but outside, it works much better to assume that user has set up something
+# and not try to override it.
+USE_KUBERNAUT ?= false
+
+# Only override KUBECONFIG if we're using Kubernaut
+ifeq ($(USE_KUBERNAUT), true)
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
-USE_KUBERNAUT ?= true
+endif
 
 SCOUT_APP_KEY=
 
@@ -172,6 +179,7 @@ clean: clean-test
 clobber: clean
 	-rm -rf watt
 	-rm -rf docs/node_modules
+	-rm -rf .skip_test_warning	# reset the test warning too
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
@@ -363,7 +371,7 @@ endif
 kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
 
 ifeq ($(shell uname -s), Darwin)
-run_teleproxy = sudo id; sudo $(TELEPROXY)
+run_teleproxy = sudo -p "Password (for teleproxy sudo): " true; sudo $(TELEPROXY)
 else
 run_teleproxy = $(TELEPROXY)
 endif
@@ -442,11 +450,18 @@ teleproxy-stop:
 		echo "teleproxy stopped" >&2; \
 	fi
 
+# "make shell" drops you into a dev shell, and tries to set variables, etc., as
+# needed:
+#
+# USE_KUBERNAUT true => set up for Kubernaut, else
+# USE_MINIKUBE true => switch to Minikube Docker and assume KUBECONFIG is good, else
+# assume KUBECONFIG is good.
+
 shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
-	KUBECONFIG="$(KUBECONFIG)" \
+	MAKE_KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
@@ -457,6 +472,9 @@ clean-test:
 	$(call kill_teleproxy)
 
 test: setup-develop cluster-and-teleproxy 
+ifneq ($(USE_KUBERNAUT), true)
+	@sh releng/test-warn.sh
+endif	
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
