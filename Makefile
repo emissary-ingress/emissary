@@ -129,15 +129,17 @@ NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
 # BELOW AND THEN RUN make docker-update-base
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-envoy-alpine-stripped:v1.9.0-619-g5830eaa1d
+ENVOY_REPO ?= git@github.com:datawire/envoy-private.git
+ENVOY_COMMIT ?= 5830eaa1db54cb72161a181b310f895fe0d5a723
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-9
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-9
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-10
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-10
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-10
 
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
 USE_KUBERNAUT ?= true
@@ -168,9 +170,12 @@ clean: clean-test
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
+	rm -rf envoy-bin
+	rm -f envoy-build-image.txt
 
 clobber: clean
 	-rm -rf watt
+	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy)
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
@@ -263,14 +268,46 @@ kill-docker-registry:
 		echo "Docker registry should not be running" ;\
 	fi
 
-docker-base-images:
+envoy: .FORCE
+	git init $@
+	cd $@ && \
+	if git remote get-url origin &>/dev/null; then \
+		git remote set-url origin $(ENVOY_REPO); \
+	else \
+		git remote add origin $(ENVOY_REPO); \
+	fi && \
+	git fetch origin && \
+	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
+envoy-build-image.txt: .FORCE envoy
+	set -e; \
+	cd envoy; . ci/envoy_build_sha.sh; cd ..; \
+	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
+	if cmp -s .tmp.$@.tmp $@; then \
+		rm -f .tmp.$@.tmp; \
+	else \
+		mv .tmp.$@.tmp $@; \
+	fi
+# We rsync to a persistent named-volume (instead of building directly
+# on the bind-mount volume) because Docker for Mac's osxfs is very
+# slow.
+envoy-bin/envoy-static: .FORCE envoy-build-image.txt
+	docker run --rm --volume=$(CURDIR)/envoy:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav /xfer/ /root/envoy
+	docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c dbg //source/exe:envoy-static
+	mkdir -p envoy-bin
+	docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static
+%-stripped: % envoy-build-image.txt
+	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
+
+docker-base-images: envoy-bin/envoy-static-stripped
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
+	docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.envoy .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
 	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
+	docker push $(ENVOY_BASE_IMAGE)
 	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
 	docker push $(AMBASSADOR_BASE_IMAGE)
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
