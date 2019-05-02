@@ -1,111 +1,18 @@
-import os
-import re
-
 from kat.harness import Query
-from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
 
 from abstract_tests import DEV, AmbassadorTest, HTTP
 
 
-GRAPHITE_CONFIG = """
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: {0}
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: {0}
-    spec:
-      containers:
-      - name: {0}
-        image: dwflynn/stats-test:0.1.0
-        env:
-        - name: STATSD_TEST_CLUSTER
-          value: cluster_http___statsdtest_http
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {0}
-  name: {0}
-spec:
-  ports:
-  - protocol: UDP
-    port: 8125
-    targetPort: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-    name: statsd-www
-  selector:
-    service: {0}
-"""
-
-
-DOGSTATSD_CONFIG = """
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: {0}
-spec:
-  replicas: 1
-  template:
-    metadata:
-      labels:
-        service: {0}
-    spec:
-      containers:
-      - name: {0}
-        image: dwflynn/stats-test:0.1.0
-        env:
-        - name: STATSD_TEST_CLUSTER
-          value: cluster_http___dogstatsdtest_http
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {0}
-  name: {0}
-spec:
-  ports:
-  - protocol: UDP
-    port: 8125
-    targetPort: 8125
-    name: statsd-metrics
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-    name: statsd-www
-  selector:
-    service: {0}
-"""
-
-
 class StatsdTest(AmbassadorTest):
-    def init(self):
-        self.target = HTTP()
-        if DEV:
-            self.skip_node = True
+    skip_in_dev = True
 
-    def manifests(self) -> str:
-        envs = """
-    - name: STATSD_ENABLED
-      value: 'true'
-"""
+    envs = {
+        'STATSD_ENABLED': 'true',
+        'STATSD_HOST': 'statsd'
+    }
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('statsd-sink')
-
-    def config(self):
-        yield self.target, self.format("""
+    configs = {
+        'target': '''
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -119,7 +26,7 @@ name:  {self.name}-reset
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
-service: statsd-sink
+service: statsd
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
@@ -127,7 +34,25 @@ name:  metrics
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
-""")
+'''
+    }
+
+    extra_pods = {
+        'statsd': {
+            'image': 'dwflynn/stats-test:0.1.0',
+            'envs': {
+                'STATSD_TEST_CLUSTER': "cluster_http___statsdtest_http",
+                # 'STATSD_TEST_DEBUG': 'true'
+            },
+            'ports': [
+                ( 'tcp', 80, 3000 ),
+                ( 'udp', 8125, 8125 )
+            ]
+        }
+    }
+
+    def init(self):
+        self.target = HTTP()
 
     def requirements(self):
         yield ("url", Query(self.url("RESET/")))
@@ -136,7 +61,7 @@ service: http://127.0.0.1:8877
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://statsd-sink/DUMP/", phase=2, debug=True)
+        yield Query("http://statsd/DUMP/", phase=2)
         yield Query(self.url("metrics"), phase=2)
 
     def check(self):
@@ -161,28 +86,18 @@ service: http://127.0.0.1:8877
 
 
 class DogstatsdTest(AmbassadorTest):
-    def init(self):
-        self.target = HTTP()
-        if DEV:
-            self.skip_node = True
+    skip_in_dev = True
 
-    def manifests(self) -> str:
-        envs = """
-    - name: STATSD_ENABLED
-      value: 'true'
-    - name: STATSD_HOST
-      value: 'dogstatsd-sink'
-    - name: DOGSTATSD
-      value: 'true'
-"""
+    envs = {
+        'STATSD_ENABLED': 'true',
+        'STATSD_HOST': 'statsd',
+        'DOGSTATSD': 'true'
+    }
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + DOGSTATSD_CONFIG.format('dogstatsd-sink')
-
-    def config(self):
-        yield self.target, self.format("""
+    configs = {
+        'target': '''
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
@@ -194,8 +109,25 @@ name:  {self.name}-reset
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
-service: dogstatsd-sink
-""")
+service: statsd
+'''
+    }
+
+    extra_pods = {
+        'statsd': {
+            'image': 'dwflynn/stats-test:0.1.0',
+            'envs': {
+                'STATSD_TEST_CLUSTER': "cluster_http___dogstatsdtest_http"
+            },
+            'ports': [
+                ( 'tcp', 80, 3000 ),
+                ( 'udp', 8125, 8125 )
+            ]
+        }
+    }
+
+    def init(self):
+        self.target = HTTP()
 
     def requirements(self):
         yield ("url", Query(self.url("RESET/")))
@@ -204,7 +136,7 @@ service: dogstatsd-sink
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://dogstatsd-sink/DUMP/", phase=2, debug=True)
+        yield Query("http://statsd/DUMP/", phase=2, debug=True)
 
     def check(self):
         stats = self.results[-1].json or {}

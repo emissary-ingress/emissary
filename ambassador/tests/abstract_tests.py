@@ -1,3 +1,6 @@
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple
+from typing import cast as typecast
+
 import sys
 
 import base64
@@ -15,9 +18,6 @@ try:
     yaml_dumper = yaml.CSafeDumper
 except AttributeError:
     pass
-
-from typing import Any, ClassVar, Dict, List, Optional, Sequence
-from typing import cast as typecast
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat import manifests
@@ -66,27 +66,50 @@ class AmbassadorTest(Test):
     disable_endpoints: bool = False
     name: Name
     path: Name
-    extra_ports: Optional[List[int]] = None
-    debug_diagd: bool = False
-    
-    env = []
+
+    skip_in_dev: bool = False                   # set to True to skip in dev shells
+    envs: Dict[str, str] = {}                   # set extra environment variables
+    configs: Dict[str, str] = {}                # configuration elements
+    namespaces: List[str] = []                  # list of namespaces to create
+    extra_ports: Optional[List[int]] = None     # list of additional ports to expose
+    extra_pods: Dict[str, dict] = {}            # list of additional pods to create
+    debug_diagd: bool = False                   # should we debug diagd?
+
+    _environ: Dict[str, str] = {}   # __init__ builds up the full environment here
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._environ = dict(self.envs)
+
+        if self.single_namespace:
+            self._environ['AMBASSADOR_SINGLE_NAMESPACE'] = 'yes'
+
+        if self.disable_endpoints:
+            self._environ['AMBASSADOR_DISABLE_ENDPOINTS'] = 'yes'
+
+        if self.debug_diagd:
+            self._environ['AMBASSADOR_DEBUG'] = 'diagd'
+
+        if self.skip_in_dev and DEV:
+            self.skip_node = True
 
     def manifests(self) -> str:
-        envs = ""
+        ns = ""
+
+        for namespace in self.namespaces:
+            ns += f'''
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {namespace}
+'''
+
         rbac = manifests.RBAC_CLUSTER_SCOPE
 
         if self.single_namespace:
-            envs += """
-    - name: AMBASSADOR_SINGLE_NAMESPACE
-      value: "yes"
-"""
             rbac = manifests.RBAC_NAMESPACE_SCOPE
-
-        if self.disable_endpoints:
-            envs += """
-    - name: AMBASSADOR_DISABLE_ENDPOINTS
-      value: "yes"
-"""
 
         eports = ""
 
@@ -99,11 +122,107 @@ class AmbassadorTest(Test):
     targetPort: {port}
 """
 
+        epods = ''
+
+        if self.extra_pods:
+            for pod_name, pod_info in self.extra_pods.items():
+                pod_def = {
+                    'apiVersion': 'v1',
+                    'kind': 'Pod',
+                    'metadata': {
+                        'name': pod_name,
+                        'labels': {
+                            'backend': pod_name
+                        }
+                    },
+                }
+
+                container = {
+                    'name': pod_name,
+                    'image': pod_info['image'],
+                    'imagePullPolicy': 'Always'
+                }
+
+                pod_ports = []
+                svc_ports = []
+
+                if pod_info.get('ports'):
+                    for protocol, svc_port, container_port in pod_info['ports']:
+                        protocol = protocol.upper()
+
+                        pod_ports.append({
+                            'name': f'port-{svc_port}',
+                            'containerPort': container_port,
+                            'protocol': protocol
+                        })
+
+                        svc_ports.append({
+                            'name': f'port-{svc_port}',
+                            'port': svc_port,
+                            'targetPort': f'port-{svc_port}',
+                            'protocol': protocol
+                        })
+
+                if pod_ports:
+                    container['ports'] = pod_ports
+
+                pod_env_info = pod_info.get('envs', {})
+
+                if pod_env_info:
+                    container['env'] = [
+                        {
+                            'name': name,
+                            'value': value
+                        }
+                        for name, value in pod_env_info.items()
+                    ]
+
+                pod_def['spec'] = {
+                    'containers': [ container ]
+                }
+
+                svc_def = {
+                    'apiVersion': 'v1',
+                    'kind': 'Service',
+                    'metadata': {
+                        'name': pod_name
+                    },
+                    'spec': {
+                        'selector': {
+                            'backend': pod_name
+                        },
+                    }
+                }
+
+                if svc_ports:
+                    svc_def['spec']['ports'] = svc_ports
+
+                epods += '---\n' + yaml.dump(svc_def, Dumper=yaml_dumper)
+                epods += '---\n' + yaml.dump(pod_def, Dumper=yaml_dumper)
+
+        envs = ''
+
+        if self._environ:
+            for key, value in self._environ.items():
+                envs += f'''
+    - name: {key}
+      value: "{value}"
+'''
+
+        base = ns + rbac + epods
+
         if DEV:
-            return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
+            return self.format(base + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
-            return self.format(rbac + manifests.AMBASSADOR,
+            return self.format(base + manifests.AMBASSADOR,
                                image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs, extra_ports=eports)
+
+    # Subclasses can override this. Of course.
+    def config(self):
+        for attr, value in self.configs.items():
+            element = self if (attr == 'self') else getattr(self, attr)
+
+            yield element, self.format(value)
 
     # Will tear this out of the harness shortly
     @property
@@ -189,23 +308,20 @@ class AmbassadorTest(Test):
         print("Launching %s container." % self.path.k8s)
         command = ["docker", "run", "-d", "-l", "kat-family=ambassador", "--name", self.path.k8s]
 
-        envs = ["KUBERNETES_SERVICE_HOST=kubernetes", "KUBERNETES_SERVICE_PORT=443",
-                "AMBASSADOR_SNAPSHOT_COUNT=1", "AMBASSADOR_ID=%s" % self.ambassador_id]
+        envs = [ f'{key}={value}' for key, value in self._environ.items() ]
+
+        envs += [
+            "KUBERNETES_SERVICE_HOST=kubernetes",
+            "KUBERNETES_SERVICE_PORT=443",
+            "AMBASSADOR_SNAPSHOT_COUNT=1",
+            f"AMBASSADOR_ID={self.ambassador_id}"
+        ]
 
         if self.namespace:
             envs.append("AMBASSADOR_NAMESPACE=%s" % self.namespace)
 
-        if self.single_namespace:
-            envs.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
-
-        if self.disable_endpoints:
-            envs.append("AMBASSADOR_DISABLE_ENDPOINTS=yes")
-
-        if self.debug_diagd:
-            envs.append("AMBASSADOR_DEBUG=diagd")
-
-        envs.extend(self.env)
-        [command.extend(["-e", env]) for env in envs]
+        for env in envs:
+            command.extend([ "-e", env ])
 
         ports = ["%s:8877" % (8877 + self.index), "%s:8080" % (8080 + self.index), "%s:8443" % (8443 + self.index)]
 
@@ -213,10 +329,13 @@ class AmbassadorTest(Test):
             for port in self.extra_ports:
                 ports.append(f'{port}:{port}')
 
-        [command.extend(["-p", port]) for port in ports]
+        for port in ports:
+            command.extend([ "-p", port ])
 
         volumes = ["%s:/var/run/secrets/kubernetes.io/serviceaccount" % secret_dir]
-        [command.extend(["-v", volume]) for volume in volumes]
+
+        for volume in volumes:
+            command.extend([ "-v", volume ])
 
         command.append(image)
 
@@ -285,12 +404,13 @@ class IsolatedServiceType(Node):
 
 @abstract_test
 class ServiceType(Node):
-
-    path: Name
     _manifests: Optional[str]
     use_superpod: bool = True
- 
-    def __init__(self, service_manifests: str=None, namespace: str=None, *args, **kwargs) -> None:
+
+    def __init__(self,
+                 namespace: Optional[str] = None,
+                 service_manifests: Optional[str] = None,
+                 *args, **kwargs) -> None:
         if namespace is not None:
             print("%s init %s" % (type(self), namespace))
 

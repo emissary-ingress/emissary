@@ -856,6 +856,7 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
+                    # print("parsing %s" % yaml)
                     manifest = load(n.path, yaml, Tag.MAPPING)
 
             if manifest:

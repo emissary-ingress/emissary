@@ -7,20 +7,8 @@ from abstract_tests import AmbassadorTest, DEFAULT_ERRORS, HTTP, Node, ServiceTy
 
 class Empty(AmbassadorTest):
     single_namespace = True
-    namespace = "empty-namespace"
-
-    @classmethod
-    def variants(cls):
-        yield cls()
-
-    def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: empty-namespace
-""" + super().manifests()
+    namespace = "empty-namespace"       # namespace to run in
+    namespaces = [ "empty-namespace" ]  # namespaces to create
 
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield from ()
@@ -76,11 +64,8 @@ class ServerNameTest(AmbassadorTest):
 
     target: ServiceType
 
-    def init(self):
-        self.target = HTTP()
-
-    def config(self):
-        yield self, self.format("""
+    configs = {
+        'self': '''
 ---
 apiVersion: ambassador/v0
 kind:  Module
@@ -93,7 +78,11 @@ kind:  Mapping
 name:  {self.path.k8s}/server-name
 prefix: /server-name
 service: {self.target.path.fqdn}
-""")
+'''
+    }
+
+    def init(self):
+        self.target = HTTP()
 
     def queries(self):
         yield Query(self.url("server-name/"), expected=301)
