@@ -43,6 +43,7 @@ from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext
+    from ambassador.ir.irresource import IRResource
 
 
 # Fake SecretHandler for our fake IR, below.
@@ -113,6 +114,10 @@ class FakeIR(IR):
 
         self.ambassador_module = IRAmbassador(self, aconf)
 
+    # Don't bother actually saving resources that come up when working with
+    # the faked modules.
+    def save_resource(self, resource: 'IRResource') -> 'IRResource':
+        return resource
 
 # XXX More fakery here. This duplicates code from ircluster.py.
 class Service:
