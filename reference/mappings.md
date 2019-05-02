@@ -41,6 +41,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |  
 | [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
+| [`retry_policy`](/reference/core/circuit-breaking) | performs automatic retries upon request failures |
 | [`timeout_ms`](/reference/timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 5000. |
 | [`connect_timeout_ms`](/reference/timeouts)      | the timeout, in milliseconds, for requests coming through the `Cluster` for this `Mapping`. Defaults to 3000. |
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
