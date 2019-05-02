@@ -39,7 +39,7 @@ include_body:
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
 
-- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed. These headers are always included:
+- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
     * `Location`
     * `Authorization`
     * `Proxy-Authenticate`
@@ -109,7 +109,7 @@ So, for example, if the incoming request is
 
 ```
 PUT /path/to/service HTTP/1.1
-Host: myservice.example.com:80
+Host: myservice.example.com:8080
 User-Agent: curl/7.54.0
 Accept: */*
 Content-Type: application/json
@@ -122,7 +122,7 @@ then the request Ambassador will make of the auth service is:
 
 ```
 PUT /path/to/service HTTP/1.1
-Host: extauth.example.com:80
+Host: extauth.example.com:8080
 User-Agent: curl/7.54.0
 Accept: */*
 Content-Type: application/json

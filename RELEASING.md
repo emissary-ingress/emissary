@@ -25,18 +25,35 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 6. After the docs are synced, use `make release-prep` to update `CHANGELOG.md` and `docs/versions.yml`.
    - It will _commit_, but not _push_, the updated files. Make sure the diffs it shows you look correct!
    - Do a manual `git push` to update the world with your new files.
+   - It is *critical* to update `docs/versions.yml` so that everyone gets the new version.
 
 7. Now for the time-critical bit.
    - Tag `master` with a GA tag like `0.33.0` and let CI do its thing.
    - CI will retag the latest RC image as the GA image.
-   - `make docs-push` _after the retag_ to push new docs out to the website.
+   - `make push-docs` _after the retag_ to push new docs out to the website.
 
    **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
-8. Finally, go submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
+8. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
    - in `Chart.yaml`, update `appVersion` with the new Ambassador version, and bump `version`.
    - in `README.md`, update the default value of `image.tag`.
    - in `values.yaml`, update `tag`.
+   - Helpful stuff for this:
+      - git checkout master               # switch to master
+      - git fetch --all                   # make sure our view of remotes is up to date
+      - git pull                          # pull down any changes to master
+      - git rebase upstream/master        # move master on top of upstream
+      - git push                          # push rebases to our fork
+      - git checkout -b update/$VERSION   # switch to a feature branch
+      - make your edits
+      - git commit -a                     # commit changes -- don't forget DCO in the message!
+      - git push origin update/$VERSION   # push to feature branch
+      - open a PR
+    - Once your PR is merged, _delete the feature branch without merging it back to origin/master_.
+
+9. Additional updates:
+   - Submit a PR to https://github.com/datawire/pro-ref-arch that updates the `env.sh.example` versions.
+   - Submit a PR to the Ambassador website repository to update the version on the homepage.
 
 ----
 Updating Ambassador's Envoy

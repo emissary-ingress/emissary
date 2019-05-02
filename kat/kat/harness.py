@@ -275,14 +275,31 @@ class Test(Node):
             return self.parent.ambassador_id
 
 
+@multi
+def encode_body(obj):
+    yield type(obj)
+
+@encode_body.when(bytes)
+def encode_body(b):
+    return base64.encodebytes(b).decode("utf-8")
+
+@encode_body.when(str)
+def encode_body(s):
+    return encode_body(s.encode("utf-8"))
+
+@encode_body.default
+def encode_body(obj):
+    return encode_body(json.dumps(obj))
+
 class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
                  xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
-                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None):
+                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False, body=None):
         self.method = method
         self.url = url
         self.headers = headers
+        self.body = body
         self.cookies = cookies
         self.messages = messages
         self.insecure = insecure
@@ -295,6 +312,7 @@ class Query:
             self.expected = expected
         self.skip = skip
         self.xfail = xfail
+        self.ignore_result = ignore_result
         self.phase = phase
         self.parent = None
         self.result = None
@@ -320,6 +338,8 @@ class Query:
             result["method"] = self.method
         if self.headers:
             result["headers"] = self.headers
+        if self.body is not None:
+            result["body"] = encode_body(self.body)
         if self.cookies:
             result["cookies"] = self.cookies
         if self.messages is not None:
@@ -364,27 +384,28 @@ class Result:
         if self.query.xfail:
             pytest.xfail(self.query.xfail)
 
-        if self.query.error is not None:
-            found = False
-            errors = self.query.error
+        if not self.query.ignore_result:
+            if self.query.error is not None:
+                found = False
+                errors = self.query.error
 
-            if isinstance(self.query.error, str):
-                errors = [ self.query.error ]
+                if isinstance(self.query.error, str):
+                    errors = [ self.query.error ]
 
-            if self.error is not None:
-                for error in errors:
-                    if error in self.error:
-                        found = True
-                        break
+                if self.error is not None:
+                    for error in errors:
+                        if error in self.error:
+                            found = True
+                            break
 
-            assert found, "{}: expected error to contain any of {}; got {} instead".format(
-                self.query.url, ", ".join([ "'%s'" % x for x in errors ]),
-                ("'%s'" % self.error) if self.error else "no error"
-            )
-        else:
-            assert self.query.expected == self.status, \
-                   "%s: expected status code %s, got %s instead with error %s" % (
-                       self.query.url, self.query.expected, self.status, self.error)
+                assert found, "{}: expected error to contain any of {}; got {} instead".format(
+                    self.query.url, ", ".join([ "'%s'" % x for x in errors ]),
+                    ("'%s'" % self.error) if self.error else "no error"
+                )
+            else:
+                assert self.query.expected == self.status, \
+                       "%s: expected status code %s, got %s instead with error %s" % (
+                           self.query.url, self.query.expected, self.status, self.error)
 
     def as_dict(self) -> Dict[str, Any]:
         od = {
@@ -619,14 +640,16 @@ class Superpod:
 
         m = manifest[0]
 
+        template = m['spec']['template']
+
         ports: List[Dict[str, int]] = []
-        envs: List[Dict[str, Union[str, int]]] = m['spec']['containers'][0]['env']
+        envs: List[Dict[str, Union[str, int]]] = template['spec']['containers'][0]['env']
 
         for p in sorted(self.service_names.keys()):
             ports.append({ 'containerPort': p })
             envs.append({ 'name': f'BACKEND_{p}', 'value': self.service_names[p] })
 
-        m['spec']['containers'][0]['ports'] = ports
+        template['spec']['containers'][0]['ports'] = ports
 
         if 'metadata' not in m:
             m['metadata'] = {}
@@ -634,10 +657,8 @@ class Superpod:
         metadata = m['metadata']
         metadata['name'] = self.name
 
-        if 'labels' not in metadata:
-            metadata['labels'] = {}
-
-        metadata['labels']['backend'] = self.name
+        m['spec']['selector']['matchLabels']['backend'] = self.name
+        template['metadata']['labels']['backend'] = self.name
 
         if self.namespace:
             # Fix up the namespace.
@@ -701,34 +722,40 @@ class Runner:
             if not DOCTEST:
                 print()
 
-            expanded = set(selected)
+            expanded_up = set(selected)
 
-            for e in list(expanded):
-                for a in e.ancestors:
-                    expanded.add(a)
+            for s in selected:
+                for n in s.ancestors:
+                    expanded_up.add(n)
+
+            expanded = set(expanded_up)
+
+            for s in selected:
+                for n in s.traversal:
+                    expanded.add(n)
 
             try:
-                self._setup_k8s()
+                self._setup_k8s(expanded)
 
                 for t in self.tests:
-                    if t in expanded:
+                    if t in expanded_up:
                         pre_query: Callable = getattr(t, "pre_query", None)
 
                         if pre_query:
                             pre_query()
 
-                self._query(expanded)
+                self._query(expanded_up)
             except:
                 traceback.print_exc()
                 pytest.exit("setup failed")
             finally:
                 self.done = True
 
-    def get_manifests(self) -> OrderedDict:
+    def get_manifests(self, selected) -> OrderedDict:
         manifests = OrderedDict()
         superpods: Dict[str, Superpod] = {}
 
-        for n in self.nodes:
+        for n in (n for n in self.nodes if n in selected):
             # What namespace is this node in?
             nsp = None
             cur = n
@@ -795,11 +822,11 @@ class Runner:
 
         return manifests
 
-    def _setup_k8s(self):
-        manifests = self.get_manifests()
+    def _setup_k8s(self, selected):
+        manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
-        for n in self.nodes:
+        for n in (n for n in self.nodes if n in selected):
             configs[n] = []
             for cfg in n.config():
                 if isinstance(cfg, str):
@@ -874,14 +901,16 @@ class Runner:
             print("Manifests unchanged, skipping apply.")
 
         for n in self.nodes:
-            action = getattr(n, "post_manifest", None)
-            if action:
-                action()
+            if n in selected:
+                action = getattr(n, "post_manifest", None)
+                if action:
+                    action()
 
-        self._wait()
+        self._wait(selected)
 
-    def _wait(self):
-        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()]
+    def _wait(self, selected):
+        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()
+                        if node in selected]
 
         homogenous = {}
         for node, kind, name in requirements:
@@ -1017,7 +1046,7 @@ class Runner:
 
         for phase in phases:
             if phase != 1:
-                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 30))
+                phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 60))
                 print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
                 time.sleep(phase_delay)
 

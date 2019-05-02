@@ -39,10 +39,13 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Config, IR, EnvoyConfig, Diagnostics, Scout, Version
-from ambassador.utils import SystemInfo, PeriodicTrigger, SecretSaver, SavedSecret, load_url_contents
+from ambassador.utils import SystemInfo, PeriodicTrigger, SavedSecret, load_url_contents
+from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.config.resourcefetcher import ResourceFetcher
 
 from ambassador.diagnostics import EnvoyStats
+
+from ambassador.constants import Constants
 
 if TYPE_CHECKING:
     from ambassador.ir.irtlscontext import IRTLSContext
@@ -308,16 +311,31 @@ def handle_ping():
 
 
 @app.route('/_internal/v0/update', methods=[ 'POST' ])
-def handle_update():
+def handle_kubewatch_update():
     url = request.args.get('url', None)
 
     if not url:
         app.logger.error("error: update requested with no URL")
         return "error: update requested with no URL", 400
 
-    app.logger.info("Update requested from %s" % url)
+    app.logger.info("Update requested: kubewatch, %s" % url)
 
-    status, info = app.watcher.post('CONFIG', url)
+    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
+
+    return info, status
+
+
+@app.route('/_internal/v0/watt', methods=[ 'POST' ])
+def handle_watt_update():
+    url = request.args.get('url', None)
+
+    if not url:
+        app.logger.error("error: watt update requested with no URL")
+        return "error: watt update requested with no URL", 400
+
+    app.logger.info("Update requested: watt, %s" % url)
+
+    status, info = app.watcher.post('CONFIG', ( 'watt', url ))
 
     return info, status
 
@@ -563,8 +581,15 @@ class AmbassadorEventWatcher(threading.Thread):
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
             elif cmd == 'CONFIG':
+                version, url = arg
+
                 try:
-                    self.load_config(rqueue, arg)
+                    if version == 'kw':
+                        self.load_config_kubewatch(rqueue, url)
+                    elif version == 'watt':
+                        self.load_config_watt(rqueue, url)
+                    else:
+                        raise RuntimeError("config from %s not supported" % version)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
@@ -586,7 +611,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.info("loading configuration from disk: %s" % path)
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
-        scc = SecretSaver(app.logger, path, app.snapshot_path)
+        scc = FSSecretHandler(app.logger, path, app.snapshot_path, "0")
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -597,13 +622,13 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring empty configuration')
             # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.null_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    def load_config(self, rqueue: queue.Queue, url):
+    def load_config_kubewatch(self, rqueue: queue.Queue, url: str):
         snapshot = url.split('/')[-1]
         ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
 
-        self.logger.info("copying configuration from %s to %s" % (url, ss_path))
+        self.logger.info("copying configuration: kubewatch, %s to %s" % (url, ss_path))
 
         # Grab the serialization, and save it to disk too.
         elements: List[str] = []
@@ -615,7 +640,7 @@ class AmbassadorEventWatcher(threading.Thread):
         else:
             self.logger.debug("no services loaded from snapshot %s" % snapshot)
 
-        if os.environ.get('AMBASSADOR_ENABLE_ENDPOINTS'):
+        if Config.enable_endpoints:
             serialization = load_url_contents(self.logger, "%s/endpoints" % url, stream2=open(ss_path, "a"))
 
             if serialization:
@@ -631,7 +656,7 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
             # return
 
-        scc = SecretSaver(app.logger, url, app.snapshot_path)
+        scc = KubewatchSecretHandler(app.logger, url, app.snapshot_path, snapshot)
 
         aconf = Config()
         fetcher = ResourceFetcher(app.logger, aconf)
@@ -645,17 +670,51 @@ class AmbassadorEventWatcher(threading.Thread):
             # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
             # return
 
-        self._load_ir(rqueue, aconf, fetcher, scc.url_reader, snapshot)
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
+
+    def load_config_watt(self, rqueue: queue.Queue, url: str):
+        snapshot = url.split('/')[-1]
+        ss_path = os.path.join(app.snapshot_path, "snapshot-tmp.yaml")
+
+        self.logger.info("copying configuration: watt, %s to %s" % (url, ss_path))
+
+        # Grab the serialization, and save it to disk too.
+        serialization = load_url_contents(self.logger, url, stream2=open(ss_path, "w"))
+
+        if not serialization:
+            self.logger.debug("no data loaded from snapshot %s" % snapshot)
+            # We never used to return here. I'm not sure if that's really correct?
+            # self._respond(rqueue, 204, 'ignoring: no data loaded from snapshot %s' % snapshot)
+            # return
+
+        # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
+        # the secrets that watt sends.
+        scc = SecretHandler(app.logger, url, app.snapshot_path, snapshot)
+
+        aconf = Config()
+        fetcher = ResourceFetcher(app.logger, aconf)
+
+        if serialization:
+            fetcher.parse_watt(serialization)
+
+        if not fetcher.elements:
+            self.logger.debug("no configuration found in snapshot %s" % snapshot)
+
+            # Don't actually bail here. If they send over a valid config that happens
+            # to have nothing for us, it's still a legit config.
+            # self._respond(rqueue, 204, 'ignoring: no configuration found in snapshot %s' % snapshot)
+            # return
+
+        self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
     def _load_ir(self, rqueue: queue.Queue, aconf: Config, fetcher: ResourceFetcher,
-                 secret_reader: Callable[['IRTLSContext', str, str], SavedSecret],
-                 snapshot: str) -> None:
+                 secret_handler: SecretHandler, snapshot: str) -> None:
         aconf.load_all(fetcher.sorted())
 
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
-        ir = IR(aconf, secret_reader=secret_reader)
+        ir = IR(aconf, secret_handler=secret_handler)
 
         ir_path = os.path.join(app.snapshot_path, "ir-tmp.json")
         open(ir_path, "w").write(ir.as_json())
@@ -671,18 +730,35 @@ class AmbassadorEventWatcher(threading.Thread):
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 
-        self.logger.info("rotating snapshots for snapshot %s" % snapshot)
+        snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))
+        snaplist: List[Tuple[str, str]] = []
 
-        for from_suffix, to_suffix in [ ('-3', '-4'), ('-2', '-3'), ('-1', '-2'), ('', '-1'), ('-tmp', '') ]:
+        if snapcount > 0:
+            self.logger.debug("rotating snapshots for snapshot %s" % snapshot)
+
+            # If snapcount is 4, this range statement becomes range(-4, -1)
+            # which gives [ -4, -3, -2 ], which the list comprehension turns
+            # into [ ( "-3", "-4" ), ( "-2", "-3" ), ( "-1", "-2" ) ]...
+            # which is the list of suffixes to rename to rotate the snapshots.
+
+            snaplist += [ (str(x+1), str(x)) for x in range(-1 * snapcount, -1) ]
+
+            # After dealing with that, we need to rotate the current file into -1.
+            snaplist.append(( '', '-1' ))
+
+        # Whether or not we do any rotation, we need to cycle in the '-tmp' file.
+        snaplist.append(( '-tmp', '' ))
+
+        for from_suffix, to_suffix in snaplist:
             for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
-                try:
-                    from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
-                    to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
+                from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
+                to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
-                    # self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                try:
+                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
                     os.rename(from_path, to_path)
                 except IOError as e:
-                    # self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
                     pass
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
@@ -835,7 +911,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
           *, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
-          workers=None, port=8877, host='0.0.0.0', notices=None):
+          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None):
     """
     Run the diagnostic daemon.
 
@@ -852,8 +928,8 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param debug: If True, do debug logging
     :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
-    :param host: Interface on which to listen (default 0.0.0.0)
-    :param port: Port on which to listen (default 8877)
+    :param host: Interface on which to listen
+    :param port: Port on which to listen
     :param notices: Optional file to read for local notices
     """
 

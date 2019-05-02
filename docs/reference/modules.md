@@ -28,17 +28,17 @@ metadata:
         server:
           enabled: true
           secret: ambassador-certs
-          redirect_cleartext_from: 80
+          redirect_cleartext_from: 8080
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
    - name: http
      port: 80
-     targetPort: 80
+     targetPort: 8080
    - name: https
      port: 443
-     targetPort: 443
+     targetPort: 8443
   selector:
     service: ambassador
 ```

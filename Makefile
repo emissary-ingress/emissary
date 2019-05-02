@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+CI_DEBUG_KAT_BRANCH=
+
 SHELL = bash
 
 # Welcome to the Ambassador Makefile...
@@ -119,6 +121,10 @@ endif
 
 DOCKER_OPTS =
 
+# This is the branch from ambassador-docs to pull for "make pull-docs".
+# Override if you need to.
+PULL_BRANCH ?= master
+
 NETLIFY_SITE=datawire-ambassador
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
@@ -140,7 +146,11 @@ SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.3.0
+KAT_BACKEND_RELEASE = 1.4.0
+
+# Allow overriding which watt we use.
+WATT ?= watt
+WATT_VERSION ?= 0.4.7
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -160,6 +170,7 @@ clean: clean-test
 		| xargs -0 rm -f
 
 clobber: clean
+	-rm -rf watt
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
@@ -172,6 +183,7 @@ print-vars:
 	@echo "AMBASSADOR_DOCKER_TAG            = $(AMBASSADOR_DOCKER_TAG)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
+	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
 	@echo "COMMIT_TYPE                      = $(COMMIT_TYPE)"
 	@echo "DOCKER_EPHEMERAL_REGISTRY        = $(DOCKER_EPHEMERAL_REGISTRY)"
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
@@ -198,6 +210,7 @@ export-vars:
 	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
+	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
 	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
 	@echo "export DOCKER_EPHEMERAL_REGISTRY='$(DOCKER_EPHEMERAL_REGISTRY)'"
 	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
@@ -264,7 +277,7 @@ docker-push-base-images:
 
 docker-update-base: docker-base-images docker-push-base-images
 
-ambassador-docker-image: version
+ambassador-docker-image: version $(WATT)
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
@@ -276,7 +289,7 @@ ifneq ($(DOCKER_EXTERNAL_REGISTRY),-)
 	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
 	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
 
-	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_REGISTRY)
+	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_EXTERNAL_REGISTRY)
 else
 	@echo "Using local registry, no need for docker login."
 endif
@@ -293,15 +306,17 @@ ifneq ($(DOCKER_REGISTRY), -)
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
-			make docker-login || exit 1; \
-			if [ "$(COMMIT_TYPE)" = "EA" ]; then \
-				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			$(MAKE) docker-login || exit 1; \
+			\
+			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
+			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
+			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+			\
+			if [ "$(COMMIT_TYPE)" = "RC" ]; then \
+				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
+				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
+				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 			fi; \
-			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
-			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
 		fi; \
 	else \
 		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
@@ -329,7 +344,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.3.16
+TELEPROXY_VERSION=0.4.6
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
@@ -339,7 +354,24 @@ GOARCH=$(shell go env GOARCH)
 $(TELEPROXY):
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
-	sudo chmod go-w,a+sx $(TELEPROXY)
+ifeq ($(shell uname -s), Darwin)
+	sudo chmod go-w,a+x $(TELEPROXY)	# no SUID here
+else
+	sudo chmod go-w,a+sx $(TELEPROXY)	# SUID here
+endif
+
+kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
+
+ifeq ($(shell uname -s), Darwin)
+run_teleproxy = sudo id; sudo $(TELEPROXY)
+else
+run_teleproxy = $(TELEPROXY)
+endif
+
+# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
+$(WATT):
+	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
+	chmod go-w,a+x $(WATT)
 
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
@@ -369,9 +401,7 @@ $(KAT_CLIENT):
 	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/$(KAT_CLIENT)
 	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) version
-
-kill_teleproxy = $(shell kill -INT $$(/bin/ps -ef | fgrep venv/bin/teleproxy | fgrep -v grep | awk '{ print $$2 }') 2>/dev/null)
+setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
 
 cluster.yaml: $(CLAIM_FILE)
 ifeq ($(USE_KUBERNAUT), true)
@@ -380,25 +410,29 @@ ifeq ($(USE_KUBERNAUT), true)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
 endif
 
+setup-test: cluster-and-teleproxy
+
 cluster-and-teleproxy: cluster.yaml
 	rm -rf /tmp/k8s-*.yaml
-	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
-	$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
+	$(MAKE) teleproxy-restart
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
-setup-test: cluster-and-teleproxy
-
 teleproxy-restart:
 	@echo "Killing teleproxy"
-	$(call kill_teleproxy)
+	$(kill_teleproxy)
 	sleep 0.25 # wait for exit...
-	@$(TELEPROXY) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log || (echo "failed to start teleproxy"; cat /tmp/teleproxy.log) &
+	$(run_teleproxy) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
+	sleep 0.5 # wait for start
+	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -le 0 ]; then \
+		echo "teleproxy did not start"; \
+		cat /tmp/teleproxy.log; \
+		exit 1; \
+	fi
 	@echo "Done"
 
 teleproxy-stop:
-	$(call kill_teleproxy)
+	$(kill_teleproxy)
 	sleep 0.25 # wait for exit...
 	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
 		echo "teleproxy still running" >&2; \
@@ -408,7 +442,7 @@ teleproxy-stop:
 		echo "teleproxy stopped" >&2; \
 	fi
 
-shell: setup-develop cluster-and-teleproxy
+shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
@@ -429,7 +463,7 @@ test: setup-develop cluster-and-teleproxy
 	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
-	sh ../releng/run-tests.sh
+	bash ../releng/run-tests.sh
 
 test-list: setup-develop
 	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
@@ -458,6 +492,8 @@ release-prep:
 release:
 	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
 		set -ex; \
+		$(MAKE) print-vars; \
+		$(MAKE) docker-login || exit 1; \
 		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
 		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
 		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
@@ -504,7 +540,7 @@ mypy: mypy-server
 
 pull-docs:
 	{ \
-		git fetch https://github.com/datawire/ambassador-docs master && \
+		git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH) && \
 		docs_head=$$(git rev-parse FETCH_HEAD) && \
 		git subtree merge --prefix=docs "$${docs_head}" && \
 		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \

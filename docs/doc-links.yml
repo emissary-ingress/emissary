@@ -37,6 +37,8 @@
   items:
     - title: Ambassador Architecture
       link: /concepts/architecture
+    - title: Ambassador Deployment Architecture
+      link: /concepts/ambassador-deployment
     - title: Continuous Delivery, Declarative Config, and GitOps
       link: /user-guide/cd-declarative-gitops
     - title: Microservices API Gateways
@@ -84,8 +86,8 @@
         link: /user-guide/advanced-rate-limiting
     - title: Release
       items:
-      - title: Consul Connect and Ambassador
-        link: /user-guide/consul-connect-ambassador
+      - title: Consul and Ambassador
+        link: /user-guide/consul
       - title: Distributed Tracing
         link: /user-guide/tracing-tutorial
       - title: Implementing GitOps with Ambassador
@@ -108,6 +110,8 @@
               link: /reference/core/ambassador
             - title: Load Balancing Configuration
               link: /reference/core/load-balancer
+            - title: Service Discovery Configuration
+              link: /reference/core/resolvers
             - title: TLS Configuration
               link: /reference/core/tls
         - title: Configuring Services

@@ -25,40 +25,6 @@ from kat import manifests
 AMBASSADOR_LOCAL = """
 ---
 apiVersion: v1
-kind: Service
-metadata:
-  name: {self.path.k8s}
-spec:
-  type: NodePort
-  ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: 80
-  - name: https
-    protocol: TCP
-    port: 443
-    targetPort: 443
-  {extra_ports}
-  selector:
-    service: {self.path.k8s}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: {self.path.k8s}-admin
-  name: {self.path.k8s}-admin
-spec:
-  type: NodePort
-  ports:
-  - name: {self.path.k8s}-admin
-    port: 8877
-    targetPort: 8877
-  selector:
-    service: {self.path.k8s}
----
-apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}
@@ -91,11 +57,12 @@ class AmbassadorTest(Test):
     _index: Optional[int] = None
     _ambassador_id: Optional[str] = None
     single_namespace: bool = False
-    enable_endpoints: bool = False
+    disable_endpoints: bool = False
     name: Name
     path: Name
     extra_ports: Optional[List[int]] = None
-
+    debug_diagd: bool = False
+    
     env = []
 
     def manifests(self) -> str:
@@ -109,9 +76,9 @@ class AmbassadorTest(Test):
 """
             rbac = manifests.RBAC_NAMESPACE_SCOPE
 
-        if self.enable_endpoints:
+        if self.disable_endpoints:
             envs += """
-    - name: AMBASSADOR_ENABLE_ENDPOINTS
+    - name: AMBASSADOR_DISABLE_ENDPOINTS
       value: "yes"
 """
 
@@ -217,7 +184,7 @@ class AmbassadorTest(Test):
         command = ["docker", "run", "-d", "-l", "kat-family=ambassador", "--name", self.path.k8s]
 
         envs = ["KUBERNETES_SERVICE_HOST=kubernetes", "KUBERNETES_SERVICE_PORT=443",
-                "AMBASSADOR_ID=%s" % self.ambassador_id]
+                "AMBASSADOR_SNAPSHOT_COUNT=1", "AMBASSADOR_ID=%s" % self.ambassador_id]
 
         if self.namespace:
             envs.append("AMBASSADOR_NAMESPACE=%s" % self.namespace)
@@ -225,13 +192,16 @@ class AmbassadorTest(Test):
         if self.single_namespace:
             envs.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
 
-        if self.enable_endpoints:
-            envs.append("AMBASSADOR_ENABLE_ENDPOINTS=yes")
+        if self.disable_endpoints:
+            envs.append("AMBASSADOR_DISABLE_ENDPOINTS=yes")
+
+        if self.debug_diagd:
+            envs.append("AMBASSADOR_DEBUG=diagd")
 
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]
 
-        ports = ["%s:8877" % (8877 + self.index), "%s:80" % (8080 + self.index), "%s:443" % (8443 + self.index)]
+        ports = ["%s:8877" % (8877 + self.index), "%s:8080" % (8080 + self.index), "%s:8443" % (8443 + self.index)]
 
         if self.extra_ports:
             for port in self.extra_ports:
@@ -364,6 +334,24 @@ class ServiceTypeGrpc(Node):
         yield ("url", Query("http://%s" % self.path.fqdn))
         yield ("url", Query("https://%s" % self.path.fqdn))
 
+@abstract_test
+class TLSRedirect(Node):
+
+    path: Name
+
+    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._manifests = service_manifests or manifests.BACKEND
+
+    def config(self):
+        yield from ()
+
+    def manifests(self):
+        return self.format(self._manifests)
+
+    def requirements(self):
+        yield ("url", Query("http://%s" % self.path.fqdn,  headers={ "X-Forwarded-Proto": "http" }))
+        yield ("url", Query("https://%s" % self.path.fqdn))
 
 class HTTP(ServiceType):
     pass

@@ -23,6 +23,8 @@ import t_tcpmapping
 import t_tls
 import t_tracing
 import t_retrypolicy
+import t_consul
+import t_circuitbreaker
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
