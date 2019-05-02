@@ -160,7 +160,7 @@ class IR:
 
         # After the Ambassador and TLS modules are done, we need to set up the
         # filter chains, which requires checking in on the auth, and
-        # ratelimit configuration. Note that order of the filters matter.        
+        # ratelimit configuration. Note that order of the filters matter.
         self.save_filter(IRAuth(self, aconf))
 
         # ...note that ratelimit is a filter too...
@@ -519,7 +519,7 @@ class IR:
         for key in [ 'diagnostics', 'liveness_probe', 'readiness_probe', 'statsd' ]:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
 
-        for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect' ]:
+        for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10' ]:
             od[key] = self.ambassador_module.get(key, False)
 
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)

@@ -88,6 +88,13 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.60.3] May 01, 2019
+[0.60.3]: https://github.com/datawire/ambassador/compare/0.60.2...0.60.3
+
+### Changes since 0.60.2
+
+- When scanning its configuration for secrets and endpoints that must be watched, 0.60.2 could fail with certain configurations if TLS termination but not origination was active. Those failures are fixed now.
+
 ## [0.60.2] April 29, 2019
 [0.60.2]: https://github.com/datawire/ambassador/compare/0.60.1...0.60.2
 
