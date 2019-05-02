@@ -37,7 +37,8 @@ class IRAmbassador (IRResource):
         'use_proxy_proto',
         'use_remote_address',
         'x_forwarded_proto_redirect',
-        'xff_num_trusted_hops'
+        'xff_num_trusted_hops',
+        'enable_http10'
     ]
 
     service_port: int
@@ -79,6 +80,7 @@ class IRAmbassador (IRResource):
             readiness_probe={"enabled": True},
             diagnostics={"enabled": True},
             use_proxy_proto=False,
+            enable_http10=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
@@ -210,7 +212,7 @@ class IRAmbassador (IRResource):
                                                config=dict())
             self.grpc_http11_bridge.sourced_by(amod)
             ir.save_filter(self.grpc_http11_bridge)
-            
+
         if amod and ('enable_grpc_web' in amod):
             self.grpc_web = IRFilter(ir=ir, aconf=aconf, kind='ir.grpc_web', name='grpc_web', config=dict())
             self.grpc_web.sourced_by(amod)

@@ -104,7 +104,7 @@ def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
         'name': 'envoy.buffer',
         'config': {
             "max_request_bytes": buffer.max_request_bytes
-        }  
+        }
     }
 
 @v2filter.when("ir.grpc_http1_bridge")
@@ -148,7 +148,7 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
-    
+
     assert auth.api_version == "ambassador/v0"
 
     # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
@@ -167,8 +167,8 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
 
     for key in sorted(hdrs):
         allowed_authorization_headers.append({"exact": key})
-    
-    allowed_request_headers = []  
+
+    allowed_request_headers = []
 
     for key in sorted(request_headers.keys()):
         allowed_request_headers.append({"exact": key})
@@ -228,7 +228,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key})
-    
+
         allowed_request_headers = []
 
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
@@ -510,6 +510,9 @@ class V2Listener(dict):
 
         if 'server_name' in config.ir.ambassador_module:
             base_http_config["server_name"] = config.ir.ambassador_module.server_name
+
+        if 'enable_http10' in config.ir.ambassador_module:
+            base_http_config["http_protocol_options"] = { 'accept_http_10': config.ir.ambassador_module.enable_http10 }
 
         if config.ir.tracing:
             base_http_config["generate_request_id"] = True
