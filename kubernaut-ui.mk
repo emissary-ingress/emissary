@@ -12,6 +12,7 @@
 #  - .PHONY Target: unclaim
 #  - .PHONY Target: shell
 #  - .PHONY Target: status-cluster
+#  - Variable: export KUBECONFIG := $(or $(NAME),cluster).knaut
 ## common.mk targets ##
 #  - clean
 #

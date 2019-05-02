@@ -6,7 +6,7 @@
 ## Eager inputs ##
 #  (none)
 ## Lazy inputs ##
-#  (none)
+#  - Variable: VERSION ?= … (via version.mk)
 ## Outputs ##
 #  - Variable: go.LDFLAGS += …$(VERSION)
 ## common.mk targets ##

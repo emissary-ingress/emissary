@@ -9,6 +9,8 @@
 ## Lazy inputs ##
 #  - Variable: KUBE_URL
 ## Outputs ##
+#  - Variable: TELEPROXY     ?= ./build-aux/teleproxy
+#  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
 #  - Target       : $(TELEPROXY)
 #  - .PHONY Target: proxy
 #  - .PHONY Target: unproxy
