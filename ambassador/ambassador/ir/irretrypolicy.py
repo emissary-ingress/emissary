@@ -34,6 +34,6 @@ class IRRetryPolicy (IRResource):
 
         is_valid = False
         if retry_on in [ '5xx', 'gateway-error', 'connect-failure', 'retriable-4xx', 'refused-stream', 'retriable-status-codes' ]:
-            return True
+            is_valid = True
 
         return is_valid
