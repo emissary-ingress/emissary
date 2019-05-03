@@ -227,9 +227,9 @@ class V2Route(dict):
         return hash_policy
 
     @staticmethod
-    def generate_headers_to_add(headers: dict) -> List[dict]:
+    def generate_headers_to_add(header_dict: dict) -> List[dict]:
         headers = []
-        for k, v in headers.items():
+        for k, v in header_dict.items():
                 append = True
                 if isinstance(v,dict):
                     if 'append' in v:
