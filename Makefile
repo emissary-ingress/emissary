@@ -302,6 +302,10 @@ check-envoy: envoy-bin/envoy-static envoy-build-image.txt
 	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...
 .PHONY: check-envoy
 
+envoy-shell: envoy-build-image.txt
+	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy -it $$(cat envoy-build-image.txt)
+.PHONY: envoy-shell
+
 docker-base-images: envoy-bin/envoy-static-stripped
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.envoy .
