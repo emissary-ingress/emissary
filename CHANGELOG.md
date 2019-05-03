@@ -1,5 +1,9 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.4.2 (2019-05-03)
+
+ * Turn down liveness and readiness probe logging from "info" to "debug"
+
 ## 0.4.1 (2019-04-23)
 
  * Add liveness and readiness probes
