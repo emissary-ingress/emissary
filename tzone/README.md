@@ -11,7 +11,7 @@ Step 2:
 
   While anywhere, run:
 
-    docker run -it --cap-add NET_ADMIN -it tzone
+    docker run --cap-add NET_ADMIN -it tzone
 
   This will start a shell inside the `tzone` container.  The
   `--cap-add NET_ADMIN` gives the docker container the priviliges
