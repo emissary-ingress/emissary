@@ -10,7 +10,7 @@ This allows the operator to have the best of both worlds: a high performance, mo
 
 Getting Ambassador working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
-1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/quick-start.html) (without using mutual TLS auth between sidecars)
+1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/install/kubernetes/) (without using mutual TLS auth between sidecars)
 2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/examples/bookinfo/#if-you-are-running-on-kubernetes).
 3. Verify that the sample application is working as expected.
 
@@ -165,7 +165,7 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 ## Automatic Sidecar Injection
 
-Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#policy).
+Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
 
 ## Istio Mutual TLS
 
