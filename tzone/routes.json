@@ -1,0 +1,25 @@
+[
+  {
+    "name": "blah",
+    "routes": [
+      {
+        "name": "hi",
+        "ip": "10.0.0.2",
+        "proto": "tcp",
+        "target": "8080"
+      },
+      {
+        "name": "ho",
+        "ip": "10.0.0.3",
+        "proto": "tcp",
+        "target": "8080"
+      },
+      {
+        "name": "hello",
+        "ip": "10.0.0.4",
+        "proto": "tcp",
+        "target": "8080"
+      }
+    ]
+  }
+]
