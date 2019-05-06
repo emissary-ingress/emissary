@@ -103,5 +103,4 @@ class IRTracing (IRResource):
 
     def finalize(self):
         self.ir.logger.info("tracing cluster name: %s" % self.cluster.name)
-        self.ir.logger.info("tracing grpc: %s" % self.grpc)
         self.driver_config['collector_cluster'] = self.cluster.name
