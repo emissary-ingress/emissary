@@ -2,12 +2,17 @@
 #
 # Makefile snippet for automatically setting VERSION.
 #
-## Inputs ##
-#  (none)
+## Eager inputs ##
+#  - Variable: CIRCLE_TAG (optional)
+#  - Variable: TRAVIS_TAG (optional)
+## Lazy inputs ##
+#  - Variable: CI (optional)
+#  - Variable: VERSION ?= …
 ## Outputs ##
-#  - Variable: VERSION
+#  - Variable: VERSION ?= …
+## common.mk targets ##
+#  (none)
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-_version.mk := $(lastword $(MAKEFILE_LIST))
 
 VERSION ?= $(patsubst v%,%,$(shell git describe --tags --always))$(if $(shell git status -s),-dirty$(if $(CI),$(_version.ci_error)))
 
