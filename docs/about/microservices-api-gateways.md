@@ -14,7 +14,7 @@ In a microservices organization, small teams of developers work independently fr
 2. Monitor their service, to see how well it's working
 3. Test and update their service, so they can keep on improving the service
 
-The team needs to all of this *without* requiring assistance from another operations or platform team--as soon as a services team requires another team, they're no longer working independently, and this can lead to bottlenecks.
+The team needs to do all of this *without* requiring assistance from another operations or platform team--as soon as a services team requires another team, they're no longer working independently, and this can lead to bottlenecks.
 
 For service publication, a microservices API gateway provides a static address for consumers, and dynamically route requests to the appropriate service address. In addition, providing authentication and TLS termination for security are typical considerations in exposing a service to other consumers.
 
