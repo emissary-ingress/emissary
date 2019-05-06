@@ -78,7 +78,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Module
       name: tls
       config:
@@ -91,10 +91,10 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: http
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: https
   selector:
     service: ambassador
 ---
@@ -116,7 +116,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.2
+        image: quay.io/datawire/ambassador:0.60.3
 # XXX: Kubernaut
 #        resources:
 #          limits:
@@ -133,12 +133,12 @@ spec:
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
         ports:
-        - name: http
-          containerPort: 80
-        - name: https
-          containerPort: 443
-        - name: admin
-          containerPort: 8877
+          - name: http
+            containerPort: 8080
+          - name: https
+            containerPort: 8443
+          - name: admin
+            containerPort: 8877
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive

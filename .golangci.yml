@@ -12,6 +12,7 @@ linters:
     - scopelint
     - stylecheck
     - unparam
+    - unused  # confused by dev-portal-server, for some reason
 linters-settings:
   unused:
     # treat code as a program (not a library) and report unused
