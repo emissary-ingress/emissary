@@ -323,14 +323,29 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 else:
                     total_weight += mapping.weight
 
-            # OK, once that's done normalize all the weights.
+            # OK, once that's done normalize all the weights. Be sure to round each
+            # weight into an integer, since the Envoy spec expects that. We may not
+            # sum to 100 exactly by doing this, so we'll need to fix that up later.
             if unspecified_mappings:
                 for mapping in self.mappings:
                     if not mapping.get("weight", 0):
-                        mapping.weight = (100.0 - total_weight)/unspecified_mappings
+                        mapping.weight = round((100.0 - total_weight)/unspecified_mappings)
             elif total_weight != 100.0:
                 for mapping in self.mappings:
-                    mapping.weight *= 100.0/total_weight
+                    mapping.weight = round(mapping.weight * (100.0/total_weight))
+
+            final_total = 0
+            for mapping in self.mappings:
+                final_total += mapping.weight
+
+            # Spread out the remainder evenly over the mappings.
+            while len(self.mappings) > 0 and final_total != 100:
+                step = 1 if final_total < 100 else -1
+                for mapping in self.mappings:
+                    mapping.weight += step
+                    final_total += step
+                    if final_total == 100:
+                        break
 
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
