@@ -7,6 +7,9 @@ CONSUL_CONNECT_INTEGRATION_IMAGE=$(cat docker/consul_connect_integration.docker.
 MODEL_CLUSTER_APP_IMAGE=$(cat docker/model-cluster-app.docker.knaut-push)
 MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-grpc-auth.docker.knaut-push)
 MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-http-auth.docker.knaut-push)
+DEV_PORTAL_IMAGE=$(cat docker/dev-portal-server.docker.knaut-push)
+INTERNAL_ACCESS_IMAGE=$(cat docker/apro-internal-access.docker.knaut-push)
+OPENAPI_SERVER_IMAGE=$(cat docker/example-service.docker.knaut-push)
 
 # acceptance_test.js
 EXTERNAL_IP=ambassador.standalone.svc.cluster.local

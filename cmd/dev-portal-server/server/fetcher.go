@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -117,7 +118,15 @@ func getString(o *gabs.Container, attr string) string {
 func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
 	logger.Info("HTTP GET")
-	client := &http.Client{Timeout: time.Second * 2}
+	client := &http.Client{
+		Timeout: time.Second * 2,
+
+		// TODO: We should make this an explicit opt-in
+		Transport: &http.Transport{
+			/* #nosec */
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		logger.Error(err)
