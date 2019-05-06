@@ -65,7 +65,7 @@ config:
         conflict_time = parsedate_to_datetime(conflict_result.headers['Date'][0]).timestamp()
 
         assert abs(ok_time - normal_time) <= 1, "time to get 200 OK {} deviates more than a second from time to get a 500 {}".format(ok_time, normal_time)
-        assert retry_time - normal_time >= 3, "retry time {} should be at least 3 seconds slower than normal time {}".format(retry_time, normal_time)
-        assert conflict_time - ok_time >= 3, "conflict time {} should be at least 3 seconds slower than 200 OK time {}".format(conflict_time, ok_time)
+        assert retry_time - normal_time >= 2, "retry time {} should be at least 2 seconds slower than normal time {}".format(retry_time, normal_time)
+        assert conflict_time - ok_time >= 2, "conflict time {} should be at least 2 seconds slower than 200 OK time {}".format(conflict_time, ok_time)
 
 # main = Runner(AmbassadorTest)
