@@ -26,6 +26,8 @@ class IRTLSContext(IRResource):
     hosts: Optional[List[str]]
     alpn_protocols: Optional[str]
     cert_required: Optional[bool]
+    min_tls_version: Optional[str]
+    max_tls_version: Optional[str]
     redirect_cleartext_from: Optional[int]
     secret_info: dict
 
@@ -55,6 +57,8 @@ class IRTLSContext(IRResource):
         self.hosts = config.get('hosts')
         self.alpn_protocols = config.get('alpn_protocols')
         self.cert_required = config.get('cert_required')
+        self.min_tls_version = config.get('min_tls_version')
+        self.max_tls_version = config.get('max_tls_version')
 
         rcf = config.get('redirect_cleartext_from')
 
