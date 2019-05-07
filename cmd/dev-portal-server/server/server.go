@@ -209,24 +209,6 @@ func (s *server) handleIndexHTML() http.HandlerFunc {
 </html>
 `)
 
-		//funcMap := tpl.FuncMap{
-		//	// The name "inc" is what the function will be called in the template text.
-		//	"inc": func(i int) int {
-		//		return i + 1
-		//	},
-		//}
-
-		//		tmpl, err := template.New("index").Parse(`
-		//<h1>Available services</h1>
-		//{{range $service, $metadata := .K8sStore.List }}
-		//<p>
-		//<strong>{{$service.Namespace}}/{{$service.Name}}</strong>
-		//    {{if $metadata.HasDoc}}
-		//    <a href="doc/{{$service.Namespace}}/{{$service.Name}}">Docs</a>
-		//    {{end}}
-		//</p>
-		//{{end}}
-		//`)
 		if err != nil {
 			log.Fatal(err)
 		}
