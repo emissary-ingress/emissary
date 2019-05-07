@@ -113,6 +113,10 @@ config:
 #   max_connections: 2048
 #   ...
 
+# retry_policy lets you add resilience to your services in case of request failures by performing automatic retries.
+# retry_policy:
+#   retry_on: "5xx"
+#   ...
 
 # Set default CORS configuration for all mappings in the cluster. See
 # CORS syntax at https://www.getambassador.io/reference/cors.html

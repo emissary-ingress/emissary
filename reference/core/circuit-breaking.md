@@ -74,3 +74,59 @@ circuit_breakers:
   max_requests: 1024
   max_retries: 3
 ```
+
+# Automatic Retries
+
+Ambassador does not retry a failed request unless explicitly configured. Automatic retries let you add resilience to your services in case of request failures.
+
+Retry policy can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
+
+The `retry_policy` attribute configures circuit breaking. The following fields are supported:
+```yaml
+retry_policy:
+  retry_on: <string>
+  num_retries: <integer>
+  per_try_timeout: <string>
+```
+
+### `retry_on`
+(Required) Specifies the condition under which Ambassador retries a failed request like upstream server errors, gateway errors, etc.
+
+One of `5xx`, `gateway-error`, `connect-failure`, `retriable-4xx`, `refused-stream`, `retriable-status-codes`. Read in detail at [Envoy documentation](https://www.envoyproxy.io/docs/envoy/v1.5.0/configuration/http_filters/router_filter#x-envoy-retry-on)
+
+### `num_retries`
+(Default: 1) Specifies the number of retries to do for a failed request.
+
+### `per_try_timeout`
+(Default: global request timeout) Specify the timeout for each retry, e.g. `1s`, `1500ms`.
+
+### Examples:
+
+- Retries defined on a single mapping -
+```yaml
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+retry_policy:
+  retry_on: "5xx"
+  num_retries: 10
+```
+
+- Circuit breakers defined globally -
+```yaml
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  retry_policy:
+    retry_on: "retriable-4xx"
+    num_retries: 4
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  qotm_mapping
+prefix: /qotm/
+service: qotm
+```
