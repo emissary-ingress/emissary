@@ -1,34 +1,24 @@
-#!/bin/sh
+#!/bin/bash
+# Usage: [DIAGD_ONLY=y] ENVOY_DIR=<envoy_dir> kick_ads.sh <ambex-pid> <envoy-flags...>
 
-if [ ! -z "$DIAGD_ONLY" ]; then
+if [[ -n "$DIAGD_ONLY" ]]; then
     echo "Not starting, since in diagd-only mode."
     exit 0
 fi
 
-# Is there an Envoy running?
-AMBEX_PID="$1"
+arg_ambex_pid="$1"
+arg_envoy_flags=("${@:2}")
 
-ENVOY_RUNNING=
+envoy_pid_file="${ENVOY_DIR}/envoy.pid"
 
-ENVOY_PID_FILE="${ENVOY_DIR}/envoy.pid"
-
-if [ -r "$ENVOY_PID_FILE" ]; then
-    ENVOY_PID=$(cat "${ENVOY_PID_FILE}")
-
-    if kill -0 $ENVOY_PID; then
-        ENVOY_RUNNING=yes
-    fi
-fi
-
-if [ -z "$ENVOY_RUNNING" ]; then
+if [[ ! -r "$envoy_pid_file" ]] || ! kill -0 $(cat "${envoy_pid_file}"); then
     # Envoy isn't running. Start it.
-    envoy $ENVOY_DEBUG -c "${ENVOY_BOOTSTRAP_FILE}" &
-    ENVOY_PID="$!"
-    echo "KICK: started Envoy as PID $ENVOY_PID"
-
-    echo "$ENVOY_PID" > "$ENVOY_PID_FILE"
+    envoy "${arg_envoy_flags[@]}" &
+    envoy_pid="$!"
+    echo "KICK: started Envoy as PID $envoy_pid"
+    echo "$envoy_pid" > "$envoy_pid_file"
 fi
 
 # Once envoy is running, poke Ambex.
 echo "KICK: kicking ambex"
-kill -HUP "$AMBEX_PID"
+kill -HUP "$arg_ambex_pid"
