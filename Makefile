@@ -157,7 +157,7 @@ KAT_BACKEND_RELEASE = 1.4.0
 
 # Allow overriding which watt we use.
 WATT ?= watt
-WATT_VERSION ?= 0.4.7
+WATT_VERSION ?= 0.4.9
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -354,7 +354,7 @@ ambassador/ambassador/VERSION.py:
 version: ambassador/ambassador/VERSION.py
 
 TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.4.6
+TELEPROXY_VERSION=0.4.9
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
