@@ -159,8 +159,16 @@ class V2Route(dict):
             if shadow:
                 shadow = shadow[0]
 
+                weight = shadow.get('weight', 100)
+
                 route['request_mirror_policy'] = {
-                    'cluster': shadow.cluster.name
+                    'cluster': shadow.cluster.name,
+                    'runtime_fraction': {
+                        'default_value': {
+                            'numerator': weight,
+                            'denominator': 'HUNDRED'
+                        }
+                    }
                 }
 
             # Is RateLimit a thing?
