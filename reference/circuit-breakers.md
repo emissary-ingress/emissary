@@ -1,8 +1,10 @@
-# Circuit Breaking in Ambassador
+# Circuit Breakers
 
-Ambassador lets users configure circuit breaking limits at the network level.
+Circuit breakers are a powerful technique to improve resilience. By preventing additional connections or requests to an overloaded service, circuit breakers limit the blast radius of an overloaded service. By design, Ambassador circuit breakers are distributed, i.e., different Ambassador instances do not coordinate circuit breaker information.
 
-Circuit breaking configuration can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
+## Circuit breaker configuration
+
+Circuit breaking configuration can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
 
 The `circuit_breakers` attribute configures circuit breaking. The following fields are supported:
 ```yaml
@@ -29,9 +31,10 @@ circuit_breakers:
 ### `max_retries`
 (Default: `3`) Specifies the maximum number of parallel retries allowed to hosts.
 
-### Examples:
+## Examples
 
-- Circuit breakers defined on a single mapping -
+Circuit breakers defined on a single mapping:
+
 ```yaml
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -43,7 +46,8 @@ circuit_breakers:
   max_pending_requests: 2048
 ```
 
-- Circuit breakers defined globally -
+A global circuit breaker:
+
 ```yaml
 apiVersion: ambassador/v0
 kind:  Module
@@ -60,11 +64,20 @@ prefix: /qotm/
 service: qotm
 ```
 
-**Notes:**
+## Circuit breakers and automatic retries
 
-- For more insight on how circuit breakers behave, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/circuit_breaking).
-- The responses from a broken circuit contain the `x-envoy-overloaded` header.
-- The following are the default values for circuit breaking if nothing is specified:
+Circuit breakers are designed to be used in conjunction with [automatic retries](reference/retries). Here are some examples:
+
+* You've configured automatic retries for failed requests to a service. Your service is under heavy load, and starting to timeout on servicing requests. In this case, automatic retries can exacerbate your problem, increasing the total request volume by 2x or more. By aggressively circuit breaking, you can mitigate failure in this scenario.
+* To circuit break when services are slow, you can combine circuit breakers with retries. Reduce the timeout for retries, and then set a circuit breaker that detects many retries. In this setup, if your service doesn't respond quickly, a flood of retries will occur, which can then trip the circuit breaker.
+
+Note that setting circuit breaker thresholds requires careful monitoring and experimentation. We recommend you start with conservative values for circuit breakers, and adjust them over time.
+
+## More information about circuit breakers
+
+Responses from a broken circuit contain the `x-envoy-overloaded` header.
+
+The following are the default values for circuit breaking if nothing is specified:
 
 ```yaml
 circuit_breakers:
@@ -75,58 +88,4 @@ circuit_breakers:
   max_retries: 3
 ```
 
-# Automatic Retries
-
-Ambassador does not retry a failed request unless explicitly configured. Automatic retries let you add resilience to your services in case of request failures.
-
-Retry policy can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
-
-The `retry_policy` attribute configures circuit breaking. The following fields are supported:
-```yaml
-retry_policy:
-  retry_on: <string>
-  num_retries: <integer>
-  per_try_timeout: <string>
-```
-
-### `retry_on`
-(Required) Specifies the condition under which Ambassador retries a failed request like upstream server errors, gateway errors, etc.
-
-One of `5xx`, `gateway-error`, `connect-failure`, `retriable-4xx`, `refused-stream`, `retriable-status-codes`. Read in detail at [Envoy documentation](https://www.envoyproxy.io/docs/envoy/v1.5.0/configuration/http_filters/router_filter#x-envoy-retry-on)
-
-### `num_retries`
-(Default: 1) Specifies the number of retries to do for a failed request.
-
-### `per_try_timeout`
-(Default: global request timeout) Specify the timeout for each retry, e.g. `1s`, `1500ms`.
-
-### Examples:
-
-- Retries defined on a single mapping -
-```yaml
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
-retry_policy:
-  retry_on: "5xx"
-  num_retries: 10
-```
-
-- Circuit breakers defined globally -
-```yaml
-apiVersion: ambassador/v0
-kind:  Module
-name:  ambassador
-config:
-  retry_policy:
-    retry_on: "retriable-4xx"
-    num_retries: 4
----
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
-```
+Circuit breaker metrics are exposed in statsd. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/circuit_breaking).
