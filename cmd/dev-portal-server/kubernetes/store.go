@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
-	"go4.org/sort"
+	"sort"
 	"sync"
 
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
