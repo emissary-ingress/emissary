@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"fmt"
+	"go4.org/sort"
 	"sync"
 
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
@@ -21,6 +23,11 @@ type ServiceMetadata struct {
 	Doc *openapi.OpenAPIDoc
 }
 
+type ServiceRecord struct {
+	Service  Service
+	Metadata ServiceMetadata
+}
+
 type MetadataMap map[Service]*ServiceMetadata
 
 // Storage for metadata about Kubernetes services. Implementations should assume
@@ -36,6 +43,8 @@ type ServiceStore interface {
 	List() MetadataMap
 	// Delete a service
 	Delete(ks Service)
+
+	Slice() []ServiceRecord
 }
 
 // In-memory implementation of ServiceStore.
@@ -77,6 +86,36 @@ func (s *inMemoryStore) Get(ks Service, with_doc bool) *ServiceMetadata {
 	if !with_doc {
 		result.Doc = nil
 	}
+	return result
+}
+
+func (s *inMemoryStore) Slice() []ServiceRecord {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	result := make([]ServiceRecord, 0)
+
+	for service, metadata := range s.List() {
+		result = append(result, ServiceRecord{
+			Service: Service{
+				Name:      service.Name,
+				Namespace: service.Namespace,
+			},
+			Metadata: ServiceMetadata{
+				Prefix:  metadata.Prefix,
+				Doc:     metadata.Doc,
+				HasDoc:  metadata.HasDoc,
+				BaseURL: metadata.BaseURL,
+			},
+		})
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		iFullName := fmt.Sprintf("%s.%s", result[i].Service.Namespace, result[i].Service.Name)
+		jFullName := fmt.Sprintf("%s.%s", result[j].Service.Namespace, result[j].Service.Name)
+
+		return iFullName < jFullName
+	})
+
 	return result
 }
 

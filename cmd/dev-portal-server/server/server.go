@@ -142,17 +142,91 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 
 func (s *server) handleIndexHTML() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.New("index").Parse(`
-<h1>Available services</h1>
-{{range $service, $metadata := .K8sStore.List }}
-<p>
-<strong>{{$service.Namespace}}/{{$service.Name}}</strong>
-    {{if $metadata.HasDoc}}
-    <a href="doc/{{$service.Namespace}}/{{$service.Name}}">Docs</a>
-    {{end}}
-</p>
-{{end}}
+		funcMap := template.FuncMap{
+			// The name "inc" is what the function will be called in the template text.
+			"isEven": func(i int) bool {
+				return i%2 == 0
+			},
+
+			"isOdd": func(i int) bool {
+				return i%2 != 0
+			},
+		}
+
+		tmpl, err := template.New("index").Funcs(funcMap).Parse(`
+<html lang="utf-8">
+<head>
+	<title>Developer Portal</title>
+
+	<!-- Bootstrap core CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+	<!-- Custom styles for this template -->
+	<link href="https://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+	<h1>Developer Portal</h1>
+	<div class="row">
+		<div class="col-12">
+			Available Services
+			<div class="row">
+				<div class="col-12">
+					<table cellpadding="2em" width="100%">
+						<thead>
+							<tr>
+								<td><b>Service Name</b></td>
+								<td><b>Swagger URL</b></td>
+							</tr>
+						</thead>
+						<tbody>
+							{{range $i, $element := .K8sStore.Slice }}
+							{{if isEven $i }}
+							<tr style="background: rgba(86,61,124,.05);">
+							{{else}}
+							<tr>
+							{{end}}
+								<td>
+									<samp>{{$element.Service.Namespace}}.{{$element.Service.Name}}</samp>
+								</td>
+								<td>
+									{{if $element.Metadata.HasDoc}}
+    								<a href="doc/{{$element.Service.Namespace}}/{{$element.Service.Name}}"><code>API Documentation</code></a>
+									{{else}}
+									<code><span style="color:red">No API Documentation</span></code>
+    								{{end}}
+								</td>
+							</tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
 `)
+
+		//funcMap := tpl.FuncMap{
+		//	// The name "inc" is what the function will be called in the template text.
+		//	"inc": func(i int) int {
+		//		return i + 1
+		//	},
+		//}
+
+		//		tmpl, err := template.New("index").Parse(`
+		//<h1>Available services</h1>
+		//{{range $service, $metadata := .K8sStore.List }}
+		//<p>
+		//<strong>{{$service.Namespace}}/{{$service.Name}}</strong>
+		//    {{if $metadata.HasDoc}}
+		//    <a href="doc/{{$service.Namespace}}/{{$service.Name}}">Docs</a>
+		//    {{end}}
+		//</p>
+		//{{end}}
+		//`)
 		if err != nil {
 			log.Fatal(err)
 		}
