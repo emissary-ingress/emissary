@@ -25,6 +25,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
+| [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
 | `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
@@ -33,7 +34,6 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`host_regex`](/reference/host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`host_rewrite`](/reference/host) | forces the HTTP `Host` header to a specific value when talking to the service |
 | [`load_balancer`](/reference/core/load-balancer) | configures load balancer on a mapping
-| [`circuit_breakers`](/reference/core/circuit-breaking) | configures circuit breaking on a mapping
 | [`method`](/reference/method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
