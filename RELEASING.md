@@ -40,7 +40,7 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
    - in `values.yaml`, update `tag`.
    - Helpful stuff for this:
       - git checkout master               # switch to master
-      - git fetch --all                   # make sure our view of remotes is up to date
+      - git fetch --all --prune           # make sure our view of remotes is up to date
       - git pull                          # pull down any changes to master
       - git rebase upstream/master        # move master on top of upstream
       - git push                          # push rebases to our fork

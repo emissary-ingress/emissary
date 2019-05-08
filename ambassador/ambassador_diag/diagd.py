@@ -726,7 +726,8 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if not self.validate_envoy_config(config=ads_config):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
-            app.check_scout("attempted bad update")
+            # Don't use app.check_scout; it will deadlock.
+            self.check_scout("attempted bad update")
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
             return
 

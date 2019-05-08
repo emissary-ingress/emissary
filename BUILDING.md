@@ -148,7 +148,7 @@ Tests consume quite a lot of resources, so make sure you allocate them according
 
 That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
 
-#### `ambassador dump``
+#### `ambassador dump`
 
 The `ambassador dump` function (run from a `make shell`) will export the full Envoy v2 configuration. Create a directory with one or more Ambassador configuration resources. Then, run:
 

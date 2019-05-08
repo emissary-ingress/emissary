@@ -60,11 +60,16 @@ class IRTracing (IRResource):
             self.post_error(RichStatus.fromError("driver field is required in TracingService"))
             return False
 
+        grpc = False
+        if driver == "lightstep":
+            grpc = True
+
         # OK, we have a valid config.
         self.sourced_by(config)
 
         self.service = service
         self.driver = driver
+        self.grpc = grpc
         self.cluster = None
         self.driver_config = config.get("config", {})
         self.tag_headers = config.get('tag_headers', [])
@@ -85,7 +90,8 @@ class IRTracing (IRResource):
                 location=self.location,
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),
-                marker='tracing'
+                marker='tracing',
+                grpc=self.grpc
             )
         )
 
