@@ -284,6 +284,8 @@ config:
   server:
     enabled: True
     secret: test-certs-secret
+    min_tls_version: TLSv1_0
+    max_tls_version: TLSv1_2
 """)
 
         # Use self.target _here_, because we want the httpbin mapping to
