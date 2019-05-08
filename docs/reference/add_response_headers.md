@@ -4,7 +4,7 @@ Ambassador can add a dictionary of HTTP headers that can be added to each respon
 
 ## The `add_response_headers` annotation
 
-The `add_response_headers` attribute is a dictionary of `header`: `value` pairs. Where the value can be string or another dictionary, which supports advanced configuration of the headers. Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values. Please see the examples shown below for more details on configuration.
+The `add_response_headers` attribute is a dictionary of `header`: `value` pairs where the value can be string or another dictionary which supports advanced configuration of the headers. Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values. Please see the examples shown below for more details on configuration.
 
 Only `append` configurations are supported with additional configrations.
 
