@@ -88,6 +88,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.61.0] May 08, 2019
+[0.61.0]: https://github.com/datawire/ambassador/compare/0.60.3...0.61.0
+
+Ambassador 0.61.0 metadata
+
+### Changes:
+- Feature: Support for circuit breaking and retry policy
+- Feature: Support for shadow traffic weighting - @nemo83
+- Bugfix: Fixed LightStep gRPC TracingService - @sbaum1994
 ## [0.60.3] May 01, 2019
 [0.60.3]: https://github.com/datawire/ambassador/compare/0.60.2...0.60.3
 
