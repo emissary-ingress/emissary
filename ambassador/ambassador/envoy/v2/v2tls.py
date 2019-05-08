@@ -66,8 +66,8 @@ class V2TLSContext(Dict):
 
     def update_tls_version(self, key: str, value: str) -> None:
         common = self.get_common()
-        common.setdefault('tls_parameters', {})
-        common['tls_parameters'][key] = value
+        common.setdefault('tls_params', {})
+        common['tls_params'][key] = value
 
     def update_validation(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}

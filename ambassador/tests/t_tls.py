@@ -284,8 +284,6 @@ config:
   server:
     enabled: True
     secret: test-certs-secret
-    min_tls_version: TLSv1_0
-    max_tls_version: TLSv1_2
 """)
 
         # Use self.target _here_, because we want the httpbin mapping to
@@ -426,6 +424,8 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
+min_tls_version: TLSv1_1
+max_tls_version: TLSv1_3
 """)
         yield self, self.format("""
 ---
