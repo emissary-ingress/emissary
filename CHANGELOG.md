@@ -94,8 +94,12 @@ Format:
 Ambassador 0.61.0 metadata
 
 ### Changes:
-- Feature: Support for circuit breaking and retry policy
+- Feature: Support for circuit breakers.
+- Feature: Support for automatic retries. Thanks @l1v3 for the initial patch
 - Feature: Support for shadow traffic weighting - @nemo83
+- Feature: Support for HTTP/1.0 - @cyrus-mc
+- Bugfix: Round each mapping's weight to an integer to prevent invalid Envoy configurations when using weights - @esmet
+- Bugfix: Fix deadlock on invalid Envoy configuration - @esmet
 - Bugfix: Fixed LightStep gRPC TracingService - @sbaum1994
 ## [0.60.3] May 01, 2019
 [0.60.3]: https://github.com/datawire/ambassador/compare/0.60.2...0.60.3
