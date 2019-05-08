@@ -302,3 +302,44 @@ add_request_headers:
                 assert r.backend.request.headers['aoo'] == ['AooA','aoo']
                 assert r.backend.request.headers['boo'] == ['BooB','boo']
                 assert r.backend.request.headers['foo'] == ['FooF','Foo']
+
+class AddRespHeadersMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://httpbin.org
+add_response_headers:
+    koo:
+        append: False
+        value: KooK
+    zoo:
+        append: True
+        value: ZooZ
+    test:
+        value: boo
+    foo: Foo
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name)+"/response-headers?zoo=Zoo&test=Test&koo=Koot")
+
+    def check(self):
+        for r in self.results:
+            if r.headers:
+                print(r.headers)
+                assert r.headers['Koo'] == ['KooK']
+                assert r.headers['Zoo'] == ['Zoo', 'ZooZ']
+                assert r.headers['Test'] == ['Test', 'boo']
+                assert r.headers['Foo'] == ['Foo']
