@@ -203,7 +203,7 @@ spec:
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
-              fieldPath: metadata.namespace          
+              fieldPath: metadata.namespace
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -301,9 +301,20 @@ Note the `tls: upstream`, which lets Ambassador know which certificate to use wh
 
 In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
 
+### Istio RBAC Authorization
+
+While using `istio.default` secret works for mutual TLS only, to be able to interop with [Istio RBAC Authorization](https://istio.io/docs/concepts/security/#authorization) the Ambassador needs to have Istio certificate that matches service account that Ambassador deployment is using (by default the service account is `ambassador`).
+
+The `istio.default` secret is for `default` service account, as can be seen in the certificate Subject Alternative Name: `spiffe://cluster.local/ns/default/sa/default`.
+So when Ambassador is using this certificate but running under `ambassador` service account the Istio RBAC will not work as expected.
+
+Fortunately, Istio automatically creates a secret for each service account, including `ambassador` service account.
+These secrets are named as `istio.{service account name}`.
+So if your Ambassador deployment uses `ambassador` service account, the solution is simply to use `istio.ambassador` secret instead of `istio.default` secret.
+
 ## Tracing Integration
 
-Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by Ambassador. In order to achieve an end-to-end tracing, it is possible to integrate Ambassador with Istio's Zipkin.  
+Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by Ambassador. In order to achieve an end-to-end tracing, it is possible to integrate Ambassador with Istio's Zipkin.
 First confirm that Istio's Zipkin is up and running in the `istio-system` Namespace:
 
 ```shell
@@ -329,7 +340,7 @@ If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingS
 
 ## Monitoring/Statistics Integration
 
-Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador as well. It is possible to integrate Ambassador into Istio's Prometheus to have all statistics and monitoring in a single place.  
+Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador as well. It is possible to integrate Ambassador into Istio's Prometheus to have all statistics and monitoring in a single place.
 
 First we need to change our Ambassador Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
 ```sh
@@ -374,7 +385,7 @@ This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system`
         labels:  {'application': 'ambassador'}
 ```
 
-*Note:* Assuming ambassador-monitor service is runnning in default namespace.  
+*Note:* Assuming ambassador-monitor service is runnning in default namespace.
 
 *Note:* You can also add the scrape by hand by using kubectl edit or dashboard.
 
@@ -389,7 +400,7 @@ More details can be found in [Statistics and Monitoring](https://www.getambassad
 
 ## Grafana Dashboard
 
-Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.  
+Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
 
 First let's start the port-forwarding for Istio's Grafana service:
 ```sh
@@ -400,9 +411,9 @@ Now, open Grafana tool by acessing: `http://localhost:3000/`
 
 To install Ambassador Dashboard:
 
-* Click on Create  
-* Select Import  
-* Enter number 4698  
+* Click on Create
+* Select Import
+* Enter number 4698
 
 Now we need to adjust the Dashboard Port to reflect our Ambassador configuration:
 
