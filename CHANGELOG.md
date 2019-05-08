@@ -88,6 +88,19 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.61.0] May 08, 2019
+[0.61.0]: https://github.com/datawire/ambassador/compare/0.60.3...0.61.0
+
+Ambassador 0.61.0 metadata
+
+### Changes:
+- Feature: Support for circuit breakers (#360)
+- Feature: Support for automatic retries (#1127). Thanks @l1v3 for the initial patch
+- Feature: Support for shadow traffic weighting - @nemo83
+- Feature: Support for HTTP/1.0 (#988) - @cyrus-mc
+- Bugfix: Round each mapping's weight to an integer to prevent invalid Envoy configurations when using weights (#1289) - @esmet
+- Bugfix: Fix deadlock on invalid Envoy configuration (#1491) - @esmet
+- Bugfix: Fixed LightStep gRPC TracingService (#1189) - @sbaum1994
 ## [0.60.3] May 01, 2019
 [0.60.3]: https://github.com/datawire/ambassador/compare/0.60.2...0.60.3
 

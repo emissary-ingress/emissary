@@ -162,4 +162,9 @@ service: shadow.plain-namespace
 
                     weighted_total += value
 
-                assert abs(weighted_total - 50) <= 5, f'weighted buckets should have 50 total calls, got {weighted_total}'
+                # 20% margin of error is kind of absurd, but
+                #
+                # - small sample sizes kind of suck, and
+                # - we actually don't need to test Envoy's ability to generate random numbers, so meh.
+                
+                assert abs(weighted_total - 50) <= 10, f'weighted buckets should have 50 total calls, got {weighted_total}'
