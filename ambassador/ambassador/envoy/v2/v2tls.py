@@ -64,11 +64,9 @@ class V2TLSContext(Dict):
         common = self.get_common()
         common[key] = [ value ]
 
-    def update_tsl_version(self, key: str, value: str) -> None:
+    def update_tls_version(self, key: str, value: str) -> None:
         common = self.get_common()
-        if common['tls_parameters'] is None:
-            common.setdefault('tls_parameters', {})
-
+        common.setdefault('tls_parameters', {})
         common['tls_parameters'][key] = value
 
     def update_validation(self, key: str, value: str) -> None:
@@ -92,8 +90,8 @@ class V2TLSContext(Dict):
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
             ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
-            ( 'min_tls_version', self.update_tsl_version, 'tls_minimum_protocol_version' ),
-            ( 'max_tls_version', self.update_tsl_version, 'tls_maximum_protocol_version' ),
+            ( 'min_tls_version', self.update_tls_version, 'tls_minimum_protocol_version' ),
+            ( 'max_tls_version', self.update_tls_version, 'tls_maximum_protocol_version' ),
         ]:
             value = ctx.get(ctxkey, None)
 
