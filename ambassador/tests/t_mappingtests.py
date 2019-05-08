@@ -257,3 +257,48 @@ weight: {self.weight}
         # main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
 
         assert abs(self.weight - canary) < 25, (self.weight, canary)
+
+class AddReqHeadersMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+add_request_headers:
+    zoo:
+        append: False
+        value: Zoo
+    aoo:
+        append: True
+        value: aoo
+    boo:
+        value: boo
+    foo: Foo
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"), headers={
+            "zoo": "ZooZ",
+            "aoo": "AooA",
+            "boo": "BooB",
+            "foo": "FooF"
+        })
+
+    def check(self):
+        for r in self.results:
+            if r.backend:
+                assert r.backend.request.headers['zoo'] == ['Zoo']
+                assert r.backend.request.headers['aoo'] == ['AooA','aoo']
+                assert r.backend.request.headers['boo'] == ['BooB','boo']
+                assert r.backend.request.headers['foo'] == ['FooF','Foo']
