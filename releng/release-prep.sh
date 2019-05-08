@@ -38,9 +38,9 @@ CURRENT_VERSION=$(curl --silent "https://api.github.com/repos/datawire/ambassado
 echo
 echo "Current version: ${CURRENT_VERSION}"
 echo
-# git log --pretty=oneline --abbrev-commit ${CURRENT_VERSION}^..
-# echo
-# echo "^ these changes have been made since the last release, pick the right version number accordingly"
+git log --pretty=oneline --abbrev-commit ${CURRENT_VERSION}^..
+echo
+echo "^ these changes have been made since the last release, pick the right version number accordingly"
 read -p "Enter new version: " DESIRED_VERSION
 echo "Desired version: ${DESIRED_VERSION}"
 press_enter
