@@ -4,7 +4,7 @@ Ambassador supports both terminating TLS and originating TLS. By default, Ambass
 
 ## `TLSContext`
 
-The `TLSContext` type manges TLS configurations. The `TLSContext` replaces the original tls `Module` in older versions of Ambassador (pre-0.50).
+The `TLSContext` type manages TLS configurations. The `TLSContext` replaces the original tls `Module` in older versions of Ambassador (pre-0.50).
 
 ```yaml
 ---
@@ -71,7 +71,7 @@ If you leave off http/1.1, only HTTP2 connections will be supported.
 
 ## `redirect_cleartext_from`
 
-The most common case requiring a `tls` module is redirecting cleartext traffic on port 8080 to HTTPS on port 8443, which can be done with the following configuration:
+The most common case still requiring a `tls` module is redirecting cleartext traffic on port 8080 to HTTPS on port 8443, which can be done with the following configuration:
 
 ```yaml
 ---
