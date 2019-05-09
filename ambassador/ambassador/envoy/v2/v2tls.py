@@ -64,6 +64,18 @@ class V2TLSContext(Dict):
         common = self.get_common()
         common[key] = [ value ]
 
+    def update_tls_version(self, key: str, value: str) -> None:
+        common = self.get_common()
+        common.setdefault('tls_params', {})
+        if value == "v1.0":
+            common['tls_params'][key] = "TLSv1_0"
+        if value == "v1.1":
+            common['tls_params'][key] = "TLSv1_1"
+        if value == "v1.2":
+            common['tls_params'][key] = "TLSv1_2"
+        if value == "v1.3":
+            common['tls_params'][key] = "TLSv1_3"
+
     def update_validation(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
         validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
@@ -85,6 +97,8 @@ class V2TLSContext(Dict):
         for ctxkey, handler, hkey in [
             ( 'alpn_protocols', self.update_alpn, 'alpn_protocols' ),
             ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
+            ( 'min_tls_version', self.update_tls_version, 'tls_minimum_protocol_version' ),
+            ( 'max_tls_version', self.update_tls_version, 'tls_maximum_protocol_version' ),
         ]:
             value = ctx.get(ctxkey, None)
 

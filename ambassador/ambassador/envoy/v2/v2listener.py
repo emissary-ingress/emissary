@@ -80,7 +80,6 @@ ExtAuthRequestHeaders = {
     'WWW-Authenticate': True,
 }
 
-
 @multi
 def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning

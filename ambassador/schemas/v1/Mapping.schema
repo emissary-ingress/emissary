@@ -17,14 +17,13 @@
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },
-        "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
-        "add_response_headers": { "$ref": "#/definitions/mapStrStr" },
+        "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
+        "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
-        "circuit_breaker": { "type": "string" },
         "enable_ipv4": { "type": "boolean" },
         "enable_ipv6": { "type": "boolean" },
-        "circuit_breaker": {
+        "circuit_breakers": {
             "type": "array",
             "items": {
                 "type": "object",
@@ -32,14 +31,13 @@
                     "priority": {
                         "type": "string",
                         "enum": ["default", "high"]
-                        },
+                    },
                     "max_connections": { "type": "integer" },
                     "max_pending_requests": { "type": "integer" },
                     "max_requests": { "type": "integer" },
                     "max_retries": { "type": "integer" }
-                    },
+                },
                 "additionalProperties": false
-                }
             }
         },
         "cors": {
@@ -71,6 +69,15 @@
                     ]
                 },
                 "max_age": { "type": "string" }
+            },
+            "additionalProperties": false
+        },
+        "retry_policy": {
+            "type": "object",
+            "properties": {
+                "retry_on":  { "type": "string" },
+                "num_retries": { "type": "integer" },
+                "per_try_timeout": { "type": "string" }
             },
             "additionalProperties": false
         },
@@ -144,6 +151,10 @@
         "mapStrStr": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
+        "mapStrObj": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean", "object" ] }
         },
         "rateLimit": {
             "anyOf": [ { "type": "array" }, { "type": "object" } ]

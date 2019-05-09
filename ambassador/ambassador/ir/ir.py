@@ -491,10 +491,6 @@ class IR:
         using_tls_module = False
         using_tls_contexts = False
 
-        od['endpoint_routing'] = Config.enable_endpoints
-        # od['endpoint_resource_total'] = len(self.endpoints.keys())
-        # od['serviceinfo_resource_total'] = len(self.service_info.keys())
-
         for ctx in self.get_tls_contexts():
             if ctx:
                 secret_info = ctx.get('secret_info', {})
@@ -522,8 +518,10 @@ class IR:
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10' ]:
             od[key] = self.ambassador_module.get(key, False)
 
+        od['service_resource_total'] = len(list(self.services.keys()))
+
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
-        od['server_name'] = bool(self.ambassador_module.server_name != '')
+        od['server_name'] = bool(self.ambassador_module.server_name != 'envoy')
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
@@ -582,26 +580,26 @@ class IR:
                 using_http = True
                 cluster_http_count += 1
 
-            # cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.endpoint['ip']
-            # num_endpoints = len(cluster_endpoints)
+            cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.targets
+            num_endpoints = len(cluster_endpoints)
 
-            # if using_tls:
-            #     endpoint_tls_count += num_endpoints
-            #
-            # if using_http:
-            #     endpoint_http_count += num_endpoints
-            #
-            # if using_grpc:
-            #     endpoint_grpc_count += num_endpoints
-            #
-            # if lb_type == 'kube':
-            #     endpoint_routing_kube_count += num_endpoints
-            # elif lb_type == 'ring_hash':
-            #     endpoint_routing_envoy_rh_count += num_endpoints
-            # elif lb_type == 'maglev':
-            #     endpoint_routing_envoy_maglev_count += num_endpoints
-            # else:
-            #     endpoint_routing_envoy_rr_count += num_endpoints
+            if using_tls:
+                endpoint_tls_count += num_endpoints
+
+            if using_http:
+                endpoint_http_count += num_endpoints
+
+            if using_grpc:
+                endpoint_grpc_count += num_endpoints
+
+            if lb_type == 'kube':
+                endpoint_routing_kube_count += num_endpoints
+            elif lb_type == 'ring_hash':
+                endpoint_routing_envoy_rh_count += num_endpoints
+            elif lb_type == 'maglev':
+                endpoint_routing_envoy_maglev_count += num_endpoints
+            else:
+                endpoint_routing_envoy_rr_count += num_endpoints
 
         od['cluster_count'] = cluster_count
         od['cluster_grpc_count'] = cluster_grpc_count
@@ -611,6 +609,8 @@ class IR:
         od['cluster_routing_envoy_rr_count'] = cluster_routing_envoy_rr_count
         od['cluster_routing_envoy_rh_count'] = cluster_routing_envoy_rh_count
         od['cluster_routing_envoy_maglev_count'] = cluster_routing_envoy_maglev_count
+
+        od['endpoint_routing'] = Config.enable_endpoints
 
         od['endpoint_grpc_count'] = endpoint_grpc_count
         od['endpoint_http_count'] = endpoint_http_count
@@ -659,17 +659,21 @@ class IR:
         od['tracing_driver'] = tracing_driver
 
         group_count = 0
-        group_http_count = 0            # HTTPMappingGroups
-        group_tcp_count = 0             # TCPMappingGroups
-        group_precedence_count = 0      # groups using explicit precedence
-        group_header_match_count = 0    # groups using header matches
-        group_regex_header_count = 0    # groups using regex header matches
-        group_regex_prefix_count = 0    # groups using regex prefix matches
-        group_shadow_count = 0          # groups using shadows
-        group_host_redirect_count = 0   # groups using host_redirect
-        group_host_rewrite_count = 0    # groups using host_rewrite
-        group_canary_count = 0          # groups coalescing multiple mappings
-        mapping_count = 0               # total mappings
+        group_http_count = 0              # HTTPMappingGroups
+        group_tcp_count = 0               # TCPMappingGroups
+        group_precedence_count = 0        # groups using explicit precedence
+        group_header_match_count = 0      # groups using header matches
+        group_regex_header_count = 0      # groups using regex header matches
+        group_regex_prefix_count = 0      # groups using regex prefix matches
+        group_shadow_count = 0            # groups using shadows
+        group_shadow_weighted_count = 0   # groups using shadows with non-100% weights
+        group_host_redirect_count = 0     # groups using host_redirect
+        group_host_rewrite_count = 0      # groups using host_rewrite
+        group_canary_count = 0            # groups coalescing multiple mappings
+        group_resolver_kube_service = 0   # groups using the KubernetesServiceResolver
+        group_resolver_kube_endpoint = 0  # groups using the KubernetesServiceResolver
+        group_resolver_consul = 0         # groups using the ConsulResolver
+        mapping_count = 0                 # total mappings
 
         for group in self.ordered_groups():
             group_count += 1
@@ -706,11 +710,25 @@ class IR:
             if group.get('shadows', []):
                 group_shadow_count += 1
 
+                if group.get('weight', 100) != 100:
+                    group_shadow_weighted_count += 1
+
             if group.get('host_redirect', {}):
                 group_host_redirect_count += 1
 
             if group.get('host_rewrite', None):
                 group_host_rewrite_count += 1
+
+            res_name = group.get('resolver', self.ambassador_module.get('resolver', 'kubernetes-service'))
+            resolver = self.get_resolver(res_name)
+
+            if resolver:
+                if resolver.kind == 'KubernetesServiceResolver':
+                    group_resolver_kube_service += 1
+                elif resolver.kind == 'KubernetesEndpoinhResolver':
+                    group_resolver_kube_endpoint += 1
+                elif resolver.kind == 'ConsulResolver':
+                    group_resolver_consul += 1
 
         od['group_count'] = group_count
         od['group_http_count'] = group_http_count
@@ -720,9 +738,13 @@ class IR:
         od['group_regex_header_count'] = group_regex_header_count
         od['group_regex_prefix_count'] = group_regex_prefix_count
         od['group_shadow_count'] = group_shadow_count
+        od['group_shadow_weighted_count'] = group_shadow_weighted_count
         od['group_host_redirect_count'] = group_host_redirect_count
         od['group_host_rewrite_count'] = group_host_rewrite_count
         od['group_canary_count'] = group_canary_count
+        od['group_resolver_kube_service'] = group_resolver_kube_service
+        od['group_resolver_kube_endpoint'] = group_resolver_kube_endpoint
+        od['group_resolver_consul'] = group_resolver_consul
         od['mapping_count'] = mapping_count
 
         od['listener_count'] = len(self.listeners)
