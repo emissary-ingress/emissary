@@ -4,28 +4,57 @@ Ambassador supports both terminating TLS and originating TLS. By default, Ambass
 
 ## `TLSContext`
 
-Ambassador 0.50.0 added the `TLSContext` type that enabled more dynamic TLS configurations. While this is specifically used and required for sni, the `TLSContext` can (and will in future versions of Ambassador) replace the tls `Module`.
+Ambassador 0.50.0 added the `TLSContext` type that enabled more dynamic TLS configurations. While this is specifically used and required for SNI, the `TLSContext` can (and will in future versions of Ambassador) replace the tls `Module`.
 
 ```yaml
 ---
 apiVersion: ambassador/v1
 kind: TLSContext
-name: tls
-# hosts: "*"
+name: tls-context-1
+
+# 'hosts' defines which the hosts for which this TLSContext is relevant.
+# It ties into SNI. A TLSContext without "hosts" is useful only for 
+# originating TLS. It must be an array of strings.
+# hosts: [ "*" ]
+
+# 'secret' defines a Kubernetes Secret that contains the TLS certificate we
+# use for origination or termination.
 # secret: ambassador-certs
-cert_chain_file:
-private_key_file:
-apln_protcols:
 
-ca_secret:
-cacert_chain_file:
-cert_required:
+# 'ca_secret' defines a Kubernetes Secret that contains the TLS certificate we
+# use for verifying incoming TLS client certificates.
+# ca_secret: None
 
+# 'alpn_protocols' is used to enable the TLS ALPN protocol. It is required
+# if you want to do GRPC over TLS; typically it will be set to "h2" for that
+# case.
+# alpn_protocols: None
+
+# 'cert_required' can be set to true to _require_ TLS client certificate
+# authentication.
+# cert_required: false
+
+# 'min_tls_version' sets the minimum acceptable TLS version: v1.0, v1.1, 
+# v1.2, or v1.3. It defaults to v1.0.
+# min_tls_version: v1.0
+
+# 'max_tls_version' sets the maximum acceptable TLS version: v1.0, v1.1, 
+# v1.2, or v1.3. It defaults to v1.3.
+# max_tls_version: v1.3
+
+# If you are building a custom Docker image, you can configure a TLSContext
+# using paths instead of Secrets.
+# cert_chain_file: None
+# private_key_file: None
+# cacert_chain_file: None
 ```
 
 ## The `tls` module
 
-The `tls` module defines system-wide configuration for TLS when additional configuration is needed.
+The `tls` module defines system-wide configuration for TLS when additional configuration is needed. 
+
+*Note well*: while the `tls` module is not yet deprecated, `TLSContext` resources are definitely
+preferred where possible.
 
 ```yaml
 ---
