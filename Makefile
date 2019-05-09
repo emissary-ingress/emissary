@@ -168,6 +168,8 @@ all:
 	$(MAKE) docker-push
 	$(MAKE) test
 
+include build-aux/prelude.mk
+
 clean: clean-test
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
@@ -572,6 +574,68 @@ release:
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \
 	fi
+
+# ------------------------------------------------------------------------------
+# Go gRPC bindings
+# ------------------------------------------------------------------------------
+
+PROTOC_VERSION = 3.5.1
+PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOARCH)))
+
+venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: | venv/bin/activate
+	curl -o $@ --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/$(@F)
+venv/bin/protoc: venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip
+	bsdtar -xf $< -C venv bin/protoc
+
+venv/bin/protoc-gen-gogofast: go.mod | venv/bin/activate
+	$(FLOCK) go.mod go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
+
+venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
+	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
+
+# Search path for .proto files
+gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
+imports += $(CURDIR)/envoy/api
+imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
+imports += $(call gomoddir,github.com/gogo/protobuf)
+imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
+imports += $(call gomoddir,istio.io/gogo-genproto)/prometheus
+imports += $(call gomoddir,istio.io/gogo-genproto)/googleapis
+imports += $(call gomoddir,istio.io/gogo-genproto)/opencensus/proto/trace/v1
+
+# Map from .proto files to Go package names
+mappings += gogoproto/gogo.proto=github.com/gogo/protobuf/gogoproto
+mappings += google/api/annotations.proto=github.com/gogo/googleapis/google/api
+mappings += google/api/http.proto=github.com/gogo/googleapis/google/api
+mappings += google/protobuf/any.proto=github.com/gogo/protobuf/types
+mappings += google/protobuf/duration.proto=github.com/gogo/protobuf/types
+mappings += google/protobuf/empty.proto=github.com/gogo/protobuf/types
+mappings += google/protobuf/struct.proto=github.com/gogo/protobuf/types
+mappings += google/protobuf/timestamp.proto=github.com/gogo/protobuf/types
+mappings += google/protobuf/wrappers.proto=github.com/gogo/protobuf/types
+mappings += google/rpc/code.proto=github.com/gogo/googleapis/google/rpc
+mappings += google/rpc/error_details.proto=github.com/gogo/googleapis/google/rpc
+mappings += google/rpc/status.proto=github.com/gogo/googleapis/google/rpc
+mappings += metrics.proto=istio.io/gogo-genproto/prometheus
+mappings += trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
+mappings += $(shell find $(CURDIR)/envoy/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
+
+joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
+comma = ,
+
+go/apis/envoy: envoy venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
+	rm -rf $@
+	mkdir -p $@
+	set -e; find $(CURDIR)/envoy/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
+		echo "Generating $$dir"; \
+		./venv/bin/protoc \
+			$(addprefix --proto_path=,$(imports))  \
+			--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out='$(call joinlist,$(comma),plugins=grpc $(addprefix M,$(mappings))):$(@D)' \
+			--plugin=$(CURDIR)/venv/bin/protoc-gen-validate --validate_out='lang=gogo:$(@D)' \
+			"$$dir"/*.proto; \
+	done
+# https://github.com/envoyproxy/go-control-plane/issues/173
+	find $@ -name '*.validate.go' -exec sed -E -i 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
 
 # ------------------------------------------------------------------------------
 # Virtualenv
