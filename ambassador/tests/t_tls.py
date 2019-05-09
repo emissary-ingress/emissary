@@ -584,7 +584,7 @@ max_tls_version: TLSv1_3
 
 
 class TLSContextProtocolVersion(AmbassadorTest):
-    debug = True
+    # debug = True
 
     def init(self):
         self.target = HTTP()
