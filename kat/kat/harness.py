@@ -295,7 +295,8 @@ class Query:
 
     def __init__(self, url, expected=None, method="GET", headers=None, messages=None, insecure=False, skip=None,
                  xfail=None, phase=1, debug=False, sni=False, error=None, client_crt=None, client_key=None,
-                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False, body=None):
+                 client_cert_required=False, ca_cert=None, grpc_type=None, cookies=None, ignore_result=False, body=None,
+                 minTLSv="v1.0", maxTLSv="1.2"):
         self.method = method
         self.url = url
         self.headers = headers
@@ -303,6 +304,8 @@ class Query:
         self.cookies = cookies
         self.messages = messages
         self.insecure = insecure
+        self.minTLSv = minTLSv
+        self.maxTLSv = maxTLSv
         if expected is None:
             if url.lower().startswith("ws:"):
                 self.expected = 101
@@ -336,6 +339,10 @@ class Query:
             result["sni"] = self.sni
         if self.method:
             result["method"] = self.method
+        if self.minTLSv:
+            result["minTLSv"] = self.minTLSv
+        if self.maxTLSv:
+            result["maxTLSv"] = self.maxTLSv
         if self.headers:
             result["headers"] = self.headers
         if self.body is not None:
