@@ -625,8 +625,8 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
-min_tls_version: 1.0
-max_tls_version: 1.2
+min_tls_version: v1.0
+max_tls_version: v1.2
 """)
 
     def scheme(self) -> str:

@@ -31,12 +31,6 @@ EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
 
 ElementHandler = Callable[[str, str], None]
 
-# TLS protocol versions
-TLSVersion = { 
-    '1.0': 'TLSv1_0',
-    '1.1': 'TLSv1_1',
-    '1.2': 'TLSv1_2',
-}
 class V2TLSContext(Dict):
     def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
         super().__init__()
@@ -73,8 +67,14 @@ class V2TLSContext(Dict):
     def update_tls_version(self, key: str, value: str) -> None:
         common = self.get_common()
         common.setdefault('tls_params', {})
-        if TLSVersion[value] is not None:
-            common['tls_params'][key] = TLSVersion[value]
+        if value == "v1.0":
+            common['tls_params'][key] = "TLSv1_0"
+        if value == "v1.1":
+            common['tls_params'][key] = "TLSv1_1"
+        if value == "v1.2":
+            common['tls_params'][key] = "TLSv1_2"
+        if value == "v1.3":
+            common['tls_params'][key] = "TLSv1_3"
 
     def update_validation(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
