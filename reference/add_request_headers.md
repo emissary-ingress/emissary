@@ -21,10 +21,10 @@ add_request_headers:
   x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
   x-test-static: This is a test header
   x-test-append:
-    value: This header will replace if any other present
-    append: False # Values will be overriden
+    value: TestValue
+    append: False
   x-test-append:
-    value: This is the Header value, # Would be same as direct key value pair
+    value: TestValue2,
 service: qotm
 ```
 
