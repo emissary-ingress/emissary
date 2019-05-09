@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
+	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/service_cmd/runner"
 	"github.com/lyft/ratelimit/test/common"
@@ -33,12 +33,12 @@ func newDescriptorStatus(
 }
 
 func newDescriptorStatusLegacy(
-	status pb_legacy.RateLimitResponse_Code, requestsPerUnit uint32,
-	unit pb_legacy.RateLimit_Unit, limitRemaining uint32) *pb_legacy.RateLimitResponse_DescriptorStatus {
+	status pb.RateLimitResponse_Code, requestsPerUnit uint32,
+	unit pb.RateLimitResponse_RateLimit_Unit, limitRemaining uint32) *pb.RateLimitResponse_DescriptorStatus {
 
-	return &pb_legacy.RateLimitResponse_DescriptorStatus{
+	return &pb.RateLimitResponse_DescriptorStatus{
 		Code:           status,
-		CurrentLimit:   &pb_legacy.RateLimit{RequestsPerUnit: requestsPerUnit, Unit: unit},
+		CurrentLimit:   &pb.RateLimitResponse_RateLimit{RequestsPerUnit: requestsPerUnit, Unit: unit},
 		LimitRemaining: limitRemaining,
 	}
 }
@@ -175,9 +175,9 @@ func TestBasicConfigLegacy(t *testing.T) {
 		context.Background(),
 		common.NewRateLimitRequestLegacy("foo", [][][2]string{{{"hello", "world"}}}, 1))
 	assert.Equal(
-		&pb_legacy.RateLimitResponse{
-			OverallCode: pb_legacy.RateLimitResponse_OK,
-			Statuses:    []*pb_legacy.RateLimitResponse_DescriptorStatus{{Code: pb_legacy.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0}}},
+		&pb.RateLimitResponse{
+			OverallCode: pb.RateLimitResponse_OK,
+			Statuses:    []*pb.RateLimitResponse_DescriptorStatus{{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0}}},
 		response)
 	assert.NoError(err)
 
@@ -185,10 +185,10 @@ func TestBasicConfigLegacy(t *testing.T) {
 		context.Background(),
 		common.NewRateLimitRequestLegacy("basic_legacy", [][][2]string{{{"key1", "foo"}}}, 1))
 	assert.Equal(
-		&pb_legacy.RateLimitResponse{
-			OverallCode: pb_legacy.RateLimitResponse_OK,
-			Statuses: []*pb_legacy.RateLimitResponse_DescriptorStatus{
-				newDescriptorStatusLegacy(pb_legacy.RateLimitResponse_OK, 50, pb_legacy.RateLimit_SECOND, 49)}},
+		&pb.RateLimitResponse{
+			OverallCode: pb.RateLimitResponse_OK,
+			Statuses: []*pb.RateLimitResponse_DescriptorStatus{
+				newDescriptorStatusLegacy(pb.RateLimitResponse_OK, 50, pb.RateLimitResponse_RateLimit_SECOND, 49)}},
 		response)
 	assert.NoError(err)
 
@@ -201,18 +201,18 @@ func TestBasicConfigLegacy(t *testing.T) {
 			common.NewRateLimitRequestLegacy(
 				"another", [][][2]string{{{"key2", strconv.Itoa(randomInt)}}}, 1))
 
-		status := pb_legacy.RateLimitResponse_OK
+		status := pb.RateLimitResponse_OK
 		limitRemaining := uint32(20 - (i + 1))
 		if i >= 20 {
-			status = pb_legacy.RateLimitResponse_OVER_LIMIT
+			status = pb.RateLimitResponse_OVER_LIMIT
 			limitRemaining = 0
 		}
 
 		assert.Equal(
-			&pb_legacy.RateLimitResponse{
+			&pb.RateLimitResponse{
 				OverallCode: status,
-				Statuses: []*pb_legacy.RateLimitResponse_DescriptorStatus{
-					newDescriptorStatusLegacy(status, 20, pb_legacy.RateLimit_MINUTE, limitRemaining)}},
+				Statuses: []*pb.RateLimitResponse_DescriptorStatus{
+					newDescriptorStatusLegacy(status, 20, pb.RateLimitResponse_RateLimit_MINUTE, limitRemaining)}},
 			response)
 		assert.NoError(err)
 	}
@@ -228,20 +228,20 @@ func TestBasicConfigLegacy(t *testing.T) {
 					{{"key2", strconv.Itoa(randomInt)}},
 					{{"key3", strconv.Itoa(randomInt)}}}, 1))
 
-		status := pb_legacy.RateLimitResponse_OK
+		status := pb.RateLimitResponse_OK
 		limitRemaining1 := uint32(20 - (i + 1))
 		limitRemaining2 := uint32(10 - (i + 1))
 		if i >= 10 {
-			status = pb_legacy.RateLimitResponse_OVER_LIMIT
+			status = pb.RateLimitResponse_OVER_LIMIT
 			limitRemaining2 = 0
 		}
 
 		assert.Equal(
-			&pb_legacy.RateLimitResponse{
+			&pb.RateLimitResponse{
 				OverallCode: status,
-				Statuses: []*pb_legacy.RateLimitResponse_DescriptorStatus{
-					newDescriptorStatusLegacy(pb_legacy.RateLimitResponse_OK, 20, pb_legacy.RateLimit_MINUTE, limitRemaining1),
-					newDescriptorStatusLegacy(status, 10, pb_legacy.RateLimit_HOUR, limitRemaining2)}},
+				Statuses: []*pb.RateLimitResponse_DescriptorStatus{
+					newDescriptorStatusLegacy(pb.RateLimitResponse_OK, 20, pb.RateLimitResponse_RateLimit_MINUTE, limitRemaining1),
+					newDescriptorStatusLegacy(status, 10, pb.RateLimitResponse_RateLimit_HOUR, limitRemaining2)}},
 			response)
 		assert.NoError(err)
 	}

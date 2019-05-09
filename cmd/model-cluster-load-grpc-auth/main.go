@@ -8,8 +8,8 @@ import (
 	"github.com/gogo/googleapis/google/rpc"
 	"google.golang.org/grpc"
 
-	envoyCoreV2 "github.com/datawire/kat-backend/xds/envoy/api/v2/core"
-	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
+	envoyCoreV2 "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
+	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
 )
 
 func main() {

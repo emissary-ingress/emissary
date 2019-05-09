@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/config"
 )

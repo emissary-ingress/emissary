@@ -7,7 +7,7 @@ require (
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
-	github.com/datawire/kat-backend v1.1.0
+	github.com/datawire/ambassador v0.72.0
 	github.com/datawire/liboauth2 v0.0.0-20190619201518-4d7cc6073e44
 	github.com/datawire/teleproxy v0.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -15,7 +15,8 @@ require (
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/googleapis v1.1.0
-	github.com/gogo/protobuf v1.2.0
+	github.com/gogo/protobuf v1.2.1
+	github.com/golang/protobuf v1.2.1-0.20190205222052-c823c79ea157 // indirect
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
@@ -41,7 +42,7 @@ require (
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
 	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
-	google.golang.org/grpc v1.18.0
+	google.golang.org/grpc v1.19.1
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee

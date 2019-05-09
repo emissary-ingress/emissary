@@ -5,13 +5,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/golang/protobuf/jsonpb"
 	stats "github.com/lyft/gostats"
-	"github.com/stretchr/testify/assert"
 
-	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
@@ -19,42 +15,18 @@ import (
 	"github.com/lyft/ratelimit/test/common"
 )
 
-func convertRatelimit(ratelimit *pb.RateLimitResponse_RateLimit) (*pb_legacy.RateLimit, error) {
-	if ratelimit == nil {
-		return nil, nil
-	}
-
-	m := &jsonpb.Marshaler{}
-	s, err := m.MarshalToString(ratelimit)
-	if err != nil {
-		return nil, err
-	}
-
-	rl := &pb_legacy.RateLimit{}
-	err = jsonpb.UnmarshalString(s, rl)
-	if err != nil {
-		return nil, err
-	}
-
-	return rl, nil
-}
-
-func convertRatelimits(ratelimits []*config.RateLimit) ([]*pb_legacy.RateLimit, error) {
+func convertRatelimits(ratelimits []*config.RateLimit) ([]*pb.RateLimitResponse_RateLimit, error) {
 	if ratelimits == nil {
 		return nil, nil
 	}
 
-	ret := make([]*pb_legacy.RateLimit, 0)
+	ret := make([]*pb.RateLimitResponse_RateLimit, 0)
 	for _, rl := range ratelimits {
 		if rl == nil {
 			ret = append(ret, nil)
 			continue
 		}
-		legacyRl, err := convertRatelimit(rl.Limit)
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, legacyRl)
+		ret = append(ret, rl.Limit)
 	}
 
 	return ret, nil
@@ -66,20 +38,16 @@ func TestServiceLegacy(test *testing.T) {
 	service := t.setupBasicService()
 
 	// First request, config should be loaded.
-	legacyRequest := common.NewRateLimitRequestLegacy("test-domain", [][][2]string{{{"hello", "world"}}}, 1)
-	req, err := ratelimit.ConvertLegacyRequest(legacyRequest)
-	if err != nil {
-		t.assert.FailNow(err.Error())
-	}
+	req := common.NewRateLimitRequestLegacy("test-domain", [][][2]string{{{"hello", "world"}}}, 1)
 	t.config.EXPECT().GetLimit(context.Background(), "test-domain", req.Descriptors[0]).Return(nil)
 	t.cache.EXPECT().DoLimit(context.Background(), req, []*config.RateLimit{nil}).Return(
 		[]*pb.RateLimitResponse_DescriptorStatus{{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0}})
 
-	response, err := service.GetLegacyService().ShouldRateLimit(context.Background(), legacyRequest)
+	response, err := service.GetLegacyService().ShouldRateLimit(context.Background(), req)
 	t.assert.Equal(
-		&pb_legacy.RateLimitResponse{
-			OverallCode: pb_legacy.RateLimitResponse_OK,
-			Statuses:    []*pb_legacy.RateLimitResponse_DescriptorStatus{{Code: pb_legacy.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0}}},
+		&pb.RateLimitResponse{
+			OverallCode: pb.RateLimitResponse_OK,
+			Statuses:    []*pb.RateLimitResponse_DescriptorStatus{{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0}}},
 		response)
 	t.assert.Nil(err)
 
@@ -99,12 +67,8 @@ func TestServiceLegacy(test *testing.T) {
 	barrier.wait()
 
 	// Different request.
-	legacyRequest = common.NewRateLimitRequestLegacy(
+	req = common.NewRateLimitRequestLegacy(
 		"different-domain", [][][2]string{{{"foo", "bar"}}, {{"hello", "world"}}}, 1)
-	req, err = ratelimit.ConvertLegacyRequest(legacyRequest)
-	if err != nil {
-		t.assert.FailNow(err.Error())
-	}
 
 	limits := []*config.RateLimit{
 		config.NewRateLimit(10, pb.RateLimitResponse_RateLimit_MINUTE, "key", t.statStore),
@@ -119,13 +83,13 @@ func TestServiceLegacy(test *testing.T) {
 	t.cache.EXPECT().DoLimit(context.Background(), req, limits).Return(
 		[]*pb.RateLimitResponse_DescriptorStatus{{Code: pb.RateLimitResponse_OVER_LIMIT, CurrentLimit: limits[0].Limit, LimitRemaining: 0},
 			{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0}})
-	response, err = service.GetLegacyService().ShouldRateLimit(context.Background(), legacyRequest)
+	response, err = service.GetLegacyService().ShouldRateLimit(context.Background(), req)
 	t.assert.Equal(
-		&pb_legacy.RateLimitResponse{
-			OverallCode: pb_legacy.RateLimitResponse_OVER_LIMIT,
-			Statuses: []*pb_legacy.RateLimitResponse_DescriptorStatus{
-				{Code: pb_legacy.RateLimitResponse_OVER_LIMIT, CurrentLimit: legacyLimits[0], LimitRemaining: 0},
-				{Code: pb_legacy.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0},
+		&pb.RateLimitResponse{
+			OverallCode: pb.RateLimitResponse_OVER_LIMIT,
+			Statuses: []*pb.RateLimitResponse_DescriptorStatus{
+				{Code: pb.RateLimitResponse_OVER_LIMIT, CurrentLimit: legacyLimits[0], LimitRemaining: 0},
+				{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0},
 			}},
 		response)
 	t.assert.Nil(err)
@@ -159,13 +123,13 @@ func TestServiceLegacy(test *testing.T) {
 	t.cache.EXPECT().DoLimit(context.Background(), req, limits).Return(
 		[]*pb.RateLimitResponse_DescriptorStatus{{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0},
 			{Code: pb.RateLimitResponse_OVER_LIMIT, CurrentLimit: limits[1].Limit, LimitRemaining: 0}})
-	response, err = service.GetLegacyService().ShouldRateLimit(context.Background(), legacyRequest)
+	response, err = service.GetLegacyService().ShouldRateLimit(context.Background(), req)
 	t.assert.Equal(
-		&pb_legacy.RateLimitResponse{
-			OverallCode: pb_legacy.RateLimitResponse_OVER_LIMIT,
-			Statuses: []*pb_legacy.RateLimitResponse_DescriptorStatus{
-				{Code: pb_legacy.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0},
-				{Code: pb_legacy.RateLimitResponse_OVER_LIMIT, CurrentLimit: legacyLimits[1], LimitRemaining: 0},
+		&pb.RateLimitResponse{
+			OverallCode: pb.RateLimitResponse_OVER_LIMIT,
+			Statuses: []*pb.RateLimitResponse_DescriptorStatus{
+				{Code: pb.RateLimitResponse_OK, CurrentLimit: nil, LimitRemaining: 0},
+				{Code: pb.RateLimitResponse_OVER_LIMIT, CurrentLimit: legacyLimits[1], LimitRemaining: 0},
 			}},
 		response)
 	t.assert.Nil(err)
@@ -205,11 +169,7 @@ func TestCacheErrorLegacy(test *testing.T) {
 	defer t.controller.Finish()
 	service := t.setupBasicService()
 
-	legacyRequest := common.NewRateLimitRequestLegacy("different-domain", [][][2]string{{{"foo", "bar"}}}, 1)
-	req, err := ratelimit.ConvertLegacyRequest(legacyRequest)
-	if err != nil {
-		t.assert.FailNow(err.Error())
-	}
+	req := common.NewRateLimitRequestLegacy("different-domain", [][][2]string{{{"foo", "bar"}}}, 1)
 	limits := []*config.RateLimit{config.NewRateLimit(10, pb.RateLimitResponse_RateLimit_MINUTE, "key", t.statStore)}
 	t.config.EXPECT().GetLimit(context.Background(), "different-domain", req.Descriptors[0]).Return(limits[0])
 	t.cache.EXPECT().DoLimit(context.Background(), req, limits).Do(
@@ -217,7 +177,7 @@ func TestCacheErrorLegacy(test *testing.T) {
 			panic(redis.RedisError("cache error"))
 		})
 
-	response, err := service.GetLegacyService().ShouldRateLimit(context.Background(), legacyRequest)
+	response, err := service.GetLegacyService().ShouldRateLimit(context.Background(), req)
 	t.assert.Nil(response)
 	t.assert.Equal("cache error", err.Error())
 	t.assert.EqualValues(1, t.statStore.NewCounter("call.should_rate_limit.redis_error").Value())
@@ -252,176 +212,4 @@ func TestInitialLoadErrorLegacy(test *testing.T) {
 	t.assert.EqualValues(1, t.statStore.NewCounter("call.should_rate_limit.service_error").Value())
 	t.assert.EqualValues(1, t.statStore.NewCounter("call.should_rate_limit_legacy.should_rate_limit_error").Value())
 
-}
-
-func TestConvertLegacyRequest(test *testing.T) {
-	req, err := ratelimit.ConvertLegacyRequest(nil)
-	if err != nil {
-		assert.FailNow(test, err.Error())
-	}
-	assert.Nil(test, req)
-
-	{
-		request := &pb_legacy.RateLimitRequest{
-			Domain:      "test",
-			Descriptors: nil,
-			HitsAddend:  10,
-		}
-
-		expectedRequest := &pb.RateLimitRequest{
-			Domain:      "test",
-			Descriptors: nil,
-			HitsAddend:  10,
-		}
-
-		req, err := ratelimit.ConvertLegacyRequest(request)
-		if err != nil {
-			assert.FailNow(test, err.Error())
-		}
-
-		assert.Equal(test, expectedRequest, req)
-	}
-
-	{
-		request := &pb_legacy.RateLimitRequest{
-			Domain:      "test",
-			Descriptors: []*pb_legacy.RateLimitDescriptor{},
-			HitsAddend:  10,
-		}
-
-		expectedRequest := &pb.RateLimitRequest{
-			Domain:      "test",
-			Descriptors: []*pb_struct.RateLimitDescriptor{},
-			HitsAddend:  10,
-		}
-
-		req, err := ratelimit.ConvertLegacyRequest(request)
-		if err != nil {
-			assert.FailNow(test, err.Error())
-		}
-
-		assert.Equal(test, expectedRequest, req)
-	}
-
-	{
-		descriptors := []*pb_legacy.RateLimitDescriptor{
-			{
-				Entries: []*pb_legacy.RateLimitDescriptor_Entry{
-					{
-						Key:   "foo",
-						Value: "foo_value",
-					},
-					nil,
-				},
-			},
-			{
-				Entries: []*pb_legacy.RateLimitDescriptor_Entry{},
-			},
-			{
-				Entries: nil,
-			},
-			nil,
-		}
-
-		request := &pb_legacy.RateLimitRequest{
-			Domain:      "test",
-			Descriptors: descriptors,
-			HitsAddend:  10,
-		}
-
-		expectedDescriptors := []*pb_struct.RateLimitDescriptor{
-			{
-				Entries: []*pb_struct.RateLimitDescriptor_Entry{
-					{
-						Key:   "foo",
-						Value: "foo_value",
-					},
-					nil,
-				},
-			},
-			{
-				Entries: []*pb_struct.RateLimitDescriptor_Entry{},
-			},
-			{
-				Entries: nil,
-			},
-			nil,
-		}
-
-		expectedRequest := &pb.RateLimitRequest{
-			Domain:      "test",
-			Descriptors: expectedDescriptors,
-			HitsAddend:  10,
-		}
-
-		req, err := ratelimit.ConvertLegacyRequest(request)
-		if err != nil {
-			assert.FailNow(test, err.Error())
-		}
-
-		assert.Equal(test, expectedRequest, req)
-	}
-}
-
-func TestConvertResponse(test *testing.T) {
-	resp, err := ratelimit.ConvertResponse(nil)
-	if err != nil {
-		assert.FailNow(test, err.Error())
-	}
-	assert.Nil(test, resp)
-
-	rl := &pb.RateLimitResponse_RateLimit{
-		RequestsPerUnit: 10,
-		Unit:            pb.RateLimitResponse_RateLimit_DAY,
-	}
-
-	statuses := []*pb.RateLimitResponse_DescriptorStatus{
-		{
-			Code:           pb.RateLimitResponse_OK,
-			CurrentLimit:   nil,
-			LimitRemaining: 9,
-		},
-		nil,
-		{
-			Code:           pb.RateLimitResponse_OVER_LIMIT,
-			CurrentLimit:   rl,
-			LimitRemaining: 0,
-		},
-	}
-
-	response := &pb.RateLimitResponse{
-		OverallCode: pb.RateLimitResponse_OVER_LIMIT,
-		Statuses:    statuses,
-	}
-
-	expectedRl := &pb_legacy.RateLimit{
-		RequestsPerUnit: 10,
-		Unit:            pb_legacy.RateLimit_DAY,
-	}
-
-	expectedStatuses := []*pb_legacy.RateLimitResponse_DescriptorStatus{
-		{
-			Code:           pb_legacy.RateLimitResponse_OK,
-			CurrentLimit:   nil,
-			LimitRemaining: 9,
-		},
-		nil,
-		{
-			Code:           pb_legacy.RateLimitResponse_OVER_LIMIT,
-			CurrentLimit:   expectedRl,
-			LimitRemaining: 0,
-		},
-	}
-
-	expectedResponse := &pb_legacy.RateLimitResponse{
-		OverallCode: pb_legacy.RateLimitResponse_OVER_LIMIT,
-		Statuses:    expectedStatuses,
-	}
-
-	resp, err = ratelimit.ConvertResponse(response)
-	if err != nil {
-		assert.FailNow(test, err.Error())
-	}
-
-	assert.Equal(test, expectedResponse, resp)
 }

@@ -1,9 +1,9 @@
 module github.com/lyft/ratelimit
 
 require (
+	github.com/datawire/ambassador v0.72.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
-	github.com/golang/mock v0.0.0-20180503014854-22bbf0ddf081
+	github.com/golang/mock v1.1.1
 	github.com/golang/protobuf v1.2.0
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.1
@@ -22,8 +22,7 @@ require (
 	golang.org/x/crypto v0.0.0-20180228161326-91a49db82a88 // indirect
 	golang.org/x/net v0.0.0-20180906233101-161cd47e91fd
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
-	google.golang.org/genproto v0.0.0-20180226182557-2d9486acae19 // indirect
-	google.golang.org/grpc v1.12.0
+	google.golang.org/grpc v1.19.1
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
 	gopkg.in/yaml.v2 v2.2.1

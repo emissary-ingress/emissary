@@ -8,8 +8,8 @@ import (
 
 	logger "github.com/sirupsen/logrus"
 
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
+	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
