@@ -465,18 +465,6 @@ name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
 """)
-        
-        yield self, self.format("""
----
-apiVersion: ambassador/v1
-kind: TLSContext
-name: {self.name}-same-context-1
-hosts:
-- tls-context-host-1
-secret: same-secret-1.secret-namespace
-min_tls_version: v1.0
-max_tls_version: v1.3
-""")
 
     def scheme(self) -> str:
         return "https"
