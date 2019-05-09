@@ -8,11 +8,20 @@ import (
 	"google.golang.org/grpc"
 )
 
+type DebugHTTPHandler interface {
+	http.Handler
+
+	/**
+	 * Add an HTTP endpoint to the local debug port.
+	 */
+	AddEndpoint(path string, help string, handler http.HandlerFunc)
+}
+
 type Server interface {
 	/**
 	 * Starts the HTTP and gRPC servers. This should be done after
-	 * all endpoints have been registered through 'AddHttpEndpoint'
-	 * and 'GrpcServer'.
+	 * all endpoints have been registered with the
+	 * DebugHTTPHandler() and the GrpcServer().
 	 */
 	Start()
 
@@ -22,9 +31,9 @@ type Server interface {
 	Scope() stats.Scope
 
 	/**
-	 * Add an HTTP endpoint to the local debug port.
+	 * Returns the embedded HTTP handler to be used for debugging.
 	 */
-	AddDebugHttpEndpoint(path string, help string, handler http.HandlerFunc)
+	DebugHTTPHandler() DebugHTTPHandler
 
 	/**
 	 * Returns the embedded gRPC server to be used for registering gRPC endpoints.

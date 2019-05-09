@@ -47,7 +47,7 @@ func Run() {
 		config.NewRateLimitConfigLoaderImpl(),
 		srv.Scope().Scope("service"))
 
-	srv.AddDebugHttpEndpoint(
+	srv.DebugHTTPHandler().AddEndpoint(
 		"/rlconfig",
 		"print out the currently loaded configuration for debugging",
 		func(writer http.ResponseWriter, request *http.Request) {

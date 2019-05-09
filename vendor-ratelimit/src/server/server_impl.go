@@ -24,10 +24,9 @@ import (
 	"github.com/lyft/ratelimit/src/settings"
 )
 
-type serverDebugListener struct {
+type serverDebugHandler struct {
 	endpoints map[string]string
 	debugMux  *http.ServeMux
-	listener  net.Listener
 }
 
 type server struct {
@@ -39,13 +38,22 @@ type server struct {
 	store         stats.Store
 	scope         stats.Scope
 	runtime       loader.IFace
-	debugListener serverDebugListener
+	debugHandler  *serverDebugHandler
+	debugListener net.Listener
 	health        *healthChecker
 }
 
-func (server *server) AddDebugHttpEndpoint(path string, help string, handler http.HandlerFunc) {
-	server.debugListener.debugMux.HandleFunc(path, handler)
-	server.debugListener.endpoints[path] = help
+func (debugHandler *serverDebugHandler) AddEndpoint(path string, help string, handler http.HandlerFunc) {
+	debugHandler.debugMux.HandleFunc(path, handler)
+	debugHandler.endpoints[path] = help
+}
+
+func (debugHandler *serverDebugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	debugHandler.debugMux.ServeHTTP(w, r)
+}
+
+func (server *server) DebugHTTPHandler() DebugHTTPHandler {
+	return server.debugHandler
 }
 
 func (server *server) GrpcServer() *grpc.Server {
@@ -57,13 +65,13 @@ func (server *server) Start() {
 		addr := fmt.Sprintf(":%d", server.debugPort)
 		logger.Warnf("Listening for debug on '%s'", addr)
 		var err error
-		server.debugListener.listener, err = reuseport.Listen("tcp", addr)
+		server.debugListener, err = reuseport.Listen("tcp", addr)
 
 		if err != nil {
 			logger.Errorf("Failed to open debug HTTP listener: '%+v'", err)
 			return
 		}
-		err = http.Serve(server.debugListener.listener, server.debugListener.debugMux)
+		err = http.Serve(server.debugListener, server.debugHandler)
 		logger.Infof("Failed to start debug server '%+v'", err)
 	}()
 
@@ -139,9 +147,17 @@ func newServer(name string, opts ...settings.Option) *server {
 	healthpb.RegisterHealthServer(ret.grpcServer, ret.health.grpc)
 
 	// setup default debug listener
-	ret.debugListener.debugMux = http.NewServeMux()
-	ret.debugListener.endpoints = map[string]string{}
-	ret.AddDebugHttpEndpoint(
+	ret.debugHandler = newDebugHTTPHandler()
+
+	return ret
+}
+
+func newDebugHTTPHandler() *serverDebugHandler {
+	ret := &serverDebugHandler{}
+
+	ret.debugMux = http.NewServeMux()
+	ret.endpoints = map[string]string{}
+	ret.AddEndpoint(
 		"/debug/pprof/",
 		"root of various pprof endpoints. hit for help.",
 		func(writer http.ResponseWriter, request *http.Request) {
@@ -149,7 +165,7 @@ func newServer(name string, opts ...settings.Option) *server {
 		})
 
 	// setup stats endpoint
-	ret.AddDebugHttpEndpoint(
+	ret.AddEndpoint(
 		"/stats",
 		"print out stats",
 		func(writer http.ResponseWriter, request *http.Request) {
@@ -159,18 +175,18 @@ func newServer(name string, opts ...settings.Option) *server {
 		})
 
 	// setup debug root
-	ret.debugListener.debugMux.HandleFunc(
+	ret.debugMux.HandleFunc(
 		"/",
 		func(writer http.ResponseWriter, request *http.Request) {
 			sortedKeys := []string{}
-			for key := range ret.debugListener.endpoints {
+			for key := range ret.endpoints {
 				sortedKeys = append(sortedKeys, key)
 			}
 
 			sort.Strings(sortedKeys)
 			for _, key := range sortedKeys {
 				io.WriteString(
-					writer, fmt.Sprintf("%s: %s\n", key, ret.debugListener.endpoints[key]))
+					writer, fmt.Sprintf("%s: %s\n", key, ret.endpoints[key]))
 			}
 		})
 
@@ -186,8 +202,8 @@ func (server *server) handleGracefulShutdown() {
 
 		logger.Infof("Ratelimit server received %v, shutting down gracefully", sig)
 		server.grpcServer.GracefulStop()
-		if server.debugListener.listener != nil {
-			server.debugListener.listener.Close()
+		if server.debugListener != nil {
+			server.debugListener.Close()
 		}
 		os.Exit(0)
 	}()
