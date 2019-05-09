@@ -1,4 +1,4 @@
-package: github.com/envoyproxy/go-control-plane
+package: github.com/datawire/ambassador
 import:
   - package: github.com/gogo/protobuf
     version: ^1.2.1
