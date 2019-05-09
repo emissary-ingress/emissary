@@ -13,6 +13,7 @@ K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
+go.pkgs         = ./... github.com/lyft/ratelimit/...
 
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
