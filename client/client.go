@@ -283,6 +283,7 @@ func (q Query) AddResponse(resp *http.Response) {
 	result["status"] = resp.StatusCode
 	result["headers"] = resp.Header
 	if resp.TLS != nil {
+		result["tls_version"] = resp.TLS.Version
 		result["tls"] = resp.TLS.PeerCertificates
 	}
 	body, err := ioutil.ReadAll(resp.Body)
