@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from typing import ClassVar, Dict, Sequence
+from typing import ClassVar, Dict, Sequence, Any
 
 from kat.harness import Query, Test
 
@@ -14,9 +14,20 @@ class AddRequestHeaders(OptionTest):
 
     parent: Test
 
-    VALUES: ClassVar[Sequence[Dict[str, str]]] = (
+    VALUES: ClassVar[Sequence[Dict[str, Any]]] = (
         { "foo": "bar" },
-        { "moo": "arf" }
+        { "moo": "arf" },
+        { "zoo": {
+            "append": True,
+            "value": "bar"
+        }},
+        { "xoo": {
+            "append": False,
+            "value": "dwe"
+        }},
+        { "aoo": {
+            "value": "tyu"
+        }}
     )
 
     def config(self):
@@ -26,7 +37,10 @@ class AddRequestHeaders(OptionTest):
         for r in self.parent.results:
             for k, v in self.value.items():
                 actual = r.backend.request.headers.get(k.lower())
-                assert actual == [v], (actual, [v])
+                if isinstance(v,dict):
+                    assert actual == [v["value"]], (actual, [v["value"]])
+                else:
+                    assert actual == [v], (actual, [v])
 
 
 class AddResponseHeaders(OptionTest):
@@ -35,7 +49,18 @@ class AddResponseHeaders(OptionTest):
 
     VALUES: ClassVar[Sequence[Dict[str, str]]] = (
         { "foo": "bar" },
-        { "moo": "arf" }
+        { "moo": "arf" },
+        { "zoo": {
+            "append": True,
+            "value": "bar"
+        }},
+        { "xoo": {
+            "append": False,
+            "value": "dwe"
+        }},
+        { "aoo": {
+            "value": "tyu"
+        }}
     )
 
     def config(self):
@@ -48,7 +73,10 @@ class AddResponseHeaders(OptionTest):
 
             for k, v in self.value.items():
                 actual = lowercased_headers.get(k.lower())
-                assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
+                if isinstance(v,dict):
+                    assert actual == [v["value"]], "expected %s: %s but got %s" % (k, v["value"], lowercased_headers)
+                else:
+                    assert actual == [v], "expected %s: %s but got %s" % (k, v, lowercased_headers)
 
 
 class UseWebsocket(OptionTest):

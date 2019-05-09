@@ -21,7 +21,9 @@
         "ca_secret": { "type": "string" },
         "cacert_chain_file": { "type": "string" },
         "alpn_protocols": { "type": "string" },
-        "cert_required": { "type": "boolean" }
+        "cert_required": { "type": "boolean" },
+        "min_tls_version": { "enum": [ "v1.0", "v1.1", "v1.2", "v1.3" ] },
+        "max_tls_version": { "enum": [ "v1.0", "v1.1", "v1.2", "v1.3" ] }
     },
     "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false
