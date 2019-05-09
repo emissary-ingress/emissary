@@ -553,7 +553,8 @@ max_tls_version: TLSv1_3
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
-        assert (len(errors) == 0)
+        num_errors = len(errors)
+        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
 
         idx = 0
 
