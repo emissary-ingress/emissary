@@ -134,6 +134,14 @@ func (q Query) URL() string {
 	return q["url"].(string)
 }
 
+// URL returns the query's URL.
+func (q Query) MinTLSVersion() string {
+	if q["TLSv"].(string) != "" {
+		return q["TLSv"].(string)
+	}
+	return "v1.3"
+}
+
 // Method returns the query's method or "GET" if unspecified.
 func (q Query) Method() string {
 	val, ok := q["method"]
@@ -596,7 +604,22 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 			// transport, but apparently it works. The docs say that mutating an
 			// existing tls.Config would be bad too.
 			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{}
+				switch query.MinTLSVersion() {
+				case "v1.0":
+					transport.TLSClientConfig = &tls.Config{
+						MinVersion: tls.VersionTLS10,
+					}
+				case "v1.1":
+					transport.TLSClientConfig = &tls.Config{
+						MinVersion: tls.VersionTLS11,
+					}
+				case "v1.2":
+					transport.TLSClientConfig = &tls.Config{
+						MinVersion: tls.VersionTLS12,
+					}
+				default:
+					transport.TLSClientConfig = &tls.Config{}
+				}
 			}
 			transport.TLSClientConfig.ServerName = host
 		}
