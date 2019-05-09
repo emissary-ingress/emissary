@@ -615,7 +615,7 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
-min_tls_version: v1.0
+min_tls_version: v1.2
 max_tls_version: v1.3
 """)
 
@@ -635,7 +635,18 @@ max_tls_version: v1.3
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
-                    sni=True)
+                    sni=True,
+                    minTLSv="v1.2",
+                    maxTLSv="v1.3")
+        
+        yield Query(self.url("tls-context-same/"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=200,
+                    insecure=True,
+                    sni=True,
+                    minTLSv="v1.1",
+                    maxTLSv="v1.1",
+                    error="tls: protocol version not supported")
 
     def check(self):
         idx = 0
