@@ -21,7 +21,7 @@
 #  - Variable: go.goversion = $(patsubst go%,%,$(filter go1%,$(shell go version)))
 #  - Variable: go.module = EXAMPLE.COM/YOU/YOURREPO
 #  - Variable: go.bins = List of "main" Go packages
-#  - Variable: go.pkgs = ./...
+#  - Variable: go.pkgs ?= ./...
 #
 #  - Function: go.list = like $(shell go list $1), but ignores nested Go modules and doesn't download things
 #  - Function: go.bin.rule = Only use this if you know what you are doing
@@ -100,7 +100,7 @@ go.list = $(call path.addprefix,$(go.module),\
                                                                     $(shell GOPATH=/bogus GO111MODULE=off go list $1))))
 go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' ./...)
 
-go.pkgs := ./...
+go.pkgs ?= ./...
 
 #
 # Rules
