@@ -424,8 +424,8 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
-min_tls_version: TLSv1_0
-max_tls_version: TLSv1_3
+min_tls_version: v1.0
+max_tls_version: v1.3
 """)
         yield self, self.format("""
 ---
@@ -474,8 +474,8 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
-min_tls_version: TLSv1_0
-max_tls_version: TLSv1_3
+min_tls_version: v1.0
+max_tls_version: v1.3
 """)
 
     def scheme(self) -> str:
