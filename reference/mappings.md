@@ -25,6 +25,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
+| [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
 | `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
@@ -40,6 +41,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |  
 | [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
+| [`retry_policy`](/reference/retries) | performs automatic retries upon request failures |
 | [`timeout_ms`](/reference/timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 5000. |
 | [`connect_timeout_ms`](/reference/timeouts)      | the timeout, in milliseconds, for requests coming through the `Cluster` for this `Mapping`. Defaults to 3000. |
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |

@@ -4,86 +4,74 @@ Ambassador supports both terminating TLS and originating TLS. By default, Ambass
 
 ## `TLSContext`
 
-Ambassador 0.50.0 added the `TLSContext` type that enabled more dynamic TLS configurations. While this is specifically used and required for sni, the `TLSContext` can (and will in future versions of Ambassador) replace the tls `Module`.
+The `TLSContext` type manages TLS configurations. The `TLSContext` replaces the original tls `Module` in older versions of Ambassador (pre-0.50).
 
 ```yaml
 ---
 apiVersion: ambassador/v1
 kind: TLSContext
-name: tls
-# hosts: "*"
+name: tls-context-1
+
+# 'hosts' defines which the hosts for which this TLSContext is relevant.
+# It ties into SNI. A TLSContext without "hosts" is useful only for 
+# originating TLS. It must be an array of strings.
+# hosts: [ "*" ]
+
+# 'secret' defines a Kubernetes Secret that contains the TLS certificate we
+# use for origination or termination.
 # secret: ambassador-certs
-cert_chain_file:
-private_key_file:
-apln_protcols:
 
-ca_secret:
-cacert_chain_file:
-cert_required:
+# 'ca_secret' defines a Kubernetes Secret that contains the TLS certificate we
+# use for verifying incoming TLS client certificates.
+# ca_secret: None
 
-```
+# 'alpn_protocols' is used to enable the TLS ALPN protocol. It is required
+# if you want to do GRPC over TLS; typically it will be set to "h2" for that
+# case.
+# alpn_protocols: None
 
-## The `tls` module
+# 'cert_required' can be set to true to _require_ TLS client certificate
+# authentication.
+# cert_required: false
 
-The `tls` module defines system-wide configuration for TLS when additional configuration is needed.
+# 'min_tls_version' sets the minimum acceptable TLS version: v1.0, v1.1, 
+# v1.2, or v1.3. It defaults to v1.0.
+# min_tls_version: v1.0
 
-```yaml
----
-apiVersion: ambassador/v1
-kind:  Module
-name:  tls
-config:
-  # The 'server' block configures TLS termination. 'enabled' is the only
-  # required element.
-  server:
-    # If 'enabled' is not True, TLS termination will not happen.
-    enabled: True
+# 'max_tls_version' sets the maximum acceptable TLS version: v1.0, v1.1, 
+# v1.2, or v1.3. It defaults to v1.3.
+# max_tls_version: v1.3
 
-    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
-    # to that port will be redirected to HTTPS traffic. Make sure that the
-    # port number you specify matches the port on which Ambassador is
-    # listening!
-    # redirect_cleartext_from: 8080
-
-    # These are optional. They should not be present unless you are using
-    # a custom Docker build to install certificates onto the container
-    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
-    # above.
-    #
-    # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
-    # private_key_file: /etc/certs/tls.key  # remember to set enabled!
-
-    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with
-    # HTTP2 clients over TLS.
-    # This must be set to be able to use grpc over TLS.
-    # alpn_protocols: h2
-
-  # The 'client' block configures TLS client-certificate authentication.
-  # 'enabled' is the only required element.
-  client:
-    # If 'enabled' is not True, TLS client-certificate authentication will
-    # not happen.
-    enabled: False
-
-    # If 'cert_required' is True, TLS client certificates will be required
-    # for every connection.
-    # cert_required: False
-
-    # This is optional. It should not be present unless you are using
-    # a custom Docker build to install certificates onto the container
-    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
-    # above.
-    #
-    # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
+# If you are building a custom Docker image, you can configure a TLSContext
+# using paths instead of Secrets.
+# cert_chain_file: None
+# private_key_file: None
+# cacert_chain_file: None
 ```
 
 ## `alpn_protocols`
 
 The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over TLS, set `alpn_protocols: h2`. If you need to support HTTP/2 upgrade from HTTP/1, set `alpn_protocols: h2,http/1.1` in the configuration.
 
-## Redirecting from cleartext to TLS
+### HTTP/2 Support
 
-The most common case requiring a `tls` module is redirecting cleartext traffic on port 8080 to HTTPS on port 8443, which can be done with the following configuration:
+The `alpn_protocols` setting is also required for HTTP/2 support.
+
+```yaml
+apiVersion: ambassador/v1
+kind:  Module
+name:  tls
+config:
+  server:
+    alpn_protocols: h2[, http/1.1]
+```
+Without setting setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
+
+If you leave off http/1.1, only HTTP2 connections will be supported.
+
+## `redirect_cleartext_from`
+
+The most common case still requiring a `tls` module is redirecting cleartext traffic on port 8080 to HTTPS on port 8443, which can be done with the following configuration:
 
 ```yaml
 ---
@@ -96,7 +84,7 @@ config:
     redirect_cleartext_from: 8080
 ```
 
-## X-FORWARDED-PROTO Redirect
+## `x_forwarded_proto_redirect`
 
 In cases when TLS is being terminated at an external layer 7 load balancer, then you would want to redirect only the originating HTTP requests to HTTPS, and let the originating HTTPS requests pass through.
 
@@ -114,22 +102,6 @@ config:
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Requests that contain have `X-FORWARDED-PROTO` set to `https` will be passed through. Otherwise, for all other values of `X-FORWARDED-PROTO`, they will be redirected to TLS.
 
-## HTTP2 Support
-
-Enable TLS ALPN protocol, typically used to negotiate HTTP2.
-
-```yaml
-apiVersion: ambassador/v1
-kind:  Module
-name:  tls
-config:
-  server:
-    alpn_protocols: h2[, http/1.1]
-```
-
-Without setting setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
-
-If you leave off http/1.1, only HTTP2 connections will be supported.
 
 ## Authentication with TLS Client Certificates
 
@@ -302,6 +274,65 @@ Ambassador will now use the certificates loaded into the `ambassador-consul` `TL
 | \_CONSUL\_PORT          | Set the port number of the target Consul HTTP API server | `8500` |
 | \_AMBASSADOR\_TLS\_SECRET\_NAME | Set the name of the Kubernetes `v1.Secret` created by this program that contains the Consul-generated TLS certificate. | `$AMBASSADOR_ID-consul-connect` |
 | \_AMBASSADOR\_TLS\_SECRET\_NAMESPACE | Set the namespace of the Kubernetes `v1.Secret` created by this program. | (same Namespace as the Pod running this integration) |
+
+
+## The `tls` module
+
+The `tls` module defines system-wide configuration for TLS when additional configuration is needed.
+
+*Note well*: while the `tls` module is not yet deprecated, `TLSContext` resources are definitely
+preferred where possible.
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind:  Module
+name:  tls
+config:
+  # The 'server' block configures TLS termination. 'enabled' is the only
+  # required element.
+  server:
+    # If 'enabled' is not True, TLS termination will not happen.
+    enabled: True
+
+    # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
+    # to that port will be redirected to HTTPS traffic. Make sure that the
+    # port number you specify matches the port on which Ambassador is
+    # listening!
+    # redirect_cleartext_from: 8080
+
+    # These are optional. They should not be present unless you are using
+    # a custom Docker build to install certificates onto the container
+    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
+    # above.
+    #
+    # cert_chain_file: /etc/certs/tls.crt   # remember to set enabled!
+    # private_key_file: /etc/certs/tls.key  # remember to set enabled!
+
+    # Enable TLS ALPN protocol, typically HTTP2 to negotiate it with
+    # HTTP2 clients over TLS.
+    # This must be set to be able to use grpc over TLS.
+    # alpn_protocols: h2
+
+  # The 'client' block configures TLS client-certificate authentication.
+  # 'enabled' is the only required element.
+  client:
+    # If 'enabled' is not True, TLS client-certificate authentication will
+    # not happen.
+    enabled: False
+
+    # If 'cert_required' is True, TLS client certificates will be required
+    # for every connection.
+    # cert_required: False
+
+    # This is optional. It should not be present unless you are using
+    # a custom Docker build to install certificates onto the container
+    # filesystem, in which case YOU WILL STILL NEED TO SET enabled: True
+    # above.
+    #
+    # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
+```
+
 
 ## More reading
 
