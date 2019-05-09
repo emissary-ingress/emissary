@@ -136,7 +136,7 @@ func (q Query) URL() string {
 
 // MinTLSVersion returns the minimun TLS protocol version.
 func (q Query) MinTLSVersion() uint16 {
-	switch q["minTLS"].(string) {
+	switch q["minTLSv"].(string) {
 	case "v1.0":
 		return tls.VersionTLS10
 	case "v1.1":
@@ -144,13 +144,13 @@ func (q Query) MinTLSVersion() uint16 {
 	case "v1.2":
 		return tls.VersionTLS12
 	default:
-		return tls.VersionTLS10
+		return 0
 	}
 }
 
 // MaxTLSVersion returns the maximum TLS protocol version.
 func (q Query) MaxTLSVersion() uint16 {
-	switch q["maxTLS"].(string) {
+	switch q["maxTLSv"].(string) {
 	case "v1.0":
 		return tls.VersionTLS10
 	case "v1.1":
@@ -158,7 +158,7 @@ func (q Query) MaxTLSVersion() uint16 {
 	case "v1.2":
 		return tls.VersionTLS12
 	default:
-		return tls.VersionTLS12
+		return 0
 	}
 }
 
@@ -624,14 +624,18 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 			// transport, but apparently it works. The docs say that mutating an
 			// existing tls.Config would be bad too.
 			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{
-					MinVersion: query.MinTLSVersion(),
-					MaxVersion: query.MaxTLSVersion(),
-				}
-			} else {
 				transport.TLSClientConfig = &tls.Config{}
 			}
+
 			transport.TLSClientConfig.ServerName = host
+
+			if query.MinTLSVersion() != 0 {
+				transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
+			}
+
+			if query.MaxTLSVersion() != 0 {
+				transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
+			}
 		}
 		req.Host = host
 	}
