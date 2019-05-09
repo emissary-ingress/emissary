@@ -53,7 +53,10 @@ def sanitize(obj):
                 obj = obj.replace(k, "-" + v + "-")
         return obj
     elif isinstance(obj, dict):
-        return "-".join("%s-%s" % (sanitize(k), sanitize(v)) for k, v in sorted(obj.items()))
+        if 'value' in obj:
+            return obj['value']
+        else:
+            return "-".join("%s-%s" % (sanitize(k), sanitize(v)) for k, v in sorted(obj.items()))
     else:
         cls = obj.__class__
         count = COUNTERS.get(cls, 0)
