@@ -582,6 +582,7 @@ max_tls_version: TLSv1_3
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
 
+
 class TLSContextProtocolVersion(AmbassadorTest):
     debug = True
 
@@ -626,7 +627,7 @@ hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
 min_tls_version: v1.0
-max_tls_version: v1.2
+max_tls_version: v1.3
 """)
 
     def scheme(self) -> str:
@@ -645,30 +646,21 @@ max_tls_version: v1.2
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
-                    sni=True,
-                    minTLSv="v1.0",
-                    maxTLSv="v1.2")
+                    sni=True)
 
-    # def check(self):
-    #     # idx = 0
-    #     # for result in self.results:
-    #     #     if result.status == 200 and result.query.headers:
-    #     #         host_header = result.query.headers['Host']
-    #     #         tls_common_name = result.tls[0]['Issuer']['CommonName']
+    def check(self):
+        idx = 0
+        for result in self.results:
+            if result.status == 200 and result.query.headers:
+                host_header = result.query.headers['Host']
+                tls_common_name = result.tls[0]['Issuer']['CommonName']
 
-    #     #         # XXX Weirdness with the fallback cert here! You see, if we use host
-    #     #         # tls-context-host-3 (or, really, anything except -1 or -2), then the
-    #     #         # fallback cert actually has CN 'localhost'. We should replace this with
-    #     #         # a real fallback cert, but for now, just hack the host_header.
-    #     #         #
-    #     #         # Ew.
+                if host_header == 'tls-context-host-3':
+                    host_header = 'localhost'
 
-    #     #         if host_header == 'tls-context-host-3':
-    #     #             host_header = 'localhost'
+                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
 
-    #     #         assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
-
-    #     #     idx += 1
+            idx += 1
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=False))
