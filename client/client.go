@@ -134,6 +134,34 @@ func (q Query) URL() string {
 	return q["url"].(string)
 }
 
+// MinTLSVersion returns the minimun TLS protocol version.
+func (q Query) MinTLSVersion() uint16 {
+	switch q["minTLSv"].(string) {
+	case "v1.0":
+		return tls.VersionTLS10
+	case "v1.1":
+		return tls.VersionTLS11
+	case "v1.2":
+		return tls.VersionTLS12
+	default:
+		return 0
+	}
+}
+
+// MaxTLSVersion returns the maximum TLS protocol version.
+func (q Query) MaxTLSVersion() uint16 {
+	switch q["maxTLSv"].(string) {
+	case "v1.0":
+		return tls.VersionTLS10
+	case "v1.1":
+		return tls.VersionTLS11
+	case "v1.2":
+		return tls.VersionTLS12
+	default:
+		return 0
+	}
+}
+
 // Method returns the query's method or "GET" if unspecified.
 func (q Query) Method() string {
 	val, ok := q["method"]
@@ -283,6 +311,7 @@ func (q Query) AddResponse(resp *http.Response) {
 	result["status"] = resp.StatusCode
 	result["headers"] = resp.Header
 	if resp.TLS != nil {
+		result["tls_version"] = resp.TLS.Version
 		result["tls"] = resp.TLS.PeerCertificates
 	}
 	body, err := ioutil.ReadAll(resp.Body)
@@ -597,7 +626,16 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 			if transport.TLSClientConfig == nil {
 				transport.TLSClientConfig = &tls.Config{}
 			}
+
 			transport.TLSClientConfig.ServerName = host
+
+			if query.MinTLSVersion() != 0 {
+				transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
+			}
+
+			if query.MaxTLSVersion() != 0 {
+				transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
+			}
 		}
 		req.Host = host
 	}
