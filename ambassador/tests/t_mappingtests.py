@@ -378,5 +378,5 @@ remove_request_headers:
             print(r.json)
             if 'headers' in r.json:
                 assert r.json['headers']['Foo'] == 'FooF'
-                assert 'Zoo' in r.json['headers']
-                assert 'Aoo' in r.json['headers']
+                assert 'Zoo' not in r.json['headers']
+                assert 'Aoo' not in r.json['headers']
