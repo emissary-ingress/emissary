@@ -80,6 +80,7 @@ class IRHTTPMapping (IRBaseMapping):
         "priority": True,
         "rate_limits": True,   # Only supported in v0, handled in setup
         "remove_response_headers": True,
+        "remove_request_headers": True,
         "resolver": True,
         # Do not include regex_headers.
         # Do not include rewrite.

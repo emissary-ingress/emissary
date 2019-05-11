@@ -90,6 +90,12 @@
         "path_redirect": { "type": "string" },
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
+        "remove_request_headers": {
+            "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        },
         "remove_response_headers": {
             "anyOf": [
                 { "type": "string" },

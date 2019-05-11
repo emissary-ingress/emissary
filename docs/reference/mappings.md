@@ -38,7 +38,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`rate_limits`](/reference/rate-limits) | specifies a list rate limit rules on a mapping |
-| [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |  
+| [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client || [`remove_request_headers`](/reference/remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |    
 | [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
 | [`retry_policy`](/reference/retries) | performs automatic retries upon request failures |
