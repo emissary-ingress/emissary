@@ -277,8 +277,6 @@ kind:  AuthService
 name:  authentication
 auth_service: "auth:3000"
 path_prefix: "/extauth"
-allowed_headers:
-- "x-qotm-session"
 ```
 
 This configuration will use the `AuthService` object to ensure that all requests made to ambassador are first sent to the `auth` docker container on port `3000` before being routed to the service that is mapped to the desired route. See the Authentication documentation for more details.
