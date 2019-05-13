@@ -58,8 +58,11 @@ class V2Route(dict):
         if response_headers_to_add:
             self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
 
-        response_headers_to_remove = group.get('remove_response_headers', None)
+        request_headers_to_remove = group.get('remove_request_headers', None)
+        if request_headers_to_remove:
+            self['request_headers_to_remove'] = request_headers_to_remove
 
+        response_headers_to_remove = group.get('remove_response_headers', None)
         if response_headers_to_remove:
             self['response_headers_to_remove'] = response_headers_to_remove
 
