@@ -11,7 +11,7 @@ Step 2:
 
   While anywhere, run:
 
-    docker run --cap-add NET_ADMIN --dns 10.0.0.1 --dns-search . -it tzone
+    docker run --cap-add NET_ADMIN --dns-search . -it tzone
 
   This will start a shell inside the `tzone` container.  The
   `--cap-add NET_ADMIN` gives the docker container the priviliges
