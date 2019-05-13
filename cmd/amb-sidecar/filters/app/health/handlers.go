@@ -61,7 +61,7 @@ func (p *MultiProbe) Check() bool {
 			break
 		}
 
-		l.Info("probe succeeded")
+		l.Debug("probe succeeded")
 	}
 
 	return healthy
