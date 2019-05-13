@@ -163,7 +163,10 @@ WATT_VERSION ?= 0.4.10
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
-all: setup-develop docker-push test
+all:
+	$(MAKE) setup-develop
+	$(MAKE) docker-push
+	$(MAKE) test
 
 clean: clean-test
 	rm -rf docs/_book docs/_site docs/package-lock.json
@@ -331,7 +334,9 @@ docker-push-base-images:
 	docker push $(AMBASSADOR_BASE_IMAGE)
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
-docker-update-base: docker-base-images docker-push-base-images
+docker-update-base:
+	$(MAKE) docker-base-images
+	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: version $(WATT)
 	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
@@ -407,7 +412,7 @@ TELEPROXY_VERSION=0.4.9
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
-$(TELEPROXY):
+$(TELEPROXY): | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
 ifeq ($(shell uname -s), Darwin)
@@ -444,18 +449,17 @@ $(CLAIM_FILE):
 		echo kat-$${USER}-$(shell uuidgen) > $@; \
 	fi
 
-$(KUBERNAUT):
+$(KUBERNAUT): | venv/bin/activate
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
 KAT_CLIENT=venv/bin/kat_client
 
-$(KAT_CLIENT):
-	curl -OL https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
-	tar xzf v$(KAT_BACKEND_RELEASE).tar.gz
-	chmod +x kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
-	mv kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(PWD)/$(KAT_CLIENT)
-	rm -rf v$(KAT_BACKEND_RELEASE).tar.gz kat-backend-$(KAT_BACKEND_RELEASE)/
+venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz: | venv/bin/activate
+	curl -L -o $@ https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
+$(KAT_CLIENT): venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz
+	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
+	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(CURDIR)/$(KAT_CLIENT)
 
 setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
 
@@ -468,13 +472,13 @@ endif
 
 setup-test: cluster-and-teleproxy
 
-cluster-and-teleproxy: cluster.yaml
+cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
 	rm -rf /tmp/k8s-*.yaml
 	$(MAKE) teleproxy-restart
 	@echo "Sleeping for Teleproxy cluster"
 	sleep 10
 
-teleproxy-restart:
+teleproxy-restart: $(TELEPROXY)
 	@echo "Killing teleproxy"
 	$(kill_teleproxy)
 	sleep 0.25 # wait for exit...
