@@ -286,7 +286,7 @@ envoy: .FORCE
 	else \
 		git remote add origin $(ENVOY_REPO); \
 	fi && \
-	git fetch origin && \
+	git fetch --tags origin && \
 	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
 envoy-build-image.txt: .FORCE envoy
 	set -e; \
