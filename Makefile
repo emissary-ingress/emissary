@@ -337,7 +337,7 @@ docker-push-base-images:
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base:
-	$(MAKE) docker-base-images
+	$(MAKE) docker-base-images go/apis/envoy
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: version $(WATT)
