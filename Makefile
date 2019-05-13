@@ -303,6 +303,7 @@ envoy-build-image.txt: .FORCE envoy
 envoy-bin/envoy-static: .FORCE envoy-build-image.txt
 	docker run --rm --volume=$(CURDIR)/envoy:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav /xfer/ /root/envoy
 	docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c dbg //source/exe:envoy-static
+	docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache
 	mkdir -p envoy-bin
 	docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static
 %-stripped: % envoy-build-image.txt
