@@ -343,3 +343,40 @@ add_response_headers:
                 assert r.headers['Zoo'] == ['Zoo', 'ZooZ']
                 assert r.headers['Test'] == ['Test', 'boo']
                 assert r.headers['Foo'] == ['Foo']
+
+class RemoveReqHeadersMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://httpbin.org
+remove_request_headers:
+- zoo
+- aoo
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/headers"), headers={
+            "zoo": "ZooZ",
+            "aoo": "AooA",
+            "foo": "FooF"
+        })
+
+    def check(self):
+        for r in self.results:
+            print(r.json)
+            if 'headers' in r.json:
+                assert r.json['headers']['Foo'] == 'FooF'
+                assert 'Zoo' not in r.json['headers']
+                assert 'Aoo' not in r.json['headers']
