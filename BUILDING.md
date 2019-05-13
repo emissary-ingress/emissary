@@ -121,7 +121,9 @@ we at Datawire tend to use PyCharm and VSCode a lot, but many many editors can d
 now. We also **strongly** recommend that you run `mypy` itself over your code before 
 opening a PR. The easy way to do that is simply
 
-```make mypy```
+```
+make mypy
+```
 
 after you've done `make shell`. This will start the [mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html)
 and then do a check of all the Ambassador code. There _should_ be no errors and no warnings
@@ -155,6 +157,50 @@ The `ambassador dump` function (run from a `make shell`) will export the full En
 `ambassador dump --ir --v2 $configdir > test.json` 
 
 which will export the Ambassador IR and v2 Envoy configuration into `test.json`. If your configuration directory contains annotated Kubernetes resources, you should also pass a `--k8s` flag to `dump`. 
+
+Updating Ambassador's Envoy
+---------------------------
+
+Ambassador currently relies on a custom Envoy build. This build lives in `https://github.com/datawire/envoy`, which is a fork of `https://github.com/envoyproxy/envoy`, and it'll need to be updated at least as often as Envoy releases happen. To do that:
+
+ 1. Run `make envoy` to instruct Make to clone `$ENVOY_REPO` to `./envoy/`.  It will check out `$ENVOY_COMMMIT` (instead of `master`).
+
+    ```
+    $ make envoy
+    git init envoy
+    …
+    HEAD is now at a484da25f updated legacy RLS name
+    ```
+
+ 2. Rebase that commit on to the latest upstream commit that you would like to incorporate.  Usually, `$ENVOY_COMMIT` points to the tip of `rebase/master`, so that's a good branch to work on.
+
+    ```
+    $ git checkout rebase/master
+    Branch 'rebase/master' set up to track remote branch 'rebase/master' from 'origin'.
+    Switched to a new branch 'rebase/master'
+    $ git rebase v1.10.0
+    …
+    ```
+
+ 3. Run `ENVOY_COMMIT=- make envoy-bin/envoy-static` to make sure that your new Envoy commit compiles correctly.  If there are problems with the build, you can run `ENVOY_COMMIT=- make envoy-shell` to get a shell in to the Docker image where Envoy is compiled.  Do note that if you edit the sources in the Docker image, the changes WILL NOT be automatically copied back out to the host's `./envoy/` directory.
+
+ 4. Run `ENVOY_COMMIT=- make check-envoy` to make sure that your new Envoy commit passes Envoy's own test-suite.
+
+ 5. Push the Envoy commit:
+
+    ```
+    $ git tag "datawire-$(git describe --tags)"
+    $ git push --tags
+    …
+    $ git push -f origin rebase/master
+    …
+    ```
+
+ 6. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
+
+    a. Also update the number in the `ENVOY_BASE_IMAGE`, `AMBASSADOR_DOCKER_IMAGE_CACHED`, and `AMBASSADOR_BASE_IMAGE` variables.
+
+    b. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
 
 Version Numbering
 -----------------
