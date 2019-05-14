@@ -30,7 +30,7 @@ spec:
   containers:
   - name: backend
     image: quay.io/datawire/kat-backend:12
-    imagePullPolicy: Always
+    
     ports:
     - containerPort: 8080
     env:
@@ -57,7 +57,7 @@ spec:
       containers:
       - name: backend
         image: quay.io/datawire/kat-backend:12
-        imagePullPolicy: Always
+        
         # ports:
         # {ports}
         env:
@@ -95,7 +95,7 @@ spec:
   containers:
   - name: backend
     image: quay.io/datawire/kat-backend:12
-    imagePullPolicy: Always
+    
     ports:
     - containerPort: 8080
     env:
@@ -134,7 +134,7 @@ spec:
   containers:
   - name: backend
     image: quay.io/datawire/kat-backend:12
-    imagePullPolicy: Always
+    
     ports:
     - containerPort: 8080
     env:
@@ -173,7 +173,6 @@ spec:
   containers:
   - name: backend
     image: quay.io/datawire/kat-backend:12
-    imagePullPolicy: Always
     ports:
     - containerPort: 8080
     env:
