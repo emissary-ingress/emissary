@@ -742,19 +742,7 @@ max_tls_version: v1.1
                     maxTLSv="v1.2",
                     error="tls: server selected unsupported protocol version 302")
 
-    def check(self):
-        idx = 0
-        for result in self.results:
-            if result.status == 200 and result.query.headers:
-                host_header = result.query.headers['Host']
-                tls_common_name = result.tls[0]['Issuer']['CommonName']
-
-                if host_header == 'tls-context-host-3':
-                    host_header = 'localhost'
-
-                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
-
-            idx += 1
+    
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
