@@ -580,8 +580,15 @@ class IR:
                 using_http = True
                 cluster_http_count += 1
 
-            cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.targets
+            cluster_endpoints = cluster.urls if (lb_type == 'kube') else cluster.get('targets', [])
+
+            # Paranoia, really.
+            if not cluster_endpoints:
+                cluster_endpoints = []
+
             num_endpoints = len(cluster_endpoints)
+
+            # self.logger.debug(f'cluster {cluster.name}: lb_type {lb_type}, endpoints {cluster_endpoints} ({num_endpoints})')
 
             if using_tls:
                 endpoint_tls_count += num_endpoints
