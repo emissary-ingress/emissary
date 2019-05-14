@@ -667,7 +667,7 @@ max_tls_version: v1.3
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
 
 class TLSContextProtocolMinVersion(AmbassadorTest):
-    # debug = True
+    debug = True
 
     def init(self):
         self.target = HTTP()
@@ -698,7 +698,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
-service: http://{self.target.path.fqdn}
+service: https://{self.target.path.fqdn}
 host: tls-context-host-1
 """)
         yield self, self.format("""
