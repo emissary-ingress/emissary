@@ -36,6 +36,9 @@ config:
 # Should we enable the grpc-Web protocol?
 # enable_grpc_web: false
 
+# Should we enable http/1.0 protocol?
+# enable_http10: false
+
 # Should we do IPv4 DNS lookups when contacting services? Defaults to true,
 # but can be overridden in a [`Mapping`](/reference/mappings).
 # enable_ipv4: true
@@ -75,11 +78,11 @@ config:
 # use_proxy_proto: false
 
 # use_remote_address controls whether Envoy will trust the remote
-# address of incoming connections or rely exclusively on the 
-# X-Forwarded_For header. 
+# address of incoming connections or rely exclusively on the
+# X-Forwarded_For header.
 # use_remote_address: true
 
-# xff_num_trusted_hops controls the how Envoy sets the trusted 
+# xff_num_trusted_hops controls the how Envoy sets the trusted
 # client IP address of a request. If you have a proxy in front
 # of Ambassador, Envoy will set the trusted client IP to the
 # address of that proxy. To preserve the orginal client IP address,
@@ -90,7 +93,7 @@ config:
 
 # Ambassador lets through only the HTTP requests with
 # `X-FORWARDED-PROTO: https` header set, and redirects all the other
-# requests to HTTPS if this field is set to true. Note that `use_remote_address` 
+# requests to HTTPS if this field is set to true. Note that `use_remote_address`
 # must be set to false for this feature to work as expected.
 # x_forwarded_proto_redirect: false
 
@@ -102,7 +105,20 @@ config:
 #   policy: round_robin/ring_hash/maglev
 #   ...
 
-# Set default CORS configuration for all mappings in the cluster. See 
+# circuit_breakers sets the global circuit breaking configuration that
+# Ambassador will use for all mappings, unless overridden in a
+# mapping.
+# More information at the [circuit breaking reference](/reference/core/circuit-breaking)
+# circuit_breakers:
+#   max_connections: 2048
+#   ...
+
+# retry_policy lets you add resilience to your services in case of request failures by performing automatic retries.
+# retry_policy:
+#   retry_on: "5xx"
+#   ...
+
+# Set default CORS configuration for all mappings in the cluster. See
 # CORS syntax at https://www.getambassador.io/reference/cors.html
 # cors:
 #   origins: http://foo.example,http://bar.example
@@ -160,6 +176,10 @@ Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an H
 
 gRPC-Web is a protocol built on gRPC that extends the benefits of gRPC to the browser. The gRPC-Web specification requires a server-side proxy to translate between gRPC-Web requests and gRPC backend services. Ambassador can serve as the service-side proxy for gRPC-Web when `enable_grpc_web: true` is set.
 
+### HTTP/1.0 support (`enable_http10`)
+
+Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
+
 ### `enable_ivp4` and `enable_ipv6`
 
 If both IPv4 and IPv6 are enabled, Ambassador will prefer IPv6. This can have strange effects if Ambassador receives
@@ -195,7 +215,7 @@ Many load balancers can use the [PROXY protocol](https://www.haproxy.org/downloa
 
 ### `xff_num_trusted_hops`
 
-The value of `xff_num_trusted_hops` indicates the number of trusted proxies in front of Ambassador. The default setting is 0 which tells Envoy to use the immediate downstream connection's IP address as the trusted client address. The trusted client address is used to populate the `remote_address` field used for rate limiting and can affect which IP address Envoy will set as `X-Envoy-External-Address`. 
+The value of `xff_num_trusted_hops` indicates the number of trusted proxies in front of Ambassador. The default setting is 0 which tells Envoy to use the immediate downstream connection's IP address as the trusted client address. The trusted client address is used to populate the `remote_address` field used for rate limiting and can affect which IP address Envoy will set as `X-Envoy-External-Address`.
 
 `xff_num_trusted_hops` behavior is determined by the value of `use_remote_address` (which defaults to `true` in Ambassador).
 
