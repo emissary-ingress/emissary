@@ -375,6 +375,7 @@ clobber:
 .PHONY: release release-%
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
+release: build
 release: release-bin release-docker
 release-bin: ## Upload binaries to S3
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl             )
