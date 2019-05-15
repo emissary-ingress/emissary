@@ -1,5 +1,11 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.4.3 (2019-05-15)
+
+ * Add the Developer Portal
+ * `apictl traffic initialize`: Correctly handle non-`default` namespaces
+ * `app-sidecar`: Respect the `APP_LOG_LEVEL` environment variable, same as `amb-sidecar`
+
 ## 0.4.2 (2019-05-03)
 
  * Turn down liveness and readiness probe logging from "info" to "debug"
