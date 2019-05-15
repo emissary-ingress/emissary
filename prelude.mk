@@ -21,6 +21,7 @@
 ## common.mk targets ##
 #  (none)
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+_prelude.mk := $(lastword $(MAKEFILE_LIST))
 
 #
 # Variables
@@ -31,7 +32,7 @@ _prelude.HAVE_GO = $(call lazyonce,_prelude.HAVE_GO,$(shell which go 2>/dev/null
 export GOHOSTOS   = $(call lazyonce,GOHOSTOS  ,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTOS  ),$(shell uname -s | tr A-Z a-z)))
 export GOHOSTARCH = $(call lazyonce,GOHOSTARCH,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTARCH),$(patsubst i%86,386,$(patsubst x86_64,amd64,$(shell uname -m)))))
 
-FLOCK = $(call lazyonce,FLOCK,$(if $(shell which flock 2>/dev/null),flock,$(dir $(_flock.mk))flock))
+FLOCK = $(call lazyonce,FLOCK,$(if $(shell which flock 2>/dev/null),flock,$(dir $(_prelude.mk))flock))
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
