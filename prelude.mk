@@ -71,7 +71,7 @@ quote.shell = "$$(printf '%s\n' $(subst $(NL),' ','$(subst ','\'',$1)'))"
 #
 # Caches the value of EXPR (in case it's expensive/slow) once it is
 # evaluated, but doesn't eager-evaluate it either.
-lazyonce = $(eval $1 := $2)$($1)
+lazyonce = $(eval $(strip $1) := $2)$($(strip $1))
 
 #
 # Targets
