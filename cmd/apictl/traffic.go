@@ -121,16 +121,16 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 	apply.Wait()
 
 	w := k8s.NewWaiter(k8s.NewClient(info).Watcher())
-	err = w.Add("service/telepresence-proxy")
+	err = w.Add(fmt.Sprintf("service/telepresence-proxy.%s", info.Namespace))
 	if err != nil {
 		return err
 	}
-	err = w.Add("deployment/telepresence-proxy")
+	err = w.Add(fmt.Sprintf("deployment/telepresence-proxy.%s", info.Namespace))
 	if err != nil {
 		return err
 	}
 	if !w.Wait(30) {
-		return errors.New("FIXME: There should be a good error message here")
+		return errors.New("Telepresence-proxy did not come up. Investigate: kubectl get all -l app=telepresence-proxy")
 	}
 	return nil
 }
