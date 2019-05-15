@@ -40,7 +40,8 @@ type server struct {
 	runtime       loader.IFace
 	debugHandler  *serverDebugHandler
 	debugListener net.Listener
-	health        *healthChecker
+	healthGRPC    *health.Server
+	healthHTTP    HealthChecker
 }
 
 func (debugHandler *serverDebugHandler) AddEndpoint(path string, help string, handler http.HandlerFunc) {
@@ -142,9 +143,11 @@ func newServer(name string, opts ...settings.Option) *server {
 	ret.router = mux.NewRouter()
 
 	// setup healthcheck path
-	ret.health = NewHealthChecker(health.NewServer())
-	ret.router.Path("/healthcheck").Handler(ret.health)
-	healthpb.RegisterHealthServer(ret.grpcServer, ret.health.grpc)
+	ret.healthGRPC = health.NewServer()
+	healthpb.RegisterHealthServer(ret.grpcServer, ret.healthGRPC)
+
+	ret.healthHTTP = NewHealthChecker(ret.healthGRPC)
+	ret.router.Path("/healthcheck").Handler(ret.healthHTTP)
 
 	// setup default debug listener
 	ret.debugHandler = newDebugHTTPHandler()
@@ -201,6 +204,7 @@ func (server *server) handleGracefulShutdown() {
 		sig := <-sigs
 
 		logger.Infof("Ratelimit server received %v, shutting down gracefully", sig)
+		server.healthGRPC.Shutdown()
 		server.grpcServer.GracefulStop()
 		if server.debugListener != nil {
 			server.debugListener.Close()
