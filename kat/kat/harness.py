@@ -530,6 +530,7 @@ class BackendTLS:
         self.server_name = tls.get("server-name")
         self.version = tls.get("version")
         self.negotiated_protocol = tls.get("negotiated-protocol")
+        self.negotiated_protocol_version = tls.get("negotiated-protocol-version")
 
     def as_dict(self) -> Dict[str, Any]:
         return {
@@ -537,6 +538,7 @@ class BackendTLS:
             'server_name': self.server_name,
             'version': self.version,
             'negotiated_protocol': self.negotiated_protocol,
+            'negotiated_protocol_version': self.negotiated_protocol_version,
         }
 
 
