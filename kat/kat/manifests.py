@@ -342,12 +342,10 @@ metadata:
   name: {self.path.k8s}
 rules:
 - apiGroups: [""]
-  resources:
-  - configmaps
-  - services
-  - secrets
-  - namespaces
-  - endpoints
+  resources: [ "configmaps", "services", "secrets", "namespaces", "endpoints" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "*" ]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
