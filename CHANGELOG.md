@@ -88,6 +88,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.61.1] May 16, 2019
+[0.61.1]: https://github.com/datawire/ambassador/compare/0.61.0...0.61.1
+
+- Bugfix: Make sure that Consul discovery properly handles the datacenter name ([#1533])
+- Bugfix: Make sure that the feature-walk code is protected against clusters with no endpoints at all ([#1532])
+
+[#1532]: https://github.com/datawire/ambassador/issues/1532
+[#1533]: https://github.com/datawire/ambassador/issues/1533
+
 ## [0.61.0] May 08, 2019
 [0.61.0]: https://github.com/datawire/ambassador/compare/0.60.3...0.61.0
 
