@@ -140,9 +140,16 @@ class ResourceFetcher:
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
+            # Handle normal Kube objects...
             for key in [ 'service', 'endpoints', 'secret' ]:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s(obj)
+
+            # ...then handle Ambassador CRDs.
+            for key in [ 'AuthService', 'Mapping', 'Module', 'RateLimitService',
+                         'TCPMapping', 'TLSContext', 'TracingService']:
+                for obj in watt_k8s.get(key) or []:
+                    self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -183,6 +190,47 @@ class ResourceFetcher:
 
             self.parse_object(parsed_objects, k8s=False,
                               filename=self.filename, rkey=rkey)
+
+    def handle_k8s_crd(self, obj: dict) -> None:
+        # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
+
+        kind = obj.get('kind')
+
+        if not kind:
+            self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
+            return
+
+        apiVersion = obj.get('apiVersion')
+        metadata = obj.get('metadata') or {}
+        name = metadata.get('name')
+        namespace = metadata.get('namespace') or 'default'
+        spec = obj.get('spec')
+
+        if not name:
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
+            return
+
+        if not apiVersion:
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no apiVersion')
+            return
+
+        if not spec:
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no spec')
+            return
+
+        # We use this resource identifier as a key into self.k8s_services, and of course for logging .
+        resource_identifier = f'{name}.{namespace}'
+
+        # OK. Shallow copy 'spec'...
+        amb_object = dict(spec)
+
+        # ...and then stuff in a couple of other things.
+        amb_object['apiVersion'] = apiVersion
+        amb_object['name'] = name
+        amb_object['kind'] = kind
+
+        # Done. Parse it.
+        self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
 
     def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
         self.push_location(filename, 1)

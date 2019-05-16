@@ -15,7 +15,7 @@ import time
 import threading
 import traceback
 
-from .manifests import BACKEND_SERVICE, SUPERPOD_POD
+from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS
 
 from yaml.scanner import ScannerError as YAMLScanError
 
@@ -833,6 +833,37 @@ class Runner:
         return manifests
 
     def _setup_k8s(self, selected):
+        # First up: CRDs.
+        fname = "/tmp/k8s-CRDs.yaml"
+        prev_yaml = None
+
+        if os.path.exists(fname):
+            with open(fname) as f:
+                prev_yaml = f.read()
+
+        yaml = CRDS
+
+        if yaml.strip():
+            if yaml != prev_yaml:
+                print("CRDS changed, applying.")
+                with open(fname, "w") as f:
+                    f.write(yaml)
+
+                run(f'kubectl apply -f {fname}')
+
+                tries_left = 10
+
+                while os.system('kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
+                    tries_left -= 1
+
+                    if tries_left <= 0:
+                        raise RuntimeError("CRDs never became available")
+
+                    print("sleeping for CRDs... (%d)" % tries_left)
+                    time.sleep(5)
+            else:
+                print("CRDS unchanged, skipping apply.")
+
         manifests = self.get_manifests(selected)
 
         configs = OrderedDict()

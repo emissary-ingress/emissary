@@ -19,12 +19,12 @@ kind: ClusterRole
 metadata:
   name: ambassador
 rules:
+rules:
 - apiGroups: [""]
-  resources:
-  - namespaces
-  - services
-  - secrets
-  - endpoints
+  resources: [ "endpoints", "namespaces", "secrets", "services" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "*" ]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
