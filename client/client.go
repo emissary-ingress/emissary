@@ -143,6 +143,8 @@ func (q Query) MinTLSVersion() uint16 {
 		return tls.VersionTLS11
 	case "v1.2":
 		return tls.VersionTLS12
+	case "v1.3":
+		return 0x0304
 	default:
 		return 0
 	}
@@ -157,6 +159,8 @@ func (q Query) MaxTLSVersion() uint16 {
 		return tls.VersionTLS11
 	case "v1.2":
 		return tls.VersionTLS12
+	case "v1.3":
+		return 0x0304
 	default:
 		return 0
 	}
