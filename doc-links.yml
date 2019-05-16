@@ -119,6 +119,8 @@
           items:
             - title: Canary Releases
               link: /reference/canary
+            - title: Circuit Breakers
+              link: /reference/circuit-breakers
             - title: Cross Origin Resource Sharing
               link: /reference/cors
             - title: Header-based routing
@@ -133,6 +135,8 @@
               link: /reference/add_request_headers
             - title: Response Headers
               link: /reference/add_response_headers
+            - title: Retries
+              link: /reference/retries
             - title: Rewrites
               link: /reference/rewrites
             - title: Routing TCP Connections
