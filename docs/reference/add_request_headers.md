@@ -4,9 +4,9 @@ Ambassador can add a dictionary of HTTP headers that can be added to each reques
 
 ## The `add_request_headers` annotation
 
-The `add_request_headers` attribute is a dictionary of `header`: `value` pairs. Where the value can be string or another dictionary, which supports advanced configuration of the headers. Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values. Please see the examples provided below for more details on configuration. The same configuration is applicable for `add_response_headers`.
+The `add_request_headers` attribute is a dictionary of `header`: `value` pairs. The `value` can be a `string`, `bool` or `object`. When its an `object`, the object should have a `value` property, which is the actual header value, and the remaining attributes are additional envoy properties. Look at the example to see the usage.
 
-Only `append` configurations are supported with additional configrations.
+Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%` are supported, in addition to static values.
 
 ## A basic example
 
@@ -20,11 +20,11 @@ add_request_headers:
   x-test-proto: "%PROTOCOL%"
   x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
   x-test-static: This is a test header
-  x-test-append:
-    value: TestValue
-    append: False
-  x-test-append:
-    value: TestValue2,
+  x-test-static-2:
+    value: This the test header #same as above  x-test-static header
+  x-test-object:
+    value: This the value
+    append: False #True by default
 service: qotm
 ```
 

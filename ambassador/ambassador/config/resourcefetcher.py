@@ -533,7 +533,7 @@ class ResourceFetcher:
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
             'name': name,
-            'datacenter': consul_object.get('id') or 'dc1',
+            'datacenter': consul_object.get('Id') or 'dc1',
             'endpoints': {}
         }
 
@@ -587,7 +587,7 @@ class ResourceFetcher:
             'services': self.services
         }
 
-        self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
+        # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
 
         for key, k8s_svc in self.k8s_services.items():
             # See if we can find endpoints for this service.
@@ -752,4 +752,4 @@ class ResourceFetcher:
             'services': self.services
         }
 
-        self.logger.debug("==== FINALIZE END\n%s" % json.dumps(od, sort_keys=True, indent=4))
+        # self.logger.debug("==== FINALIZE END\n%s" % json.dumps(od, sort_keys=True, indent=4))

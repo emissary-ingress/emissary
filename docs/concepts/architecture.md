@@ -20,7 +20,7 @@ Ambassador relies on Kubernetes for scaling, high availability, and persistence.
 
 ### Stateless architecture
 
-By design, Ambassador is an entirely stateless architecture. Each individual Ambassador instance operates independently of other Ambassador instances. These Ambassador instances rely on Kubernetes to coordinate the configuration between different Ambassador instances. This enables Ambassador to sidestep the need to engineer a safe, highly available centralized control plane (and if you don't think that this is hard, check out [Jepson](https://jepson.io)). By contrast, other control plane architectures rely on a single centralized control plane to manage multiple instances of the data plane. This means that these control plane architectures must engineer resilience and availability into their central control plane.
+By design, Ambassador is an entirely stateless architecture. Each individual Ambassador instance operates independently of other Ambassador instances. These Ambassador instances rely on Kubernetes to coordinate the configuration between different Ambassador instances. This enables Ambassador to sidestep the need to engineer a safe, highly available centralized control plane (and if you don't think that this is hard, check out [Jepsen](https://jepsen.io)). By contrast, other control plane architectures rely on a single centralized control plane to manage multiple instances of the data plane. This means that these control plane architectures must engineer resilience and availability into their central control plane.
 
 ## Envoy Proxy
 
