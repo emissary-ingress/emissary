@@ -8,6 +8,31 @@ Ambassador sits between users and an Envoy. The primary job that an Ambassador d
 
 ```Ambassador config => IR => Envoy config```
 
+### Ambassador Components and Ports
+
+Ambassador comprises several different components:
+
+| Component                 | Type   | Function.                 |
+| :------------------------ | :----  | :------------------------ |
+| `diagd`                   | Python | Increasingly-misnamed core of the system; manages changing configurations and provides the diagnostics UI |
+| `ambex`                   | Go     | Envoy `go-control-plane` implementation; supplies Envoy with current configuration |
+| `watt`                    | Go     | Service/secret discovery; interface to Kubernetes and Consul |
+| `envoy`                   | C++    | The actual proxy process |
+| `kubewatch.py`            | Python | Used only to determine the cluster's installation ID; needs to be subsumed by `watt` |
+
+`diagd`, `ambex`, `watt`, and `envoy` are all long-running daemons. If any of them exit, the pod as a whole will exit.
+
+Ambassador uses several TCP ports while running. All but one of them are in the range 8000-8499, and any future assignments for Ambassador ports should come from this range.
+
+| Port | Process | Function |
+| :--- | :------ | :------- |
+| 8001 | `envoy` | Internal stats, logging, etc.; not exposed outside pod |
+| 8002 | `watt`  | Internal `watt` snapshot access; not exposed outside pod |
+| 8003 | `ambex` | Internal `ambex` snapshot access; not exposed outside pod |
+| 8080 | `envoy` | Default HTTP service port |
+| 8443 | `envoy` | Default HTTPS service port |
+| 8877 | `diagd` | Direct access to diagnostics UI |
+
 ### The Ambassador Configuration
 
 An Ambassador configuration is a collection of _Ambassador configuration resources_, which are represented by subclasses of `ambassador.config.ACResource`. The configuration as a whole is represented by an `ambassador.Config` object.
