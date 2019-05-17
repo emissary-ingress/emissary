@@ -180,7 +180,7 @@ mkdir -p "${ENVOY_DIR}"
 
 if [ -z "${DIAGD_ONLY}" ]; then
     echo "AMBASSADOR: starting ads"
-    ambex "${ENVOY_DIR}" &
+    ambex -ads 8003 "${ENVOY_DIR}" &
     AMBEX_PID="$!"
     pids="${pids:+${pids} }${AMBEX_PID}:ambex"
 else
@@ -237,7 +237,7 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
 #    fi
 
     set -x
-    /ambassador/watt ${KUBEWATCH_NAMESPACE_ARG} --notify "$KUBEWATCH_SYNC_CMD" $KUBEWATCH_SYNC_KINDS --watch "$WATCH_HOOK" &
+    /ambassador/watt ${KUBEWATCH_NAMESPACE_ARG} --port 8002 --notify "$KUBEWATCH_SYNC_CMD" $KUBEWATCH_SYNC_KINDS --watch "$WATCH_HOOK" &
     set +x
     pids="${pids:+${pids} }$!:watt"
 fi
