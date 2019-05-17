@@ -196,6 +196,10 @@ Ambassador and Ambassador Pro support more verbose debugging levels. If using Am
 
 If using Ambassador Pro, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 
+## Port Assignments
+
+Ambassador uses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador should not use ports in this range on the Ambassador pod.
+
 ## Ambassador Update Checks (Scout)
 
 Ambassador integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
