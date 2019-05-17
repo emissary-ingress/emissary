@@ -1,8 +1,6 @@
-// Package rfc6749client implements the "Client" role of the OAuth 2.0 Framework.
 package rfc6749client
 
 import (
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -81,77 +79,4 @@ func (scopes Scopes) String() string {
 		strs = append(strs, k)
 	}
 	return strings.Join(strs, " ")
-}
-
-// An AuthorizationCodeClient is Client that utilizes the
-// "Authorization Code" Grant-type, as defined by §4.1.
-type AuthorizationCodeClient struct {
-	clientID              string
-	authorizationEndpoint *url.URL
-	tokenEndpoint         *url.URL
-}
-
-// NewAuthorizationCodeClient creates a new AuthorizationCodeClient as
-// defined by §4.1.
-func NewAuthorizationCodeClient(
-	clientID string,
-	authorizationEndpoint *url.URL,
-	tokenEndpoint *url.URL,
-) (*AuthorizationCodeClient, error) {
-	if err := validateAuthorizationEndpointURI(authorizationEndpoint); err != nil {
-		return nil, err
-	}
-	if err := validateAuthorizationEndpointURI(authorizationEndpoint); err != nil {
-		return nil, err
-	}
-	ret := &AuthorizationCodeClient{
-		clientID:              clientID,
-		authorizationEndpoint: authorizationEndpoint,
-		tokenEndpoint:         tokenEndpoint,
-	}
-	return ret, nil
-}
-
-// AuthorizationRequest writes an HTTP response that directs the
-// User-Agent to perform the Authorization Request, per §4.1.1.
-// 
-// OAuth arguments:
-//
-//  - redirectURI: OPTIONAL if exactly 1 complete Redirection Endpoint
-//    was registered with the Authorization Server when registering
-//    the Client.  If the Client was not registered with the
-//    Authorization Server, it was registered with 0 Redirection
-//    Endpoints, it was registered with a partial Redirection
-//    Endpoint, or it was registered with more than 1 Redirection
-//    Endpoint, then this argument is REQUIRED.
-//
-//  - scopes: OPTIONAL.
-//
-//  - state: RECOMMENDED.
-func (client *AuthorizationCodeClient) AuthorizationRequest(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, scopes Scopes, state string) {
-	parameters := url.Values{
-		"response_type": {"code"},
-		"client_id":     {client.clientID},
-	}
-	if redirectURI != nil {
-		err := validateRedirectionEndpointURI(redirectURI)
-		if err != nil {
-			err = errors.Wrap(err, "cannot build Authorization Request URI")
-			http.Error(w, err.String(), http.StatusInternalServerError)
-		}
-		parameters.Set("redirect_uri", redirectURI.String())
-	}
-	if len(scopes) != 0 {
-		parameters.Set("scope", Scopes.String())
-	}
-	if state != "" {
-		parameters.Set("state", state)
-	}
-	requestURI, err := buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
-	if err != nil {
-		http.Error(w, err.String(), http.StatusInternalServerError)
-	}
-
-	http.Redirect(w, r, requestURI.String(), http.StatusFound)
-	return nil
 }
