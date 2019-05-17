@@ -93,8 +93,6 @@ fi
 mkdir -p "${SNAPSHOT_DIR}"
 mkdir -p "${ENVOY_DIR}"
 
-DELAY=${AMBASSADOR_RESTART_TIME:-1}
-
 APPDIR=${APPDIR:-"$AMBASSADOR_ROOT"}
 
 # If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by default, which fails when running as a non-privileged
