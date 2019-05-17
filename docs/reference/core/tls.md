@@ -103,6 +103,24 @@ config:
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador mappings. Requests that contain have `X-FORWARDED-PROTO` set to `https` will be passed through. Otherwise, for all other values of `X-FORWARDED-PROTO`, they will be redirected to TLS.
 
 
+## `min_tls_version` and `max_tls_version`
+
+The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
+
+The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: ambassador-secure
+hosts: []
+secret: ambassador-secret
+min_tls_version: v1.0
+max_tls_version: v1.3
+```
+
+
 ## Authentication with TLS Client Certificates
 
 Ambassador also supports TLS client-certificate authentcation. After enabling TLS termination, collect the full CA certificate chain (including all necessary intermediate certificates) into a single file. Store the CA certificate chain used to validate the client certificate into a Kubernetes `secret` named `ambassador-cacert`:
