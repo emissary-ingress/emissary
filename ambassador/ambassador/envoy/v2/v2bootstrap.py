@@ -40,7 +40,7 @@ class V2Bootstrap(dict):
             "hosts": [ {
                 "socket_address": {
                     "address": "127.0.0.1",
-                    "port_value": 18000
+                    "port_value": 8003
                 }
             } ],
             "http2_protocol_options": {},
