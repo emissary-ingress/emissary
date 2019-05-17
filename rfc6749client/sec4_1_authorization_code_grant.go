@@ -3,6 +3,7 @@ package rfc6749client
 import (
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -13,7 +14,7 @@ type AuthorizationCodeClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
 	tokenEndpoint         *url.URL
-	clientAuthentication ClientAuthenticationMethod
+	clientAuthentication  ClientAuthenticationMethod
 }
 
 // NewAuthorizationCodeClient creates a new AuthorizationCodeClient as
@@ -34,7 +35,7 @@ func NewAuthorizationCodeClient(
 		clientID:              clientID,
 		authorizationEndpoint: authorizationEndpoint,
 		tokenEndpoint:         tokenEndpoint,
-		clientAuthentication: clientAuthentication,
+		clientAuthentication:  clientAuthentication,
 	}
 	return ret, nil
 }
@@ -259,6 +260,8 @@ var authorizationCodeAuthorizationErrorCodeData = map[string]struct {
 			"to the client via an HTTP redirect.)"},
 }
 
+type TODO interface{}
+
 // AccessToken talks to the Authorization Server to exchange an
 // Authorization Code (obtained from `.ParseAuthorizationResponse()`)
 // for a Token; submitting the request per §4.1.3, and handling the
@@ -273,7 +276,7 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
-		"code": {"code"},
+		"code":       {"code"},
 	}
 	if redirectURI != nil {
 		parameters.Set("redirect_uri", redirectURI.String())
@@ -282,13 +285,13 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 		parameters.Set("client_id", client.clientID)
 	}
 
-	req, err := NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(parameters.Encode()))
+	req, err := http.NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(parameters.Encode()))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if client.ClientAuthentication != nil {
+	if client.clientAuthentication != nil {
 		client.clientAuthentication(req)
 	}
 
@@ -299,4 +302,5 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 	defer res.Body.Close()
 
 	// TODO: handle success per §5.1 and failure per §5.2.
+	return nil, nil
 }

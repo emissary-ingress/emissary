@@ -1,8 +1,8 @@
 package rfc6749client
 
 import (
-	"net/url"
 	"net/http"
+	"net/url"
 )
 
 // A ClientAuthenticationMethod modifies an *http.Request before it is
@@ -17,7 +17,7 @@ type ClientAuthenticationMethod func(*http.Request)
 // ClientPassword implements HTTP Basic authentication as specified in
 // §2.3.1.
 func ClientPassword(clientID, clientPassword string) ClientAuthenticationMethod {
-	return func(r *http.Client) {
+	return func(r *http.Request) {
 		r.SetBasicAuth(url.QueryEscape(clientID), url.QueryEscape(clientPassword))
 	}
 }
