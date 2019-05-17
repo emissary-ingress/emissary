@@ -14,6 +14,8 @@ apro-abi@%.txt:
 	grep -v '^#' < $< > $@
 -include apro-abi@$(APRO_VERSION).mk
 
+go.DOCKER_IMAGE = golang:$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(APRO_GOVERSION)))),.0)
+
 # Since the GOPATH must match amb-sidecar, we *always* compile in
 # Docker, so that we can put it at an arbitrary path without fuss.
 go.GOBUILD  = docker run --rm
@@ -26,7 +28,7 @@ go.GOBUILD += --volume=$$(go env GOPATH)/pkg/mod/cache/download:/mnt/goproxy:ro 
 go.GOBUILD += --volume $(CURDIR):$(CURDIR):rw --workdir=$(CURDIR) --user=$$(id -u) --env=GOCACHE=/tmp/go-cache
 go.GOBUILD += --tmpfs=$(APRO_GOPATH):uid=$$(id -u),gid=$$(id -g),mode=0755,rw
 # Run `go build` mimicking the APro build
-go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) golang:$(APRO_GOVERSION) go build
+go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) $(go.DOCKER_IMAGE) go build
 
 all: .docker.stamp
 .PHONY: all
@@ -46,7 +48,7 @@ push: .docker.stamp
 download-go:
 	go list ./...
 download-docker:
-	docker pull golang:$(APRO_GOVERSION)
+	docker pull $(go.DOCKER_IMAGE)
 .PHONY: download-go download-docker
 
 .common-pkgs.txt: apro-abi@$(APRO_VERSION).pkgs.txt download-go
