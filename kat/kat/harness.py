@@ -2,6 +2,7 @@ import sys
 
 from abc import ABC
 from collections import OrderedDict
+from hashlib import sha256
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Type, Union
 
 import base64
@@ -15,7 +16,7 @@ import time
 import threading
 import traceback
 
-from .manifests import BACKEND_SERVICE, SUPERPOD_POD
+from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS
 
 from yaml.scanner import ScannerError as YAMLScanError
 
@@ -27,6 +28,49 @@ def run(cmd):
     status = os.system(cmd)
     if status != 0:
         raise RuntimeError("command failed[%s]: %s" % (status, cmd))
+
+
+def get_digest(data: str) -> str:
+    s = sha256()
+    s.update(data.encode('utf-8'))
+    return s.hexdigest()
+
+
+def has_changed(data: str, path: str) -> Tuple[bool, str]:
+    cur_size = len(data.strip()) if data else 0
+    cur_hash = get_digest(data)
+
+    print(f'has_changed: data size {cur_size} - {cur_hash}')
+
+    prev_data = None
+    changed = True
+    reason = f'no {path} present'
+
+    if os.path.exists(path):
+        with open(path) as f:
+            prev_data = f.read()
+
+    prev_size = len(prev_data.strip()) if prev_data else 0
+    prev_hash = None
+
+    if prev_data:
+        prev_hash = get_digest(prev_data)
+
+    print(f'has_changed: prev_data size {prev_size} - {prev_hash}')
+
+    if data:
+        if data != prev_data:
+            reason = f'different data in {path}'
+        else:
+            changed = False
+            reason = f'same data in {path}'
+
+        if changed:
+            print(f'has_changed: updating {path}')
+            with open(path, "w") as f:
+                f.write(data)
+
+    return (changed, reason)
 
 
 COUNTERS: Dict[Type, int] = {}
@@ -835,6 +879,26 @@ class Runner:
         return manifests
 
     def _setup_k8s(self, selected):
+        # First up: CRDs.
+        changed, reason = has_changed(CRDS, "/tmp/k8s-CRDs.yaml")
+
+        if changed:
+            print(f'CRDS changed ({reason}), applying.')
+            run(f'kubectl apply -f /tmp/k8s-CRDs.yaml')
+
+            tries_left = 10
+
+            while os.system('kubectl get crd mappings.getambassador.io > /dev/null 2>&1') != 0:
+                tries_left -= 1
+
+                if tries_left <= 0:
+                    raise RuntimeError("CRDs never became available")
+
+                print("sleeping for CRDs... (%d)" % tries_left)
+                time.sleep(5)
+        else:
+            print(f'CRDS unchanged {reason}, skipping apply.')
+
         manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
@@ -895,22 +959,18 @@ class Runner:
 
         fname = "/tmp/k8s-%s.yaml" % self.scope
 
-        if os.path.exists(fname):
-            with open(fname) as f:
-                prev_yaml = f.read()
-        else:
-            prev_yaml = None
+        self.applied_manifests = False
 
-        if yaml.strip() and (yaml != prev_yaml or DOCTEST):
-            print("Manifests changed, applying.")
-            with open(fname, "w") as f:
-                f.write(yaml)
+        changed, reason = has_changed(yaml, fname)
+
+        if changed:
+            print(f'Manifests changed ({reason}), applying.')
+
             # XXX: better prune selector label
             run("kubectl apply --prune -l scope=%s -f %s" % (self.scope, fname))
             self.applied_manifests = True
-        elif yaml.strip():
-            self.applied_manifests = False
-            print("Manifests unchanged, skipping apply.")
+        else:
+            print(f'Manifests unchanged ({reason}), applying.')
 
         for n in self.nodes:
             if n in selected:

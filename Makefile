@@ -159,7 +159,7 @@ KAT_BACKEND_RELEASE = 1.4.2-rc
 
 # Allow overriding which watt we use.
 WATT ?= watt
-WATT_VERSION ?= 0.4.10
+WATT_VERSION ?= 0.4.12
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
