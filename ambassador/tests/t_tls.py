@@ -663,8 +663,8 @@ max_tls_version: v1.3
             idx += 1
 
     def requirements(self):
-        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
-        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
 
 class TLSContextProtocolMinVersion(AmbassadorTest):
     debug = True
@@ -709,8 +709,8 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: same-secret-1.secret-namespace
-min_tls_version: v1.1
-max_tls_version: v1.1
+min_tls_version: v1.0
+max_tls_version: v1.2
 """)
 
     def scheme(self) -> str:
@@ -730,19 +730,20 @@ max_tls_version: v1.1
                     expected=200,
                     insecure=True,
                     sni=True,
-                    minTLSv="v1.1",
-                    maxTLSv="v1.1")
+                    minTLSv="v1.2",
+                    maxTLSv="v1.2")
         
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True,
-                    minTLSv="v1.2",
-                    maxTLSv="v1.2",
-                    error="tls: server selected unsupported protocol version 302")
-
+                    minTLSv="v1.3",
+                    maxTLSv="v1.3",
+                    error="tls: server selected unsupported protocol version 303")
     
+    def check(self):
+      self.results[0].backend.request.tls.negotiated_protocol_version == "v1.2"
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
