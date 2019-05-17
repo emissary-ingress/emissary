@@ -55,9 +55,22 @@ So, for example, if you're using CRDs then
 
 should show all your `Mapping` CRDs.
 
+## CRDs and RBAC
+
+You will need to grant your Kubernetes service appropriate RBAC permissions to use CRDs. The default Ambassador RBAC examples have been updated, but the appropriate rules are
+
+```yaml
+rules:
+- apiGroups: [""]
+  resources: [ "endpoints", "namespaces", "secrets", "services" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  verbs: ["get", "list", "watch"]
+```
+
 ## Creating the CRD types within Kubernetes
 
-Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done with the following YAML:
+Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done with the following YAML (which you can find in `docs/yaml/ambassador-crds.yaml`)
 
 ```yaml
 ---
