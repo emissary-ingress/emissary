@@ -56,7 +56,7 @@ func NewAuthorizationCodeClient(
 //  - scopes: OPTIONAL.
 //
 //  - state: RECOMMENDED.
-func (client *AuthorizationCodeClient) AuthorizationRequest(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, scopes Scopes, state string) {
+func (client *AuthorizationCodeClient) AuthorizationRequest(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, scopes Scope, state string) {
 	parameters := url.Values{
 		"response_type": {"code"},
 		"client_id":     {client.clientID},

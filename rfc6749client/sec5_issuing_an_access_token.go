@@ -59,7 +59,7 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 			ret.RefreshToken = rawResponse.RefreshToken
 		}
 		if rawResponse.Scope != nil {
-			ret.Scope = ParseScopes(*rawResponse.Scope)
+			ret.Scope = parseScope(*rawResponse.Scope)
 		}
 		return ret, nil
 	case http.StatusBadRequest, http.StatusUnauthorized:
@@ -119,7 +119,7 @@ type TokenSuccessResponse struct {
 	TokenType    string    // REQUIRED
 	ExpiresAt    time.Time // RECOMMENDED
 	RefreshToken *string   // OPTIONAL
-	Scope        Scopes    // OPTIONAL if identical to scope requiested by the client; otherwise REQUIRED.
+	Scope        Scope     // OPTIONAL if identical to scope requiested by the client; otherwise REQUIRED.
 }
 
 func (r TokenSuccessResponse) isTokenResponse() {}

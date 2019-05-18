@@ -68,12 +68,12 @@ func buildTokenURI(endpoint *url.URL, queryParameters url.Values) (*url.URL, err
 	return &ret, nil
 }
 
-// Scopes represents a list of scopes as defined by §3.3.
-type Scopes map[string]struct{}
+// Scope represents a list of scopes as defined by §3.3.
+type Scope map[string]struct{}
 
 // String serializes the set of scopes for use as a parameter, per
 // §3.3.
-func (scopes Scopes) String() string {
+func (scopes Scope) String() string {
 	strs := make([]string, 0, len(scopes))
 	for k := range scopes {
 		strs = append(strs, k)
@@ -81,11 +81,11 @@ func (scopes Scopes) String() string {
 	return strings.Join(strs, " ")
 }
 
-// String de-serializes the set of scopes from use as a parameter, per
+// parseScope de-serializes the set of scopes from use as a parameter, per
 // §3.3.
-func ParseScopes(str string) Scopes {
+func parseScope(str string) Scope {
 	strs := strings.Split(str, " ")
-	ret := make(Scopes, len(strs))
+	ret := make(Scope, len(strs))
 	for _, s := range strs {
 		if s != "" {
 			ret[s] = struct{}{}
