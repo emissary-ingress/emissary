@@ -260,8 +260,6 @@ var authorizationCodeAuthorizationErrorCodeData = map[string]struct {
 			"to the client via an HTTP redirect.)"},
 }
 
-type TODO interface{}
-
 // AccessToken talks to the Authorization Server to exchange an
 // Authorization Code (obtained from `.ParseAuthorizationResponse()`)
 // for a Token; submitting the request per §4.1.3, and handling the
@@ -269,7 +267,10 @@ type TODO interface{}
 //
 // redirectURI MUST match the redirectURI passed to
 // .AuthorizationRequest().
-func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code string, redirectURI *url.URL) (TODO, error) {
+//
+// The returned response is either a TokenSuccessResponse or a
+// TokenErrorResponse.
+func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code string, redirectURI *url.URL) (TokenResponse, error) {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
@@ -301,6 +302,5 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 	}
 	defer res.Body.Close()
 
-	// TODO: handle success per §5.1 and failure per §5.2.
-	return nil, nil
+	return ParseTokenResponse(res)
 }

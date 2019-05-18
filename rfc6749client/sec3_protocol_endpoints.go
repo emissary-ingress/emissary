@@ -80,3 +80,16 @@ func (scopes Scopes) String() string {
 	}
 	return strings.Join(strs, " ")
 }
+
+// String de-serializes the set of scopes from use as a parameter, per
+// §3.3.
+func ParseScopes(str string) Scopes {
+	strs := strings.Split(str, " ")
+	ret := make(Scopes, len(strs))
+	for _, s := range strs {
+		if s != "" {
+			ret[s] = struct{}{}
+		}
+	}
+	return ret
+}
