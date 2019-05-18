@@ -28,7 +28,7 @@ func NewAuthorizationCodeClient(
 	if err := validateAuthorizationEndpointURI(authorizationEndpoint); err != nil {
 		return nil, err
 	}
-	if err := validateAuthorizationEndpointURI(authorizationEndpoint); err != nil {
+	if err := validateTokenEndpointURI(tokenEndpoint); err != nil {
 		return nil, err
 	}
 	ret := &AuthorizationCodeClient{
@@ -179,39 +179,13 @@ func (ecode authorizationCodeAuthorizationErrorCode) Description() string {
 }
 
 var (
-	// The request is missing a required parameter, includes an
-	// invalid parameter value, includes a parameter more than
-	// once, or is otherwise malformed.
-	AuthorizationCodeAuthorizationErrorInvalidRequest AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_request")
-
-	// The client is not authorized to request an authorization
-	// code using this method.
-	AuthorizationCodeAuthorizationErrorUnauthorizedClient AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("unauthorized_client")
-
-	// The resource owner or authorization server denied the
-	// request.
-	AuthorizationCodeAuthorizationErrorAccessDenied AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("access_denied")
-
-	// The authorization server does not support obtaining an
-	// authorization code using this method.
+	AuthorizationCodeAuthorizationErrorInvalidRequest          AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_request")
+	AuthorizationCodeAuthorizationErrorUnauthorizedClient      AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("unauthorized_client")
+	AuthorizationCodeAuthorizationErrorAccessDenied            AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("access_denied")
 	AuthorizationCodeAuthorizationErrorUnsupportedResponseType AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("unsupported_response_type")
-
-	// The requested scope is invalid, unknown, or malformed.
-	AuthorizationCodeAuthorizationErrorInvalidScope AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_scope")
-
-	// The authorization server encountered an unexpected
-	// condition that prevented it from fulfilling the request.
-	// (This error code is needed because a 500 Internal Server
-	// Error HTTP status code cannot be returned to the client
-	// via an HTTP redirect.)
-	AuthorizationCodeAuthorizationErrorServerError AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("server_error")
-
-	// The authorization server is currently unable to handle
-	// the request due to a temporary overloading or maintenance
-	// of the server.  (This error code is needed because a 503
-	// Service Unavailable HTTP status code cannot be returned
-	// to the client via an HTTP redirect.)
-	AuthorizationCodeAuthorizationErrorTemporarilyUnavailable AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("temporarily_unavailable")
+	AuthorizationCodeAuthorizationErrorInvalidScope            AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_scope")
+	AuthorizationCodeAuthorizationErrorServerError             AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("server_error")
+	AuthorizationCodeAuthorizationErrorTemporarilyUnavailable  AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("temporarily_unavailable")
 )
 
 var authorizationCodeAuthorizationErrorCodeData = map[string]struct {

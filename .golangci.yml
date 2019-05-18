@@ -1,0 +1,12 @@
+linters:
+  enable-all: true
+  disable:
+    - dupl # specs duplicate things, we duplicate things
+    - gochecknoglobals
+    - interfacer # author says it's deprecated, gives very subjective advice
+    - lll
+linters-settings:
+  unused:
+    # treat code as a program (not a library) and report unused
+    # exported identifiers
+    check-exported: true
