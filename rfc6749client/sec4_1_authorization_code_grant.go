@@ -276,5 +276,5 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 	}
 	defer res.Body.Close()
 
-	return ParseTokenResponse(res)
+	return parseTokenResponse(res)
 }

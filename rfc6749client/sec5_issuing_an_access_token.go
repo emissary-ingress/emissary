@@ -11,13 +11,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ParseTokenResponse parses a response from a Token Endpoint, per §5.
+// parseTokenResponse parses a response from a Token Endpoint, per §5.
 //
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
 //
 // This will NOT close the response Body for you.
-func ParseTokenResponse(res *http.Response) (TokenResponse, error) {
+func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 	switch res.StatusCode {
 	case http.StatusOK:
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
