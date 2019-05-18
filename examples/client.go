@@ -57,7 +57,10 @@ func main() {
 	}
 
 	http.HandleFunc("/action", func(w http.ResponseWriter, r *http.Request) {
-		client.AuthorizationRequest(w, r, mustParseURL("https://example-client.example.com/redirection"), nil, "mystate")
+		client.AuthorizationRequest(w, r, mustParseURL("https://example-client.example.com/redirection"), rfc6749client.Scopes{
+			"scope-a": struct{}{},
+			"scope-B": struct{}{},
+		}, "mystate")
 	})
 	http.HandleFunc("/redirecton", func(w http.ResponseWriter, r *http.Request) {
 		authorizationResponse, err := client.ParseAuthorizationResponse(r)
