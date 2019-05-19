@@ -21,15 +21,20 @@ metadata:
 rules:
 - apiGroups: [""]
   resources:
+  - namespaces
   - services
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - configmaps
-  verbs: ["create", "update", "patch", "get", "list", "watch"]
-- apiGroups: [""]
-  resources:
   - secrets
+  - endpoints
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["getambassador.io"]
+  resources:
+  - authservices
+  - mappings
+  - modules
+  - ratelimitservices
+  - tcpmappings
+  - tlscontexts
+  - tracingservices
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
