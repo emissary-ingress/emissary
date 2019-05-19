@@ -70,20 +70,48 @@ These attributes are less commonly used, but can be used to override Ambassador'
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
-## Example Mappings
+## Mapping resources and CRDs
 
-Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
+Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions. For example, here is a `Mapping` on a Kubernetes `service`:
 
-```yaml
+```
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: http://qotm
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      service: http://qotm
+spec:
+  ports:
+  - name: httpbin
+    port: 80
 ```
 
-and a REST service which Ambassador will contact using HTTPS:
+The same `Mapping` can be created as an independent resource:
+
+```
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  qotm_mapping
+spec:
+  prefix: /qotm/
+  service: http://qotm
+```
+
+If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
+
+## Additional Example Mappings
+
+Here's an example for a REST service which Ambassador will contact using HTTPS:
 
 ```yaml
 ---

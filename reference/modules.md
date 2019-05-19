@@ -4,7 +4,24 @@ Modules let you enable and configure special behaviors for Ambassador, in ways t
 
 ## Module configuration
 
-A module is added to an existing Kubernetes service, e.g., the Ambassador service. If you expect to make frequent changes to your Ambassador configuration, you may want to put the module on a dummy service. This would allow you to isolate Ambassador configuration changes from your production routing configuration. Here is a sample module configuration of both the `ambassador` and `tls` modules:
+Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core Ambassador `Module`:
+
+```
+---
+apiVersion: getambassador.io/v1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    server:
+      enabled: true
+      secret: wild-demo-cert
+      redirect_cleartext_from: 8080
+    enable_grpc_web: true
+```
+
+Here is the equivalent configuration as annotations on the `ambassador` Kubernetes `service`:
 
 ```
 ---
@@ -15,13 +32,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v1
       kind: Module
       name: ambassador
       config:
         enable_grpc_web: True
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v1
       kind: Module
       name: tls
       config:
