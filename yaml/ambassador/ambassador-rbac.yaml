@@ -26,6 +26,16 @@ rules:
   - secrets
   - endpoints
   verbs: ["get", "list", "watch"]
+- apiGroups: ["getambassador.io"]
+  resources:
+  - authservices
+  - mappings
+  - modules
+  - ratelimitservices
+  - tcpmappings
+  - tlscontexts
+  - tracingservices
+  verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
