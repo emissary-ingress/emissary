@@ -4,16 +4,10 @@
 
 ### DEFAULT PORTS CHANGED IN AMBASSADOR 0.60
 
-Ambassador 0.60 will, by default, listen for cleartext HTTP on port 8080 (rather than 80),
+Ambassador 0.60 by default listens for cleartext HTTP on port 8080 (rather than 80),
 and for HTTPS on port 8443 (rather than 443), in order to simplify running Ambassador without
 root privileges. If you are relying on the default port numbering in your installation, **you
 will need to change your configuration**.
-
-### AMBASSADOR 0.53.1
-
-The current recommended version of Ambassador is 0.53.1. **This release includes fixes for two
-security issues**; as such, it is strongly recommended that you upgrade from any earlier release
-to 0.53.1. See below for more information.
 
 ### AMBASSADOR 0.50+
 
