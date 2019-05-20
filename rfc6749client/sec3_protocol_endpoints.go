@@ -51,23 +51,6 @@ func validateTokenEndpointURI(endpoint *url.URL) error {
 	return nil
 }
 
-// buildTokenURI inserts queryParameters per §3.2.
-func buildTokenURI(endpoint *url.URL, queryParameters url.Values) (*url.URL, error) {
-	query := endpoint.Query()
-	for k, vs := range queryParameters {
-		if _, exists := query[k]; exists {
-			return nil, errors.Errorf("cannot build Token Request URI: cannot insert %q parameter: Token Endpoint URI already includes parameter, and request parameters MUST NOT be included more than once", k)
-		}
-		if len(vs) > 1 {
-			return nil, errors.Errorf("cannot build Token Request URI: request parameters MUST NOT be included more than once: %q", k)
-		}
-		query[k] = vs
-	}
-	ret := *endpoint
-	ret.RawQuery = query.Encode()
-	return &ret, nil
-}
-
 // Scope represents a list of scopes as defined by §3.3.
 type Scope map[string]struct{}
 
