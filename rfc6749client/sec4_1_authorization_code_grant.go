@@ -236,8 +236,8 @@ var authorizationCodeAuthorizationErrorCodeData = map[string]struct {
 
 // AccessToken talks to the Authorization Server to exchange an
 // Authorization Code (obtained from `.ParseAuthorizationResponse()`)
-// for a Token; submitting the request per §4.1.3, and handling the
-// response per §4.1.4.
+// for an Access Token (and maybe a Refresh Token); submitting the
+// request per §4.1.3, and handling the response per §4.1.4.
 //
 // redirectURI MUST match the redirectURI passed to
 // .AuthorizationRequest().
@@ -256,7 +256,7 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 	if redirectURI != nil {
 		parameters.Set("redirect_uri", redirectURI.String())
 	}
-	if client.clientAuthentication != nil {
+	if client.clientAuthentication == nil {
 		parameters.Set("client_id", client.clientID)
 	}
 
