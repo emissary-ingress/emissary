@@ -1,60 +1,78 @@
+# Using CRDs with Ambassador
+
+As of Ambassador 0.70, any Ambassador resource can be expressed as a CRD in the `getambassador.io` API group:
+
+- use `apiVersion: getambassador.io/v1`
+- use the same `kind` as you would in an annotation
+- put the resource name in `metadata.name`
+- put everything else in `spec`
+
+As an example, you could use the following CRDs for a very simple Lua test:
+
+```yaml
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador-admin
-  name: ambassador-admin
-spec:
-  type: NodePort
-  ports:
-  - name: ambassador-admin
-    port: 8877
-    targetPort: 8877
-  selector:
-    service: ambassador
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
+apiVersion: getambassador.io/v1
+kind: Module
 metadata:
   name: ambassador
-rules:
+  namespace: default
+spec:
+  config:
+    lua_scripts: |
+      function envoy_on_response(response_handle)
+        response_handle: headers():add("Lua-Scripts-Enabled", "Processed")
+      end
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: lua-target-mapping
+  namespace: default
+spec:
+  prefix: /target/
+  service: luatest-http
+```
+
+(Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.)
+
+## CRDs supported by Ambassador
+
+The full set of CRDs supported by Ambassador in 0.70.0:
+
+| `Kind` | Kubernetes singular | Kubernetes plural |
+| :----- | :------------------ | :---------------- |
+| `AuthService` | `authservice` | `authservices` |
+| `Mapping` | `mapping` | `mappings` |
+| `Module` | `module` | `modules` |
+| `RateLimitService` | `ratelimitservice` | `ratelimitservices` |
+| `TCPMapping` | `tcpmapping` | `tcpmappings` |
+| `TLSContext` | `tlscontext` | `tlscontexts` |
+| `TracingService` | `tracingservice` | `tracingservices` |
+
+So, for example, if you're using CRDs then 
+
+```kubectl get mappings```
+
+should show all your `Mapping` CRDs.
+
+## CRDs and RBAC
+
+You will need to grant your Kubernetes service appropriate RBAC permissions to use CRDs. The default Ambassador RBAC examples have been updated, but the appropriate rules are
+
+```yaml
 rules:
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "secrets", "services" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
-  resources: [ "*" ]
   verbs: ["get", "list", "watch"]
-- apiGroups: ["getambassador.io"]
-  resources:
-  - authservices
-  - mappings
-  - modules
-  - ratelimitservices
-  - tcpmappings
-  - tlscontexts
-  - tracingservices
-  verbs: ["get", "list", "watch"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador
-subjects:
-- kind: ServiceAccount
-  name: ambassador
-  namespace: default
----
+```
+
+## Creating the CRD types within Kubernetes
+
+Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done with the following YAML (which you can find in `docs/yaml/ambassador-crds.yaml`)
+
+```yaml
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -174,65 +192,4 @@ spec:
     plural: tracingservices
     singular: tracingservice
     kind: TracingService
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: ambassador
-spec:
-  replicas: 3
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-        "consul.hashicorp.com/connect-inject": "false"
-      labels:
-        service: ambassador
-    spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  service: ambassador
-              topologyKey: kubernetes.io/hostname
-      serviceAccountName: ambassador
-      containers:
-      - name: ambassador
-        image: quay.io/datawire/ambassador:%version%
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 200m
-            memory: 100Mi
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        ports:
-        - name: http
-          containerPort: 8080
-        - name: https
-          containerPort: 8443
-        - name: admin
-          containerPort: 8877
-        livenessProbe:
-          httpGet:
-            path: /ambassador/v0/check_alive
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /ambassador/v0/check_ready
-            port: 8877
-          initialDelaySeconds: 30
-          periodSeconds: 3
-      restartPolicy: Always
-      securityContext:
-        runAsUser: 8888
+```
