@@ -82,6 +82,22 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.70.0] May 20, 2019
+[0.70.0]: https://github.com/datawire/ambassador/compare/0.61.0...0.70.0
+
+### Major changes:
+- Feature: Support CRDs in the `getambassador.io` API group for configuration ([#482])
+- Feature: Update to Envoy 1.10 
+
+### Minor changes:
+- Feature: Support removing request headers (thanks @ysaakpr!)
+- Bugfix: `watt` should better coalesce calls to the watch hook on startup
+- Bugfix: Ambassador no longer uses ports 7000 or 18000 ([#1526], [#1527])
+
+[#482]: https://github.com/datawire/ambassador/issues/482
+[#1526]: https://github.com/datawire/ambassador/issues/1526
+[#1527]: https://github.com/datawire/ambassador/issues/1527
+
 ## [0.61.1] May 16, 2019
 [0.61.1]: https://github.com/datawire/ambassador/compare/0.61.0...0.61.1
 
