@@ -20,6 +20,13 @@ rules:
   - filters
   - ratelimits
   - filterpolicies
+  - authservices
+  - mappings
+  - modules
+  - ratelimitservices
+  - tcpmappings
+  - tlscontexts
+  - tracingservices
   verbs: ["get", "list", "watch"]
 
 ######################################################################
