@@ -3,7 +3,6 @@ package rfc6749client
 import (
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -11,8 +10,7 @@ import (
 // A ClientCredentialsClient is a Client that utilizes the "Client
 // Credentials" Grant-type, as defined by §4.4.
 type ClientCredentialsClient struct {
-	tokenEndpoint        *url.URL
-	clientAuthentication ClientAuthenticationMethod
+	explicitClient
 }
 
 // NewClientCredentialsClient creates a new ClientCredentialsClient as
@@ -28,8 +26,10 @@ func NewClientCredentialsClient(
 		return nil, errors.New("clientAuthentication must be set")
 	}
 	ret := &ClientCredentialsClient{
-		tokenEndpoint:        tokenEndpoint,
-		clientAuthentication: clientAuthentication,
+		explicitClient: explicitClient{
+			tokenEndpoint:        tokenEndpoint,
+			clientAuthentication: clientAuthentication,
+		},
 	}
 	return ret, nil
 }
@@ -44,10 +44,6 @@ func NewClientCredentialsClient(
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
 func (client *ClientCredentialsClient) AccessToken(httpClient *http.Client, scope Scope) (TokenResponse, error) {
-	if httpClient == nil {
-		httpClient = http.DefaultClient
-	}
-
 	parameters := url.Values{
 		"grant_type": {"client_credentials"},
 	}
@@ -55,19 +51,5 @@ func (client *ClientCredentialsClient) AccessToken(httpClient *http.Client, scop
 		parameters.Set("scope", scope.String())
 	}
 
-	req, err := http.NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(parameters.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	client.clientAuthentication(req)
-
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	return parseTokenResponse(res)
+	return client.explicitClient.postForm(httpClient, parameters)
 }

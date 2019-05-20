@@ -3,7 +3,6 @@ package rfc6749client
 import (
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -13,8 +12,7 @@ import (
 type AuthorizationCodeClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
-	tokenEndpoint         *url.URL
-	clientAuthentication  ClientAuthenticationMethod
+	explicitClient
 }
 
 // NewAuthorizationCodeClient creates a new AuthorizationCodeClient as
@@ -34,8 +32,10 @@ func NewAuthorizationCodeClient(
 	ret := &AuthorizationCodeClient{
 		clientID:              clientID,
 		authorizationEndpoint: authorizationEndpoint,
-		tokenEndpoint:         tokenEndpoint,
-		clientAuthentication:  clientAuthentication,
+		explicitClient: explicitClient{
+			tokenEndpoint:        tokenEndpoint,
+			clientAuthentication: clientAuthentication,
+		},
 	}
 	return ret, nil
 }
@@ -260,10 +260,6 @@ var (
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
 func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code string, redirectURI *url.URL) (TokenResponse, error) {
-	if httpClient == nil {
-		httpClient = http.DefaultClient
-	}
-
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
 		"code":       {"code"},
@@ -271,25 +267,9 @@ func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code
 	if redirectURI != nil {
 		parameters.Set("redirect_uri", redirectURI.String())
 	}
-	if client.clientAuthentication == nil {
+	if client.explicitClient.clientAuthentication == nil {
 		parameters.Set("client_id", client.clientID)
 	}
 
-	req, err := http.NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(parameters.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	if client.clientAuthentication != nil {
-		client.clientAuthentication(req)
-	}
-
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	return parseTokenResponse(res)
+	return client.explicitClient.postForm(httpClient, parameters)
 }

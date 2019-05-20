@@ -3,15 +3,13 @@ package rfc6749client
 import (
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 // A ResourceOwnerPasswordCredentialsClient is a Client that utilizes
 // the "Resource Owner Password Credentials" Grant-type, as defined by
 // §4.3.
 type ResourceOwnerPasswordCredentialsClient struct {
-	tokenEndpoint        *url.URL
-	clientAuthentication ClientAuthenticationMethod
+	explicitClient
 }
 
 // NewResourceOwnerPasswordCredentialsClient creates a new
@@ -24,8 +22,10 @@ func NewResourceOwnerPasswordCredentialsClient(
 		return nil, err
 	}
 	ret := &ResourceOwnerPasswordCredentialsClient{
-		tokenEndpoint:        tokenEndpoint,
-		clientAuthentication: clientAuthentication,
+		explicitClient: explicitClient{
+			tokenEndpoint:        tokenEndpoint,
+			clientAuthentication: clientAuthentication,
+		},
 	}
 	return ret, nil
 }
@@ -40,10 +40,6 @@ func NewResourceOwnerPasswordCredentialsClient(
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
 func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(httpClient *http.Client, username string, password string, scope Scope) (TokenResponse, error) {
-	if httpClient == nil {
-		httpClient = http.DefaultClient
-	}
-
 	parameters := url.Values{
 		"grant_type": {"password"},
 		"username":   {"username"},
@@ -53,21 +49,5 @@ func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(httpClient *ht
 		parameters.Set("scope", scope.String())
 	}
 
-	req, err := http.NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(parameters.Encode()))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	if client.clientAuthentication != nil {
-		client.clientAuthentication(req)
-	}
-
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	return parseTokenResponse(res)
+	return client.explicitClient.postForm(httpClient, parameters)
 }

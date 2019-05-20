@@ -50,7 +50,7 @@ func main() {
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
 		mustParseURL("https://authorization-server.example.com/token"),
-		rfc6749client.ClientPassword("example-client", "example-password"),
+		rfc6749client.ClientPasswordHeader("example-client", "example-password"),
 	)
 	if err != nil {
 		log.Fatal(err)
