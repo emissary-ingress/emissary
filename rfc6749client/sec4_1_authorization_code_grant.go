@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// An AuthorizationCodeClient is Client that utilizes the
+// An AuthorizationCodeClient is a Client that utilizes the
 // "Authorization Code" Grant-type, as defined by §4.1.
 type AuthorizationCodeClient struct {
 	clientID              string
@@ -53,10 +53,13 @@ func NewAuthorizationCodeClient(
 //    Endpoint, or it was registered with more than 1 Redirection
 //    Endpoint, then this argument is REQUIRED.
 //
-//  - scopes: OPTIONAL.
+//  - scope: OPTIONAL.
 //
 //  - state: RECOMMENDED.
-func (client *AuthorizationCodeClient) AuthorizationRequest(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, scopes Scope, state string) {
+func (client *AuthorizationCodeClient) AuthorizationRequest(
+	w http.ResponseWriter, r *http.Request,
+	redirectURI *url.URL, scope Scope, state string,
+) {
 	parameters := url.Values{
 		"response_type": {"code"},
 		"client_id":     {client.clientID},
@@ -70,8 +73,8 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(w http.ResponseWrite
 		}
 		parameters.Set("redirect_uri", redirectURI.String())
 	}
-	if len(scopes) != 0 {
-		parameters.Set("scope", scopes.String())
+	if len(scope) != 0 {
+		parameters.Set("scope", scope.String())
 	}
 	if state != "" {
 		parameters.Set("state", state)

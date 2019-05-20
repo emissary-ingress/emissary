@@ -119,11 +119,11 @@ type TokenResponse interface {
 // TokenSuccessResponse stores a successful response containing a
 // token, as specified in §5.1.
 type TokenSuccessResponse struct {
-	AccessToken  string    // REQUIRED
-	TokenType    string    // REQUIRED
-	ExpiresAt    time.Time // RECOMMENDED
-	RefreshToken *string   // OPTIONAL
-	Scope        Scope     // OPTIONAL if identical to scope requiested by the client; otherwise REQUIRED.
+	AccessToken  string    // REQUIRED.
+	TokenType    string    // REQUIRED.
+	ExpiresAt    time.Time // RECOMMENDED.
+	RefreshToken *string   // OPTIONAL.
+	Scope        Scope     // OPTIONAL if identical to scope requested by the client; otherwise REQUIRED.
 }
 
 func (r TokenSuccessResponse) isTokenResponse() {}

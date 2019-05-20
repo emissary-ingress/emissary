@@ -56,9 +56,9 @@ type Scope map[string]struct{}
 
 // String serializes the set of scopes for use as a parameter, per
 // §3.3.
-func (scopes Scope) String() string {
-	strs := make([]string, 0, len(scopes))
-	for k := range scopes {
+func (scope Scope) String() string {
+	strs := make([]string, 0, len(scope))
+	for k := range scope {
 		strs = append(strs, k)
 	}
 	return strings.Join(strs, " ")
