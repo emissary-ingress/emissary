@@ -144,7 +144,7 @@ type AuthorizationCodeAuthorizationResponse interface {
 	GetState() string
 }
 
-// AuthorizationCodeAuthorizationSuccessResponse is a successful
+// An AuthorizationCodeAuthorizationSuccessResponse is a successful
 // response to an Authorization Request in the Authorization Code
 // flow, as defined in §4.1.2.
 type AuthorizationCodeAuthorizationSuccessResponse struct {
@@ -157,9 +157,9 @@ func (r AuthorizationCodeAuthorizationSuccessResponse) isAuthorizationCodeAuthor
 // GetState returns the state parameter (if any) included in the response.
 func (r AuthorizationCodeAuthorizationSuccessResponse) GetState() string { return r.State }
 
-// AuthorizationCodeAuthorizationErrorResponse is an error response to
-// an Authorization Request in the Authorization Code flow, as defined
-// in §4.1.2.1.
+// An AuthorizationCodeAuthorizationErrorResponse is an error response
+// to an Authorization Request in the Authorization Code flow, as
+// defined in §4.1.2.1.
 type AuthorizationCodeAuthorizationErrorResponse struct {
 	Error AuthorizationCodeAuthorizationErrorCode
 
