@@ -103,7 +103,7 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(r *http.Reques
 	parameters := r.URL.Query()
 	if errs := parameters["error"]; len(errs) > 0 {
 		// §4.1.2.1 error
-		ecodeData, ok := authorizationCodeAuthorizationErrorCodeData[errs[0]]
+		ecode, ok := authorizationCodeAuthorizationErrorCodeRegistry[errs[0]]
 		if !ok {
 			return nil, errors.Errorf("cannot parse error response: invalid error code: %q", errs[0])
 		}
@@ -116,7 +116,7 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(r *http.Reques
 			}
 		}
 		return AuthorizationCodeAuthorizationErrorResponse{
-			Error:            ecodeData.Self,
+			Error:            ecode,
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
 		}, nil
@@ -190,72 +190,64 @@ type AuthorizationCodeAuthorizationErrorCode interface {
 	Description() string
 }
 
-type authorizationCodeAuthorizationErrorCode string
+var authorizationCodeAuthorizationErrorCodeRegistry = map[string]AuthorizationCodeAuthorizationErrorCode{}
 
-func (ecode authorizationCodeAuthorizationErrorCode) isAuthorizationCodeAuthorizationErrorCode() {}
-func (ecode authorizationCodeAuthorizationErrorCode) String() string                             { return string(ecode) }
-func (ecode authorizationCodeAuthorizationErrorCode) Description() string {
-	return authorizationCodeAuthorizationErrorCodeData[string(ecode)].Description
+type authorizationCodeAuthorizationErrorCode struct {
+	name        string
+	description string
+}
+
+func (ecode *authorizationCodeAuthorizationErrorCode) isAuthorizationCodeAuthorizationErrorCode() {}
+func (ecode *authorizationCodeAuthorizationErrorCode) String() string                             { return ecode.name }
+func (ecode *authorizationCodeAuthorizationErrorCode) Description() string                        { return ecode.description }
+
+func newAuthorizationCodeAuthorizationErrorCode(name, description string) AuthorizationCodeAuthorizationErrorCode {
+	ret := &authorizationCodeAuthorizationErrorCode{
+		name:        name,
+		description: description,
+	}
+	authorizationCodeAuthorizationErrorCodeRegistry[name] = ret
+	return ret
 }
 
 // These are the error codes that may be present in an
 // AuthorizationCodeAuthorizationErrorResponse, as enumerated in
 // §4.1.2.1.
 var (
-	AuthorizationCodeAuthorizationErrorInvalidRequest          AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_request")
-	AuthorizationCodeAuthorizationErrorUnauthorizedClient      AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("unauthorized_client")
-	AuthorizationCodeAuthorizationErrorAccessDenied            AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("access_denied")
-	AuthorizationCodeAuthorizationErrorUnsupportedResponseType AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("unsupported_response_type")
-	AuthorizationCodeAuthorizationErrorInvalidScope            AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_scope")
-	AuthorizationCodeAuthorizationErrorServerError             AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("server_error")
-	AuthorizationCodeAuthorizationErrorTemporarilyUnavailable  AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("temporarily_unavailable")
+	AuthorizationCodeAuthorizationErrorInvalidRequest = newAuthorizationCodeAuthorizationErrorCode("invalid_request", ""+
+		"The request is missing a required parameter, includes an "+
+		"invalid parameter value, includes a parameter more than "+
+		"once, or is otherwise malformed.")
+
+	AuthorizationCodeAuthorizationErrorUnauthorizedClient = newAuthorizationCodeAuthorizationErrorCode("unauthorized_client", ""+
+		"The client is not authorized to request an authorization "+
+		"code using this method.")
+
+	AuthorizationCodeAuthorizationErrorAccessDenied = newAuthorizationCodeAuthorizationErrorCode("access_denied", ""+
+		"The resource owner or authorization server denied the "+
+		"request.")
+
+	AuthorizationCodeAuthorizationErrorUnsupportedResponseType = newAuthorizationCodeAuthorizationErrorCode("unsupported_response_type", ""+
+		"The authorization server does not support obtaining an "+
+		"authorization code using this method.")
+
+	AuthorizationCodeAuthorizationErrorInvalidScope = newAuthorizationCodeAuthorizationErrorCode("invalid_scope", ""+
+		"The requested scope is invalid, unknown, or malformed.")
+
+	AuthorizationCodeAuthorizationErrorServerError = newAuthorizationCodeAuthorizationErrorCode("server_error", ""+
+		"The authorization server encountered an unexpected "+
+		"condition that prevented it from fulfilling the request.  "+
+		"(This error code is needed because a 500 Internal Server "+
+		"Error HTTP status code cannot be returned to the client "+
+		"via an HTTP redirect.)")
+
+	AuthorizationCodeAuthorizationErrorTemporarilyUnavailable = newAuthorizationCodeAuthorizationErrorCode("temporarily_unavailable", ""+
+		"The authorization server is currently unable to handle "+
+		"the request due to a temporary overloading or maintenance "+
+		"of the server.  (This error code is needed because a 503 "+
+		"Service Unavailable HTTP status code cannot be returned "+
+		"to the client via an HTTP redirect.)")
 )
-
-var authorizationCodeAuthorizationErrorCodeData = map[string]struct {
-	Self        AuthorizationCodeAuthorizationErrorCode
-	Description string
-}{
-	"invalid_request": {
-		Self: AuthorizationCodeAuthorizationErrorInvalidRequest,
-		Description: "The request is missing a required parameter, includes an " +
-			"invalid parameter value, includes a parameter more than " +
-			"once, or is otherwise malformed."},
-
-	"unauthorized_client": {
-		Self: AuthorizationCodeAuthorizationErrorUnauthorizedClient,
-		Description: "The client is not authorized to request an authorization " +
-			"code using this method."},
-
-	"access_denied": {
-		Self: AuthorizationCodeAuthorizationErrorAccessDenied,
-		Description: "The resource owner or authorization server denied the " +
-			"request."},
-
-	"unsupported_response_type": {
-		Self: AuthorizationCodeAuthorizationErrorUnsupportedResponseType,
-		Description: "The authorization server does not support obtaining an " +
-			"authorization code using this method."},
-
-	"invalid_scope": {
-		Self:        AuthorizationCodeAuthorizationErrorInvalidScope,
-		Description: "The requested scope is invalid, unknown, or malformed."},
-
-	"server_error": {
-		Self: AuthorizationCodeAuthorizationErrorServerError,
-		Description: "The authorization server encountered an unexpected " +
-			"condition that prevented it from fulfilling the request.  " +
-			"(This error code is needed because a 500 Internal Server " +
-			"Error HTTP status code cannot be returned to the client " +
-			"via an HTTP redirect.)"},
-
-	"temporarily_unavailable": {
-		Self: AuthorizationCodeAuthorizationErrorTemporarilyUnavailable,
-		Description: "The authorization server is currently unable to handle " +
-			"the request due to a temporary overloading or maintenance " +
-			"of the server.  (This error code is needed because a 503 " +
-			"Service Unavailable HTTP status code cannot be returned " +
-			"to the client via an HTTP redirect.)"},
-}
 
 // AccessToken talks to the Authorization Server to exchange an
 // Authorization Code (obtained from `.ParseAuthorizationResponse()`)

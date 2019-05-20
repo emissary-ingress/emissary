@@ -86,12 +86,12 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		if rawResponse.Error == nil {
 			return nil, errors.New("parameter \"error\" is missing")
 		}
-		ecodeData, ok := tokenErrorCodeData[*rawResponse.Error]
+		ecode, ok := tokenErrorCodeRegistry[*rawResponse.Error]
 		if !ok {
 			return nil, errors.Errorf("invalid error code: %q", *rawResponse.Error)
 		}
 		ret := TokenErrorResponse{
-			Error: ecodeData.Self,
+			Error: ecode,
 		}
 		if rawResponse.ErrorDescription != nil {
 			ret.ErrorDescription = *rawResponse.ErrorDescription
@@ -146,69 +146,64 @@ type TokenErrorCode interface {
 	Description() string
 }
 
-type tokenErrorCode string
+var tokenErrorCodeRegistry = map[string]TokenErrorCode{}
+
+type tokenErrorCode struct {
+	name        string
+	description string
+}
 
 func (ecode tokenErrorCode) isTokenErrorCode()   {}
-func (ecode tokenErrorCode) String() string      { return string(ecode) }
-func (ecode tokenErrorCode) Description() string { return tokenErrorCodeData[string(ecode)].Description }
+func (ecode tokenErrorCode) String() string      { return ecode.name }
+func (ecode tokenErrorCode) Description() string { return ecode.description }
+
+func newTokenErrorCode(name, description string) TokenErrorCode {
+	ret := &tokenErrorCode{
+		name:        name,
+		description: description,
+	}
+	tokenErrorCodeRegistry[name] = ret
+	return ret
+}
 
 // These are the error codes that may be present in a
 // TokenErrorResponse, as enumerated in §5.2.
 var (
-	TokenErrorCodeInvalidRequest       TokenErrorCode = tokenErrorCode("invalid_request")
-	TokenErrorCodeInvalidClient        TokenErrorCode = tokenErrorCode("invalid_client")
-	TokenErrorCodeInvalidGrant         TokenErrorCode = tokenErrorCode("invalid_grant")
-	TokenErrorCodeUnauthorizedClient   TokenErrorCode = tokenErrorCode("unauthorized_client")
-	TokenErrorCodeUnsupportedGrantType TokenErrorCode = tokenErrorCode("unsupported_grant_type")
-	TokenErrorCodeInvalidScope         TokenErrorCode = tokenErrorCode("invalid_scope")
+	TokenErrorCodeInvalidRequest = newTokenErrorCode("invalid_request", ""+
+		"The request is missing a required parameter, includes an "+
+		"unsupported parameter value (other than grant type), "+
+		"repeats a parameter, includes multiple credentials, "+
+		"utilizes more than one mechanism for authenticating the "+
+		"client, or is otherwise malformed.")
+
+	TokenErrorCodeInvalidClient = newTokenErrorCode("invalid_client", ""+
+		"Client authentication failed (e.g., unknown client, no "+
+		"client authentication included, or unsupported "+
+		"authentication method).  The authorization server MAY "+
+		"return an HTTP 401 (Unauthorized) status code to indicate "+
+		"which HTTP authentication schemes are supported.  If the "+
+		"client attempted to authenticate via the \"Authorization\" "+
+		"request header field, the authorization server MUST "+
+		"respond with an HTTP 401 (Unauthorized) status code and "+
+		"include the \"WWW-Authenticate\" response header field "+
+		"matching the authentication scheme used by the client. ")
+
+	TokenErrorCodeInvalidGrant = newTokenErrorCode("invalid_grant", ""+
+		"The provided authorization grant (e.g., authorization "+
+		"code, resource owner credentials) or refresh token is "+
+		"invalid, expired, revoked, does not match the redirection "+
+		"URI used in the authorization request, or was issued to "+
+		"another client.")
+
+	TokenErrorCodeUnauthorizedClient = newTokenErrorCode("unauthorized_client", ""+
+		"The authenticated client is not authorized to use this "+
+		"authorization grant type.")
+
+	TokenErrorCodeUnsupportedGrantType = newTokenErrorCode("unsupported_grant_type", ""+
+		"The authorization grant type is not supported by the "+
+		"authorization server.")
+
+	TokenErrorCodeInvalidScope = newTokenErrorCode("invalid_scope", ""+
+		"The requested scope is invalid, unknown, malformed, or "+
+		"exceeds the scope granted by the resource owner.")
 )
-
-var tokenErrorCodeData = map[string]struct {
-	Self        TokenErrorCode
-	Description string
-}{
-	"invalid_request": {
-		Self: TokenErrorCodeInvalidRequest,
-		Description: "The request is missing a required parameter, includes an " +
-			"unsupported parameter value (other than grant type), " +
-			"repeats a parameter, includes multiple credentials, " +
-			"utilizes more than one mechanism for authenticating the " +
-			"client, or is otherwise malformed."},
-
-	"invalid_client": {
-		Self: TokenErrorCodeInvalidClient,
-		Description: "Client authentication failed (e.g., unknown client, no " +
-			"client authentication included, or unsupported " +
-			"authentication method).  The authorization server MAY " +
-			"return an HTTP 401 (Unauthorized) status code to indicate " +
-			"which HTTP authentication schemes are supported.  If the " +
-			"client attempted to authenticate via the \"Authorization\" " +
-			"request header field, the authorization server MUST " +
-			"respond with an HTTP 401 (Unauthorized) status code and " +
-			"include the \"WWW-Authenticate\" response header field " +
-			"matching the authentication scheme used by the client. "},
-
-	"invalid_grant": {
-		Self: TokenErrorCodeInvalidGrant,
-		Description: "The provided authorization grant (e.g., authorization " +
-			"code, resource owner credentials) or refresh token is " +
-			"invalid, expired, revoked, does not match the redirection " +
-			"URI used in the authorization request, or was issued to " +
-			"another client."},
-
-	"unauthorized_client": {
-		Self: TokenErrorCodeUnauthorizedClient,
-		Description: "The authenticated client is not authorized to use this " +
-			"authorization grant type."},
-
-	"unsupported_grant_type": {
-		Self: TokenErrorCodeUnsupportedGrantType,
-		Description: "The authorization grant type is not supported by the " +
-			"authorization server."},
-
-	"invalid_scope": {
-		Self: TokenErrorCodeInvalidScope,
-		Description: "The requested scope is invalid, unknown, malformed, or " +
-			"exceeds the scope granted by the resource owner.",
-	},
-}
