@@ -108,6 +108,10 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 	}
 }
 
+// TokenResponse encapsulates the possible responses to an Token
+// Request, as defined in §5.
+//
+// This is implemented by TokenSuccessResponse and TokenErrorResponse.
 type TokenResponse interface {
 	isTokenResponse()
 }
@@ -124,8 +128,8 @@ type TokenSuccessResponse struct {
 
 func (r TokenSuccessResponse) isTokenResponse() {}
 
-// TokenSuccessResponse stores an error response, as specified in
-// §5.1.
+// TokenErrorResponse stores an error response, as specified in
+// §5.2.
 type TokenErrorResponse struct {
 	Error            TokenErrorCode
 	ErrorDescription string
@@ -134,6 +138,8 @@ type TokenErrorResponse struct {
 
 func (r TokenErrorResponse) isTokenResponse() {}
 
+// TokenErrorCode represents is an error code that may be returned by
+// a failed Token Request, as enumerated by §5.2.
 type TokenErrorCode interface {
 	isTokenErrorCode()
 	String() string
@@ -146,6 +152,8 @@ func (ecode tokenErrorCode) isTokenErrorCode()   {}
 func (ecode tokenErrorCode) String() string      { return string(ecode) }
 func (ecode tokenErrorCode) Description() string { return tokenErrorCodeData[string(ecode)].Description }
 
+// These are the error codes that may be present in a
+// TokenErrorResponse, as enumerated in §5.2.
 var (
 	TokenErrorCodeInvalidRequest       TokenErrorCode = tokenErrorCode("invalid_request")
 	TokenErrorCodeInvalidClient        TokenErrorCode = tokenErrorCode("invalid_client")

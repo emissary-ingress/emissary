@@ -129,19 +129,34 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(r *http.Reques
 	}, nil
 }
 
+// AuthorizationCodeAuthorizationResponse encapsulates the possible
+// responses to an Authorization Request in the Authorization Code
+// flow.
+//
+// This is implemented by
+// AuthorizationCodeAuthorizationSuccessResponse and an
+// AuthorizationCodeAuthorizationErrorResponse.
 type AuthorizationCodeAuthorizationResponse interface {
 	isAuthorizationCodeAuthorizationResponse()
 	GetState() string
 }
 
+// AuthorizationCodeAuthorizationSuccessResponse is a successful
+// response to an Authorization Request in the Authorization Code
+// flow, as defined in §4.1.2.
 type AuthorizationCodeAuthorizationSuccessResponse struct {
 	Code  string
 	State string
 }
 
 func (r AuthorizationCodeAuthorizationSuccessResponse) isAuthorizationCodeAuthorizationResponse() {}
-func (r AuthorizationCodeAuthorizationSuccessResponse) GetState() string                          { return r.State }
 
+// GetState returns the state parameter (if any) included in the response.
+func (r AuthorizationCodeAuthorizationSuccessResponse) GetState() string { return r.State }
+
+// AuthorizationCodeAuthorizationErrorResponse is an error response to
+// an Authorization Request in the Authorization Code flow, as defined
+// in §4.1.2.1.
 type AuthorizationCodeAuthorizationErrorResponse struct {
 	Error AuthorizationCodeAuthorizationErrorCode
 
@@ -159,11 +174,13 @@ type AuthorizationCodeAuthorizationErrorResponse struct {
 }
 
 func (r AuthorizationCodeAuthorizationErrorResponse) isAuthorizationCodeAuthorizationResponse() {}
-func (r AuthorizationCodeAuthorizationErrorResponse) GetState() string                          { return r.State }
 
-// AuthorizationCodeAuthorizationErrorCode represents the error codes that may be
-// returned by a failed "response_type=code" Authorization Request, as
-// enumerated by §4.1.2.1.
+// GetState returns the state parameter (if any) included in the response.
+func (r AuthorizationCodeAuthorizationErrorResponse) GetState() string { return r.State }
+
+// AuthorizationCodeAuthorizationErrorCode is an error code that may
+// be returned by a failed "response_type=code" Authorization Request,
+// as enumerated by §4.1.2.1.
 type AuthorizationCodeAuthorizationErrorCode interface {
 	isAuthorizationCodeAuthorizationErrorCode()
 	String() string
@@ -178,6 +195,9 @@ func (ecode authorizationCodeAuthorizationErrorCode) Description() string {
 	return authorizationCodeAuthorizationErrorCodeData[string(ecode)].Description
 }
 
+// These are the error codes that may be present in an
+// AuthorizationCodeAuthorizationErrorResponse, as enumerated in
+// §4.1.2.1.
 var (
 	AuthorizationCodeAuthorizationErrorInvalidRequest          AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("invalid_request")
 	AuthorizationCodeAuthorizationErrorUnauthorizedClient      AuthorizationCodeAuthorizationErrorCode = authorizationCodeAuthorizationErrorCode("unauthorized_client")
