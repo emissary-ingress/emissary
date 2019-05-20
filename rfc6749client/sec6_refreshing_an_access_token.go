@@ -17,7 +17,7 @@ func (client *explicitClient) RefreshToken(httpClient *http.Client, refreshToken
 		"grant_type":    {"refresh_token"},
 		"refresh_token": {refreshToken},
 	}
-	if scope != nil {
+	if len(scope) != 0 {
 		parameters.Set("scope", scope.String())
 	}
 
