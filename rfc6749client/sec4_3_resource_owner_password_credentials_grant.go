@@ -42,8 +42,8 @@ func NewResourceOwnerPasswordCredentialsClient(
 func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(httpClient *http.Client, username string, password string, scope Scope) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"password"},
-		"username":   {"username"},
-		"password":   {"password"},
+		"username":   {username},
+		"password":   {password},
 	}
 	if len(scope) != 0 {
 		parameters.Set("scope", scope.String())
