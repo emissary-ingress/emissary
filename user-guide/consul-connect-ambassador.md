@@ -48,7 +48,7 @@ Ambassador Pro integrates with Consul Connect via a sidecar service. This servic
 Deploy the Ambassador Consul Connector via kubectl:
 
 ```
-kubectl apply -f https://getambassador.io/yaml/ambassador/consul/ambassador-consul-connector.yaml
+kubectl apply -f https://getambassador.io/yaml/consul/ambassador-consul-connector.yaml
 ```
 
 ## 2. Configure Ambassador
