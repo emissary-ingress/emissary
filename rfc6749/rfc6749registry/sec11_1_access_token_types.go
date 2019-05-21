@@ -16,7 +16,7 @@ type AccessTokenType struct {
 	SpecificationDocuments            []string
 
 	ClientNeedsBody                       bool
-	ClientAuthorizationForResourceRequest func(io.Reader) (http.Header, error)
+	ClientAuthorizationForResourceRequest func(token string, body io.Reader) (http.Header, error)
 
 	ResourceServerNeedsBody             bool
 	ResourceServerValidateAuthorization func(http.Header, io.Reader) (bool, error)
@@ -25,14 +25,14 @@ type AccessTokenType struct {
 // AccessTokenTypeClientDriver TODO
 type AccessTokenTypeClientDriver interface {
 	NeedsBody() bool
-	AuthorizationForResourceRequest(io.Reader) (http.Header, error)
+	AuthorizationForResourceRequest(token string, body io.Reader) (http.Header, error)
 }
 
 type accessTokenTypeClientDriver AccessTokenType
 
 func (driver accessTokenTypeClientDriver) NeedsBody() bool { return driver.ClientNeedsBody }
-func (driver accessTokenTypeClientDriver) AuthorizationForResourceRequest(body io.Reader) (http.Header, error) {
-	return driver.ClientAuthorizationForResourceRequest(body)
+func (driver accessTokenTypeClientDriver) AuthorizationForResourceRequest(token string, body io.Reader) (http.Header, error) {
+	return driver.ClientAuthorizationForResourceRequest(token, body)
 }
 
 // AccessTokenTypeResourceServerDriver TODO

@@ -23,7 +23,7 @@ func (token TokenSuccessResponse) AuthorizationForResourceRequest(getBody func()
 	if typeDriver.NeedsBody() {
 		body = getBody()
 	}
-	return typeDriver.AuthorizationForResourceRequest(body)
+	return typeDriver.AuthorizationForResourceRequest(token.AccessToken, body)
 }
 
 // GetResourceAccessErrorMeaning returns a humman-readable meaning of
