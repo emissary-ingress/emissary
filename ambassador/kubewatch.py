@@ -122,6 +122,8 @@ def main(debug):
                 if e.status == 404:
                     logger.debug("could not find CRD {}, please reconfigure and try again...".format(crd))
                     Path('.ambassador_ignore_crds').touch()
+                else:
+                    logger.debug("could not read CRD {}: {}".format(crd, e.reason))
 
         # One way or the other, we need to generate an ID here.
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
