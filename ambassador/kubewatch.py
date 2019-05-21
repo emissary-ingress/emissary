@@ -15,6 +15,7 @@
 import click
 import logging
 import os
+import sys
 import uuid
 
 from kubernetes import client, config, watch
@@ -102,6 +103,26 @@ def main(debug):
                 found = "hardcoded ID"
         else:
             logger.error("could not connect to Kubernetes")
+
+        required_crds = [
+            'authservices.getambassador.io',
+            'mappings.getambassador.io',
+            'modules.getambassador.io',
+            'ratelimitservices.getambassador.io',
+            'tcpmappings.getambassador.io',
+            'tlscontexts.getambassador.io',
+            'tracingservices.getambassador.io'
+        ]
+
+        for crd in required_crds:
+            try:
+                client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
+            except client.rest.ApiException as e:
+                if e.status == 404:
+                    logger.debug("Could not find CRD {}, please reconfigure and try again...".format(crd))
+                else:
+                    logger.debug("Error reading CRD {}: {}".format(crd, e))
+                sys.exit(1)
 
         # One way or the other, we need to generate an ID here.
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
