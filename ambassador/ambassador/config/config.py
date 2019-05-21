@@ -129,9 +129,6 @@ class Config:
 
         self._reset()
 
-        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds')):
-            self.post_error("Ambassador is not configured correctly to use CRDs. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
-
     def _reset(self) -> None:
         """
         Resets this Config to the empty, default state so it can load a new config.
