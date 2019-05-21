@@ -6,11 +6,14 @@ import (
 
 // ExtensionError TODO §11.4.1
 type ExtensionError struct {
-	Name                   string
-	UsageLocations         []ErrorUsageLocation
+	Name           string
+	UsageLocations []ErrorUsageLocation
+
 	RelatedExtension       string
 	ChangeController       string
 	SpecificationDocuments []string
+
+	Meaning string
 }
 
 // ErrorUsageLocation TODO §11.4.1
@@ -38,13 +41,17 @@ var (
 
 type AuthorizationCodeGrantError interface {
 	isAuthorizationCodeGrantError()
+	String() string
+	Meaning() string
 }
 
 var authorizationCodeGrantErrorRegistry = make(map[string]AuthorizationCodeGrantError)
 
-type authorizationCodeGrantError ExtensionError
+type authorizationCodeGrantError struct{ e ExtensionError }
 
 func (e authorizationCodeGrantError) isAuthorizationCodeGrantError() {}
+func (e authorizationCodeGrantError) String() string                 { return e.e.Name }
+func (e authorizationCodeGrantError) Meaning() string                { return e.e.Meaning }
 
 // GetAuthorizationCodeGrantError TODO
 func GetAuthorizationCodeGrantError(name string) AuthorizationCodeGrantError {
@@ -59,13 +66,17 @@ func GetAuthorizationCodeGrantError(name string) AuthorizationCodeGrantError {
 
 type ImplicitGrantError interface {
 	isImplicitGrantError()
+	String() string
+	Meaning() string
 }
 
 var implicitGrantErrorRegistry = make(map[string]ImplicitGrantError)
 
-type implicitGrantError ExtensionError
+type implicitGrantError struct{ e ExtensionError }
 
 func (e implicitGrantError) isImplicitGrantError() {}
+func (e implicitGrantError) String() string        { return e.e.Name }
+func (e implicitGrantError) Meaning() string       { return e.e.Meaning }
 
 // GetImplicitGrantError TODO
 func GetImplicitGrantError(name string) ImplicitGrantError {
@@ -80,13 +91,17 @@ func GetImplicitGrantError(name string) ImplicitGrantError {
 
 type TokenError interface {
 	isTokenError()
+	String() string
+	Meaning() string
 }
 
 var tokenErrorRegistry = make(map[string]TokenError)
 
-type tokenError ExtensionError
+type tokenError struct{ e ExtensionError }
 
-func (e tokenError) isTokenError() {}
+func (e tokenError) isTokenError()   {}
+func (e tokenError) String() string  { return e.e.Name }
+func (e tokenError) Meaning() string { return e.e.Meaning }
 
 // GetTokenError TODO
 func GetTokenError(name string) TokenError {
@@ -101,13 +116,17 @@ func GetTokenError(name string) TokenError {
 
 type ResourceAccessError interface {
 	isResourceAccessError()
+	String() string
+	Meaning() string
 }
 
 var resourceAccessErrorRegistry = make(map[string]ResourceAccessError)
 
-type resourceAccessError ExtensionError
+type resourceAccessError struct{ e ExtensionError }
 
 func (e resourceAccessError) isResourceAccessError() {}
+func (e resourceAccessError) String() string         { return e.e.Name }
+func (e resourceAccessError) Meaning() string        { return e.e.Meaning }
 
 // GetResourceAccessError TODO
 func GetResourceAccessError(name string) ResourceAccessError {
@@ -135,27 +154,27 @@ func (e ExtensionError) Register() {
 		panic(errors.Errorf("authorization code grant error=%q already registered", e.Name))
 	}
 	if e.usableIn(AuthorizationCodeGrantErrorResponse) {
-		authorizationCodeGrantErrorRegistry[e.Name] = authorizationCodeGrantError(e)
+		authorizationCodeGrantErrorRegistry[e.Name] = authorizationCodeGrantError{e}
 	}
 	////////////////////////////////////////////////////////////////////////
 	if _, set := implicitGrantErrorRegistry[e.Name]; set {
 		panic(errors.Errorf("implicit grant error=%q already registered", e.Name))
 	}
 	if e.usableIn(ImplicitGrantErrorResponse) {
-		implicitGrantErrorRegistry[e.Name] = implicitGrantError(e)
+		implicitGrantErrorRegistry[e.Name] = implicitGrantError{e}
 	}
 	////////////////////////////////////////////////////////////////////////
 	if _, set := tokenErrorRegistry[e.Name]; set {
 		panic(errors.Errorf("token error=%q already registered", e.Name))
 	}
 	if e.usableIn(TokenErrorResponse) {
-		tokenErrorRegistry[e.Name] = tokenError(e)
+		tokenErrorRegistry[e.Name] = tokenError{e}
 	}
 	////////////////////////////////////////////////////////////////////////
 	if _, set := resourceAccessErrorRegistry[e.Name]; set {
 		panic(errors.Errorf("resource access error=%q already registered", e.Name))
 	}
 	if e.usableIn(ResourceAccessErrorResponse) {
-		resourceAccessErrorRegistry[e.Name] = resourceAccessError(e)
+		resourceAccessErrorRegistry[e.Name] = resourceAccessError{e}
 	}
 }

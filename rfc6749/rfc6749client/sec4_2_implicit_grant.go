@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/datawire/liboauth2/rfc6749/rfc6749registry"
 )
 
 // An ImplicitClient is a Client that utilizes the "Implicit"
@@ -97,10 +99,6 @@ func (client *ImplicitClient) ParseAccessTokenResponse(fragment string) (Implici
 	}
 	if errs := parameters["error"]; len(errs) > 0 {
 		// §4.2.2.1 error
-		ecode, ok := implicitAccessTokenErrorCodeRegistry[errs[0]]
-		if !ok {
-			return nil, errors.Errorf("cannot parse error response: invalid error code: %q", errs[0])
-		}
 		var errorURI *url.URL
 		if errorURIs := parameters["error_uri"]; len(errorURIs) > 0 {
 			var err error
@@ -110,7 +108,7 @@ func (client *ImplicitClient) ParseAccessTokenResponse(fragment string) (Implici
 			}
 		}
 		return ImplicitAccessTokenErrorResponse{
-			Error:            ecode,
+			Error:            errs[0],
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
 			State:            parameters.Get("state"),
@@ -172,7 +170,7 @@ func (r ImplicitAccessTokenSuccessResponse) GetState() string { return r.State }
 // An ImplicitAccessTokenErrorResponse is an error response to an
 // Authorization Request in the Implicit flow, as defined in §4.2.2.1.
 type ImplicitAccessTokenErrorResponse struct {
-	Error            ImplicitAccessTokenErrorCode
+	Error            string
 	ErrorDescription string
 	ErrorURI         *url.URL
 	State            string
@@ -183,69 +181,60 @@ func (r ImplicitAccessTokenErrorResponse) isImplicitAccessTokenResponse() {}
 // GetState returns the state parameter (if any) included in the response.
 func (r ImplicitAccessTokenErrorResponse) GetState() string { return r.State }
 
-// ImplicitAccessTokenErrorCode is an error code that may
-// be returned by a failed "response_type=token" Authorization Request,
-// as enumerated by §4.2.2.1.
-type ImplicitAccessTokenErrorCode interface {
-	isImplicitAccessTokenErrorCode()
-	String() string
-	Description() string
-}
-
-var implicitAccessTokenErrorCodeRegistry = map[string]ImplicitAccessTokenErrorCode{}
-
-type implicitAccessTokenErrorCode struct {
-	name        string
-	description string
-}
-
-func (ecode *implicitAccessTokenErrorCode) isImplicitAccessTokenErrorCode() {}
-func (ecode *implicitAccessTokenErrorCode) String() string                  { return ecode.name }
-func (ecode *implicitAccessTokenErrorCode) Description() string             { return ecode.description }
-
-func newImplicitAccessTokenErrorCode(name, description string) ImplicitAccessTokenErrorCode {
-	ret := &implicitAccessTokenErrorCode{
-		name:        name,
-		description: description,
+// ErrorMeaning returns a human-readable meaning of the .Error code.
+// Returns an emtpy string for unknown error codes.
+func (response ImplicitAccessTokenErrorResponse) ErrorMeaning() string {
+	ecode := rfc6749registry.GetImplicitGrantError(response.Error)
+	if ecode == nil {
+		return ""
 	}
-	implicitAccessTokenErrorCodeRegistry[name] = ret
-	return ret
+	return ecode.Meaning()
+}
+
+func newImplicitAccessTokenError(name, meaning string) {
+	rfc6749registry.ExtensionError{
+		Name:    name,
+		Meaning: meaning,
+		UsageLocations: []rfc6749registry.ErrorUsageLocation{
+			rfc6749registry.ImplicitGrantErrorResponse,
+		},
+	}.Register()
 }
 
 // These are the error codes that may be present in an
 // ImplicitAccessTokenErrorResponse, as enumerated in §4.2.2.1.
-var (
-	ImplicitAccessTokenErrorInvalidRequest = newImplicitAccessTokenErrorCode("invalid_request", ""+
+func init() {
+	newImplicitAccessTokenError("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
 		"invalid parameter value, includes a parameter more than "+
 		"once, or is otherwise malformed.")
 
-	ImplicitAccessTokenErrorUnauthorizedClient = newImplicitAccessTokenErrorCode("unauthorized_client", ""+
+	newImplicitAccessTokenError("unauthorized_client", ""+
 		"The client is not authorized to request an access token "+
 		"using this method.")
 
-	ImplicitAccessTokenErrorAccessDenied = newImplicitAccessTokenErrorCode("access_denied", ""+
+	newImplicitAccessTokenError("access_denied", ""+
 		"The resource owner or authorization server denied the "+
 		"request.")
 
-	ImplicitAccessTokenErrorUnsupportedResponseType = newImplicitAccessTokenErrorCode("unsupported_response_type", ""+
+	newImplicitAccessTokenError("unsupported_response_type", ""+
 		"The authorization server does not support obtaining an "+
 		"access token using this method.")
 
-	ImplicitAccessTokenErrorInvalidScope = newImplicitAccessTokenErrorCode("invalid_scope", ""+
+	newImplicitAccessTokenError("invalid_scope", ""+
 		"The requested scope is invalid, unknown, or malformed.")
 
-	ImplicitAccessTokenErrorServerError = newImplicitAccessTokenErrorCode("server_error", ""+
+	newImplicitAccessTokenError("server_error", ""+
 		"The authorization server encountered an unexpected "+
 		"condition that prevented it from fulfilling the request.  "+
 		"(This error code is needed because a 500 Internal Server "+
 		"Error HTTP status code cannot be returned to the client "+
 		"via an HTTP redirect.)")
 
-	ImplicitAccessTokenErrorTemporarilyUnavailable = newImplicitAccessTokenErrorCode("temporarily_unavailable", ""+
+	newImplicitAccessTokenError("temporarily_unavailable", ""+
 		"The authorization server is currently unable to handle "+
 		"the request due to a temporary overloading or maintenance "+
 		"of the server.  (This error code is needed because a 503 "+
 		"Service Unavailable HTTP status code cannot be returned "+
 		"to the client via an HTTP redirect.)")
-)
+}

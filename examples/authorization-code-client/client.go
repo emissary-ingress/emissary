@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"speclib2/rfc6749client"
+	"github.com/datawire/liboauth2/rfc6749/rfc6749client"
 )
 
 func mustParseURL(s string) *url.URL {

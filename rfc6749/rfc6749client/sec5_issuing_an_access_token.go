@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/datawire/liboauth2/rfc6749/rfc6749registry"
 )
 
 // parseTokenResponse parses a response from a Token Endpoint, per §5.
@@ -86,12 +88,8 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		if rawResponse.Error == nil {
 			return nil, errors.New("parameter \"error\" is missing")
 		}
-		ecode, ok := tokenErrorCodeRegistry[*rawResponse.Error]
-		if !ok {
-			return nil, errors.Errorf("invalid error code: %q", *rawResponse.Error)
-		}
 		ret := TokenErrorResponse{
-			Error: ecode,
+			Error: *rawResponse.Error,
 		}
 		if rawResponse.ErrorDescription != nil {
 			ret.ErrorDescription = *rawResponse.ErrorDescription
@@ -131,52 +129,44 @@ func (r TokenSuccessResponse) isTokenResponse() {}
 // TokenErrorResponse stores an error response, as specified in
 // §5.2.
 type TokenErrorResponse struct {
-	Error            TokenErrorCode
+	Error            string
 	ErrorDescription string
 	ErrorURI         *url.URL
 }
 
 func (r TokenErrorResponse) isTokenResponse() {}
 
-// TokenErrorCode represents is an error code that may be returned by
-// a failed Token Request, as enumerated by §5.2.
-type TokenErrorCode interface {
-	isTokenErrorCode()
-	String() string
-	Description() string
-}
-
-var tokenErrorCodeRegistry = map[string]TokenErrorCode{}
-
-type tokenErrorCode struct {
-	name        string
-	description string
-}
-
-func (ecode tokenErrorCode) isTokenErrorCode()   {}
-func (ecode tokenErrorCode) String() string      { return ecode.name }
-func (ecode tokenErrorCode) Description() string { return ecode.description }
-
-func newTokenErrorCode(name, description string) TokenErrorCode {
-	ret := &tokenErrorCode{
-		name:        name,
-		description: description,
+// ErrorMeaning returns a human-readable meaning of the .Error code.
+// Returns an emtpy string for unknown error codes.
+func (response TokenErrorResponse) ErrorMeaning() string {
+	ecode := rfc6749registry.GetTokenError(response.Error)
+	if ecode == nil {
+		return ""
 	}
-	tokenErrorCodeRegistry[name] = ret
-	return ret
+	return ecode.Meaning()
+}
+
+func newTokenError(name, meaning string) {
+	rfc6749registry.ExtensionError{
+		Name:    name,
+		Meaning: meaning,
+		UsageLocations: []rfc6749registry.ErrorUsageLocation{
+			rfc6749registry.TokenErrorResponse,
+		},
+	}.Register()
 }
 
 // These are the error codes that may be present in a
 // TokenErrorResponse, as enumerated in §5.2.
-var (
-	TokenErrorCodeInvalidRequest = newTokenErrorCode("invalid_request", ""+
+func init() {
+	newTokenError("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
 		"unsupported parameter value (other than grant type), "+
 		"repeats a parameter, includes multiple credentials, "+
 		"utilizes more than one mechanism for authenticating the "+
 		"client, or is otherwise malformed.")
 
-	TokenErrorCodeInvalidClient = newTokenErrorCode("invalid_client", ""+
+	newTokenError("invalid_client", ""+
 		"Client authentication failed (e.g., unknown client, no "+
 		"client authentication included, or unsupported "+
 		"authentication method).  The authorization server MAY "+
@@ -188,22 +178,22 @@ var (
 		"include the \"WWW-Authenticate\" response header field "+
 		"matching the authentication scheme used by the client. ")
 
-	TokenErrorCodeInvalidGrant = newTokenErrorCode("invalid_grant", ""+
+	newTokenError("invalid_grant", ""+
 		"The provided authorization grant (e.g., authorization "+
 		"code, resource owner credentials) or refresh token is "+
 		"invalid, expired, revoked, does not match the redirection "+
 		"URI used in the authorization request, or was issued to "+
 		"another client.")
 
-	TokenErrorCodeUnauthorizedClient = newTokenErrorCode("unauthorized_client", ""+
+	newTokenError("unauthorized_client", ""+
 		"The authenticated client is not authorized to use this "+
 		"authorization grant type.")
 
-	TokenErrorCodeUnsupportedGrantType = newTokenErrorCode("unsupported_grant_type", ""+
+	newTokenError("unsupported_grant_type", ""+
 		"The authorization grant type is not supported by the "+
 		"authorization server.")
 
-	TokenErrorCodeInvalidScope = newTokenErrorCode("invalid_scope", ""+
+	newTokenError("invalid_scope", ""+
 		"The requested scope is invalid, unknown, malformed, or "+
 		"exceeds the scope granted by the resource owner.")
-)
+}

@@ -1,4 +1,4 @@
-module speclib2
+module github.com/datawire/liboauth2
 
 go 1.12
 

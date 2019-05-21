@@ -5,6 +5,8 @@ import (
 	"net/url"
 
 	"github.com/pkg/errors"
+
+	"github.com/datawire/liboauth2/rfc6749/rfc6749registry"
 )
 
 // An AuthorizationCodeClient is a Client that utilizes the
@@ -103,10 +105,6 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(r *http.Reques
 	parameters := r.URL.Query()
 	if errs := parameters["error"]; len(errs) > 0 {
 		// §4.1.2.1 error
-		ecode, ok := authorizationCodeAuthorizationErrorCodeRegistry[errs[0]]
-		if !ok {
-			return nil, errors.Errorf("cannot parse error response: invalid error code: %q", errs[0])
-		}
 		var errorURI *url.URL
 		if errorURIs := parameters["error_uri"]; len(errorURIs) > 0 {
 			var err error
@@ -116,7 +114,7 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(r *http.Reques
 			}
 		}
 		return AuthorizationCodeAuthorizationErrorResponse{
-			Error:            ecode,
+			Error:            errs[0],
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
 		}, nil
@@ -161,7 +159,7 @@ func (r AuthorizationCodeAuthorizationSuccessResponse) GetState() string { retur
 // to an Authorization Request in the Authorization Code flow, as
 // defined in §4.1.2.1.
 type AuthorizationCodeAuthorizationErrorResponse struct {
-	Error AuthorizationCodeAuthorizationErrorCode
+	Error string
 
 	// OPTIONAL.  Human-readable ASCII providing additional
 	// information.
@@ -181,73 +179,64 @@ func (r AuthorizationCodeAuthorizationErrorResponse) isAuthorizationCodeAuthoriz
 // GetState returns the state parameter (if any) included in the response.
 func (r AuthorizationCodeAuthorizationErrorResponse) GetState() string { return r.State }
 
-// AuthorizationCodeAuthorizationErrorCode is an error code that may
-// be returned by a failed "response_type=code" Authorization Request,
-// as enumerated by §4.1.2.1.
-type AuthorizationCodeAuthorizationErrorCode interface {
-	isAuthorizationCodeAuthorizationErrorCode()
-	String() string
-	Description() string
-}
-
-var authorizationCodeAuthorizationErrorCodeRegistry = map[string]AuthorizationCodeAuthorizationErrorCode{}
-
-type authorizationCodeAuthorizationErrorCode struct {
-	name        string
-	description string
-}
-
-func (ecode *authorizationCodeAuthorizationErrorCode) isAuthorizationCodeAuthorizationErrorCode() {}
-func (ecode *authorizationCodeAuthorizationErrorCode) String() string                             { return ecode.name }
-func (ecode *authorizationCodeAuthorizationErrorCode) Description() string                        { return ecode.description }
-
-func newAuthorizationCodeAuthorizationErrorCode(name, description string) AuthorizationCodeAuthorizationErrorCode {
-	ret := &authorizationCodeAuthorizationErrorCode{
-		name:        name,
-		description: description,
+// ErrorMeaning returns a human-readable meaning of the .Error code.
+// Returns an empty string for unknown error codes.
+func (response AuthorizationCodeAuthorizationErrorResponse) ErrorMeaning() string {
+	ecode := rfc6749registry.GetAuthorizationCodeGrantError(response.Error)
+	if ecode == nil {
+		return ""
 	}
-	authorizationCodeAuthorizationErrorCodeRegistry[name] = ret
-	return ret
+	return ecode.Meaning()
 }
 
-// These are the error codes that may be present in an
+func newAuthorizationCodeError(name, meaning string) {
+	rfc6749registry.ExtensionError{
+		Name:    name,
+		Meaning: meaning,
+		UsageLocations: []rfc6749registry.ErrorUsageLocation{
+			rfc6749registry.AuthorizationCodeGrantErrorResponse,
+		},
+	}.Register()
+}
+
+// These are the built-in error codes that may be present in an
 // AuthorizationCodeAuthorizationErrorResponse, as enumerated in
-// §4.1.2.1.
-var (
-	AuthorizationCodeAuthorizationErrorInvalidRequest = newAuthorizationCodeAuthorizationErrorCode("invalid_request", ""+
+// §4.1.2.1.  This set may be extended by extension error registry.
+func init() {
+	newAuthorizationCodeError("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
 		"invalid parameter value, includes a parameter more than "+
 		"once, or is otherwise malformed.")
 
-	AuthorizationCodeAuthorizationErrorUnauthorizedClient = newAuthorizationCodeAuthorizationErrorCode("unauthorized_client", ""+
+	newAuthorizationCodeError("unauthorized_client", ""+
 		"The client is not authorized to request an authorization "+
 		"code using this method.")
 
-	AuthorizationCodeAuthorizationErrorAccessDenied = newAuthorizationCodeAuthorizationErrorCode("access_denied", ""+
+	newAuthorizationCodeError("access_denied", ""+
 		"The resource owner or authorization server denied the "+
 		"request.")
 
-	AuthorizationCodeAuthorizationErrorUnsupportedResponseType = newAuthorizationCodeAuthorizationErrorCode("unsupported_response_type", ""+
+	newAuthorizationCodeError("unsupported_response_type", ""+
 		"The authorization server does not support obtaining an "+
 		"authorization code using this method.")
 
-	AuthorizationCodeAuthorizationErrorInvalidScope = newAuthorizationCodeAuthorizationErrorCode("invalid_scope", ""+
+	newAuthorizationCodeError("invalid_scope", ""+
 		"The requested scope is invalid, unknown, or malformed.")
 
-	AuthorizationCodeAuthorizationErrorServerError = newAuthorizationCodeAuthorizationErrorCode("server_error", ""+
+	newAuthorizationCodeError("server_error", ""+
 		"The authorization server encountered an unexpected "+
 		"condition that prevented it from fulfilling the request.  "+
 		"(This error code is needed because a 500 Internal Server "+
 		"Error HTTP status code cannot be returned to the client "+
 		"via an HTTP redirect.)")
 
-	AuthorizationCodeAuthorizationErrorTemporarilyUnavailable = newAuthorizationCodeAuthorizationErrorCode("temporarily_unavailable", ""+
+	newAuthorizationCodeError("temporarily_unavailable", ""+
 		"The authorization server is currently unable to handle "+
 		"the request due to a temporary overloading or maintenance "+
 		"of the server.  (This error code is needed because a 503 "+
 		"Service Unavailable HTTP status code cannot be returned "+
 		"to the client via an HTTP redirect.)")
-)
+}
 
 // AccessToken talks to the Authorization Server to exchange an
 // Authorization Code (obtained from `.ParseAuthorizationResponse()`)
