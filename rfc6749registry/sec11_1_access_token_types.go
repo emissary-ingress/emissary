@@ -1,6 +1,7 @@
 package rfc6749registry
 
 import (
+	"io"
 	"net/http"
 	"strings"
 
@@ -13,8 +14,8 @@ type AccessTokenType struct {
 	ChangeController                  string
 	SpecificationDocuments            []string
 
-	ClientNeedsBody               bool
-	ClientAuthorizationForRequest func(io.Reader) (http.Header, error)
+	ClientNeedsBody                       bool
+	ClientAuthorizationForResourceRequest func(io.Reader) (http.Header, error)
 
 	ResourceServerNeedsBody             bool
 	ResourceServerValidateAuthorization func(http.Header, io.Reader) (bool, error)
@@ -29,8 +30,8 @@ type AccessTokenTypeClientDriver interface {
 type accessTokenTypeClientDriver AccessTokenType
 
 func (driver accessTokenTypeClientDriver) NeedsBody() bool { return driver.ClientNeedsBody }
-func (driver accessTokenTypeClientDriver) AuthorizationForRequest(body io.Reader) (http.Header, error) {
-	return driver.ClientAuthorizationForRequest(body)
+func (driver accessTokenTypeClientDriver) AuthorizationForResourceRequest(body io.Reader) (http.Header, error) {
+	return driver.ClientAuthorizationForResourceRequest(body)
 }
 
 // AccessTokenTypeResourceServerDriver TODO
@@ -42,16 +43,15 @@ type AccessTokenTypeResourceServerDriver interface {
 type accessTokenTypeResourceServerDriver AccessTokenType
 
 func (driver accessTokenTypeResourceServerDriver) NeedsBody() bool { return driver.ClientNeedsBody }
-func (driver accessTokenTypeResourceServerDriver) ValidateAuthorization (header http.Header, body io.Reader) (http.Header, error) {
-	return driver.ClientAuthorizationForRequest(body)
+func (driver accessTokenTypeResourceServerDriver) ValidateAuthorization(header http.Header, body io.Reader) (bool, error) {
+	return driver.ResourceServerValidateAuthorization(header, body)
 }
 
+var accessTokenTypeRegistry = make(map[string]AccessTokenType)
 
-var accessTokenTypeRegistry         = make(map[string]AccessTokenType)
-
-// RegisterAccessTokenType TODO
-func RegisterAccessTokenType(tokenType AccesTokenType) {
-	typeName = strings.ToLower(tokenType.Name)
+// Register TODO
+func (tokenType AccessTokenType) Register() {
+	typeName := strings.ToLower(tokenType.Name)
 	if _, set := accessTokenTypeRegistry[typeName]; set {
 		panic(errors.Errorf("token_type=%q already registered", typeName))
 	}
@@ -64,7 +64,7 @@ func GetAccessTokenTypeClientDriver(typeName string) AccessTokenTypeClientDriver
 	if !ok {
 		return nil
 	}
-	return AccessTokenTypeClientDriver(tokenType)
+	return accessTokenTypeClientDriver(tokenType)
 }
 
 // GetAccessTokenTypeResourceServerDriver TODO
@@ -73,5 +73,5 @@ func GetAccessTokenTypeResourceServerDriver(typeName string) AccessTokenTypeReso
 	if !ok {
 		return nil
 	}
-	return AccessTokenTypeResourceServerDriver(tokenType)
+	return accessTokenTypeResourceServerDriver(tokenType)
 }

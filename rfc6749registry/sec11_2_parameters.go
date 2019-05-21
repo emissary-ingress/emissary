@@ -1,9 +1,6 @@
 package rfc6749registry
 
 import (
-	"net/http"
-	"strings"
-
 	"github.com/pkg/errors"
 )
 
@@ -15,16 +12,7 @@ type Parameter struct {
 	SpecificationDocuments []string
 }
 
-func (p Parameter) usableIn(loc ParameterUsageLocation) bool {
-	for _, l := range p.UsageLocations {
-		if l == loc {
-			return true
-		}
-	}
-	return false
-}
-
-// ParameterUsageLocation TODO
+// ParameterUsageLocation TODO §11.2.1
 type ParameterUsageLocation interface {
 	isParameterUsageLocation()
 }
@@ -37,11 +25,12 @@ func newParameterUsageLocation(s string) ParameterUsageLocation {
 	return parameterUsageLocation(s)
 }
 
+// TODO §11.2.1
 var (
-	AuthorizationRequest  = newParamaterUsageLocation("authorization request")
-	AuthorizationResponse = newParamaterUsageLocation("authorization response")
-	TokenRequest          = newParamaterUsageLocation("token request")
-	TokenResponse         = newParamaterUsageLocation("token response")
+	AuthorizationRequest  = newParameterUsageLocation("authorization request")
+	AuthorizationResponse = newParameterUsageLocation("authorization response")
+	TokenRequest          = newParameterUsageLocation("token request")
+	TokenResponse         = newParameterUsageLocation("token response")
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,10 +40,11 @@ type AuthorizationRequestParameter interface {
 	isAuthorizationRequestParameter()
 }
 
-var authorizationRequestParameterRegistry map[string]AuthorizationRequestParammeter
+var authorizationRequestParameterRegistry = make(map[string]AuthorizationRequestParameter)
 
 type authorizationRequestParameter Parameter
-func (p authorizationRequestParameter) isAuthorizationRequestParameter()
+
+func (p authorizationRequestParameter) isAuthorizationRequestParameter() {}
 
 // GetAuthorizationRequestParameter TODO
 func GetAuthorizationRequestParameter(name string) AuthorizationRequestParameter {
@@ -72,10 +62,11 @@ type AuthorizationResponseParameter interface {
 	isAuthorizationResponseParameter()
 }
 
-var authorizationResponseParameterRegistry map[string]AuthorizationResponseParammeter
+var authorizationResponseParameterRegistry = make(map[string]AuthorizationResponseParameter)
 
 type authorizationResponseParameter Parameter
-func (p authorizationResponseParameter) isAuthorizationResponseParameter()
+
+func (p authorizationResponseParameter) isAuthorizationResponseParameter() {}
 
 // GetAuthorizationResponseParameter TODO
 func GetAuthorizationResponseParameter(name string) AuthorizationResponseParameter {
@@ -93,10 +84,11 @@ type TokenRequestParameter interface {
 	isTokenRequestParameter()
 }
 
-var tokenRequestParameterRegistry map[string]TokenRequestParammeter
+var tokenRequestParameterRegistry = make(map[string]TokenRequestParameter)
 
 type tokenRequestParameter Parameter
-func (p tokenRequestParameter) isTokenRequestParameter()
+
+func (p tokenRequestParameter) isTokenRequestParameter() {}
 
 // GetTokenRequestParameter TODO
 func GetTokenRequestParameter(name string) TokenRequestParameter {
@@ -114,10 +106,11 @@ type TokenResponseParameter interface {
 	isTokenResponseParameter()
 }
 
-var tokenResponseParameterRegistry map[string]TokenResponseParammeter
+var tokenResponseParameterRegistry = make(map[string]TokenResponseParameter)
 
 type tokenResponseParameter Parameter
-func (p tokenResponseParameter) isTokenResponseParameter()
+
+func (p tokenResponseParameter) isTokenResponseParameter() {}
 
 // GetTokenResponseParameter TODO
 func GetTokenResponseParameter(name string) TokenResponseParameter {
@@ -130,134 +123,143 @@ func GetTokenResponseParameter(name string) TokenResponseParameter {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// RegisterParameter TODO
-func RegisterParameter(parameter Parameter) {
+func (p Parameter) usableIn(loc ParameterUsageLocation) bool {
+	for _, l := range p.UsageLocations {
+		if l == loc {
+			return true
+		}
+	}
+	return false
+}
+
+// Register TODO
+func (parameter Parameter) Register() {
 	////////////////////////////////////////////////////////////////////////
 	if _, set := authorizationRequestParameterRegistry[parameter.Name]; set {
 		panic(errors.Errorf("authorization-request parameter %q already registered", parameter.Name))
 	}
 	if parameter.usableIn(AuthorizationRequest) {
-		authorizationParameterRegistry[parameter.Name] = authorizationRequestParameter(parameter)
+		authorizationRequestParameterRegistry[parameter.Name] = authorizationRequestParameter(parameter)
 	}
 	////////////////////////////////////////////////////////////////////////
 	if _, set := authorizationResponseParameterRegistry[parameter.Name]; set {
 		panic(errors.Errorf("authorization-response parameter %q already registered", parameter.Name))
 	}
 	if parameter.usableIn(AuthorizationResponse) {
-		authorizationParameterRegistry[parameter.Name] = authorizationResponseParameter(parameter)
+		authorizationResponseParameterRegistry[parameter.Name] = authorizationResponseParameter(parameter)
 	}
 	////////////////////////////////////////////////////////////////////////
 	if _, set := tokenRequestParameterRegistry[parameter.Name]; set {
 		panic(errors.Errorf("token-request parameter %q already registered", parameter.Name))
 	}
 	if parameter.usableIn(TokenRequest) {
-		tokenParameterRegistry[parameter.Name] = tokenRequestParameter(parameter)
+		tokenRequestParameterRegistry[parameter.Name] = tokenRequestParameter(parameter)
 	}
 	////////////////////////////////////////////////////////////////////////
 	if _, set := tokenResponseParameterRegistry[parameter.Name]; set {
 		panic(errors.Errorf("token-response parameter %q already registered", parameter.Name))
 	}
 	if parameter.usableIn(TokenResponse) {
-		tokenParameterRegistry[parameter.Name] = tokenResponseParameter(parameter)
+		tokenResponseParameterRegistry[parameter.Name] = tokenResponseParameter(parameter)
 	}
 }
 
+// Initial registry contents, per §11.2.2.
 func init() {
-	// §11.2.2
-	RegisterParameter(Parameter{
+	Parameter{
 		Name:                   "client_id",
-		UsageLocations:         {AuthorizationRequest, TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationRequest, TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "client_secret",
-		UsageLocations:         {TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "response_type",
-		UsageLocations:         {AuthorizationRequest},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "redirect_uri",
-		UsageLocations:         {AuthorizationRequest, TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationRequest, TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "scope",
-		UsageLocations:         {AuthorizationRequest, AuthorizationResponse, TokenRequest, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationRequest, AuthorizationResponse, TokenRequest, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "state",
-		UsageLocations:         {AuthorizationRequest, AuthorizationResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationRequest, AuthorizationResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "code",
-		UsageLocations:         {AuthorizationResponse, TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationResponse, TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "error_description",
-		UsageLocations:         {AuthorizationResponse, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationResponse, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "error_uri",
-		UsageLocations:         {AuthorizationResponse, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationResponse, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "grant_type",
-		UsageLocations:         {TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "access_token",
-		UsageLocations:         {AuthorizationResponse, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationResponse, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "token_type",
-		UsageLocations:         {AuthorizationResponse, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationResponse, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "expires_in",
-		UsageLocations:         {AuthorizationResponse, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{AuthorizationResponse, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "username",
-		UsageLocations:         {TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "password",
-		UsageLocations:         {TokenRequest},
+		UsageLocations:         []ParameterUsageLocation{TokenRequest},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
-	RegisterParameter(Parameter{
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
+	Parameter{
 		Name:                   "refresh_token",
-		UsageLocations:         {TokenRequest, TokenResponse},
+		UsageLocations:         []ParameterUsageLocation{TokenRequest, TokenResponse},
 		ChangeController:       "IETF",
-		SpecificationDocuments: {"RFC 6749"},
-	})
+		SpecificationDocuments: []string{"RFC 6749"},
+	}.Register()
 }
