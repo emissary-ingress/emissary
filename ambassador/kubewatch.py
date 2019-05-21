@@ -15,8 +15,9 @@
 import click
 import logging
 import os
-import sys
 import uuid
+
+from pathlib import Path
 
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
@@ -119,10 +120,10 @@ def main(debug):
                 client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
             except client.rest.ApiException as e:
                 if e.status == 404:
-                    logger.debug("Could not find CRD {}, please reconfigure and try again...".format(crd))
+                    logger.debug("could not find CRD {}, please reconfigure and try again...".format(crd))
                 else:
                     logger.debug("Error reading CRD {}: {}".format(crd, e))
-                sys.exit(1)
+                Path('.ambassador_ignore_crds').touch()
 
         # One way or the other, we need to generate an ID here.
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
