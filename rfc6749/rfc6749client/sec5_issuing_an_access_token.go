@@ -138,8 +138,8 @@ func (r TokenErrorResponse) isTokenResponse() {}
 
 // ErrorMeaning returns a human-readable meaning of the .Error code.
 // Returns an emtpy string for unknown error codes.
-func (response TokenErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749registry.GetTokenError(response.Error)
+func (r TokenErrorResponse) ErrorMeaning() string {
+	ecode := rfc6749registry.GetTokenError(r.Error)
 	if ecode == nil {
 		return ""
 	}

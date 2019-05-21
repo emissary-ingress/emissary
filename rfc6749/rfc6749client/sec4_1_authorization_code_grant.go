@@ -181,8 +181,8 @@ func (r AuthorizationCodeAuthorizationErrorResponse) GetState() string { return 
 
 // ErrorMeaning returns a human-readable meaning of the .Error code.
 // Returns an empty string for unknown error codes.
-func (response AuthorizationCodeAuthorizationErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749registry.GetAuthorizationCodeGrantError(response.Error)
+func (r AuthorizationCodeAuthorizationErrorResponse) ErrorMeaning() string {
+	ecode := rfc6749registry.GetAuthorizationCodeGrantError(r.Error)
 	if ecode == nil {
 		return ""
 	}

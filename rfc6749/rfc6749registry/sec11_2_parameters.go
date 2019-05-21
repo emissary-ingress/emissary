@@ -123,8 +123,8 @@ func GetTokenResponseParameter(name string) TokenResponseParameter {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (p Parameter) usableIn(loc ParameterUsageLocation) bool {
-	for _, l := range p.UsageLocations {
+func (parameter Parameter) usableIn(loc ParameterUsageLocation) bool {
+	for _, l := range parameter.UsageLocations {
 		if l == loc {
 			return true
 		}

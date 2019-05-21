@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AccessTokenType TODO §11.1.1.
 type AccessTokenType struct {
 	Name                              string
 	AdditionalTokenEndpointParameters []string

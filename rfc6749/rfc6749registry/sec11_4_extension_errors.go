@@ -39,6 +39,7 @@ var (
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// AuthorizationCodeGrantError TODO
 type AuthorizationCodeGrantError interface {
 	isAuthorizationCodeGrantError()
 	String() string
@@ -64,6 +65,7 @@ func GetAuthorizationCodeGrantError(name string) AuthorizationCodeGrantError {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// ImplicitGrantError TODO
 type ImplicitGrantError interface {
 	isImplicitGrantError()
 	String() string
@@ -89,6 +91,7 @@ func GetImplicitGrantError(name string) ImplicitGrantError {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TokenError TODO
 type TokenError interface {
 	isTokenError()
 	String() string
@@ -114,6 +117,7 @@ func GetTokenError(name string) TokenError {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// ResourceAccessError TODO
 type ResourceAccessError interface {
 	isResourceAccessError()
 	String() string
@@ -148,6 +152,7 @@ func (e ExtensionError) usableIn(loc ErrorUsageLocation) bool {
 	return false
 }
 
+// Register TODO
 func (e ExtensionError) Register() {
 	////////////////////////////////////////////////////////////////////////
 	if _, set := authorizationCodeGrantErrorRegistry[e.Name]; set {
