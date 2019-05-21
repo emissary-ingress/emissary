@@ -241,8 +241,8 @@ Istio stores it's TLS certificates as Kubernetes secrets by default, so accessin
    name: productpage_mapping
    prefix: /productpage/
    rewrite: /productpage
-   tls: istio-upstream
    service: https://productpage:9080
+   tls: istio-upstream
    ```
 
 Ambassador will now use the certificate stored in the `istio.default` secret to originate TLS to istio-powered services. See the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation) for and example with more information.
@@ -276,8 +276,8 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
    kind: Mapping
    name: qotm_mtls_mapping
    prefix: /qotm-consul-mtls/
-   tls: ambassador-consul
    service: https://qotm-proxy
+   tls: ambassador-consul
    ```
 
 Ambassador will now use the certificates loaded into the `ambassador-consul` `TLSContext` when proxying requests with `prefix: /qotm-consul-mtls`. See the [Consul example](/user-guide/consul#encrypted-tls) for an example configuration.

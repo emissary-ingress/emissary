@@ -289,8 +289,8 @@ metadata:
       name: productpage_mapping
       prefix: /productpage/
       rewrite: /productpage
-      tls: istio-upstream
       service: https://productpage:9080
+      tls: istio-upstream
 spec:
   ports:
   - port: 9080
