@@ -121,9 +121,7 @@ def main(debug):
             except client.rest.ApiException as e:
                 if e.status == 404:
                     logger.debug("could not find CRD {}, please reconfigure and try again...".format(crd))
-                else:
-                    logger.debug("Error reading CRD {}: {}".format(crd, e))
-                Path('.ambassador_ignore_crds').touch()
+                    Path('.ambassador_ignore_crds').touch()
 
         # One way or the other, we need to generate an ID here.
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
