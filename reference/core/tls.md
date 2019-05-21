@@ -220,17 +220,16 @@ Istio stores it's TLS certificates as Kubernetes secrets by default, so accessin
               secretName: istio.default
    ```
 
-2. You can now configure Ambassador to use the certificate stored in this secret by specifying an `upstream` in the tls `Module`:
+2. You can now configure Ambassador to use the certificate stored in this secret by specifying an `upstream` in a `TLSContext`:
 
    ```yaml
    ---
    apiVersion: ambassador/v1
-   kind:  Module
-   name: tls
-   config:
-     istio-upstream:
-       cert_chain_file: /etc/istiocerts/cert-chain.pem
-       private_key_file: /etc/istiocerts/key.pem
+   kind: TLSContext
+   name: istio-upstream
+   cert_chain_file: /etc/istiocerts/cert-chain.pem
+   private_key_file: /etc/istiocerts/key.pem
+   cacert_chain_file: /etc/istiocerts/root-cert.pem
    ```
 
 3. Finally, we will tell Ambassador to use these certificates for originating TLS to specific upstream services by setting the `tls` attribute in a `Mapping`
