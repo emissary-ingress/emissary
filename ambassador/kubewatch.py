@@ -115,15 +115,24 @@ def main(debug):
             'tracingservices.getambassador.io'
         ]
 
+        crd_errors = False
+
         for crd in required_crds:
             try:
                 client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
             except client.rest.ApiException as e:
+                crd_errors = True
+
                 if e.status == 404:
-                    logger.debug("could not find CRD {}, please reconfigure and try again...".format(crd))
-                    Path('.ambassador_ignore_crds').touch()
+                    logger.debug(f'CRD type definition not found for {crd}')
                 else:
-                    logger.debug("could not read CRD {}: {}".format(crd, e.reason))
+                    logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
+
+        if crd_errors:
+            Path('.ambassador_ignore_crds').touch()
+            clogger.debug('CRDs are not available.' +
+                         ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
+                         ' then restart the Ambassador pod.')
 
         # One way or the other, we need to generate an ID here.
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
