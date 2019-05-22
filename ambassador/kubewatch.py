@@ -130,7 +130,7 @@ def main(debug):
 
         if crd_errors:
             Path('.ambassador_ignore_crds').touch()
-            clogger.debug('CRDs are not available.' +
+            logger.debug('CRDs are not available.' +
                          ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
                          ' then restart the Ambassador pod.')
 
