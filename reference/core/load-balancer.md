@@ -32,11 +32,12 @@ config:
 or, per mapping:
 
 ```yaml
+---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-ui_mapping
+prefix: /
+service: tour
 resolver: my-resolver
 load_balancer:
   policy: round_robin
@@ -71,9 +72,9 @@ For example, the following configuration asks the client to set a cookie named `
 ```yaml
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-ui_mapping
+prefix: /
+service: tour
 resolver: my-resolver
 load_balancer:
   policy: ring_hash
@@ -95,9 +96,9 @@ Example:
 ```yaml
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-ui_mapping
+prefix: /
+service: tour
 resolver: my-resolver
 load_balancer:
   policy: ring_hash
@@ -116,16 +117,16 @@ Ambassador allows session affinity based on the source IP of incoming requests. 
 ```yaml
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-ui_mapping
+prefix: /
+service: tour
 resolver: my-resolver
 load_balancer:
   policy: ring_hash
   source_ip: true
 ```
 
-Load balancing can be configured both globally, and overridden on a per mapping basis. The following example configures the default load balancing policy to be round robin, while using header-based session affinity for requests to `/qotm/`:
+Load balancing can be configured both globally, and overridden on a per mapping basis. The following example configures the default load balancing policy to be round robin, while using header-based session affinity for requests to the `/backend/` endpoint of the tour application:
 
 ```yaml
 apiVersion: ambassador/v0
@@ -135,12 +136,11 @@ config:
   resolver: my-resolver
   load_balancer:
     policy: round_robin
----
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 resolver: my-resolver
 load_balancer:
   policy: ring_hash

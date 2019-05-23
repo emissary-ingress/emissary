@@ -85,9 +85,9 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: http://qotm
+      name:  tour-ui_mapping
+      prefix: /
+      service: http://tour
 spec:
   ports:
   - name: httpbin
@@ -101,10 +101,10 @@ The same `Mapping` can be created as an independent resource:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  qotm_mapping
+  name:  tour-ui
 spec:
-  prefix: /qotm/
-  service: http://qotm
+  prefix: /
+  service: http://tour
 ```
 
 If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
@@ -117,10 +117,10 @@ Here's an example for a REST service which Ambassador will contact using HTTPS:
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  quote_mapping
-prefix: /qotm/quote/
-rewrite: /quotation/
-service: https://qotm
+name:  backend-https_mapping
+prefix: /backend/secure/
+rewrite: /secure/
+service: https://tour
 ```
 
 (Note that the 'http://' prefix for an HTTP service is optional.)

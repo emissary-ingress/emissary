@@ -6,7 +6,7 @@ Ambassador can authenticate incoming requests before routing them to a backing s
 
 This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
-After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding authentication to this setup.
+After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the tour service. Let's walk through adding authentication to this setup.
 
 Don't want to DIY? [Ambassador Pro](/pro) integrates with popular Identity Providers such as Auth0 to provide a seamless OAuth / OpenID Connect authentication flow for your services. Start a [free 14-day trial](/pro/free-trial) now! 
 
@@ -16,7 +16,7 @@ Ambassador delegates the actual authentication logic to a third party authentica
 
 - listens for requests on port 3000;
 - expects all URLs to begin with `/extauth/`;
-- performs HTTP Basic Auth for all URLs starting with `/qotm/quote/` (other URLs are always permitted);
+- performs HTTP Basic Auth for all URLs starting with `/backend/get-quote/` (other URLs are always permitted);
 - accepts only user `username`, password `password`; and
 - makes sure that the `x-qotm-session` header is present, generating a new one if needed.
 
@@ -54,7 +54,7 @@ spec:
     spec:
       containers:
       - name: example-auth
-        image: datawire/ambassador-auth-service:1.1.1
+        image: datawire/ambassador-auth-service:2.0.0
         imagePullPolicy: Always
         ports:
         - name: http-api
@@ -126,8 +126,8 @@ as HTTP path separators, it is possible to end up with an infinite redirect
 where the auth service's framework redirects any request with non-conformant
 slashing. This would arise if the above example had
 ```path_prefix: "/extauth/"```, the auth service would see a request for
-```/extauth//qotm/quote/1``` which would then be redirected to
-```/extauth/quotm/quote/1``` rather than actually be handled by the
+```/extauth//backend/get-quote/``` which would then be redirected to
+```/extauth/backend/get-quote/``` rather than actually be handled by the
 authentication handler. For this reason, remember that the full path of the
 incoming request including the leading slash, will be appended to
 ```path_prefix``` regardless of non-conformant slashing.
@@ -147,52 +147,54 @@ Ambassador will see the annotations and reconfigure itself within a few seconds.
 If we `curl` to a protected URL:
 
 ```shell
-$ curl -v $AMBASSADORURL/qotm/quote/1
+$ curl -v $AMBASSADORURL/backend/get-quote/
 ```
 
 We get a 401, since we haven't authenticated.
 
 ```shell
-HTTP/1.1 401 Unauthorized
-x-powered-by: Express
-x-request-id: 9793dec9-323c-4edf-bc30-352141b0a5e5
-www-authenticate: Basic realm=\"Ambassador Realm\"
-content-type: text/html; charset=utf-8
-content-length: 0
-etag: W/\"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk\"
-date: Fri, 15 Sep 2017 15:22:09 GMT
-x-envoy-upstream-service-time: 2
-server: envoy
+* TCP_NODELAY set
+* Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)
+> GET /backend/get-quote/ HTTP/1.1
+> Host: 54.165.128.189:32281
+> User-Agent: curl/7.63.0
+> Accept: */*
+> 
+< HTTP/1.1 401 Unauthorized
+< www-authenticate: Basic realm="Ambassador Realm"
+< content-length: 0
+< date: Thu, 23 May 2019 15:24:55 GMT
+< server: envoy
+< 
+* Connection #0 to host 54.165.128.189 left intact
 ```
 
 If we authenticate to the service, we will get a quote successfully:
 
 ```shell
-$ curl -v -u username:password $AMBASSADORURL/qotm/quote/1
+$ curl -v -u username:password $AMBASSADORURL/backend/get-quote/
 
-TCP_NODELAY set
-* Connected to 35.196.173.175 (35.196.173.175) port 80 (#0)
-* Server auth using Basic with user \'username\'
-> GET /qotm/quote/1 HTTP/1.1
-> Host: 35.196.173.175
+* TCP_NODELAY set
+* Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)
+* Server auth using Basic with user 'username'
+> GET /backend/get-quote/ HTTP/1.1
+> Host: 54.165.128.189:32281
 > Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=
-> User-Agent: curl/7.54.0
+> User-Agent: curl/7.63.0
 > Accept: */*
->
+> 
 < HTTP/1.1 200 OK
 < content-type: application/json
-< x-qotm-session: 069da5de-5433-46c0-a8de-d266e327d451
+< date: Thu, 23 May 2019 15:25:06 GMT
 < content-length: 172
+< x-envoy-upstream-service-time: 0
 < server: envoy
-< date: Wed, 27 Sep 2017 18:53:38 GMT
-< x-envoy-upstream-service-time: 25
-<
+< 
 {
- \"hostname\": \"qotm-1827164760-gf534\",
- \"ok\": true,
- \"quote\": \"A late night does not make any sense.\",
- \"time\": \"2017-09-27T18:53:39.376073\",
- \"version\": \"1.1\"
+    "server": "humble-blueberry-o2v493st",
+    "quote": "Nihilism gambles with lives, happiness, and even destiny itself!",
+    "time": "2019-05-23T15:25:06.544417902Z"
+* Connection #0 to host 54.165.128.189 left intact
 }
 ```
 
