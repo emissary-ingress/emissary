@@ -31,7 +31,7 @@ metadata:
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
-        assert(len(errors) == 0)
+        assert(len(errors) == 1)
 
 
 class AmbassadorIDTest(AmbassadorTest):
