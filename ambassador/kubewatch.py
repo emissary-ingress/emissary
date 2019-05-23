@@ -69,6 +69,36 @@ def kube_v1():
     return k8s_api
 
 
+@property
+def stored_versions(self):
+    return self._stored_versions
+
+
+@stored_versions.setter
+def stored_versions(self, stored_versions):
+    self._stored_versions = stored_versions
+
+
+@property
+def accepted_names(self):
+    return self._accepted_names
+
+
+@accepted_names.setter
+def accepted_names(self, accepted_names):
+    self._accepted_names = accepted_names
+
+
+@property
+def conditions(self):
+    return self._conditions
+
+
+@conditions.setter
+def conditions(self, conditions):
+    self._conditions = conditions
+
+
 @click.command()
 @click.option("--debug", is_flag=True, help="Enable debugging")
 def main(debug):
@@ -116,6 +146,12 @@ def main(debug):
         ]
 
         crd_errors = False
+
+        # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376
+        # and https://github.com/kubernetes-client/gen/issues/52 are fixed \_(0.0)_/
+        client.models.V1beta1CustomResourceDefinitionStatus.accepted_names = accepted_names
+        client.models.V1beta1CustomResourceDefinitionStatus.conditions = conditions
+        client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = stored_versions
 
         for crd in required_crds:
             try:
