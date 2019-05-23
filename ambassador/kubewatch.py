@@ -17,6 +17,8 @@ import logging
 import os
 import uuid
 
+from pathlib import Path
+
 from kubernetes import client, config, watch
 from kubernetes.client.rest import ApiException
 
@@ -67,6 +69,36 @@ def kube_v1():
     return k8s_api
 
 
+@property
+def stored_versions(self):
+    return self._stored_versions
+
+
+@stored_versions.setter
+def stored_versions(self, stored_versions):
+    self._stored_versions = stored_versions
+
+
+@property
+def accepted_names(self):
+    return self._accepted_names
+
+
+@accepted_names.setter
+def accepted_names(self, accepted_names):
+    self._accepted_names = accepted_names
+
+
+@property
+def conditions(self):
+    return self._conditions
+
+
+@conditions.setter
+def conditions(self, conditions):
+    self._conditions = conditions
+
+
 @click.command()
 @click.option("--debug", is_flag=True, help="Enable debugging")
 def main(debug):
@@ -102,6 +134,41 @@ def main(debug):
                 found = "hardcoded ID"
         else:
             logger.error("could not connect to Kubernetes")
+
+        required_crds = [
+            'authservices.getambassador.io',
+            'mappings.getambassador.io',
+            'modules.getambassador.io',
+            'ratelimitservices.getambassador.io',
+            'tcpmappings.getambassador.io',
+            'tlscontexts.getambassador.io',
+            'tracingservices.getambassador.io'
+        ]
+
+        crd_errors = False
+
+        # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376
+        # and https://github.com/kubernetes-client/gen/issues/52 are fixed \_(0.0)_/
+        client.models.V1beta1CustomResourceDefinitionStatus.accepted_names = accepted_names
+        client.models.V1beta1CustomResourceDefinitionStatus.conditions = conditions
+        client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = stored_versions
+
+        for crd in required_crds:
+            try:
+                client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
+            except client.rest.ApiException as e:
+                crd_errors = True
+
+                if e.status == 404:
+                    logger.debug(f'CRD type definition not found for {crd}')
+                else:
+                    logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
+
+        if crd_errors:
+            Path('.ambassador_ignore_crds').touch()
+            logger.debug('CRDs are not available.' +
+                         ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
+                         ' then restart the Ambassador pod.')
 
         # One way or the other, we need to generate an ID here.
         cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)

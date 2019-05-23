@@ -230,7 +230,10 @@ if [ -z "${AMBASSADOR_NO_KUBEWATCH}" ]; then
         KUBEWATCH_NAMESPACE_ARG="--namespace $AMBASSADOR_NAMESPACE"
     fi
 
-    KUBEWATCH_SYNC_KINDS="-s service -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+    KUBEWATCH_SYNC_KINDS="-s service"
+    if [ ! -f .ambassador_ignore_crds ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+    fi
 
 #    if [ -n "$AMBASSADOR_NO_SECRETS" ]; then
 #        KUBEWATCH_SYNC_KINDS="-s service"

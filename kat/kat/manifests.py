@@ -313,7 +313,10 @@ metadata:
   name: {self.path.k8s}
 rules:
 - apiGroups: [""]
-  resources: [ "configmaps", "services", "secrets", "namespaces", "endpoints" ]
+  resources: [ "services", "secrets", "namespaces", "endpoints" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
@@ -347,7 +350,10 @@ metadata:
   name: {self.path.k8s}
 rules:
 - apiGroups: [""]
-  resources: [ "configmaps", "services", "secrets", "namespaces", "endpoints" ]
+  resources: [ "services", "secrets", "namespaces", "endpoints" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
