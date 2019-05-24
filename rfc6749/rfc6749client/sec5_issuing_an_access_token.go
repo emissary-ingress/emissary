@@ -76,29 +76,10 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		if err != nil {
 			return nil, err
 		}
-		var rawResponse struct {
-			Error            *string `json:"error"`
-			ErrorDescription *string `json:"error_description"`
-			ErrorURI         *string `json:"error_uri"`
-		}
-		err = json.Unmarshal(bodyBytes, &rawResponse)
+		var ret TokenErrorResponse
+		err = json.Unmarshal(bodyBytes, &ret)
 		if err != nil {
 			return nil, err
-		}
-		if rawResponse.Error == nil {
-			return nil, errors.New("parameter \"error\" is missing")
-		}
-		ret := TokenErrorResponse{
-			Error: *rawResponse.Error,
-		}
-		if rawResponse.ErrorDescription != nil {
-			ret.ErrorDescription = *rawResponse.ErrorDescription
-		}
-		if rawResponse.ErrorURI != nil {
-			ret.ErrorURI, err = url.Parse(*rawResponse.ErrorURI)
-			if err != nil {
-				return nil, err
-			}
 		}
 		return ret, nil
 	default:
@@ -132,6 +113,47 @@ type TokenErrorResponse struct {
 	Error            string
 	ErrorDescription string
 	ErrorURI         *url.URL
+}
+
+type rawTokenErrorResponse struct {
+	Error            *string `json:"error"`
+	ErrorDescription *string `json:"error_description,omitempty"`
+	ErrorURI         *string `json:"error_uri,omitempty"`
+}
+
+func (r *TokenErrorResponse) UnmarshalJSON(bodyBytes []byte) error {
+	var rawResponse rawTokenErrorResponse
+	err := json.Unmarshal(bodyBytes, &rawResponse)
+	if err != nil {
+		return err
+	}
+	if rawResponse.Error == nil {
+		return errors.New("parameter \"error\" is missing")
+	}
+	r.Error = *rawResponse.Error
+	if rawResponse.ErrorDescription != nil {
+		r.ErrorDescription = *rawResponse.ErrorDescription
+	}
+	if rawResponse.ErrorURI != nil {
+		r.ErrorURI, err = url.Parse(*rawResponse.ErrorURI)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r TokenErrorResponse) MarshalJSON() ([]byte, error) {
+	var rawResponse rawTokenErrorResponse
+	rawResponse.Error = &r.Error
+	if r.ErrorDescription != "" {
+		rawResponse.ErrorDescription = &r.ErrorDescription
+	}
+	if r.ErrorURI != nil {
+		str := r.ErrorURI.String()
+		rawResponse.ErrorURI = &str
+	}
+	return json.Marshal(rawResponse)
 }
 
 func (r TokenErrorResponse) isTokenResponse() {}
