@@ -113,6 +113,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			util.ToJSONResponse(w, http.StatusUnauthorized, map[string]interface{}{
 				"message":           "unauthorized: authorization request failed",
 				"upstream_response": authorizationResponse,
+				"error_meaning":     authorizationResponse.ErrorMeaning(),
 			})
 			return
 		case rfc6749client.AuthorizationCodeAuthorizationSuccessResponse:
@@ -127,6 +128,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				util.ToJSONResponse(w, http.StatusUnauthorized, map[string]interface{}{
 					"message":           "unauthorized: token request failed",
 					"upstream_response": tokenResponse,
+					"error_meaning":     tokenResponse.ErrorMeaning(),
 				})
 				return
 			case rfc6749client.TokenSuccessResponse:
