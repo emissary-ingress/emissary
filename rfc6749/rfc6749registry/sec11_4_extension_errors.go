@@ -155,31 +155,31 @@ func (e ExtensionError) usableIn(loc ErrorUsageLocation) bool {
 // Register TODO
 func (e ExtensionError) Register() {
 	////////////////////////////////////////////////////////////////////////
-	if _, set := authorizationCodeGrantErrorRegistry[e.Name]; set {
-		panic(errors.Errorf("authorization code grant error=%q already registered", e.Name))
-	}
 	if e.usableIn(AuthorizationCodeGrantErrorResponse) {
+		if _, set := authorizationCodeGrantErrorRegistry[e.Name]; set {
+			panic(errors.Errorf("authorization code grant error=%q already registered", e.Name))
+		}
 		authorizationCodeGrantErrorRegistry[e.Name] = authorizationCodeGrantError{e}
 	}
 	////////////////////////////////////////////////////////////////////////
-	if _, set := implicitGrantErrorRegistry[e.Name]; set {
-		panic(errors.Errorf("implicit grant error=%q already registered", e.Name))
-	}
 	if e.usableIn(ImplicitGrantErrorResponse) {
+		if _, set := implicitGrantErrorRegistry[e.Name]; set {
+			panic(errors.Errorf("implicit grant error=%q already registered", e.Name))
+		}
 		implicitGrantErrorRegistry[e.Name] = implicitGrantError{e}
 	}
 	////////////////////////////////////////////////////////////////////////
-	if _, set := tokenErrorRegistry[e.Name]; set {
-		panic(errors.Errorf("token error=%q already registered", e.Name))
-	}
 	if e.usableIn(TokenErrorResponse) {
+		if _, set := tokenErrorRegistry[e.Name]; set {
+			panic(errors.Errorf("token error=%q already registered", e.Name))
+		}
 		tokenErrorRegistry[e.Name] = tokenError{e}
 	}
 	////////////////////////////////////////////////////////////////////////
-	if _, set := resourceAccessErrorRegistry[e.Name]; set {
-		panic(errors.Errorf("resource access error=%q already registered", e.Name))
-	}
 	if e.usableIn(ResourceAccessErrorResponse) {
+		if _, set := resourceAccessErrorRegistry[e.Name]; set {
+			panic(errors.Errorf("resource access error=%q already registered", e.Name))
+		}
 		resourceAccessErrorRegistry[e.Name] = resourceAccessError{e}
 	}
 }

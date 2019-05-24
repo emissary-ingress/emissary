@@ -82,11 +82,11 @@ func main() {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadGateway)
 			}
-			switch tokenResponse.(type) {
+			switch tokenResponse := tokenResponse.(type) {
 			case rfc6749client.TokenErrorResponse:
 				w.Header().Set("Content-Type", "text/html")
 				w.WriteHeader(http.StatusUnauthorized)
-				errorResponsePage.Execute(w, authorizationResponse)
+				errorResponsePage.Execute(w, tokenResponse)
 				return
 			case rfc6749client.TokenSuccessResponse:
 				// TODO
