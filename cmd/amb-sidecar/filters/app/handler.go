@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"runtime"
 	"strings"
 	"time"
 
@@ -23,6 +22,7 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/mapstructure"
+	"github.com/datawire/apro/lib/util"
 )
 
 type FilterMux struct {
@@ -42,7 +42,11 @@ func errorResponse(httpStatus int, err error, requestID string, logger types.Log
 		body["request_id"] = requestID
 	}
 	bodyBytes, _ := json.Marshal(body)
-	logger.Infoln(httpStatus, err)
+	if httpStatus/100 == 5 {
+		logger.Errorf("HTTP %v %+v", httpStatus, err)
+	} else {
+		logger.Infof("HTTP %v %+v", httpStatus, err)
+	}
 	return &filterapi.HTTPResponse{
 		StatusCode: httpStatus,
 		Header: http.Header{
@@ -77,13 +81,8 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 		request.GetRequest().GetHttp().GetHost(),
 		request.GetRequest().GetHttp().GetPath())
 	defer func() {
-		if rec := recover(); rec != nil {
-			const stacksize = 64 << 10 // net/http uses 64<<10, negroni.Recovery uses 1024*8 by default
-			stack := make([]byte, stacksize)
-			stack = stack[:runtime.Stack(stack, false)]
-			logger.Errorf("PANIC: %v\n%s", rec, stack)
-
-			err = errors.Errorf("PANIC: %v", rec)
+		if _err := util.PanicToError(recover()); _err != nil {
+			err = _err
 		}
 		if err != nil {
 			ret = errorResponse(http.StatusInternalServerError, err, requestID, logger)

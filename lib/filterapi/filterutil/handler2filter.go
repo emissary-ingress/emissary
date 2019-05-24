@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/lib/filterapi"
+	"github.com/datawire/apro/lib/util"
 )
 
 type responseWriter struct {
@@ -148,9 +149,7 @@ func (f *httpFilter) Filter(ctx context.Context, gr *filterapi.FilterRequest) (f
 	}
 	err := func() (err error) {
 		defer func() {
-			if r := recover(); r != nil {
-				err = errors.Errorf("PANIC: %v", r)
-			}
+			err = util.PanicToError(recover())
 		}()
 		f.handler.ServeHTTP(w, hr)
 		return
