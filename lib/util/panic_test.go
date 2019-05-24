@@ -9,29 +9,52 @@ import (
 )
 
 func TestPanicToError(t *testing.T) {
-	checkErr := func(err error) {
+	checkErr := func(t *testing.T, err error) {
 		if err == nil {
-			t.Error("error is nil")
+			t.Error("err is nil")
 		}
-		if !strings.HasPrefix(err.Error(), "PANIC: ") {
-			t.Error("error doesn't look like a panic")
+
+		plain := err.Error()
+		if !strings.HasPrefix(plain, "PANIC: ") {
+			t.Errorf("%s doesn't look like a panic: %q", "err.Error()", plain)
 		}
-		if strings.Count(err.Error(), "PANIC") != 1 {
-			t.Error("error looks like it nested wrong")
+		if strings.Count(plain, "PANIC") != 1 {
+			t.Errorf("%s looks like it nested wrong: %q", "err.Error()", plain)
 		}
-		if !strings.Contains(fmt.Sprintf("%+v", err), "panic_test.go") {
-			t.Error("error doesn't include a stack track with +v")
+
+		verbose := fmt.Sprintf("%+v", err)
+		if !strings.HasPrefix(verbose, "PANIC: ") {
+			t.Errorf("%s doesn't look like a panic: %q", "fmt.Sprintf(\"%+v\", err)", verbose)
 		}
+		if strings.Count(verbose, "PANIC") != 1 {
+			t.Errorf("%s looks like it nested wrong: %q", "fmt.Sprintf(\"%+v\", err)", verbose)
+		}
+
+		if !strings.Contains(verbose, "panic_test.go") {
+			t.Errorf("%s doesn't include a stack track: %q", "fmt.Sprintf(\"%+v\", err)", verbose)
+		}
+		t.Logf("verbose: %q", verbose)
 	}
-	if PanicToError(nil) != nil {
-		t.Error("PanicToError(nil) should be nil")
-	}
-	checkErr(PanicToError("foo"))
-	checkErr(PanicToError(errors.New("err")))
-	root := fmt.Errorf("x")
-	err := PanicToError(errors.Wrap(root, "wrapped"))
-	checkErr(err)
-	if errors.Cause(err) != root {
-		t.Error("error has the wrong cause")
-	}
+	t.Run("nil", func(t *testing.T) {
+		if PanicToError(nil) != nil {
+			t.Error("PanicToError(nil) should be nil")
+		}
+	})
+	t.Run("non-error", func(t *testing.T) { checkErr(t, PanicToError("foo")) })
+	t.Run("plain-error", func(t *testing.T) { checkErr(t, PanicToError(errors.New("err"))) })
+	t.Run("wrapped-error", func(t *testing.T) {
+		root := fmt.Errorf("x")
+		err := PanicToError(errors.Wrap(root, "wrapped"))
+		checkErr(t, err)
+		if errors.Cause(err) != root {
+			t.Error("error has the wrong cause")
+		}
+	})
+	t.Run("sigsegv", func(t *testing.T) {
+		defer func() {
+			checkErr(t, PanicToError(recover()))
+		}()
+		var str *string
+		fmt.Println(*str) // this will panic
+	})
 }

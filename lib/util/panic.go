@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/pkg/errors"
 )
@@ -26,10 +27,16 @@ type featurefulError interface {
 }
 
 type panicError struct {
-	featurefulError
+	err featurefulError
 }
 
-func (pe panicError) Cause() error { return pe.featurefulError }
+func (pe panicError) Error() string                 { return "PANIC: " + pe.err.Error() }
+func (pe panicError) Cause() error                  { return pe.err }
+func (pe panicError) StackTrace() errors.StackTrace { return pe.err.StackTrace()[1:] }
+func (pe panicError) Format(s fmt.State, verb rune) {
+	io.WriteString(s, "PANIC: ")
+	pe.err.Format(s, verb)
+}
 
 var _ causer = panicError{}
 var _ featurefulError = panicError{}
@@ -55,8 +62,8 @@ func PanicToError(rec interface{}) error {
 	case panicError:
 		return rec
 	case error:
-		return panicError{errors.Wrap(rec, "PANIC").(featurefulError)}
+		return panicError{err: errors.WithStack(rec).(featurefulError)}
 	default:
-		return panicError{errors.Errorf("PANIC: %+v", rec).(featurefulError)}
+		return panicError{err: errors.Errorf("%+v", rec).(featurefulError)}
 	}
 }
