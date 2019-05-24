@@ -251,7 +251,7 @@ func init() {
 func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code string, redirectURI *url.URL) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
-		"code":       {"code"},
+		"code":       {code},
 	}
 	if redirectURI != nil {
 		parameters.Set("redirect_uri", redirectURI.String())
