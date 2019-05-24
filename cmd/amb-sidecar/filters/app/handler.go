@@ -51,6 +51,21 @@ func errorResponse(httpStatus int, err error, requestID string, logger types.Log
 	}
 }
 
+func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
+	switch _ret := ret.(type) {
+	case *filterapi.HTTPResponse:
+		if loc := _ret.Header.Get("Location"); loc != "" {
+			logger.Infof("[gRPC] %T : %d -> %q (%v)", _ret, _ret.StatusCode, loc, took)
+		} else {
+			logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, took)
+		}
+	case *filterapi.HTTPRequestModification:
+		logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), took)
+	default:
+		logger.Infof("[gRPC] %T : unexpected response type (%v)", _ret, took)
+	}
+}
+
 func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest) (ret filterapi.FilterResponse, err error) {
 	start := time.Now()
 	requestID := request.GetRequest().GetHttp().GetId()
@@ -73,14 +88,7 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 			ret = errorResponse(http.StatusInternalServerError, err, requestID, logger)
 			err = nil
 		}
-		switch _ret := ret.(type) {
-		case *filterapi.HTTPResponse:
-			logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, time.Since(start))
-		case *filterapi.HTTPRequestModification:
-			logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), time.Since(start))
-		default:
-			logger.Infof("[gRPC] %T : unexpected response type (%v)", _ret, time.Since(start))
-		}
+		logResponse(logger, ret, time.Since(start))
 	}()
 	ret, err = c.filter(middleware.WithLogger(ctx, logger), request, requestID)
 	return
