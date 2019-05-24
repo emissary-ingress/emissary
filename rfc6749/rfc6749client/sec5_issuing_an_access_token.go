@@ -20,8 +20,8 @@ import (
 //
 // This will NOT close the response Body for you.
 func parseTokenResponse(res *http.Response) (TokenResponse, error) {
-	switch res.StatusCode {
-	case http.StatusOK:
+	switch {
+	case  res.StatusCode == http.StatusOK:
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
 		if err != nil {
 			return nil, err
@@ -64,7 +64,11 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 			ret.Scope = parseScope(*rawResponse.Scope)
 		}
 		return ret, nil
-	case http.StatusBadRequest, http.StatusUnauthorized:
+	case res.StatusCode/100 == 4:
+		// The spec says "400, unless otherwise specified".  rfc6749registry doesn't (yet?) keep track of HTTP
+		// statuses associated with different error codes.  Even if it did, Auth0 returns 403 for
+		// error=invalid_grant, when the spec is clear that it should be using 400 for that.  Assuming that
+		// anything in the 4XX range suggests an Error Response seams reasonable.
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
 		if err != nil {
 			return nil, err
