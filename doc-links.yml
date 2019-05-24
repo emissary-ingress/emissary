@@ -166,6 +166,8 @@
               link: /reference/idp-support/okta
             - title: User Account and Authentication (UAA)
               link: /reference/idp-support/uaa
+        - title: Custom Resource Definitions
+          link: /reference/core/crds
         - title: Filters
           link: /reference/filter-reference
     - title: Running Ambassador
