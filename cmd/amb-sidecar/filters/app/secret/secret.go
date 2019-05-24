@@ -61,7 +61,7 @@ func GetKeyPair(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) (
 				"rsa.crt": publicPEM,
 			},
 		})
-		if !k8sErrors.IsAlreadyExists(err) {
+		if err != nil && !k8sErrors.IsAlreadyExists(err) {
 			return nil, nil, err
 		}
 		// fall-through / retry
