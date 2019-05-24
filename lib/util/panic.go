@@ -1,21 +1,38 @@
 package util
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 )
 
+// causer is not exported by github.com/pkg/errors.
+type causer interface {
+	Cause() error
+}
+
+// stackTracer is not exported by github.com/pkg/errors.
 type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
 
-type errorWithStackTrace interface {
+// featurefulError documents the features of
+// github.com/pkg/errors.Wrap().
+type featurefulError interface {
 	error
+	//causer
 	stackTracer
+	fmt.Formatter
 }
 
 type panicError struct {
-	errorWithStackTrace
+	featurefulError
 }
+
+func (pe panicError) Cause() error { return pe.featurefulError }
+
+var _ causer = panicError{}
+var _ featurefulError = panicError{}
 
 // PanicToError takes an arbitrary object returned from recover(), and
 // returns an appropriate error.
@@ -38,8 +55,8 @@ func PanicToError(rec interface{}) error {
 	case panicError:
 		return rec
 	case error:
-		return panicError{errors.Wrap(rec, "PANIC").(errorWithStackTrace)}
+		return panicError{errors.Wrap(rec, "PANIC").(featurefulError)}
 	default:
-		return panicError{errors.Errorf("PANIC: %+v", rec).(errorWithStackTrace)}
+		return panicError{errors.Errorf("PANIC: %+v", rec).(featurefulError)}
 	}
 }
