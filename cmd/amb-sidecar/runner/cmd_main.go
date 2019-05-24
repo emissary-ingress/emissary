@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
+	"github.com/datawire/teleproxy/pkg/k8s"
+
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/rls"
@@ -49,6 +53,11 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	level, _ := logrus.ParseLevel(cfg.LogLevel)
 	l.SetLevel(level)
 
+	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
+	if err != nil {
+		return err
+	}
+
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
 		return types.WrapLogrus(l).WithField("MAIN", name)
@@ -68,12 +77,20 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		ct.Config = cfg
 		ct.Logger = l
-		return ct.Watch(softCtx)
+		return ct.Watch(softCtx, kubeinfo)
 	})
 
 	// Auth HTTP server
 	group.Go("auth_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		httpHandler, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct)
+		restconfig, err := kubeinfo.GetRestConfig()
+		if err != nil {
+			return err
+		}
+		coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
+		if err != nil {
+			return err
+		}
+		httpHandler, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient)
 		if err != nil {
 			return err
 		}

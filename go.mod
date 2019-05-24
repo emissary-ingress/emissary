@@ -45,6 +45,7 @@ require (
 	golang.org/x/tools v0.0.0-20190308174544-00c44ba9c14f // indirect
 	google.golang.org/grpc v1.18.0
 	gopkg.in/yaml.v2 v2.2.2
+	k8s.io/api v0.0.0-20181221193117-173ce66c1e39
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
 	k8s.io/client-go v10.0.0+incompatible
 )

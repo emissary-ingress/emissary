@@ -5,127 +5,103 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"io/ioutil"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
+	k8sTypesCoreV1 "k8s.io/api/core/v1"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-const (
-	pvtKEYPath = "./app.rsa"
-	pubKEYPath = "./app.rsa.pub"
-	pvtKEYType = "PRIVATE KEY"
-	pubKEYType = "PUBLIC KEY"
-	bitSize    = 2048
-)
-
-// Secret pointer to struct contains methods and fields to manage public and private keys.
-type Secret struct {
-	config      types.Config
-	logger      types.Logger
-	privateKey  *rsa.PrivateKey
-	publicKey   *rsa.PublicKey
-	signBytes   []byte
-	verifyBytes []byte
-}
-
-var instance *Secret
-
-// New returns singleton instance of secret.
-func New(cfg types.Config, log types.Logger) (*Secret, error) {
-	if instance == nil {
-		instance = &Secret{config: cfg, logger: log}
-		if cfg.PubKPath != "" && cfg.PvtKPath != "" {
-			if err := instance.readPEMfromFile(instance.config.PubKPath, instance.config.PubKPath); err != nil {
-				return nil, err
+// GetKeyPair loads an RSA key pair from a Kubernetes secret (named by
+// "cfg.KeyPairSecretName/space").  If the secret does not yet exist,
+// it attempts to create it in a way that should be safe for multiple
+// replicas to be trying the same thing.
+//
+// Will return errors for things like RBAC failures or malformed keys.
+func GetKeyPair(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	secretInterface := secretsGetter.Secrets(cfg.KeyPairSecretNamespace)
+	for {
+		secret, err := secretInterface.Get(cfg.KeyPairSecretName, k8sTypesMetaV1.GetOptions{})
+		if err == nil {
+			privatePEM, ok := secret.Data["rsa.key"]
+			if !ok {
+				return nil, nil, errors.Errorf("secret name=%q namespace=%q exists but does not contain an %q %s field",
+					cfg.KeyPairSecretName, cfg.KeyPairSecretNamespace, "rsa.key", "private-key")
 			}
-		} else {
-			if err := instance.generatePEM(pvtKEYPath, pubKEYPath); err != nil {
-				return nil, err
+			publicPEM, ok := secret.Data["rsa.crt"]
+			if !ok {
+				return nil, nil, errors.Errorf("secret name=%q namespace=%q exists but does not contain an %q %s field",
+					cfg.KeyPairSecretName, cfg.KeyPairSecretNamespace, "rsa.crt", "public-key")
 			}
+			return parsePEM(privatePEM, publicPEM)
 		}
-		if err := instance.parsePrivateKey(); err != nil {
-			return nil, err
+		if !k8sErrors.IsNotFound(err) {
+			return nil, nil, err
 		}
-		if err := instance.parsePublicKey(); err != nil {
-			return nil, err
+		// Try to create the secret, but ignore already-exists
+		// errors because there might be other replicas doing
+		// the same thing.
+		privatePEM, publicPEM, err := generatePEM()
+		if err != nil {
+			return nil, nil, err
 		}
+		_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
+			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+				Name:      cfg.KeyPairSecretName,
+				Namespace: cfg.KeyPairSecretNamespace,
+			},
+			Type: k8sTypesCoreV1.SecretTypeOpaque,
+			Data: map[string][]byte{
+				"rsa.key": privatePEM,
+				"rsa.crt": publicPEM,
+			},
+		})
+		if !k8sErrors.IsAlreadyExists(err) {
+			return nil, nil, err
+		}
+		// fall-through / retry
 	}
-
-	return instance, nil
 }
 
-// GetPublicKey returns rsa public key object.
-func (k *Secret) GetPublicKey() *rsa.PublicKey {
-	return k.publicKey
-}
-
-// GetPrivateKey returns rsa private key object.
-func (k *Secret) GetPrivateKey() *rsa.PrivateKey {
-	return k.privateKey
-}
-
-func (k *Secret) parsePublicKey() error {
-	key, err := jwt.ParseRSAPublicKeyFromPEM(k.verifyBytes)
+func parsePEM(privatePEM, publicPEM []byte) (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privatePEM)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse public key from PEM")
+		return nil, nil, errors.Wrap(err, "parse private-key")
 	}
-	k.publicKey = key
-	return nil
-}
-
-func (k *Secret) parsePrivateKey() error {
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(k.signBytes)
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicPEM)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse private key from PEM")
+		return nil, nil, errors.Wrap(err, "parse public-key")
 	}
-	k.privateKey = key
-	return nil
+	return privateKey, publicKey, nil
 }
 
-func (k *Secret) generatePEM(pubkPath string, pvtKeyPath string) error {
-	// Private key
-	var pvtkey *rsa.PrivateKey
-	pvtkey, err := rsa.GenerateKey(rand.Reader, bitSize)
+func generatePEM() ([]byte, []byte, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return errors.Wrap(err, "generating private key")
+		return nil, nil, errors.Wrap(err, "generate key-pair")
 	}
-	if err := pvtkey.Validate(); err != nil {
-		return errors.Wrap(err, "validating private key")
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyPEM := &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: privateKeyBytes,
 	}
+	privateKeyPEMBytes := pem.EncodeToMemory(privateKeyPEM)
 
-	pemBlock := pem.Block{
-		Type:  pvtKEYType,
-		Bytes: x509.MarshalPKCS1PrivateKey(pvtkey),
+	publicKey := privateKey.Public()
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "generate key-pair")
 	}
-	k.signBytes = pem.EncodeToMemory(&pemBlock)
+	publicKeyPEM := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	}
+	publicKeyPEMBytes := pem.EncodeToMemory(publicKeyPEM)
 
-	// Public key
-	if pubKEYBytes, err := x509.MarshalPKIXPublicKey(&pvtkey.PublicKey); err != nil {
-		return errors.Wrap(err, "error marshalling pub key")
-	} else {
-		pemBlockPub := pem.Block{
-			Type:  pubKEYType,
-			Bytes: pubKEYBytes,
-		}
-		k.verifyBytes = pem.EncodeToMemory(&pemBlockPub)
-	}
-	return nil
-}
-
-func (k *Secret) readPEMfromFile(pubkPath string, pvtKeyPath string) error {
-	if vbyte, err := ioutil.ReadFile(k.config.PubKPath); err != nil {
-		return errors.Wrap(err, "reading public key file")
-	} else {
-		k.verifyBytes = vbyte
-	}
-
-	if sbyte, err := ioutil.ReadFile(k.config.PvtKPath); err != nil {
-		return errors.Wrap(err, "reading private key file")
-	} else {
-		k.signBytes = sbyte
-	}
-	return nil
+	return privateKeyPEMBytes, publicKeyPEMBytes, nil
 }

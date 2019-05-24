@@ -35,7 +35,7 @@ rules:
 - apiGroups: [""]
   resources:
   - secrets
-  verbs: ["get", "list", "watch"]
+  verbs: ["get", "list", "watch", "create"]
 # Ambassador Pro access requirements... we will create these CRDs
 # below.
 - apiGroups: ["getambassador.io"]

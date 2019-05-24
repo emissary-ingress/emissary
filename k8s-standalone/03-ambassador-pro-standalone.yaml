@@ -29,7 +29,7 @@ rules:
 - apiGroups: [""]
   resources:
   - secrets
-  verbs: ["get", "list", "watch"]
+  verbs: ["get", "list", "watch", "create"]
 ---
 apiVersion: v1
 kind: ServiceAccount

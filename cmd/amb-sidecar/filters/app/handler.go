@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -17,7 +18,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
@@ -26,10 +26,11 @@ import (
 )
 
 type FilterMux struct {
-	Controller   *controller.Controller
-	DefaultRule  *crd.Rule
-	OAuth2Secret *secret.Secret
-	Logger       types.Logger
+	Controller  *controller.Controller
+	DefaultRule *crd.Rule
+	PrivateKey  *rsa.PrivateKey
+	PublicKey   *rsa.PublicKey
+	Logger      types.Logger
 }
 
 func errorResponse(httpStatus int, err error, requestID string, logger types.Logger) *filterapi.HTTPResponse {
@@ -150,8 +151,9 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		switch filterCRD := filterCRD.(type) {
 		case crd.FilterOAuth2:
 			handler := &oauth2handler.OAuth2Handler{
-				Secret: c.OAuth2Secret,
-				Filter: filterCRD,
+				PrivateKey: c.PrivateKey,
+				PublicKey:  c.PublicKey,
+				Filter:     filterCRD,
 			}
 			if err := mapstructure.Convert(filterRef.Arguments, &handler.FilterArguments); err != nil {
 				return errorResponse(http.StatusInternalServerError, errors.Wrap(err, "invalid filter.argument"), requestID, logger), nil

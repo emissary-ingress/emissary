@@ -1,6 +1,7 @@
 package oauth2handler
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -16,7 +17,6 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
@@ -31,7 +31,8 @@ const (
 // present in the request.  If the request Path is "/callback", it
 // validates IDP requests and handles code exchange flow.
 type OAuth2Handler struct {
-	Secret          *secret.Secret
+	PrivateKey      *rsa.PrivateKey
+	PublicKey       *rsa.PublicKey
 	Filter          crd.FilterOAuth2
 	FilterArguments crd.FilterOAuth2Arguments
 }
@@ -82,7 +83,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			util.ToJSONResponse(w, http.StatusBadRequest, &util.Error{Message: err.Error()})
 			return
 		}
-		redirectURLstr, err := checkState(authorizationResponse.GetState(), c.Secret)
+		redirectURLstr, err := checkState(authorizationResponse.GetState(), c.PublicKey)
 		if err != nil {
 			// This mostly indicates an XSRF-type attack.
 			// The request wasn't malformed, but one of
@@ -282,7 +283,7 @@ func (h *OAuth2Handler) signState(originalURL *url.URL, logger types.Logger) str
 		"redirect_url": originalURL.String(),                     // original request url
 	}
 
-	k, err := t.SignedString(h.Secret.GetPrivateKey())
+	k, err := t.SignedString(h.PrivateKey)
 	if err != nil {
 		logger.Errorf("failed to sign state: %v", err)
 	}
@@ -290,7 +291,7 @@ func (h *OAuth2Handler) signState(originalURL *url.URL, logger types.Logger) str
 	return k
 }
 
-func checkState(state string, sec *secret.Secret) (string, error) {
+func checkState(state string, pubkey *rsa.PublicKey) (string, error) {
 	if state == "" {
 		return "", errors.New("empty state param")
 	}
@@ -299,7 +300,7 @@ func checkState(state string, sec *secret.Secret) (string, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return "", errors.Errorf("unexpected signing method %v", t.Header["redirect_url"])
 		}
-		return sec.GetPublicKey(), nil
+		return pubkey, nil
 	})
 
 	if err != nil {
