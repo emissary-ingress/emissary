@@ -87,7 +87,11 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 		return
 	}
 
-	http.Redirect(w, r, requestURI.String(), http.StatusFound)
+	// A 302 "Found" may or may not convert POST->GET.  We want
+	// the UA to GET the Authorization URI, so we shouldn't use
+	// 302 which may or may not do the right thing, but use 303
+	// "See Other" which MUST convert to GET.
+	http.Redirect(w, r, requestURI.String(), http.StatusSeeOther)
 }
 
 // ParseAuthorizationResponse parses the Authorization Response out
