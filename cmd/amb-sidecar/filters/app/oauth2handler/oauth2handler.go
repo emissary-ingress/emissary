@@ -11,6 +11,8 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/datawire/liboauth2/rfc6749/rfc6749client"
+
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
@@ -41,8 +43,21 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	discovered, err := Discover(httpClient, c.Filter, logger)
 	if err != nil {
-		logger.Errorln("create discovery failed: %v", err)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+		err = errors.Wrap(err, "OIDC-discovery")
+		logger.Errorln(err)
+		util.ToJSONResponse(w, http.StatusBadGateway, &util.Error{Message: err.Error()})
+		return
+	}
+
+	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
+		c.Filter.ClientID,
+		discovered.AuthorizationEndpoint,
+		discovered.TokenEndpoint,
+		rfc6749client.ClientPasswordHeader(c.Filter.ClientID, c.Filter.Secret),
+	)
+	if err != nil {
+		logger.Errorln(err)
+		util.ToJSONResponse(w, http.StatusBadGateway, &util.Error{Message: err.Error()})
 		return
 	}
 
@@ -62,58 +77,74 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch originalURL.Path {
 	case "/callback":
-		redirectURLstr, err := checkState(r, c.Secret)
+		authorizationResponse, err := oauthClient.ParseAuthorizationResponse(r)
 		if err != nil {
-			logger.Errorf("check state failed: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
+			util.ToJSONResponse(w, http.StatusBadRequest, &util.Error{Message: err.Error()})
+			return
+		}
+		redirectURLstr, err := checkState(authorizationResponse.GetState(), c.Secret)
+		if err != nil {
+			// This mostly indicates an XSRF-type attack.
+			// The request wasn't malformed, but one of
+			// the credentials in it (the 'state'
+			// parameter) was.
+			err = errors.Wrap(err, "state parameter")
+			logger.Errorln(err)
+			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: err.Error()})
 			return
 		}
 		redirectURL, err := url.Parse(redirectURLstr)
 		if err != nil {
-			logger.Errorf("could not parse JWT redirect_url claim: %q: %v", redirectURLstr, err)
-			w.WriteHeader(http.StatusBadRequest)
+			// this should never happen -- the state was
+			// signed as valid; for this to happen, either
+			// (1) the crypto apocalypse has come, or (2)
+			// we generated an invalid state when we
+			// submitted the authorization request.
+			// Assuming that (2) is more likely, that's an
+			// internal server issue.
+			err = errors.Wrapf(err, "state parameter: redirect_url: %q", redirectURLstr)
+			logger.Errorln(err)
+			util.ToJSONResponse(w, http.StatusInternalServerError, &util.Error{Message: err.Error()})
 			return
 		}
-		if err := r.URL.Query().Get("error"); err != "" {
-			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
+		switch authorizationResponse := authorizationResponse.(type) {
+		case rfc6749client.AuthorizationCodeAuthorizationErrorResponse:
+			util.ToJSONResponse(w, http.StatusUnauthorized, map[string]interface{}{
+				"message":           "unauthorized: authorization request failed",
+				"upstream_response": authorizationResponse,
+			})
 			return
+		case rfc6749client.AuthorizationCodeAuthorizationSuccessResponse:
+			tokenResponse, err := oauthClient.AccessToken(httpClient, authorizationResponse.Code, redirectURL)
+			if err != nil {
+				logger.Errorln(err)
+				util.ToJSONResponse(w, http.StatusBadGateway, &util.Error{Message: err.Error()})
+				return
+			}
+			switch tokenResponse := tokenResponse.(type) {
+			case rfc6749client.TokenErrorResponse:
+				util.ToJSONResponse(w, http.StatusUnauthorized, map[string]interface{}{
+					"message":           "unauthorized: token request failed",
+					"upstream_response": tokenResponse,
+				})
+				return
+			case rfc6749client.TokenSuccessResponse:
+				logger.Debug("setting authorization cookie")
+				http.SetCookie(w, &http.Cookie{
+					Name:     AccessTokenCookie,
+					Value:    tokenResponse.AccessToken,
+					HttpOnly: true,
+					Secure:   c.Filter.TLS(),
+					Expires:  tokenResponse.ExpiresAt,
+				})
+				// If the user-agent request was a POST or PUT, 307 will preserve the body
+				// and just follow the location header.
+				// https://tools.ietf.org/html/rfc7231#section-6.4.7
+				logger.Debugf("redirecting user-agent to: %s", redirectURL)
+				http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
+				return
+			}
 		}
-
-		code := r.URL.Query().Get("code")
-		if code == "" {
-			logger.Info("check code failed")
-			util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: "unauthorized"})
-			return
-		}
-
-		res, err := Authorize(httpClient, discovered.TokenEndpoint, AuthorizationRequest{
-			GrantType:    "authorization_code", // the default grant used in for this handler
-			ClientID:     c.Filter.ClientID,
-			Code:         code,
-			RedirectURL:  c.Filter.CallbackURL().String(),
-			ClientSecret: c.Filter.Secret,
-		})
-		if err != nil {
-			logger.Errorf("authorization request failed: %v", err)
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		logger.Debug("setting authorization cookie")
-		http.SetCookie(w, &http.Cookie{
-			Name:     AccessTokenCookie,
-			Value:    res.AccessToken,
-			HttpOnly: true,
-			Secure:   c.Filter.TLS(),
-			Expires:  time.Now().Add(time.Duration(res.ExpiresIn) * time.Second),
-		})
-
-		// If the user-agent request was a POST or PUT, 307 will preserve the body
-		// and just follow the location header.
-		// https://tools.ietf.org/html/rfc7231#section-6.4.7
-		logger.Debugf("redirecting user-agent to: %s", redirectURL)
-		http.Redirect(w, r, redirectURL.String(), http.StatusTemporaryRedirect)
-
 	default:
 		redirect, _ := discovered.AuthorizationEndpoint.Parse("?" + url.Values{
 			"audience":      {c.Filter.Audience},
@@ -259,15 +290,14 @@ func (h *OAuth2Handler) signState(originalURL *url.URL, logger types.Logger) str
 	return k
 }
 
-func checkState(r *http.Request, sec *secret.Secret) (string, error) {
-	state := r.URL.Query().Get("state")
+func checkState(state string, sec *secret.Secret) (string, error) {
 	if state == "" {
 		return "", errors.New("empty state param")
 	}
 
 	token, err := jwt.Parse(state, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-			return "", fmt.Errorf("unexpected signing method %v", t.Header["redirect_url"])
+			return "", errors.Errorf("unexpected signing method %v", t.Header["redirect_url"])
 		}
 		return sec.GetPublicKey(), nil
 	})

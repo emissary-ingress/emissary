@@ -47,6 +47,10 @@ github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879 h1:i/H4+QvymaqyD
 github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879/go.mod h1:W5uePqOBTtiXnG6BWbLiR1Nvq1doxGVNEmY5bw/61mM=
 github.com/datawire/kat-backend v1.1.0 h1:bl1zZYKWjzG/DY7unLlOGGGFWL6701aIe8pHe+ATmAo=
 github.com/datawire/kat-backend v1.1.0/go.mod h1:pQGCrjQX4mG8cBaDldM99UH4/N9qAHiuviulA2YiCEQ=
+github.com/datawire/liboauth2 v0.0.0-20190521205838-b4ea662fcfa4 h1:BWGC6nf/CJs3PH7yxdRzHaywtHevGRsHBbyycphg3Y4=
+github.com/datawire/liboauth2 v0.0.0-20190521205838-b4ea662fcfa4/go.mod h1:R44GGgsXhEFLCOpvbqBYziUWKlKPVqO/ehj9Hn6SvQo=
+github.com/datawire/liboauth2 v0.0.0-20190524190155-2a6d6f535226 h1:En3wK5L8tm+SXr/hBRpO48+HBaYXHS/4Ny9nmXlcWEw=
+github.com/datawire/liboauth2 v0.0.0-20190524190155-2a6d6f535226/go.mod h1:R44GGgsXhEFLCOpvbqBYziUWKlKPVqO/ehj9Hn6SvQo=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.3.16 h1:H9bXuDlyBQs0UR9RjOlKMFUYHTnswS4yyegVKn3LxkA=
 github.com/datawire/teleproxy v0.3.16/go.mod h1:EbUA710RQ3uxRViAj9F6TC6O1wKhX4oLYamKifKbdzM=
