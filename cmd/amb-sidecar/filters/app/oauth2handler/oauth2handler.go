@@ -125,8 +125,8 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			switch tokenResponse := tokenResponse.(type) {
 			case rfc6749client.TokenErrorResponse:
-				util.ToJSONResponse(w, http.StatusUnauthorized, map[string]interface{}{
-					"message":           "unauthorized: token request failed",
+				util.ToJSONResponse(w, http.StatusInternalServerError, map[string]interface{}{
+					"message":           "token request failed",
 					"upstream_response": tokenResponse,
 					"error_meaning":     tokenResponse.ErrorMeaning(),
 				})
@@ -149,17 +149,12 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	default:
-		redirect, _ := discovered.AuthorizationEndpoint.Parse("?" + url.Values{
-			"audience":      {c.Filter.Audience},
-			"response_type": {"code"},
-			"redirect_uri":  {c.Filter.CallbackURL().String()},
-			"client_id":     {c.Filter.ClientID},
-			"state":         {c.signState(originalURL, logger)},
-			"scope":         {strings.Join(c.FilterArguments.Scopes, " ")},
-		}.Encode())
-
-		logger.Tracef("redirecting to the authorization endpoint: %s", redirect)
-		http.Redirect(w, r, redirect.String(), http.StatusSeeOther)
+		scope := make(rfc6749client.Scope, len(c.FilterArguments.Scopes))
+		for _, s := range c.FilterArguments.Scopes {
+			scope[s] = struct{}{}
+		}
+		oauthClient.AuthorizationRequest(w, r,
+			c.Filter.CallbackURL(), scope, c.signState(originalURL, logger))
 	}
 }
 
