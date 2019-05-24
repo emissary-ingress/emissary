@@ -82,6 +82,13 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.70.1] May 24, 2019
+[0.70.1]: https://github.com/datawire/ambassador/compare/0.70.0...0.70.1
+
+### Minor changes:
+- Bugfix: Disable CRD support if Ambassador cannot access them
+- Upgrade: Upgrade to watt 0.5.1
+
 ## [0.70.0] May 20, 2019
 [0.70.0]: https://github.com/datawire/ambassador/compare/0.61.0...0.70.0
 
