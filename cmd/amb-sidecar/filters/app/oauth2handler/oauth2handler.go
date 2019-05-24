@@ -50,18 +50,6 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
-		c.Filter.ClientID,
-		discovered.AuthorizationEndpoint,
-		discovered.TokenEndpoint,
-		rfc6749client.ClientPasswordHeader(c.Filter.ClientID, c.Filter.Secret),
-	)
-	if err != nil {
-		logger.Errorln(err)
-		util.ToJSONResponse(w, http.StatusBadGateway, &util.Error{Message: err.Error()})
-		return
-	}
-
 	token := getToken(r, logger)
 	var tokenErr error
 	if token == "" {
@@ -75,6 +63,18 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.Debug(tokenErr)
+
+	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
+		c.Filter.ClientID,
+		discovered.AuthorizationEndpoint,
+		discovered.TokenEndpoint,
+		rfc6749client.ClientPasswordHeader(c.Filter.ClientID, c.Filter.Secret),
+	)
+	if err != nil {
+		logger.Errorln(err)
+		util.ToJSONResponse(w, http.StatusBadGateway, &util.Error{Message: err.Error()})
+		return
+	}
 
 	switch originalURL.Path {
 	case "/callback":
