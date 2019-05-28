@@ -843,7 +843,20 @@ class AmbassadorEventWatcher(threading.Thread):
 
         scout_result = self.app.scout.report(mode="diagd", action=what, **scout_args)
         scout_notices = scout_result.pop('notices', [])
-        self.app.notices.extend(scout_notices)
+
+        global_loglevel = self.app.logger.getEffectiveLevel()
+
+        self.app.logger.debug(f'Scout section: global loglevel {global_loglevel}')
+
+        for notice in scout_notices:
+            notice_level_name = notice.get('level') or 'INFO'
+            notice_level = logging.getLevelName(notice_level_name)
+
+            if notice_level >= global_loglevel:
+                self.app.logger.debug(f'Scout section: include {notice}')
+                self.app.notices.post(notice)
+            else:
+                self.app.logger.debug(f'Scout section: skip {notice}')
 
         self.app.logger.info("Scout reports %s" % json.dumps(scout_result))
         self.app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
