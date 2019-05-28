@@ -53,6 +53,8 @@ github.com/datawire/liboauth2 v0.0.0-20190524190155-2a6d6f535226 h1:En3wK5L8tm+S
 github.com/datawire/liboauth2 v0.0.0-20190524190155-2a6d6f535226/go.mod h1:R44GGgsXhEFLCOpvbqBYziUWKlKPVqO/ehj9Hn6SvQo=
 github.com/datawire/liboauth2 v0.0.0-20190524204354-e977d5344be0 h1:dqvBf1JkKoEWiO/PEkE/EThzbPGxJ59BJVPmYw95Iik=
 github.com/datawire/liboauth2 v0.0.0-20190524204354-e977d5344be0/go.mod h1:R44GGgsXhEFLCOpvbqBYziUWKlKPVqO/ehj9Hn6SvQo=
+github.com/datawire/liboauth2 v0.0.0-20190528220730-c19497f31033 h1:sIuKnGgvJvtxHdRsYOrVvWEk2CPAqrUKxFYgk9pc2RM=
+github.com/datawire/liboauth2 v0.0.0-20190528220730-c19497f31033/go.mod h1:R44GGgsXhEFLCOpvbqBYziUWKlKPVqO/ehj9Hn6SvQo=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.3.16 h1:H9bXuDlyBQs0UR9RjOlKMFUYHTnswS4yyegVKn3LxkA=
 github.com/datawire/teleproxy v0.3.16/go.mod h1:EbUA710RQ3uxRViAj9F6TC6O1wKhX4oLYamKifKbdzM=

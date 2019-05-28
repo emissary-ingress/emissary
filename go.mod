@@ -9,7 +9,7 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/datawire/consul-x v0.0.0-20190305163622-7683365ac879
 	github.com/datawire/kat-backend v1.1.0
-	github.com/datawire/liboauth2 v0.0.0-20190524204354-e977d5344be0
+	github.com/datawire/liboauth2 v0.0.0-20190528220730-c19497f31033
 	github.com/datawire/teleproxy v0.3.16
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11

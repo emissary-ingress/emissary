@@ -11,25 +11,25 @@ import (
 // TODO(lukeshu): Someone should yell at me for my choices of
 // algorithms.
 
-func (c *OAuth2Handler) cryptoSign(body []byte) (signature []byte, err error) {
+func (c *OAuth2Filter) cryptoSign(body []byte) (signature []byte, err error) {
 	sum := sha256.Sum256(body)
 	return rsa.SignPSS(rand.Reader, c.PrivateKey, crypto.SHA256, sum[:], nil)
 }
 
-func (c *OAuth2Handler) cryptoVerify(body, signature []byte) error {
+func (c *OAuth2Filter) cryptoVerify(body, signature []byte) error {
 	sum := sha256.Sum256(body)
 	return rsa.VerifyPSS(c.PublicKey, crypto.SHA256, sum[:], signature, nil)
 }
 
-func (c *OAuth2Handler) cryptoEncrypt(cleartext, label []byte) (ciphertext []byte, err error) {
+func (c *OAuth2Filter) cryptoEncrypt(cleartext, label []byte) (ciphertext []byte, err error) {
 	return rsa.EncryptOAEP(sha256.New(), rand.Reader, c.PublicKey, cleartext, label)
 }
 
-func (c *OAuth2Handler) cryptoDecrypt(ciphertext, label []byte) (cleartext []byte, err error) {
+func (c *OAuth2Filter) cryptoDecrypt(ciphertext, label []byte) (cleartext []byte, err error) {
 	return rsa.DecryptOAEP(sha256.New(), rand.Reader, c.PrivateKey, ciphertext, label)
 }
 
-func (c *OAuth2Handler) cryptoSignAndEncrypt(cleartextBody, label []byte) (ciphertext []byte, err error) {
+func (c *OAuth2Filter) cryptoSignAndEncrypt(cleartextBody, label []byte) (ciphertext []byte, err error) {
 	signature, err := c.cryptoSign(cleartextBody)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (c *OAuth2Handler) cryptoSignAndEncrypt(cleartextBody, label []byte) (ciphe
 	return c.cryptoEncrypt(cleartext, label)
 }
 
-func (c *OAuth2Handler) cryptoDecryptAndVerify(ciphertext, label []byte) (cleartext []byte, err error) {
+func (c *OAuth2Filter) cryptoDecryptAndVerify(ciphertext, label []byte) (cleartext []byte, err error) {
 	cleartext, err = c.cryptoDecrypt(ciphertext, label)
 	if err != nil {
 		return nil, err

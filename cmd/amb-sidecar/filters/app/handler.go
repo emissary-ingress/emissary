@@ -128,15 +128,16 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		var filterImpl filterapi.Filter
 		switch filterCRD := filterCRD.(type) {
 		case crd.FilterOAuth2:
-			handler := &oauth2handler.OAuth2Handler{
+			_filterImpl := &oauth2handler.OAuth2Filter{
 				PrivateKey: c.PrivateKey,
 				PublicKey:  c.PublicKey,
-				Filter:     filterCRD,
+				Spec:       filterCRD,
 			}
-			if err := mapstructure.Convert(filterRef.Arguments, &handler.FilterArguments); err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, errors.Wrap(err, "invalid filter.argument"), nil), nil
+			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "invalid filter.argument"), nil), nil
 			}
-			filterImpl = filterutil.HandlerToFilter(handler)
+			filterImpl = _filterImpl
 		case crd.FilterPlugin:
 			filterImpl = filterutil.HandlerToFilter(filterCRD.Handler)
 		case crd.FilterJWT:
