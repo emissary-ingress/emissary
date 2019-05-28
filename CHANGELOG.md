@@ -1,5 +1,9 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.5.1 (TBD)
+
+ * Fix CRD `ambassador_id` parsing bug.
+
 ## 0.5.0 (2019-06-21)
 
 Configuration:
