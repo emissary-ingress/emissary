@@ -441,8 +441,7 @@ class V2Listener(dict):
                 'prefix': '/',
             },
             'redirect': {
-                'https_redirect': True,
-                'path_redirect': '/'
+                'https_redirect': True
             }
         } ]
 
