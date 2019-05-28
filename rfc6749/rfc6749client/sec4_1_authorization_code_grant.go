@@ -95,7 +95,7 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 }
 
 // ParseAuthorizationResponse parses the Authorization Response out
-// from the HTTP request, as specified by §4.1.2.
+// from the HTTP request URL, as specified by §4.1.2.
 //
 // The returned response is either an
 // AuthorizationCodeAuthorizationSuccessResponse or an
@@ -105,8 +105,8 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 //
 // This should be called from the http.Handler for the Client's
 // Redirection Endpoint.
-func (client *AuthorizationCodeClient) ParseAuthorizationResponse(r *http.Request) (AuthorizationCodeAuthorizationResponse, error) {
-	parameters := r.URL.Query()
+func (client *AuthorizationCodeClient) ParseAuthorizationResponse(requestURL *url.URL) (AuthorizationCodeAuthorizationResponse, error) {
+	parameters := requestURL.Query()
 	if errs := parameters["error"]; len(errs) > 0 {
 		// §4.1.2.1 error
 		var errorURI *url.URL

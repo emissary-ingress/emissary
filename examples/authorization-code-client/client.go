@@ -63,7 +63,7 @@ func main() {
 		}, "mystate")
 	})
 	http.HandleFunc("/redirecton", func(w http.ResponseWriter, r *http.Request) {
-		authorizationResponse, err := client.ParseAuthorizationResponse(r)
+		authorizationResponse, err := client.ParseAuthorizationResponse(r.URL)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
