@@ -436,7 +436,7 @@ class V2Listener(dict):
 
         self.upgrade_configs: Optional[List[dict]] = None
 
-        if listener.get('path_redirect') is not None:
+        if listener.get('path_redirect'):
             self.routes: List[dict] = [ {
                 'match': {
                     'prefix': '/',
