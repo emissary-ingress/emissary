@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"crypto/rsa"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -33,29 +32,6 @@ type FilterMux struct {
 	Logger      types.Logger
 }
 
-func errorResponse(httpStatus int, err error, requestID string, logger types.Logger) *filterapi.HTTPResponse {
-	body := map[string]interface{}{
-		"status_code": httpStatus,
-		"message":     err.Error(),
-	}
-	if httpStatus/100 == 5 {
-		body["request_id"] = requestID
-	}
-	bodyBytes, _ := json.Marshal(body)
-	if httpStatus/100 == 5 {
-		logger.Errorf("HTTP %v %+v", httpStatus, err)
-	} else {
-		logger.Infof("HTTP %v %+v", httpStatus, err)
-	}
-	return &filterapi.HTTPResponse{
-		StatusCode: httpStatus,
-		Header: http.Header{
-			"Content-Type": {"application/json"},
-		},
-		Body: string(bodyBytes),
-	}
-}
-
 func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
 	switch _ret := ret.(type) {
 	case *filterapi.HTTPResponse:
@@ -73,8 +49,11 @@ func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Du
 
 func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest) (ret filterapi.FilterResponse, err error) {
 	start := time.Now()
+
 	requestID := request.GetRequest().GetHttp().GetId()
 	logger := c.Logger.WithField("REQUEST_ID", requestID)
+	_ctx := middleware.WithRequestID(middleware.WithLogger(ctx, logger), requestID)
+
 	logger.Infof("[gRPC] %s %s %s %s",
 		request.GetRequest().GetHttp().GetProtocol(),
 		request.GetRequest().GetHttp().GetMethod(),
@@ -85,12 +64,12 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 			err = _err
 		}
 		if err != nil {
-			ret = errorResponse(http.StatusInternalServerError, err, requestID, logger)
+			ret = middleware.NewErrorResponse(_ctx, http.StatusInternalServerError, err, nil)
 			err = nil
 		}
 		logResponse(logger, ret, time.Since(start))
 	}()
-	ret, err = c.filter(middleware.WithLogger(ctx, logger), request, requestID)
+	ret, err = c.filter(_ctx, request, requestID)
 	return
 }
 
@@ -143,7 +122,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 
 		filterCRD := findFilter(c.Controller, filterQName)
 		if filterCRD == nil {
-			return errorResponse(http.StatusInternalServerError, errors.Errorf("could not find not filter: %q", filterQName), requestID, logger), nil
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, errors.Errorf("could not find not filter: %q", filterQName), nil), nil
 		}
 
 		var filterImpl filterapi.Filter
@@ -155,7 +134,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 				Filter:     filterCRD,
 			}
 			if err := mapstructure.Convert(filterRef.Arguments, &handler.FilterArguments); err != nil {
-				return errorResponse(http.StatusInternalServerError, errors.Wrap(err, "invalid filter.argument"), requestID, logger), nil
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, errors.Wrap(err, "invalid filter.argument"), nil), nil
 			}
 			filterImpl = filterutil.HandlerToFilter(handler)
 		case crd.FilterPlugin:
