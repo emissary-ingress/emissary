@@ -2,7 +2,8 @@ package oauth2handler
 
 import (
 	"crypto/rsa"
-	"fmt"
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/datawire/liboauth2/rfc6749/rfc6749client"
+	"github.com/datawire/liboauth2/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
@@ -23,8 +25,12 @@ import (
 
 const (
 	// AccessTokenCookie cookie's name
-	AccessTokenCookie = "access_token"
+	accessTokenCookie = "ambassador_bearer_token"
 )
+
+type ambassadorBearerToken struct {
+	UpstreamResponse rfc6749client.TokenSuccessResponse
+}
 
 // OAuth2Handler looks up the appropriate Tenant and Rule objects from
 // the CRD Controller, and validates the signed JWT tokens when
@@ -50,19 +56,21 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := getToken(r, logger)
-	var tokenErr error
-	if token == "" {
-		tokenErr = errors.New("token not present in the request")
+	token, err := c.getToken(r)
+	if err != nil {
+		logger.Infoln(errors.Wrapf(err, "proceeding with no %s", accessTokenCookie))
 	} else {
-		tokenErr = c.validateToken(token, discovered, logger)
+		err = c.validateAccessToken(token.UpstreamResponse.AccessToken, discovered, logger)
+		if err != nil {
+			logger.Debug(err)
+			util.ToJSONResponse(w, http.StatusBadRequest, &util.Error{Message: err.Error()})
+			return
+		} else {
+			rfc6750.AddToHeader(token.UpstreamResponse.AccessToken, w.Header())
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 	}
-	if tokenErr == nil {
-		w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", token))
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	logger.Debug(tokenErr)
 
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Filter.ClientID,
@@ -117,7 +125,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		case rfc6749client.AuthorizationCodeAuthorizationSuccessResponse:
-			tokenResponse, err := oauthClient.AccessToken(httpClient, authorizationResponse.Code, redirectURL)
+			tokenResponse, err := oauthClient.AccessToken(httpClient, authorizationResponse.Code, c.Filter.CallbackURL())
 			if err != nil {
 				logger.Errorln(err)
 				util.ToJSONResponse(w, http.StatusBadGateway, &util.Error{Message: err.Error()})
@@ -133,13 +141,14 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			case rfc6749client.TokenSuccessResponse:
 				logger.Debug("setting authorization cookie")
-				http.SetCookie(w, &http.Cookie{
-					Name:     AccessTokenCookie,
-					Value:    tokenResponse.AccessToken,
-					HttpOnly: true,
-					Secure:   c.Filter.TLS(),
-					Expires:  tokenResponse.ExpiresAt,
+				err = c.setToken(w, ambassadorBearerToken{
+					UpstreamResponse: tokenResponse,
 				})
+				if err != nil {
+					logger.Errorln(err)
+					util.ToJSONResponse(w, http.StatusInternalServerError, &util.Error{Message: err.Error()})
+					return
+				}
 				// If the user-agent request was a POST or PUT, 307 will preserve the body
 				// and just follow the location header.
 				// https://tools.ietf.org/html/rfc7231#section-6.4.7
@@ -158,7 +167,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (j *OAuth2Handler) validateToken(token string, discovered *Discovered, logger types.Logger) error {
+func (j *OAuth2Handler) validateAccessToken(token string, discovered *Discovered, logger types.Logger) error {
 	jwtParser := jwt.Parser{
 		ValidMethods: []string{
 			// Any of the RSA algs supported by jwt-go
@@ -253,21 +262,44 @@ func inArray(needle string, haystack []string) bool {
 	return false
 }
 
-func getToken(r *http.Request, logger types.Logger) string {
-	cookie, _ := r.Cookie(AccessTokenCookie)
-	if cookie != nil {
-		return cookie.Value
+func (c *OAuth2Handler) getToken(r *http.Request) (ambassadorBearerToken, error) {
+	cookie, err := r.Cookie(accessTokenCookie)
+	if err != nil {
+		return ambassadorBearerToken{}, err
 	}
-
-	logger.Debugf("request has no %s cookie", AccessTokenCookie)
-
-	bearer := strings.Split(r.Header.Get("Authorization"), " ")
-	if len(bearer) != 2 && strings.ToLower(bearer[0]) != "bearer" {
-		logger.Debug("authorization header is not a bearer token")
-		return ""
+	ciphertext, err := base64.RawURLEncoding.DecodeString(cookie.Value)
+	if err != nil {
+		return ambassadorBearerToken{}, err
 	}
+	cleartext, err := c.cryptoDecryptAndVerify(ciphertext, []byte(accessTokenCookie))
+	if err != nil {
+		return ambassadorBearerToken{}, err
+	}
+	var token ambassadorBearerToken
+	err = json.Unmarshal(cleartext, &token)
+	if err != nil {
+		return ambassadorBearerToken{}, err
+	}
+	return token, nil
+}
 
-	return bearer[1]
+func (c *OAuth2Handler) setToken(w http.ResponseWriter, token ambassadorBearerToken) error {
+	cleartext, err := json.Marshal(token)
+	if err != nil {
+		return err
+	}
+	ciphertext, err := c.cryptoSignAndEncrypt(cleartext, []byte(accessTokenCookie))
+	if err != nil {
+		return err
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:  accessTokenCookie,
+		Value: base64.RawURLEncoding.EncodeToString(ciphertext),
+		// TODO(lukeshu): Verify that these are sane cookie parameters
+		HttpOnly: true,
+		Secure:   c.Filter.TLS(),
+	})
+	return nil
 }
 
 func (h *OAuth2Handler) signState(originalURL *url.URL, logger types.Logger) string {
