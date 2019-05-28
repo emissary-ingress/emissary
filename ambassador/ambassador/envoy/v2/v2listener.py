@@ -436,14 +436,25 @@ class V2Listener(dict):
 
         self.upgrade_configs: Optional[List[dict]] = None
 
-        self.routes: List[dict] = [ {
-            'match': {
-                'prefix': '/',
-            },
-            'redirect': {
-                'https_redirect': True
-            }
-        } ]
+        if listener.get('path_redirect') is not None:
+            self.routes: List[dict] = [ {
+                'match': {
+                    'prefix': '/',
+                },
+                'redirect': {
+                    'https_redirect': True,
+                    'path_redirect': listener.get('path_redirect')
+                }
+            } ]
+        else:
+            self.routes: List[dict] = [ {
+                'match': {
+                    'prefix': '/',
+                },
+                'redirect': {
+                    'https_redirect': True
+                }
+            } ]
 
         if listener.redirect_listener:
             self.http_filters = [{'name': 'envoy.router'}]
