@@ -435,18 +435,17 @@ class V2Listener(dict):
         self.filter_chains: List[dict] = []
 
         self.upgrade_configs: Optional[List[dict]] = None
-
-        if listener.get('path_redirect'):
-            self.routes: List[dict] = [ {
+        self.routes: List[dict] = [ {
                 'match': {
                     'prefix': '/',
                 },
                 'redirect': {
                     'https_redirect': True,
-                    'path_redirect': listener.get('path_redirect')
+                    'path_redirect': '/'
                 }
-            } ]
-        else:
+            } ]    
+
+        if listener.redirect_listener:
             self.routes: List[dict] = [ {
                 'match': {
                     'prefix': '/',
@@ -455,8 +454,6 @@ class V2Listener(dict):
                     'https_redirect': True
                 }
             } ]
-
-        if listener.redirect_listener:
             self.http_filters = [{'name': 'envoy.router'}]
         else:
             # Use the actual listener name & port number

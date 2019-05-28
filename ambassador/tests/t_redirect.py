@@ -61,7 +61,6 @@ config:
     enabled: True
     secret: redirect-cert
     redirect_cleartext_from: 8080
-    path_redirect: /
 """)
 
         yield self.target, self.format("""
