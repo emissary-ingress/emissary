@@ -42,8 +42,9 @@ func NewAuthorizationCodeClient(
 	return ret, nil
 }
 
-// AuthorizationRequest writes an HTTP response that directs the
-// User-Agent to perform the Authorization Request, per §4.1.1.
+// AuthorizationRequest returns an URI that the Client should direct
+// the User-Agent to perform a GET request for, in order to perform an
+// Authorization Request, per §4.1.1.
 //
 // OAuth arguments:
 //
@@ -58,10 +59,14 @@ func NewAuthorizationCodeClient(
 //  - scope: OPTIONAL.
 //
 //  - state: RECOMMENDED.
-func (client *AuthorizationCodeClient) AuthorizationRequest(
-	w http.ResponseWriter, r *http.Request,
-	redirectURI *url.URL, scope Scope, state string,
-) {
+//
+// The Client is free to use whichever redirection mechanisms it has
+// available to it (perhaps a plain HTTP redirect, or perhaps
+// something fancy with JavaScript).  Note that if using an HTTP
+// redirect, that 302 "Found" may or MAY NOT convert POST->GET; and
+// that to reliably have the User-Agent perform a GET, one should use
+// 303 "See Other" which MUST convert to GET.
+func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, error) {
 	parameters := url.Values{
 		"response_type": {"code"},
 		"client_id":     {client.clientID},
@@ -69,9 +74,7 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 	if redirectURI != nil {
 		err := validateRedirectionEndpointURI(redirectURI)
 		if err != nil {
-			err = errors.Wrap(err, "cannot build Authorization Request URI")
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return nil, errors.Wrap(err, "cannot build Authorization Request URI")
 		}
 		parameters.Set("redirect_uri", redirectURI.String())
 	}
@@ -81,17 +84,7 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 	if state != "" {
 		parameters.Set("state", state)
 	}
-	requestURI, err := buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// A 302 "Found" may or may not convert POST->GET.  We want
-	// the UA to GET the Authorization URI, so we shouldn't use
-	// 302 which may or may not do the right thing, but use 303
-	// "See Other" which MUST convert to GET.
-	http.Redirect(w, r, requestURI.String(), http.StatusSeeOther)
+	return buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
 }
 
 // ParseAuthorizationResponse parses the Authorization Response out
