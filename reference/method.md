@@ -13,9 +13,9 @@ For example:
 aapiVersion: ambassador/v1
 kind: Mapping
 name: get_mapping
-prefix: /get_only/
+prefix: /backend/get_only/
 method: GET
-service: qotm
+service: tour
 ```
 
 ## Using `method_regex`

@@ -14,15 +14,16 @@ You can also set the `value` of a header to `true` to test for the existence of 
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 headers:
-  x-qotm-mode: canary
+  x-tour-mode: backend
   x-random-header: datawire
-service: qotm
+
 ```
 
-will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has the value `canary` _and_ the `x-random-header` has the value `datawire`.
+will allow requests to `/backend/` to succeed only if the `x-tour-mode` header has the value `backend` _and_ the `x-random-header` has the value `datawire`.
 
 ## A conditional example
 
@@ -30,20 +31,21 @@ will allow requests to `/qotm/` to succeed only if the `x-qotm-mode` header has 
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mode_mapping
-prefix: /qotm/
+name:  tour_mode_mapping
+prefix: /
+service: tour-mode
 headers:
-  x-qotm-mode: true
-service: qotm-mode
+  x-tour-mode: true
+
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_regular_mapping
-prefix: /qotm/
-service: qotm-regular
+name:  tour_regular_mapping
+prefix: /
+service: tour-regular
 ```
 
-will send requests that contain the `x-qotm-mode` header to the `qotm-mode` target, while routing all other requests to the `qotm-regular` target.
+will send requests that contain the `x-tour-mode` header to the `tour-mode` target, while routing all other requests to the `tour-regular` target.
 
 ## `regex_headers`
 

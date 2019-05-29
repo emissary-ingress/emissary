@@ -97,15 +97,15 @@ Once a resolver is defined, you can use them in a given `Mapping`:
 apiVersion: v1
 kind: Service
 metadata:
-  name: qotm
+  name: tour
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: qotm
+      name:  tour-ui_mapping
+      prefix: /
+      service: tour
       load_balancer:
         policy: round_robin
       ---
@@ -120,7 +120,7 @@ metadata:
         policy: round_robin
 spec:
   selector:
-    service: qotm
+    app: tour
   ports:
     - port: 80
       targetPort: http-api

@@ -14,8 +14,8 @@ Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%`
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
+name:  tour-backend_mapping
+prefix: /backend/
 add_response_headers:
   x-test-proto: "%PROTOCOL%"
   x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
@@ -23,7 +23,7 @@ add_response_headers:
   x-test-object:
     append: False
     value: this is from object header config
-service: qotm
+app: tour
 ```
 
 will add the protocol, client IP, and a static header to returning response to client.
