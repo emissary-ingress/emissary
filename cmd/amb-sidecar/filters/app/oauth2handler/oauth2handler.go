@@ -302,10 +302,11 @@ func (c *OAuth2Filter) getToken(request *filterapi.FilterRequest) (ambassadorBea
 	if err != nil {
 		return ambassadorBearerToken{}, err
 	}
-	cleartext, err := c.cryptoDecryptAndVerify(ciphertext, []byte(accessTokenCookie))
-	if err != nil {
-		return ambassadorBearerToken{}, err
-	}
+	//cleartext, err := c.cryptoDecryptAndVerify(ciphertext, []byte(accessTokenCookie))
+	//if err != nil {
+	//	return ambassadorBearerToken{}, err
+	//}
+	cleartext := ciphertext // TODO(lukeshu): Begone with cleartext := ciphertext
 	var token ambassadorBearerToken
 	err = json.Unmarshal(cleartext, &token)
 	if err != nil {
@@ -319,10 +320,11 @@ func (c *OAuth2Filter) setToken(token ambassadorBearerToken) (*http.Cookie, erro
 	if err != nil {
 		return nil, err
 	}
-	ciphertext, err := c.cryptoSignAndEncrypt(cleartext, []byte(accessTokenCookie))
-	if err != nil {
-		return nil, err
-	}
+	//ciphertext, err := c.cryptoSignAndEncrypt(cleartext, []byte(accessTokenCookie))
+	//if err != nil {
+	//	return nil, err
+	//}
+	ciphertext := cleartext // TODO(lukeshu): Begone with ciphertext := cleartext
 	return &http.Cookie{
 		Name:  accessTokenCookie,
 		Value: base64.RawURLEncoding.EncodeToString(ciphertext),
