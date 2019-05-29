@@ -12,11 +12,11 @@ The `remove_response_headers` attribute takes a list of keys used to match to th
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
+name:  tour-ui_mapping
+prefix: /
 remove_response_headers:
 - x-envoy-upstream-service-time
-service: qotm
+service: tour
 ```
 
 will drop header with key `x-envoy-upstream-service-time`.

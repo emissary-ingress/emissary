@@ -22,9 +22,9 @@ The various timeouts are applied onto a `Mapping` resource and can be combined.
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 timeout_ms: 4000
 idle_timeout_ms: 500000
 connect_timeout_ms: 4000

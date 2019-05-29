@@ -11,7 +11,7 @@
    For details on how to configure the chart, see the [official chart documentation](https://hub.helm.sh/charts/stable/ambassador) 
 
 
-2. Jump to [step 3](/user-guide/getting-started#3-creating-your-first-route) of the Ambassador tutorial to create your first route.
+2. Jump to [step 3](/user-guide/getting-started#3-creating-your-first-service) of the Ambassador tutorial to create your first service.
 
 ## Notes
 
