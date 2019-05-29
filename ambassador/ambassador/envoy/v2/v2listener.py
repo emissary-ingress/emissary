@@ -432,7 +432,7 @@ class V2Listener(dict):
 
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
-        self.filter_chains: List[dict] = []    
+        self.filter_chains: List[dict] = []
 
         self.upgrade_configs: Optional[List[dict]] = None
 

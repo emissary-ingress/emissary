@@ -14,7 +14,6 @@ from abstract_tests import ServiceType, TLSRedirect
 # what I wanted here. Sigh.
 
 class RedirectTests(AmbassadorTest):
-
     target: ServiceType
 
     def init(self):
@@ -91,9 +90,6 @@ service: {self.target.path.fqdn}
         # XXX Ew. If self.results[1].json is empty, the harness won't convert it to a response.
         errors = self.results[1].json
         assert(len(errors) == 0)
-
-        
-
 
 class RedirectTestsWithProxyProto(AmbassadorTest):
 
