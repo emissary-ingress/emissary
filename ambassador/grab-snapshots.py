@@ -30,6 +30,9 @@ def sanitize_snapshot(path: str):
 		ksorted = {}
 
 		for key, value in kube_elements.items():
+			if not value:
+				continue
+
 			if key == 'secret':
 				for secret in value:
 					if "data" in secret:
