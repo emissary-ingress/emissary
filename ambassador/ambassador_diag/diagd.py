@@ -108,6 +108,7 @@ class DiagApp (Flask):
     stats_updater: Optional[PeriodicTrigger]
     last_request_info: Dict[str, int]
     last_request_time: Optional[datetime.datetime]
+    latest_snapshot: str
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
@@ -285,7 +286,8 @@ def system_info():
         "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
                                      os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
         "boot_time": boot_time,
-        "hr_uptime": td_format(datetime.datetime.now() - boot_time)
+        "hr_uptime": td_format(datetime.datetime.now() - boot_time),
+        "latest_snapshot": app.latest_snapshot
     }
 
 
@@ -764,6 +766,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
 
+        app.latest_snapshot = snapshot
         self.logger.info("saving Envoy configuration for snapshot %s" % snapshot)
 
         with open(app.bootstrap_path, "w") as output:
