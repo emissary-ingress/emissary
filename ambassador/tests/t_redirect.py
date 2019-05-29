@@ -74,28 +74,26 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         # [0]
-        yield Query(self.url("tls-target/"), expected=301)
+        yield Query(self.url("tls-target/", scheme="http"), expected=301)
 
         # [1] -- PHASE 2
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors",
                              scheme="https"),
                     insecure=True,
                     phase=2)
-        
-        # [2]
-        yield Query(self.parent.url("http://%s" % self.name + "/target/"), expected=301)
 
     def check(self):
-        # We don't have to check anything about query 0, the "expected" clause is enough.
+        # For query 0, check the redirection target.
+        assert len(self.results[0].headers['Location']) > 0 
+        assert self.results[0].headers['Location'][0].find('/tls-target/') > 0
 
         # For query 1, we require no errors.
         # XXX Ew. If self.results[1].json is empty, the harness won't convert it to a response.
         errors = self.results[1].json
         assert(len(errors) == 0)
 
-        assert self.results[2].headers['Location'] == [
-            self.format("http://%s" % self.name + "/target/")
-        ]
+        
+
 
 class RedirectTestsWithProxyProto(AmbassadorTest):
 
