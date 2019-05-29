@@ -195,7 +195,7 @@ $ minikube service list
 ```
 http://192.168.99.107:31893/
 
-or on Docker for Mac/Windows
+or on Docker for Mac/Windows:
 
 ```shell
 $ kubectl get svc
@@ -206,8 +206,6 @@ tour               ClusterIP      10.107.77.153    <none>        80/TCP         
 kubernetes         ClusterIP      10.96.0.1        <none>        443/TCP          84d
 ```
 http://localhost/
-
-
 
 ## 5. The Diagnostics Service in Kubernetes
 
