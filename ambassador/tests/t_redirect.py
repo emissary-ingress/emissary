@@ -81,6 +81,9 @@ service: {self.target.path.fqdn}
                              scheme="https"),
                     insecure=True,
                     phase=2)
+        
+        # [2]
+        yield Query(self.parent.url("http://%s" % self.name + "/target/"), expected=301)
 
     def check(self):
         # We don't have to check anything about query 0, the "expected" clause is enough.
@@ -90,6 +93,9 @@ service: {self.target.path.fqdn}
         errors = self.results[1].json
         assert(len(errors) == 0)
 
+        assert self.results[2].headers['Location'] == [
+            self.format("http://%s" % self.name + "/target/")
+        ]
 
 class RedirectTestsWithProxyProto(AmbassadorTest):
 
