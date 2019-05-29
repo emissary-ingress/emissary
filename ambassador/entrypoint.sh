@@ -101,8 +101,8 @@ mkdir -p "${ENVOY_DIR}"
 launch() {
     echo "AMBASSADOR: launching worker process: ${*@Q}"
     (
-	trap 'echo "AMBASSADOR: worker process exited with status $?: ${*@Q}"' EXIT
-	"$@"
+        trap 'echo "AMBASSADOR: worker process exited with status $?: ${*@Q}"' EXIT
+        "$@"
     ) &
 }
 trap 'echo "Received SIGINT (Control-C?); shutting down"; jobs -p | xargs -r kill --' INT
@@ -165,10 +165,10 @@ fi
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     launch /ambassador/watt \
-        ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "AMBASSADOR_NAMESPACE" } \
-        --notify 'sh /ambassador/post_watt.sh' \
-        -s service \
-        --watch /ambassador/watch_hook.py
+           ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "AMBASSADOR_NAMESPACE" } \
+           --notify 'sh /ambassador/post_watt.sh' \
+           -s service \
+           --watch /ambassador/watch_hook.py
 fi
 
 ################################################################################
@@ -180,12 +180,12 @@ wait -n
 r=$?
 echo 'AMBASSADOR: one of the worker processes has exited; shutting down the others'
 while test -n "$(jobs -p)"; do
-	jobs -p | xargs -r kill --
-	wait -n
+    jobs -p | xargs -r kill --
+    wait -n
 done
 echo 'AMBASSADOR: all worker processes have exited'
 if [[ -n "$AMBASSADOR_EXIT_DELAY" ]]; then
-        echo "AMBASSADOR: sleeping for debug"
-        sleep $AMBASSADOR_EXIT_DELAY
+    echo "AMBASSADOR: sleeping for debug"
+    sleep $AMBASSADOR_EXIT_DELAY
 fi
 exit $r
