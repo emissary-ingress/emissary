@@ -102,8 +102,8 @@ launch() {
     echo "AMBASSADOR: launching worker process: ${*@Q}"
     # We do this 'eval' instead of just
     #     "$@" &
-    # so that the pretty name for the job is the actually command
-    # line, instead of the literal 4 characters "$@".
+    # so that the pretty name for the job is the actual command line,
+    # instead of the literal 4 characters "$@".
     eval "${@@Q} &&"
 }
 set -m # We need this in order to trap on SIGCHLD
