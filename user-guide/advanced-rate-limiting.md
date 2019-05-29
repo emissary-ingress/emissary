@@ -19,7 +19,7 @@ Logically, configuring rate limiting is straightforward.
 1. Configure a specific mapping to include one or more request labels.
 2. Configure a limit for a given request label with the `RateLimit` resource.
 
-In the examples below, we'll use the backend service of the tour sample application used in the [Getting Started](https://www.getambassador.io/user-guide/getting-started#5-adding-a-service).
+In the examples below, we'll use the backend service of the tour sample application used in the [Getting Started](https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service).
 
 ## Example 1: Global rate limiting for availability
 
