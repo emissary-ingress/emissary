@@ -100,11 +100,15 @@ mkdir -p "${ENVOY_DIR}"
 ################################################################################
 launch() {
     echo "AMBASSADOR: launching worker process: ${*@Q}"
-    (
-        trap 'echo "AMBASSADOR: worker process exited with status $?: ${*@Q}"' EXIT
-        "$@"
-    ) &
+    # We do this 'eval' instead of just
+    #     "$@" &
+    # so that the pretty name for the job is the actually command
+    # line, instead of the literal 4 characters "$@".
+    eval "${@@Q} &&"
 }
+set -m # We need this in order to trap on SIGCHLD
+trap 'jobs -n' CHLD # Notify when a job status changes
+
 trap 'echo "Received SIGINT (Control-C?); shutting down"; jobs -p | xargs -r kill --' INT
 
 ################################################################################
