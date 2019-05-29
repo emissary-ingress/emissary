@@ -118,9 +118,6 @@ class ListenerFactory:
 
             if 'server_name' in amod:
                 new_listener.server_name = amod.server_name
-            
-            if 'path_redirect' in amod:
-                new_listener.path_redirect = amod.path_redirect
 
             ir.add_listener(new_listener)
 
