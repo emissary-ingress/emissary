@@ -47,7 +47,7 @@ func (c *OAuth2Filter) cryptoDecryptAndVerify(ciphertext, label []byte) (clearte
 		return nil, err
 	}
 	cleartextBodyLen := binary.BigEndian.Uint64(cleartext)
-	cleartextBody := cleartext[8:8+cleartextBodyLen]
+	cleartextBody := cleartext[8 : 8+cleartextBodyLen]
 	signature := cleartext[8+cleartextBodyLen:]
 	if err = c.cryptoVerify(cleartextBody, signature); err != nil {
 		return nil, err

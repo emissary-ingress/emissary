@@ -293,14 +293,14 @@ func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered,
 	// return nil
 }
 
-func inArray(needle string, haystack []string) bool {
-	for _, straw := range haystack {
-		if straw == needle {
-			return true
-		}
-	}
-	return false
-}
+// func inArray(needle string, haystack []string) bool {
+// 	for _, straw := range haystack {
+// 		if straw == needle {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func (c *OAuth2Filter) getToken(request *filterapi.FilterRequest) (ambassadorBearerToken, error) {
 	// BS to leverage net/http's cookie-parsing
