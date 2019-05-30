@@ -10,8 +10,8 @@ This allows the operator to have the best of both worlds: a high performance, mo
 
 Getting Ambassador working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
-1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/quick-start.html) (without using mutual TLS auth between sidecars)
-2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/guides/bookinfo.html).
+1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/install/kubernetes/) (without using mutual TLS auth between sidecars)
+2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/examples/bookinfo/#if-you-are-running-on-kubernetes).
 3. Verify that the sample application is working as expected.
 
 By default, the Bookinfo application uses the Istio ingress. To use Ambassador, we need to:
@@ -165,85 +165,156 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 ## Automatic Sidecar Injection
 
-Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/sidecar-injection.html#policy).
+Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into Ambassador's pods -- Ambassador's Envoy instance will automatically route to the appropriate service(s). Ambassador's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
 
 ## Istio Mutual TLS
 
-Istio can be configured to require TLS on connections to APIs in the service mesh. In this case, Ambassador will need to use the TLS certificate created by Istio when proxying requests to upstream services. For this purpose, Istio stores this certificate in a secret named `istio.default` in every namespace. In order to route to services in the Istio mesh, we need to configure Ambassador to load the TLS certificates from this secret. We can easily do this with a `TLSContext`.
+In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell Ambassador to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador deployment installed above.
 
-1. Create the `TLSContext` to load the TLS certificate stored in `istio.default`. Since this is a system-wide configuration, this is typically created in the Ambassador `Service`.
+In case of RBAC:
 
-    ```yaml
-    ---
-    apiVersion: v1
-    kind: Service
+``` yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
+  replicas: 3
+  template:
     metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
       labels:
         service: ambassador
-      name: ambassador
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind:  Mapping
-          name:  httpbin_mapping
-          prefix: /httpbin/
-          service: httpbin.org:80
-          host_rewrite: httpbin.org
-          ---
-          apiVersion: ambassador/v1
-          kind:  TLSContext
-          name: istio-upstream
-          hosts: []
-          secret: istio.default
     spec:
-      type: LoadBalancer
-      ports:
+      serviceAccountName: ambassador
+      containers:
       - name: ambassador
-        port: 80
-        targetPort: 80
-      selector:
-        service: ambassador
-    ```
+        image: quay.io/datawire/ambassador:0.50.1
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        env:
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        volumeMounts:
+          - mountPath: /etc/istiocerts/
+            name: istio-certs
+            readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: istio-certs
+        secret:
+          optional: true
+          secretName: istio.default
+```
 
-2. Tell Ambassador to use the certificate stored in the `TLSContext` `istio-upstream` when making requests to upstream services. This is done by setting the `tls` attribute in the `Mapping` config:
+Specifically note the mounting of the Istio secrets. For non RBAC cluster modify accordingly. Next we need to modify the Ambassador configuration to tell it use the new certificates for Istio enabled services:
 
-    ``` yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: productpage
-      labels:
-        app: productpage
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind: Mapping
-          name: productpage_mapping
-          prefix: /productpage/
-          rewrite: /productpage
-          tls: upstream
-          service: https://productpage:9080
-    spec:
-      ports:
-      - port: 9080
-        name: http
-        protocol: TCP
-      selector:
-        app: productpage
-    ```
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador
+  name: ambassador
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  httpbin_mapping
+      prefix: /httpbin/
+      service: httpbin.org:80
+      host_rewrite: httpbin.org
+      ---
+      apiVersion: ambassador/v1
+      kind:  Module
+      name: tls
+      config:
+        server:
+          enabled: True
+          redirect_cleartext_from: 8080
+        client:
+          enabled: False
+        upstream:
+          cert_chain_file: /etc/istiocerts/cert-chain.pem
+          private_key_file: /etc/istiocerts/key.pem
+spec:
+  type: LoadBalancer
+  ports:
+  - name: ambassador
+    port: 80
+    targetPort: 8080
+  selector:
+    service: ambassador
+```
 
-3. Traffic between Ambassador and the Bookinfo application will now be secured with TLS. Test this by accessing the product page service.
+This will define an `upstream` that uses the Istio certificates. We can now reuse the `upstream` in all Ambassador mappings to enable communication with Istio pods.
 
-   ```
-   curl -v $AMBASSADOR_IP/productpage/
-   ```
+``` yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: productpage_mapping
+      prefix: /productpage/
+      rewrite: /productpage
+      tls: upstream
+      service: https://productpage:9080
+spec:
+  ports:
+  - port: 9080
+    name: http
+    protocol: TCP
+  selector:
+    app: productpage
+```
+Note the `tls: upstream`, which lets Ambassador know which certificate to use when communicating with that service.
 
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
+
+### Istio RBAC Authorization
+
+While using `istio.default` secret works for mutual TLS only, to be able to interop with [Istio RBAC Authorization](https://istio.io/docs/concepts/security/#authorization) the Ambassador needs to have Istio certificate that matches service account that Ambassador deployment is using (by default the service account is `ambassador`).
+
+The `istio.default` secret is for `default` service account, as can be seen in the certificate Subject Alternative Name: `spiffe://cluster.local/ns/default/sa/default`.
+So when Ambassador is using this certificate but running under `ambassador` service account the Istio RBAC will not work as expected.
+
+Fortunately, Istio automatically creates a secret for each service account, including `ambassador` service account.
+These secrets are named as `istio.{service account name}`.
+So if your Ambassador deployment uses `ambassador` service account, the solution is simply to use `istio.ambassador` secret instead of `istio.default` secret.
 
 ## Tracing Integration
 
-Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by Ambassador. In order to achieve an end-to-end tracing, it is possible to integrate Ambassador with Istio's Zipkin.  
+Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by Ambassador. In order to achieve an end-to-end tracing, it is possible to integrate Ambassador with Istio's Zipkin.
 First confirm that Istio's Zipkin is up and running in the `istio-system` Namespace:
 
 ```shell
@@ -269,7 +340,7 @@ If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingS
 
 ## Monitoring/Statistics Integration
 
-Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador as well. It is possible to integrate Ambassador into Istio's Prometheus to have all statistics and monitoring in a single place.  
+Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador as well. It is possible to integrate Ambassador into Istio's Prometheus to have all statistics and monitoring in a single place.
 
 First we need to change our Ambassador Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
 ```sh
@@ -314,7 +385,7 @@ This ConfigMap YAML changes the `prometheus` ConfigMap that is on `istio-system`
         labels:  {'application': 'ambassador'}
 ```
 
-*Note:* Assuming ambassador-monitor service is runnning in default namespace.  
+*Note:* Assuming ambassador-monitor service is runnning in default namespace.
 
 *Note:* You can also add the scrape by hand by using kubectl edit or dashboard.
 
@@ -329,7 +400,7 @@ More details can be found in [Statistics and Monitoring](https://www.getambassad
 
 ## Grafana Dashboard
 
-Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.  
+Istio provides a Grafana dashboad service as well, and it is possible to import an Ambassador Dashboard into it, to monitor the Statistics provided by Prometheus. We're going to use [Alex Gervais'](https://twitter.com/alex_gervais) template available on [Grafana's](https://grafana.com/) website under entry [4689](https://grafana.com/dashboards/4698) as a starting point.
 
 First let's start the port-forwarding for Istio's Grafana service:
 ```sh
@@ -340,9 +411,9 @@ Now, open Grafana tool by acessing: `http://localhost:3000/`
 
 To install Ambassador Dashboard:
 
-* Click on Create  
-* Select Import  
-* Enter number 4698  
+* Click on Create
+* Select Import
+* Enter number 4698
 
 Now we need to adjust the Dashboard Port to reflect our Ambassador configuration:
 

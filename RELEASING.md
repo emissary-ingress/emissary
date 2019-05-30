@@ -40,7 +40,7 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
    - in `values.yaml`, update `tag`.
    - Helpful stuff for this:
       - git checkout master               # switch to master
-      - git fetch --all                   # make sure our view of remotes is up to date
+      - git fetch --all --prune           # make sure our view of remotes is up to date
       - git pull                          # pull down any changes to master
       - git rebase upstream/master        # move master on top of upstream
       - git push                          # push rebases to our fork
@@ -54,24 +54,3 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 9. Additional updates:
    - Submit a PR to https://github.com/datawire/pro-ref-arch that updates the `env.sh.example` versions.
    - Submit a PR to the Ambassador website repository to update the version on the homepage.
-
-----
-Updating Ambassador's Envoy
-----
-
-Ambassador currently relies on a custom Envoy build which includes the Ambassador `extauth` filter. This build lives in `https://github.com/datawire/envoy`, which is a fork of `https://github.com/envoyproxy/envoy`, and it'll need to be updated at least as often as Envoy releases happen. To do that:
-
-1. Clone the `datawire/envoy` repo and get to the `datawire/extauth-build-automation` branch:
-
-    ```
-    git clone git@github.com:datawire/envoy.git
-    cd envoy
-    git checkout datawire/extauth-build-automation
-    ```
-
-2. Follow the directions in `DATAWIRE/README.md` to get everything built and tested and pushed.
-
-3. Once the new `ambassador-envoy` image has been pushed, get back to your clone of the Ambassador repo and update the `FROM` line in `ambassador/Dockerfile` to use the new image.
-
-4. Build and test Ambassador as normal.
-

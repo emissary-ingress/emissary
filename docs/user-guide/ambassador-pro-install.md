@@ -18,11 +18,7 @@ Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env
 
 **Note:** Ambassador Pro will not start without a valid license key.
 
-## 3. Install Go
-
-The Ambassador Pro installation uses a few Go commands. Make sure you have [Go](https://golang.org) installed locally.
-
-## 4. Deploy Ambassador Pro
+## 3. Deploy Ambassador Pro
 
 If you're on GKE, first, create the following `ClusterRoleBinding`:
 
@@ -65,7 +61,7 @@ If you have deployed Ambassador with
 [`AMBASSADOR_ID`](/reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
-## 5. Configure JWT authentication
+## 4. Configure JWT authentication
 
 Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
 
@@ -131,7 +127,7 @@ $ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.ey
 }
 ```
 
-## 6. Configure additional Ambassador Pro services
+## 5. Configure additional Ambassador Pro services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 

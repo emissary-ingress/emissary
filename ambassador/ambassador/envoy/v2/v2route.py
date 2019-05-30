@@ -51,33 +51,18 @@ class V2Route(dict):
             self['per_filter_config'] = per_filter_config
 
         request_headers_to_add = group.get('add_request_headers', None)
-
         if request_headers_to_add:
-            self['request_headers_to_add'] = [
-                {
-                    'header': {
-                        'key': k,
-                        'value': v
-                    },
-                    'append': True  # ???
-                } for k, v in request_headers_to_add.items()
-            ]
+            self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
 
         response_headers_to_add = group.get('add_response_headers', None)
-
         if response_headers_to_add:
-            self['response_headers_to_add'] = [
-                {
-                    'header': {
-                        'key': k,
-                        'value': v
-                    },
-                    'append': True  # ???
-                } for k, v in response_headers_to_add.items()
-            ]
+            self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
+
+        request_headers_to_remove = group.get('remove_request_headers', None)
+        if request_headers_to_remove:
+            self['request_headers_to_remove'] = request_headers_to_remove
 
         response_headers_to_remove = group.get('remove_response_headers', None)
-
         if response_headers_to_remove:
             self['response_headers_to_remove'] = response_headers_to_remove
 
@@ -140,14 +125,35 @@ class V2Route(dict):
 
                 route['cors'] = cors
 
+            retry_policy = None
+
+            if "retry_policy" in group:
+                retry_policy = group.retry_policy.as_dict()
+            elif "retry_policy" in config.ir.ambassador_module:
+                retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
+
+            if retry_policy:
+                for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
+                    retry_policy.pop(key, None)
+
+                route['retry_policy'] = retry_policy
+
             # Is shadowing enabled?
             shadow = group.get("shadows", None)
 
             if shadow:
                 shadow = shadow[0]
 
+                weight = shadow.get('weight', 100)
+
                 route['request_mirror_policy'] = {
-                    'cluster': shadow.cluster.name
+                    'cluster': shadow.cluster.name,
+                    'runtime_fraction': {
+                        'default_value': {
+                            'numerator': weight,
+                            'denominator': 'HUNDRED'
+                        }
+                    }
                 }
 
             # Is RateLimit a thing?
@@ -243,3 +249,28 @@ class V2Route(dict):
                     }
 
         return hash_policy
+
+    @staticmethod
+    def generate_headers_to_add(header_dict: dict) -> List[dict]:
+        headers = []
+        for k, v in header_dict.items():
+                append = True
+                if isinstance(v,dict):
+                    if 'append' in v:
+                        append = bool(v['append'])
+                    headers.append({
+                        'header': {
+                            'key': k,
+                            'value': v['value']
+                        },
+                        'append': append
+                    })
+                else:
+                    headers.append({
+                        'header': {
+                            'key': k,
+                            'value': v
+                        },
+                        'append': append  # Default append True, for backward compatability
+                    })
+        return headers

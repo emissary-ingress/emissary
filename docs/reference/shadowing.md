@@ -53,3 +53,20 @@ What if we want to shadow the traffic to `myservice`, and send that exact same t
 
 The `prefix` is set to be the same as the first annotation, which tells Ambassador which production traffic to shadow. The destination service, where the shadow traffic is routed, is a *different* Kubernetes service, `myservice-shadow`. Finally, the `shadow: true` annotation actually enables shadowing.
 
+### Shadow traffic weighting
+
+It is possible to shadow a portion of the traffic by specifying the `weight` in the mapping. Eg.
+
+```yaml
+  getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: myservice-shadow-mapping
+      prefix: /myservice/
+      service: myservice-shadow.default
+      shadow: true
+      weight: 10
+```
+
+In the example above, only the 10% of the traffic will be forwarded to the shadowing service.

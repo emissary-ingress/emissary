@@ -30,6 +30,10 @@ package-lock.json
 node_modules
 unused-e2e
 
+/envoy/
+/envoy-bin/
+/envoy-build-image.txt
+
 .forge
 forge.yaml
 

@@ -135,14 +135,25 @@ class ResourceFetcher:
         self.finalize()
 
     def parse_watt(self, serialization: str) -> None:
+
+        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds')):
+            self.aconf.post_error("Ambassador could not find all the required CRDs. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+
         try:
             watt_dict = json.loads(serialization)
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
+            # Handle normal Kube objects...
             for key in [ 'service', 'endpoints', 'secret' ]:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s(obj)
+
+            # ...then handle Ambassador CRDs.
+            for key in [ 'AuthService', 'Mapping', 'Module', 'RateLimitService',
+                         'TCPMapping', 'TLSContext', 'TracingService']:
+                for obj in watt_k8s.get(key) or []:
+                    self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -183,6 +194,47 @@ class ResourceFetcher:
 
             self.parse_object(parsed_objects, k8s=False,
                               filename=self.filename, rkey=rkey)
+
+    def handle_k8s_crd(self, obj: dict) -> None:
+        # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
+
+        kind = obj.get('kind')
+
+        if not kind:
+            self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
+            return
+
+        apiVersion = obj.get('apiVersion')
+        metadata = obj.get('metadata') or {}
+        name = metadata.get('name')
+        namespace = metadata.get('namespace') or 'default'
+        spec = obj.get('spec')
+
+        if not name:
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
+            return
+
+        if not apiVersion:
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no apiVersion')
+            return
+
+        if not spec:
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no spec')
+            return
+
+        # We use this resource identifier as a key into self.k8s_services, and of course for logging .
+        resource_identifier = f'{name}.{namespace}'
+
+        # OK. Shallow copy 'spec'...
+        amb_object = dict(spec)
+
+        # ...and then stuff in a couple of other things.
+        amb_object['apiVersion'] = apiVersion
+        amb_object['name'] = name
+        amb_object['kind'] = kind
+
+        # Done. Parse it.
+        self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
 
     def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
         self.push_location(filename, 1)
@@ -533,7 +585,7 @@ class ResourceFetcher:
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
             'name': name,
-            'datacenter': consul_object.get('id') or 'dc1',
+            'datacenter': consul_object.get('Id') or 'dc1',
             'endpoints': {}
         }
 
@@ -587,7 +639,7 @@ class ResourceFetcher:
             'services': self.services
         }
 
-        self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
+        # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
 
         for key, k8s_svc in self.k8s_services.items():
             # See if we can find endpoints for this service.
@@ -752,4 +804,4 @@ class ResourceFetcher:
             'services': self.services
         }
 
-        self.logger.debug("==== FINALIZE END\n%s" % json.dumps(od, sort_keys=True, indent=4))
+        # self.logger.debug("==== FINALIZE END\n%s" % json.dumps(od, sort_keys=True, indent=4))

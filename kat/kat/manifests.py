@@ -29,7 +29,8 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:11
+    image: quay.io/datawire/kat-backend:12
+    imagePullPolicy: Always
     ports:
     - containerPort: 8080
     env:
@@ -55,7 +56,8 @@ spec:
     spec:
       containers:
       - name: backend
-        image: quay.io/datawire/kat-backend:11
+        image: quay.io/datawire/kat-backend:12
+        imagePullPolicy: Always
         # ports:
         # {ports}
         env:
@@ -92,7 +94,8 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:11
+    image: quay.io/datawire/kat-backend:12
+    imagePullPolicy: Always
     ports:
     - containerPort: 8080
     env:
@@ -130,7 +133,8 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:11
+    image: quay.io/datawire/kat-backend:12
+    imagePullPolicy: Always
     ports:
     - containerPort: 8080
     env:
@@ -168,7 +172,8 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:11
+    image: quay.io/datawire/kat-backend:12
+    imagePullPolicy: Always
     ports:
     - containerPort: 8080
     env:
@@ -176,6 +181,128 @@ spec:
       value: {self.path.k8s}
     - name: KAT_BACKEND_TYPE
       value: grpc_echo
+"""
+
+CRDS = """
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: authservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: authservices
+    singular: authservice
+    kind: AuthService
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mappings.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: mappings
+    singular: mapping
+    kind: Mapping
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: modules.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: modules
+    singular: module
+    kind: Module
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimitservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimitservices
+    singular: ratelimitservice
+    kind: RateLimitService
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tcpmappings.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tcpmappings
+    singular: tcpmapping
+    kind: TCPMapping
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tlscontexts.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tlscontexts
+    singular: tlscontext
+    kind: TLSContext
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tracingservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tracingservices
+    singular: tracingservice
+    kind: TracingService
 """
 
 RBAC_CLUSTER_SCOPE = """
@@ -186,12 +313,13 @@ metadata:
   name: {self.path.k8s}
 rules:
 - apiGroups: [""]
-  resources:
-  - configmaps
-  - services
-  - secrets
-  - namespaces
-  - endpoints
+  resources: [ "services", "secrets", "namespaces", "endpoints" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "*" ]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -222,12 +350,13 @@ metadata:
   name: {self.path.k8s}
 rules:
 - apiGroups: [""]
-  resources:
-  - configmaps
-  - services
-  - secrets
-  - namespaces
-  - endpoints
+  resources: [ "services", "secrets", "namespaces", "endpoints" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "*" ]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
@@ -312,13 +441,13 @@ spec:
       httpGet:
         path: /ambassador/v0/check_alive
         port: 8877
-      initialDelaySeconds: 120
+      initialDelaySeconds: 30
       periodSeconds: 3
     readinessProbe:
       httpGet:
         path: /ambassador/v0/check_ready
         port: 8877
-      initialDelaySeconds: 120
+      initialDelaySeconds: 30
       periodSeconds: 3
   restartPolicy: Always
 """

@@ -170,18 +170,6 @@ If no `AMBASSADOR_ID` is assigned to an Ambassador, it will use the ID `default`
 
 By default, Ambassador will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
 
-## Reconfiguration Timing Configuration
-
-Ambassador is constantly watching for changes to the service annotations. When changes are observed, Ambassador generates a new Envoy configuration and restarts the Envoy handling the heavy lifting of routing. Three environment variables provide control over the timing of this reconfiguration:
-
-- `AMBASSADOR_RESTART_TIME` (default 15) sets the minimum number of seconds between restarts. No matter how often services are changed, Ambassador will never restart Envoy more frequently than this.
-
-- `AMBASSADOR_DRAIN_TIME` (default 5) sets the number of seconds that the Envoy will wait for open connections to drain on a restart. Connections still open at the end of this time will be summarily dropped.
-
-- `AMBASSADOR_SHUTDOWN_TIME` (default 10) sets the number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart. **If Envoy is not able to shut down in this time, the Ambassador pod will exit.** If this happens, it is generally indicative of issues with restarts being attempted too often.
-
-These environment variables can be set much like `AMBASSADOR_NAMESPACE`, above.
-
 ## Configuration From the Filesystem
 
 If desired, Ambassador can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
@@ -195,6 +183,10 @@ Also note that the YAML files in the configuration directory must contain Ambass
 Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
 
 If using Ambassador Pro, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
+
+## Port Assignments
+
+Ambassador uses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador should not use ports in this range on the Ambassador pod.
 
 ## Ambassador Update Checks (Scout)
 
@@ -228,7 +220,6 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `diagnostics` | bool | is the diagnostics service enabled? |
 | `endpoint_grpc_count` | int | count of endpoints to which Ambassador will originate GRPC |
 | `endpoint_http_count` | int | count of endpoints to which Ambassador will originate HTTP or HTTPS |
-| `endpoint_resource_total` | int | total count of `Endpoints` resources loaded from Kubernetes |
 | `endpoint_routing` | bool | is endpoint routing enabled? |
 | `endpoint_routing_envoy_rh_count` | int | count of endpoints being routed using Envoy `ring_hash` |
 | `endpoint_routing_envoy_maglev_count` | int | count of endpoints being routed using Envoy `maglev` |
@@ -248,7 +239,11 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `group_precedence_count` | int | count of groups that explicitly set the precedence of the group |
 | `group_regex_header_count` | int | count of groups using regex header matching |
 | `group_regex_prefix_count` | int | count of groups using regex prefix matching |
+| `group_resolver_consul` | int | count of groups using the Consul resolver |
+| `group_resolver_kube_endpoint` | int | count of groups using the Kubernetes endpoint resolver |
+| `group_resolver_kube_service` | int | count of groups using the Kubernetes service resolver |
 | `group_shadow_count` | int | count of groups using shadows |
+| `group_shadow_weighted_count` | int | count of groups using shadows but not shadowing all traffic |
 | `group_tcp_count` | int | count of TCP Mapping groups |
 | `listener_count` | int | count of active listeners (1 unless `redirect_cleartext_from` or TCP Mappings are in use) |
 | `liveness_probe` | bool | are liveness probes enabled? |
@@ -264,7 +259,8 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `request_ok_count` | int | lower bound for how many requests have succeeded (not a 4xx or 5xx) | 
 | `request_total_count` | int | lower bound for how many requests were handled in total | 
 | `statsd` | bool | is statsd enabled? |
-| `server_name` | str | Overrides `server_name` response header |
+| `server_name` | bool | is the `server_name` response header overridden? |
+| `service_resource_total` | int | total count of service resources loaded from all discovery sources | 
 | `tls_origination_count` | int | count of TLS origination contexts |
 | `tls_termination_count` | int | count of TLS termination contexts |
 | `tls_using_contexts` | bool | is the old TLS module in use? |

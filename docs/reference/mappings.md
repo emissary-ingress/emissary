@@ -25,6 +25,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
+| [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
 | `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
@@ -33,14 +34,14 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`host_regex`](/reference/host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`host_rewrite`](/reference/host) | forces the HTTP `Host` header to a specific value when talking to the service |
 | [`load_balancer`](/reference/core/load-balancer) | configures load balancer on a mapping
-| [`circuit_breakers`](/reference/core/circuit-breaking) | configures circuit breaking on a mapping
 | [`method`](/reference/method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`rate_limits`](/reference/rate-limits) | specifies a list rate limit rules on a mapping |
-| [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |  
+| [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client || [`remove_request_headers`](/reference/remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |    
 | [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
+| [`retry_policy`](/reference/retries) | performs automatic retries upon request failures |
 | [`timeout_ms`](/reference/timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 5000. |
 | [`connect_timeout_ms`](/reference/timeouts)      | the timeout, in milliseconds, for requests coming through the `Cluster` for this `Mapping`. Defaults to 3000. |
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
@@ -69,20 +70,48 @@ These attributes are less commonly used, but can be used to override Ambassador'
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
 
-## Example Mappings
+## Mapping resources and CRDs
 
-Mapping definitions are fairly straightforward. Here's an example for a REST service which Ambassador will contact using HTTP:
+Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions. For example, here is a `Mapping` on a Kubernetes `service`:
 
-```yaml
+```
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: http://qotm
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  qotm_mapping
+      prefix: /qotm/
+      service: http://qotm
+spec:
+  ports:
+  - name: httpbin
+    port: 80
 ```
 
-and a REST service which Ambassador will contact using HTTPS:
+The same `Mapping` can be created as an independent resource:
+
+```
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  qotm_mapping
+spec:
+  prefix: /qotm/
+  service: http://qotm
+```
+
+If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
+
+## Additional Example Mappings
+
+Here's an example for a REST service which Ambassador will contact using HTTPS:
 
 ```yaml
 ---
