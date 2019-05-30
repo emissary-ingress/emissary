@@ -124,7 +124,7 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     echo "AMBASSADOR: starting ads"
-    launch ambex "${ENVOY_DIR}"
+    launch ambex -ads 8003 "${ENVOY_DIR}"
     ambex_pid="$!"
     diagd_flags+=('--kick' "/ambassador/kick_ads.sh ${ambex_pid@Q} ${envoy_flags[*]@Q}")
 else
@@ -168,10 +168,16 @@ fi
 # WORKER: KUBEWATCH                                                            #
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
+    KUBEWATCH_SYNC_KINDS="-s service"
+    if [ ! -f .ambassador_ignore_crds ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+    fi
+
     launch /ambassador/watt \
+           --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "AMBASSADOR_NAMESPACE" } \
            --notify 'sh /ambassador/post_watt.sh' \
-           -s service \
+           "${KUBEWATCH_SYNC_KINDS[@]}" \
            --watch /ambassador/watch_hook.py
 fi
 
