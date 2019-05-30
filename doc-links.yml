@@ -164,6 +164,8 @@
           items:
             - title: Auth0
               link: /reference/idp-support/auth0
+            - title: Azure AD
+              link: /reference/idp-support/azure-AD
             - title: Keycloak
               link: /reference/idp-support/keycloak
             - title: Okta
