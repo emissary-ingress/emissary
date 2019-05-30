@@ -175,7 +175,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 
     launch /ambassador/watt \
            --port 8002 \
-           ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "AMBASSADOR_NAMESPACE" } \
+           ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
            --notify 'sh /ambassador/post_watt.sh' \
            ${KUBEWATCH_SYNC_KINDS} \
            --watch /ambassador/watch_hook.py
