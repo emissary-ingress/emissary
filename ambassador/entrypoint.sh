@@ -104,7 +104,7 @@ launch() {
     #     "$@" &
     # so that the pretty name for the job is the actual command line,
     # instead of the literal 4 characters "$@".
-    eval "${@@Q} &&"
+    eval "${@@Q} &"
 }
 set -m # We need this in order to trap on SIGCHLD
 trap 'jobs -n' CHLD # Notify when a job status changes
