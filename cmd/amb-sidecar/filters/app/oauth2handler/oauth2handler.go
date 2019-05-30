@@ -163,7 +163,8 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			}
 		}
 	default:
-		originalURL, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetScheme() + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
+		// https://github.com/datawire/ambassador/issues/1581
+		originalURL, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetHeaders()["x-forwarded-proto"] + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "failed to construct URL"), nil), nil
@@ -289,7 +290,9 @@ func inArray(needle string, haystack []string) bool {
 
 func (c *OAuth2Filter) getToken(request *filterapi.FilterRequest) (ambassadorBearerToken, error) {
 	// BS to leverage net/http's cookie-parsing
-	r := &http.Request{}
+	r := &http.Request{
+		Header: make(http.Header),
+	}
 	for k, v := range request.GetRequest().GetHttp().GetHeaders() {
 		r.Header.Set(k, v)
 	}
