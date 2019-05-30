@@ -364,6 +364,7 @@ class Diagnostics:
         self.ambassador_elements: Dict[str, dict] = {}
         self.envoy_elements: Dict[str, dict] = {}
         self.ambassador_services: List[dict] = []
+        self.ambassador_resolvers: List[dict] = []
 
         # # Warn people about the default port change.
         # if self.ir.ambassador_module.service_port < 1024:
@@ -468,6 +469,11 @@ class Diagnostics:
         if self.ir.tracing:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
 
+        self.ambassador_resolvers = []
+
+        for name, resolver in sorted(self.ir.resolvers.items()):
+            self.add_ambassador_resolver(resolver)
+
     def add_ambassador_service(self, svc, type_name) -> None:
         """
         Remember information about a given Ambassador-wide service (Auth, RateLimit, Tracing).
@@ -489,6 +495,19 @@ class Diagnostics:
                 'cluster': cluster.name,
                 '_service_weight': svc_weight
             })
+
+    def add_ambassador_resolver(self, resolver) -> None:
+        """
+        Remember information about a given Ambassador-wide resolver.
+
+        :param resolver: resolver record
+        """
+
+        self.ambassador_resolvers.append({
+            'kind': resolver.kind,
+            '_source': resolver.location,
+            'name': resolver.name
+        })
 
     @staticmethod
     def split_key(key) -> Tuple[str, Optional[str]]:
@@ -514,6 +533,7 @@ class Diagnostics:
         return {
             'source_map': self.source_map,
             'ambassador_services': self.ambassador_services,
+            'ambassador_resolvers': self.ambassador_resolvers,
             'ambassador_elements': self.ambassador_elements,
             'envoy_elements': self.envoy_elements,
             'errors': self.errors,
