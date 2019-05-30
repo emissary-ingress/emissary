@@ -25,7 +25,7 @@ import (
 
 const (
 	// AccessTokenCookie cookie's name
-	accessTokenCookie = "ambassador_bearer_token"
+	accessTokenCookie = "access_token"
 )
 
 type ambassadorBearerToken struct {
