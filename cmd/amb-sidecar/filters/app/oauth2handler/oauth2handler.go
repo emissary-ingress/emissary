@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -59,7 +58,7 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	if err != nil {
 		logger.Infoln(errors.Wrapf(err, "proceeding with no %s", accessTokenCookie))
 	} else {
-		err = c.validateAccessToken(token.UpstreamResponse.AccessToken, discovered, logger)
+		err = c.validateAccessToken(token.UpstreamResponse.AccessToken, discovered, httpClient, logger)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil), nil
 		} else {
@@ -173,6 +172,7 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 		for _, s := range c.Arguments.Scopes {
 			scope[s] = struct{}{}
 		}
+		scope["openid"] = struct{}{}
 		authorizationRequestURI, err := oauthClient.AuthorizationRequest(c.Spec.CallbackURL(), scope, c.signState(originalURL, logger))
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
@@ -193,90 +193,104 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	panic("not reached")
 }
 
-func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered, logger types.Logger) error {
-	jwtParser := jwt.Parser{
-		ValidMethods: []string{
-			// Any of the RSA algs supported by jwt-go
-			"RS256",
-			"RS384",
-			"RS512",
-		},
-	}
-
-	var claims jwt.MapClaims
-	_, err := jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
-		// Validates key id header.
-		if t.Header["kid"] == nil {
-			return nil, errors.New("missing kid")
-		}
-
-		kid, ok := t.Header["kid"].(string)
-		if !ok {
-			return nil, errors.New("kid is not a string")
-		}
-
-		// Get RSA public key
-		return discovered.JSONWebKeySet.GetKey(kid)
-	})
+func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
+	req, err := http.NewRequest("GET", discovered.UserInfoEndpoint.String(), nil)
 	if err != nil {
 		return err
 	}
-
-	// ParseWithClaims calls claims.Valid(), so
-	// jwt.MapClaims.Valid() has already validated 'exp', 'iat',
-	// and 'nbf' for us.
-	//
-	// We _could_ make our own implementation of the jwt.Claims
-	// interface that also validates the following things when
-	// ParseWithClaims calls claims.Valid(), but that seems like
-	// more trouble than it's worth.
-
-	// Verifies 'aud' claim.
-	if !claims.VerifyAudience(j.Spec.Audience, false) {
-		return errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], j.Spec.Audience)
+	rfc6750.AddToHeader(token, req.Header)
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return err
 	}
-
-	// Verifies 'iss' claim.
-	if !claims.VerifyIssuer(discovered.Issuer, false) {
-		return errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], discovered.Issuer)
+	if res.StatusCode != 200 {
+		return errors.Errorf("token validation through userinfo endpoint failed: HTTP %d", res.StatusCode)
 	}
-
-	// Validate scopes.
-	if claims["scope"] != nil {
-		var scopes []string
-		switch scope := claims["scope"].(type) {
-		case string:
-			for _, s := range strings.Split(scope, " ") {
-				if s == "" {
-					continue
-				}
-				scopes = append(scopes, s)
-			}
-		case []interface{}: // this seems to be out-of-spec, but UAA does it
-			for _, _s := range scope {
-				s, ok := _s.(string)
-				if !ok {
-					logger.Warningf("Unexpected scope[n] type: %T", _s)
-					continue
-				}
-				scopes = append(scopes, s)
-			}
-		default:
-			logger.Warningf("Unexpected scope type: %T", scope)
-		}
-		// TODO(lukeshu): Verify that this check is
-		// correct; it seems backwards to me.
-		for _, s := range scopes {
-			logger.Debugf("verifying scope '%s'", s)
-			if !inArray(s, j.Arguments.Scopes) {
-				return errors.Errorf("Token scope %v is not in the policy", s)
-			}
-		}
-	} else {
-		logger.Debugf("No scopes to verify")
-	}
-
 	return nil
+
+	// jwtParser := jwt.Parser{
+	// 	ValidMethods: []string{
+	// 		// Any of the RSA algs supported by jwt-go
+	// 		"RS256",
+	// 		"RS384",
+	// 		"RS512",
+	// 	},
+	// }
+
+	// var claims jwt.MapClaims
+	// _, err := jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	// 	// Validates key id header.
+	// 	if t.Header["kid"] == nil {
+	// 		return nil, errors.New("missing kid")
+	// 	}
+
+	// 	kid, ok := t.Header["kid"].(string)
+	// 	if !ok {
+	// 		return nil, errors.New("kid is not a string")
+	// 	}
+
+	// 	// Get RSA public key
+	// 	return discovered.JSONWebKeySet.GetKey(kid)
+	// })
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // ParseWithClaims calls claims.Valid(), so
+	// // jwt.MapClaims.Valid() has already validated 'exp', 'iat',
+	// // and 'nbf' for us.
+	// //
+	// // We _could_ make our own implementation of the jwt.Claims
+	// // interface that also validates the following things when
+	// // ParseWithClaims calls claims.Valid(), but that seems like
+	// // more trouble than it's worth.
+
+	// // Verifies 'aud' claim.
+	// if !claims.VerifyAudience(j.Spec.Audience, false) {
+	// 	return errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], j.Spec.Audience)
+	// }
+
+	// // Verifies 'iss' claim.
+	// if !claims.VerifyIssuer(discovered.Issuer, false) {
+	// 	return errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], discovered.Issuer)
+	// }
+
+	// // Validate scopes.
+	// if claims["scope"] != nil {
+	// 	var scopes []string
+	// 	switch scope := claims["scope"].(type) {
+	// 	case string:
+	// 		for _, s := range strings.Split(scope, " ") {
+	// 			if s == "" {
+	// 				continue
+	// 			}
+	// 			scopes = append(scopes, s)
+	// 		}
+	// 	case []interface{}: // this seems to be out-of-spec, but UAA does it
+	// 		for _, _s := range scope {
+	// 			s, ok := _s.(string)
+	// 			if !ok {
+	// 				logger.Warningf("Unexpected scope[n] type: %T", _s)
+	// 				continue
+	// 			}
+	// 			scopes = append(scopes, s)
+	// 		}
+	// 	default:
+	// 		logger.Warningf("Unexpected scope type: %T", scope)
+	// 	}
+	// 	// TODO(lukeshu): Verify that this check is
+	// 	// correct; it seems backwards to me.
+	// 	for _, s := range scopes {
+	// 		logger.Debugf("verifying scope '%s'", s)
+	// 		if !inArray(s, j.Arguments.Scopes) {
+	// 			return errors.Errorf("Token scope %v is not in the policy", s)
+	// 		}
+	// 	}
+	// } else {
+	// 	logger.Debugf("No scopes to verify")
+	// }
+
+	// return nil
 }
 
 func inArray(needle string, haystack []string) bool {
