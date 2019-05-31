@@ -121,7 +121,6 @@ def v2filter_buffer(gzip: IRGzip, v2config: 'V2Config'):
             'content_type': gzip.content_type,
             'disable_on_etag_header': gzip.disable_on_etag_header,
             'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
-            'window_bits': gzip.window_bits
         }
     }
 

@@ -24,9 +24,10 @@ class IRGzip (IRFilter):
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         self["memory_level"] = self.pop('memory_level', None)
-        self["content_length"] = self.pop('content_length', None)
+        self["content_length"] = self.pop('min_content_length', None)
+        self["compression_level"] = self.pop('compression_level', None)
         self["compression_strategy"] = self.pop('compression_strategy', None)
-        self["content_type"] = self.pop('content_type', None)
+        self["content_type"] = self.pop('content_type', [])
         self["disable_on_etag_header"] = self.pop('disable_on_etag_header', None)
         self["remove_accept_encoding_header"] = self.pop('remove_accept_encoding_header', None)
         
