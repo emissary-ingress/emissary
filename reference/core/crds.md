@@ -67,6 +67,9 @@ rules:
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
+  verbs: ["get", "list", "watch"]
 ```
 
 ## Creating the CRD types within Kubernetes
