@@ -111,29 +111,42 @@ def main(debug):
     cluster_id = os.environ.get('AMBASSADOR_CLUSTER_ID', os.environ.get('AMBASSADOR_SCOUT_ID', None))
     wanted = ambassador_namespace if ambassador_single_namespace else "default"
 
+    # Go ahead and try connecting to Kube.
+    v1 = kube_v1()
+
+    # OK. Do the cluster ID dance. If we already have one from the environment,
+    # we're good.
+
     if cluster_id:
         found = "environment"
-    else:
+    elif v1:
+        # No ID from the environment, but we can try a lookup using Kube.
         logger.debug("looking up ID for namespace %s" % wanted)
 
-        v1 = kube_v1()
+        try:
+            ret = v1.read_namespace(wanted)
+            root_id = ret.metadata.uid
+            found = "namespace %s" % wanted
+        except ApiException as e:
+            # This means our namespace wasn't found?
+            logger.error("couldn't read namespace %s? %s" % (wanted, e))
 
-        if v1:
-            try:
-                ret = v1.read_namespace(wanted)
-                root_id = ret.metadata.uid
-                found = "namespace %s" % wanted
-            except ApiException as e:
-                # This means our namespace wasn't found?
-                logger.error("couldn't read namespace %s? %s" % (wanted, e))
+    if not root_id:
+        # OK, so we had a crack at this and something went wrong. Give up and hardcode
+        # something.
+        root_id = "00000000-0000-0000-0000-000000000000"
+        found = "hardcoded ID"
 
-            if not root_id:
-                # OK, so we had a crack at this and something went wrong. Give up and hardcode
-                # something.
-                root_id = "00000000-0000-0000-0000-000000000000"
-                found = "hardcoded ID"
-        else:
-            logger.error("could not connect to Kubernetes")
+    # One way or the other, we need to generate an ID here.
+    cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
+    logger.debug("cluster ID URL is %s" % cluster_url)
+
+    cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
+
+    # How about CRDs?
+
+    if v1:
+        # We were able to connect to Kube, so let's try to check for missing CRDs too.
 
         required_crds = [
             'authservices.getambassador.io',
@@ -164,22 +177,21 @@ def main(debug):
                 else:
                     logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
 
-        if crd_errors:
-            Path('.ambassador_ignore_crds').touch()
-            logger.debug('CRDs are not available.' +
-                         ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
-                         ' then restart the Ambassador pod.')
+            if crd_errors:
+                Path('.ambassador_ignore_crds').touch()
+                logger.debug('CRDs are not available.' +
+                             ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
+                             ' then restart the Ambassador pod.')
+    else:
+        # If we couldn't talk to Kube, log that, but broadly we'll expect our caller
+        # to DTRT around CRDs.
 
-        # One way or the other, we need to generate an ID here.
-        cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
-        logger.debug("cluster ID URL is %s" % cluster_url)
+        logger.debug('Kubernetes is not available, so not doing CRD check')
 
-        cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
-
+    # Finally, spit out the cluster ID for our caller.
     logger.debug("cluster ID is %s (from %s)" % (cluster_id, found))
 
     print(cluster_id)
-
 
 if __name__ == "__main__":
     main()

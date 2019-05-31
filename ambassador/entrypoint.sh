@@ -41,6 +41,7 @@ export ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
 export ENVOY_BOOTSTRAP_FILE="${AMBASSADOR_CONFIG_BASE_DIR}/bootstrap-ads.json"
 
 export APPDIR="${APPDIR:-$ambassador_root}"
+
 # If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by
 # default, which fails when running as a non-privileged user
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$APPDIR}/.cache"
@@ -48,8 +49,11 @@ export PYTHONUNBUFFERED=true
 
 config_dir="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
 snapshot_dir="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
-envoy_config_file="${ENVOY_DIR}/envoy.json"
 diagd_flags=('--notices' "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json")
+
+# Note that the envoy_config_file really is in ENVOY_DIR, rather than
+# being in AMBASSADOR_CONFIG_BASE_DIR.
+envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
 envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}")
 
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
@@ -62,6 +66,13 @@ if [[ "$1" == "--demo" ]]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
     # It's baked into a specific location during the build process.
     config_dir="$ambassador_root/ambassador-demo-config"
+
+    # Remember that we're running the demo in a way that we can later log
+    # about...
+    AMBASSADOR_DEMO_MODE=true
+
+    # ...and remember that we mustn't try to start Kubewatch at all.
+    AMBASSADOR_NO_KUBEWATCH=demo
 fi
 
 # Do we have config on the filesystem?
@@ -76,15 +87,18 @@ if [[ $(find "${config_dir}" -type f 2>/dev/null | wc -l) -gt 0 ]]; then
     fi
 fi
 
-# Start using ancient kubewatch to get our cluster ID.
+# Start using ancient kubewatch to get our cluster ID, if we're allowed to.
 # XXX Ditch this, really.
 #
 # We can do this unconditionally because if AMBASSADOR_CLUSTER_ID was
-# set before, kubewatch sync will use it.
+# set before, kubewatch sync will use it, and also because kubewatch.py
+# will DTRT if Kubernetes is not available.
+
 if ! AMBASSADOR_CLUSTER_ID=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug); then
     echo "AMBASSADOR: could not determine cluster-id; exiting"
     exit 1
 fi
+
 export AMBASSADOR_CLUSTER_ID
 
 echo "AMBASSADOR: starting with environment:"
@@ -114,7 +128,7 @@ trap 'echo "Received SIGINT (Control-C?); shutting down"; jobs -p | xargs -r kil
 ################################################################################
 # WORKER: DEMO                                                                 #
 ################################################################################
-if [[ "$1" == "--demo" ]]; then
+if [[ -n "$AMBASSADOR_DEMO_MODE" ]]; then
     launch env PORT=5050 python3 demo-services/auth.py
     launch python3 demo-services/qotm.py
 fi
@@ -186,6 +200,11 @@ fi
 ################################################################################
 echo "AMBASSADOR: waiting"
 echo "AMBASSADOR: worker PIDs:" $(jobs -p)
+
+if [[ -n "$AMBASSADOR_DEMO_MODE" ]]; then
+    echo "AMBASSADOR DEMO RUNNING"
+fi
+
 wait -n
 r=$?
 echo 'AMBASSADOR: one of the worker processes has exited; shutting down the others'
