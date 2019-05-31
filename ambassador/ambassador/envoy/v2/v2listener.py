@@ -23,6 +23,7 @@ from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irauth import IRAuth
 from ...ir.irbuffer import IRBuffer
+from ...ir.irgzip import IRGzip
 from ...ir.irfilter import IRFilter
 from ...ir.irratelimit import IRRateLimit
 from ...ir.ircors import IRCORS
@@ -103,6 +104,24 @@ def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
         'name': 'envoy.buffer',
         'config': {
             "max_request_bytes": buffer.max_request_bytes
+        }
+    }
+
+@v2filter.when("IRGzip")
+def v2filter_buffer(gzip: IRGzip, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
+    return {
+        'name': 'envoy.gzip',
+        'config': {
+            'memory_level': gzip.memory_level,
+            'content_length': gzip.content_length,
+            'compression_level': gzip.compression_level,
+            'compression_strategy': gzip.compression_strategy,
+            'content_type': gzip.content_type,
+            'disable_on_etag_header': gzip.disable_on_etag_header,
+            'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
+            'window_bits': gzip.window_bits
         }
     }
 
