@@ -110,7 +110,9 @@ def test_docker():
     if not DockerImage:
         assert False, f'You must set $AMBASSADOR_DOCKER_IMAGE'
     else:
-        asyncio.run(asynchronicity())
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(asynchronicity())
+        loop.close()
 
 if __name__ == '__main__':
     test_docker()
