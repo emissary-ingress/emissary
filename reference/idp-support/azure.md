@@ -35,10 +35,9 @@ After configuring an OAuth application in Azure AD, configuring Ambassador to ma
     spec:
       OAuth2:
         # Azure AD openid-configuration endpoint can be found at https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
-        authorizationURL: https://login.microsoftonline.com/common/v2.0 
+        authorizationURL: https://login.microsoftonline.com/{{TENANT_ID}}/v2.0 
         # The clientURL is the scheme and Host of your Ambassador endpoint
-        clientURL: http(s)://{{AMBASSADOR_URL}}
-        audience: 
+        clientURL: https://{{AMBASSADOR_URL}}
         # Client ID from step 3 above
         clientID: CLIENT_ID
         # Secret created in step 5 above
