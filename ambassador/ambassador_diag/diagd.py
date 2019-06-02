@@ -542,6 +542,11 @@ def source_lookup(name, sources):
     return source.get('_source', name)
 
 
+@app.route('/metrics', methods=['GET'])
+@standard_handler
+def get_prometheus_metrics(*args, **kwargs):
+    return app.estats.get_prometheus_state()
+
 class AmbassadorEventWatcher(threading.Thread):
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AmbassadorEventWatcher", daemon=True)

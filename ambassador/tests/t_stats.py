@@ -1,4 +1,5 @@
 import os
+import re
 
 from kat.harness import Query
 from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
@@ -118,6 +119,52 @@ service: http://{self.target.path.fqdn}
 
     def check(self):
         assert 0 < self.results[-1].json[0]['datapoints'][0][0] <= 1000
+
+
+class PrometheusTest(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+        if DEV:
+            self.skip_node = True
+
+    def manifests(self) -> str:
+        envs = ""
+        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+                           envs=envs, extra_ports="")
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  metrics
+prefix: /metrics
+rewrite: /metrics
+service: http://127.0.0.1:8877
+""")
+
+    def queries(self):
+        for i in range(1000):
+            yield Query(self.url(self.name + "/"), phase=1)
+
+        yield Query(self.url("metrics"), phase=2)
+
+    def check(self):
+        metrics = self.results[-1].text
+        wanted_metric = 'envoy_cluster_internal_upstream_rq'
+        wanted_status = 'envoy_response_code="200"'
+        wanted_cluster_name = 'envoy_cluster_name="cluster_http___prometheustest_http'
+
+        for line in metrics.split("\n"):
+            if wanted_metric in line and wanted_status in line and wanted_cluster_name in line:
+                return
+        assert False, 'wanted metric not found in prometheus metrics'
 
 
 class DogstatsdTest(AmbassadorTest):
