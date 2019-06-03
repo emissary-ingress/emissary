@@ -9,6 +9,7 @@ import t_extauth
 import t_grpc
 import t_grpc_bridge
 import t_grpc_web
+import t_gzip
 import t_headerrouting
 import t_loadbalancer
 import t_lua_scripts
