@@ -16,6 +16,8 @@ spec:
       containers:
       - name: statsd-sink
         image: prom/statsd-exporter:v0.8.1
+        args:
+        - --statsd.listen-udp=":8125"
         resources: {}
       restartPolicy: Always
 status: {}
