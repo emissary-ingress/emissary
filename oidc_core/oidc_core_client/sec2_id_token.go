@@ -2,22 +2,26 @@ package oidc_core_client
 
 import (
 	"encoding/json"
+	"net/url"
+	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 )
 
-// §2
+// IDTokenClaims implements JWT-claim handling for an ID token, as
+// specified by §2.
 type IDTokenClaims struct {
-	Issuer                              *net.URL
-	Subject                             string
-	Audiences                           []string
-	ExpiresAt                           time.Time
-	IssuedAt                            time.Time
-	AuthTime                            time.Time
-	Nonce                               string
-	AuthenticationContextClassReference string
-	AuthenticationMethodsReferences     []string
-	AuthorizedParty                     string
+	Issuer                              *net.URL  `json:"iss"`
+	Subject                             string    `json:"sub"`
+	Audiences                           []string  `json:"aud"`
+	ExpiresAt                           time.Time `json:"exp"`
+	IssuedAt                            time.Time `json:"iat"`
+	AuthenticatedAt                     time.Time `json:"auth_time"`
+	Nonce                               string    `json:"nonce"`
+	AuthenticationContextClassReference string    `json:"arc"`
+	AuthenticationMethodsReferences     []string  `json:"amr"`
+	AuthorizedParty                     string    `json:"azp"`
 }
 
 type rawIDTokenClaims struct {
@@ -26,13 +30,14 @@ type rawIDTokenClaims struct {
 	Audiences                           jsonStringOrStringList `json:"aud"`
 	ExpiresAt                           jsonUnixTime           `json:"exp"`
 	IssuedAt                            jsonUnixTime           `json:"iat"`
-	AuthTime                            jsonUnixTime           `json:"auth_time"`
+	AuthenticatedAt                     jsonUnixTime           `json:"auth_time"`
 	Nonce                               string                 `json:"nonce"`
 	AuthenticationContextClassReference string                 `json:"arc"`
 	AuthenticationMethodsReferences     []string               `json:"amr"`
 	AuthorizedParty                     string                 `json:"azp"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler.
 func (idt *IDTokenClaims) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		*idt = nil
@@ -49,7 +54,7 @@ func (idt *IDTokenClaims) UnmarshalJSON(data []byte) error {
 		Audiences:                           raw.Audiences.Value,
 		ExpiresAt:                           raw.ExpiresAt.Value,
 		IssuedAt:                            raw.IssuedAt.Value,
-		AuthTime:                            raw.AuthTime.Value,
+		AuthenticatedAt:                     raw.AuthenticateAt.Value,
 		Nonce:                               raw.Nonce,
 		AuthenticationContextClassReference: raw.AuthenticationContextClassReference,
 		AuthenticationMethodsReferences:     raw.AuthenticationMethodsReferences,
@@ -58,9 +63,63 @@ func (idt *IDTokenClaims) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+//type idtokenContext struct {
+//	ClientID         string
+//	AuthTimeRequired bool
+//	Nonce            string
+//}
+
 // Valid implements jwt.Claims.
 func (idt IDTokenClaims) Valid() error {
-	// TODO
+	now := time.Now()
+
+	if !strings.EqualFold(idt.Issuer.Scheme, "https") {
+		return errors.Errorf("claim %q URL must use %q scheme: %q", "iss", "https", idt.Issuer.String())
+	}
+	if idt.Issuer.RawQuery != "" {
+		return errors.Errorf("claim %q URL must not include a query component", "iss", idt.Issuer.String())
+	}
+	if idt.Issuer.Fragment != "" {
+		return errors.Errorf("claim %q URL must not include a fragment component", "iss", idt.Issuer.String())
+	}
+
+	if len(idt.Subject) > 255 {
+		return errors.Errorf("claim %q must not exceed 255 octets in length: %q", "sub", idt.Subject)
+	}
+
+	//if !inArray(ctx.ClientID.Audiences) {
+	//	return errors.Errorf("claim %q does not contain client_id %q", "aud", ctx.ClientID)
+	//}
+
+	if idt.ExpiresAt.Before(now) {
+		return errors.Errorf("claim %q is expired: exp=%v < now=%v", "exp", idt.ExpiresAt, now)
+	}
+
+	if !idt.IssuedAt.Before(now) {
+		return errors.Errorf("claim %q was issued in the future: iat=%v > now=%v", "iat", idt.IssuedAt, now)
+	}
+
+	if idt.AuthenticatedAt.IsZero() {
+		//if ctx.AuthTimeRequired {
+		//	return errors.Errorf("claim %q was requested but is not present", "auth_time")
+		//}
+	} else {
+		if !idt.AuthenticatedAt.Before(now) {
+			return errors.Errorf("claim %q was issued in the future: auth_time=%v > now=%v", "auth_time", idt.AuthenticatedAt, now)
+		}
+	}
+
+	//if ctx.Nonce != "" && idt.Nonce != ctx.Nonce {
+	//	return errors.Errorf("claim %d doesn't match: requested=%q != received=%q", nonce, ctx.Nonce, idt.Nonce)
+	//}
+	// The specification of azp is a clusterfuck
+
+	// https://bitbucket.org/openid/connect/issues/973/
+	//if idt.AuthorizedParty != "" && idt.AuthorizedParty != ctx.ClientID {
+	//	return errors.Errorf("claim %q does not match client_id %q: %q", "azp", ctx.ClientID, idt.AuthorizedParty)
+	//}
+
+	return nil
 }
 
 var _ jwt.Claims = IDTokenClaims{}
