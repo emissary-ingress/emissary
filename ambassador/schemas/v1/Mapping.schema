@@ -75,7 +75,10 @@
         "retry_policy": {
             "type": "object",
             "properties": {
-                "retry_on":  { "type": "string" },
+                "retry_on":  {
+                    "type": "string",
+                    "enum": ["5xx", "gateway-error", "connect-failure", "retriable-4xx", "refused-stream", "retriable-status-codes"]
+                },
                 "num_retries": { "type": "integer" },
                 "per_try_timeout": { "type": "string" }
             },
