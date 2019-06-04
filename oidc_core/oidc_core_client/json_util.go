@@ -12,7 +12,7 @@ type jsonStringOrStringList struct {
 
 func (jo *jsonStringOrStringList) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		*jo = nil
+		*jo = jsonStringOrStringList{Value: nil}
 		return nil
 	}
 
@@ -40,7 +40,7 @@ type jsonURL struct {
 
 func (jo *jsonURL) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		*jo = nil
+		*jo = jsonURL{Value: nil}
 		return nil
 	}
 
@@ -56,13 +56,13 @@ func (jo *jsonURL) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type jsonUnixtime struct {
+type jsonUnixTime struct {
 	Value time.Time
 }
 
 func (jo *jsonUnixTime) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		*jo = nil
+		*jo = jsonUnixTime{}
 		return nil
 	}
 

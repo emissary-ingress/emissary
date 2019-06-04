@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"strings"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
@@ -12,7 +13,7 @@ import (
 // IDTokenClaims implements JWT-claim handling for an ID token, as
 // specified by §2.
 type IDTokenClaims struct {
-	Issuer                              *net.URL  `json:"iss"`
+	Issuer                              *url.URL  `json:"iss"`
 	Subject                             string    `json:"sub"`
 	Audiences                           []string  `json:"aud"`
 	ExpiresAt                           time.Time `json:"exp"`
@@ -40,7 +41,7 @@ type rawIDTokenClaims struct {
 // UnmarshalJSON implements json.Unmarshaler.
 func (idt *IDTokenClaims) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		*idt = nil
+		*idt = IDTokenClaims{}
 		return nil
 	}
 
@@ -54,7 +55,7 @@ func (idt *IDTokenClaims) UnmarshalJSON(data []byte) error {
 		Audiences:                           raw.Audiences.Value,
 		ExpiresAt:                           raw.ExpiresAt.Value,
 		IssuedAt:                            raw.IssuedAt.Value,
-		AuthenticatedAt:                     raw.AuthenticateAt.Value,
+		AuthenticatedAt:                     raw.AuthenticatedAt.Value,
 		Nonce:                               raw.Nonce,
 		AuthenticationContextClassReference: raw.AuthenticationContextClassReference,
 		AuthenticationMethodsReferences:     raw.AuthenticationMethodsReferences,
