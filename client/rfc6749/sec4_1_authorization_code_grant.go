@@ -1,4 +1,4 @@
-package rfc6749client
+package rfc6749
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/liboauth2/rfc6749/rfc6749registry"
+	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // An AuthorizationCodeClient is a Client that utilizes the
@@ -179,7 +179,7 @@ func (r AuthorizationCodeAuthorizationErrorResponse) GetState() string { return 
 // ErrorMeaning returns a human-readable meaning of the .Error code.
 // Returns an empty string for unknown error codes.
 func (r AuthorizationCodeAuthorizationErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749registry.GetAuthorizationCodeGrantError(r.Error)
+	ecode := rfc6749.GetAuthorizationCodeGrantError(r.Error)
 	if ecode == nil {
 		return ""
 	}
@@ -187,11 +187,11 @@ func (r AuthorizationCodeAuthorizationErrorResponse) ErrorMeaning() string {
 }
 
 func newAuthorizationCodeError(name, meaning string) {
-	rfc6749registry.ExtensionError{
+	rfc6749.ExtensionError{
 		Name:    name,
 		Meaning: meaning,
-		UsageLocations: []rfc6749registry.ErrorUsageLocation{
-			rfc6749registry.AuthorizationCodeGrantErrorResponse,
+		UsageLocations: []rfc6749.ErrorUsageLocation{
+			rfc6749.AuthorizationCodeGrantErrorResponse,
 		},
 	}.Register()
 }

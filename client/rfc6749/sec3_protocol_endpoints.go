@@ -1,4 +1,4 @@
-package rfc6749client
+package rfc6749
 
 import (
 	"net/url"

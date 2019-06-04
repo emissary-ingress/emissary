@@ -1,4 +1,4 @@
-package rfc6749client
+package rfc6749
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/liboauth2/rfc6749/rfc6749registry"
+	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // parseTokenResponse parses a response from a Token Endpoint, per §5.
@@ -65,7 +65,7 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		}
 		return ret, nil
 	case res.StatusCode/100 == 4:
-		// The spec says "400, unless otherwise specified".  rfc6749registry doesn't (yet?) keep track of HTTP
+		// The spec says "400, unless otherwise specified".  rfc6749 doesn't (yet?) keep track of HTTP
 		// statuses associated with different error codes.  Even if it did, Auth0 returns 403 for
 		// error=invalid_grant, when the spec is clear that it should be using 400 for that.  Assuming that
 		// anything in the 4XX range suggests an Error Response seams reasonable.
@@ -165,7 +165,7 @@ func (r TokenErrorResponse) isTokenResponse() {}
 // ErrorMeaning returns a human-readable meaning of the .Error code.
 // Returns an emtpy string for unknown error codes.
 func (r TokenErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749registry.GetTokenError(r.Error)
+	ecode := rfc6749.GetTokenError(r.Error)
 	if ecode == nil {
 		return ""
 	}
@@ -173,11 +173,11 @@ func (r TokenErrorResponse) ErrorMeaning() string {
 }
 
 func newTokenError(name, meaning string) {
-	rfc6749registry.ExtensionError{
+	rfc6749.ExtensionError{
 		Name:    name,
 		Meaning: meaning,
-		UsageLocations: []rfc6749registry.ErrorUsageLocation{
-			rfc6749registry.TokenErrorResponse,
+		UsageLocations: []rfc6749.ErrorUsageLocation{
+			rfc6749.TokenErrorResponse,
 		},
 	}.Register()
 }

@@ -17,13 +17,11 @@ Client, or the Resource Server.
 
 ## Primary specifications
 
-
-| Specification                   | Name                             | Package                                                       |
-|---------------------------------|----------------------------------|---------------------------------------------------------------|
-| RFC 6749 (Authorization Server) | OAuth 2.0 (Authorization Server) | not implemented                                               |
-| RFC 6749 (Client)               | OAuth 2.0 (Client)               | `github.com/datawire/liboauth2/rfc6749/rfc6749client`         |
-| RFC 6749 (Resource Server)      | OAuth 2.0 (Resource Server)      | `github.com/datawire/liboauth2/rfc6749/rfc6749resourceserver` |
-| RFC 6750                        | OAuth 2.0 Bearer tokens          | `github.com/datawire/liboauth2/rfc6750`                       |
+| Specification | Name                    | Client package                                   | Resource Server package                                | Authorization Server package |
+|---------------|-------------------------|--------------------------------------------------|--------------------------------------------------------|------------------------------|
+| RFC 6749      | OAuth 2.0               | `github.com/datawire/liboauth2/client/rfc6749`   | not implemented                                        | not implemented              |
+| RFC 6750      | OAuth 2.0 Bearer tokens | `github.com/datawire/liboauth2/client/rfc6750`   | `github.com/datawire/liboauth2/resourceserver/rfc6750` | N/A                          |
+| OIDC Core     | OIDC Core               | `github.com/datawire/liboauth2/client/oidc_core` | not implemented                                        | not implemented              |
 
 ## Dependency specifications
 

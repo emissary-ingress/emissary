@@ -1,4 +1,4 @@
-package oidc_core_client
+package oidc_core
 
 import (
 	"encoding/json"

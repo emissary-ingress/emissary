@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/datawire/liboauth2/rfc6749/rfc6749client"
+	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
 func mustParseURL(s string) *url.URL {
@@ -46,18 +46,18 @@ var errorResponsePage = template.Must(template.New("error-response-page").Parse(
 `))
 
 func main() {
-	client, err := rfc6749client.NewAuthorizationCodeClient(
+	client, err := rfc6749.NewAuthorizationCodeClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
 		mustParseURL("https://authorization-server.example.com/token"),
-		rfc6749client.ClientPasswordHeader("example-client", "example-password"),
+		rfc6749.ClientPasswordHeader("example-client", "example-password"),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	http.HandleFunc("/action", func(w http.ResponseWriter, r *http.Request) {
-		u, err := client.AuthorizationRequest(mustParseURL("https://example-client.example.com/redirection"), rfc6749client.Scope{
+		u, err := client.AuthorizationRequest(mustParseURL("https://example-client.example.com/redirection"), rfc6749.Scope{
 			"scope-a": struct{}{},
 			"scope-B": struct{}{},
 		}, "mystate")
@@ -77,23 +77,23 @@ func main() {
 			http.Error(w, "invalid state (likely XSRF attempt)", http.StatusBadRequest)
 		}
 		switch authorizationResponse := authorizationResponse.(type) {
-		case rfc6749client.AuthorizationCodeAuthorizationErrorResponse:
+		case rfc6749.AuthorizationCodeAuthorizationErrorResponse:
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusUnauthorized)
 			errorResponsePage.Execute(w, authorizationResponse)
 			return
-		case rfc6749client.AuthorizationCodeAuthorizationSuccessResponse:
+		case rfc6749.AuthorizationCodeAuthorizationSuccessResponse:
 			tokenResponse, err := client.AccessToken(nil, authorizationResponse.Code, mustParseURL("https://example-client.example.com/redirection"))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadGateway)
 			}
 			switch tokenResponse := tokenResponse.(type) {
-			case rfc6749client.TokenErrorResponse:
+			case rfc6749.TokenErrorResponse:
 				w.Header().Set("Content-Type", "text/html")
 				w.WriteHeader(http.StatusUnauthorized)
 				errorResponsePage.Execute(w, tokenResponse)
 				return
-			case rfc6749client.TokenSuccessResponse:
+			case rfc6749.TokenSuccessResponse:
 				// TODO
 			}
 		}

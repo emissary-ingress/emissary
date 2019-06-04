@@ -1,4 +1,4 @@
-package rfc6749registry
+package rfc6749
 
 import (
 	"github.com/pkg/errors"

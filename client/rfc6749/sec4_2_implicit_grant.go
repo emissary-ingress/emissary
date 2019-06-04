@@ -1,4 +1,4 @@
-package rfc6749client
+package rfc6749
 
 import (
 	"net/url"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/liboauth2/rfc6749/rfc6749registry"
+	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // An ImplicitClient is a Client that utilizes the "Implicit"
@@ -180,7 +180,7 @@ func (r ImplicitAccessTokenErrorResponse) GetState() string { return r.State }
 // ErrorMeaning returns a human-readable meaning of the .Error code.
 // Returns an emtpy string for unknown error codes.
 func (r ImplicitAccessTokenErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749registry.GetImplicitGrantError(r.Error)
+	ecode := rfc6749.GetImplicitGrantError(r.Error)
 	if ecode == nil {
 		return ""
 	}
@@ -188,11 +188,11 @@ func (r ImplicitAccessTokenErrorResponse) ErrorMeaning() string {
 }
 
 func newImplicitAccessTokenError(name, meaning string) {
-	rfc6749registry.ExtensionError{
+	rfc6749.ExtensionError{
 		Name:    name,
 		Meaning: meaning,
-		UsageLocations: []rfc6749registry.ErrorUsageLocation{
-			rfc6749registry.ImplicitGrantErrorResponse,
+		UsageLocations: []rfc6749.ErrorUsageLocation{
+			rfc6749.ImplicitGrantErrorResponse,
 		},
 	}.Register()
 }
