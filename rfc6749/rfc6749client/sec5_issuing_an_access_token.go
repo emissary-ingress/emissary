@@ -21,7 +21,7 @@ import (
 // This will NOT close the response Body for you.
 func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 	switch {
-	case  res.StatusCode == http.StatusOK:
+	case res.StatusCode == http.StatusOK:
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
 		if err != nil {
 			return nil, err
