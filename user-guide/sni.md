@@ -2,8 +2,6 @@
 
 Ambassador lets you supply separate TLS certificates for different domains, instead of using a single TLS certificate for all domains. This allows Ambassador to serve multiple secure connections on the same IP address without requiring all websites to use the same certificate. Ambassador supports this use case through its support of Server Name Indication, an extension to the TLS protocol.
 
-Note: SNI is only available since the [0.50 early access release](/user-guide/early-access).
-
 ## Configuring SNI
 
 1. Create a TLS certificate, and store the secret in a Kubernetes secret.
