@@ -120,9 +120,6 @@ class V2Route(dict):
                 cors = config.ir.ambassador_module.cors.as_dict()
 
             if cors:
-                for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
-                    cors.pop(key, None)
-
                 route['cors'] = cors
 
             retry_policy = None
@@ -133,9 +130,6 @@ class V2Route(dict):
                 retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
 
             if retry_policy:
-                for key in [ "_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name" ]:
-                    retry_policy.pop(key, None)
-
                 route['retry_policy'] = retry_policy
 
             # Is shadowing enabled?
