@@ -64,3 +64,11 @@ class IRCORS (IRResource):
         else:
             return value
 
+    def as_dict(self) -> dict:
+        raw_dict = super().as_dict()
+
+        for key in list(raw_dict):
+            if key in ["_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name"]:
+                raw_dict.pop(key, None)
+
+        return raw_dict

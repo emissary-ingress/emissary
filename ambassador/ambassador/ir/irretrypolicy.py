@@ -33,7 +33,16 @@ class IRRetryPolicy (IRResource):
         retry_on = self.get('retry_on', None)
 
         is_valid = False
-        if retry_on in [ '5xx', 'gateway-error', 'connect-failure', 'retriable-4xx', 'refused-stream', 'retriable-status-codes' ]:
+        if retry_on in {'5xx', 'gateway-error', 'connect-failure', 'retriable-4xx', 'refused-stream', 'retriable-status-codes'}:
             is_valid = True
 
         return is_valid
+
+    def as_dict(self) -> dict:
+        raw_dict = super().as_dict()
+
+        for key in list(raw_dict):
+            if key in ["_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name"]:
+                raw_dict.pop(key, None)
+
+        return raw_dict
