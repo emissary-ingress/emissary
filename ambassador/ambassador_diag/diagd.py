@@ -261,7 +261,7 @@ def td_format(td_object):
         if seconds > period_seconds:
             period_value, seconds = divmod(seconds, period_seconds)
 
-            strings.append("%d %s%s" % 
+            strings.append("%d %s%s" %
                            (period_value, period_name, "" if (period_value == 1) else "s"))
 
     formatted = ", ".join(strings)
@@ -410,7 +410,7 @@ def show_overview(reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     tvars = dict(system=system_info(),
-                 envoy_status=envoy_status(app.estats), 
+                 envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
                  **ov, **ddict)
