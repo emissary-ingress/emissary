@@ -11,6 +11,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/liboauth2/common/rfc6749"
+
+	// Register error codes shared between client and
+	// resourceserver.
 	_ "github.com/datawire/liboauth2/common/rfc6750"
 )
 

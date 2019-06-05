@@ -125,6 +125,7 @@ type rawTokenErrorResponse struct {
 	ErrorURI         *string `json:"error_uri,omitempty"`
 }
 
+// UnmarshalJSON implements json.Unmarshaler.
 func (r *TokenErrorResponse) UnmarshalJSON(bodyBytes []byte) error {
 	var rawResponse rawTokenErrorResponse
 	err := json.Unmarshal(bodyBytes, &rawResponse)
@@ -147,6 +148,7 @@ func (r *TokenErrorResponse) UnmarshalJSON(bodyBytes []byte) error {
 	return nil
 }
 
+// MarshalJSON implements json.Marshaler.
 func (r TokenErrorResponse) MarshalJSON() ([]byte, error) {
 	var rawResponse rawTokenErrorResponse
 	rawResponse.Error = &r.Error
