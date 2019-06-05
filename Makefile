@@ -485,6 +485,13 @@ ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
 	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
+else
+ifneq ($(USE_KUBERNAUT),)
+ifneq ($(USE_KUBERNAUT),false)
+	@echo "USE_KUBERNAUT must be true, false, or unset" >&2
+	false
+endif
+endif
 endif
 
 setup-test: cluster-and-teleproxy
